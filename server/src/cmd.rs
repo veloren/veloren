@@ -1201,7 +1201,7 @@ fn handle_spawn(
 
                 let body = body();
                 let loadout = LoadoutBuilder::from_default(&body).build();
-                let inventory = Inventory::new_with_loadout(loadout);
+                let inventory = Inventory::with_loadout(loadout, body);
 
                 let mut entity_base = server
                     .state
@@ -1293,7 +1293,7 @@ fn handle_spawn_training_dummy(
             skill_set,
             Some(health),
             poise,
-            Inventory::new_empty(),
+            Inventory::with_empty(),
             body,
         )
         .with(comp::Vel(vel))

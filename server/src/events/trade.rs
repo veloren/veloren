@@ -428,12 +428,12 @@ mod tests {
 
         let player: EcsEntity = mockworld
             .create_entity()
-            .with(Inventory::new_empty())
+            .with(Inventory::with_empty())
             .build();
 
         let merchant: EcsEntity = mockworld
             .create_entity()
-            .with(Inventory::new_empty())
+            .with(Inventory::with_empty())
             .build();
 
         {

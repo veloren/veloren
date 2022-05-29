@@ -17,7 +17,7 @@ fn maps_wield_while_equipping() {
             "common.items.weapons.axe.starter_axe",
         )))
         .build();
-    let inventory = Inventory::new_with_loadout(loadout);
+    let inventory = Inventory::with_loadout_humanoid(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::Equipping(states::equipping::Data {
@@ -45,7 +45,7 @@ fn maps_unwield() {
             "common.items.weapons.bow.starter",
         )))
         .build();
-    let inventory = Inventory::new_with_loadout(loadout);
+    let inventory = Inventory::with_loadout_humanoid(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::default(),
@@ -67,7 +67,7 @@ fn maps_basic_melee() {
             "common.items.weapons.axe.starter_axe",
         )))
         .build();
-    let inventory = Inventory::new_with_loadout(loadout);
+    let inventory = Inventory::with_loadout_humanoid(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::BasicMelee(states::basic_melee::Data {
@@ -118,7 +118,7 @@ fn matches_ability_stage() {
             "common.items.weapons.sword.starter",
         )))
         .build();
-    let inventory = Inventory::new_with_loadout(loadout);
+    let inventory = Inventory::with_loadout_humanoid(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::ComboMelee(states::combo_melee::Data {
@@ -180,7 +180,7 @@ fn ignores_different_ability_stage() {
             "common.items.weapons.axe.starter_axe",
         )))
         .build();
-    let inventory = Inventory::new_with_loadout(loadout);
+    let inventory = Inventory::with_loadout_humanoid(loadout);
 
     let result = CombatEventMapper::map_event(
         &CharacterState::ComboMelee(states::combo_melee::Data {

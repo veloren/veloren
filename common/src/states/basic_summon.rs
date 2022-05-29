@@ -179,7 +179,7 @@ impl CharacterBehavior for Data {
                             skill_set,
                             health,
                             poise: comp::Poise::new(body),
-                            inventory: comp::Inventory::new_with_loadout(loadout),
+                            inventory: comp::Inventory::with_loadout(loadout, body),
                             body,
                             agent: Some(
                                 comp::Agent::from_body(&body)

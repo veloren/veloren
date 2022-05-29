@@ -8,6 +8,7 @@ use vek::Vec3;
 
 use crate::{
     comp::{
+        body::Body,
         inventory::{
             item::{tool::AbilityMap, ItemDef, ItemKind, MaterialStatManifest, TagExampleInfo},
             loadout::Loadout,
@@ -80,13 +81,31 @@ impl InventorySortOrder {
 /// that contains items etc) must first ensure items are unloaded from the item.
 /// This is handled in `inventory\slot.rs`
 impl Inventory {
-    pub fn new_empty() -> Inventory { Self::new_with_loadout(LoadoutBuilder::empty().build()) }
+    pub fn with_empty() -> Inventory {
+        Self::with_loadout_humanoid(LoadoutBuilder::empty().build())
+    }
 
-    pub fn new_with_loadout(loadout: Loadout) -> Inventory {
+    pub fn with_loadout(loadout: Loadout, body: Body) -> Inventory {
+        if let Body::Humanoid(_) = body {
+            Self::with_loadout_humanoid(loadout)
+        } else {
+            Self::with_loadout_animal(loadout)
+        }
+    }
+
+    pub fn with_loadout_humanoid(loadout: Loadout) -> Inventory {
         Inventory {
             next_sort_order: InventorySortOrder::Name,
             loadout,
             slots: vec![None; DEFAULT_INVENTORY_SLOTS],
+        }
+    }
+
+    pub fn with_loadout_animal(loadout: Loadout) -> Inventory {
+        Inventory {
+            next_sort_order: InventorySortOrder::Name,
+            loadout,
+            slots: vec![None; 1],
         }
     }
 

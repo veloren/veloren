@@ -447,7 +447,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
         let mut inventory = inventories
             .entry(possessee)
             .expect("Nobody has &mut World, so there's no way to delete an entity.")
-            .or_insert(Inventory::new_empty());
+            .or_insert(Inventory::with_empty());
 
         let debug_item = comp::Item::new_from_asset_expect("common.items.debug.admin_stick");
         if let item::ItemKind::Tool(_) = &*debug_item.kind() {

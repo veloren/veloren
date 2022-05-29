@@ -389,7 +389,7 @@ impl NpcData {
                 loadout_builder = loadout_builder.with_creator(make_loadout, economy.as_ref());
             }
             let loadout = loadout_builder.build();
-            let mut inventory = comp::inventory::Inventory::new_with_loadout(loadout);
+            let mut inventory = comp::inventory::Inventory::with_loadout(loadout, body);
             for (num, mut item) in items {
                 if let Err(e) = item.set_amount(num) {
                     tracing::warn!(

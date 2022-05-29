@@ -349,7 +349,7 @@ pub fn convert_inventory_from_database_items(
     // inventory at the correct position.
     //
     let loadout = convert_loadout_from_database_items(loadout_container_id, loadout_items)?;
-    let mut inventory = Inventory::new_with_loadout(loadout);
+    let mut inventory = Inventory::with_loadout_humanoid(loadout);
     let mut item_indices = HashMap::new();
 
     // In order to items with components to properly load, it is important that this

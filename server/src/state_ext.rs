@@ -306,7 +306,7 @@ impl StateExt for State {
             .with(body)
             .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
             .with(comp::Controller::default())
-            .with(comp::inventory::Inventory::new_empty())
+            .with(comp::inventory::Inventory::with_empty())
             .with(comp::CharacterState::default())
             // TODO: some of these are required in order for the character_behavior system to
             // recognize a possesed airship; that system should be refactored to use `.maybe()`
@@ -597,7 +597,7 @@ impl StateExt for State {
                             comp::SkillSet::default(),
                             Some(comp::Health::new(body, DEFAULT_PET_HEALTH_LEVEL)),
                             Poise::new(body),
-                            Inventory::new_empty(),
+                            Inventory::with_empty(),
                             body,
                         )
                         .with(comp::Scale(1.0))
