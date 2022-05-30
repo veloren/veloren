@@ -2106,7 +2106,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                 },
                 exhausted: false,
-                skip_recover: false,
+                start_next_strike: false,
                 timer: Duration::default(),
                 // If ability is a stance, enter the stance without beginning a strike, otherwise
                 // immediately begin the strike
