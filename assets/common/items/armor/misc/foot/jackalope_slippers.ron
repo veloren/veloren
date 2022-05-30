@@ -3,8 +3,8 @@ ItemDef(
     description: "So warm and cozy!",
     kind: Armor((
         kind: Foot,
-        stats: (
-        ),
+        stats: Direct((
+        )),
     )),
     quality: High,
     tags: [

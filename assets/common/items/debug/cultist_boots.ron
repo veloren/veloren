@@ -1,13 +1,10 @@
 ItemDef(
     name: "Velorite Boots",
     description: "",
-    kind: Armor(
-        (
-            kind: Foot,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Foot,
+        stats: Direct(()),
+    )),
     quality: Debug,
     tags: [],
 )

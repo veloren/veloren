@@ -3,9 +3,9 @@ ItemDef(
     description: "Swift like the wind.",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
-        ),
+        )),
     )),
     quality: Common,
     tags: [

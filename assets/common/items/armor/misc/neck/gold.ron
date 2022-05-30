@@ -3,11 +3,11 @@ ItemDef(
     description: "An expensive gold necklace... looks stolen.",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             energy_max: Some(10),
             crit_power: Some(0.02),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],

@@ -3,10 +3,10 @@ ItemDef(
     description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Pants,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             poise_resilience: Some(Normal(1.0)),
-        ),
+        )),
     )),
     quality: Low,
     tags: [],

@@ -3,10 +3,10 @@ ItemDef(
     description: "yep.",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(16.0)),
             poise_resilience: Some(Normal(3.0)),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],

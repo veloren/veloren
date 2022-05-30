@@ -1,13 +1,10 @@
 ItemDef(
     name: "Tiny Red Pouch",
     description: "Made from multiple patches of dyed cloth.",
-    kind: Armor(
-        (
-            kind: Bag,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
     quality: Common,
     tags: [Bag],
     slots: 3,

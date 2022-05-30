@@ -3,11 +3,11 @@ ItemDef(
     description: "Become one with the treetops.",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(3.0)),
             crit_power: Some(0.021),
             stealth: Some(0.22),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],

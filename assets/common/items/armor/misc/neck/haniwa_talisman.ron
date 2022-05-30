@@ -3,10 +3,10 @@ ItemDef(
     description: "A talisman depicting a figure of unknown origin.",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(3.0)),
             poise_resilience: Some(Normal(2.0)),
-        ),
+        )),
     )),
     quality: High,
     tags: [],

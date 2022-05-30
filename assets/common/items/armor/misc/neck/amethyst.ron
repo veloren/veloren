@@ -3,10 +3,10 @@ ItemDef(
     description: "A tin necklace lined with amethyst gems.",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             energy_reward: Some(0.1),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],

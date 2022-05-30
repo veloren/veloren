@@ -3,8 +3,8 @@ ItemDef(
     description: "A general assassination mask preventing the wearer from being identified.",
     kind: Armor((
         kind: Head,
-        stats: (
-        ),
+        stats: Direct((
+        )),
     )),
     quality: Moderate,
     tags: [

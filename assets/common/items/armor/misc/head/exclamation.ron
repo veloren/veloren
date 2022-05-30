@@ -3,8 +3,8 @@ ItemDef(
     description: "You feel like bestowing quests.",
     kind: Armor((
         kind: Head,
-        stats: (
-        ),
+        stats: Direct((
+        )),
     )),
     quality: Common,
     tags: [],

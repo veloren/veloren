@@ -3,9 +3,9 @@ ItemDef(
     description: "They remind you of the old days.",
     kind: Armor((
         kind: Pants,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
-        ),
+        )),
     )),
     quality: Low,
     tags: [

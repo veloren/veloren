@@ -3,11 +3,11 @@ ItemDef(
     description: "A cobalt ring with an emerald gem.",
     kind: Armor((
         kind: Ring,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(0.5)),
             energy_max: Some(10.0),
             energy_reward: Some(-0.1),
-        ),
+        )),
     )),
     quality: Epic,
     tags: [],

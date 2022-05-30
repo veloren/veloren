@@ -1,13 +1,10 @@
 ItemDef(
     name: "Mindflayer Spellbag",
     description: "You can almost feel the Mindflayer's\nevil presence flowing through the fabric.",
-    kind: Armor(
-        (
-            kind: Bag,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
     quality: Epic,
     tags: [Bag],
     slots: 27,

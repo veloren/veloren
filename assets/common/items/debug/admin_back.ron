@@ -1,13 +1,10 @@
 ItemDef(
     name: "Admin's Cape",
     description: "With great power comes\ngreat responsibility.",
-    kind: Armor(
-        (
-            kind: Back,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Back,
+        stats: Direct(()),
+    )),
     quality: Debug,
     tags: [],
 )

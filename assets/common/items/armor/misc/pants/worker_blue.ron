@@ -3,9 +3,9 @@ ItemDef(
     description: "Resilient and reliable.",
     kind: Armor((
         kind: Pants,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(0.1)),
-        ),
+        )),
     )),
     quality: Low,
     tags: [

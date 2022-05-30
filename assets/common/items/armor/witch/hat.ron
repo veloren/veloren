@@ -3,12 +3,12 @@ ItemDef(
     description: "Draws strength from dark arts.",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(2.0)),
             poise_resilience: Some(Normal(1.5)),
             energy_max: Some(8.0),
             energy_reward: Some(0.084),
-        ),
+        )),
     )),
     quality: Epic,
     tags: [

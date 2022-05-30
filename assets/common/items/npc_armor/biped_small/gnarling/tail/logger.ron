@@ -3,13 +3,13 @@ ItemDef(
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Belt,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             poise_resilience: Some(Normal(1.0)),
             energy_max: Some(0.4),
             energy_reward: Some(0.005),
             crit_power: Some(0.004),
-        ),
+        )),
     )),
     quality: Low,
     tags: [],

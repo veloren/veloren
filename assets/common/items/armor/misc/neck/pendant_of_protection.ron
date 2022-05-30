@@ -3,9 +3,9 @@ ItemDef(
     description: "You feel some sort of presence keeping you safe...",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.5)),
-        ),
+        )),
     )),
     quality: Common,
     tags: [],

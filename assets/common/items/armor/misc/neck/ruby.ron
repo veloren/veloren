@@ -3,11 +3,11 @@ ItemDef(
     description: "An ornate silver necklace, embedded with beautiful rubies.",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             energy_reward: Some(0.2),
             crit_power: Some(-0.06),
-        ),
+        )),
     )),
     quality: Epic,
     tags: [],

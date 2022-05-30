@@ -3,8 +3,8 @@ ItemDef(
     description: "Comfortable and with enough capacity, its a hoarder's best friend.",
     kind: Armor((
         kind: Back,
-        stats: (
-        ),
+        stats: Direct((
+        )),
     )),
     quality: High,
     tags: [Bag],

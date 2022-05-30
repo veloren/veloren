@@ -3,10 +3,10 @@ ItemDef(
     description: "The perfect headwear for those who feel at home on the highways and byways of Veloren.",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             crit_power: Some(0.021),
             stealth: Some(0.1),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],

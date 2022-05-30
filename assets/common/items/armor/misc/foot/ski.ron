@@ -3,10 +3,10 @@ ItemDef(
     description: "Best used downhill on snow.",
     kind: Armor((
         kind: Foot,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(3.0)),
             ground_contact: Ski,
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [

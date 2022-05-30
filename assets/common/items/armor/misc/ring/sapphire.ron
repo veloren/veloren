@@ -3,10 +3,10 @@ ItemDef(
     description: "An iron ring with a sapphire gem.",
     kind: Armor((
         kind: Ring,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(0.5)),
             crit_power: Some(0.025),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],

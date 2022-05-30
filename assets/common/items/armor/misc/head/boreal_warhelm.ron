@@ -3,12 +3,12 @@ ItemDef(
     description: "I wonder where it's pointing...",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(9.0)),
             poise_resilience: Some(Normal(3.0)),
             energy_max: Some(4.0),
             energy_reward: Some(0.01),
-        ),
+        )),
     )),
     quality: High,
     tags: [],

@@ -3,9 +3,9 @@ ItemDef(
     description: "Barely fits your finger.",
     kind: Armor((
         kind: Ring,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(0.5)),
-        ),
+        )),
     )),
     quality: Low,
     tags: [],

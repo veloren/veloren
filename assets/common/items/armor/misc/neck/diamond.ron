@@ -3,11 +3,11 @@ ItemDef(
     description: "An expensive gold necklace, ornate with exquisite diamonds.",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             energy_reward: Some(-0.1),
             crit_power: Some(0.1),
-        ),
+        )),
     )),
     quality: Epic,
     tags: [],

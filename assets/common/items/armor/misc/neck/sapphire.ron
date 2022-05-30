@@ -3,10 +3,10 @@ ItemDef(
     description: "A sturdy iron necklace, with polished sapphire gems embedded into it.",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             crit_power: Some(0.05),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],
