@@ -3,9 +3,7 @@ ItemDef(
     description: "Tarasque claws form the outside of these boots, protecting the wearer's feet.",
     kind: Armor((
         kind: Foot,
-        stats: (
-            protection: Some(Normal(8.0)),
-        ),
+        stats: FromSet("Tarasque"),
     )),
     quality: High,
     tags: [

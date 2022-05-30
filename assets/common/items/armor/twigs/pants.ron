@@ -3,9 +3,7 @@ ItemDef(
     description: "Magically imbued twigs formed into links similar to chainmail.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(12.0)),
-        ),
+        stats: FromSet("Twigs"),
     )),
     quality: Moderate,
     tags: [

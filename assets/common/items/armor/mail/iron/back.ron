@@ -3,10 +3,7 @@ ItemDef(
     description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
         kind: Back,
-        stats: (
-            protection: Some(Normal(4.0)),
-            poise_resilience: Some(Normal(1.0)),
-        ),
+        stats: FromSet("Iron"),
     )),
     quality: Common,
     tags: [

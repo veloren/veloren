@@ -3,9 +3,7 @@ ItemDef(
     description: "Leaves cover the magically imbued chainmail twigs, providing protection from the elements.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(12.0)),
-        ),
+        stats: FromSet("Twigs Leaves"),
     )),
     quality: Moderate,
     tags: [

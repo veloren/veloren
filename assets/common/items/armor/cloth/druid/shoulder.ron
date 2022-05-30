@@ -3,12 +3,7 @@ ItemDef(
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Shoulder,
-        stats: (
-            protection: Some(Normal(12.0)),
-            energy_max: Some(13.2),
-            energy_reward: Some(0.134),
-            stealth: Some(0.134),
-        ),
+        stats: FromSet("Lifecloth"),
     )),
     quality: High,
     tags: [

@@ -3,12 +3,7 @@ ItemDef(
     description: "Thick and ready for the snow.",
     kind: Armor((
         kind: Back,
-        stats: (
-            protection: Some(Normal(2.0)),
-            energy_max: Some(1.7),
-            energy_reward: Some(0.017),
-            stealth: Some(0.017),
-        ),
+        stats: FromSet("Wool"),
     )),
     quality: Common,
     tags: [

@@ -3,11 +3,7 @@ ItemDef(
     description: "Each embedded scale provides additional protection.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(4.0)),
-            crit_power: Some(0.05),
-            stealth: Some(0.05),
-        ),
+        stats: FromSet("Scale"),
     )),
     quality: Moderate,
     tags: [

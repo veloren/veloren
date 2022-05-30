@@ -3,11 +3,7 @@ ItemDef(
     description: "Tightly packed pieces of leather. Light-weight and sturdy!",
     kind: Armor((
         kind: Chest,
-        stats: (
-            protection: Some(Normal(7.0)),
-            crit_power: Some(0.099),
-            stealth: Some(0.099),
-        ),
+        stats: FromSet("Rawhide"),
     )),
     quality: Low,
     tags: [

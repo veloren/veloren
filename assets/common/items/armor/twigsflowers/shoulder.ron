@@ -3,9 +3,7 @@ ItemDef(
     description: "Flowers join the tied twigs to provide protection and peace to the wearer.",
     kind: Armor((
         kind: Shoulder,
-        stats: (
-            protection: Some(Normal(9.0)),
-        ),
+        stats: FromSet("Twigs Flowers"),
     )),
     quality: Moderate,
     tags: [

@@ -3,13 +3,7 @@ ItemDef(
     description: "",
     kind: Armor((
         kind: Chest,
-        stats: (
-            protection: Some(Normal(48.0)),
-            poise_resilience: Some(Normal(6.0)),
-            energy_max: Some(13.5),
-            energy_reward: Some(0.135),
-            crit_power: Some(0.125),
-        ),
+        stats: FromSet("Chef"),
     )),
     quality: Epic,
     tags: [

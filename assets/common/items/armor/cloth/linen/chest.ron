@@ -3,12 +3,7 @@ ItemDef(
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
         kind: Chest,
-        stats: (
-            protection: Some(Normal(5.0)),
-            energy_max: Some(5.0),
-            energy_reward: Some(0.051),
-            stealth: Some(0.051),
-        ),
+        stats: FromSet("Linen"),
     )),
     quality: Low,
     tags: [

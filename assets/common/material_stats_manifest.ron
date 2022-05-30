@@ -126,137 +126,137 @@
     },
     armor_stats: {
         // Metals
-        "common.items.mineral.ingot.bronze": (
+        "Bronze": (
             protection: Some(Normal(40.0)),
             poise_resilience: Some(Normal(10.0)),
         ),
-        "common.items.mineral.ingot.iron": (
+        "Iron": (
             protection: Some(Normal(80.0)),
             poise_resilience: Some(Normal(20.0)),
         ),
-        "common.items.mineral.ingot.steel": (
+        "Steel": (
             protection: Some(Normal(120.0)),
             poise_resilience: Some(Normal(30.0)),
         ),
-        "common.items.mineral.ingot.cobalt": (
+        "Cobalt": (
             protection: Some(Normal(160.0)),
             poise_resilience: Some(Normal(40.0)),
         ),
-        "common.items.mineral.ingot.bloodsteel": (
+        "Bloodsteel": (
             protection: Some(Normal(200.0)),
             poise_resilience: Some(Normal(50.0)),
         ),
-        "common.items.mineral.ingot.orichalcum": (
+        "Orichalcum": (
             protection: Some(Normal(240.0)),
             poise_resilience: Some(Normal(60.0)),
         ),
         // Hides
-        "common.items.crafting_ing.leather.simple_leather": (
+        "Rawhide": (
             protection: Some(Normal(20.0)),
             crit_power: Some(0.333),
             stealth: Some(0.333),
         ),
-        "common.items.crafting_ing.leather.thick_leather": (
+        "Leather": (
             protection: Some(Normal(40.0)),
             crit_power: Some(0.667),
             stealth: Some(0.667),
         ),
-        "common.items.crafting_ing.hide.scales": (
+        "Scale": (
             protection: Some(Normal(60.0)),
             crit_power: Some(1.0),
             stealth: Some(1.0),
         ),
-        "common.items.crafting_ing.hide.carapace": (
+        "Carapace": (
             protection: Some(Normal(80.0)),
             crit_power: Some(1.33),
             stealth: Some(1.33),
         ),
-        "common.items.crafting_ing.hide.plate": (
+        "Plate": (
             protection: Some(Normal(100.0)),
             crit_power: Some(1.67),
             stealth: Some(1.67),
         ),
-        "common.items.crafting_ing.hide.dragon_scale": (
+        "Dragonscale": (
             protection: Some(Normal(120.0)),
             crit_power: Some(2.0),
             stealth: Some(2.0),
         ),
         // Cloths
-        "common.items.crafting_ing.cloth.linen": (
+        "Linen": (
             protection: Some(Normal(15.0)),
             energy_max: Some(16.7),
             energy_reward: Some(0.167),
             stealth: Some(0.167),
         ),
-        "common.items.crafting_ing.cloth.wool": (
+        "Wool": (
             protection: Some(Normal(30.0)),
             energy_max: Some(33.3),
             energy_reward: Some(0.333),
             stealth: Some(0.333),
         ),
-        "common.items.crafting_ing.cloth.silk": (
+        "Silk": (
             protection: Some(Normal(45.0)),
             energy_max: Some(50.0),
             energy_reward: Some(0.5),
             stealth: Some(0.5),
         ),
-        "common.items.crafting_ing.cloth.lifecloth": (
+        "Lifecloth": (
             protection: Some(Normal(60.0)),
             energy_max: Some(66.7),
             energy_reward: Some(0.667),
             stealth: Some(0.667),
         ),
-        "common.items.crafting_ing.cloth.moonweave": (
+        "Moonweave": (
             protection: Some(Normal(75.0)),
             energy_max: Some(83.3),
             energy_reward: Some(0.833),
             stealth: Some(0.833),
         ),
-        "common.items.crafting_ing.cloth.sunsilk": (
+        "Sunsilk": (
             protection: Some(Normal(90.0)),
             energy_max: Some(100.0),
             energy_reward: Some(1.0),
             stealth: Some(1.0),
         ),
-        // Pseudo materials
-        "common.items.modular.pseudo_material.alchemist": (
+        // Misc Sets
+        "Alchemist": (
             protection: Some(Normal(160.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
-        "common.items.modular.pseudo_material.assassin": (
+        "Assassin": (
             protection: Some(Normal(50.0)),
             poise_resilience: Some(Normal(5.0)),
         ),
-        "common.items.modular.pseudo_material.blacksmith": (
+        "Blacksmith": (
             protection: Some(Normal(160.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
-        "common.items.modular.pseudo_material.bonerattler": (
+        "Bonerattler": (
             protection: Some(Normal(100.0)),
         ),
-        "common.items.modular.pseudo_material.chef": (
+        "Chef": (
             protection: Some(Normal(160.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
-        "common.items.modular.pseudo_material.cloth_blue": (
+        "Cloth Blue": (
             protection: Some(Normal(5.0)),
         ),
-        "common.items.modular.pseudo_material.cloth_green": (
+        "Cloth Green": (
             protection: Some(Normal(5.0)),
         ),
-        "common.items.modular.pseudo_material.cloth_purple": (
+        "Cloth Purple": (
             protection: Some(Normal(5.0)),
         ),
-        "common.items.modular.pseudo_material.cultist": (
+        "Cultist": (
             protection: Some(Normal(150.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
@@ -264,49 +264,46 @@
             crit_power: Some(0.4),
             stealth: Some(0.4),
         ),
-        "common.items.modular.pseudo_material.ferocious": (
+        "Ferocious": (
             protection: Some(Normal(240.0)),
         ),
-        "common.items.modular.pseudo_material.leather_plate": (
+        "Leather Plate": (
             protection: Some(Normal(160.0)),
             poise_resilience: Some(Normal(40.0)),
         ),
-        "common.items.modular.pseudo_material.merchant": (
+        "Merchant": (
             protection: Some(Normal(160.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
-        "common.items.modular.pseudo_material.pirate": (
+        "Pirate": (
             protection: Some(Normal(160.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
-        "common.items.modular.pseudo_material.rugged": (
-            protection: Some(Normal(5.0)),
-        ),
-        "common.items.modular.pseudo_material.savage": (
+        "Savage": (
             protection: Some(Normal(100.0)),
         ),
-        "common.items.modular.pseudo_material.tarasque": (
+        "Tarasque": (
             protection: Some(Normal(100.0)),
         ),
-        "common.items.modular.pseudo_material.twigs": (
+        "Twigs": (
             protection: Some(Normal(60.0)),
         ),
-        "common.items.modular.pseudo_material.twigsflowers": (
+        "Twigs Flowers": (
             protection: Some(Normal(60.0)),
         ),
-        "common.items.modular.pseudo_material.twigsleaves": (
+        "Twigs Leaves": (
             protection: Some(Normal(60.0)),
         ),
-        "common.items.modular.pseudo_material.velorite_mage": (
+        "Velorite Battlemage": (
             protection: Some(Normal(115.0)),
         ),
-        "common.items.modular.pseudo_material.witch": (
+        "Witch": (
             protection: Some(Normal(160.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),

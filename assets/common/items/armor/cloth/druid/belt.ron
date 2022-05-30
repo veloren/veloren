@@ -3,12 +3,7 @@ ItemDef(
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(3.0)),
-            energy_max: Some(3.3),
-            energy_reward: Some(0.034),
-            stealth: Some(0.034),
-        ),
+        stats: FromSet("Lifecloth"),
     )),
     quality: High,
     tags: [

@@ -3,12 +3,7 @@ ItemDef(
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(3.0)),
-            energy_max: Some(3.3),
-            energy_reward: Some(0.034),
-            stealth: Some(0.034),
-        ),
+        stats: FromSet("Linen"),
     )),
     quality: Low,
     tags: [

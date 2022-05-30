@@ -3,9 +3,7 @@ ItemDef(
     description: "Chainmail woven twigs enhanced with flower stems to provide protection and peace.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(12.0)),
-        ),
+        stats: FromSet("Twigs Flowers"),
     )),
     quality: Moderate,
     tags: [

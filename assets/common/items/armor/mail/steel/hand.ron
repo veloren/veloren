@@ -3,10 +3,7 @@ ItemDef(
     description: "The metal alloy provides better protection and lighter weight, a quite comfortable gauntlet.",
     kind: Armor((
         kind: Hand,
-        stats: (
-            protection: Some(Normal(12.0)),
-            poise_resilience: Some(Normal(3.0)),
-        ),
+        stats: FromSet("Steel"),
     )),
     quality: Moderate,
     tags: [

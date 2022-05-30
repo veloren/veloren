@@ -3,9 +3,7 @@ ItemDef(
     description: "Small twigs intertwined and imbued with magic to provide simple protection.",
     kind: Armor((
         kind: Foot,
-        stats: (
-            protection: Some(Normal(3.0)),
-        ),
+        stats: FromSet("Twigs"),
     )),
     quality: Moderate,
     tags: [

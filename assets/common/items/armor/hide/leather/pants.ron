@@ -3,11 +3,7 @@ ItemDef(
     description: "Swift like the wind.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(10.0)),
-            crit_power: Some(0.134),
-            stealth: Some(0.134),
-        ),
+        stats: FromSet("Leather"),
     )),
     quality: Common,
     tags: [

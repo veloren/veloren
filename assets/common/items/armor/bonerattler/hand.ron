@@ -3,9 +3,7 @@ ItemDef(
     description: "The hide and bone from a bonerattler provide strong protection for the wearer.",
     kind: Armor((
         kind: Hand,
-        stats: (
-            protection: Some(Normal(10.0)),
-        ),
+        stats: FromSet("Bonerattler"),
     )),
     quality: High,
     tags: [

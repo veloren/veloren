@@ -3,10 +3,7 @@ ItemDef(
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Foot,
-        stats: (
-            protection: Some(Normal(16.0)),
-            poise_resilience: Some(Normal(4.0)),
-        ),
+        stats: FromSet("Leather Plate"),
     )),
     quality: High,
     tags: [

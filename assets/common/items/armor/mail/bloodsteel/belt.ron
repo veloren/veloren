@@ -3,10 +3,7 @@ ItemDef(
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(10.0)),
-            poise_resilience: Some(Normal(2.5)),
-        ),
+        stats: FromSet("Bloodsteel"),
     )),
     quality: Epic,
     tags: [

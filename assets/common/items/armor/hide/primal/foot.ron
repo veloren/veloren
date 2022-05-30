@@ -3,11 +3,7 @@ ItemDef(
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Foot,
-        stats: (
-            protection: Some(Normal(12.0)),
-            crit_power: Some(0.167),
-            stealth: Some(0.167),
-        ),
+        stats: FromSet("Plate"),
     )),
     quality: Epic,
     tags: [

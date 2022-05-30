@@ -3,12 +3,7 @@ ItemDef(
     description: "Weaved with care by a skilled tailor.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(9.0)),
-            energy_max: Some(9.9),
-            energy_reward: Some(0.1),
-            stealth: Some(0.1),
-        ),
+        stats: FromSet("Silk"),
     )),
     quality: Moderate,
     tags: [
