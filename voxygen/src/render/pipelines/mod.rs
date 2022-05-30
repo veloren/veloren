@@ -64,12 +64,11 @@ pub struct Globals {
     medium: [u32; 4],
     select_pos: [i32; 4],
     gamma_exposure: [f32; 4],
-    wind_vel: [f32; 2],
     ambiance: f32,
     cam_mode: u32,
     sprite_render_distance: f32,
-    /// To keep 16-byte-aligned.
-    globals_dummy: f32,
+    // To keep 16-byte-aligned.
+    globals_dummy: [f32; 1],
 }
 
 #[repr(C)]
@@ -110,8 +109,8 @@ impl Globals {
         ambiance: f32,
         cam_mode: CameraMode,
         sprite_render_distance: f32,
-        wind_vel: Vec2<f32>,
     ) -> Self {
+        // dbg!(core::mem::size_of::<Self>() % 16);
         Self {
             view_mat: view_mat.into_col_arrays(),
             proj_mat: proj_mat.into_col_arrays(),
@@ -156,11 +155,10 @@ impl Globals {
                 .unwrap_or_else(Vec4::zero)
                 .into_array(),
             gamma_exposure: [gamma, exposure, 0.0, 0.0],
-            wind_vel: [wind_vel.x, wind_vel.y],
             ambiance: ambiance.clamped(0.0, 1.0),
             cam_mode: cam_mode as u32,
             sprite_render_distance,
-            globals_dummy: 0.0,
+            globals_dummy: [0.0; 1],
         }
     }
 
@@ -206,7 +204,6 @@ impl Default for Globals {
             1.0,
             CameraMode::ThirdPerson,
             250.0,
-            Vec2::zero(),
         )
     }
 }

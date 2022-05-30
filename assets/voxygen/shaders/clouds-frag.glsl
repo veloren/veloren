@@ -101,10 +101,7 @@ void main() {
 
     vec3 old_color = color.rgb;
 
-    // If this value is changed also change it in common/src/weather.rs
-    float fall_rate = 70.0;
-    dir.xy += wind_vel * dir.z / fall_rate;
-    dir = normalize(dir);
+    dir = (vec4(dir, 0) * rel_rain_dir_mat).xyz;
 
     float z = (-1 / (abs(dir.z) - 1) - 1) * sign(dir.z);
     vec2 dir_2d = normalize(dir.xy);
@@ -119,7 +116,7 @@ void main() {
         vec2 drop_density = vec2(30, 1);
 
         vec2 rain_pos = (view_pos * rain_dist);
-        rain_pos += vec2(0, tick.x * fall_rate + cam_wpos.z);
+        rain_pos.y += integrated_rain_vel;
 
         vec2 cell = floor(rain_pos * drop_density) / drop_density;
 
@@ -144,7 +141,7 @@ void main() {
         }
         vec2 near_drop = cell + (vec2(0.5) + (vec2(hash(vec4(cell, 0, 0)), 0.5) - 0.5) * vec2(2, 0)) / drop_density;
 
-        vec2 drop_size = vec2(0.0008, 0.05);
+        vec2 drop_size = vec2(0.0008, 0.03);
         float avg_alpha = (drop_size.x * drop_size.y) * 10 / 1;
         float alpha = sign(max(1 - length((rain_pos - near_drop) / drop_size * 0.1), 0));
         float light = sqrt(dot(old_color, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;

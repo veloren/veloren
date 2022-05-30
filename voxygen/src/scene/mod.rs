@@ -103,6 +103,8 @@ pub struct Scene {
     pub sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
     ambient_mgr: AmbientMgr,
+
+    integrated_rain_vel: f32,
 }
 
 pub struct SceneData<'a> {
@@ -319,6 +321,7 @@ impl Scene {
             ambient_mgr: AmbientMgr {
                 ambience: ambient::load_ambience_items(),
             },
+            integrated_rain_vel: 0.0,
         }
     }
 
@@ -475,10 +478,17 @@ impl Scene {
         // Get player position.
         let ecs = scene_data.state.ecs();
 
+        let dt = ecs.fetch::<DeltaTime>().0;
+
         let player_pos = ecs
             .read_storage::<comp::Pos>()
             .get(scene_data.player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
+
+        let player_vel = ecs
+            .read_storage::<comp::Vel>()
+            .get(scene_data.player_entity)
+            .map_or(Vec3::zero(), |vel| vel.0);
 
         let player_rolling = ecs
             .read_storage::<comp::CharacterState>()
@@ -538,11 +548,8 @@ impl Scene {
         };
 
         // Tick camera for interpolation.
-        self.camera.update(
-            scene_data.state.get_time(),
-            scene_data.state.get_delta_time(),
-            scene_data.mouse_smoothing,
-        );
+        self.camera
+            .update(scene_data.state.get_time(), dt, scene_data.mouse_smoothing);
 
         // Compute camera matrices.
         self.camera.compute_dependents(&*scene_data.state.terrain());
@@ -613,7 +620,6 @@ impl Scene {
         renderer.update_consts(&mut self.data.lights, lights);
 
         // Update event lights
-        let dt = ecs.fetch::<DeltaTime>().0;
         self.event_lights.drain_filter(|el| {
             el.timeout -= dt;
             el.timeout <= 0.0
@@ -688,10 +694,6 @@ impl Scene {
             scene_data.ambiance,
             self.camera.get_mode(),
             scene_data.sprite_render_distance as f32 - 20.0,
-            client
-                .state()
-                .weather_at(focus_off.xy() + cam_pos.xy())
-                .wind,
         )]);
         renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
@@ -1003,13 +1005,21 @@ impl Scene {
             .max_weather_near(focus_off.xy() + cam_pos.xy());
         if weather.rain > 0.0 {
             let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
-            let rain_dir = math::Vec3::from(weather.rain_dir());
+            let rain_dir = weather.rain_dir();
             let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_dir, up);
+            let rain_vel = rain_dir * common::weather::FALL_RATE - player_vel;
+            self.integrated_rain_vel += rain_vel.magnitude() * dt;
+            let rel_rain_dir_mat = Mat4::rotation_from_to_3d(-Vec3::unit_z(), rain_vel);
 
             let (shadow_mat, texture_mat) =
-                directed_mats(rain_view_mat, rain_dir, &visible_occlusion_volume);
+                directed_mats(rain_view_mat, rain_dir.into(), &visible_occlusion_volume);
 
-            let rain_occlusion_locals = RainOcclusionLocals::new(shadow_mat, texture_mat);
+            let rain_occlusion_locals = RainOcclusionLocals::new(
+                shadow_mat,
+                texture_mat,
+                rel_rain_dir_mat,
+                self.integrated_rain_vel,
+            );
 
             renderer.update_consts(&mut self.data.rain_occlusion_mats, &[rain_occlusion_locals]);
         }

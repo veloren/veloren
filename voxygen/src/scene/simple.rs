@@ -276,7 +276,6 @@ impl Scene {
             scene_data.ambiance,
             self.camera.get_mode(),
             250.0,
-            Vec2::zero(),
         )]);
 
         self.figure_model_cache

@@ -12,6 +12,9 @@ layout (std140, set = 0, binding = 14)
 uniform u_rain_occlusion {
     mat4 occlusionMatrices;
     mat4 occlusion_texture_mat;
+    mat4 rel_rain_dir_mat;
+    float integrated_rain_vel;
+    vec3 occlusion_dummy; // Fix alignment.
 };
 
 float rain_occlusion_at(in vec3 fragPos)

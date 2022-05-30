@@ -5,21 +5,32 @@ use bytemuck::{Pod, Zeroable};
 use vek::*;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod, Default)]
 pub struct Locals {
     shadow_matrices: [[f32; 4]; 4],
     texture_mats: [[f32; 4]; 4],
+    rel_rain_dir_mat: [[f32; 4]; 4],
+    integrated_rain_vel: f32,
+    // To keep 16-byte-aligned.
+    occlusion_dummy: [f32; 3],
 }
 
 impl Locals {
-    pub fn new(shadow_mat: Mat4<f32>, texture_mat: Mat4<f32>) -> Self {
+    pub fn new(
+        shadow_mat: Mat4<f32>,
+        texture_mat: Mat4<f32>,
+        rel_rain_dir_mat: Mat4<f32>,
+        integrated_rain_vel: f32,
+    ) -> Self {
+        // dbg!(core::mem::size_of::<Self>() % 16);
         Self {
             shadow_matrices: shadow_mat.into_col_arrays(),
             texture_mats: texture_mat.into_col_arrays(),
+            rel_rain_dir_mat: rel_rain_dir_mat.into_col_arrays(),
+            integrated_rain_vel,
+            occlusion_dummy: [0.0; 3],
         }
     }
-
-    pub fn default() -> Self { Self::new(Mat4::identity(), Mat4::identity()) }
 }
 
 pub type BoundLocals = Bound<Consts<Locals>>;
