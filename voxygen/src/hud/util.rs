@@ -366,10 +366,6 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.sword.reaching_charge" => imgs.not_found,
         "common.abilities.sword.reaching_flurry" => imgs.not_found,
         "common.abilities.sword.reaching_skewer" => imgs.not_found,
-        "common.abilities.sword.airslash_combo" => imgs.not_found,
-        "common.abilities.sword.airslash_vertical" => imgs.not_found,
-        "common.abilities.sword.airslash_horizontal" => imgs.not_found,
-        "common.abilities.sword.airslash_whirlwind" => imgs.not_found,
         // Axe
         "common.abilities.axe.doublestrike" => imgs.twohaxe_m1,
         "common.abilities.axe.spin" => imgs.axespin,

@@ -35,10 +35,6 @@
             (Some(Sword(ReachingCharge)), "common.abilities.sword.reaching_charge"),
             (Some(Sword(ReachingFlurry)), "common.abilities.sword.reaching_flurry"),
             (Some(Sword(ReachingSkewer)), "common.abilities.sword.reaching_skewer"),
-            (Some(Sword(AirSlashCombo)), "common.abilities.sword.airslash_combo"),
-            (Some(Sword(AirSlashVertical)), "common.abilities.sword.airslash_vertical"),
-            (Some(Sword(AirSlashHorizontal)), "common.abilities.sword.airslash_horizontal"),
-            (Some(Sword(AirSlashWhirlwind)), "common.abilities.sword.airslash_whirlwind"),
         ],
     ),
     Tool(Axe): (

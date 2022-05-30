@@ -2588,7 +2588,6 @@ pub enum SwordStance {
     Heavy,
     Mobility,
     Reaching,
-    AirSlash,
 }
 
 bitflags::bitflags! {

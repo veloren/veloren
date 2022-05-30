@@ -29,8 +29,4 @@
     Sword(ReachingCharge): 5,
     Sword(ReachingFlurry): 5,
     Sword(ReachingSkewer): 5,
-    Sword(AirSlashCombo): 4,
-    Sword(AirSlashVertical): 5,
-    Sword(AirSlashHorizontal): 5,
-    Sword(AirSlashWhirlwind): 5,
 })

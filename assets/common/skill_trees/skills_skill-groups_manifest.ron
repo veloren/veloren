@@ -46,10 +46,6 @@
         Sword(ReachingCharge),
         Sword(ReachingFlurry),
         Sword(ReachingSkewer),
-        Sword(AirSlashCombo),
-        Sword(AirSlashVertical),
-        Sword(AirSlashHorizontal),
-        Sword(AirSlashWhirlwind),
     ],
     Weapon(Axe): [
         Axe(DsCombo),

@@ -57,10 +57,6 @@ pub enum SwordSkill {
     ReachingCharge,
     ReachingFlurry,
     ReachingSkewer,
-    AirSlashCombo,
-    AirSlashVertical,
-    AirSlashHorizontal,
-    AirSlashWhirlwind,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]

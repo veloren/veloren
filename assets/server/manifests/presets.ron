@@ -44,11 +44,6 @@
         (Sword(ReachingCharge), 1),
         (Sword(ReachingFlurry), 1),
         (Sword(ReachingSkewer), 1),
-        (Sword(AirSlashCombo), 1),
-        (Sword(AirSlashVertical), 1),
-        (Sword(AirSlashHorizontal), 1),
-        (Sword(AirSlashWhirlwind), 1),
-
         // Axe
         (UnlockGroup(Weapon(Axe)), 1),
 
