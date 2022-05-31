@@ -447,6 +447,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
+                // TODO: Figure out how damage contributions of 0% are being awarded - for now
+                // just remove them to avoid a crash when creating the WeightedIndex
+                let _ = exp_awards.drain_filter(|(_, exp)| *exp < f32::EPSILON);
+
                 let winner_uid = if exp_awards.is_empty() {
                     None
                 } else {
