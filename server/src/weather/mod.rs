@@ -21,8 +21,10 @@ pub fn init(state: &mut State, world: &world::World) {
     state.ecs_mut().insert(sim);
 
     /// How often the weather is updated, in seconds
-    pub const WEATHER_DT: f32 = 5.0;
+    const WEATHER_DT: f32 = 5.0;
 
+    // NOTE: If weather computations get too heavy, this should not block the main
+    // thread.
     state
         .ecs_mut()
         .insert(SysScheduler::<tick::Sys>::every(Duration::from_secs_f32(

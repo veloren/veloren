@@ -78,7 +78,8 @@ pub struct WeatherGrid {
     weather: Grid<Weather>,
 }
 
-/// Returns the center of the weather cell at the given position
+/// Transforms a world position to cell coordinates. Where (0.0, 0.0) in cell
+/// coordinates is the center of the weather cell located at (0, 0) in the grid.
 fn to_cell_pos(wpos: Vec2<f32>) -> Vec2<f32> { wpos / CELL_SIZE as f32 - 0.5 }
 
 // TODO: Move consts from world to common to avoid duplication
