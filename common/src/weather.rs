@@ -5,8 +5,6 @@ use vek::{Lerp, Vec2, Vec3};
 
 use crate::{grid::Grid, terrain::TerrainChunkSize, vol::RectVolSize};
 
-pub const FALL_RATE: f32 = 20.0;
-
 /// Weather::default is Clear, 0 degrees C and no wind
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct Weather {
@@ -42,9 +40,10 @@ impl Weather {
         }
     }
 
-    // Get the rain direction for this weather
-    pub fn rain_dir(&self) -> Vec3<f32> {
-        (-Vec3::unit_z() + self.wind / (2.0 * FALL_RATE)).normalized()
+    // Get the rain velocity for this weather
+    pub fn rain_vel(&self) -> Vec3<f32> {
+        const FALL_RATE: f32 = 20.0;
+        Vec3::new(self.wind.x, self.wind.y, -FALL_RATE)
     }
 }
 

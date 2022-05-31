@@ -1005,14 +1005,14 @@ impl Scene {
             .max_weather_near(focus_off.xy() + cam_pos.xy());
         if weather.rain > 0.0 {
             let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
-            let rain_dir = weather.rain_dir();
-            let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_dir, up);
-            let rain_vel = rain_dir * common::weather::FALL_RATE - player_vel;
-            self.integrated_rain_vel += rain_vel.magnitude() * dt;
-            let rel_rain_dir_mat = Mat4::rotation_from_to_3d(-Vec3::unit_z(), rain_vel);
+            let rain_vel = weather.rain_vel();
+            let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_vel, up);
+            let relative_rain_vel = rain_vel - player_vel;
+            self.integrated_rain_vel += relative_rain_vel.magnitude() * dt;
+            let rel_rain_dir_mat = Mat4::rotation_from_to_3d(-Vec3::unit_z(), relative_rain_vel);
 
             let (shadow_mat, texture_mat) =
-                directed_mats(rain_view_mat, rain_dir.into(), &visible_occlusion_volume);
+                directed_mats(rain_view_mat, rain_vel.into(), &visible_occlusion_volume);
 
             let rain_occlusion_locals = RainOcclusionLocals::new(
                 shadow_mat,

@@ -1415,7 +1415,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 max: visible_bounding_box.max.as_::<f64>(),
             };
             let weather = scene_data.state.weather_at(focus_pos.xy());
-            let ray_direction = math::Vec3::<f32>::from(weather.rain_dir());
+            let ray_direction = math::Vec3::<f32>::from(weather.rain_vel().normalized());
 
             // NOTE: We use proj_mat_treeculler here because
             // calc_focused_light_volume_points makes the assumption that the
