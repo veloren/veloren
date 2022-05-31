@@ -300,11 +300,38 @@ fn cant_run_during_fall() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn physics_theory() -> Result<(), Box<dyn Error>> {
-    let fric_ground = 0.1;
-    let fric_air = 0.9_f64;
     let tick = |i: usize, move_dir: f64, vel: f64, pos: f64, dt: f64| {
-        //let diff_vec = last_acc * dt;
-        let acc = fric_air * move_dir;
+        /*
+            ROLLING_FRICTION_FORCE + AIR_FRICTION_FORCE + TILT_FRICT_FORCE + ACCEL_FORCE = TOTAL_FORCE
+
+            TILT_FRICT_FORCE = 0.0
+            TOTAL_FORCE = depends on char = const
+            ACCEL_FORCE = TOTAL_FORCE - ROLLING_FRICTION_FORCE - AIR_FRICTION_FORCE
+            ACCEL = ACCEL_FORCE / MASS
+
+            ROLLING_FRICTION_FORCE => Indepent of vel
+            AIR_FRICTION_FORCE => propotional to vel²
+            https://www.energie-lexikon.info/fahrwiderstand.html
+
+            https://www.energie-lexikon.info/reibung.html
+
+            https://sciencing.com/calculate-force-friction-6454395.html
+
+            https://www.leifiphysik.de/mechanik/reibung-und-fortbewegung
+         */
+
+        let mass = 80.0;
+        let gravity = 9.81;
+        let f_n = mass * gravity;
+
+        let total_force = 2.0_f64 * mass;
+        let rolling_friction_co = 0.0001;
+        let rolling_friction_force = rolling_friction_co * f_n;
+        let air_friction_co = 0.0000_f64;
+        let air_friction_force = air_friction_co;
+        let accel_force = total_force - rolling_friction_force - air_friction_force;
+        let acc = accel_force / mass * move_dir;
+        
         // controller
         let vel = vel + acc * dt;
 
@@ -313,12 +340,9 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
         let pos = pos + distance;
 
 
-        let fric = (1.0_f64 - fric_ground).powf(dt);
-        //println!("fric: {:4.4}", fric);
-        //let vel = vel * fric;
-        //let vel = (vel.powi(2) - dt* fric_ground*distance).sqrt();
+
         if ((i+1) as f64 *dt * 10.0).round() as i64 % 2 == 0 {
-            println!("[{:0>2.1}]:    move_dir: {:4.1},    acc: {:4.4},    vel: {:4.4},    pos: {:4.4}", (i+1) as f64 *dt, move_dir, acc, vel, pos);
+            println!("[{:0>2.1}]:    move_dir: {:4.1},    acc: {:4.4},    vel: {:4.4},    pos: {:4.4},    accel_force: {:4.4}", (i+1) as f64 *dt, move_dir, acc, vel, pos, accel_force);
         }
         (acc, vel, pos)
     };
