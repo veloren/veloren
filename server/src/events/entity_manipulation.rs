@@ -558,7 +558,8 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
 
         let inventories = ecs.read_storage::<Inventory>();
         let stats = ecs.read_storage::<Stats>();
-        let time = server.state.ecs().read_resource::<Time>();
+        let time = ecs.read_resource::<Time>();
+        let msm = ecs.read_resource::<MaterialStatManifest>();
 
         // Handle health change
         if let Some(mut health) = ecs.write_storage::<comp::Health>().get_mut(entity) {
@@ -571,6 +572,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 Some(damage),
                 inventories.get(entity),
                 stats.get(entity),
+                &msm,
             );
             let change =
                 damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0, *time);
@@ -579,7 +581,8 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         // Handle poise change
         if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {
             let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
-            let poise_change = Poise::apply_poise_reduction(poise_damage, inventories.get(entity));
+            let poise_change =
+                Poise::apply_poise_reduction(poise_damage, inventories.get(entity), &msm);
             let poise_change = comp::PoiseChange {
                 amount: poise_change,
                 impulse: Vec3::unit_z(),

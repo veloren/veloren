@@ -3,9 +3,7 @@ ItemDef(
     description: "Boots made from the claws and hide of a bonerattler.",
     kind: Armor((
         kind: Foot,
-        stats: (
-            protection: Some(Normal(5.0)),
-        ),
+        stats: FromSet("Bonerattler"),
     )),
     quality: High,
     tags: [

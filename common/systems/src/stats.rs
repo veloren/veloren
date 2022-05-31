@@ -2,6 +2,7 @@ use common::{
     combat,
     comp::{
         self,
+        item::MaterialStatManifest,
         skills::{GeneralSkill, Skill},
         Body, CharacterState, Combo, Energy, Health, Inventory, Poise, PoiseChange, Pos, SkillSet,
         Stats, StatsModifier,
@@ -11,7 +12,8 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, Write, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, Write,
+    WriteStorage,
 };
 use vek::Vec3;
 
@@ -28,6 +30,7 @@ pub struct ReadData<'a> {
     bodies: ReadStorage<'a, Body>,
     char_states: ReadStorage<'a, CharacterState>,
     inventories: ReadStorage<'a, Inventory>,
+    msm: ReadExpect<'a, MaterialStatManifest>,
 }
 
 /// This system kills players, levels them up, and regenerates energy.
@@ -100,7 +103,7 @@ impl<'a> System<'a> for Sys {
             // Calculates energy scaling from stats and inventory
             let energy_mods = StatsModifier {
                 add_mod: stat.max_energy_modifiers.add_mod
-                    + combat::compute_max_energy_mod(inventory),
+                    + combat::compute_max_energy_mod(inventory, &read_data.msm),
                 mult_mod: stat.max_energy_modifiers.mult_mod,
             };
 

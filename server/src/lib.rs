@@ -1092,7 +1092,7 @@ impl Server {
                 material_stats: (&*self
                     .state
                     .ecs()
-                    .read_resource::<comp::item::tool::MaterialStatManifest>())
+                    .read_resource::<comp::item::MaterialStatManifest>())
                     .clone(),
                 ability_map: (&*self
                     .state

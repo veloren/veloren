@@ -3,9 +3,9 @@ ItemDef(
     description: "Leather inset with heavy iron spikes provide solid protection to the wearer.",
     kind: Armor((
         kind: Shoulder,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(9.0)),
-        ),
+        )),
     )),
     quality: Common,
     tags: [

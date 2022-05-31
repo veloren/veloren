@@ -3,9 +3,7 @@ ItemDef(
     description: "",
     kind: Armor((
         kind: Foot,
-        stats: (
-            protection: Some(Normal(5.9)),
-        ),
+        stats: FromSet("Velorite Battlemage"),
     )),
     quality: High,
     tags: [

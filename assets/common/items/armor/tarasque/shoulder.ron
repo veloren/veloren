@@ -3,9 +3,7 @@ ItemDef(
     description: "Spiky tarasque shell fragments formed to fit as shoulder guards.",
     kind: Armor((
         kind: Shoulder,
-        stats: (
-            protection: Some(Normal(16.0)),
-        ),
+        stats: FromSet("Tarasque"),
     )),
     quality: High,
     tags: [

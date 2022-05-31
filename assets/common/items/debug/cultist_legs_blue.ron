@@ -1,13 +1,10 @@
 ItemDef(
     name: "Velorite Skirt",
     description: "",
-    kind: Armor(
-        (
-            kind: Pants,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Pants,
+        stats: Direct(()),
+    )),
     quality: Debug,
     tags: [],
 )

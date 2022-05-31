@@ -1,13 +1,10 @@
 ItemDef(
     name: "Velorite Admin Cape",
     description: "Where did I put my banhammer again?",
-    kind: Armor(
-        (
-            kind: Back,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Back,
+        stats: Direct(()),
+    )),
     quality: Debug,
     tags: [],
 )

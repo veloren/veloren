@@ -3,12 +3,7 @@ ItemDef(
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(5.0)),
-            energy_max: Some(5.0),
-            energy_reward: Some(0.05),
-            stealth: Some(0.05),
-        ),
+        stats: FromSet("Sunsilk"),
     )),
     quality: Legendary,
     tags: [

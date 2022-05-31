@@ -3,11 +3,11 @@ ItemDef(
     description: "A unique necklace of unkown origin... You can feel the power flowing through it.",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(2.0)),
             energy_max: Some(20),
             energy_reward: Some(0.1),
-        ),
+        )),
     )),
     quality: Legendary,
     tags: [],

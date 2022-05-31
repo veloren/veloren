@@ -3,10 +3,10 @@ ItemDef(
     description: "With great power comes great responsibility.",
     kind: Armor((
         kind: Tabard,
-        stats: (
+        stats: Direct((
             protection: Some(Invincible),
             poise_resilience: Some(Invincible),
-        ),
+        )),
     )),
     quality: Debug,
     tags: [],

@@ -3,9 +3,7 @@ ItemDef(
     description: "Dried leaves cover over the standard twig belt, providing a slightly different texture.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(2.0)),
-        ),
+        stats: FromSet("Twigs Leaves"),
     )),
     quality: Moderate,
     tags: [

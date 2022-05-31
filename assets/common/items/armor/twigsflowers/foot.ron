@@ -3,9 +3,7 @@ ItemDef(
     description: "Woven and magically imbued, these boots of twigs and flowers provide simple protection and peace to the wearer.",
     kind: Armor((
         kind: Foot,
-        stats: (
-            protection: Some(Normal(3.0)),
-        ),
+        stats: FromSet("Twigs Flowers"),
     )),
     quality: Moderate,
     tags: [

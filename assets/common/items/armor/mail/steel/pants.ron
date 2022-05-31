@@ -3,10 +3,7 @@ ItemDef(
     description: "The metal alloy provides improvements to fit, durability, and lightness.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(24.0)),
-            poise_resilience: Some(Normal(6.0)),
-        ),
+        stats: FromSet("Steel"),
     )),
     quality: Moderate,
     tags: [

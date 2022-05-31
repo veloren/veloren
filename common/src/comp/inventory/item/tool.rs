@@ -226,21 +226,6 @@ impl DivAssign<usize> for Stats {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct MaterialStatManifest(pub HashMap<String, Stats>);
-
-impl MaterialStatManifest {
-    pub fn load() -> AssetHandle<Self> { Self::load_expect("common.material_stats_manifest") }
-}
-
-// This could be a Compound that also loads the keys, but the RecipeBook
-// Compound impl already does that, so checking for existence here is redundant.
-impl Asset for MaterialStatManifest {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
     pub hands: Hands,

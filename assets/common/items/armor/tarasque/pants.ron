@@ -3,9 +3,7 @@ ItemDef(
     description: "Fragmented tarasque shell tied together to form protective leg armor.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(20.0)),
-        ),
+        stats: FromSet("Tarasque"),
     )),
     quality: High,
     tags: [

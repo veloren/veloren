@@ -3,9 +3,7 @@ ItemDef(
     description: "Leaves cover the magically entwined twigs to provide simple protection from the elements.",
     kind: Armor((
         kind: Foot,
-        stats: (
-            protection: Some(Normal(3.0)),
-        ),
+        stats: FromSet("Twigs Leaves"),
     )),
     quality: Moderate,
     tags: [

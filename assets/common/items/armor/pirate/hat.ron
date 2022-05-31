@@ -3,11 +3,11 @@ ItemDef(
     description: "It seems like a parrot was perched up here.",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(3.0)),
             energy_reward: Some(0.025),
             crit_power: Some(0.1),
-        ),
+        )),
     )),
     quality: Epic,
     tags: [

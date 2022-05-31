@@ -3,9 +3,7 @@ ItemDef(
     description: "Only the best for a member of the creed.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(2.0)),
-        ),
+        stats: FromSet("Assassin"),
     )),
     quality: Moderate,
     tags: [

@@ -3,10 +3,7 @@ ItemDef(
     description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(48.0)),
-            poise_resilience: Some(Normal(12.0)),
-        ),
+        stats: FromSet("Orichalcum"),
     )),
     quality: Legendary,
     tags: [

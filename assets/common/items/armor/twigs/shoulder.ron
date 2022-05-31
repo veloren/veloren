@@ -3,9 +3,7 @@ ItemDef(
     description: "Spaulders made from tightly tied twigs.",
     kind: Armor((
         kind: Shoulder,
-        stats: (
-            protection: Some(Normal(9.0)),
-        ),
+        stats: FromSet("Twigs"),
     )),
     quality: Common,
     tags: [

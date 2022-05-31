@@ -3,10 +3,10 @@ ItemDef(
     description: "Only the most savage beings can handle the power of this necklace...",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             crit_power: Some(0.07),
-        ),
+        )),
     )),
     quality: High,
     tags: [],

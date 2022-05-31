@@ -3,9 +3,7 @@ ItemDef(
     description: "Brings the fury of the barbarians.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(4.0)),
-        ),
+        stats: FromSet("Savage"),
     )),
     quality: Moderate,
     tags: [

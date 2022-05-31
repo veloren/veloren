@@ -3,13 +3,13 @@ ItemDef(
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Foot,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             poise_resilience: Some(Normal(1.0)),
             energy_max: Some(0.9),
             energy_reward: Some(0.009),
             crit_power: Some(0.008),
-        ),
+        )),
     )),
     quality: Low,
     tags: [],

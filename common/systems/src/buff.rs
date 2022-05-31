@@ -7,6 +7,7 @@ use common::{
             Buffs,
         },
         fluid_dynamics::{Fluid, LiquidKind},
+        item::MaterialStatManifest,
         Energy, Group, Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState,
         Stats,
     },
@@ -21,8 +22,8 @@ use common_ecs::{Job, Origin, ParMode, Phase, System};
 use hashbrown::HashMap;
 use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadStorage,
-    SystemData, World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect,
+    ReadStorage, SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 
@@ -38,6 +39,7 @@ pub struct ReadData<'a> {
     groups: ReadStorage<'a, Group>,
     uid_allocator: Read<'a, UidAllocator>,
     time: Read<'a, Time>,
+    msm: ReadExpect<'a, MaterialStatManifest>,
 }
 
 #[derive(Default)]
@@ -207,6 +209,7 @@ impl<'a> System<'a> for Sys {
                 None,
                 read_data.inventories.get(entity),
                 Some(&stat),
+                &read_data.msm,
             );
             if (damage_reduction - 1.0).abs() < f32::EPSILON {
                 for (id, buff) in buff_comp.buffs.iter() {

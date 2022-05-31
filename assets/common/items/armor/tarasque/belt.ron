@@ -3,9 +3,7 @@ ItemDef(
     description: "Shattered band of a tarasque shell, making for a strong belt.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(8.0)),
-        ),
+        stats: FromSet("Tarasque"),
     )),
     quality: High,
     tags: [

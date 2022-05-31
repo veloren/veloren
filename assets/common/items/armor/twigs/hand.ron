@@ -3,9 +3,7 @@ ItemDef(
     description: "Magically imbued twigs interlocked into simple hand wraps.",
     kind: Armor((
         kind: Hand,
-        stats: (
-            protection: Some(Normal(6.0)),
-        ),
+        stats: FromSet("Twigs"),
     )),
     quality: Moderate,
     tags: [

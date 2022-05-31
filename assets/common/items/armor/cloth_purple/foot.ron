@@ -3,8 +3,7 @@ ItemDef(
     description: "Cobbled rough fabric boots, dyed purple.",
     kind: Armor((
         kind: Foot,
-        stats: (
-        ),
+        stats: FromSet("Cloth Purple"),
     )),
     quality: Common,
     tags: [

@@ -3,12 +3,12 @@ ItemDef(
     description: "Once belonged to a cultist.",
     kind: Armor((
         kind: Ring,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             energy_max: Some(5),
             energy_reward: Some(0.025),
             crit_power: Some(0.02),
-        ),
+        )),
     )),
     quality: Epic,
     tags: [],

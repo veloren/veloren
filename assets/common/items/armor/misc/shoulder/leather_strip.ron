@@ -3,9 +3,9 @@ ItemDef(
     description: "Tanned animal hide strips formed into loose shoulder pads.",
     kind: Armor((
         kind: Shoulder,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(4.0)),
-        ),
+        )),
     )),
     quality: Low,
     tags: [],

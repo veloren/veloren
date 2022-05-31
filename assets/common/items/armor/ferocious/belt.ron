@@ -3,9 +3,7 @@ ItemDef(
     description: "The dark side of nature",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(12.0)),
-        ),
+        stats: FromSet("Ferocious"),
     )),
     quality: Epic,
     tags: [

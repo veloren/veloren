@@ -3,10 +3,10 @@ ItemDef(
     description: "Common bandit's mask.",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             crit_power: Some(0.006),
             stealth: Some(0.18),
-        ),
+        )),
     )),
     quality: Common,
     tags: [],

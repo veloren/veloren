@@ -3,10 +3,10 @@ ItemDef(
     description: "Contains the guardian aura of the ocean",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(2.0)),
             poise_resilience: Some(Normal(1.0)),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],

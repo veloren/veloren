@@ -1,13 +1,10 @@
 ItemDef(
     name: "Testing Boots",
     description: "Hopefully this test doesn't break!",
-    kind: Armor(
-        (
-            kind: Foot,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Foot,
+        stats: Direct(()),
+    )),
     quality: Low,
     tags: [],
 )

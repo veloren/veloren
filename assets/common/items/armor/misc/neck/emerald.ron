@@ -3,11 +3,11 @@ ItemDef(
     description: "A cobalt necklace, bearing beautiful emerald gems.",
     kind: Armor((
         kind: Neck,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(1.0)),
             energy_max: Some(20.0),
             energy_reward: Some(-0.2),
-        ),
+        )),
     )),
     quality: Epic,
     tags: [],

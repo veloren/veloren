@@ -15,6 +15,7 @@ use common::{
     combat::DamageContributor,
     comp::{
         self,
+        item::MaterialStatManifest,
         skills::{GeneralSkill, Skill},
         Group, Inventory, Item, Poise,
     },
@@ -127,6 +128,7 @@ pub trait StateExt {
 
 impl StateExt for State {
     fn apply_effect(&self, entity: EcsEntity, effects: Effect, source: Option<Uid>) {
+        let msm = self.ecs().read_resource::<MaterialStatManifest>();
         match effects {
             Effect::Health(change) => {
                 self.ecs()
@@ -150,6 +152,7 @@ impl StateExt for State {
                         Some(damage),
                         inventories.get(entity),
                         stats.get(entity),
+                        &msm,
                     ),
                     damage_contributor,
                     false,
@@ -164,7 +167,7 @@ impl StateExt for State {
             },
             Effect::Poise(poise) => {
                 let inventories = self.ecs().read_storage::<Inventory>();
-                let change = Poise::apply_poise_reduction(poise, inventories.get(entity));
+                let change = Poise::apply_poise_reduction(poise, inventories.get(entity), &msm);
                 // Check to make sure the entity is not already stunned
                 if let Some(character_state) = self
                     .ecs()

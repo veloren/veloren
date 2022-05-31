@@ -3,12 +3,7 @@ ItemDef(
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Hand,
-        stats: (
-            protection: Some(Normal(8.0)),
-            energy_max: Some(8.3),
-            energy_reward: Some(0.084),
-            stealth: Some(0.084),
-        ),
+        stats: FromSet("Moonweave"),
     )),
     quality: Epic,
     tags: [

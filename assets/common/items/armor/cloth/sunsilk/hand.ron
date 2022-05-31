@@ -3,12 +3,7 @@ ItemDef(
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Hand,
-        stats: (
-            protection: Some(Normal(9.0)),
-            energy_max: Some(10.0),
-            energy_reward: Some(0.1),
-            stealth: Some(0.1),
-        ),
+        stats: FromSet("Sunsilk"),
     )),
     quality: Legendary,
     tags: [

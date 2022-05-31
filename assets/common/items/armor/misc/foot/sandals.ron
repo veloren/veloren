@@ -3,8 +3,8 @@ ItemDef(
     description: "Loyal companions, though they don't look like they can go much further.",
     kind: Armor((
         kind: Foot,
-        stats: (
-        ),
+        stats: Direct((
+        )),
     )),
     quality: Low,
     tags: [

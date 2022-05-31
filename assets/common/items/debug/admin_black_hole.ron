@@ -4,8 +4,7 @@ ItemDef(
     kind: Armor(
         (
             kind: Bag,
-            stats: (
-            ),
+            stats: Direct(()),
         )
     ),
     quality: Debug,

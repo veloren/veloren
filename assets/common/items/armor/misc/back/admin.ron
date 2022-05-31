@@ -3,10 +3,10 @@ ItemDef(
     description: "With great power comes\ngreat responsibility.",
     kind: Armor((
         kind: Back,
-        stats: (
+        stats: Direct((
             protection: Some(Invincible),
             poise_resilience: Some(Invincible),
-        ),
+        )),
     )),
     quality: Debug,
     tags: [],

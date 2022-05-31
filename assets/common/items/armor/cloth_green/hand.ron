@@ -3,8 +3,7 @@ ItemDef(
     description: "Rough cloth bracelets provide a stylish fashion statement, dyed green.",
     kind: Armor((
         kind: Hand,
-        stats: (
-        ),
+        stats: FromSet("Cloth Green"),
     )),
     quality: Common,
     tags: [

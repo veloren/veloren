@@ -12,7 +12,7 @@ use veloren_common::{
     comp::{
         self,
         item::{
-            armor::{ArmorKind, Protection},
+            armor::{ArmorKind, Protection, StatsSource},
             tool::{AbilitySpec, Hands, Stats, ToolKind},
             ItemDefinitionId, ItemKind, ItemTag, Material, Quality,
         },
@@ -124,7 +124,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 None
                             };
 
-                            let max_energy =
+                            let energy_max =
                                 if let Some(max_energy_raw) = record.get(headers["Max Energy"]) {
                                     let value = max_energy_raw.parse().unwrap();
                                     if value == 0.0 { None } else { Some(value) }
@@ -174,15 +174,19 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             };
 
                             let kind = armor.kind;
-                            let armor_stats = comp::item::armor::Stats::new(
+                            let armor_stats = comp::item::armor::Stats {
                                 protection,
                                 poise_resilience,
-                                max_energy,
+                                energy_max,
                                 energy_reward,
                                 crit_power,
                                 stealth,
+                                ground_contact: Default::default(),
+                            };
+                            let armor = comp::item::armor::Armor::new(
+                                kind,
+                                StatsSource::Direct(armor_stats),
                             );
-                            let armor = comp::item::armor::Armor::new(kind, armor_stats);
                             let quality = if let Some(quality_raw) = record.get(headers["Quality"])
                             {
                                 match quality_raw {

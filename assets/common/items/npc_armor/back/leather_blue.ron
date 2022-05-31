@@ -1,15 +1,13 @@
 ItemDef(
     name: "Blue Traveler Coat",
     description: "",
-    kind: Armor(
-        (
-            kind: Back,
-            stats: (
-                protection: Some(Normal(1.0)),
-                poise_resilience: Some(Normal(0.0)),
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Back,
+        stats: Direct((
+            protection: Some(Normal(1.0)),
+            poise_resilience: Some(Normal(0.0)),
+        )),
+    )),
     quality: Moderate,
     tags: [],
 )

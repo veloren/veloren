@@ -3,9 +3,7 @@ ItemDef(
     description: "",
     kind: Armor((
         kind: Hand,
-        stats: (
-            protection: Some(Normal(11.5)),
-        ),
+        stats: FromSet("Velorite Battlemage"),
     )),
     quality: High,
     tags: [

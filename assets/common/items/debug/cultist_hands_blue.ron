@@ -1,13 +1,10 @@
 ItemDef(
     name: "Velorite Gloves",
     description: "",
-    kind: Armor(
-        (
-            kind: Hand,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Hand,
+        stats: Direct(()),
+    )),
     quality: Debug,
     tags: [],
 )

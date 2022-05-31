@@ -1,8 +1,12 @@
 use super::{
-    tool::{self, AbilityMap, AbilitySpec, Hands, MaterialStatManifest},
+    armor,
+    tool::{self, AbilityMap, AbilitySpec, Hands},
     Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, Material, Quality, ToolKind,
 };
-use crate::{assets::AssetExt, recipe};
+use crate::{
+    assets::{self, Asset, AssetExt, AssetHandle},
+    recipe,
+};
 use common_base::dev_panic;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -18,6 +22,28 @@ macro_rules! modular_item_id_prefix {
     () => {
         "veloren.core.pseudo_items.modular."
     };
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct MaterialStatManifest {
+    tool_stats: HashMap<String, tool::Stats>,
+    armor_stats: HashMap<String, armor::Stats>,
+}
+
+impl MaterialStatManifest {
+    pub fn load() -> AssetHandle<Self> { Self::load_expect("common.material_stats_manifest") }
+
+    pub fn armor_stats(&self, key: &str) -> Option<armor::Stats> {
+        self.armor_stats.get(key).copied()
+    }
+}
+
+// This could be a Compound that also loads the keys, but the RecipeBook
+// Compound impl already does that, so checking for existence here is redundant.
+impl Asset for MaterialStatManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -241,7 +267,7 @@ impl ModularComponent {
                     .filter_map(|comp| {
                         comp.item_definition_id()
                             .itemdef_id()
-                            .and_then(|id| msm.0.get(id))
+                            .and_then(|id| msm.tool_stats.get(id))
                             .copied()
                             .zip(Some(1))
                     })

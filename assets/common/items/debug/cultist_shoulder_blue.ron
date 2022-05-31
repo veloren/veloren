@@ -1,13 +1,10 @@
 ItemDef(
     name: "Velorite Mantle",
     description: "",
-    kind: Armor(
-        (
-            kind: Shoulder,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder,
+        stats: Direct(()),
+    )),
     quality: Debug,
     tags: [],
 )

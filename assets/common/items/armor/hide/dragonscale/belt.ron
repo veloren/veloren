@@ -3,11 +3,7 @@ ItemDef(
     description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(7.0)),
-            crit_power: Some(0.1),
-            stealth: Some(0.1),
-        ),
+        stats: FromSet("Dragonscale"),
     )),
     quality: Legendary,
     tags: [

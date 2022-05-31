@@ -3,10 +3,7 @@ ItemDef(
     description: "Metal alloy interlocking plates to improve protection.",
     kind: Armor((
         kind: Back,
-        stats: (
-            protection: Some(Normal(6.0)),
-            poise_resilience: Some(Normal(1.5)),
-        ),
+        stats: FromSet("Steel"),
     )),
     quality: Moderate,
     tags: [

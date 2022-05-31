@@ -5,7 +5,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            ItemDesc, ItemKind, MaterialKind,
+            ItemDesc, ItemKind, MaterialKind, MaterialStatManifest,
         },
         BuffKind,
     },
@@ -109,17 +109,17 @@ pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> &'
     }
 }
 
-pub fn stats_count(item: &dyn ItemDesc) -> usize {
+pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
     let mut count = match &*item.kind() {
         ItemKind::Armor(armor) => {
             if matches!(armor.kind, ArmorKind::Bag) {
                 0
             } else {
-                armor.stats.energy_reward().is_some() as usize
-                    + armor.stats.energy_max().is_some() as usize
-                    + armor.stats.stealth().is_some() as usize
-                    + armor.stats.crit_power().is_some() as usize
-                    + armor.stats.poise_resilience().is_some() as usize
+                armor.stats(msm).energy_reward.is_some() as usize
+                    + armor.stats(msm).energy_max.is_some() as usize
+                    + armor.stats(msm).stealth.is_some() as usize
+                    + armor.stats(msm).crit_power.is_some() as usize
+                    + armor.stats(msm).poise_resilience.is_some() as usize
             }
         },
         ItemKind::Tool(_) => 7,

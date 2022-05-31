@@ -3,9 +3,9 @@ ItemDef(
     description: "Leather shoulders decorated with heavy iron hooks provide protection to the wearer.",
     kind: Armor((
         kind: Shoulder,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(9.0)),
-        ),
+        )),
     )),
     quality: Common,
     tags: [

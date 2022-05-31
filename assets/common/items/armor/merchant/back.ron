@@ -3,11 +3,7 @@ ItemDef(
     description: "",
     kind: Armor((
         kind: Back,
-        stats: (
-            protection: Some(Normal(1.0)),
-            crit_power: Some(0.017),
-            stealth: Some(0.017),
-        ),
+        stats: FromSet("Merchant"),
     )),
     quality: High,
     slots: 18,

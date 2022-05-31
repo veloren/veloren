@@ -3,9 +3,9 @@ ItemDef(
     description: "Keeps your shoulders warm.",
     kind: Armor((
         kind: Back,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(0.1)),
-        ),
+        )),
     )),
     quality: Common,
     tags: [

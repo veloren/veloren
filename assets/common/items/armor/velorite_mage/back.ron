@@ -3,9 +3,7 @@ ItemDef(
     description: "Keeps your shoulders warm.",
     kind: Armor((
         kind: Back,
-        stats: (
-            protection: Some(Normal(2.8)),
-        ),
+        stats: FromSet("Velorite Battlemage"),
     )),
     quality: High,
     tags: [

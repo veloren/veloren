@@ -3,11 +3,7 @@ ItemDef(
     description: "Made from the shell that once shielded a beast.",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(5.0)),
-            crit_power: Some(0.067),
-            stealth: Some(0.067),
-        ),
+        stats: FromSet("Carapace"),
     )),
     quality: High,
     tags: [

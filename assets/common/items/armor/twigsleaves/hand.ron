@@ -3,9 +3,7 @@ ItemDef(
     description: "Leaves help hide the magic-interlocking twigs, and provide mild protection from the elements.",
     kind: Armor((
         kind: Hand,
-        stats: (
-            protection: Some(Normal(6.0)),
-        ),
+        stats: FromSet("Twigs Leaves"),
     )),
     quality: Moderate,
     tags: [

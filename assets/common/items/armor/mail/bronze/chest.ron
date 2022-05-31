@@ -3,10 +3,7 @@ ItemDef(
     description: "Heavy and dull, but it can take a punch.",
     kind: Armor((
         kind: Chest,
-        stats: (
-            protection: Some(Normal(12.0)),
-            poise_resilience: Some(Normal(3.0)),
-        ),
+        stats: FromSet("Bronze"),
     )),
     quality: Low,
     tags: [

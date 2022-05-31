@@ -3,13 +3,7 @@ ItemDef(
     description: "",
     kind: Armor((
         kind: Belt,
-        stats: (
-            protection: Some(Normal(8.0)),
-            poise_resilience: Some(Normal(1.0)),
-            energy_max: Some(2.0),
-            energy_reward: Some(0.025),
-            crit_power: Some(0.02),
-        ),
+        stats: FromSet("Witch"),
     )),
     quality: Epic,
     tags: [

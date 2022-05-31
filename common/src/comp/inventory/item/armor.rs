@@ -1,11 +1,15 @@
 use crate::{
-    comp::item::Rgb,
+    comp::item::{MaterialStatManifest, Rgb},
     terrain::{Block, BlockKind},
 };
 use serde::{Deserialize, Serialize};
-use std::{cmp::Ordering, ops::Sub};
+use std::{
+    cmp::Ordering,
+    ops::{Mul, Sub},
+};
+use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
 pub enum ArmorKind {
     Shoulder,
     Chest,
@@ -69,66 +73,66 @@ impl Friction {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct Stats {
     /// Protection is non-linearly transformed (following summation) to a damage
     /// reduction using (prot / (60 + prot))
-    protection: Option<Protection>,
+    pub protection: Option<Protection>,
     /// Poise protection is non-linearly transformed (following summation) to a
     /// poise damage reduction using (prot / (60 + prot))
-    poise_resilience: Option<Protection>,
+    pub poise_resilience: Option<Protection>,
     /// Energy max is summed, and then applied directly to the max energy stat
-    energy_max: Option<f32>,
+    pub energy_max: Option<f32>,
     /// Energy recovery is summed, and then added to 1.0. When attacks reward
     /// energy, it is then multiplied by this value before the energy is
     /// rewarded.
-    energy_reward: Option<f32>,
+    pub energy_reward: Option<f32>,
     /// Crit power is summed, and then added to the default crit multiplier of
     /// 1.25. Damage is multiplied by this value when an attack crits.
-    crit_power: Option<f32>,
+    pub crit_power: Option<f32>,
     /// Stealth is summed along with the base stealth bonus (2.0), and then
     /// the agent's perception distance is divided by this value
-    stealth: Option<f32>,
+    pub stealth: Option<f32>,
     /// Ground contact type, mostly for shoes
     #[serde(default)]
-    ground_contact: Friction,
+    pub ground_contact: Friction,
 }
 
 impl Stats {
-    // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
-    // Added for csv import of stats
-    pub fn new(
-        protection: Option<Protection>,
-        poise_resilience: Option<Protection>,
-        energy_max: Option<f32>,
-        energy_reward: Option<f32>,
-        crit_power: Option<f32>,
-        stealth: Option<f32>,
-    ) -> Self {
-        Self {
-            protection,
-            poise_resilience,
-            energy_max,
-            energy_reward,
-            crit_power,
-            stealth,
+    fn none() -> Self {
+        Stats {
+            protection: None,
+            poise_resilience: None,
+            energy_max: None,
+            energy_reward: None,
+            crit_power: None,
+            stealth: None,
             ground_contact: Friction::Normal,
         }
     }
+}
 
-    pub fn protection(&self) -> Option<Protection> { self.protection }
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum StatsSource {
+    Direct(Stats),
+    FromSet(String),
+}
 
-    pub fn poise_resilience(&self) -> Option<Protection> { self.poise_resilience }
+impl Mul<f32> for Stats {
+    type Output = Self;
 
-    pub fn energy_max(&self) -> Option<f32> { self.energy_max }
-
-    pub fn energy_reward(&self) -> Option<f32> { self.energy_reward }
-
-    pub fn crit_power(&self) -> Option<f32> { self.crit_power }
-
-    pub fn stealth(&self) -> Option<f32> { self.stealth }
-
-    pub fn ground_contact(&self) -> Friction { self.ground_contact }
+    fn mul(self, val: f32) -> Self::Output {
+        Stats {
+            protection: self.protection.map(|a| a * val),
+            poise_resilience: self.poise_resilience.map(|a| a * val),
+            energy_max: self.energy_max.map(|a| a * val),
+            energy_reward: self.energy_reward.map(|a| a * val),
+            crit_power: self.crit_power.map(|a| a * val),
+            stealth: self.stealth.map(|a| a * val),
+            // There is nothing to multiply, it is just an enum
+            ground_contact: self.ground_contact,
+        }
+    }
 }
 
 impl Sub<Stats> for Stats {
@@ -177,6 +181,17 @@ impl Sub for Protection {
     }
 }
 
+impl Mul<f32> for Protection {
+    type Output = Self;
+
+    fn mul(self, val: f32) -> Self::Output {
+        match self {
+            Protection::Invincible => Protection::Invincible,
+            Protection::Normal(a) => Protection::Normal(a * val),
+        }
+    }
+}
+
 impl PartialOrd for Protection {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (*self, *other) {
@@ -191,25 +206,39 @@ impl PartialOrd for Protection {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Armor {
     pub kind: ArmorKind,
-    pub stats: Stats,
+    stats: StatsSource,
 }
 
 impl Armor {
-    pub fn new(kind: ArmorKind, stats: Stats) -> Self { Self { kind, stats } }
+    pub fn new(kind: ArmorKind, stats: StatsSource) -> Self { Self { kind, stats } }
 
-    pub fn protection(&self) -> Option<Protection> { self.stats.protection }
+    pub fn stats(&self, msm: &MaterialStatManifest) -> Stats {
+        match &self.stats {
+            StatsSource::Direct(stats) => *stats,
+            StatsSource::FromSet(set) => {
+                let set_stats = msm.armor_stats(set).unwrap_or_else(Stats::none);
+                let armor_kind_weight = |kind| match kind {
+                    ArmorKind::Shoulder => 2.0,
+                    ArmorKind::Chest => 3.0,
+                    ArmorKind::Belt => 0.5,
+                    ArmorKind::Hand => 1.0,
+                    ArmorKind::Pants => 2.0,
+                    ArmorKind::Foot => 1.0,
+                    ArmorKind::Back => 0.5,
+                    ArmorKind::Ring => 0.0,
+                    ArmorKind::Neck => 0.0,
+                    ArmorKind::Head => 0.0,
+                    ArmorKind::Tabard => 0.0,
+                    ArmorKind::Bag => 0.0,
+                };
 
-    pub fn poise_resilience(&self) -> Option<Protection> { self.stats.poise_resilience }
+                let armor_weights_sum: f32 = ArmorKind::iter().map(armor_kind_weight).sum();
+                let multiplier = armor_kind_weight(self.kind) / armor_weights_sum;
 
-    pub fn energy_max(&self) -> Option<f32> { self.stats.energy_max }
-
-    pub fn energy_reward(&self) -> Option<f32> { self.stats.energy_reward }
-
-    pub fn crit_power(&self) -> Option<f32> { self.stats.crit_power }
-
-    pub fn stealth(&self) -> Option<f32> { self.stats.stealth }
-
-    pub fn ground_contact(&self) -> Friction { self.stats.ground_contact }
+                set_stats * multiplier
+            },
+        }
+    }
 
     #[cfg(test)]
     pub fn test_armor(
@@ -219,7 +248,7 @@ impl Armor {
     ) -> Armor {
         Armor {
             kind,
-            stats: Stats {
+            stats: StatsSource::Direct(Stats {
                 protection: Some(protection),
                 poise_resilience: Some(poise_resilience),
                 energy_max: None,
@@ -227,7 +256,7 @@ impl Armor {
                 crit_power: None,
                 stealth: None,
                 ground_contact: Friction::Normal,
-            },
+            }),
         }
     }
 }

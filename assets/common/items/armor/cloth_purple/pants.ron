@@ -3,9 +3,7 @@ ItemDef(
     description: "A stylish, rough fabric skirt, dyed purple.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(1.0)),
-        ),
+        stats: FromSet("Cloth Purple"),
     )),
     quality: Common,
     tags: [

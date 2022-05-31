@@ -3,9 +3,7 @@ ItemDef(
     description: "Assorted bones and hide from a bonerattler provide protection around the wearer's legs.",
     kind: Armor((
         kind: Pants,
-        stats: (
-            protection: Some(Normal(20.0)),
-        ),
+        stats: FromSet("Bonerattler"),
     )),
     quality: High,
     tags: [

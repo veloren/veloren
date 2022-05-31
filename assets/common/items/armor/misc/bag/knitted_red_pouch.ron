@@ -1,13 +1,10 @@
 ItemDef(
     name: "Knitted Red Pouch",
     description: "A sizeable red bag with two pouches, made of wool and dye.",
-    kind: Armor(
-        (
-            kind: Bag,
-            stats: (
-            ),
-        )
-    ),
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
     quality: Moderate,
     tags: [Bag],
     slots: 9,

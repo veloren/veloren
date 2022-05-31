@@ -3,8 +3,8 @@ ItemDef(
     description: "A simple headband, it's nothing special.",
     kind: Armor((
         kind: Head,
-        stats: (
-        ),
+        stats: Direct((
+        )),
     )),
     quality: Common,
     tags: [],

@@ -14,7 +14,7 @@ use veloren_common::{
         item::{
             armor::{ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            Item,
+            Item, MaterialStatManifest,
         },
     },
     generation::{EntityConfig, EntityInfo},
@@ -56,20 +56,22 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                     continue;
                 }
 
-                let protection = match armor.protection() {
+                let msm = &MaterialStatManifest::load().read();
+
+                let protection = match armor.stats(msm).protection {
                     Some(Protection::Invincible) => "Invincible".to_string(),
                     Some(Protection::Normal(value)) => value.to_string(),
                     None => "0.0".to_string(),
                 };
-                let poise_resilience = match armor.poise_resilience() {
+                let poise_resilience = match armor.stats(msm).poise_resilience {
                     Some(Protection::Invincible) => "Invincible".to_string(),
                     Some(Protection::Normal(value)) => value.to_string(),
                     None => "0.0".to_string(),
                 };
-                let max_energy = armor.energy_max().unwrap_or(0.0).to_string();
-                let energy_reward = armor.energy_reward().unwrap_or(0.0).to_string();
-                let crit_power = armor.crit_power().unwrap_or(0.0).to_string();
-                let stealth = armor.stealth().unwrap_or(0.0).to_string();
+                let max_energy = armor.stats(msm).energy_max.unwrap_or(0.0).to_string();
+                let energy_reward = armor.stats(msm).energy_reward.unwrap_or(0.0).to_string();
+                let crit_power = armor.stats(msm).crit_power.unwrap_or(0.0).to_string();
+                let stealth = armor.stats(msm).stealth.unwrap_or(0.0).to_string();
 
                 wtr.write_record(&[
                     item.item_definition_id()

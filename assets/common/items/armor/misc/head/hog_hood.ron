@@ -3,11 +3,11 @@ ItemDef(
     description: "Wear the guise of a great swine now felled, so that you may honor its sacrifice.",
     kind: Armor((
         kind: Head,
-        stats: (
+        stats: Direct((
             protection: Some(Normal(5.0)),
             crit_power: Some(0.014),
             stealth: Some(0.21),
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],
