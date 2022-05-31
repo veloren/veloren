@@ -1604,29 +1604,30 @@ impl<'a> AgentData<'a> {
         };
         let is_valid_target = |entity: EcsEntity| match read_data.bodies.get(entity) {
             Some(Body::ItemDrop(item)) => {
-                // If there is no LootOwner then the ItemDrop is a valid target, otherwise check
-                // if the loot can be picked up
-                read_data
-                    .loot_owners
-                    .get(entity)
-                    .map_or(Some((entity, false)), |loot_owner| {
-                        // Agents want to pick up items if they are humanoid, or are hungry and the
-                        // item is consumable
-                        let hungry = self
-                            .health
-                            .map_or(false, |health| health.current() < health.maximum());
-                        let wants_pickup = matches!(self.body, Some(Body::Humanoid(_)))
-                            || (hungry && matches!(item, item_drop::Body::Consumable));
+                // Agents want to pick up items if they are humanoid, or are hungry and the
+                // item is consumable
+                let hungry = || {
+                    self.health
+                        .map_or(false, |health| health.current() < health.maximum())
+                };
+                let wants_pickup = matches!(self.body, Some(Body::Humanoid(_)))
+                    || (hungry() && matches!(item, item_drop::Body::Consumable));
 
-                        let can_pickup =
-                            loot_owner.can_pickup(*self.uid, self.alignment, self.body, None);
+                // The agent will attempt to pickup the item if it wants to pick it up and is
+                // allowed to
+                let attempt_pickup = wants_pickup
+                    && read_data
+                        .loot_owners
+                        .get(entity)
+                        .map_or(true, |loot_owner| {
+                            loot_owner.can_pickup(*self.uid, self.alignment, self.body, None)
+                        });
 
-                        if wants_pickup && can_pickup {
-                            Some((entity, false))
-                        } else {
-                            None
-                        }
-                    })
+                if attempt_pickup {
+                    Some((entity, false))
+                } else {
+                    None
+                }
             },
             _ => {
                 if read_data.healths.get(entity).map_or(false, |health| {
