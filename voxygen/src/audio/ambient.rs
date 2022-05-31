@@ -48,8 +48,20 @@ impl AmbientMgr {
         // Iterate through each tag
         for tag in AmbientChannelTag::iter() {
             // If the conditions warrant creating a channel of that tag
-            if AmbientMgr::check_ambience_necessity(tag, client, camera)
-                && audio.get_ambient_channel(tag).is_none()
+            if match tag {
+                AmbientChannelTag::Wind => {
+                    AmbientChannelTag::get_tag_volume(tag, client, camera) > 0.0
+                },
+                AmbientChannelTag::Rain => {
+                    AmbientChannelTag::get_tag_volume(tag, client, camera) > 0.1
+                },
+                AmbientChannelTag::Thunder => {
+                    AmbientChannelTag::get_tag_volume(tag, client, camera) > 0.0
+                },
+                AmbientChannelTag::Leaves => {
+                    AmbientChannelTag::get_tag_volume(tag, client, camera) > 0.1
+                },
+            } && audio.get_ambient_channel(tag).is_none()
             {
                 // Iterate through the supposed number of channels - one for each tag
                 for index in 0..AmbientChannelTag::iter().len() {
@@ -126,60 +138,6 @@ impl AmbientMgr {
             }
         }
     }
-
-    fn check_ambience_necessity(tag: AmbientChannelTag, client: &Client, camera: &Camera) -> bool {
-        match tag {
-            AmbientChannelTag::Wind => {
-                let focus_off = camera.get_focus_pos().map(f32::trunc);
-                let cam_pos = camera.dependents().cam_pos + focus_off;
-
-                let (terrain_alt, tree_density) = if let Some(chunk) = client.current_chunk() {
-                    (chunk.meta().alt(), chunk.meta().tree_density())
-                } else {
-                    (0.0, 0.0)
-                };
-
-                let alt_multiplier = (cam_pos.z / 1200.0).abs();
-
-                let tree_multiplier = ((1.0 - tree_density)
-                    + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2))
-                .min(1.0);
-
-                alt_multiplier * tree_multiplier > 0.0
-            },
-            AmbientChannelTag::Rain => {
-                let focus_off = camera.get_focus_pos().map(f32::trunc);
-                let cam_pos = camera.dependents().cam_pos + focus_off;
-
-                let terrain_alt = if let Some(chunk) = client.current_chunk() {
-                    chunk.meta().alt()
-                } else {
-                    0.0
-                };
-                let camera_multiplier =
-                    1.0 - ((cam_pos.z - terrain_alt).abs() / 75.0).powi(2).min(1.0);
-
-                client.weather_at_player().rain > 0.001 || camera_multiplier > 0.0
-            },
-            AmbientChannelTag::Thunder => client.weather_at_player().rain * 500.0 > 0.7,
-            AmbientChannelTag::Leaves => {
-                let focus_off = camera.get_focus_pos().map(f32::trunc);
-                let cam_pos = camera.dependents().cam_pos + focus_off;
-
-                let (terrain_alt, tree_density) = if let Some(chunk) = client.current_chunk() {
-                    (chunk.meta().alt(), chunk.meta().tree_density())
-                } else {
-                    (0.0, 0.0)
-                };
-                let tree_multiplier = 1.0
-                    - (((1.0 - tree_density)
-                        + ((cam_pos.z - terrain_alt + 20.0).abs() / 150.0).powi(2))
-                    .min(1.0));
-
-                tree_multiplier > 0.1
-            },
-        }
-    }
 }
 
 impl AmbientChannelTag {
@@ -237,12 +195,10 @@ impl AmbientChannelTag {
                 rain_intensity.min(0.9)
             },
             AmbientChannelTag::Thunder => {
-                let rain_intensity = client.weather_at_player().rain * 500.0;
-
-                if rain_intensity < 0.7 {
+                if client.weather_at_player().rain * 500.0 < 0.7 {
                     0.0
                 } else {
-                    rain_intensity
+                    client.weather_at_player().rain * 500.0
                 }
             },
             AmbientChannelTag::Leaves => {

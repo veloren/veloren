@@ -13,7 +13,7 @@ use common::{
     lod,
     spiral::Spiral2d,
     util::srgba_to_linear,
-    weather
+    weather,
 };
 use hashbrown::HashMap;
 use std::ops::Range;
@@ -191,14 +191,7 @@ impl Lod {
             [size.x, size.y],
             &weather
                 .iter()
-                .map(|(_, w)| {
-                    [
-                        (w.cloud * 255.0) as u8,
-                        (w.rain * 255.0) as u8,
-                        0,
-                        0,
-                    ]
-                })
+                .map(|(_, w)| [(w.cloud * 255.0) as u8, (w.rain * 255.0) as u8, 0, 0])
                 .collect::<Vec<_>>(),
         );
     }
