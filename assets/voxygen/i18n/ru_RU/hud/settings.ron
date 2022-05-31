@@ -39,7 +39,7 @@
         "hud.settings.percentages": "Проценты",
         "hud.settings.chat": "Чат",
         "hud.settings.background_opacity": "Прозрачность фона",
-        "hud.settings.chat_character_name": "Имена персонажей в чате",
+        "hud.settings.chat_character_name": "Имена персонажей в чате", // force update
         "hud.settings.loading_tips": "Советы при загрузке",
         "hud.settings.reset_interface": "По умолчанию",
 
@@ -56,9 +56,11 @@
         "hud.settings.player_physics_behavior": "Физика игрока (экспериментальная)",
         "hud.settings.stop_auto_walk_on_input": "Остановить автоходьбу при движении",
         "hud.settings.auto_camera": "Авто-камера",
+        "hud.settings.bow_zoom": "Приближение при натягивании тетивы",
         "hud.settings.reset_gameplay": "По умолчанию",
 
         "hud.settings.view_distance": "Дальность\nвидимости",
+        "hud.settings.lod_distance": "Дистанция LoD",
         "hud.settings.sprites_view_distance": "Дальность\nвидимости спрайтов",
         "hud.settings.figures_view_distance": "Дальность\nвидимости объектов",
         "hud.settings.maximum_fps": "Максимальный FPS",

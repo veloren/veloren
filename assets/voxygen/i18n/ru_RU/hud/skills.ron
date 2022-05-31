@@ -57,13 +57,13 @@
         "hud.skill.sc_heal_title": "Луч жизни",
         "hud.skill.sc_heal": "Исцелите союзников, используя кровь своих врагов. Требует комбо для активации",
         "hud.skill.sc_heal_heal_title": "Лечение",
-        "hud.skill.sc_heal_heal": "Увеличивает эффективность исцеления союзников на {boost}%{SP}",
+        "hud.skill.sc_heal_heal": "Увеличивает эффективность исцеления союзников на {boost}%{SP}", // force update
         "hud.skill.sc_heal_cost_title": "Расход энергии",
         "hud.skill.sc_heal_cost": "Исцеление требует на {boost}% меньше энергии{SP}",
         "hud.skill.sc_heal_duration_title": "Длительность эффекта",
         "hud.skill.sc_heal_duration": "Эффекты ауры исцеления длятся на {boost}% дольше longer{SP}",
         "hud.skill.sc_heal_range_title": "Дальность",
-        "hud.skill.sc_heal_range": "Ваш луч на {boost}% дальше{SP}",
+        "hud.skill.sc_heal_range": "Ваш луч на {boost}% дальше{SP}", // force update
         "hud.skill.sc_wardaura_unlock_title": "Аура защиты",
         "hud.skill.sc_wardaura_unlock": "Позволяет вам повысить защиту своих союзников (и себя){SP}",
         "hud.skill.sc_wardaura_strength_title": "Сила",

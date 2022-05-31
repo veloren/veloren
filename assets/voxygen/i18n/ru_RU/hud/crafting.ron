@@ -34,6 +34,17 @@
         "hud.crafting.tabs.processed_material": "Материалы",
         "hud.crafting.dismantle_title": "Разборка",
         "hud.crafting.dismantle_explanation" : "Наведите курсор на предмет что бы увидеть\nчто вы можете получить.\n\nДвойное нажатие для начала разборки.",
+        "hud.crafting.modular_desc": "Перетащите сюда часть предметов, чтобы создать оружие.",
+        "hud.crafting.mod_weap_prim_slot_title": "Основной компонент оружия",
+        "hud.crafting.mod_weap_prim_slot_desc": "Поместите сюда основной компонент оружия (например клинок меча, топорище, или плечо лука).",
+        "hud.crafting.mod_weap_sec_slot_title": "Вторичный компонент оружия",
+        "hud.crafting.mod_weap_sec_slot_desc": "Поместите сюда вторичный компонент оружи (например рукоять меча, рукоять лука или сердцевину посоха).",
+        "hud.crafting.mod_comp_metal_prim_slot_title": "Металлический слиток",
+        "hud.crafting.mod_comp_metal_prim_slot_desc": "Положите сюда металлический слиток, только определенные металлы можно использовать для изготовления оружия.",
+        "hud.crafting.mod_comp_wood_prim_slot_title": "Дерево",
+        "hud.crafting.mod_comp_wood_prim_slot_desc": "Положите сюда дерево, только определенное дерево можно использовать для изготовления оружия.",
+        "hud.crafting.mod_comp_sec_slot_title": "Животный материал",
+        "hud.crafting.mod_comp_sec_slot_desc": "При желании поместите сюда животный материал, только определенные ингредиенты можно использовать для улучшения оружия.",
     },
 
 
