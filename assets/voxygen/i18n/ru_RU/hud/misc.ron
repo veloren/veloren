@@ -10,6 +10,8 @@
         "hud.waypoint_saved": "Путевая точка сохранена",
         "hud.sp_arrow_txt": "SP",
         "hud.inventory_full": "Инвентарь полон",
+        "hud.someone_else": "Кто-нибудь другой",
+        "hud.owned_by_for_secs": "Принадлежит {name} в течение {secs} сек.",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Сочетания клавиш",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Фонарь",
@@ -26,7 +28,7 @@
         "hud.tutorial_elements": r#"Крафт"#,
 
 "hud.temp_quest_headline": r#"Привет путешественник!"#,
-"hud.temp_quest_text": r#"Для начала, вы можете осматреть эту деревню и собрать немного припасов.
+"hud.temp_quest_text": r#"Для начала, вы можете осматреть эту деревню и собрать немного припасов.  // force update
 
 Вы можете взять с собой в путешествие все, что вам нужно!
 

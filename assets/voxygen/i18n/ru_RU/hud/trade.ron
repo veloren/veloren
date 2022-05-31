@@ -16,7 +16,7 @@
         "hud.trade.result.completed": "Сделка успешно завершена.",
         "hud.trade.result.declined": "Сделка отклонена.",
         "hud.trade.result.nospace": "Недостаточно места для завершения сделки.",
-        "hud.trade.buy_price": "Цена покупки",
+        "hud.trade.buy_price": "Цена покупки", // force update
         "hud.trade.sell_price": "Цена продажи",
         "hud.trade.coin": "Монеты",
         "hud.trade.tooltip_hint_1": "<Shift-Click чтобы Добавить/Удалить из сделки...>",

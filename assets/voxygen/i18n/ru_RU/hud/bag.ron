@@ -34,16 +34,16 @@
         "hud.bag.combat_rating": "Боевой рейтинг",
         "hud.bag.protection": "Защита",
         "hud.bag.stun_res": "Устойчивость к оглушению",
+        "hud.bag.stealth": "Стелс",
         "hud.bag.combat_rating_desc": "Рассчитано с учетом вашего\nоборудования и здоровья.",
         "hud.bag.protection_desc": "Снижение урона за счет брони",
         "hud.bag.stun_res_desc": "Устойчивость к оглушению от последовательных ударов.\nВосстанавливается как энергия.",
-        "hud.bag.sort_by_name": "Сортировать по имени",
+        "hud.bag.sort_by_name": "Сортировать по имени", // force update
         "hud.bag.sort_by_quality": "Сортировать по качеству",
-        "hud.bag.sort_by_category": "Сортировать по категории",
+        "hud.bag.sort_by_category": "Сортировать по категории", // force update
     },
 
 
     vector_map: {
     }
 )
-
