@@ -286,7 +286,15 @@ impl Block {
                 | SpriteKind::Loom
                 | SpriteKind::SpinningWheel
                 | SpriteKind::DismantlingBench
-                | SpriteKind::TanningRack => None,
+                | SpriteKind::TanningRack
+                | SpriteKind::Chest
+                | SpriteKind::DungeonChest0
+                | SpriteKind::DungeonChest1
+                | SpriteKind::DungeonChest2
+                | SpriteKind::DungeonChest3
+                | SpriteKind::DungeonChest4
+                | SpriteKind::DungeonChest5
+                | SpriteKind::ChestBuried => None,
                 SpriteKind::EnsnaringVines | SpriteKind::EnsnaringWeb => Some(0.1),
                 _ => Some(0.25),
             }),
