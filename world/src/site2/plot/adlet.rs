@@ -39,19 +39,19 @@ pub struct AdletStronghold {
 }
 
 enum AdletStructure {
-    Igloo,
+    Igloo(u8),
     TunnelEntrance,
 }
 
 impl AdletStructure {
     fn required_separation(&self, other: &Self) -> i32 {
         let radius = |structure: &Self| match structure {
-            Self::Igloo => 5,
+            Self::Igloo(radius) => *radius as i32 + 3,
             Self::TunnelEntrance => 16,
         };
 
         let additional_padding = match (self, other) {
-            (Self::Igloo, Self::Igloo) => 5,
+            (Self::Igloo(_), Self::Igloo(_)) => 5,
             _ => 0,
         };
 
@@ -103,7 +103,49 @@ impl AdletStronghold {
             }
         }
 
+        // Find direction that allows for deep enough site
+        let angle_samples = (0..64).into_iter().map(|x| x as f32 / 64.0 * TAU);
+        // Sample blocks 40-50 away, use angle where these positions are highest
+        // relative to entrance
+        let angle = angle_samples
+            .max_by_key(|theta| {
+                let entrance_height = land.get_alt_approx(entrance);
+                let height =
+                    |pos: Vec2<f32>| land.get_alt_approx(pos.as_() + entrance) - entrance_height;
+                let (x, y) = (theta.cos(), theta.sin());
+                (40..=50)
+                    .into_iter()
+                    .map(|r| {
+                        let rpos = Vec2::new(r as f32 * x, r as f32 * y);
+                        height(rpos) as i32
+                    })
+                    .sum::<i32>()
+            })
+            .unwrap_or(0.0);
+
+        let cavern_radius = {
+            let unit_size = rng.gen_range(10..15);
+            let num_units = rng.gen_range(4..8);
+            let variation = rng.gen_range(0..30);
+            unit_size * num_units + variation
+        };
+
+        let tunnel_length = rng.gen_range(35_i32..50);
+
+        let cavern_center = entrance
+            + (Vec2::new(angle.cos(), angle.sin()) * (tunnel_length as f32 + cavern_radius as f32))
+                .as_();
+
+        let cavern_alt = (land.get_alt_approx(cavern_center) - cavern_radius as f32)
+            .min(land.get_alt_approx(entrance));
+
         let mut outer_structures = Vec::<(AdletStructure, Vec2<i32>, Dir)>::new();
+
+        outer_structures.push((
+            AdletStructure::TunnelEntrance,
+            entrance - wall_center,
+            Dir::from_vector(entrance - cavern_center),
+        ));
 
         let desired_structures = wall_radius.pow(2) / 100;
         for _ in 0..desired_structures {
@@ -111,7 +153,7 @@ impl AdletStronghold {
                 // Choose structure kind
                 let structure_kind = match rng.gen_range(0..10) {
                     // TODO: Add more variants
-                    _ => AdletStructure::Igloo,
+                    _ => AdletStructure::Igloo(rng.gen_range(6..12)),
                 };
 
                 // Choose relative position
@@ -150,48 +192,6 @@ impl AdletStronghold {
                 outer_structures.push((kind, rpos, door_dir));
             }
         }
-
-        // Find direction that allows for deep enough site
-        let angle_samples = (0..64).into_iter().map(|x| x as f32 / 64.0 * TAU);
-        // Sample blocks 40-50 away, use angle where these positions are highest
-        // relative to entrance
-        let angle = angle_samples
-            .max_by_key(|theta| {
-                let entrance_height = land.get_alt_approx(entrance);
-                let height =
-                    |pos: Vec2<f32>| land.get_alt_approx(pos.as_() + entrance) - entrance_height;
-                let (x, y) = (theta.cos(), theta.sin());
-                (40..=50)
-                    .into_iter()
-                    .map(|r| {
-                        let rpos = Vec2::new(r as f32 * x, r as f32 * y);
-                        height(rpos) as i32
-                    })
-                    .sum::<i32>()
-            })
-            .unwrap_or(0.0);
-
-        let cavern_radius = {
-            let unit_size = rng.gen_range(10..15);
-            let num_units = rng.gen_range(4..8);
-            let variation = rng.gen_range(0..30);
-            unit_size * num_units + variation
-        };
-
-        let tunnel_length = rng.gen_range(35_i32..50);
-
-        let cavern_center = entrance
-            + (Vec2::new(angle.cos(), angle.sin()) * (tunnel_length as f32 + cavern_radius as f32))
-                .as_();
-
-        let cavern_alt = (land.get_alt_approx(cavern_center) - cavern_radius as f32)
-            .min(land.get_alt_approx(entrance));
-
-        outer_structures.push((
-            AdletStructure::TunnelEntrance,
-            entrance - wall_center,
-            Dir::from_vector(entrance - cavern_center),
-        ));
 
         Self {
             name,
@@ -478,7 +478,32 @@ impl Structure for AdletStronghold {
                         bone.fill(bone_fill.clone());
                     }
                 },
-                AdletStructure::Igloo => {},
+                AdletStructure::Igloo(radius) => {
+                    let snow_fill =
+                        Fill::Block(Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)));
+                    let center_pos = wpos.with_z(alt as i32 - *radius as i32);
+                    painter
+                        .sphere_with_radius(center_pos, *radius as f32)
+                        .fill(snow_fill);
+                    let room_radius = *radius as i32 * 2 / 5;
+                    let room_center = |dir: Dir| center_pos + dir.to_vec2() * room_radius;
+                    painter
+                        .sphere_with_radius(room_center(dir.rotated_cw()), room_radius as f32)
+                        .union(painter.sphere_with_radius(room_center(dir.opposite()), room_radius as f32))
+                        .union(painter.sphere_with_radius(room_center(dir.rotated_ccw()), room_radius as f32))
+                        .clear();
+
+                    let mid_pos =
+                        (center_pos + dir.to_vec2().with_z(1).mul(*radius as i32)).as_::<f32>();
+                    painter
+                        .line(center_pos.as_::<f32>(), mid_pos, 2.0)
+                        .union(painter.line(
+                            mid_pos,
+                            center_pos + Vec3::unit_z().mul(2 * *radius as i32),
+                            2.0,
+                        ))
+                        .clear();
+                },
             }
         }
     }
