@@ -1418,6 +1418,7 @@ fn direct_use_goods() -> &'static [GoodIndex] {
     &*DIRECT_USE
 }
 
+#[derive(Default)]
 pub struct GraphInfo {
     dummy: Economy,
 }
@@ -1434,12 +1435,4 @@ impl GraphInfo {
     pub fn labor_list(&self) -> impl Iterator<Item = Labor> { Labor::list() }
 
     pub fn can_store(&self, g: &GoodIndex) -> bool { direct_use_goods().contains(g) }
-}
-
-impl Default for GraphInfo {
-    fn default() -> Self {
-        Self {
-            dummy: Economy::default(),
-        }
-    }
 }

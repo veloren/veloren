@@ -304,7 +304,7 @@ mod tests {
     ) {
         for (id, site) in sites.iter() {
             let name = names.as_ref().map_or(site.name().into(), |map| {
-                map.get(&id).cloned().unwrap_or(site.name().into())
+                map.get(&id).cloned().unwrap_or_else(|| site.name().into())
             });
             println!("Site id {:?} name {}", id.id(), name);
             site.economy.print_details();
