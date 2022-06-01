@@ -1314,22 +1314,18 @@ impl ParticleMgr {
                         |smoker| smoker.strength,
                     );
                     if let Ok(chosen) = chosen {
-                        let mut smoke_particles: Vec<Particle> = chosen
-                            .map(|smoker| {
-                                Particle::new(
-                                    Duration::from_secs_f32(lifetime),
-                                    time,
-                                    if rng.gen::<f32>() > smoker.dry_chance {
-                                        ParticleMode::BlackSmoke
-                                    } else {
-                                        ParticleMode::CampfireSmoke
-                                    },
-                                    smoker.position.map(|e: i32| e as f32 + rng.gen::<f32>()),
-                                )
-                            })
-                            .collect();
-
-                        self.particles.append(&mut smoke_particles);
+                        self.particles.extend(chosen.map(|smoker| {
+                            Particle::new(
+                                Duration::from_secs_f32(lifetime),
+                                time,
+                                if rng.gen::<f32>() > smoker.dry_chance {
+                                    ParticleMode::BlackSmoke
+                                } else {
+                                    ParticleMode::CampfireSmoke
+                                },
+                                smoker.position.map(|e: i32| e as f32 + rng.gen::<f32>()),
+                            )
+                        }));
                     }
                 });
             }
