@@ -19,34 +19,7 @@ pub use map_types::{GoodIndex, GoodMap, Labor, LaborIndex, LaborMap, NaturalReso
 pub const INTER_SITE_TRADE: bool = true;
 pub const DAYS_PER_MONTH: f32 = 30.0;
 pub const DAYS_PER_YEAR: f32 = 12.0 * DAYS_PER_MONTH;
-
-// this is an empty replacement for https://github.com/cpetig/vergleich
-// which can be used to compare values acros runs
-pub mod vergleich {
-    pub struct Error {}
-    impl Error {
-        pub fn to_string(&self) -> &'static str { "" }
-    }
-    pub struct ProgramRun {}
-    impl ProgramRun {
-        pub fn new(_: &str) -> Result<Self, Error> { Ok(Self {}) }
-
-        pub fn set_epsilon(&mut self, _: f32) {}
-
-        pub fn context(&mut self, _: &str) -> Context { Context {} }
-
-        //pub fn value(&mut self, _: &str, val: f32) -> f32 { val }
-    }
-    pub struct Context {}
-    impl Context {
-        #[must_use]
-        pub fn context(&mut self, _: &str) -> Context { Context {} }
-
-        pub fn value(&mut self, _: &str, val: f32) -> f32 { val }
-
-        pub fn dummy() -> Self { Context {} }
-    }
-}
+const GENERATE_CSV: bool = false;
 
 #[derive(Debug)]
 pub struct TradeOrder {
@@ -1135,6 +1108,217 @@ impl Economy {
             }),
             0.0,
         );
+    }
+
+    pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Error> {
+        use crate::site::economy::GoodIndex;
+        use std::io::Write;
+        write!(
+            *f,
+            "{}, {}, {}, {:.1}, {},,",
+            site.name(),
+            site.get_origin().x,
+            site.get_origin().y,
+            site.economy.pop,
+            site.economy.neighbors.len(),
+        )?;
+        for g in good_list() {
+            if let Some(value) = site.economy.values[g] {
+                write!(*f, "{:.2},", value)?;
+            } else {
+                f.write_all(b",")?;
+            }
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            if let Some(labor_value) = site.economy.labor_values[g] {
+                write!(f, "{:.2},", labor_value)?;
+            } else {
+                f.write_all(b",")?;
+            }
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:.1},", site.economy.stocks[g])?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:.1},", site.economy.marginal_surplus[g])?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:.1},", site.economy.labors[l] * site.economy.pop)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:.2},", site.economy.productivity[l])?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:.1},", site.economy.yields[l])?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            let limit = site.economy.limited_by[l];
+            if limit == GoodIndex::default() {
+                f.write_all(b",")?;
+            } else {
+                write!(f, "{:?},", limit)?;
+            }
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            if site.economy.last_exports[g] >= 0.1 || site.economy.last_exports[g] <= -0.1 {
+                write!(f, "{:.1},", site.economy.last_exports[g])?;
+            } else {
+                f.write_all(b",")?;
+            }
+        }
+        writeln!(f)
+    }
+
+    fn csv_header(f: &mut std::fs::File) -> Result<(), std::io::Error> {
+        use std::io::Write;
+        write!(f, "Site,PosX,PosY,Population,Neighbors,,")?;
+        for g in good_list() {
+            write!(f, "{:?} Value,", g)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} LaborVal,", g)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} Stock,", g)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} Surplus,", g)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} Labor,", l)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} Productivity,", l)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} Yields,", l)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} limit,", l)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} trade,", g)?;
+        }
+        writeln!(f)?;
+        Ok(())
+
+        let mut f = if GENERATE_CSV {
+            let mut f = std::fs::File::create("economy.csv")?;
+            Some(f)
+        } else {
+            None
+        }
+    }
+       
+    fn print_sorted(prefix: &str, mut list: Vec<(String, f32)>, threshold: f32, decimals: usize) {
+        print!("{}", prefix);
+        list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Less));
+        for i in list.iter() {
+            if i.1 >= threshold {
+                print!("{}={:.*} ", i.0, decimals, i.1);
+            }
+        }
+        println!();
+    }
+
+    fn show_economy(sites: &common::store::Store<crate::site::Site>) {
+        print!(" Resources: ");
+        for i in good_list() {
+            let amount = site.economy.natural_resources.chunks_per_resource[i];
+            if amount > 0.0 {
+                print!("{:?}={} ", i, amount);
+            }
+        }
+        println!();
+        println!(
+            " Population {:.1}, limited by {:?}",
+            site.economy.pop, site.economy.population_limited_by
+        );
+        let idle: f32 =
+            site.economy.pop * (1.0 - site.economy.labors.iter().map(|(_, a)| *a).sum::<f32>());
+        print_sorted(
+            &format!(" Professions: idle={:.1} ", idle),
+            site.economy
+                .labors
+                .iter()
+                .map(|(l, a)| (format!("{:?}", l), *a * site.economy.pop))
+                .collect(),
+            site.economy.pop * 0.05,
+            1,
+        );
+        print_sorted(
+            " Stock: ",
+            site.economy
+                .stocks
+                .iter()
+                .map(|(l, a)| (format!("{:?}", l), *a))
+                .collect(),
+            1.0,
+            0,
+        );
+        print_sorted(
+            " Values: ",
+            site.economy
+                .values
+                .iter()
+                .map(|(l, a)| {
+                    (
+                        format!("{:?}", l),
+                        a.map(|v| if v > 3.9 { 0.0 } else { v }).unwrap_or(0.0),
+                    )
+                })
+                .collect(),
+            0.1,
+            1,
+        );
+        print_sorted(
+            " Labor Values: ",
+            site.economy
+                .labor_values
+                .iter()
+                .map(|(l, a)| (format!("{:?}", l), a.unwrap_or(0.0)))
+                .collect(),
+            0.1,
+            1,
+        );
+        print!(" Limited: ");
+        for (limit, prod) in site
+            .economy
+            .limited_by
+            .iter()
+            .zip(site.economy.productivity.iter())
+        {
+            if (0.01..=0.99).contains(prod.1) {
+                print!("{:?}:{:?}={} ", limit.0, limit.1, *prod.1);
+            }
+        }
+        println!();
+        print!(" Trade({}): ", site.economy.neighbors.len());
+        for (g, &amt) in site.economy.active_exports.iter() {
+            if !(-0.1..=0.1).contains(&amt) {
+                print!("{:?}={:.2} ", g, amt);
+            }
+        }
+        println!();
+        // check population (shrinks if economy gets broken)
+        // assert!(site.economy.pop >= env.targets[&id]);
+    
     }
 }
 
