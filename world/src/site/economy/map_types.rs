@@ -194,7 +194,7 @@ pub struct LaborMap<V> {
     data: Vec<V>,
 }
 
-impl<V: Default + Copy> Default for LaborMap<V> {
+impl<V: Default + Clone> Default for LaborMap<V> {
     fn default() -> Self {
         LaborMap {
             data: std::iter::repeat(V::default()).take(*LABOR_COUNT).collect(),
@@ -230,6 +230,13 @@ impl<V> LaborMap<V> {
     pub fn iter(&self) -> impl Iterator<Item = (LaborIndex, &V)> + '_ {
         (&self.data)
             .iter()
+            .enumerate()
+            .map(|(idx, v)| (LaborIndex::from_usize(idx), v))
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (LaborIndex, &mut V)> + '_ {
+        (&mut self.data)
+            .iter_mut()
             .enumerate()
             .map(|(idx, v)| (LaborIndex::from_usize(idx), v))
     }
@@ -346,6 +353,12 @@ impl Labor {
     }
 
     pub fn is_everyone(&self) -> bool { self.0 == DUMMY_LABOR.0 }
+
+    pub fn orders_everyone() -> Vec<(GoodIndex, f32)> {
+        LABOR
+            .get(DUMMY_LABOR.0 as usize)
+            .map_or(Vec::new(), |l| l.orders.clone())
+    }
 
     pub fn orders(&self) -> Vec<(GoodIndex, f32)> {
         LABOR

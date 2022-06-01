@@ -187,12 +187,7 @@ impl Site {
             SiteKind::Settlement(_) | SiteKind::Refactor(_) | SiteKind::CliffTown(_) => {
                 Some(common::trade::SiteInformation {
                     id: site_id,
-                    unconsumed_stock: self
-                        .economy
-                        .unconsumed_stock
-                        .iter()
-                        .map(|(g, a)| (g.into(), *a))
-                        .collect(),
+                    unconsumed_stock: self.economy.get_available_stock(),
                 })
             },
             _ => None,
