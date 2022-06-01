@@ -208,7 +208,7 @@ pub fn init(
                 },
                 SiteKind::Refactor(site2) => {
                     // villagers
-                    for _ in 0..site.economy.pop.min(site2.plots().len() as f32) as usize {
+                    for _ in 0..site.economy.population().min(site2.plots().len() as f32) as usize {
                         rtsim.entities.insert(Entity {
                             is_loaded: false,
                             pos: site2
