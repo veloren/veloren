@@ -28,6 +28,11 @@ vec4 cubic(float v) {
     return vec4(x, y, z, w) * (1.0/6.0);
 }
 
+float atan2(in float y, in float x) {
+    bool s = (abs(x) > abs(y));
+    return mix(PI/2.0 - atan(x,y), atan(y,x), s);
+}
+
 // NOTE: We assume the sampled coordinates are already in "texture pixels".
 vec4 textureBicubic(texture2D tex, sampler sampl, vec2 texCoords) {
     // TODO: remove all textureSize calls and replace with constants

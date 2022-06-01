@@ -181,11 +181,6 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
     return vec4(sun_access, moon_access, vapor_density, air);
 }
 
-float atan2(in float y, in float x) {
-    bool s = (abs(x) > abs(y));
-    return mix(PI/2.0 - atan(x,y), atan(y,x), s);
-}
-
 #if (CLOUD_MODE == CLOUD_MODE_ULTRA)
     const uint QUALITY = 200u;
 #elif (CLOUD_MODE == CLOUD_MODE_HIGH)
