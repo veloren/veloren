@@ -1,6 +1,6 @@
 mod watcher;
 
-pub use self::watcher::{BlocksOfInterest, Interaction};
+pub use self::watcher::{BlocksOfInterest, FireplaceType, Interaction};
 
 use crate::{
     mesh::{

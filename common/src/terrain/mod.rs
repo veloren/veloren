@@ -88,6 +88,7 @@ pub struct TerrainChunkMeta {
     contains_river: bool,
     river_velocity: Vec3<f32>,
     temp: f32,
+    humidity: f32,
     contains_settlement: bool,
     contains_dungeon: bool,
 }
@@ -102,6 +103,7 @@ impl TerrainChunkMeta {
         contains_river: bool,
         river_velocity: Vec3<f32>,
         temp: f32,
+        humidity: f32,
         contains_settlement: bool,
         contains_dungeon: bool,
     ) -> Self {
@@ -114,6 +116,7 @@ impl TerrainChunkMeta {
             contains_river,
             river_velocity,
             temp,
+            humidity,
             contains_settlement,
             contains_dungeon,
         }
@@ -129,6 +132,7 @@ impl TerrainChunkMeta {
             contains_river: false,
             river_velocity: Vec3::zero(),
             temp: 0.0,
+            humidity: 0.0,
             contains_settlement: false,
             contains_dungeon: false,
         }
@@ -153,6 +157,8 @@ impl TerrainChunkMeta {
     pub fn contains_dungeon(&self) -> bool { self.contains_dungeon }
 
     pub fn temp(&self) -> f32 { self.temp }
+
+    pub fn humidity(&self) -> f32 { self.humidity }
 }
 
 // Terrain type aliases

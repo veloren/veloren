@@ -12,6 +12,20 @@ pub enum Interaction {
     Mine,
 }
 
+pub enum FireplaceType {
+    House,
+    Workshop, // this also includes witch hut
+}
+
+pub struct SmokerProperties {
+    pub position: Vec3<i32>,
+    pub kind: FireplaceType,
+}
+
+impl SmokerProperties {
+    fn new(position: Vec3<i32>, kind: FireplaceType) -> Self { Self { position, kind } }
+}
+
 #[derive(Default)]
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
@@ -20,7 +34,7 @@ pub struct BlocksOfInterest {
     pub slow_river: Vec<Vec3<i32>>,
     pub fast_river: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
-    pub smokers: Vec<Vec3<i32>>,
+    pub smokers: Vec<SmokerProperties>,
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
     pub fireflies: Vec<Vec3<i32>>,
@@ -36,6 +50,9 @@ pub struct BlocksOfInterest {
     // area for optimization
     pub interactables: Vec<(Vec3<i32>, Interaction)>,
     pub lights: Vec<(Vec3<i32>, u8)>,
+    // needed for biome specific smoke variations
+    pub temperature: f32,
+    pub humidity: f32,
 }
 
 impl BlocksOfInterest {
@@ -89,7 +106,7 @@ impl BlocksOfInterest {
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {
                         fires.push(pos);
-                        smokers.push(pos);
+                        smokers.push(SmokerProperties::new(pos, FireplaceType::House));
                     },
                     // Offset positions to account for block height.
                     // TODO: Is this a good idea?
@@ -117,7 +134,7 @@ impl BlocksOfInterest {
                         interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                     },
                     Some(SpriteKind::SmokeDummy) => {
-                        smokers.push(pos);
+                        smokers.push(SmokerProperties::new(pos, FireplaceType::Workshop));
                     },
                     Some(SpriteKind::Forge) => interactables
                         .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
@@ -175,6 +192,8 @@ impl BlocksOfInterest {
             frogs,
             interactables,
             lights,
+            temperature: chunk.meta().temp(),
+            humidity: chunk.meta().humidity(),
         }
     }
 }

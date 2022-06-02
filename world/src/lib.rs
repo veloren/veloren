@@ -294,6 +294,7 @@ impl World {
             sim_chunk.river.is_river(),
             sim_chunk.river.velocity,
             sim_chunk.temp,
+            sim_chunk.humidity,
             sim_chunk
                 .sites
                 .iter()
