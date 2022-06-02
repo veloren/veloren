@@ -29,18 +29,29 @@ pub struct AdletStronghold {
     wall_radius: i32,
     wall_alt: f32,
     wall_alt_samples: [f32; ANGLE_SAMPLES],
-    // Structure indicates the kind of structure it is, vec2 is relative position of a hut compared
-    // to wall_center, dir tells which way structure should face
+    // Structure indicates the kind of structure it is, vec2 is relative position of structure
+    // compared to wall_center, dir tells which way structure should face
     outer_structures: Vec<(AdletStructure, Vec2<i32>, Dir)>,
     tunnel_length: i32,
     cavern_center: Vec2<i32>,
     cavern_alt: f32,
     cavern_radius: i32,
+    // Structure indicates the kind of structure it is, vec2 is relative position of structure
+    // compared to cavern_center, dir tells which way structure should face
+    cavern_structures: Vec<(AdletStructure, Vec2<i32>, Dir)>,
 }
 
 enum AdletStructure {
     Igloo(u8),
     TunnelEntrance,
+    SpeleothemCluster,
+    RockHut,
+    BoneHut,
+    CentralBonfire,
+    CookFire,
+    Tannery,
+    AnimalPen,
+    YetiPit,
 }
 
 impl AdletStructure {
@@ -48,10 +59,19 @@ impl AdletStructure {
         let radius = |structure: &Self| match structure {
             Self::Igloo(radius) => *radius as i32 + 3,
             Self::TunnelEntrance => 16,
+            Self::SpeleothemCluster => 8,
+            Self::RockHut => 6,
+            Self::BoneHut => 8,
+            Self::CentralBonfire => 10,
+            Self::CookFire => 3,
+            Self::Tannery => 10,
+            Self::AnimalPen => 16,
+            Self::YetiPit => 20,
         };
 
         let additional_padding = match (self, other) {
-            (Self::Igloo(_), Self::Igloo(_)) => 5,
+            (Self::Igloo(_), Self::Igloo(_)) => 3,
+            (Self::CookFire, Self::CookFire) => 30,
             _ => 0,
         };
 
@@ -123,7 +143,7 @@ impl AdletStronghold {
             })
             .unwrap_or(0.0);
 
-        let cavern_radius = {
+        let cavern_radius: i32 = {
             let unit_size = rng.gen_range(10..15);
             let num_units = rng.gen_range(4..8);
             let variation = rng.gen_range(0..30);
@@ -193,6 +213,62 @@ impl AdletStronghold {
             }
         }
 
+        let mut cavern_structures = Vec::<(AdletStructure, Vec2<i32>, Dir)>::new();
+
+        fn valid_cavern_struct_pos(
+            structures: &Vec<(AdletStructure, Vec2<i32>, Dir)>,
+            structure: AdletStructure,
+            rpos: Vec2<i32>,
+        ) -> bool {
+            structures.iter().all(|(kind, rpos2, _dir)| {
+                rpos.distance_squared(*rpos2) > structure.required_separation(kind).pow(2)
+            })
+        }
+
+        let desired_speleothem_clusters = cavern_radius.pow(2) / 1500;
+        for _ in 0..desired_speleothem_clusters {
+            if let Some(mut rpos) = attempt(25, || {
+                let rpos = {
+                    let theta = rng.gen_range(0.0..TAU);
+                    // sqrt biases radius away from center, leading to even distribution in circle
+                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32;
+                    Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
+                };
+                valid_cavern_struct_pos(&cavern_structures, AdletStructure::SpeleothemCluster, rpos)
+                    .then_some(rpos)
+            }) {
+                // Dir doesn't matter since these are directionless
+                cavern_structures.push((AdletStructure::SpeleothemCluster, rpos, Dir::X));
+                let desired_adjacent_clusters = rng.gen_range(1..8);
+                for _ in 0..desired_adjacent_clusters {
+                    // Choose a relative position adjacent to initial speleothem cluster
+                    let adj_rpos = {
+                        let theta = rng.gen_range(0.0..TAU);
+                        let radius = rng.gen_range(15.0..25.0);
+                        let rrpos = Vec2::new(theta.cos() * radius, theta.sin() * radius).as_();
+                        rpos + rrpos
+                    };
+                    if valid_cavern_struct_pos(
+                        &cavern_structures,
+                        AdletStructure::SpeleothemCluster,
+                        adj_rpos,
+                    ) {
+                        cavern_structures.push((
+                            AdletStructure::SpeleothemCluster,
+                            adj_rpos,
+                            Dir::X,
+                        ));
+                        // Set new rpos to next cluster is adjacent to most recently placed
+                        rpos = adj_rpos;
+                    } else {
+                        // If any cluster ever fails to place, break loop and stop creating cluster
+                        // chain
+                        break;
+                    }
+                }
+            }
+        }
+
         Self {
             name,
             seed,
@@ -206,6 +282,7 @@ impl AdletStronghold {
             cavern_center,
             cavern_radius,
             cavern_alt,
+            cavern_structures,
         }
     }
 
@@ -431,9 +508,22 @@ impl Structure for AdletStronghold {
             })
             .clear();
 
-        for (structure, rpos, dir) in &self.outer_structures {
-            let wpos = self.wall_center + rpos;
-            let alt = land.get_alt_approx(wpos);
+        for (structure, wpos, alt, dir) in self
+            .outer_structures
+            .iter()
+            .map(|(structure, rpos, dir)| {
+                let wpos = rpos + self.wall_center;
+                (structure, wpos, land.get_alt_approx(wpos), dir)
+            })
+            .chain(self.cavern_structures.iter().map(|(structure, rpos, dir)| {
+                (
+                    structure,
+                    rpos + self.cavern_center,
+                    self.cavern_alt as f32,
+                    dir,
+                )
+            }))
+        {
             match structure {
                 AdletStructure::TunnelEntrance => {
                     let bone_fill = Fill::Brick(BlockKind::Misc, Rgb::new(200, 160, 140), 1);
@@ -489,8 +579,18 @@ impl Structure for AdletStronghold {
                     let room_center = |dir: Dir| center_pos + dir.to_vec2() * room_radius;
                     painter
                         .sphere_with_radius(room_center(dir.rotated_cw()), room_radius as f32)
-                        .union(painter.sphere_with_radius(room_center(dir.opposite()), room_radius as f32))
-                        .union(painter.sphere_with_radius(room_center(dir.rotated_ccw()), room_radius as f32))
+                        .union(
+                            painter.sphere_with_radius(
+                                room_center(dir.opposite()),
+                                room_radius as f32,
+                            ),
+                        )
+                        .union(
+                            painter.sphere_with_radius(
+                                room_center(dir.rotated_ccw()),
+                                room_radius as f32,
+                            ),
+                        )
                         .clear();
 
                     let mid_pos =
@@ -504,6 +604,14 @@ impl Structure for AdletStronghold {
                         ))
                         .clear();
                 },
+                AdletStructure::SpeleothemCluster => {
+                    let stone_fill =
+                        Fill::Block(Block::new(BlockKind::Rock, Rgb::new(100, 100, 100)));
+                    painter
+                        .cylinder_with_radius(wpos.with_z(alt as i32), 6.0, 20.0)
+                        .fill(stone_fill.clone());
+                },
+                _ => panic!(),
             }
         }
     }
