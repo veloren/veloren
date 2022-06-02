@@ -45,13 +45,13 @@ enum AdletStructure {
     Igloo(u8),
     TunnelEntrance,
     SpeleothemCluster,
-    RockHut,
-    BoneHut,
     CentralBonfire,
-    CookFire,
+    YetiPit,
     Tannery,
     AnimalPen,
-    YetiPit,
+    RockHut,
+    BoneHut,
+    CookFire,
 }
 
 impl AdletStructure {
@@ -60,18 +60,22 @@ impl AdletStructure {
             Self::Igloo(radius) => *radius as i32 + 3,
             Self::TunnelEntrance => 16,
             Self::SpeleothemCluster => 8,
-            Self::RockHut => 6,
-            Self::BoneHut => 8,
             Self::CentralBonfire => 10,
-            Self::CookFire => 3,
+            Self::YetiPit => 20,
             Self::Tannery => 10,
             Self::AnimalPen => 16,
-            Self::YetiPit => 20,
+            Self::RockHut => 6,
+            Self::BoneHut => 8,
+            Self::CookFire => 3,
         };
 
         let additional_padding = match (self, other) {
             (Self::Igloo(_), Self::Igloo(_)) => 3,
-            (Self::CookFire, Self::CookFire) => 30,
+            (Self::CookFire, a) | (a, Self::CookFire)
+                if !matches!(a, Self::RockHut | Self::BoneHut) =>
+            {
+                30
+            },
             _ => 0,
         };
 
@@ -225,6 +229,7 @@ impl AdletStronghold {
             })
         }
 
+        // Add speleothem clusters (stalagmites/stalactites)
         let desired_speleothem_clusters = cavern_radius.pow(2) / 1500;
         for _ in 0..desired_speleothem_clusters {
             if let Some(mut rpos) = attempt(25, || {
@@ -267,6 +272,33 @@ impl AdletStronghold {
                     }
                 }
             }
+        }
+
+        // Attempt to place central bonfire
+        if let Some(rpos) = attempt(50, || {
+            let rpos = {
+                let theta = rng.gen_range(0.0..TAU);
+                let radius = rng.gen::<f32>() * cavern_radius as f32 * 0.5;
+                Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
+            };
+            valid_cavern_struct_pos(&cavern_structures, AdletStructure::CentralBonfire, rpos)
+                .then_some(rpos)
+        })
+        .or_else(|| {
+            attempt(100, || {
+                let rpos = {
+                    let theta = rng.gen_range(0.0..TAU);
+                    // If selecting a spot near the center failed, find a spot anywhere in the
+                    // cavern
+                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32;
+                    Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
+                };
+                valid_cavern_struct_pos(&cavern_structures, AdletStructure::CentralBonfire, rpos)
+                    .then_some(rpos)
+            })
+        }) {
+            // Direction doesn't matter for central bonfire
+            cavern_structures.push((AdletStructure::CentralBonfire, rpos, Dir::X));
         }
 
         Self {
@@ -524,9 +556,11 @@ impl Structure for AdletStronghold {
                 )
             }))
         {
+            let bone_fill = Fill::Brick(BlockKind::Misc, Rgb::new(200, 160, 140), 1);
+            let snow_fill = Fill::Block(Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)));
+            let stone_fill = Fill::Block(Block::new(BlockKind::Rock, Rgb::new(100, 100, 100)));
             match structure {
                 AdletStructure::TunnelEntrance => {
-                    let bone_fill = Fill::Brick(BlockKind::Misc, Rgb::new(200, 160, 140), 1);
                     let rib_width_curve = |i: f32| 0.5 * (0.4 * i + 1.0).log2() + 5.5;
                     let spine_curve_amplitude = 0.0;
                     let spine_curve_wavelength = 1.0;
@@ -569,8 +603,6 @@ impl Structure for AdletStronghold {
                     }
                 },
                 AdletStructure::Igloo(radius) => {
-                    let snow_fill =
-                        Fill::Block(Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)));
                     let center_pos = wpos.with_z(alt as i32 - *radius as i32);
                     painter
                         .sphere_with_radius(center_pos, *radius as f32)
@@ -605,11 +637,15 @@ impl Structure for AdletStronghold {
                         .clear();
                 },
                 AdletStructure::SpeleothemCluster => {
-                    let stone_fill =
-                        Fill::Block(Block::new(BlockKind::Rock, Rgb::new(100, 100, 100)));
                     painter
                         .cylinder_with_radius(wpos.with_z(alt as i32), 6.0, 20.0)
                         .fill(stone_fill.clone());
+                },
+                AdletStructure::CentralBonfire => {
+                    painter
+                        .cylinder_with_radius(wpos.with_z(alt as i32), 3.0, 2.0)
+                        .fill(stone_fill.clone());
+                    painter.sprite(wpos.with_z(alt as i32 + 2), SpriteKind::FireBowlGround);
                 },
                 _ => panic!(),
             }
