@@ -10,6 +10,7 @@ use crate::{
         Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
     sys::terrain::NpcData,
+    weather::WeatherSim,
     wiring,
     wiring::OutputFormula,
     Server, Settings, SpawnPoint, StateExt,
@@ -44,7 +45,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
     vol::{ReadVol, RectVolSize},
-    Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
+    weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
@@ -190,6 +191,7 @@ fn do_command(
         ServerChatCommand::Location => handle_location,
         ServerChatCommand::CreateLocation => handle_create_location,
         ServerChatCommand::DeleteLocation => handle_delete_location,
+        ServerChatCommand::WeatherZone => handle_weather_zone,
     };
 
     handler(server, client, target, args, cmd)
@@ -3590,6 +3592,75 @@ fn handle_delete_location(
                 Ok(())
             },
             Err(e) => Err(e.to_string()),
+        }
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn handle_weather_zone(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let (Some(name), radius, time) = parse_cmd_args!(args, String, f32, f32) {
+        let radius = radius.map(|r| r / weather::CELL_SIZE as f32).unwrap_or(1.0);
+        let time = time.unwrap_or(100.0);
+
+        let mut add_zone = |weather: weather::Weather| {
+            if let Ok(pos) = position(server, client, "player") {
+                let pos = pos.0.xy() / weather::CELL_SIZE as f32;
+                server
+                    .state
+                    .ecs_mut()
+                    .write_resource::<WeatherSim>()
+                    .add_zone(weather, pos, radius, time);
+            }
+        };
+        match name.as_str() {
+            "clear" => {
+                add_zone(weather::Weather {
+                    cloud: 0.0,
+                    rain: 0.0,
+                    wind: Vec2::zero(),
+                });
+                Ok(())
+            },
+            "cloudy" => {
+                add_zone(weather::Weather {
+                    cloud: 0.4,
+                    rain: 0.0,
+                    wind: Vec2::zero(),
+                });
+                Ok(())
+            },
+            "rain" => {
+                add_zone(weather::Weather {
+                    cloud: 0.1,
+                    rain: 0.15,
+                    wind: Vec2::new(1.0, -1.0),
+                });
+                Ok(())
+            },
+            "wind" => {
+                add_zone(weather::Weather {
+                    cloud: 0.0,
+                    rain: 0.0,
+                    wind: Vec2::new(10.0, 10.0),
+                });
+                Ok(())
+            },
+            "storm" => {
+                add_zone(weather::Weather {
+                    cloud: 0.3,
+                    rain: 0.3,
+                    wind: Vec2::new(15.0,20.0),
+                });
+                Ok(())
+            },
+            _ => Err("Valid values are 'clear', 'rain', 'wind', 'storm'".to_string()),
         }
     } else {
         Err(action.help_string())
