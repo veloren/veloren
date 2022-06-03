@@ -301,6 +301,24 @@ impl AdletStronghold {
             cavern_structures.push((AdletStructure::CentralBonfire, rpos, Dir::X));
         }
 
+        // Attempt to place yeti pit
+        if let Some(rpos) = attempt(50, || {
+            let rpos = {
+                let theta = {
+                    let angle_range = PI / 2.0;
+                    let angle_offset = rng.gen_range(-angle_range..angle_range);
+                    angle + angle_offset
+                };
+                let radius = (rng.gen::<f32>() + 3.0) / 4.0 * cavern_radius as f32;
+                Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
+            };
+            valid_cavern_struct_pos(&cavern_structures, AdletStructure::YetiPit, rpos)
+                .then_some(rpos)
+        }) {
+            // Direction doesn't matter for yeti pit
+            cavern_structures.push((AdletStructure::YetiPit, rpos, Dir::X));
+        }
+
         Self {
             name,
             seed,
@@ -646,6 +664,14 @@ impl Structure for AdletStronghold {
                         .cylinder_with_radius(wpos.with_z(alt as i32), 3.0, 2.0)
                         .fill(stone_fill.clone());
                     painter.sprite(wpos.with_z(alt as i32 + 2), SpriteKind::FireBowlGround);
+                },
+                AdletStructure::YetiPit => {
+                    painter
+                        .aabb(Aabb {
+                            min: wpos.with_z(alt as i32).map(|x| x - 5),
+                            max: wpos.map(|x| x + 5).with_z(alt as i32),
+                        })
+                        .clear();
                 },
                 _ => panic!(),
             }
