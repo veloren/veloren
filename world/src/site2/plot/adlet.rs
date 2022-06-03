@@ -41,6 +41,7 @@ pub struct AdletStronghold {
     cavern_structures: Vec<(AdletStructure, Vec2<i32>, Dir)>,
 }
 
+#[derive(Copy, Clone)]
 enum AdletStructure {
     Igloo(u8),
     TunnelEntrance,
@@ -49,9 +50,9 @@ enum AdletStructure {
     YetiPit,
     Tannery,
     AnimalPen,
+    CookFire,
     RockHut,
     BoneHut,
-    CookFire,
 }
 
 impl AdletStructure {
@@ -64,9 +65,9 @@ impl AdletStructure {
             Self::YetiPit => 20,
             Self::Tannery => 10,
             Self::AnimalPen => 16,
+            Self::CookFire => 3,
             Self::RockHut => 6,
             Self::BoneHut => 8,
-            Self::CookFire => 3,
         };
 
         let additional_padding = match (self, other) {
@@ -317,6 +318,30 @@ impl AdletStronghold {
         }) {
             // Direction doesn't matter for yeti pit
             cavern_structures.push((AdletStructure::YetiPit, rpos, Dir::X));
+        }
+
+        // Attempt to place some general structures somewhat near the center
+        let desired_structures = cavern_radius.pow(2) / 500;
+        for _ in 0..desired_structures {
+            if let Some((structure, rpos)) = attempt(25, || {
+                let rpos = {
+                    let theta = rng.gen_range(0.0..TAU);
+                    // sqrt biases radius away from center, leading to even distribution in circle
+                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32 * 0.6;
+                    Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
+                };
+                let structure = match rng.gen_range(0..2) {
+                    0 => AdletStructure::Tannery,
+                    _ => AdletStructure::AnimalPen,
+                };
+
+                valid_cavern_struct_pos(&cavern_structures, structure, rpos)
+                    .then_some((structure, rpos))
+            }) {
+                // Direction facing the central bonfire
+                let dir = Dir::from_vector(rpos).opposite();
+                cavern_structures.push((structure, rpos, dir));
+            }
         }
 
         Self {
@@ -670,6 +695,28 @@ impl Structure for AdletStronghold {
                         .aabb(Aabb {
                             min: wpos.with_z(alt as i32).map(|x| x - 5),
                             max: wpos.map(|x| x + 5).with_z(alt as i32),
+                        })
+                        .clear();
+                },
+                AdletStructure::Tannery => {
+                    painter
+                        .aabb(Aabb {
+                            min: wpos.map(|x| x - 5).with_z(alt as i32),
+                            max: wpos.with_z(alt as i32).map(|x| x + 5),
+                        })
+                        .fill(bone_fill.clone());
+                },
+                AdletStructure::AnimalPen => {
+                    painter
+                        .aabb(Aabb {
+                            min: wpos.map(|x| x - 5).with_z(alt as i32),
+                            max: wpos.with_z(alt as i32).map(|x| x + 5),
+                        })
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
+                            min: wpos.map(|x| x - 4).with_z(alt as i32),
+                            max: wpos.with_z(alt as i32 + 1).map(|x| x + 4),
                         })
                         .clear();
                 },
