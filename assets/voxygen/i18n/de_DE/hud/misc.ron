@@ -9,7 +9,9 @@
         "hud.you_died": "Du bist gestorben",
         "hud.waypoint_saved": "Wegpunkt gespeichert",
         "hud.sp_arrow_txt": "SP",
-         "hud.inventory_full": "Inventar voll",
+        "hud.inventory_full": "Inventar voll",
+        "hud.someone_else": "jemand anderem",
+        "hud.another_group": "einer anderen Gruppe",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Kurzwahltasten",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Laterne",

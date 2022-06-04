@@ -11,6 +11,7 @@
         "hud.sp_arrow_txt": "SP",
         "hud.inventory_full": "Inventory Full",
         "hud.someone_else": "someone else",
+        "hud.another_group": "another group",
         "hud.owned_by_for_secs": "Owned by {name} for {secs} secs",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Keybindings",

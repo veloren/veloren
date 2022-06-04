@@ -146,8 +146,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     let alignments = state.ecs().read_storage::<Alignment>();
                     let bodies = state.ecs().read_storage::<Body>();
                     let players = state.ecs().read_storage::<Player>();
+                    let groups = state.ecs().read_storage::<Group>();
                     let can_pickup = loot_owner.can_pickup(
                         uid,
+                        groups.get(entity),
                         alignments.get(entity),
                         bodies.get(entity),
                         players.get(entity),
@@ -157,7 +159,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             comp::InventoryUpdate::new(InventoryUpdateEvent::EntityCollectFailed {
                                 entity: pickup_uid,
                                 reason: CollectFailedReason::LootOwned {
-                                    owner_uid: loot_owner.uid(),
+                                    owner: loot_owner.owner(),
                                     expiry_secs: loot_owner.time_until_expiration().as_secs(),
                                 },
                             });

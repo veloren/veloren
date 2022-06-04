@@ -1620,7 +1620,13 @@ impl<'a> AgentData<'a> {
                         .loot_owners
                         .get(entity)
                         .map_or(true, |loot_owner| {
-                            loot_owner.can_pickup(*self.uid, self.alignment, self.body, None)
+                            loot_owner.can_pickup(
+                                *self.uid,
+                                read_data.groups.get(entity),
+                                self.alignment,
+                                self.body,
+                                None,
+                            )
                         });
 
                 if attempt_pickup {

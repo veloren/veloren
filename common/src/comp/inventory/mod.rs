@@ -14,6 +14,7 @@ use crate::{
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
         },
+        loot_owner::LootOwnerKind,
         slot::{InvSlotId, SlotId},
         Item,
     },
@@ -825,7 +826,10 @@ impl Component for Inventory {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum CollectFailedReason {
     InventoryFull,
-    LootOwned { owner_uid: Uid, expiry_secs: u64 },
+    LootOwned {
+        owner: LootOwnerKind,
+        expiry_secs: u64,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
