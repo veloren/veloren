@@ -1,4 +1,4 @@
-use crate::render::{pipelines::rain_occlusion, renderer::RAIN_OCCLUSION_CHUNKS};
+use crate::{render::pipelines::rain_occlusion, scene::terrain::RAIN_OCCLUSION_CHUNKS};
 
 use super::{
     super::{texture::Texture, RenderError, ShadowMapMode},
@@ -7,8 +7,8 @@ use super::{
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 
-/// A type that holds shadow map data.  Since shadow mapping may not be
-/// supported on all platforms, we try to keep it separate.
+/// A type that holds rain occlusion map data.  Since rain occlusion mapping may
+/// not be supported on all platforms, we try to keep it separate.
 pub struct RainOcclusionMapRenderer {
     pub depth: Texture,
 

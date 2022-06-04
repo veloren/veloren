@@ -136,8 +136,8 @@ impl<'frame> Drawer<'frame> {
     /// Get the pipeline modes.
     pub fn pipeline_modes(&self) -> &super::super::PipelineModes { self.borrow.pipeline_modes }
 
-    /// Returns None if the shadow renderer is not enabled at some level or the
-    /// pipelines are not available yet
+    /// Returns None if the rain occlusion renderer is not enabled at some
+    /// level, the pipelines are not available yet or clouds are disabled.
     pub fn rain_occlusion_pass(&mut self) -> Option<RainOcclusionPassDrawer> {
         if !self.borrow.pipeline_modes.cloud.is_enabled() {
             return None;
@@ -663,7 +663,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
     pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
         let mut render_pass = self
             .render_pass
-            .scope("direcred_figure_shadows", self.borrow.device);
+            .scope("directed_figure_shadows", self.borrow.device);
 
         render_pass.set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -674,7 +674,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
     pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
         let mut render_pass = self
             .render_pass
-            .scope("direcred_terrain_shadows", self.borrow.device);
+            .scope("directed_terrain_shadows", self.borrow.device);
 
         render_pass.set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -694,7 +694,7 @@ impl<'pass> RainOcclusionPassDrawer<'pass> {
     pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
         let mut render_pass = self
             .render_pass
-            .scope("direcred_figure_rain_occlusion", self.borrow.device);
+            .scope("directed_figure_rain_occlusion", self.borrow.device);
 
         render_pass.set_pipeline(&self.rain_occlusion_renderer.figure_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -705,7 +705,7 @@ impl<'pass> RainOcclusionPassDrawer<'pass> {
     pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
         let mut render_pass = self
             .render_pass
-            .scope("direcred_terrain_rain_occlusion", self.borrow.device);
+            .scope("directed_terrain_rain_occlusion", self.borrow.device);
 
         render_pass.set_pipeline(&self.rain_occlusion_renderer.terrain_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);

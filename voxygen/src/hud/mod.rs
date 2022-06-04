@@ -2386,11 +2386,11 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.time, ui_widgets);
-
+            // Weather
             let weather = client.weather_at_player();
             Text::new(&format!(
-                "Weather({kind:.5}): {{cloud: {cloud:.5}, rain: {rain:.5}, wind: <{wind_x:.5}, \
-                 {wind_y:.2}>}}",
+                "Weather({kind}): {{cloud: {cloud:.2}, rain: {rain:.2}, wind: <{wind_x:.0}, \
+                 {wind_y:.0}>}}",
                 kind = weather.get_kind(),
                 cloud = weather.cloud,
                 rain = weather.rain,
@@ -2521,7 +2521,7 @@ impl Hud {
             // Set debug box dimensions, only timings height is dynamic
             // TODO: Make the background box size fully dynamic
 
-            let debug_bg_size = [320.0, 370.0 + timings_height];
+            let debug_bg_size = [320.0, 385.0 + timings_height];
 
             Rectangle::fill(debug_bg_size)
                 .rgba(0.0, 0.0, 0.0, global_state.settings.chat.chat_opacity)

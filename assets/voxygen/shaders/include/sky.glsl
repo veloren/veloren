@@ -102,9 +102,9 @@ layout(set = 0, binding = 5) uniform texture2D t_alt;
 layout(set = 0, binding = 6) uniform sampler s_alt;
 
 // Transforms coordinate in the range 0..WORLD_SIZE to 0..1
-vec2 wpos_to_uv(texture2D tex, sampler s, vec2 wpos) {
+vec2 wpos_to_uv(vec2 wpos) {
     // Want: (pixel + 0.5) / W
-    vec2 texSize = textureSize(sampler2D(tex, s), 0);
+    vec2 texSize = textureSize(sampler2D(t_alt, s_alt), 0);
     vec2 uv_pos = (wpos + 16) / (32.0 * texSize);
     return vec2(uv_pos.x, /*1.0 - */uv_pos.y);
 }
@@ -114,7 +114,7 @@ layout(set = 0, binding = 12) uniform texture2D t_weather;
 layout(set = 0, binding = 13) uniform sampler s_weather;
 
 vec4 sample_weather(vec2 wpos) {
-    return textureLod(sampler2D(t_weather, s_weather), wpos_to_uv(t_alt, s_alt, wpos), 0);
+    return textureLod(sampler2D(t_weather, s_weather), wpos_to_uv(wpos), 0);
 }
 
 float cloud_tendency_at(vec2 wpos) {

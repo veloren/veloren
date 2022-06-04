@@ -412,14 +412,13 @@ impl SfxMgr {
         outcome: &Outcome,
         audio: &mut AudioFrontend,
         client: &Client,
-        state: &State,
         underwater: bool,
     ) {
         if !audio.sfx_enabled() {
             return;
         }
         let triggers = self.triggers.read();
-        let uids = state.ecs().read_storage::<Uid>();
+        let uids = client.state().ecs().read_storage::<Uid>();
 
         // TODO handle underwater
         match outcome {
@@ -495,7 +494,7 @@ impl SfxMgr {
                 if let Some(client_uid) = uids.get(client.entity()) {
                     if uid == client_uid {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SkillPointGain);
-                        audio.emit_sfx_item(sfx_trigger_item, Some(0.4));
+                        audio.emit_ui_sfx(sfx_trigger_item, Some(0.4));
                     }
                 }
             },

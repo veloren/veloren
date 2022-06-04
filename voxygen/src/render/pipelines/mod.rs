@@ -70,6 +70,8 @@ pub struct Globals {
     // To keep 16-byte-aligned.
     globals_dummy: [f32; 1],
 }
+/// Make sure Globals is 16-byte-aligned.
+const _: () = assert!(core::mem::size_of::<Globals>() % 16 == 0);
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
@@ -110,7 +112,6 @@ impl Globals {
         cam_mode: CameraMode,
         sprite_render_distance: f32,
     ) -> Self {
-        // dbg!(core::mem::size_of::<Self>() % 16);
         Self {
             view_mat: view_mat.into_col_arrays(),
             proj_mat: proj_mat.into_col_arrays(),

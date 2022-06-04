@@ -65,7 +65,7 @@ impl LodData {
         lod_base: &[u32],
         lod_alt: &[u32],
         lod_horizon: &[u32],
-        clouds_size: Vec2<u32>,
+        weather_size: Vec2<u32>,
         tgt_detail: u32,
         //border_color: gfx::texture::PackedColor,
     ) -> Self {
@@ -139,8 +139,8 @@ impl LodData {
             let texture_info = wgpu::TextureDescriptor {
                 label: None,
                 size: wgpu::Extent3d {
-                    width: clouds_size.x,
-                    height: clouds_size.y,
+                    width: weather_size.x,
+                    height: weather_size.y,
                     depth_or_array_layers: 1,
                 },
                 mip_level_count: 1,
@@ -177,7 +177,7 @@ impl LodData {
                 &texture_info,
                 &view_info,
                 &sampler_info,
-                vec![0; clouds_size.x as usize * clouds_size.y as usize * 4].as_slice(),
+                vec![0; weather_size.x as usize * weather_size.y as usize * 4].as_slice(),
             )
         };
         Self {

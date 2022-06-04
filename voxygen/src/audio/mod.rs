@@ -81,14 +81,11 @@ impl AudioFrontend {
         };
 
         let mut sfx_channels = Vec::with_capacity(num_sfx_channels);
-        if let Some(audio_stream) = &audio_stream {
-            sfx_channels.resize_with(num_sfx_channels, || SfxChannel::new(audio_stream));
-        };
-
         let mut ui_channels = Vec::with_capacity(num_ui_channels);
         if let Some(audio_stream) = &audio_stream {
-            ui_channels.resize_with(num_ui_channels, || UiChannel::new(audio_stream))
-        }
+            ui_channels.resize_with(num_ui_channels, || UiChannel::new(audio_stream));
+            sfx_channels.resize_with(num_sfx_channels, || SfxChannel::new(audio_stream));
+        };
 
         Self {
             // The following is for the disabled device switcher
@@ -219,39 +216,6 @@ impl AudioFrontend {
         self.music_channels.last_mut()
     }
 
-    /// Function to play sfx from external places. Useful for UI and
-    /// inventory events
-    pub fn emit_sfx_item(
-        &mut self,
-        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
-        vol: Option<f32>,
-    ) {
-        if let Some((event, item)) = trigger_item {
-            let sfx_file = match item.files.len() {
-                0 => {
-                    debug!("Sfx event {:?} is missing audio file.", event);
-                    "voxygen.audio.sfx.placeholder"
-                },
-                1 => item
-                    .files
-                    .last()
-                    .expect("Failed to determine sound file for this trigger item."),
-                _ => {
-                    // If more than one file is listed, choose one at random
-                    let rand_step = rand::random::<usize>() % item.files.len();
-                    &item.files[rand_step]
-                },
-            };
-
-            match self.play_ui_sfx(sfx_file, vol) {
-                Ok(_) => {},
-                Err(e) => warn!("Failed to play sfx '{:?}'. {}", sfx_file, e),
-            }
-        } else {
-            debug!("Missing sfx trigger config for external sfx event.",);
-        }
-    }
-
     /// Play an sfx file given the position, SfxEvent, and whether it is
     /// underwater or not
     pub fn emit_sfx(
@@ -262,6 +226,9 @@ impl AudioFrontend {
         underwater: bool,
     ) {
         if let Some((event, item)) = trigger_item {
+            // Find sound based on given trigger_item
+            // Randomizes if multiple sounds are found
+            // Errors if no sounds are found
             let sfx_file = match item.files.len() {
                 0 => {
                     debug!("Sfx event {:?} is missing audio file.", event);
@@ -277,10 +244,20 @@ impl AudioFrontend {
                     &item.files[rand_step]
                 },
             };
+            // Play sound in empty channel at given position
+            if self.audio_stream.is_some() {
+                let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
 
-            match self.play_sfx(sfx_file, position, volume, underwater) {
-                Ok(_) => {},
-                Err(e) => warn!("Failed to play sfx '{:?}'. {}", sfx_file, e),
+                let listener = self.listener.clone();
+                if let Some(channel) = self.get_sfx_channel() {
+                    channel.set_pos(position);
+                    channel.update(&listener);
+                    if underwater {
+                        channel.play_with_low_pass_filter(sound.convert_samples());
+                    } else {
+                        channel.play(sound);
+                    }
+                }
             }
         } else {
             debug!(
@@ -290,48 +267,47 @@ impl AudioFrontend {
         }
     }
 
-    /// Play (once) an sfx file by file path at the given position and volume.
-    /// If `underwater` is true, the sound is played with a low pass filter
-    pub fn play_sfx(
+    /// Plays a sfx using a non-spatial sink at the given volume; doesn't need a
+    /// position
+    /// Passing no volume will default to 1.0
+    pub fn emit_ui_sfx(
         &mut self,
-        sound: &str,
-        pos: Vec3<f32>,
-        vol: Option<f32>,
-        underwater: bool,
-    ) -> Result<(), rodio::decoder::DecoderError> {
-        if self.audio_stream.is_some() {
-            let sound = load_ogg(sound).amplify(vol.unwrap_or(1.0));
+        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
+        volume: Option<f32>,
+    ) {
+        // Find sound based on given trigger_item
+        // Randomizes if multiple sounds are found
+        // Errors if no sounds are found
+        if let Some((event, item)) = trigger_item {
+            let sfx_file = match item.files.len() {
+                0 => {
+                    debug!("Sfx event {:?} is missing audio file.", event);
+                    "voxygen.audio.sfx.placeholder"
+                },
+                1 => item
+                    .files
+                    .last()
+                    .expect("Failed to determine sound file for this trigger item."),
+                _ => {
+                    // If more than one file is listed, choose one at random
+                    let rand_step = rand::random::<usize>() % item.files.len();
+                    &item.files[rand_step]
+                },
+            };
+            // Play sound in empty channel
+            if self.audio_stream.is_some() {
+                let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
 
-            let listener = self.listener.clone();
-            if let Some(channel) = self.get_sfx_channel() {
-                channel.set_pos(pos);
-                channel.update(&listener);
-                if underwater {
-                    channel.play_with_low_pass_filter(sound.convert_samples());
-                } else {
+                if let Some(channel) = self.get_ui_channel() {
                     channel.play(sound);
                 }
             }
+        } else {
+            debug!("Missing sfx trigger config for external sfx event.",);
         }
-        Ok(())
     }
 
-    pub fn play_ui_sfx(
-        &mut self,
-        sound: &str,
-        vol: Option<f32>,
-    ) -> Result<(), rodio::decoder::DecoderError> {
-        if self.audio_stream.is_some() {
-            let sound = load_ogg(sound).amplify(vol.unwrap_or(1.0));
-
-            if let Some(channel) = self.get_ui_channel() {
-                channel.play(sound);
-            }
-        }
-        Ok(())
-    }
-
-    // Plays a file at a given volume in the channel with a given tag
+    /// Plays a file at a given volume in the channel with a given tag
     fn play_ambient(
         &mut self,
         channel_tag: AmbientChannelTag,
@@ -346,7 +322,7 @@ impl AudioFrontend {
         }
     }
 
-    // Adds a new ambient channel of the given tag at zero volume
+    /// Adds a new ambient channel of the given tag at zero volume
     fn new_ambient_channel(&mut self, channel_tag: AmbientChannelTag) {
         if let Some(audio_stream) = &self.audio_stream {
             let ambient_channel = AmbientChannel::new(audio_stream, channel_tag, 0.0);
@@ -355,6 +331,7 @@ impl AudioFrontend {
     }
 
     /// Retrieves the channel currently having the given tag
+    /// If no channel with the given tag is found, returns None
     fn get_ambient_channel(
         &mut self,
         channel_tag: AmbientChannelTag,
@@ -363,6 +340,19 @@ impl AudioFrontend {
             self.ambient_channels
                 .iter_mut()
                 .find(|channel| channel.get_tag() == channel_tag)
+        } else {
+            None
+        }
+    }
+
+    /// Retrieves the index of the channel having the given tag in the array of
+    /// ambient channels This is used for times when borrowing becomes
+    /// difficult If no channel with the given tag is found, returns None
+    fn get_ambient_channel_index(&self, channel_tag: AmbientChannelTag) -> Option<usize> {
+        if self.audio_stream.is_some() {
+            self.ambient_channels
+                .iter()
+                .position(|channel| channel.get_tag() == channel_tag)
         } else {
             None
         }
@@ -470,12 +460,19 @@ impl AudioFrontend {
     pub fn set_sfx_volume(&mut self, sfx_volume: f32) {
         self.sfx_volume = sfx_volume;
 
-        self.update_sfx_volumes();
+        let sfx_volume = self.get_sfx_volume();
+        for channel in self.sfx_channels.iter_mut() {
+            channel.set_volume(sfx_volume);
+        }
+        for channel in self.ui_channels.iter_mut() {
+            channel.set_volume(sfx_volume);
+        }
     }
 
     pub fn set_ambience_volume(&mut self, ambience_volume: f32) {
         self.ambience_volume = ambience_volume;
 
+        let ambience_volume = self.get_ambience_volume();
         for channel in self.ambient_channels.iter_mut() {
             channel.set_volume(ambience_volume)
         }
@@ -490,6 +487,7 @@ impl AudioFrontend {
         }
     }
 
+    /// Updates master volume in all channels
     pub fn set_master_volume(&mut self, master_volume: f32) {
         self.master_volume = master_volume;
 
@@ -497,14 +495,16 @@ impl AudioFrontend {
         for channel in self.music_channels.iter_mut() {
             channel.set_volume(music_volume);
         }
-
-        self.update_sfx_volumes();
-    }
-
-    fn update_sfx_volumes(&mut self) {
         let sfx_volume = self.get_sfx_volume();
         for channel in self.sfx_channels.iter_mut() {
             channel.set_volume(sfx_volume);
+        }
+        for channel in self.ui_channels.iter_mut() {
+            channel.set_volume(sfx_volume);
+        }
+        let ambience_volume = self.get_ambience_volume();
+        for channel in self.ambient_channels.iter_mut() {
+            channel.set_volume(ambience_volume)
         }
     }
 

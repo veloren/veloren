@@ -1,9 +1,6 @@
 //! Handles ambient non-positional sounds
 use crate::{
-    audio::{
-        channel::{AmbientChannel, AmbientChannelTag},
-        AudioFrontend,
-    },
+    audio::{channel::AmbientChannelTag, AudioFrontend},
     scene::Camera,
 };
 use client::Client;
@@ -44,97 +41,65 @@ impl AmbientMgr {
         client: &Client,
         camera: &Camera,
     ) {
+        // Checks if the ambience volume is set to zero or audio is disabled
+        // This prevents us from running all the following code unnecessarily
+        if !audio.ambience_enabled() {
+            return;
+        }
         let ambience_volume = audio.get_ambience_volume();
+        let ambience = self.ambience.read();
         // Iterate through each tag
         for tag in AmbientChannelTag::iter() {
             // If the conditions warrant creating a channel of that tag
-            if match tag {
-                AmbientChannelTag::Wind => {
-                    AmbientChannelTag::get_tag_volume(tag, client, camera) > 0.0
-                },
-                AmbientChannelTag::Rain => {
-                    AmbientChannelTag::get_tag_volume(tag, client, camera) > 0.1
-                },
-                AmbientChannelTag::Thunder => {
-                    AmbientChannelTag::get_tag_volume(tag, client, camera) > 0.0
-                },
-                AmbientChannelTag::Leaves => {
-                    AmbientChannelTag::get_tag_volume(tag, client, camera) > 0.1
-                },
-            } && audio.get_ambient_channel(tag).is_none()
+            if AmbientChannelTag::get_tag_volume(tag, client, camera)
+                > match tag {
+                    AmbientChannelTag::Wind => 0.0,
+                    AmbientChannelTag::Rain => 0.1,
+                    AmbientChannelTag::Thunder => 0.0,
+                    AmbientChannelTag::Leaves => 0.1,
+                }
+                && audio.get_ambient_channel(tag).is_none()
             {
-                // Iterate through the supposed number of channels - one for each tag
-                for index in 0..AmbientChannelTag::iter().len() {
-                    // If index would exceed current number of channels, create a new one with
-                    // current tag
-                    if index >= audio.ambient_channels.len() {
-                        audio.new_ambient_channel(tag);
-                        break;
+                audio.new_ambient_channel(tag);
+            }
+            // If a channel exists run volume code
+            if let Some(channel_index) = audio.get_ambient_channel_index(tag) {
+                let channel = &mut audio.ambient_channels[channel_index];
+
+                // Maintain: get the correct multiplier of whatever the tag of the current
+                // channel is
+                let target_volume = get_target_volume(tag, state, client, camera);
+                // Get multiplier of the current channel
+                let initial_volume = channel.multiplier;
+
+                // Lerp multiplier of current channel
+                // TODO: Make this not framerate dependent
+                channel.multiplier = Lerp::lerp(initial_volume, target_volume, 0.02);
+
+                // Update with sfx volume
+                channel.set_volume(ambience_volume);
+
+                // Set the duration of the loop to whatever the current value is (0.0 by
+                // default)
+
+                // If the sound should loop at this point:
+                if channel.began_playing.elapsed().as_secs_f32() > channel.next_track_change {
+                    let track = ambience.tracks.iter().find(|track| track.tag == tag);
+                    // Set the channel's start point at this instant
+                    channel.began_playing = Instant::now();
+                    if let Some(track) = track {
+                        // Set loop duration to the one specified in the ron
+                        channel.next_track_change = track.length;
+                        // Play the file of the current tag at the current multiplier;
+                        let current_multiplier = channel.multiplier;
+                        audio.play_ambient(tag, &track.path, current_multiplier);
                     }
-                }
-                // If the conditions don't warrant the creation of a
-                // channel with that tag, but a channel with
-                // that tag remains nonetheless, run the volume code
-            } else if audio.get_ambient_channel(tag).is_some() {
-                for index in 0..AmbientChannelTag::iter().len() {
-                    // Update with sfx volume
-                    audio.ambient_channels[index].set_volume(ambience_volume);
-                    // If current channel's tag is not the current tag, move on to next channel
-                    if audio.ambient_channels[index].get_tag() == tag {
-                        // Maintain: get the correct multiplier of whatever the tag of the current
-                        // channel is
-                        let target_volume = AmbientChannel::maintain(tag, state, client, camera);
-                        // Get multiplier of the current channel
-                        let initial_volume = audio.ambient_channels[index].get_multiplier();
+                };
 
-                        // Lerp multiplier of current channel
-                        audio.ambient_channels[index].set_multiplier(Lerp::lerp(
-                            initial_volume,
-                            target_volume,
-                            0.02,
-                        ));
-
-                        // Set the duration of the loop to whatever the current value is (0.0 by
-                        // default)
-                        let next_track_change =
-                            audio.ambient_channels[index].get_next_track_change();
-
-                        // If the sound should loop at this point:
-                        if audio.ambient_channels[index]
-                            .get_began_playing()
-                            .elapsed()
-                            .as_secs_f32()
-                            > next_track_change
-                        {
-                            let ambience = self.ambience.read();
-                            let track = ambience.tracks.iter().find(|track| track.tag == tag);
-                            // Set the channel's start point at this instant
-                            audio.ambient_channels[index].set_began_playing(Instant::now());
-                            if let Some(track) = track {
-                                // Set loop duration to the one specified in the ron
-                                audio.ambient_channels[index].set_next_track_change(track.length);
-                                // Play the file of the current tag at the current multiplier
-                                let current_multiplier =
-                                    audio.ambient_channels[index].get_multiplier();
-                                audio.play_ambient(tag, &track.path, current_multiplier);
-                            }
-                        };
-
-                        // Remove channel if not playing
-                        if audio.ambient_channels[index].get_multiplier() == 0.0 {
-                            audio.ambient_channels[index].stop();
-                            audio.ambient_channels.remove(index);
-                        };
-                        // Move on to next tag
-                        break;
-                    } else {
-                        // Channel tag and current tag don't match, move on to next channel
-                        continue;
-                    }
-                }
-            } else {
-                // No need to run code at all, move on to the next tag
-                continue;
+                // Remove channel if not playing
+                if audio.ambient_channels[channel_index].multiplier <= 0.001 {
+                    audio.ambient_channels.remove(channel_index);
+                };
             }
         }
     }
@@ -195,10 +160,12 @@ impl AmbientChannelTag {
                 rain_intensity.min(0.9)
             },
             AmbientChannelTag::Thunder => {
-                if client.weather_at_player().rain * 500.0 < 0.7 {
+                let rain_intensity = client.weather_at_player().rain * 500.0;
+
+                if rain_intensity < 0.7 {
                     0.0
                 } else {
-                    client.weather_at_player().rain * 500.0
+                    rain_intensity
                 }
             },
             AmbientChannelTag::Leaves => {
@@ -229,51 +196,38 @@ impl AmbientChannelTag {
     }
 }
 
-impl AmbientChannel {
-    pub fn maintain(
-        tag: AmbientChannelTag,
-        state: &State,
-        client: &Client,
-        camera: &Camera,
-    ) -> f32 {
-        let focus_off = camera.get_focus_pos().map(f32::trunc);
-        let cam_pos = camera.dependents().cam_pos + focus_off;
+/// Checks various factors to determine the target volume to lerp to
+fn get_target_volume(
+    tag: AmbientChannelTag,
+    state: &State,
+    client: &Client,
+    camera: &Camera,
+) -> f32 {
+    let focus_off = camera.get_focus_pos().map(f32::trunc);
+    let cam_pos = camera.dependents().cam_pos + focus_off;
 
-        let mut target_volume: f32 = AmbientChannelTag::get_tag_volume(tag, client, camera);
+    let mut volume_multiplier: f32 = AmbientChannelTag::get_tag_volume(tag, client, camera);
 
-        target_volume = AmbientChannel::check_camera(state, client, cam_pos, target_volume);
-
-        target_volume
+    let terrain_alt = if let Some(chunk) = client.current_chunk() {
+        chunk.meta().alt()
+    } else {
+        0.0
+    };
+    // Checks if the camera is underwater to diminish ambient sounds
+    if state
+        .terrain()
+        .get((cam_pos).map(|e| e.floor() as i32))
+        .map(|b| b.is_liquid())
+        .unwrap_or(false)
+    {
+        volume_multiplier *= 0.1;
+    }
+    // Is the camera roughly under the terrain?
+    if cam_pos.z < terrain_alt - 20.0 {
+        volume_multiplier = 0.0;
     }
 
-    fn check_camera(
-        state: &State,
-        client: &Client,
-        cam_pos: Vec3<f32>,
-        initial_volume: f32,
-    ) -> f32 {
-        let mut volume_multiplier = initial_volume;
-        let terrain_alt = if let Some(chunk) = client.current_chunk() {
-            chunk.meta().alt()
-        } else {
-            0.0
-        };
-        // Checks if the camera is underwater to diminish ambient sounds
-        if state
-            .terrain()
-            .get((cam_pos).map(|e| e.floor() as i32))
-            .map(|b| b.is_liquid())
-            .unwrap_or(false)
-        {
-            volume_multiplier *= 0.1;
-        }
-        // Is the camera roughly under the terrain?
-        if cam_pos.z < terrain_alt - 20.0 {
-            volume_multiplier = 0.0;
-        }
-
-        volume_multiplier.clamped(0.0, 1.0)
-    }
+    volume_multiplier.clamped(0.0, 1.0)
 }
 
 pub fn load_ambience_items() -> AssetHandle<AmbientCollection> {

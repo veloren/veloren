@@ -228,6 +228,11 @@ impl MusicMgr {
 
         use common::comp::{group::ENEMY, Group, Health, Pos};
         use specs::{Join, WorldExt};
+        // Checks if the music volume is set to zero or audio is disabled
+        // This prevents us from running all the following code unnecessarily
+        if !audio.music_enabled() {
+            return;
+        }
 
         let mut activity_state = MusicActivity::Explore;
 

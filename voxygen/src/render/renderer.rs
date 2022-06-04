@@ -49,10 +49,6 @@ pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
 const QUAD_INDEX_BUFFER_U16_START_VERT_LEN: u16 = 3000;
 const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
 
-// For rain occlusion we only need to render the closest chunks.
-/// How many chunks are maximally rendered for rain occlusion.
-pub const RAIN_OCCLUSION_CHUNKS: usize = 9;
-
 /// A type that stores all the layouts associated with this renderer that never
 /// change when the RenderMode is modified.
 struct ImmutableLayouts {
@@ -738,10 +734,8 @@ impl Renderer {
 
                         update_shadow_bind = true;
                     },
-                    shadow => {
-                        if let Err(err) = shadow {
-                            warn!("Could not create shadow map views: {:?}", err);
-                        }
+                    Err(err) => {
+                        warn!("Could not create shadow map views: {:?}", err);
                     },
                 }
             }
@@ -755,10 +749,8 @@ impl Renderer {
 
                         update_shadow_bind = true;
                     },
-                    rain => {
-                        if let Err(err) = rain {
-                            warn!("Could not create rain occlusion map view: {:?}", err);
-                        }
+                    Err(err) => {
+                        warn!("Could not create rain occlusion map view: {:?}", err);
                     },
                 }
             }

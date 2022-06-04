@@ -420,7 +420,7 @@ impl Scene {
             .unwrap_or(false);
         self.particle_mgr.handle_outcome(outcome, scene_data);
         self.sfx_mgr
-            .handle_outcome(outcome, audio, scene_data.client, state, underwater);
+            .handle_outcome(outcome, audio, scene_data.client, underwater);
 
         match outcome {
             Outcome::Explosion {
@@ -1022,6 +1022,8 @@ impl Scene {
             );
 
             renderer.update_consts(&mut self.data.rain_occlusion_mats, &[rain_occlusion_locals]);
+        } else {
+            self.integrated_rain_vel = 0.0;
         }
 
         let sun_dir = scene_data.get_sun_dir();
@@ -1106,25 +1108,19 @@ impl Scene {
         self.figure_mgr.clean(scene_data.tick);
 
         // Maintain audio
-        if audio.sfx_enabled() {
-            self.sfx_mgr.maintain(
-                audio,
-                scene_data.state,
-                scene_data.player_entity,
-                &self.camera,
-                &self.terrain,
-                client,
-            );
-        }
+        self.sfx_mgr.maintain(
+            audio,
+            scene_data.state,
+            scene_data.player_entity,
+            &self.camera,
+            &self.terrain,
+            client,
+        );
 
-        if audio.ambience_enabled() {
-            self.ambient_mgr
-                .maintain(audio, scene_data.state, client, &self.camera);
-        }
+        self.ambient_mgr
+            .maintain(audio, scene_data.state, client, &self.camera);
 
-        if audio.music_enabled() {
-            self.music_mgr.maintain(audio, scene_data.state, client);
-        }
+        self.music_mgr.maintain(audio, scene_data.state, client);
     }
 
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
@@ -1180,7 +1176,7 @@ impl Scene {
             prof_span!("rain occlusion");
             if let Some(mut occlusion_pass) = drawer.rain_occlusion_pass() {
                 self.terrain
-                    .render_occlusion(&mut occlusion_pass.draw_terrain_shadows(), cam_pos);
+                    .render_rain_occlusion(&mut occlusion_pass.draw_terrain_shadows(), cam_pos);
 
                 self.figure_mgr.render_shadows(
                     &mut occlusion_pass.draw_figure_shadows(),

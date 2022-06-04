@@ -269,9 +269,7 @@ impl SessionState {
                         | InventoryUpdateEvent::EntityCollectFailed { .. }
                         | InventoryUpdateEvent::BlockCollectFailed { .. }
                         | InventoryUpdateEvent::Craft => {
-                            global_state
-                                .audio
-                                .emit_sfx_item(sfx_trigger_item, Some(1.0));
+                            global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
                         },
                         _ => global_state.audio.emit_sfx(
                             sfx_trigger_item,
@@ -1207,6 +1205,9 @@ impl PlayState for SessionState {
                     },
                     HudEvent::Logout => {
                         self.client.borrow_mut().logout();
+                        // Stop all sounds
+                        // TODO: Abstract this behavior to all instances of PlayStateResult::Pop
+                        // somehow
                         global_state.audio.stop_ambient_sounds();
                         global_state.audio.stop_all_sfx();
                         return PlayStateResult::Pop;

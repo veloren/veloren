@@ -108,44 +108,47 @@ void main() {
     vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
     vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
-    float rain_dist = 50.0;
-    for (int i = 0; i < 4; i ++) {
-        float old_rain_dist = rain_dist;
-        rain_dist *= 0.3;
+    float rain = rain_density_at(cam_wpos.xy);
+    if (rain > 0.0) {
+        float rain_dist = 50.0;
+        for (int i = 0; i < 4; i ++) {
+            float old_rain_dist = rain_dist;
+            rain_dist *= 0.3;
 
-        vec2 drop_density = vec2(30, 1);
+            vec2 drop_density = vec2(30, 1);
 
-        vec2 rain_pos = (view_pos * rain_dist);
-        rain_pos.y += integrated_rain_vel;
+            vec2 rain_pos = (view_pos * rain_dist);
+            rain_pos.y += integrated_rain_vel;
 
-        vec2 cell = floor(rain_pos * drop_density) / drop_density;
+            vec2 cell = floor(rain_pos * drop_density) / drop_density;
 
-        float drop_depth = mix(
-            old_rain_dist,
-            rain_dist,
-            fract(hash(fract(vec4(cell, rain_dist, 0) * 0.1)))
-        );
-        vec3 rpos = vec3(vec2(dir_2d), view_pos.y) * drop_depth;
-        float dist_to_rain = length(rpos);
-        if (dist < dist_to_rain || cam_wpos.z + rpos.z > CLOUD_AVG_ALT) {
-            continue;
+            float drop_depth = mix(
+                old_rain_dist,
+                rain_dist,
+                fract(hash(fract(vec4(cell, rain_dist, 0) * 0.1)))
+            );
+            vec3 rpos = vec3(vec2(dir_2d), view_pos.y) * drop_depth;
+            float dist_to_rain = length(rpos);
+            if (dist < dist_to_rain || cam_wpos.z + rpos.z > CLOUD_AVG_ALT) {
+                continue;
+            }
+
+            if (dot(rpos * vec3(1, 1, 0.5), rpos) < 1.0) {
+                break;
+            }
+            float rain_density = rain * rain_occlusion_at(cam_pos.xyz + rpos.xyz) * 10.0;
+
+            if (rain_density < 0.001 || fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
+                continue;
+            }
+            vec2 near_drop = cell + (vec2(0.5) + (vec2(hash(vec4(cell, 0, 0)), 0.5) - 0.5) * vec2(2, 0)) / drop_density;
+
+            vec2 drop_size = vec2(0.0008, 0.03);
+            float avg_alpha = (drop_size.x * drop_size.y) * 10 / 1;
+            float alpha = sign(max(1 - length((rain_pos - near_drop) / drop_size * 0.1), 0));
+            float light = sqrt(dot(old_color, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
+            color.rgb = mix(color.rgb, vec3(0.3, 0.4, 0.5) * light, mix(avg_alpha, alpha, min(1000 / dist_to_rain, 1)) * 0.25);
         }
-
-        if (dot(rpos * vec3(1, 1, 0.5), rpos) < 1.0) {
-            break;
-        }
-        float rain_density = rain_density_at(cam_wpos.xy + rpos.xy) * rain_occlusion_at(cam_pos.xyz + rpos.xyz) * 10.0;
-
-        if (rain_density < 0.001 || fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
-            continue;
-        }
-        vec2 near_drop = cell + (vec2(0.5) + (vec2(hash(vec4(cell, 0, 0)), 0.5) - 0.5) * vec2(2, 0)) / drop_density;
-
-        vec2 drop_size = vec2(0.0008, 0.03);
-        float avg_alpha = (drop_size.x * drop_size.y) * 10 / 1;
-        float alpha = sign(max(1 - length((rain_pos - near_drop) / drop_size * 0.1), 0));
-        float light = sqrt(dot(old_color, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
-        color.rgb = mix(color.rgb, vec3(0.3, 0.4, 0.5) * light, mix(avg_alpha, alpha, min(1000 / dist_to_rain, 1)) * 0.25);
     }
 
     tgt_color = vec4(color.rgb, 1);

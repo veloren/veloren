@@ -11,7 +11,7 @@
 //! [`AudioSettings`](../../settings/struct.AudioSettings.html)
 //!
 //! When the AudioFrontend's
-//! [`play_sfx`](../struct.AudioFrontend.html#method.play_sfx)
+//! [`emit_sfx`](../struct.AudioFrontend.html#method.emit_sfx)
 //! methods is called, it attempts to retrieve an SfxChannel for playback. If
 //! the channel capacity has been reached and all channels are occupied, a
 //! warning is logged, and no sound is played.
@@ -171,10 +171,10 @@ pub enum AmbientChannelTag {
 /// which are always heard at the camera's position.
 pub struct AmbientChannel {
     tag: AmbientChannelTag,
-    multiplier: f32,
+    pub multiplier: f32,
     sink: Sink,
-    began_playing: Instant,
-    next_track_change: f32,
+    pub began_playing: Instant,
+    pub next_track_change: f32,
 }
 
 impl AmbientChannel {
@@ -215,27 +215,11 @@ impl AmbientChannel {
 
     pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume * self.multiplier); }
 
-    pub fn set_multiplier(&mut self, multiplier: f32) { self.multiplier = multiplier; }
-
-    pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
-
-    pub fn get_multiplier(&mut self) -> f32 { self.multiplier }
+    // pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
 
     pub fn get_tag(&self) -> AmbientChannelTag { self.tag }
 
-    pub fn set_tag(&mut self, tag: AmbientChannelTag) { self.tag = tag }
-
-    pub fn get_began_playing(&self) -> Instant { self.began_playing }
-
-    pub fn get_next_track_change(&self) -> f32 { self.next_track_change }
-
-    pub fn set_began_playing(&mut self, began_playing: Instant) {
-        self.began_playing = began_playing
-    }
-
-    pub fn set_next_track_change(&mut self, next_track_change: f32) {
-        self.next_track_change = next_track_change
-    }
+    // pub fn set_tag(&mut self, tag: AmbientChannelTag) { self.tag = tag }
 }
 
 /// An SfxChannel uses a positional audio sink, and is designed for short-lived

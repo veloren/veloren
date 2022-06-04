@@ -10,7 +10,6 @@ use crate::{
     },
     render::{
         pipelines::{self, ColLights},
-        renderer::RAIN_OCCLUSION_CHUNKS,
         ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
         RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts,
         TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
@@ -46,6 +45,10 @@ use vek::*;
 
 const SPRITE_SCALE: Vec3<f32> = Vec3::new(1.0 / 11.0, 1.0 / 11.0, 1.0 / 11.0);
 const SPRITE_LOD_LEVELS: usize = 5;
+
+// For rain occlusion we only need to render the closest chunks.
+/// How many chunks are maximally rendered for rain occlusion.
+pub const RAIN_OCCLUSION_CHUNKS: usize = 9;
 
 #[derive(Clone, Copy, Debug)]
 struct Visibility {
@@ -1405,10 +1408,9 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Check if there is rain near the camera
         let max_weather = scene_data.state.max_weather_near(focus_pos.xy());
         let visible_occlusion_volume = if max_weather.rain > 0.0 {
-            let occlusion_box = visible_bounding_box;
             let visible_bounding_box = math::Aabb::<f32> {
-                min: math::Vec3::from(occlusion_box.min - focus_off),
-                max: math::Vec3::from(occlusion_box.max - focus_off),
+                min: math::Vec3::from(visible_bounding_box.min - focus_off),
+                max: math::Vec3::from(visible_bounding_box.max - focus_off),
             };
             let visible_bounds_fine = math::Aabb {
                 min: visible_bounding_box.min.as_::<f64>(),
@@ -1490,7 +1492,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             .for_each(|(model, locals)| drawer.draw(model, locals));
     }
 
-    pub fn render_occlusion<'a>(
+    pub fn render_rain_occlusion<'a>(
         &'a self,
         drawer: &mut TerrainShadowDrawer<'_, 'a>,
         focus_pos: Vec3<f32>,

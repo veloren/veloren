@@ -7,25 +7,29 @@ use vek::*;
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod, Default)]
 pub struct Locals {
-    shadow_matrices: [[f32; 4]; 4],
-    texture_mats: [[f32; 4]; 4],
+    rain_occlusion_matrices: [[f32; 4]; 4],
+    rain_occlusion_texture_mat: [[f32; 4]; 4],
+    /// A rotation of the direction of the rain, relative to the players
+    /// velocity.
     rel_rain_dir_mat: [[f32; 4]; 4],
+    /// A value to offset the rain, to make it move over time.
     integrated_rain_vel: f32,
     // To keep 16-byte-aligned.
     occlusion_dummy: [f32; 3],
 }
+/// Make sure Locals is 16-byte-aligned.
+const _: () = assert!(core::mem::size_of::<Locals>() % 16 == 0);
 
 impl Locals {
     pub fn new(
-        shadow_mat: Mat4<f32>,
-        texture_mat: Mat4<f32>,
+        rain_occlusion_matrices: Mat4<f32>,
+        rain_occlusion_texture_mat: Mat4<f32>,
         rel_rain_dir_mat: Mat4<f32>,
         integrated_rain_vel: f32,
     ) -> Self {
-        // dbg!(core::mem::size_of::<Self>() % 16);
         Self {
-            shadow_matrices: shadow_mat.into_col_arrays(),
-            texture_mats: texture_mat.into_col_arrays(),
+            rain_occlusion_matrices: rain_occlusion_matrices.into_col_arrays(),
+            rain_occlusion_texture_mat: rain_occlusion_texture_mat.into_col_arrays(),
             rel_rain_dir_mat: rel_rain_dir_mat.into_col_arrays(),
             integrated_rain_vel,
             occlusion_dummy: [0.0; 3],
@@ -91,7 +95,7 @@ impl RainOcclusionFigurePipeline {
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Directed figure shadow pipeline layout"),
+                label: Some("Rain occlusion pipeline layout"),
                 push_constant_ranges: &[],
                 bind_group_layouts: &[&global_layout.globals, &figure_layout.locals],
             });
@@ -104,7 +108,7 @@ impl RainOcclusionFigurePipeline {
         };
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Directed shadow figure pipeline"),
+            label: Some("Rain occlusion figure pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
