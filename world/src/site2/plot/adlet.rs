@@ -72,10 +72,10 @@ impl AdletStructure {
 
         let additional_padding = match (self, other) {
             (Self::Igloo(_), Self::Igloo(_)) => 3,
-            (Self::CookFire, a) | (a, Self::CookFire)
-                if !matches!(a, Self::RockHut | Self::BoneHut) =>
-            {
-                30
+            (Self::CookFire, a) | (a, Self::CookFire) => match a {
+                Self::TunnelEntrance => 50,
+                Self::RockHut | Self::BoneHut => 0,
+                _ => 30,
             },
             _ => 0,
         };
@@ -305,6 +305,7 @@ impl AdletStronghold {
         // Attempt to place yeti pit
         if let Some(rpos) = attempt(50, || {
             let rpos = {
+                // Place yeti pet somewhat opposite of entrance
                 let theta = {
                     let angle_range = PI / 2.0;
                     let angle_offset = rng.gen_range(-angle_range..angle_range);
@@ -318,6 +319,44 @@ impl AdletStronghold {
         }) {
             // Direction doesn't matter for yeti pit
             cavern_structures.push((AdletStructure::YetiPit, rpos, Dir::X));
+        }
+
+        // Attempt to place some groupings of huts around a cookfire near the outer edge
+        let desired_hut_clusters = cavern_radius.pow(2) / 800;
+        for _ in 0..desired_hut_clusters {
+            if let Some(rpos) = attempt(25, || {
+                let rpos = {
+                    let theta = rng.gen_range(0.0..TAU);
+                    // sqrt biases radius away from center, leading to even distribution in circle
+                    let radius = (rng.gen::<f32>().sqrt() * 0.3 + 0.65) * cavern_radius as f32;
+                    Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
+                };
+                valid_cavern_struct_pos(&cavern_structures, AdletStructure::CookFire, rpos)
+                    .then_some(rpos)
+            }) {
+                // Cokfire needs no direction
+                cavern_structures.push((AdletStructure::CookFire, rpos, Dir::X));
+                let desired_huts = rng.gen_range(8..16);
+                for _ in 0..desired_huts {
+                    if let Some((rpos, hut, dir)) = attempt(10, || {
+                        let theta = rng.gen_range(0.0..TAU);
+                        let radius = rng.gen_range(10.0..20.0);
+                        let rrpos = Vec2::new(theta.cos() * radius, theta.sin() * radius).as_();
+                        let rpos = rrpos + rpos;
+                        let hut = if rpos.magnitude_squared() >= cavern_radius.pow(2) {
+                            AdletStructure::RockHut
+                        } else {
+                            AdletStructure::BoneHut
+                        };
+                        // Direction should be vector from hut to cookfire
+                        let dir = Dir::from_vector(rrpos).opposite();
+                        valid_cavern_struct_pos(&cavern_structures, hut, rpos)
+                            .then_some((rpos, hut, dir))
+                    }) {
+                        cavern_structures.push((hut, rpos, dir));
+                    }
+                }
+            }
         }
 
         // Attempt to place some general structures somewhat near the center
@@ -720,7 +759,19 @@ impl Structure for AdletStronghold {
                         })
                         .clear();
                 },
-                _ => panic!(),
+                AdletStructure::CookFire => {
+                    painter.sprite(wpos.with_z(alt as i32), SpriteKind::FireBowlGround);
+                },
+                AdletStructure::BoneHut => {
+                    painter
+                        .sphere_with_radius(wpos.with_z(alt as i32), 5.0)
+                        .fill(bone_fill.clone());
+                },
+                AdletStructure::RockHut => {
+                    painter
+                        .sphere_with_radius(wpos.with_z(alt as i32), 5.0)
+                        .clear();
+                },
             }
         }
     }
