@@ -82,6 +82,7 @@ use common::{
         fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
+        loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind},
         BuffData, BuffKind, Item, MapMarkerChange,
@@ -1000,6 +1001,7 @@ pub struct Floaters {
 #[derive(Clone)]
 pub enum HudLootOwner {
     Name(String),
+    Group,
     Unknown,
 }
 
@@ -1016,21 +1018,25 @@ impl HudCollectFailedReason {
     pub fn from_server_reason(reason: &CollectFailedReason, ecs: &specs::World) -> Self {
         match reason {
             CollectFailedReason::InventoryFull => HudCollectFailedReason::InventoryFull,
-            CollectFailedReason::LootOwned {
-                owner_uid,
-                expiry_secs,
-            } => {
-                let maybe_owner_name =
-                    ecs.entity_from_uid((*owner_uid).into()).and_then(|entity| {
-                        ecs.read_storage::<comp::Stats>()
-                            .get(entity)
-                            .map(|stats| stats.name.clone())
-                    });
-                let owner = if let Some(name) = maybe_owner_name {
-                    HudLootOwner::Name(name)
-                } else {
-                    HudLootOwner::Unknown
+            CollectFailedReason::LootOwned { owner, expiry_secs } => {
+                let owner = match owner {
+                    LootOwnerKind::Player(owner_uid) => {
+                        let maybe_owner_name =
+                            ecs.entity_from_uid((*owner_uid).into()).and_then(|entity| {
+                                ecs.read_storage::<comp::Stats>()
+                                    .get(entity)
+                                    .map(|stats| stats.name.clone())
+                            });
+
+                        if let Some(name) = maybe_owner_name {
+                            HudLootOwner::Name(name)
+                        } else {
+                            HudLootOwner::Unknown
+                        }
+                    },
+                    LootOwnerKind::Group(_) => HudLootOwner::Group,
                 };
+
                 HudCollectFailedReason::LootOwned {
                     owner,
                     expiry_secs: *expiry_secs,

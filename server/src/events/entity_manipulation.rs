@@ -18,6 +18,7 @@ use common::{
         self, aura, buff,
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
+        loot_owner::LootOwnerKind,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange, Inventory,
         Player, Poise, Pos, SkillSet, Stats,
     },
@@ -205,7 +206,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         }
     }
 
-    let mut exp_awards = Vec::<(Entity, f32)>::new();
+    let mut exp_awards = Vec::<(Entity, f32, Option<Group>)>::new();
     // Award EXP to damage contributors
     //
     // NOTE: Debug logging is disabled by default for this module - to enable it add
@@ -327,7 +328,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     positions.get(*attacker).and_then(|attacker_pos| {
                         if within_range(attacker_pos) {
                             debug!("Awarding {} exp to individual {:?} who contributed {}% damage to the kill of {:?}", contributor_exp, attacker, *damage_percent * 100.0, entity);
-                            Some(iter::once((*attacker, contributor_exp)).collect())
+                            Some(iter::once((*attacker, contributor_exp, None)).collect())
                         } else {
                             None
                         }
@@ -361,16 +362,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     let exp_per_member = contributor_exp / (members_in_range.len() as f32).sqrt();
 
                     debug!("Awarding {} exp per member of group ID {:?} with {} members which contributed {}% damage to the kill of {:?}", exp_per_member, group, members_in_range.len(), *damage_percent * 100.0, entity);
-                    Some(members_in_range.into_iter().map(|entity| (entity, exp_per_member)).collect::<Vec<(Entity, f32)>>())
+                    Some(members_in_range.into_iter().map(|entity| (entity, exp_per_member, Some(*group))).collect::<Vec<(Entity, f32, Option<Group>)>>())
                 },
                 DamageContrib::NotFound => {
                     // Discard exp for dead/offline individual damage contributors
                     None
                 }
             }
-        }).flatten().collect::<Vec<(Entity, f32)>>();
+        }).flatten().collect::<Vec<(Entity, f32, Option<Group>)>>();
 
-        exp_awards.iter().for_each(|(attacker, exp_reward)| {
+        exp_awards.iter().for_each(|(attacker, exp_reward, _)| {
             // Process the calculated EXP rewards
             if let (
                 Some(mut attacker_skill_set),
@@ -447,11 +448,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
-                // TODO: Figure out how damage contributions of 0% are being awarded - for now
-                // just remove them to avoid a crash when creating the WeightedIndex
-                let _ = exp_awards.drain_filter(|(_, exp)| *exp < f32::EPSILON);
+                // Remove entries where zero exp was awarded - this happens because some
+                // entities like Object bodies don't give EXP.
+                let _ = exp_awards.drain_filter(|(_, exp, _)| *exp < f32::EPSILON);
 
-                let winner_uid = if exp_awards.is_empty() {
+                let winner = if exp_awards.is_empty() {
                     None
                 } else {
                     // Use the awarded exp per entity as the weight distribution for drop chance
@@ -462,23 +463,30 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     let mut rng = rand::thread_rng();
                     let winner = exp_awards
                         .get(dist.sample(&mut rng))
-                        .expect("Loot distribution failed to find a winner")
-                        .0;
+                        .expect("Loot distribution failed to find a winner");
+                    let (winner, group) = (winner.0, winner.2);
 
-                    state
-                        .ecs()
-                        .read_storage::<comp::Body>()
-                        .get(winner)
-                        .and_then(|body| {
-                            // Only humanoids are awarded loot ownership - if the winner was a
-                            // non-humanoid NPC the loot will be free-for-all
-                            if matches!(body, Body::Humanoid(_)) {
-                                Some(state.ecs().read_storage::<Uid>().get(winner).cloned())
-                            } else {
-                                None
-                            }
-                        })
-                        .flatten()
+                    if let Some(group) = group {
+                        Some(LootOwnerKind::Group(group))
+                    } else {
+                        let uid = state
+                            .ecs()
+                            .read_storage::<comp::Body>()
+                            .get(winner)
+                            .and_then(|body| {
+                                // Only humanoids are awarded loot ownership - if the winner
+                                // was a
+                                // non-humanoid NPC the loot will be free-for-all
+                                if matches!(body, Body::Humanoid(_)) {
+                                    Some(state.ecs().read_storage::<Uid>().get(winner).cloned())
+                                } else {
+                                    None
+                                }
+                            })
+                            .flatten();
+
+                        uid.map(LootOwnerKind::Player)
+                    }
                 };
 
                 let item_drop_entity = state
@@ -489,7 +497,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                 // If there was a loot winner, assign them as the owner of the loot. There will
                 // not be a loot winner when an entity dies to environment damage and such so
                 // the loot will be free-for-all.
-                if let Some(uid) = winner_uid {
+                if let Some(uid) = winner {
                     debug!("Assigned UID {:?} as the winner for the loot drop", uid);
 
                     state
