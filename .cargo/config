@@ -11,10 +11,10 @@ csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv
 # server-cli
 server = "run --bin veloren-server-cli"
 test-server = "run --bin veloren-server-cli --no-default-features --features simd"
-tracy-server = "run --bin veloren-server-cli --no-default-features --features tracy,simd --profile no_overflow"
-tracy-world-server = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow"
-tracy-world-server-debuginfo = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow_debuginfo"
-tracy-world-server-releasedebuginfo = "run --bin veloren-server-cli --features tracy,simd --profile releasedebuginfo"
+tracy-server = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow"
+tracy-server-debuginfo = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow_debuginfo"
+tracy-server-releasedebuginfo = "run --bin veloren-server-cli --features tracy,simd --profile releasedebuginfo"
+tracy-test-server = "run --bin veloren-server-cli --no-default-features --features tracy,simd --profile no_overflow"
 # voxygen
 test-voxygen = "run --bin veloren-voxygen --no-default-features --features simd,egui-ui,shaderc-from-source"
 tracy-voxygen = "run --bin veloren-voxygen --no-default-features --features tracy,simd,egui-ui,shaderc-from-source --profile no_overflow"
