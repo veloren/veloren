@@ -266,7 +266,11 @@ void main() {
         vec3 two_up = f_pos + offset_two;
         vec3 two_down = f_pos - offset_two;
 
-        vec2 shadowTexSize = textureSize(sampler2D(t_directed_shadow_maps, s_directed_shadow_maps), 0);
+        // Adjust this to change the size of the grid cells relative to the
+        // number of shadow texels 
+        float grid_cell_to_texel_ratio = 32.0;
+
+        vec2 shadowTexSize = textureSize(sampler2D(t_directed_shadow_maps, s_directed_shadow_maps), 0) / grid_cell_to_texel_ratio;
 
         vec4 one_up_shadow_tex = texture_mat * vec4(one_up, 1.0);
         vec2 oust_snap = floor(one_up_shadow_tex.xy * shadowTexSize / one_up_shadow_tex.w);
