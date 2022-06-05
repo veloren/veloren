@@ -50,7 +50,9 @@ pub struct Globals {
     /// aligned.
     view_distance: [f32; 4],
     time_of_day: [f32; 4], // TODO: Make this f64.
+    /// Direction of sunlight.
     sun_dir: [f32; 4],
+    /// Direction of moonlight.
     moon_dir: [f32; 4],
     tick: [f32; 4],
     /// x, y represent the resolution of the screen;
@@ -163,11 +165,13 @@ impl Globals {
         time_of_day as f32 * TIME_FACTOR
     }
 
+    /// Computes the direction of light from the sun based on the time of day.
     pub fn get_sun_dir(time_of_day: f64) -> Vec3<f32> {
         let angle_rad = Self::get_angle_rad(time_of_day);
         Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos())
     }
 
+    /// Computes the direction of light from the moon based on the time of day.
     pub fn get_moon_dir(time_of_day: f64) -> Vec3<f32> {
         let angle_rad = Self::get_angle_rad(time_of_day);
         -Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos() - 0.5).normalized()

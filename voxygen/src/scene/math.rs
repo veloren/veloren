@@ -366,6 +366,14 @@ pub fn calc_focused_light_volume_points<T: Float + MulAdd<T, T, Output = T> + co
     ) */
 }
 
+/// Computes an axis aligned bounding box that contains the provided points when
+/// transformed into the coordinate space specificed by `mat`.
+///
+/// "psr" stands for "Potential shadow receivers" since this function is used to
+/// get an Aabb containing the potential points (which represent the extents of
+/// the volumes of potential things that will be shadowed) that will be
+/// shadowed.
+///
 /// NOTE: Will not yield useful results if pts is empty!
 pub fn fit_psr<
     T: Float + MulAdd<T, T, Output = T>,
