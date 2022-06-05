@@ -257,6 +257,33 @@ void main() {
     DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
     DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
 
+    #ifdef EXPERIMENTAL_DIRECTIONALSHADOWMAPTEXELGRID
+        float offset_scale = 0.5;
+        vec3 offset_one = dFdx(f_pos) * offset_scale;
+        vec3 offset_two = dFdy(f_pos) * offset_scale;
+        vec3 one_up = f_pos + offset_one;
+        vec3 one_down = f_pos - offset_one;
+        vec3 two_up = f_pos + offset_two;
+        vec3 two_down = f_pos - offset_two;
+
+        vec2 shadowTexSize = textureSize(sampler2D(t_directed_shadow_maps, s_directed_shadow_maps), 0);
+
+        vec4 one_up_shadow_tex = texture_mat * vec4(one_up, 1.0);
+        vec2 oust_snap = floor(one_up_shadow_tex.xy * shadowTexSize / one_up_shadow_tex.w);
+        vec4 one_down_shadow_tex = texture_mat * vec4(one_down, 1.0);
+        vec2 odst_snap = floor(one_down_shadow_tex.xy * shadowTexSize / one_down_shadow_tex.w);
+        vec4 two_up_shadow_tex = texture_mat * vec4(two_up, 1.0);
+        vec2 tust_snap = floor(two_up_shadow_tex.xy * shadowTexSize / two_up_shadow_tex.w);
+        vec4 two_down_shadow_tex = texture_mat * vec4(two_down, 1.0);
+        vec2 tdst_snap = floor(two_down_shadow_tex.xy * shadowTexSize / two_down_shadow_tex.w);
+        float border = length(max(abs(oust_snap - odst_snap), abs(tust_snap - tdst_snap)));
+
+        if (border != 0.0) {
+            tgt_color = vec4(vec3(0.0, 0.7, 0.2), 1.0);
+            return;
+        }
+    #endif
+     
     float max_light = 0.0;
 
     // After shadows are computed, we use a refracted sun and moon direction.
