@@ -116,19 +116,19 @@ impl Civs {
         let mut castle_enemies: Vec<Vec2<i32>> = Vec::new();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (kind, size, avoid) = match ctx.rng.gen_range(0..64) {
-                    0..=5 => (SiteKind::Castle, 3, (&castle_enemies, 40)),
+                let (kind, avoid) = match ctx.rng.gen_range(0..64) {
+                    0..=5 => (SiteKind::Castle, (&castle_enemies, 40)),
                     28..=31 => {
                         if index.features().site2_giant_trees {
-                            (SiteKind::GiantTree, 4, (&tree_enemies, 40))
+                            (SiteKind::GiantTree, (&tree_enemies, 40))
                         } else {
-                            (SiteKind::Tree, 4, (&tree_enemies, 40))
+                            (SiteKind::Tree, (&tree_enemies, 40))
                         }
                     },
-                    32..=37 => (SiteKind::Gnarling, 5, (&gnarling_enemies, 40)),
-                    _ => (SiteKind::Dungeon, 0, (&dungeon_enemies, 40)),
+                    32..=37 => (SiteKind::Gnarling, (&gnarling_enemies, 40)),
+                    _ => (SiteKind::Dungeon, (&dungeon_enemies, 40)),
                 };
-                let loc = find_site_loc(&mut ctx, avoid, size, kind)?;
+                let loc = find_site_loc(&mut ctx, avoid, kind)?;
                 match kind {
                     SiteKind::Castle => {
                         gnarling_enemies.push(loc);
@@ -552,7 +552,7 @@ impl Civs {
             _ => SiteKind::Refactor,
         };
         let site = attempt(100, || {
-            let loc = find_site_loc(ctx, (start_locations, 60), 0, kind)?;
+            let loc = find_site_loc(ctx, (start_locations, 60), kind)?;
             start_locations.push(loc);
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
@@ -1144,7 +1144,6 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
     avoid: (&Vec<Vec2<i32>>, i32),
-    size: i32,
     site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 10000;
@@ -1165,10 +1164,8 @@ fn find_site_loc(
             continue;
         }
 
-        for offset in Spiral2d::new().take((size * 2 + 1).pow(2) as usize) {
-            if loc_suitable_for_site(ctx.sim, test_loc + offset, site_kind) {
-                return Some(test_loc);
-            }
+        if loc_suitable_for_site(ctx.sim, test_loc, site_kind) {
+            return Some(test_loc);
         }
 
         loc = ctx.sim.get(test_loc).and_then(|c| {
