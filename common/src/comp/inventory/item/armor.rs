@@ -25,6 +25,26 @@ pub enum ArmorKind {
     Bag,
 }
 
+impl ArmorKind {
+    pub fn has_durability(self) -> bool {
+        use ArmorKind::*;
+        match self {
+            Shoulder => true,
+            Chest => true,
+            Belt => true,
+            Hand => true,
+            Pants => true,
+            Foot => true,
+            Back => true,
+            Ring => false,
+            Neck => false,
+            Head => false,
+            Tabard => false,
+            Bag => false,
+        }
+    }
+}
+
 impl Armor {
     /// Determines whether two pieces of armour are superficially equivalent to
     /// one another (i.e: one may be substituted for the other in crafting

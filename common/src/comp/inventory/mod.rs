@@ -878,6 +878,15 @@ impl Inventory {
             }
         });
     }
+
+    /// Increments durability of all valid items equipped in loaodut by 1
+    pub fn apply_durability(
+        &mut self,
+        ability_map: &item::tool::AbilityMap,
+        msm: &item::MaterialStatManifest,
+    ) {
+        self.loadout.apply_durability(ability_map, msm)
+    }
 }
 
 impl Component for Inventory {

@@ -5,11 +5,11 @@ pub mod tool;
 
 // Reexports
 pub use modular::{MaterialStatManifest, ModularBase, ModularComponent};
-pub use tool::{AbilitySet, AbilitySpec, Hands, Tool, ToolKind};
+pub use tool::{AbilityMap, AbilitySet, AbilitySpec, Hands, Tool, ToolKind};
 
 use crate::{
     assets::{self, AssetExt, BoxedError, Error},
-    comp::inventory::{item::tool::AbilityMap, InvSlot},
+    comp::inventory::InvSlot,
     effect::Effect,
     recipe::RecipeInput,
     terrain::Block,
@@ -793,6 +793,7 @@ impl Item {
             hash: 0,
             durability: None,
         };
+        item.durability = item.has_durability().then_some(0);
         item.update_item_state(ability_map, msm);
         item
     }
@@ -1199,12 +1200,27 @@ impl Item {
         const MAX_DURABILITY: u32 = 8;
         let durability = self.durability.map_or(0, |x| x.clamp(0, MAX_DURABILITY));
         const DURABILITY_THRESHOLD: u32 = 4;
-        const MIN_FRAC: f32 = 0.25;
-        let mult = durability.saturating_sub(DURABILITY_THRESHOLD) as f32
-            / (MAX_DURABILITY - DURABILITY_THRESHOLD) as f32
+        const MIN_FRAC: f32 = 0.2;
+        let mult = (1.0
+            - durability.saturating_sub(DURABILITY_THRESHOLD) as f32
+                / (MAX_DURABILITY - DURABILITY_THRESHOLD) as f32)
             * (1.0 - MIN_FRAC)
             + MIN_FRAC;
         DurabilityMultiplier(mult)
+    }
+
+    pub fn has_durability(&self) -> bool {
+        match &*self.kind() {
+            ItemKind::Tool(_) => true,
+            ItemKind::Armor(armor) => armor.kind.has_durability(),
+            _ => false,
+        }
+    }
+
+    pub fn apply_durability(&mut self) {
+        if let Some(durability) = &mut self.durability {
+            *durability += 1;
+        }
     }
 
     #[cfg(test)]

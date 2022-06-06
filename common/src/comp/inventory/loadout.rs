@@ -416,6 +416,25 @@ impl Loadout {
             }
         });
     }
+
+    /// Increments durability by 1 of all valid items
+    pub(super) fn apply_durability(
+        &mut self,
+        ability_map: &item::tool::AbilityMap,
+        msm: &item::MaterialStatManifest,
+    ) {
+        self.slots
+            .iter_mut()
+            .filter(|slot| slot.slot.as_ref().map_or(false, |i| i.has_durability()))
+            .for_each(|slot| {
+                if let Some(item) = &mut slot.slot {
+                    item.apply_durability();
+                    // Update item state after applying durability because stats have potential to
+                    // change from different durability
+                    item.update_item_state(ability_map, msm);
+                }
+            })
+    }
 }
 
 #[cfg(test)]
