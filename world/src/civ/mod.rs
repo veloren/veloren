@@ -1336,7 +1336,9 @@ impl SiteKind {
                 SiteKind::Gnarling => {
                     (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75
                 },
-                SiteKind::GiantTree | SiteKind::Tree => chunk.tree_density > 0.4,
+                SiteKind::GiantTree | SiteKind::Tree => {
+                    chunk.tree_density > 0.4 && (-0.3..0.4).contains(&chunk.temp)
+                },
                 SiteKind::CliffTown => {
                     (-0.6..0.4).contains(&chunk.temp)
                         && chunk.near_cliffs()
