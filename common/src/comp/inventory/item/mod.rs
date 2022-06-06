@@ -396,6 +396,10 @@ pub struct Item {
     slots: Vec<InvSlot>,
     item_config: Option<Box<ItemConfig>>,
     hash: u64,
+    /// Tracks how many deaths occurred while item was equipped, which is
+    /// converted into the items durability. Only tracked for tools and armor
+    /// currently.
+    durability: Option<u32>,
 }
 
 use std::hash::{Hash, Hasher};
@@ -609,7 +613,8 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
             };
             let abilities = if let Some(set_key) = item.ability_spec() {
                 if let Some(set) = ability_map.get_ability_set(&set_key) {
-                    set.clone().modified_by_tool(tool)
+                    set.clone()
+                        .modified_by_tool(tool, item.stats_durability_multiplier())
                 } else {
                     error!(
                         "Custom ability set: {:?} references non-existent set, falling back to \
@@ -619,7 +624,8 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                     tool_default(tool.kind).cloned().unwrap_or_default()
                 }
             } else if let Some(set) = tool_default(tool.kind) {
-                set.clone().modified_by_tool(tool)
+                set.clone()
+                    .modified_by_tool(tool, item.stats_durability_multiplier())
             } else {
                 error!(
                     "No ability set defined for tool: {:?}, falling back to default ability set.",
@@ -785,6 +791,7 @@ impl Item {
             // These fields are updated immediately below
             item_config: None,
             hash: 0,
+            durability: None,
         };
         item.update_item_state(ability_map, msm);
         item
@@ -1089,7 +1096,7 @@ impl Item {
             ItemBase::Modular(mod_base) => {
                 // TODO: Try to move further upward
                 let msm = MaterialStatManifest::load().read();
-                mod_base.kind(self.components(), &msm)
+                mod_base.kind(self.components(), &msm, self.stats_durability_multiplier())
             },
         }
     }
@@ -1188,6 +1195,18 @@ impl Item {
         }
     }
 
+    pub fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
+        const MAX_DURABILITY: u32 = 8;
+        let durability = self.durability.map_or(0, |x| x.clamp(0, MAX_DURABILITY));
+        const DURABILITY_THRESHOLD: u32 = 4;
+        const MIN_FRAC: f32 = 0.25;
+        let mult = durability.saturating_sub(DURABILITY_THRESHOLD) as f32
+            / (MAX_DURABILITY - DURABILITY_THRESHOLD) as f32
+            * (1.0 - MIN_FRAC)
+            + MIN_FRAC;
+        DurabilityMultiplier(mult)
+    }
+
     #[cfg(test)]
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
         let ability_map = &AbilityMap::load().read();
@@ -1211,10 +1230,9 @@ pub trait ItemDesc {
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> ItemDefinitionId<'_>;
     fn tags(&self) -> Vec<ItemTag>;
-
     fn is_modular(&self) -> bool;
-
     fn components(&self) -> &[Item];
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier;
 
     fn tool_info(&self) -> Option<ToolKind> {
         if let ItemKind::Tool(tool) = &*self.kind() {
@@ -1243,6 +1261,10 @@ impl ItemDesc for Item {
     fn is_modular(&self) -> bool { self.is_modular() }
 
     fn components(&self) -> &[Item] { self.components() }
+
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
+        self.stats_durability_multiplier()
+    }
 }
 
 impl ItemDesc for ItemDef {
@@ -1265,6 +1287,8 @@ impl ItemDesc for ItemDef {
     fn is_modular(&self) -> bool { false }
 
     fn components(&self) -> &[Item] { &[] }
+
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier { DurabilityMultiplier(1.0) }
 }
 
 impl Component for Item {
@@ -1277,6 +1301,9 @@ pub struct ItemDrop(pub Item);
 impl Component for ItemDrop {
     type Storage = DenseVecStorage<Self>;
 }
+
+#[derive(Copy, Clone, Debug)]
+pub struct DurabilityMultiplier(pub f32);
 
 impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn description(&self) -> &str { (*self).description() }
@@ -1296,6 +1323,10 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn is_modular(&self) -> bool { (*self).is_modular() }
 
     fn components(&self) -> &[Item] { (*self).components() }
+
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
+        (*self).stats_durability_multiplier()
+    }
 }
 
 /// Returns all item asset specifiers

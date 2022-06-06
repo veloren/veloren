@@ -335,7 +335,10 @@ pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
             footwear = data.inventory.and_then(|inv| {
                 inv.equipped(EquipSlot::Armor(ArmorSlot::Feet))
                     .map(|armor| match armor.kind().as_ref() {
-                        ItemKind::Armor(a) => a.stats(data.msm).ground_contact,
+                        ItemKind::Armor(a) => {
+                            a.stats(data.msm, armor.stats_durability_multiplier())
+                                .ground_contact
+                        },
                         _ => Friction::Normal,
                     })
             });
@@ -719,7 +722,10 @@ pub fn attempt_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
         data.inventory
             .and_then(|inv| inv.equipped(equip_slot))
             .and_then(|item| match &*item.kind() {
-                ItemKind::Tool(tool) => Some(tool.equip_time()),
+                ItemKind::Tool(tool) => Some(Duration::from_secs_f32(
+                    tool.stats(item.stats_durability_multiplier())
+                        .equip_time_secs,
+                )),
                 _ => None,
             })
     };
@@ -1261,7 +1267,7 @@ pub fn get_crit_data(data: &JoinData<'_>, ai: AbilityInfo) -> (f32, f32) {
         .and_then(|slot| data.inventory.and_then(|inv| inv.equipped(slot)))
         .and_then(|item| {
             if let ItemKind::Tool(tool) = &*item.kind() {
-                Some(tool.base_crit_chance())
+                Some(tool.stats(item.stats_durability_multiplier()).crit_chance)
             } else {
                 None
             }
@@ -1282,7 +1288,7 @@ pub fn get_tool_stats(data: &JoinData<'_>, ai: AbilityInfo) -> tool::Stats {
         .and_then(|slot| data.inventory.and_then(|inv| inv.equipped(slot)))
         .and_then(|item| {
             if let ItemKind::Tool(tool) = &*item.kind() {
-                Some(tool.stats)
+                Some(tool.stats(item.stats_durability_multiplier()))
             } else {
                 None
             }

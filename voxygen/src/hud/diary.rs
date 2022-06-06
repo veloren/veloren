@@ -1211,7 +1211,9 @@ impl<'a> Widget for Diary<'a> {
                         .inventory
                         .equipped(EquipSlot::ActiveMainhand)
                         .and_then(|item| match &*item.kind() {
-                            ItemKind::Tool(tool) => Some(tool.stats),
+                            ItemKind::Tool(tool) => {
+                                Some(tool.stats(item.stats_durability_multiplier()))
+                            },
                             _ => None,
                         });
 
@@ -1219,7 +1221,9 @@ impl<'a> Widget for Diary<'a> {
                         .inventory
                         .equipped(EquipSlot::ActiveOffhand)
                         .and_then(|item| match &*item.kind() {
-                            ItemKind::Tool(tool) => Some(tool.stats),
+                            ItemKind::Tool(tool) => {
+                                Some(tool.stats(item.stats_durability_multiplier()))
+                            },
                             _ => None,
                         });
 

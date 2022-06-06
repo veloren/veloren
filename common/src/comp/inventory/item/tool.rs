@@ -3,14 +3,13 @@
 
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
-    comp::{ability::Stance, skills::Skill, CharacterAbility, SkillSet},
+    comp::{
+        ability::Stance, item::DurabilityMultiplier, skills::Skill, CharacterAbility, SkillSet,
+    },
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub},
-    time::Duration,
-};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum ToolKind {
@@ -171,9 +170,11 @@ impl Add<Stats> for Stats {
         }
     }
 }
+
 impl AddAssign<Stats> for Stats {
     fn add_assign(&mut self, other: Stats) { *self = *self + other; }
 }
+
 impl Sub<Stats> for Stats {
     type Output = Self;
 
@@ -190,6 +191,7 @@ impl Sub<Stats> for Stats {
         }
     }
 }
+
 impl Mul<Stats> for Stats {
     type Output = Self;
 
@@ -206,9 +208,29 @@ impl Mul<Stats> for Stats {
         }
     }
 }
+
 impl MulAssign<Stats> for Stats {
     fn mul_assign(&mut self, other: Stats) { *self = *self * other; }
 }
+
+impl Mul<DurabilityMultiplier> for Stats {
+    type Output = Self;
+
+    fn mul(self, value: DurabilityMultiplier) -> Self {
+        let DurabilityMultiplier(value) = value;
+        Self {
+            equip_time_secs: self.equip_time_secs / value.max(0.01),
+            power: self.power * value,
+            effect_power: self.effect_power * value,
+            speed: self.speed * value,
+            crit_chance: self.crit_chance * value,
+            range: self.range * value,
+            energy_efficiency: self.energy_efficiency * value,
+            buff_strength: self.buff_strength * value,
+        }
+    }
+}
+
 impl Div<f32> for Stats {
     type Output = Self;
 
@@ -225,15 +247,12 @@ impl Div<f32> for Stats {
         }
     }
 }
-impl DivAssign<usize> for Stats {
-    fn div_assign(&mut self, scalar: usize) { *self = *self / (scalar as f32); }
-}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
     pub hands: Hands,
-    pub stats: Stats,
+    stats: Stats,
     // TODO: item specific abilities
 }
 
@@ -259,24 +278,9 @@ impl Tool {
         }
     }
 
-    // Keep power between 0.5 and 2.00
-    pub fn base_power(&self) -> f32 { self.stats.power }
-
-    pub fn base_effect_power(&self) -> f32 { self.stats.effect_power }
-
-    /// Has floor to prevent infinite durations being created later down due to
-    /// a divide by zero
-    pub fn base_speed(&self) -> f32 { self.stats.speed.max(0.1) }
-
-    pub fn base_crit_chance(&self) -> f32 { self.stats.crit_chance }
-
-    pub fn base_range(&self) -> f32 { self.stats.range }
-
-    pub fn base_energy_efficiency(&self) -> f32 { self.stats.energy_efficiency }
-
-    pub fn base_buff_strength(&self) -> f32 { self.stats.buff_strength }
-
-    pub fn equip_time(&self) -> Duration { Duration::from_secs_f32(self.stats.equip_time_secs) }
+    pub fn stats(&self, durability_multiplier: DurabilityMultiplier) -> Stats {
+        self.stats * durability_multiplier
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -376,10 +380,16 @@ impl AbilityContext {
 
 impl AbilitySet<AbilityItem> {
     #[must_use]
-    pub fn modified_by_tool(self, tool: &Tool) -> Self {
+    pub fn modified_by_tool(
+        self,
+        tool: &Tool,
+        durability_multiplier: DurabilityMultiplier,
+    ) -> Self {
         self.map(|a| AbilityItem {
             id: a.id,
-            ability: a.ability.adjusted_by_stats(tool.stats),
+            ability: a
+                .ability
+                .adjusted_by_stats(tool.stats(durability_multiplier)),
         })
     }
 }

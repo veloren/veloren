@@ -1230,7 +1230,7 @@ fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
     const BUFF_STRENGTH_WEIGHT: f32 = 1.5;
 
     let rating = if let ItemKind::Tool(tool) = &*item.kind() {
-        let stats = tool.stats;
+        let stats = tool.stats(item.stats_durability_multiplier());
 
         // TODO: Look into changing the 0.5 to reflect armor later maybe?
         // Since it is only for weapon though, it probably makes sense to leave
@@ -1361,7 +1361,9 @@ pub fn compute_crit_mult(inventory: Option<&Inventory>, msm: &MaterialStatManife
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.stats(msm).crit_power
+                    armor
+                        .stats(msm, item.stats_durability_multiplier())
+                        .crit_power
                 } else {
                     None
                 }
@@ -1379,7 +1381,9 @@ pub fn compute_energy_reward_mod(inventory: Option<&Inventory>, msm: &MaterialSt
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.stats(msm).energy_reward
+                    armor
+                        .stats(msm, item.stats_durability_multiplier())
+                        .energy_reward
                 } else {
                     None
                 }
@@ -1397,7 +1401,9 @@ pub fn compute_max_energy_mod(inventory: Option<&Inventory>, msm: &MaterialStatM
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.stats(msm).energy_max
+                    armor
+                        .stats(msm, item.stats_durability_multiplier())
+                        .energy_max
                 } else {
                     None
                 }
@@ -1433,7 +1439,7 @@ pub fn stealth_multiplier_from_items(
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.stats(msm).stealth
+                    armor.stats(msm, item.stats_durability_multiplier()).stealth
                 } else {
                     None
                 }
@@ -1456,7 +1462,9 @@ pub fn compute_protection(
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.stats(msm).protection
+                    armor
+                        .stats(msm, item.stats_durability_multiplier())
+                        .protection
                 } else {
                     None
                 }

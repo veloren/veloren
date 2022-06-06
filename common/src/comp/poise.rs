@@ -270,7 +270,9 @@ impl Poise {
             inv.equipped_items()
                 .filter_map(|item| {
                     if let ItemKind::Armor(armor) = &*item.kind() {
-                        armor.stats(msm).poise_resilience
+                        armor
+                            .stats(msm, item.stats_durability_multiplier())
+                            .poise_resilience
                     } else {
                         None
                     }

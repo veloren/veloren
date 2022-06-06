@@ -1,7 +1,8 @@
 use super::{
     armor,
-    tool::{self, AbilityMap, AbilitySpec, Hands},
-    Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, Material, Quality, ToolKind,
+    tool::{self, AbilityMap, AbilitySpec, Hands, Tool},
+    DurabilityMultiplier, Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, Material, Quality,
+    ToolKind,
 };
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
@@ -98,8 +99,17 @@ impl ModularBase {
         hand_restriction.unwrap_or(Hands::One)
     }
 
-    pub fn kind(&self, components: &[Item], msm: &MaterialStatManifest) -> Cow<ItemKind> {
-        fn resolve_stats(components: &[Item], msm: &MaterialStatManifest) -> tool::Stats {
+    pub(super) fn kind(
+        &self,
+        components: &[Item],
+        msm: &MaterialStatManifest,
+        durability_multiplier: DurabilityMultiplier,
+    ) -> Cow<ItemKind> {
+        fn resolve_stats(
+            components: &[Item],
+            msm: &MaterialStatManifest,
+            durability_multiplier: DurabilityMultiplier,
+        ) -> tool::Stats {
             components
                 .iter()
                 .filter_map(|comp| {
@@ -110,6 +120,7 @@ impl ModularBase {
                     }
                 })
                 .fold(tool::Stats::one(), |a, b| a * b)
+                * durability_multiplier
         }
 
         let toolkind = components
@@ -124,11 +135,11 @@ impl ModularBase {
             .unwrap_or(ToolKind::Empty);
 
         match self {
-            ModularBase::Tool => Cow::Owned(ItemKind::Tool(tool::Tool {
-                kind: toolkind,
-                hands: Self::resolve_hands(components),
-                stats: resolve_stats(components, msm),
-            })),
+            ModularBase::Tool => Cow::Owned(ItemKind::Tool(Tool::new(
+                toolkind,
+                Self::resolve_hands(components),
+                resolve_stats(components, msm, durability_multiplier),
+            ))),
         }
     }
 

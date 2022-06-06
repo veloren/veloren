@@ -583,7 +583,7 @@ impl<'a> Widget for ItemTooltip<'a> {
         // Stats
         match &*item.kind() {
             ItemKind::Tool(tool) => {
-                let stats = tool.stats;
+                let stats = tool.stats(item.stats_durability_multiplier());
 
                 // Power
                 widget::Text::new(&format!(
@@ -671,8 +671,9 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                 if let Some(equipped_item) = equipped_item {
                     if let ItemKind::Tool(equipped_tool) = &*equipped_item.kind() {
-                        let tool_stats = tool.stats;
-                        let equipped_tool_stats = equipped_tool.stats;
+                        let tool_stats = tool.stats(item.stats_durability_multiplier());
+                        let equipped_tool_stats =
+                            equipped_tool.stats(equipped_item.stats_durability_multiplier());
                         let diff = tool_stats - equipped_tool_stats;
                         let power_diff =
                             util::comparison(tool_stats.power, equipped_tool_stats.power);
@@ -756,7 +757,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 }
             },
             ItemKind::Armor(armor) => {
-                let armor_stats = armor.stats(self.msm);
+                let armor_stats = armor.stats(self.msm, item.stats_durability_multiplier());
 
                 let mut stat_text = |text: String, i: usize| {
                     widget::Text::new(&text)
@@ -877,7 +878,8 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                 if let Some(equipped_item) = equipped_item {
                     if let ItemKind::Armor(equipped_armor) = &*equipped_item.kind() {
-                        let equipped_stats = equipped_armor.stats(self.msm);
+                        let equipped_stats = equipped_armor
+                            .stats(self.msm, equipped_item.stats_durability_multiplier());
                         let diff = armor_stats - equipped_stats;
                         let protection_diff = util::option_comparison(
                             &armor_stats.protection,

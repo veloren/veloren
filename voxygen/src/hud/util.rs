@@ -102,7 +102,7 @@ pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> Co
 pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
     match &*item.kind() {
         ItemKind::Armor(armor) => {
-            let armor_stats = armor.stats(msm);
+            let armor_stats = armor.stats(msm, item.stats_durability_multiplier());
             armor_stats.energy_reward.is_some() as usize
                 + armor_stats.energy_max.is_some() as usize
                 + armor_stats.stealth.is_some() as usize
