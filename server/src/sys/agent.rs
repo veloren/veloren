@@ -748,7 +748,17 @@ impl<'a> AgentData<'a> {
             }
         };
 
-        if self.damage < IDLE_HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller, true) {
+        if let Some(body) = self.body {
+            let attempt_heal = if matches!(body, Body::Humanoid(_)) {
+                self.damage < IDLE_HEALING_ITEM_THRESHOLD
+            } else {
+                true
+            };
+            if attempt_heal && self.heal_self(agent, controller, true) {
+                agent.action_state.timer = 0.01;
+                return;
+            }
+        } else {
             agent.action_state.timer = 0.01;
             return;
         }
@@ -1604,14 +1614,10 @@ impl<'a> AgentData<'a> {
         };
         let is_valid_target = |entity: EcsEntity| match read_data.bodies.get(entity) {
             Some(Body::ItemDrop(item)) => {
-                // Agents want to pick up items if they are humanoid, or are hungry and the
-                // item is consumable
-                let hungry = || {
-                    self.health
-                        .map_or(false, |health| health.current() < health.maximum())
-                };
+                //If the agent is humanoid, it will pick up all kinds of itemdrops. If the
+                // agent isn't humanoid, it will pick up only consumable itemdrops.
                 let wants_pickup = matches!(self.body, Some(Body::Humanoid(_)))
-                    || (hungry() && matches!(item, item_drop::Body::Consumable));
+                    || matches!(item, item_drop::Body::Consumable);
 
                 // The agent will attempt to pickup the item if it wants to pick it up and is
                 // allowed to
