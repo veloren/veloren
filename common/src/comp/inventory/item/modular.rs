@@ -36,6 +36,15 @@ impl MaterialStatManifest {
     pub fn armor_stats(&self, key: &str) -> Option<armor::Stats> {
         self.armor_stats.get(key).copied()
     }
+
+    #[doc(hidden)]
+    /// needed for tests to load it without actual assets
+    pub fn with_empty() -> Self {
+        Self {
+            tool_stats: hashbrown::HashMap::default(),
+            armor_stats: hashbrown::HashMap::default(),
+        }
+    }
 }
 
 // This could be a Compound that also loads the keys, but the RecipeBook

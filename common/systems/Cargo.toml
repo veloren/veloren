@@ -31,3 +31,7 @@ specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "s
 
 # Tweak running code
 # inline_tweak = { version = "1.0.8", features = ["release_tweak"] }
+
+[dev-dependencies]
+# Setup a State
+common-state = { package = "veloren-common-state", path = "../state" }
