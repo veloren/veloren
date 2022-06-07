@@ -1428,7 +1428,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     };
 
     let z_range = z_min..z_max;
-    let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
 
     // Setup values for the loop below
     physics_state.on_ground = None;
@@ -1445,13 +1444,11 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     const MAX_INCREMENTS: usize = 100; // The maximum number of collision tests per tick
     let increments = ((pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3).ceil() as usize)
         .clamped(1, MAX_INCREMENTS);
-    let increment_dt = dt.0 / (increments as f32);
     let old_pos = pos.0;
     for _ in 0..increments {
         //prof_span!("increment");
         const MAX_ATTEMPTS: usize = 16;
-        let increment_dpos = pos_delta / increments as f32;
-        pos.0 += increment_dpos;
+        pos.0 += pos_delta / increments as f32;
 
         let try_colliding_block = |pos: &Pos| {
             //prof_span!("most colliding check");
@@ -1599,18 +1596,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             attempts += 1;
         }
 
-        // Apply on-ground-friction
-        let ground_fric = on_ground.map(|b| b.get_friction()).unwrap_or(0.0);
-        if ground_fric > 0.0 {
-            let fric_fac = (1.0 - ground_fric.min(1.0) * fric_mod).powf(increment_dt * 60.0);
-            vel.0 *= fric_fac;
-            // TODO: evaluate activate: undo part of the increment and adjust pos_delta by
-            // friction for the next step
-
-            // pos.0 -= increment_dpos * pos_delta * (1.0 - fric_fac);
-            pos_delta *= fric_fac;
-        }
-
         if attempts == MAX_ATTEMPTS {
             vel.0 = Vec3::zero();
             pos.0 = old_pos;
@@ -1725,6 +1710,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     }
 
     physics_state.on_wall = on_wall;
+    let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
 
     // skating (ski)
     if !vel.0.xy().is_approx_zero()
@@ -1789,13 +1775,18 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.skating_active = true;
         vel.0 = Vec3::new(new_ground_speed.x, new_ground_speed.y, 0.0);
     } else {
-        // In contrast to ground_fric keep wall_fric outside the loop as its more costly
-        // and less noticeable
-        if physics_state.on_wall.is_some() && climbing {
-            vel.0 *= (1.0 - FRIC_GROUND * fric_mod).powf(dt.0 * 60.0);
-        }
-        // Set ground_vel when friction was applied.
-        if physics_state.on_wall.is_some() || physics_state.on_ground.is_some() {
+        let ground_fric = physics_state
+            .on_ground
+            .map(|b| b.get_friction())
+            .unwrap_or(0.0);
+        let wall_fric = if physics_state.on_wall.is_some() && climbing {
+            FRIC_GROUND
+        } else {
+            0.0
+        };
+        let fric = ground_fric.max(wall_fric);
+        if fric > 0.0 {
+            vel.0 *= (1.0 - fric.min(1.0) * fric_mod).powf(dt.0 * 60.0);
             physics_state.ground_vel = ground_vel;
         }
         physics_state.skating_active = false;

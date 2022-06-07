@@ -27,9 +27,8 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<buff::Sys>(dispatch_builder, &[]);
     dispatch::<stats::Sys>(dispatch_builder, &[&buff::Sys::sys_name()]);
     dispatch::<phys::Sys>(dispatch_builder, &[
-        &character_behavior::Sys::sys_name(),
         &interpolation::Sys::sys_name(),
-        //&controller::Sys::sys_name(), provided by character_behavior
+        &controller::Sys::sys_name(),
         &mount::Sys::sys_name(),
         &stats::Sys::sys_name(),
     ]);
