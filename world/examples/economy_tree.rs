@@ -55,7 +55,7 @@ fn main() -> Result<(), std::io::Error> {
             )?;
         }
     }
-    for j in eco.get_orders_everyone().iter() {
+    for j in eco.get_orders_everyone() {
         writeln!(
             f,
             "{:?} -> Everyone [label=\"{:.1}\"];",

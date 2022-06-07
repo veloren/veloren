@@ -221,8 +221,9 @@ impl Economy {
     fn get_orders(&self) -> &'static LaborMap<Vec<(GoodIndex, f32)>> {
         lazy_static! {
             static ref ORDERS: LaborMap<Vec<(GoodIndex, f32)>> = {
-                let mut res = LaborMap::default();
-                res.iter_mut().for_each(|(i, e)| *e = i.orders());
+                let mut res: LaborMap<Vec<(GoodIndex, f32)>> = LaborMap::default();
+                res.iter_mut()
+                    .for_each(|(i, e)| e.extend(i.orders().copied()));
                 res
             };
         }
@@ -230,7 +231,9 @@ impl Economy {
     }
 
     /// resources consumed by everyone (no matter which profession)
-    fn get_orders_everyone(&self) -> Vec<(GoodIndex, f32)> { Labor::orders_everyone() }
+    fn get_orders_everyone(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> {
+        Labor::orders_everyone()
+    }
 
     fn get_production(&self) -> LaborMap<(GoodIndex, f32)> {
         // cache the site independent part of production
@@ -582,7 +585,7 @@ impl Economy {
                 assert!(next_demand[*good] >= 0.0);
             }
         }
-        for (good, amount) in self.get_orders_everyone().iter() {
+        for (good, amount) in self.get_orders_everyone() {
             next_demand[*good] += *amount * self.pop;
             assert!(next_demand[*good] >= 0.0);
         }
@@ -802,7 +805,7 @@ impl Economy {
                 demand[*good] += *amount * workers;
             }
         }
-        for (good, amount) in self.get_orders_everyone().iter() {
+        for (good, amount) in self.get_orders_everyone() {
             demand[*good] += *amount * self.pop;
         }
         if INTER_SITE_TRADE {
@@ -1085,7 +1088,7 @@ impl Economy {
             }
         }
         // consume goods needed by everyone
-        for &(good, amount) in self.get_orders_everyone().iter() {
+        for &(good, amount) in self.get_orders_everyone() {
             let needed = amount * self.pop;
             let available = stocks_before[good];
             self.stocks[good] = (self.stocks[good] - needed.min(available)).max(0.0);
@@ -1142,7 +1145,7 @@ impl Economy {
                 assert!(next_demand[*good] >= 0.0);
             }
         }
-        for (good, amount) in self.get_orders_everyone().iter() {
+        for (good, amount) in self.get_orders_everyone() {
             next_demand[*good] += *amount * self.pop;
             assert!(next_demand[*good] >= 0.0);
         }
@@ -1426,7 +1429,9 @@ pub struct GraphInfo {
 impl GraphInfo {
     pub fn get_orders(&self) -> &'static LaborMap<Vec<(GoodIndex, f32)>> { self.dummy.get_orders() }
 
-    pub fn get_orders_everyone(&self) -> Vec<(GoodIndex, f32)> { self.dummy.get_orders_everyone() }
+    pub fn get_orders_everyone(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> {
+        self.dummy.get_orders_everyone()
+    }
 
     pub fn get_production(&self) -> LaborMap<(GoodIndex, f32)> { self.dummy.get_production() }
 

@@ -354,16 +354,16 @@ impl Labor {
 
     pub fn is_everyone(&self) -> bool { self.0 == DUMMY_LABOR.0 }
 
-    pub fn orders_everyone() -> Vec<(GoodIndex, f32)> {
+    pub fn orders_everyone() -> impl Iterator<Item = &'static (GoodIndex, f32)> {
         LABOR
             .get(DUMMY_LABOR.0 as usize)
-            .map_or(Vec::new(), |l| l.orders.clone())
+            .map_or([].iter(), |l| l.orders.iter())
     }
 
-    pub fn orders(&self) -> Vec<(GoodIndex, f32)> {
+    pub fn orders(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> {
         LABOR
             .get(self.0 as usize)
-            .map_or(Vec::new(), |l| l.orders.clone())
+            .map_or([].iter(), |l| l.orders.iter())
     }
 
     pub fn products(&self) -> (GoodIndex, f32) {
