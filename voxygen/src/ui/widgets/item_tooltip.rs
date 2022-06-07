@@ -669,6 +669,24 @@ impl<'a> Widget for ItemTooltip<'a> {
                     6,
                 );
 
+                // Durability
+                if let Some(durability) = item.durability() {
+                    const MAX_DURABILITY: u32 = 8;
+                    let durability = MAX_DURABILITY - durability.min(MAX_DURABILITY);
+                    widget::Text::new(&format!(
+                        "{} : {}/{}",
+                        i18n.get("common.stats.durability"),
+                        durability,
+                        MAX_DURABILITY
+                    ))
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(text_color)
+                    .down_from(state.ids.stats[6], V_PAD_STATS)
+                    .set(state.ids.stats[7], ui);
+                }
+
                 if let Some(equipped_item) = equipped_item {
                     if let ItemKind::Tool(equipped_tool) = &*equipped_item.kind() {
                         let tool_stats = tool.stats(item.stats_durability_multiplier());
@@ -871,6 +889,20 @@ impl<'a> Widget for ItemTooltip<'a> {
                             "{} : {}",
                             i18n.get_msg("common-stats-slots"),
                             item.num_slots()
+                        ),
+                        index,
+                    );
+                    index += 1;
+                }
+
+                if item.has_durability() {
+                    let durability = Item::MAX_DURABILITY - item.durability().unwrap_or(0);
+                    stat_text(
+                        format!(
+                            "{} : {}/{}",
+                            i18n.get("common.stats.durability"),
+                            durability,
+                            Item::MAX_DURABILITY
                         ),
                         index,
                     );

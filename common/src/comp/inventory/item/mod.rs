@@ -772,6 +772,8 @@ impl assets::Asset for RawItemDef {
 pub struct OperationFailure;
 
 impl Item {
+    pub const MAX_DURABILITY: u32 = 8;
+
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
     pub fn empty() -> Self { Item::new_from_asset_expect("common.items.weapons.empty.empty") }
@@ -1196,14 +1198,17 @@ impl Item {
         }
     }
 
+    pub fn durability(&self) -> Option<u32> { self.durability.map(|x| x.min(Self::MAX_DURABILITY)) }
+
     pub fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
-        const MAX_DURABILITY: u32 = 8;
-        let durability = self.durability.map_or(0, |x| x.clamp(0, MAX_DURABILITY));
+        let durability = self
+            .durability
+            .map_or(0, |x| x.clamp(0, Self::MAX_DURABILITY));
         const DURABILITY_THRESHOLD: u32 = 4;
         const MIN_FRAC: f32 = 0.2;
         let mult = (1.0
             - durability.saturating_sub(DURABILITY_THRESHOLD) as f32
-                / (MAX_DURABILITY - DURABILITY_THRESHOLD) as f32)
+                / (Self::MAX_DURABILITY - DURABILITY_THRESHOLD) as f32)
             * (1.0 - MIN_FRAC)
             + MIN_FRAC;
         DurabilityMultiplier(mult)
@@ -1264,6 +1269,8 @@ pub trait ItemDesc {
     fn tags(&self) -> Vec<ItemTag>;
     fn is_modular(&self) -> bool;
     fn components(&self) -> &[Item];
+    fn has_durability(&self) -> bool;
+    fn durability(&self) -> Option<u32>;
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier;
 
     fn tool_info(&self) -> Option<ToolKind> {
@@ -1294,6 +1301,10 @@ impl ItemDesc for Item {
 
     fn components(&self) -> &[Item] { self.components() }
 
+    fn has_durability(&self) -> bool { self.has_durability() }
+
+    fn durability(&self) -> Option<u32> { self.durability() }
+
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
         self.stats_durability_multiplier()
     }
@@ -1319,6 +1330,10 @@ impl ItemDesc for ItemDef {
     fn is_modular(&self) -> bool { false }
 
     fn components(&self) -> &[Item] { &[] }
+
+    fn has_durability(&self) -> bool { false }
+
+    fn durability(&self) -> Option<u32> { None }
 
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier { DurabilityMultiplier(1.0) }
 }
@@ -1355,6 +1370,10 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn is_modular(&self) -> bool { (*self).is_modular() }
 
     fn components(&self) -> &[Item] { (*self).components() }
+
+    fn has_durability(&self) -> bool { (*self).has_durability() }
+
+    fn durability(&self) -> Option<u32> { (*self).durability() }
 
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
         (*self).stats_durability_multiplier()

@@ -103,6 +103,7 @@ common-stats-energy_reward = Energy Reward
 common-stats-crit_power = Crit Power
 common-stats-stealth = Stealth
 common-stats-slots = Slots
+common-stats-durability = Durability
 common-material-metal = Metal
 common-material-wood = Wood
 common-material-stone = Stone

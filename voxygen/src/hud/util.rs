@@ -100,7 +100,7 @@ pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> Co
 }
 
 pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
-    match &*item.kind() {
+    let mut count = match &*item.kind() {
         ItemKind::Armor(armor) => {
             let armor_stats = armor.stats(msm, item.stats_durability_multiplier());
             armor_stats.energy_reward.is_some() as usize
@@ -118,7 +118,11 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
         },
         ItemKind::ModularComponent { .. } => 7,
         _ => 0,
+    };
+    if item.has_durability() {
+        count += 1;
     }
+    count
 }
 
 pub fn line_count(item: &dyn ItemDesc, msm: &MaterialStatManifest, i18n: &Localization) -> usize {
