@@ -4,8 +4,8 @@
         position: (1, 1),
         kind: Settlement,
         neighbors: [
-            (1, 10),
-            (2, 10),
+            1,
+            2,
         ],
         resources: [
             (
@@ -19,7 +19,7 @@
         position: (10, 10),
         kind: Settlement,
         neighbors: [
-            (0, 10),
+            0,
         ],
         resources: [
             (
@@ -33,7 +33,7 @@
         position: (20, 10),
         kind: Settlement,
         neighbors: [
-            (0, 10),
+            0,
         ],
         resources: [
             (

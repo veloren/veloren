@@ -1,6 +1,6 @@
 use common::trade::Good;
 use std::io::Write;
-use veloren_world::site::economy::{self, good_list, Economy};
+use veloren_world::site::economy::{GraphInfo, Labor};
 //use regex::Regex::replace_all;
 
 fn good_name(g: Good) -> String {
@@ -9,20 +9,18 @@ fn good_name(g: Good) -> String {
     res.replace(')', "_")
 }
 
-fn labor_name(l: economy::Labor) -> String {
+fn labor_name(l: Labor) -> String {
     let res = format!("{:?}", l);
     res.replace(' ', "_")
 }
 
 fn main() -> Result<(), std::io::Error> {
-    let eco = Economy::default();
-    let o = eco.get_orders();
-    let p = eco.get_productivity();
+    let eco = GraphInfo::default();
 
     let mut f = std::fs::File::create("economy.gv")?;
     writeln!(f, "digraph economy {{")?;
-    for i in good_list() {
-        let color = if economy::direct_use_goods().contains(&i) {
+    for i in eco.good_list() {
+        let color = if !eco.can_store(&i) {
             "green"
         } else {
             "orange"
@@ -33,44 +31,42 @@ fn main() -> Result<(), std::io::Error> {
     writeln!(f)?;
     writeln!(f, "// Professions")?;
     writeln!(f, "Everyone [shape=doubleoctagon];")?;
-    for i in economy::Labor::list() {
+    for i in eco.labor_list() {
         writeln!(f, "{:?} [shape=box];", labor_name(i))?;
     }
 
     writeln!(f)?;
     writeln!(f, "// Orders")?;
+    let o = eco.get_orders();
     for i in o.iter() {
         for j in i.1.iter() {
-            if i.0.is_some() {
-                let style = if matches!(j.0.into(), Good::Tools)
-                    || matches!(j.0.into(), Good::Armor)
-                    || matches!(j.0.into(), Good::Potions)
-                {
-                    ", style=dashed, color=orange"
-                } else {
-                    ""
-                };
-                writeln!(
-                    f,
-                    "{:?} -> {:?} [label=\"{:.1}\"{}];",
-                    good_name(j.0.into()),
-                    labor_name(i.0.unwrap()),
-                    j.1,
-                    style
-                )?;
+            let style = if matches!(j.0.into(), Good::Tools | Good::Armor | Good::Potions) {
+                ", style=dashed, color=orange"
             } else {
-                writeln!(
-                    f,
-                    "{:?} -> Everyone [label=\"{:.1}\"];",
-                    good_name(j.0.into()),
-                    j.1
-                )?;
-            }
+                ""
+            };
+            writeln!(
+                f,
+                "{:?} -> {:?} [label=\"{:.1}\"{}];",
+                good_name(j.0.into()),
+                labor_name(i.0),
+                j.1,
+                style
+            )?;
         }
+    }
+    for j in eco.get_orders_everyone() {
+        writeln!(
+            f,
+            "{:?} -> Everyone [label=\"{:.1}\"];",
+            good_name(j.0.into()),
+            j.1
+        )?;
     }
 
     writeln!(f)?;
     writeln!(f, "// Products")?;
+    let p = eco.get_production();
     for i in p.iter() {
         writeln!(
             f,

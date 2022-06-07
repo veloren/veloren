@@ -1,3 +1,6 @@
+/// This file contains a single economy
+/// and functions to simulate it
+use crate::world_msg::EconomyInfo;
 use crate::{
     sim::SimChunk,
     site::Site,
@@ -8,78 +11,56 @@ use common::{
     terrain::BiomeKind,
     trade::{Good, SitePrices},
 };
+use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::{cmp::Ordering::Less, convert::TryFrom};
 use tracing::{debug, info, trace, warn};
 
 use Good::*;
 mod map_types;
-pub use map_types::{GoodIndex, GoodMap, Labor, LaborIndex, LaborMap, NaturalResources};
+pub use map_types::Labor;
+use map_types::{GoodIndex, GoodMap, LaborIndex, LaborMap, NaturalResources};
+mod context;
+pub use context::simulate_economy;
+use context::Environment;
 
-pub const INTER_SITE_TRADE: bool = true;
-pub const DAYS_PER_MONTH: f32 = 30.0;
-pub const DAYS_PER_YEAR: f32 = 12.0 * DAYS_PER_MONTH;
-
-// this is an empty replacement for https://github.com/cpetig/vergleich
-// which can be used to compare values acros runs
-pub mod vergleich {
-    pub struct Error {}
-    impl Error {
-        pub fn to_string(&self) -> &'static str { "" }
-    }
-    pub struct ProgramRun {}
-    impl ProgramRun {
-        pub fn new(_: &str) -> Result<Self, Error> { Ok(Self {}) }
-
-        pub fn set_epsilon(&mut self, _: f32) {}
-
-        pub fn context(&mut self, _: &str) -> Context { Context {} }
-
-        //pub fn value(&mut self, _: &str, val: f32) -> f32 { val }
-    }
-    pub struct Context {}
-    impl Context {
-        #[must_use]
-        pub fn context(&mut self, _: &str) -> Context { Context {} }
-
-        pub fn value(&mut self, _: &str, val: f32) -> f32 { val }
-
-        pub fn dummy() -> Self { Context {} }
-    }
-}
+const INTER_SITE_TRADE: bool = true;
+const DAYS_PER_MONTH: f32 = 30.0;
+const DAYS_PER_YEAR: f32 = 12.0 * DAYS_PER_MONTH;
+const GENERATE_CSV: bool = false;
 
 #[derive(Debug)]
 pub struct TradeOrder {
-    pub customer: Id<Site>,
-    pub amount: GoodMap<f32>, // positive for orders, negative for exchange
+    customer: Id<Site>,
+    amount: GoodMap<f32>, // positive for orders, negative for exchange
 }
 
 #[derive(Debug)]
 pub struct TradeDelivery {
-    pub supplier: Id<Site>,
-    pub amount: GoodMap<f32>, // positive for orders, negative for exchange
-    pub prices: GoodMap<f32>, // at the time of interaction
-    pub supply: GoodMap<f32>, // maximum amount available, at the time of interaction
+    supplier: Id<Site>,
+    amount: GoodMap<f32>, // positive for orders, negative for exchange
+    prices: GoodMap<f32>, // at the time of interaction
+    supply: GoodMap<f32>, // maximum amount available, at the time of interaction
 }
 
 #[derive(Debug, Default)]
 pub struct TradeInformation {
-    pub orders: DHashMap<Id<Site>, Vec<TradeOrder>>, // per provider
-    pub deliveries: DHashMap<Id<Site>, Vec<TradeDelivery>>, // per receiver
+    orders: DHashMap<Id<Site>, Vec<TradeOrder>>, // per provider
+    deliveries: DHashMap<Id<Site>, Vec<TradeDelivery>>, // per receiver
 }
 
 #[derive(Debug)]
 pub struct NeighborInformation {
-    pub id: Id<Site>,
-    pub travel_distance: usize,
+    id: Id<Site>,
+    //travel_distance: usize,
 
     // remembered from last interaction
-    pub last_values: GoodMap<f32>,
-    pub last_supplies: GoodMap<f32>,
+    last_values: GoodMap<f32>,
+    last_supplies: GoodMap<f32>,
 }
 
 lazy_static! {
-    pub static ref COIN_INDEX: GoodIndex = Coin.try_into().unwrap_or_default();
+    static ref COIN_INDEX: GoodIndex = Coin.try_into().unwrap_or_default();
     static ref FOOD_INDEX: GoodIndex = Good::Food.try_into().unwrap_or_default();
     static ref TRANSPORTATION_INDEX: GoodIndex = Transportation.try_into().unwrap_or_default();
 }
@@ -87,47 +68,47 @@ lazy_static! {
 #[derive(Debug)]
 pub struct Economy {
     /// Population
-    pub pop: f32,
-    pub population_limited_by: GoodIndex,
+    pop: f32,
+    population_limited_by: GoodIndex,
 
     /// Total available amount of each good
-    pub stocks: GoodMap<f32>,
+    stocks: GoodMap<f32>,
     /// Surplus stock compared to demand orders
-    pub surplus: GoodMap<f32>,
+    surplus: GoodMap<f32>,
     /// change rate (derivative) of stock in the current situation
-    pub marginal_surplus: GoodMap<f32>,
+    marginal_surplus: GoodMap<f32>,
     /// amount of wares not needed by the economy (helps with trade planning)
-    pub unconsumed_stock: GoodMap<f32>,
+    unconsumed_stock: GoodMap<f32>,
     /// Local availability of a good, 4.0 = starved, 2.0 = balanced, 0.1 =
     /// extra, NULL = way too much
     // For some goods, such a goods without any supply, it doesn't make sense to talk about value
-    pub values: GoodMap<Option<f32>>,
+    values: GoodMap<Option<f32>>,
     /// amount of goods exported/imported during the last cycle
-    pub last_exports: GoodMap<f32>,
-    pub active_exports: GoodMap<f32>, // unfinished trade (amount unconfirmed)
+    last_exports: GoodMap<f32>,
+    active_exports: GoodMap<f32>, // unfinished trade (amount unconfirmed)
     //pub export_targets: GoodMap<f32>,
     /// amount of labor that went into a good, [1 man cycle=1.0]
-    pub labor_values: GoodMap<Option<f32>>,
+    labor_values: GoodMap<Option<f32>>,
     // this assumes a single source, replace with LaborMap?
-    pub material_costs: GoodMap<f32>,
+    material_costs: GoodMap<f32>,
 
     /// Proportion of individuals dedicated to an industry (sums to roughly 1.0)
-    pub labors: LaborMap<f32>,
+    labors: LaborMap<f32>,
     // Per worker, per year, of their output good
-    pub yields: LaborMap<f32>,
+    yields: LaborMap<f32>,
     /// [0.0..1.0]
-    pub productivity: LaborMap<f32>,
+    productivity: LaborMap<f32>,
     /// Missing raw material which limits production
-    pub limited_by: LaborMap<GoodIndex>,
+    limited_by: LaborMap<GoodIndex>,
 
-    pub natural_resources: NaturalResources,
+    natural_resources: NaturalResources,
     /// Neighboring sites to trade with
-    pub neighbors: Vec<NeighborInformation>,
+    neighbors: Vec<NeighborInformation>,
 
     /// outgoing trade, per provider
-    pub orders: DHashMap<Id<Site>, Vec<TradeOrder>>,
+    orders: DHashMap<Id<Site>, Vec<TradeOrder>>,
     /// incoming trade - only towards this site
-    pub deliveries: Vec<TradeDelivery>,
+    deliveries: Vec<TradeDelivery>,
 }
 
 impl Default for Economy {
@@ -163,9 +144,57 @@ impl Default for Economy {
 }
 
 impl Economy {
-    pub const MINIMUM_PRICE: f32 = 0.1;
-    pub const STARTING_COIN: f32 = 1000.0;
+    const MINIMUM_PRICE: f32 = 0.1;
+    const STARTING_COIN: f32 = 1000.0;
     const _NATURAL_RESOURCE_SCALE: f32 = 1.0 / 9.0;
+
+    pub fn population(&self) -> f32 { self.pop }
+
+    pub fn get_available_stock(&self) -> HashMap<Good, f32> {
+        self.unconsumed_stock
+            .iter()
+            .map(|(g, a)| (g.into(), *a))
+            .collect()
+    }
+
+    pub fn get_information(&self, id: Id<Site>) -> EconomyInfo {
+        EconomyInfo {
+            id: id.id(),
+            population: self.pop.floor() as u32,
+            stock: self
+                .stocks
+                .iter()
+                .map(|(g, a)| (Good::from(g), *a))
+                .collect(),
+            labor_values: self
+                .labor_values
+                .iter()
+                .filter_map(|(g, a)| a.map(|a| (Good::from(g), a)))
+                .collect(),
+            values: self
+                .values
+                .iter()
+                .filter_map(|(g, a)| a.map(|a| (Good::from(g), a)))
+                .collect(),
+            labors: self.labors.iter().map(|(_, a)| (*a)).collect(),
+            last_exports: self
+                .last_exports
+                .iter()
+                .map(|(g, a)| (Good::from(g), *a))
+                .collect(),
+            resources: self
+                .natural_resources
+                .chunks_per_resource
+                .iter()
+                .map(|(g, a)| {
+                    (
+                        Good::from(g),
+                        ((*a) as f32) * self.natural_resources.average_yield_per_chunk[g],
+                    )
+                })
+                .collect(),
+        }
+    }
 
     pub fn cache_economy(&mut self) {
         for g in good_list() {
@@ -188,13 +217,25 @@ impl Economy {
         }
     }
 
-    pub fn get_orders(&self) -> DHashMap<Option<LaborIndex>, Vec<(GoodIndex, f32)>> {
-        Labor::list_full()
-            .map(|l| (if l.is_everyone() { None } else { Some(l) }, l.orders()))
-            .collect()
+    /// orders per profession (excluding everyone)
+    fn get_orders(&self) -> &'static LaborMap<Vec<(GoodIndex, f32)>> {
+        lazy_static! {
+            static ref ORDERS: LaborMap<Vec<(GoodIndex, f32)>> = {
+                let mut res: LaborMap<Vec<(GoodIndex, f32)>> = LaborMap::default();
+                res.iter_mut()
+                    .for_each(|(i, e)| e.extend(i.orders().copied()));
+                res
+            };
+        }
+        &ORDERS
     }
 
-    pub fn get_productivity(&self) -> LaborMap<(GoodIndex, f32)> {
+    /// resources consumed by everyone (no matter which profession)
+    fn get_orders_everyone(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> {
+        Labor::orders_everyone()
+    }
+
+    fn get_production(&self) -> LaborMap<(GoodIndex, f32)> {
         // cache the site independent part of production
         lazy_static! {
             static ref PRODUCTS: LaborMap<(GoodIndex, f32)> = LaborMap::from_iter(
@@ -214,7 +255,7 @@ impl Economy {
         })
     }
 
-    pub fn replenish(&mut self, _time: f32) {
+    fn replenish(&mut self, _time: f32) {
         for (good, &ch) in self.natural_resources.chunks_per_resource.iter() {
             let per_year = self.natural_resources.average_yield_per_chunk[good] * ch;
             self.stocks[good] = self.stocks[good].max(per_year);
@@ -256,11 +297,10 @@ impl Economy {
         }
     }
 
-    pub fn add_neighbor(&mut self, id: Id<Site>, distance: usize) {
+    pub fn add_neighbor(&mut self, id: Id<Site>, _distance: usize) {
         self.neighbors.push(NeighborInformation {
             id,
-            travel_distance: distance,
-
+            //travel_distance: distance,
             last_values: GoodMap::from_default(Economy::MINIMUM_PRICE),
             last_supplies: Default::default(),
         });
@@ -538,16 +578,16 @@ impl Economy {
 
         let internal_orders = self.get_orders();
         let mut next_demand = GoodMap::from_default(0.0);
-        for (labor, orders) in &internal_orders {
-            let workers = if let Some(labor) = labor {
-                self.labors[*labor]
-            } else {
-                1.0
-            } * self.pop;
+        for (labor, orders) in internal_orders.iter() {
+            let workers = self.labors[labor] * self.pop;
             for (good, amount) in orders {
                 next_demand[*good] += *amount * workers;
                 assert!(next_demand[*good] >= 0.0);
             }
+        }
+        for (good, amount) in self.get_orders_everyone() {
+            next_demand[*good] += *amount * self.pop;
+            assert!(next_demand[*good] >= 0.0);
         }
         //info!("Trade {} {}", site.id(), orders.len());
         let mut total_orders: GoodMap<f32> = GoodMap::from_default(0.0);
@@ -744,72 +784,64 @@ impl Economy {
     /// product becomes available through a mechanism such as trade, an
     /// entire arm of the economy may materialise to take advantage of this.
 
-    pub fn tick(
-        &mut self,
-        //deliveries: Option<&mut Vec<TradeDelivery>>,
-        site_id: Id<Site>,
-        dt: f32,
-        mut vc: vergleich::Context,
-    ) {
+    pub fn tick(&mut self, site_id: Id<Site>, dt: f32) {
         // collect goods from trading
         if INTER_SITE_TRADE {
-            // if let Some(deliveries) = deliveries {
             self.collect_deliveries();
-            // }
         }
 
         let orders = self.get_orders();
-        let productivity = self.get_productivity();
+        let production = self.get_production();
 
-        for i in productivity.iter() {
-            vc.context("productivity")
-                .value(&std::format!("{:?}{:?}", i.0, Good::from(i.1.0)), i.1.1);
-        }
+        // for i in production.iter() {
+        //     vc.context("production")
+        //         .value(&std::format!("{:?}{:?}", i.0, Good::from(i.1.0)), i.1.1);
+        // }
 
         let mut demand = GoodMap::from_default(0.0);
-        for (labor, orders) in &orders {
-            let workers = if let Some(labor) = labor {
-                self.labors[*labor]
-            } else {
-                1.0
-            } * self.pop;
+        for (labor, orders) in orders.iter() {
+            let workers = self.labors[labor] * self.pop;
             for (good, amount) in orders {
                 demand[*good] += *amount * workers;
             }
+        }
+        for (good, amount) in self.get_orders_everyone() {
+            demand[*good] += *amount * self.pop;
         }
         if INTER_SITE_TRADE {
             demand[*COIN_INDEX] += Economy::STARTING_COIN; // if we spend coin value increases
         }
 
         // which labor is the merchant
-        let merchant_labor = productivity
+        let merchant_labor = production
             .iter()
             .find(|(_, v)| v.0 == *TRANSPORTATION_INDEX)
-            .map(|(l, _)| l);
+            .map(|(l, _)| l)
+            .unwrap_or_default();
 
         let mut supply = self.stocks; //GoodMap::from_default(0.0);
-        for (labor, goodvec) in productivity.iter() {
+        for (labor, goodvec) in production.iter() {
             //for (output_good, _) in goodvec.iter() {
             //info!("{} supply{:?}+={}", site_id.id(), Good::from(goodvec.0),
             // self.yields[labor] * self.labors[labor] * self.pop);
             supply[goodvec.0] += self.yields[labor] * self.labors[labor] * self.pop;
-            vc.context(&std::format!("{:?}-{:?}", Good::from(goodvec.0), labor))
-                .value("yields", self.yields[labor]);
-            vc.context(&std::format!("{:?}-{:?}", Good::from(goodvec.0), labor))
-                .value("labors", self.labors[labor]);
+            // vc.context(&std::format!("{:?}-{:?}", Good::from(goodvec.0),
+            // labor))     .value("yields", self.yields[labor]);
+            // vc.context(&std::format!("{:?}-{:?}", Good::from(goodvec.0),
+            // labor))     .value("labors", self.labors[labor]);
             //}
         }
 
-        for i in supply.iter() {
-            vc.context("supply")
-                .value(&std::format!("{:?}", Good::from(i.0)), *i.1);
-        }
+        // for i in supply.iter() {
+        //     vc.context("supply")
+        //         .value(&std::format!("{:?}", Good::from(i.0)), *i.1);
+        // }
 
         let stocks = &self.stocks;
-        for i in stocks.iter() {
-            vc.context("stocks")
-                .value(&std::format!("{:?}", Good::from(i.0)), *i.1);
-        }
+        // for i in stocks.iter() {
+        //     vc.context("stocks")
+        //         .value(&std::format!("{:?}", Good::from(i.0)), *i.1);
+        // }
         self.surplus = demand.map(|g, demand| supply[g] + stocks[g] - demand);
         self.marginal_surplus = demand.map(|g, demand| supply[g] - demand);
 
@@ -820,18 +852,14 @@ impl Economy {
         // this is in line with the other professions)
         let transportation_capacity = self.stocks[*TRANSPORTATION_INDEX];
         let trade = if INTER_SITE_TRADE {
-            let trade = self.plan_trade_for_site(
-                &site_id,
-                transportation_capacity,
-                // external_orders,
-                &mut potential_trade,
-            );
+            let trade =
+                self.plan_trade_for_site(&site_id, transportation_capacity, &mut potential_trade);
             self.active_exports = GoodMap::from_iter(trade.iter().map(|(g, a)| (g, -*a)), 0.0); // TODO: check for availability?
 
             // add the wares to sell to demand and the goods to buy to supply
             for (g, a) in trade.iter() {
-                vc.context("trade")
-                    .value(&std::format!("{:?}", Good::from(g)), *a);
+                // vc.context("trade")
+                //     .value(&std::format!("{:?}", Good::from(g)), *a);
                 if *a > 0.0 {
                     supply[g] += *a;
                     assert!(supply[g] >= 0.0);
@@ -859,16 +887,17 @@ impl Economy {
                 *surplus
             };
             // Value rationalisation
-            let goodname = std::format!("{:?}", Good::from(good));
-            vc.context("old_surplus").value(&goodname, old_surplus);
-            vc.context("demand").value(&goodname, demand[good]);
+            // let goodname = std::format!("{:?}", Good::from(good));
+            // vc.context("old_surplus").value(&goodname, old_surplus);
+            // vc.context("demand").value(&goodname, demand[good]);
             let val = 2.0f32.powf(1.0 - old_surplus / demand[good]);
             let smooth = 0.8;
             values[good] = if val > 0.001 && val < 1000.0 {
-                Some(vc.context("values").value(
-                    &goodname,
+                Some(
+                    // vc.context("values").value(
+                    // &goodname,
                     smooth * values[good].unwrap_or(val) + (1.0 - smooth) * val,
-                ))
+                )
             } else {
                 None
             };
@@ -885,10 +914,10 @@ impl Economy {
         // summing favors merchants too much (as they will provide multiple
         // goods, so we use max instead)
         let labor_ratios: LaborMap<f32> = LaborMap::from_iter(
-            productivity.iter().map(|(labor, goodvec)| {
+            production.iter().map(|(labor, goodvec)| {
                 (
                     labor,
-                    if Some(labor) == merchant_labor {
+                    if labor == merchant_labor {
                         all_trade_goods
                             .iter()
                             .chain(std::iter::once(&goodvec.0))
@@ -906,15 +935,15 @@ impl Economy {
         trace!(?labor_ratios);
 
         let labor_ratio_sum = labor_ratios.iter().map(|(_, r)| *r).sum::<f32>().max(0.01);
-        let mut labor_context = vc.context("labor");
-        productivity.iter().for_each(|(labor, _)| {
+        //let mut labor_context = vc.context("labor");
+        production.iter().for_each(|(labor, _)| {
             let smooth = 0.8;
-            self.labors[labor] = labor_context.value(
-                &format!("{:?}", labor),
+            self.labors[labor] =
+            // labor_context.value(
+            //     &format!("{:?}", labor),
                 smooth * self.labors[labor]
                     + (1.0 - smooth)
-                        * (labor_ratios[labor].max(labor_ratio_sum / 1000.0) / labor_ratio_sum),
-            );
+                        * (labor_ratios[labor].max(labor_ratio_sum / 1000.0) / labor_ratio_sum);
             assert!(self.labors[labor] >= 0.0);
         });
 
@@ -932,13 +961,9 @@ impl Economy {
         // TODO: trade
         let mut total_outputs = GoodMap::<f32>::default();
         for (labor, orders) in orders.iter() {
-            let workers = if let Some(labor) = labor {
-                self.labors[*labor]
-            } else {
-                1.0
-            } * self.pop;
+            let workers = self.labors[labor] * self.pop;
             assert!(workers >= 0.0);
-            let is_merchant = merchant_labor == *labor;
+            let is_merchant = merchant_labor == labor;
 
             // For each order, we try to find the minimum satisfaction rate - this limits
             // how much we can produce! For example, if we need 0.25 fish and
@@ -961,13 +986,11 @@ impl Economy {
                     panic!("Industry {:?} requires at least one input order", labor)
                 });
             assert!(labor_productivity >= 0.0);
-            if let Some(labor) = labor {
-                self.limited_by[*labor] = if labor_productivity >= 1.0 {
-                    GoodIndex::default()
-                } else {
-                    limited_by
-                };
-            }
+            self.limited_by[labor] = if labor_productivity >= 1.0 {
+                GoodIndex::default()
+            } else {
+                limited_by
+            };
 
             let mut total_materials_cost = 0.0;
             for (good, amount) in orders {
@@ -1039,37 +1062,38 @@ impl Economy {
             }
 
             // Industries produce things
-            if let Some(labor) = labor {
-                let work_products = &productivity[*labor];
-                //let workers = self.labors[*labor] * self.pop;
-                //let final_rate = rate;
-                //let yield_per_worker = labor_productivity;
-                self.yields[*labor] = labor_productivity * work_products.1;
-                self.productivity[*labor] = labor_productivity;
-                //let total_product_rate: f32 = work_products.iter().map(|(_, r)| *r).sum();
-                let (stock, rate) = work_products;
-                let total_output = labor_productivity * *rate * workers;
-                assert!(total_output >= 0.0);
-                self.stocks[*stock] += total_output;
-                produced_goods[*stock] += total_output;
+            let work_products = &production[labor];
+            self.yields[labor] = labor_productivity * work_products.1;
+            self.productivity[labor] = labor_productivity;
+            let (stock, rate) = work_products;
+            let total_output = labor_productivity * *rate * workers;
+            assert!(total_output >= 0.0);
+            self.stocks[*stock] += total_output;
+            produced_goods[*stock] += total_output;
 
-                let produced_amount: f32 = produced_goods.iter().map(|(_, a)| *a).sum();
-                for (stock, amount) in produced_goods.iter() {
-                    let cost_weight = amount / produced_amount.max(0.001);
-                    // Materials cost per unit
-                    // TODO: How to handle this reasonably for multiple producers (collect upper and
-                    // lower term separately)
-                    self.material_costs[stock] =
-                        total_materials_cost / amount.max(0.001) * cost_weight;
-                    // Labor costs
-                    let wages = 1.0;
-                    let total_labor_cost = workers * wages;
+            let produced_amount: f32 = produced_goods.iter().map(|(_, a)| *a).sum();
+            for (stock, amount) in produced_goods.iter() {
+                let cost_weight = amount / produced_amount.max(0.001);
+                // Materials cost per unit
+                // TODO: How to handle this reasonably for multiple producers (collect upper and
+                // lower term separately)
+                self.material_costs[stock] = total_materials_cost / amount.max(0.001) * cost_weight;
+                // Labor costs
+                let wages = 1.0;
+                let total_labor_cost = workers * wages;
 
-                    total_labor_values[stock] +=
-                        (total_materials_cost + total_labor_cost) * cost_weight;
-                    total_outputs[stock] += amount;
-                }
+                total_labor_values[stock] +=
+                    (total_materials_cost + total_labor_cost) * cost_weight;
+                total_outputs[stock] += amount;
             }
+        }
+        // consume goods needed by everyone
+        for &(good, amount) in self.get_orders_everyone() {
+            let needed = amount * self.pop;
+            let available = stocks_before[good];
+            self.stocks[good] = (self.stocks[good] - needed.min(available)).max(0.0);
+            //info!("Ev {:.1} {:?} {} - {:.1} {:.1}", self.pop, good,
+            // self.stocks[good], needed, available);
         }
 
         // Update labour values per unit
@@ -1100,10 +1124,10 @@ impl Economy {
         } else {
             0.0
         };
-        self.pop += vc.value(
-            "pop",
-            dt / DAYS_PER_YEAR * self.pop * (birth_rate - DEATH_RATE),
-        );
+        self.pop += //vc.value(
+            //"pop",
+            dt / DAYS_PER_YEAR * self.pop * (birth_rate - DEATH_RATE);
+        //);
         self.population_limited_by = if population_growth {
             GoodIndex::default()
         } else {
@@ -1115,35 +1139,244 @@ impl Economy {
         // orders are static
         let mut next_demand = GoodMap::from_default(0.0);
         for (labor, orders) in orders.iter() {
-            let workers = if let Some(labor) = labor {
-                self.labors[*labor]
-            } else {
-                1.0
-            } * self.pop;
+            let workers = self.labors[labor] * self.pop;
             for (good, amount) in orders {
                 next_demand[*good] += *amount * workers;
                 assert!(next_demand[*good] >= 0.0);
             }
         }
-        let mut us = vc.context("unconsumed");
+        for (good, amount) in self.get_orders_everyone() {
+            next_demand[*good] += *amount * self.pop;
+            assert!(next_demand[*good] >= 0.0);
+        }
+        //let mut us = vc.context("unconsumed");
         self.unconsumed_stock = GoodMap::from_iter(
             self.stocks.iter().map(|(g, a)| {
                 (
                     g,
-                    us.value(&format!("{:?}", Good::from(g)), *a - next_demand[g]),
+                    //us.value(&format!("{:?}", Good::from(g)),
+                    *a - next_demand[g],
                 )
             }),
             0.0,
         );
     }
+
+    pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Error> {
+        use std::io::Write;
+        write!(
+            *f,
+            "{}, {}, {}, {:.1}, {},,",
+            site.name(),
+            site.get_origin().x,
+            site.get_origin().y,
+            site.economy.pop,
+            site.economy.neighbors.len(),
+        )?;
+        for g in good_list() {
+            if let Some(value) = site.economy.values[g] {
+                write!(*f, "{:.2},", value)?;
+            } else {
+                f.write_all(b",")?;
+            }
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            if let Some(labor_value) = site.economy.labor_values[g] {
+                write!(f, "{:.2},", labor_value)?;
+            } else {
+                f.write_all(b",")?;
+            }
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:.1},", site.economy.stocks[g])?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:.1},", site.economy.marginal_surplus[g])?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:.1},", site.economy.labors[l] * site.economy.pop)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:.2},", site.economy.productivity[l])?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:.1},", site.economy.yields[l])?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            let limit = site.economy.limited_by[l];
+            if limit == GoodIndex::default() {
+                f.write_all(b",")?;
+            } else {
+                write!(f, "{:?},", limit)?;
+            }
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            if site.economy.last_exports[g] >= 0.1 || site.economy.last_exports[g] <= -0.1 {
+                write!(f, "{:.1},", site.economy.last_exports[g])?;
+            } else {
+                f.write_all(b",")?;
+            }
+        }
+        writeln!(f)
+    }
+
+    fn csv_header(f: &mut std::fs::File) -> Result<(), std::io::Error> {
+        use std::io::Write;
+        write!(f, "Site,PosX,PosY,Population,Neighbors,,")?;
+        for g in good_list() {
+            write!(f, "{:?} Value,", g)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} LaborVal,", g)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} Stock,", g)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} Surplus,", g)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} Labor,", l)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} Productivity,", l)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} Yields,", l)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} limit,", l)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} trade,", g)?;
+        }
+        writeln!(f)
+    }
+
+    pub fn csv_open() -> Option<std::fs::File> {
+        if GENERATE_CSV {
+            let mut f = std::fs::File::create("economy.csv").ok()?;
+            if Self::csv_header(&mut f).is_err() {
+                None
+            } else {
+                Some(f)
+            }
+        } else {
+            None
+        }
+    }
+
+    #[cfg(test)]
+    fn print_details(&self) {
+        fn print_sorted(
+            prefix: &str,
+            mut list: Vec<(String, f32)>,
+            threshold: f32,
+            decimals: usize,
+        ) {
+            print!("{}", prefix);
+            list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Less));
+            for i in list.iter() {
+                if i.1 >= threshold {
+                    print!("{}={:.*} ", i.0, decimals, i.1);
+                }
+            }
+            println!();
+        }
+
+        print!(" Resources: ");
+        for i in good_list() {
+            let amount = self.natural_resources.chunks_per_resource[i];
+            if amount > 0.0 {
+                print!("{:?}={} ", i, amount);
+            }
+        }
+        println!();
+        println!(
+            " Population {:.1}, limited by {:?}",
+            self.pop, self.population_limited_by
+        );
+        let idle: f32 = self.pop * (1.0 - self.labors.iter().map(|(_, a)| *a).sum::<f32>());
+        print_sorted(
+            &format!(" Professions: idle={:.1} ", idle),
+            self.labors
+                .iter()
+                .map(|(l, a)| (format!("{:?}", l), *a * self.pop))
+                .collect(),
+            self.pop * 0.05,
+            1,
+        );
+        print_sorted(
+            " Stock: ",
+            self.stocks
+                .iter()
+                .map(|(l, a)| (format!("{:?}", l), *a))
+                .collect(),
+            1.0,
+            0,
+        );
+        print_sorted(
+            " Values: ",
+            self.values
+                .iter()
+                .map(|(l, a)| {
+                    (
+                        format!("{:?}", l),
+                        a.map(|v| if v > 3.9 { 0.0 } else { v }).unwrap_or(0.0),
+                    )
+                })
+                .collect(),
+            0.1,
+            1,
+        );
+        print_sorted(
+            " Labor Values: ",
+            self.labor_values
+                .iter()
+                .map(|(l, a)| (format!("{:?}", l), a.unwrap_or(0.0)))
+                .collect(),
+            0.1,
+            1,
+        );
+        print!(" Limited: ");
+        for (limit, prod) in self.limited_by.iter().zip(self.productivity.iter()) {
+            if (0.01..=0.99).contains(prod.1) {
+                print!("{:?}:{:?}={:.2} ", limit.0, limit.1, *prod.1);
+            }
+        }
+        println!();
+        print!(" Trade({}): ", self.neighbors.len());
+        for (g, &amt) in self.active_exports.iter() {
+            if !(-0.1..=0.1).contains(&amt) {
+                print!("{:?}={:.2} ", g, amt);
+            }
+        }
+        println!();
+    }
 }
 
-pub fn good_list() -> impl Iterator<Item = GoodIndex> {
+fn good_list() -> impl Iterator<Item = GoodIndex> {
     (0..GoodIndex::LENGTH).map(GoodIndex::from_usize)
 }
 
 // cache in GoodMap ?
-pub fn transportation_effort(g: GoodIndex) -> f32 {
+fn transportation_effort(g: GoodIndex) -> f32 {
     match Good::from(g) {
         Terrain(_) | Territory(_) | RoadSecurity => 0.0,
         Coin => 0.01,
@@ -1156,7 +1389,7 @@ pub fn transportation_effort(g: GoodIndex) -> f32 {
     }
 }
 
-pub fn decay_rate(g: GoodIndex) -> f32 {
+fn decay_rate(g: GoodIndex) -> f32 {
     match Good::from(g) {
         Food => 0.2,
         Flour => 0.1,
@@ -1167,7 +1400,7 @@ pub fn decay_rate(g: GoodIndex) -> f32 {
 }
 
 /** you can't accumulate or save these options/resources for later */
-pub fn direct_use_goods() -> &'static [GoodIndex] {
+fn direct_use_goods() -> &'static [GoodIndex] {
     lazy_static! {
         static ref DIRECT_USE: [GoodIndex; 13] = [
             GoodIndex::try_from(Transportation).unwrap_or_default(),
@@ -1186,4 +1419,37 @@ pub fn direct_use_goods() -> &'static [GoodIndex] {
         ];
     }
     &*DIRECT_USE
+}
+
+pub struct GraphInfo {
+    dummy: Economy,
+}
+
+impl Default for GraphInfo {
+    fn default() -> Self {
+        // avoid economy of scale
+        Self {
+            dummy: Economy {
+                pop: 0.0,
+                labors: LaborMap::from_default(0.0),
+                ..Default::default()
+            },
+        }
+    }
+}
+
+impl GraphInfo {
+    pub fn get_orders(&self) -> &'static LaborMap<Vec<(GoodIndex, f32)>> { self.dummy.get_orders() }
+
+    pub fn get_orders_everyone(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> {
+        self.dummy.get_orders_everyone()
+    }
+
+    pub fn get_production(&self) -> LaborMap<(GoodIndex, f32)> { self.dummy.get_production() }
+
+    pub fn good_list(&self) -> impl Iterator<Item = GoodIndex> { good_list() }
+
+    pub fn labor_list(&self) -> impl Iterator<Item = Labor> { Labor::list() }
+
+    pub fn can_store(&self, g: &GoodIndex) -> bool { direct_use_goods().contains(g) }
 }
