@@ -1,0 +1,1 @@
+ALTER TABLE item ADD durability INTEGER;

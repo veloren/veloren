@@ -176,6 +176,7 @@ pub fn convert_items_to_database_items(
                     } else {
                         1
                     },
+                    durability: item.persistence_durability(),
                 },
                 // Continue to remember the atomic, in case we detect an error later and want
                 // to roll back to preserve liveness.
@@ -359,6 +360,7 @@ pub fn convert_inventory_from_database_items(
         item_indices.insert(db_item.item_id, i);
 
         let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
+        item.persistence_set_durability(db_item.durability);
 
         // NOTE: Since this is freshly loaded, the atomic is *unique.*
         let comp = item.get_item_id_for_database();
@@ -459,7 +461,8 @@ pub fn convert_loadout_from_database_items(
     for (i, db_item) in database_items.iter().enumerate() {
         item_indices.insert(db_item.item_id, i);
 
-        let item = get_item_from_asset(db_item.item_definition_id.as_str())?;
+        let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
+        item.persistence_set_durability(db_item.durability);
 
         // NOTE: item id is currently *unique*, so we can store the ID safely.
         let comp = item.get_item_id_for_database();
