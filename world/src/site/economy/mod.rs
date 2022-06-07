@@ -1427,11 +1427,14 @@ pub struct GraphInfo {
 
 impl Default for GraphInfo {
     fn default() -> Self {
-        let mut dummy = Economy::default();
         // avoid economy of scale
-        dummy.pop = 0.0;
-        dummy.labors.iter_mut().for_each(|l| *l.1 = 0.0);
-        Self { dummy }
+        Self {
+            dummy: Economy {
+                pop: 0.0,
+                labors: LaborMap::from_default(0.0),
+                ..Default::default()
+            },
+        }
     }
 }
 
