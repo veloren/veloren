@@ -1421,9 +1421,18 @@ fn direct_use_goods() -> &'static [GoodIndex] {
     &*DIRECT_USE
 }
 
-#[derive(Default)]
 pub struct GraphInfo {
     dummy: Economy,
+}
+
+impl Default for GraphInfo {
+    fn default() -> Self {
+        let mut dummy = Economy::default();
+        // avoid economy of scale
+        dummy.pop = 0.0;
+        dummy.labors.iter_mut().for_each(|l| *l.1 = 0.0);
+        Self { dummy }
+    }
 }
 
 impl GraphInfo {
