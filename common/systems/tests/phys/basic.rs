@@ -296,54 +296,69 @@ fn cant_run_during_fall() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// The problem with old_vec is that we cant start with 0.0 0.0 0.0 as it will make the first tick different on all examples
+// The problem with old_vec is that we cant start with 0.0 0.0 0.0 as it will
+// make the first tick different on all examples
 
 #[test]
 fn physics_theory() -> Result<(), Box<dyn Error>> {
     let tick = |i: usize, move_dir: f64, vel: f64, pos: f64, dt: f64| {
         /*
-            ROLLING_FRICTION_FORCE + AIR_FRICTION_FORCE + TILT_FRICT_FORCE + ACCEL_FORCE = TOTAL_FORCE
+           ROLLING_FRICTION_FORCE + AIR_FRICTION_FORCE + TILT_FRICT_FORCE + ACCEL_FORCE = TOTAL_FORCE
 
-            TILT_FRICT_FORCE = 0.0
-            TOTAL_FORCE = depends on char = const
-            ACCEL_FORCE = TOTAL_FORCE - ROLLING_FRICTION_FORCE - AIR_FRICTION_FORCE
-            ACCEL = ACCEL_FORCE / MASS
+           TILT_FRICT_FORCE = 0.0
+           TOTAL_FORCE = depends on char = const
+           ACCEL_FORCE = TOTAL_FORCE - ROLLING_FRICTION_FORCE - AIR_FRICTION_FORCE
+           ACCEL = ACCEL_FORCE / MASS
 
-            ROLLING_FRICTION_FORCE => Indepent of vel
-            AIR_FRICTION_FORCE => propotional to vel²
-            https://www.energie-lexikon.info/fahrwiderstand.html
+           ROLLING_FRICTION_FORCE => Indepent of vel
+           AIR_FRICTION_FORCE => propotional to vel²
+           https://www.energie-lexikon.info/fahrwiderstand.html
 
-            https://www.energie-lexikon.info/reibung.html
+           https://www.energie-lexikon.info/reibung.html
 
-            https://sciencing.com/calculate-force-friction-6454395.html
+           https://sciencing.com/calculate-force-friction-6454395.html
 
-            https://www.leifiphysik.de/mechanik/reibung-und-fortbewegung
-         */
+           https://www.leifiphysik.de/mechanik/reibung-und-fortbewegung
 
-        let mass = 80.0;
-        let gravity = 9.81;
-        let f_n = mass * gravity;
 
-        let total_force = 2.0_f64 * mass;
-        let rolling_friction_co = 0.0001;
-        let rolling_friction_force = rolling_friction_co * f_n;
-        let air_friction_co = 0.0000_f64;
-        let air_friction_force = air_friction_co;
-        let accel_force = total_force - rolling_friction_force - air_friction_force;
-        let acc = accel_force / mass * move_dir;
-        
+        */
+
+        let mass = 1.0;
+
+        let air_friction_co = 1.1_f64;
+        let air_friction_area = 1.0_f64;
+        let air_density = 1.225_f64;
+        let c = air_friction_co * air_friction_area * 0.5 * air_density * mass;
+        //let acc = accel_force / mass * move_dir;
+
+        let acc = 9.0_f64; // btw: cant accelerate faster than gravity on foot
+        let old_vel = vel;
+
         // controller
-        let vel = vel + acc * dt;
+        // I know what you think, wtf, yep: https://math.stackexchange.com/questions/1929436/line-integral-of-force-of-air-resistanc
+        // basically an integral of the air resistance formula which scales with v^2
+        // transformed with an ODE.
+        let vel = (mass * acc / c).sqrt()
+            * (((c / acc / mass).sqrt() * old_vel).atanh() + (c * acc / mass).sqrt() * 0.1 * dt)
+                .tanh();
 
         //physics
-        let distance = vel * dt - 0.5 * acc * dt * dt;
+        let acc2 = (vel - old_vel) / dt;
+        let distance = vel * dt; // 0.5 * vel * dt - 0.5 * acc2 * dt * dt;
         let pos = pos + distance;
 
-
-
-        if ((i+1) as f64 *dt * 10.0).round() as i64 % 2 == 0 {
-            println!("[{:0>2.1}]:    move_dir: {:4.1},    acc: {:4.4},    vel: {:4.4},    pos: {:4.4},    accel_force: {:4.4}", (i+1) as f64 *dt, move_dir, acc, vel, pos, accel_force);
-        }
+        //if ((i+1) as f64 *dt * 10.0).round() as i64 % 2 == 0 {
+        println!(
+            "[{:0>2.1}]:    move_dir: {:4.1},    acc: {:4.4},    vel: {:4.4},    pos: {:4.4},    \
+             c: {:4.4}",
+            (i + 1) as f64 * dt,
+            move_dir,
+            acc,
+            vel,
+            pos,
+            c
+        );
+        //}
         (acc, vel, pos)
     };
 
@@ -382,11 +397,17 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
 
     let vel_diff = (vel_final_02 - vel_final_01).abs();
     let pos_diff = (pos_final_02 - pos_final_01).abs();
-    println!("[ #1 ] vel_diff: {:4.4},   pos_diff: {:4.4}", vel_diff, pos_diff);
+    println!(
+        "[ #1 ] vel_diff: {:4.4},   pos_diff: {:4.4}",
+        vel_diff, pos_diff
+    );
 
     let vel_diff = (vel_final_10 - vel_final_01).abs();
     let pos_diff = (pos_final_10 - pos_final_01).abs();
-    println!("[ #2 ] vel_diff: {:4.4},   pos_diff: {:4.4}", vel_diff, pos_diff);
+    println!(
+        "[ #2 ] vel_diff: {:4.4},   pos_diff: {:4.4}",
+        vel_diff, pos_diff
+    );
 
     Ok(())
 }
