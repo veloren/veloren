@@ -95,7 +95,7 @@ impl RainOcclusionFigurePipeline {
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Rain occlusion pipeline layout"),
+                label: Some("Rain occlusion figure pipeline layout"),
                 push_constant_ranges: &[],
                 bind_group_layouts: &[&global_layout.globals, &figure_layout.locals],
             });

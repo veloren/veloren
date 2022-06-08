@@ -65,6 +65,9 @@ const SHADOW_FAR: f32 = 128.0; // Far plane for shadow map point light rendering
 /// Used for first person camera effects
 const RUNNING_THRESHOLD: f32 = 0.7;
 
+/// The threashold for starting calculations with rain.
+const RAIN_THRESHOLD: f32 = 0.0;
+
 /// is_daylight, array of active lights.
 pub type LightData<'a> = (bool, &'a [Light]);
 
@@ -705,14 +708,19 @@ impl Scene {
         self.debug.maintain(renderer);
 
         // Maintain the terrain.
-        let (_visible_bounds, visible_light_volume, visible_psr_bounds, visible_occlusion_volume) =
-            self.terrain.maintain(
-                renderer,
-                scene_data,
-                focus_pos,
-                self.loaded_distance,
-                &self.camera,
-            );
+        let (
+            _visible_bounds,
+            visible_light_volume,
+            visible_psr_bounds,
+            visible_occlusion_volume,
+            visible_por_bounds,
+        ) = self.terrain.maintain(
+            renderer,
+            scene_data,
+            focus_pos,
+            self.loaded_distance,
+            &self.camera,
+        );
 
         // Maintain the figures.
         let _figure_bounds = self.figure_mgr.maintain(
@@ -720,6 +728,7 @@ impl Scene {
             &mut self.trail_mgr,
             scene_data,
             visible_psr_bounds,
+            visible_por_bounds,
             &self.camera,
             Some(&self.terrain),
         );
@@ -1003,7 +1012,7 @@ impl Scene {
         let weather = client
             .state()
             .max_weather_near(focus_off.xy() + cam_pos.xy());
-        if weather.rain > 0.0 {
+        if weather.rain > RAIN_THRESHOLD {
             let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
             let rain_vel = weather.rain_vel();
             let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_vel, up);
@@ -1139,7 +1148,7 @@ impl Scene {
         let is_daylight = sun_dir.z < 0.0;
         let focus_pos = self.camera.get_focus_pos();
         let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
-        let is_rain = state.max_weather_near(cam_pos.xy()).rain > 0.0;
+        let is_rain = state.max_weather_near(cam_pos.xy()).rain > RAIN_THRESHOLD;
 
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
@@ -1178,7 +1187,7 @@ impl Scene {
                 self.terrain
                     .render_rain_occlusion(&mut occlusion_pass.draw_terrain_shadows(), cam_pos);
 
-                self.figure_mgr.render_shadows(
+                self.figure_mgr.render_rain_occlusion(
                     &mut occlusion_pass.draw_figure_shadows(),
                     state,
                     tick,

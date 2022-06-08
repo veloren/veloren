@@ -183,6 +183,8 @@ impl Lod {
             }
         }
         // Update weather texture
+        // NOTE: consider moving the lerping to a shader if the overhead of uploading to
+        // the gpu each frame becomes an issue.
         let weather = client.state().weather_grid();
         let size = weather.size().as_::<u32>();
         renderer.update_texture(

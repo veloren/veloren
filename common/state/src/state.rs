@@ -354,11 +354,12 @@ impl State {
     /// Get a mutable reference the current in-game weather grid.
     pub fn weather_grid_mut(&mut self) -> FetchMut<WeatherGrid> { self.ecs.write_resource() }
 
-    /// Get the current weather at a position.
+    /// Get the current weather at a position in worldspace.
     pub fn weather_at(&self, pos: Vec2<f32>) -> Weather {
         self.weather_grid().get_interpolated(pos)
     }
 
+    /// Get the max weather near a position in worldspace.
     pub fn max_weather_near(&self, pos: Vec2<f32>) -> Weather {
         self.weather_grid().get_max_near(pos)
     }

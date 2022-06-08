@@ -108,6 +108,11 @@ void main() {
     vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
     vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
+    // Rain density is now only based on the cameras current position. 
+    // This could be affected by a setting where rain_density_at is instead
+    // called each iteration of the loop. With the current implementation
+    // of rain_dir this has issues with being in a place where it doesn't rain
+    // and seeing rain. 
     float rain = rain_density_at(cam_wpos.xy);
     if (rain > 0.0) {
         float rain_dist = 50.0;
