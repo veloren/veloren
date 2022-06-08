@@ -130,6 +130,9 @@ impl PrioManager {
                         continue;
                     }
                     process_stream(sid, stream, per_stream_bytes, &mut cur_bytes);
+                    if cur_bytes >= total_bytes {
+                        break;
+                    }
                 }
             }
         }
