@@ -452,6 +452,19 @@ pub fn handle_orientation(
     efficiency: f32,
     dir_override: Option<Dir>,
 ) {
+    /// first check for horizontal
+    fn to_horizontal_fast(ori: &crate::comp::Ori) -> crate::comp::Ori {
+        if ori.to_quat().into_vec4().xy().is_approx_zero() {
+            *ori
+        } else {
+            ori.to_horizontal()
+        }
+    }
+    /// compute an upper limit for the difference of two orientations
+    fn ori_absdiff(a: &crate::comp::Ori, b: &crate::comp::Ori) -> f32 {
+        (a.to_quat().into_vec4() - b.to_quat().into_vec4()).reduce(|a, b| a.abs() + b.abs())
+    }
+
     // Direction is set to the override if one is provided, else if entity is
     // strafing or attacking the horiontal component of the look direction is used,
     // else the current horizontal movement direction is used
@@ -465,24 +478,34 @@ pub fn handle_orientation(
             .into()
     } else {
         Dir::from_unnormalized(data.inputs.move_dir.into())
-            .map_or_else(|| data.ori.to_horizontal(), |dir| dir.into())
+            .map_or_else(|| to_horizontal_fast(data.ori), |dir| dir.into())
     };
-    let rate = {
-        // Angle factor used to keep turning rate approximately constant by
-        // counteracting slerp turning more with a larger angle
-        let angle_factor = 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt();
-        data.body.base_ori_rate()
-            * efficiency
-            * angle_factor
-            * if data.physics.on_ground.is_some() {
-                1.0
-            } else {
-                0.2
-            }
+    // unit is multiples of 180°
+    let half_turns_per_tick = data.body.base_ori_rate()
+        * efficiency
+        * if data.physics.on_ground.is_some() {
+            1.0
+        } else {
+            0.2
+        }
+        * data.dt.0;
+    // very rough guess
+    let ticks_from_target_guess = ori_absdiff(&update.ori, &target_ori) / half_turns_per_tick;
+    let instantaneous = ticks_from_target_guess < 1.0;
+    update.ori = if instantaneous {
+        target_ori
+    } else {
+        let target_fraction = {
+            // Angle factor used to keep turning rate approximately constant by
+            // counteracting slerp turning more with a larger angle
+            let angle_factor = 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt();
+
+            half_turns_per_tick * angle_factor
+        };
+        update
+            .ori
+            .slerped_towards(target_ori, target_fraction.min(1.0))
     };
-    update.ori = update
-        .ori
-        .slerped_towards(target_ori, (data.dt.0 * rate).min(1.0));
 }
 
 /// Updates components to move player as if theyre swimming
