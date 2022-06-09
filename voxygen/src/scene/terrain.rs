@@ -826,6 +826,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         let camera::Dependents {
             view_mat,
             proj_mat_treeculler,
+            cam_pos,
             ..
         } = camera.dependents();
 
@@ -1315,7 +1316,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             return min.partial_cmple(&max).reduce_and();
         };
 
-        let cam_pos = math::Vec4::from(view_mat.inverted() * Vec4::unit_w()).xyz();
 
         let (visible_light_volume, visible_psr_bounds) = if ray_direction.z < 0.0
             && renderer.pipeline_modes().shadow.is_map()
@@ -1340,6 +1340,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             .collect::<Vec<_>>();
 
             let up: math::Vec3<f32> = { math::Vec3::unit_y() };
+            let cam_pos = math::Vec3::from(cam_pos);
             let ray_mat = math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, up);
             let visible_bounds = math::Aabr::from(math::fit_psr(
                 ray_mat,
@@ -1408,7 +1409,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         drop(guard);
         span!(guard, "Rain occlusion magic");
         // Check if there is rain near the camera
-        let max_weather = scene_data.state.max_weather_near(focus_pos.xy());
+        let max_weather = scene_data.state.max_weather_near(focus_off.xy() + cam_pos.xy());
         let (visible_occlusion_volume, visible_por_bounds) = if max_weather.rain > RAIN_THRESHOLD {
             let visible_bounding_box = math::Aabb::<f32> {
                 min: math::Vec3::from(visible_bounding_box.min - focus_off),
@@ -1418,7 +1419,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 min: visible_bounding_box.min.as_::<f64>(),
                 max: visible_bounding_box.max.as_::<f64>(),
             };
-            let weather = scene_data.state.weather_at(focus_pos.xy());
+            let weather = scene_data.state.weather_at(focus_off.xy() + cam_pos.xy());
             let ray_direction = math::Vec3::<f32>::from(weather.rain_vel().normalized());
 
             // NOTE: We use proj_mat_treeculler here because
@@ -1432,6 +1433,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             )
             .map(|v| v.as_::<f32>())
             .collect::<Vec<_>>();
+            let cam_pos = math::Vec3::from(cam_pos);
             let ray_mat =
                 math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::unit_y());
             let visible_bounds = math::Aabr::from(math::fit_psr(
