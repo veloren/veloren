@@ -5641,7 +5641,11 @@ impl FigureMgr {
         tick: u64,
         camera_data: CameraData,
     ) {
-        span!(_guard, "render_rain_occlusion", "FigureManager::render_rain_occlusion");
+        span!(
+            _guard,
+            "render_rain_occlusion",
+            "FigureManager::render_rain_occlusion"
+        );
         self.render_shadow_mapping(drawer, state, tick, camera_data, |state| {
             state.can_occlude_rain()
         })

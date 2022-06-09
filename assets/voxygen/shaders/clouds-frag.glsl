@@ -114,7 +114,7 @@ void main() {
     // of rain_dir this has issues with being in a place where it doesn't rain
     // and seeing rain. 
     float rain = rain_density_at(cam_wpos.xy);
-    if (rain > 0.0) {
+    if (medium.x == MEDIUM_AIR && rain > 0.0) {
         float rain_dist = 50.0;
         for (int i = 0; i < 4; i ++) {
             float old_rain_dist = rain_dist;
