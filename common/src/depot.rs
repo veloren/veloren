@@ -160,6 +160,7 @@ impl<T> Depot<T> {
             entry.item = Some(item);
             assert!(entry.gen < u32::MAX);
             entry.gen += 1;
+            self.len += 1;
             Id {
                 idx: idx as u32,
                 gen: entry.gen,
