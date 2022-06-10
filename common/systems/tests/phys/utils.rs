@@ -14,7 +14,7 @@ use common::{
 use common_ecs::{System, dispatch};
 use common_net::sync::WorldSyncExt;
 use common_state::State;
-use rand::{prelude::*, rngs::SmallRng};
+use rand::prelude::*;
 use specs::{Builder, Entity, WorldExt};
 use std::{error::Error, sync::Arc, time::Duration};
 use vek::{Rgb, Vec2, Vec3};

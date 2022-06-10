@@ -345,18 +345,16 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
         //physics
         //let acc2 = (vel - old_vel) / dt;
         //let distance =  0.5 * vel * dt - 0.5 * acc2 * dt * dt;
+
+        let distance_last = mass / c * (((old_vel * (c / acc / mass).sqrt()).atanh()).cosh()).ln();
         let distance = mass / c
             * (((old_vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
                 .ln();
-        let distance2 = mass / c
-            * (((vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
-                .ln();
-        let diff = distance2 - distance;
+        let diff = distance - distance_last;
 
         let pos = pos + diff;
 
         //if ((i+1) as f64 *dt * 10.0).round() as i64 % 2 == 0 {
-
         println!(
             "[{:0>2.1}]:    move_dir: {:0>1.1},    acc: {:0>4.4},    vel: {:0>4.4},    dist: \
              {:0>7.4},    dist: {:0>7.4},    pos: {:0>7.4},    c: {:0>4.4}",
@@ -364,12 +362,11 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
             move_dir,
             acc,
             vel,
+            distance_last,
             distance,
-            distance2,
             pos,
             c
         );
-
         //}
         (acc, vel, pos)
     };
