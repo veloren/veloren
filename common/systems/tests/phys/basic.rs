@@ -325,39 +325,51 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
 
         let mass = 1.0;
 
-        let air_friction_co = 1.1_f64;
-        let air_friction_area = 1.0_f64;
+        let air_friction_co = 0.9_f64;
+        let air_friction_area = 0.75_f64;
         let air_density = 1.225_f64;
         let c = air_friction_co * air_friction_area * 0.5 * air_density * mass;
         //let acc = accel_force / mass * move_dir;
 
-        let acc = 9.0_f64; // btw: cant accelerate faster than gravity on foot
+        let acc = 9.2_f64; // btw: cant accelerate faster than gravity on foot
         let old_vel = vel;
 
         // controller
         // I know what you think, wtf, yep: https://math.stackexchange.com/questions/1929436/line-integral-of-force-of-air-resistanc
+
         // basically an integral of the air resistance formula which scales with v^2
         // transformed with an ODE.
         let vel = (mass * acc / c).sqrt()
-            * (((c / acc / mass).sqrt() * old_vel).atanh() + (c * acc / mass).sqrt() * 0.1 * dt)
-                .tanh();
+            * (((c / acc / mass).sqrt() * old_vel).atanh() + (c * acc / mass).sqrt() * dt).tanh();
 
         //physics
-        let acc2 = (vel - old_vel) / dt;
-        let distance = vel * dt; // 0.5 * vel * dt - 0.5 * acc2 * dt * dt;
-        let pos = pos + distance;
+        //let acc2 = (vel - old_vel) / dt;
+        //let distance =  0.5 * vel * dt - 0.5 * acc2 * dt * dt;
+        let distance = mass / c
+            * (((old_vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
+                .ln();
+        let distance2 = mass / c
+            * (((vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
+                .ln();
+        let diff = distance2 - distance;
+
+        let pos = pos + diff;
 
         //if ((i+1) as f64 *dt * 10.0).round() as i64 % 2 == 0 {
+
         println!(
-            "[{:0>2.1}]:    move_dir: {:4.1},    acc: {:4.4},    vel: {:4.4},    pos: {:4.4},    \
-             c: {:4.4}",
+            "[{:0>2.1}]:    move_dir: {:0>1.1},    acc: {:0>4.4},    vel: {:0>4.4},    dist: \
+             {:0>7.4},    dist: {:0>7.4},    pos: {:0>7.4},    c: {:0>4.4}",
             (i + 1) as f64 * dt,
             move_dir,
             acc,
             vel,
+            distance,
+            distance2,
             pos,
             c
         );
+
         //}
         (acc, vel, pos)
     };
