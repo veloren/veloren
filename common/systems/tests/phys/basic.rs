@@ -329,28 +329,30 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
         let air_friction_area = 0.75_f64;
         let air_density = 1.225_f64;
         let c = air_friction_co * air_friction_area * 0.5 * air_density * mass;
-        //let acc = accel_force / mass * move_dir;
 
-        let acc = 9.2_f64; // btw: cant accelerate faster than gravity on foot
+        let acc = 9.2_f64 * move_dir; // btw: cant accelerate faster than gravity on foot
         let old_vel = vel;
 
         // controller
         // I know what you think, wtf, yep: https://math.stackexchange.com/questions/1929436/line-integral-of-force-of-air-resistanc
-
         // basically an integral of the air resistance formula which scales with v^2
         // transformed with an ODE.
-        let vel = (mass * acc / c).sqrt()
-            * (((c / acc / mass).sqrt() * old_vel).atanh() + (c * acc / mass).sqrt() * dt).tanh();
+        let vel = if acc == 0.0 {
+            vel
+        } else {
+            (mass * acc.abs() / c).sqrt()
+                * (((c / acc.abs() / mass).sqrt() * old_vel).atanh()
+                    + acc.signum() * (c * acc.abs() / mass).sqrt() * dt)
+                    .tanh()
+        };
 
         //physics
-        //let acc2 = (vel - old_vel) / dt;
-        //let distance =  0.5 * vel * dt - 0.5 * acc2 * dt * dt;
-
         let distance_last = mass / c * (((old_vel * (c / acc / mass).sqrt()).atanh()).cosh()).ln();
         let distance = mass / c
             * (((old_vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
                 .ln();
         let diff = distance - distance_last;
+        let diff = if diff.is_nan() { 0.0 } else { diff };
 
         let pos = pos + diff;
 
@@ -371,38 +373,30 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
         (acc, vel, pos)
     };
 
-    let (vel_final_01, pos_final_01) = {
+    let test_run = |tps: u32| {
+        let dt = 1.0 / tps as f64;
         println!("");
-        const DT: f64 = 0.1;
-        println!("dt: {}", DT);
+        println!("dt: {}", dt);
         let (_acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
-        for i in 0..30 {
-            (_, vel, pos) = tick(i, 1.0, vel, pos, DT);
+        let mut i = 0;
+        for _ in 0..tps {
+            (_, vel, pos) = tick(i, 1.0, vel, pos, dt);
+            i += 1;
+        }
+        for _ in 0..tps {
+            (_, vel, pos) = tick(i, -1.0, vel, pos, dt);
+            i += 1;
+        }
+        for _ in 0..tps {
+            (_, vel, pos) = tick(i, 1.0, vel, pos, dt);
+            i += 1;
         }
         (vel, pos)
     };
 
-    let (vel_final_02, pos_final_02) = {
-        println!("");
-        const DT: f64 = 0.2;
-        println!("dt: {}", DT);
-        let (_acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
-        for i in 0..15 {
-            (_, vel, pos) = tick(i, 1.0, vel, pos, DT);
-        }
-        (vel, pos)
-    };
-
-    let (vel_final_10, pos_final_10) = {
-        println!("");
-        const DT: f64 = 1.0;
-        println!("dt: {}", DT);
-        let (_acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
-        for i in 0..3 {
-            (_, vel, pos) = tick(i, 1.0, vel, pos, DT);
-        }
-        (vel, pos)
-    };
+    let (vel_final_01, pos_final_01) = test_run(10);
+    let (vel_final_02, pos_final_02) = test_run(5);
+    let (vel_final_10, pos_final_10) = test_run(1);
 
     let vel_diff = (vel_final_02 - vel_final_01).abs();
     let pos_diff = (pos_final_02 - pos_final_01).abs();
