@@ -42,17 +42,31 @@ layout(location = 0) in vec2 uv;
 
 layout (std140, set = 2, binding = 4)
 uniform u_locals {
-    mat4 proj_mat_inv;
-    mat4 view_mat_inv;
+    //mat4 proj_mat_inv;
+    //mat4 view_mat_inv;
+    mat4 all_mat_inv;
 };
 
 layout(location = 0) out vec4 tgt_color;
 
+// start
+// 777 instructions with rain commented out
+// 0.55 - 0.58 ms staring at high time area in sky in rain
+// 0.48 ms staring at roughly open sky in rain 45 degree
+// 0.35 ms staring at feet in rain
+
+// precombine inversion matrix
+// 683 instructions 
+// 0.55 ms starting at high time arena in sky in rain
+// 0.46 ms staring roughly open sky roughly 45 degree in rain
+// 0.33 ms staring at feet in rain
+
+
 vec3 wpos_at(vec2 uv) {
     float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x;
-    mat4 inv = view_mat_inv * proj_mat_inv;//inverse(all_mat);
+    //mat4 inv = view_mat_inv * proj_mat_inv;//inverse(all_mat);
     vec4 clip_space = vec4((uv * 2.0 - 1.0) * vec2(1, -1), buf_depth, 1.0);
-    vec4 view_space = inv * clip_space;
+    vec4 view_space = all_mat_inv * clip_space;
     view_space /= view_space.w;
     if (buf_depth == 0.0) {
         vec3 direction = normalize(view_space.xyz);
@@ -62,7 +76,7 @@ vec3 wpos_at(vec2 uv) {
     }
 }
 
-mat4 spin_in_axis(vec3 axis, float angle)
+/*mat4 spin_in_axis(vec3 axis, float angle)
 {
     axis = normalize(axis);
     float s = sin(angle);
@@ -73,10 +87,11 @@ mat4 spin_in_axis(vec3 axis, float angle)
         oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c,          oc * axis.y * axis.z - axis.x * s, 0,
         oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c,          0,
         0,                                 0,                                 0,                                 1);
-}
+}*/
 
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
+    color.rgb *= 0.25;
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(color.rgb, 1);
@@ -93,25 +108,43 @@ void main() {
         cloud_blend = 1.0 - color.a;
         dist = DIST_CAP;
     }
-    color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
+   //color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
 
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
     #else
         vec3 old_color = color.rgb;
 
+        // 0.43 ms extra without this
+        // 0.01 ms spent on rain_density_at?
+        // 0.49 -> 0.13 (0.36 ms with full occupancy)
+        //tgt_color = vec4(color.rgb, 1);
+        //return;
+
+        // normalized direction from the camera position to the fragment in world, transformed by the relative rain direction
         dir = (vec4(dir, 0) * rel_rain_dir_mat).xyz;
 
+        // stretch z values far from 0
         float z = (-1 / (abs(dir.z) - 1) - 1) * sign(dir.z);
+        // normalize xy to get a 2d direction
         vec2 dir_2d = normalize(dir.xy);
+        // view_pos is the angle from x axis (except x and y are flipped, so the
+        // angle 0 is looking along the y-axis)
+        //
+        // combined with stretched z position essentially we unroll a cylinder
+        // around the z axis while stretching it to make the sections near the
+        // origin larger in the Z direction
         vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
+        // compute camera position in the world
         vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
+        
         // Rain density is now only based on the cameras current position. 
         // This could be affected by a setting where rain_density_at is instead
         // called each iteration of the loop. With the current implementation
         // of rain_dir this has issues with being in a place where it doesn't rain
         // and seeing rain. 
+        float rain_density = rain_density * 1.0;
         if (medium.x == MEDIUM_AIR && rain_density > 0.0) {
             float rain_dist = 50.0;
             #if (CLOUD_MODE <= CLOUD_MODE_LOW)
@@ -133,6 +166,13 @@ void main() {
 
                 vec2 cell = floor(rain_pos * drop_density) / drop_density;
 
+                // For reference:
+                //
+                // float hash(vec4 p) {
+                //     p = fract(p * 0.3183099 + 0.1) - fract(p + 23.22121);
+                //     p *= 17.0;
+                //     return (fract(p.x * p.y * (1.0 - p.z) * p.w * (p.x + p.y + p.z + p.w)) - 0.5) * 2.0;
+                // }
                 float drop_depth = mix(
                     old_rain_dist,
                     rain_dist,

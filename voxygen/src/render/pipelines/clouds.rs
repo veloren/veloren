@@ -8,8 +8,9 @@ use vek::*;
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Locals {
-    proj_mat_inv: [[f32; 4]; 4],
-    view_mat_inv: [[f32; 4]; 4],
+    //proj_mat_inv: [[f32; 4]; 4],
+    //view_mat_inv: [[f32; 4]; 4],
+    all_mat_inv: [[f32; 4]; 4],
 }
 
 impl Default for Locals {
@@ -19,8 +20,9 @@ impl Default for Locals {
 impl Locals {
     pub fn new(proj_mat_inv: Mat4<f32>, view_mat_inv: Mat4<f32>) -> Self {
         Self {
-            proj_mat_inv: proj_mat_inv.into_col_arrays(),
-            view_mat_inv: view_mat_inv.into_col_arrays(),
+            //proj_mat_inv: proj_mat_inv.into_col_arrays(),
+            //view_mat_inv: view_mat_inv.into_col_arrays(),
+            all_mat_inv: (view_mat_inv * proj_mat_inv).into_col_arrays(),
         }
     }
 }

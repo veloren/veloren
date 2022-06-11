@@ -28,6 +28,7 @@ vec4 cubic(float v) {
     return vec4(x, y, z, w) * (1.0/6.0);
 }
 
+// Computes atan(y, x), except with more stability when x is near 0.
 float atan2(in float y, in float x) {
     bool s = (abs(x) > abs(y));
     return mix(PI/2.0 - atan(x,y), atan(y,x), s);
