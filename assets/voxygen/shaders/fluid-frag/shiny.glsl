@@ -149,7 +149,6 @@ void main() {
         wave_sample_dist / slope
     );
 
-    float rain_density = rain_density_at(f_pos.xy + focus_off.xy) * rain_occlusion_at(f_pos.xyz) * 50.0;
     if (rain_density > 0 && surf_norm.z > 0.5) {
         vec3 drop_density = vec3(2, 2, 2);
         vec3 drop_pos = wave_pos + vec3(0, 0, -time_of_day.x * 0.025);
@@ -158,7 +157,7 @@ void main() {
         drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
         vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
 
-        if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density) {
+        if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * rain_occlusion_at(f_pos.xyz) * 50.0) {
             vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
             vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
 

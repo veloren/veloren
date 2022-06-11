@@ -3656,7 +3656,7 @@ fn handle_weather_zone(
                 add_zone(weather::Weather {
                     cloud: 0.3,
                     rain: 0.3,
-                    wind: Vec2::new(15.0,20.0),
+                    wind: Vec2::new(15.0, 20.0),
                 });
                 Ok(())
             },

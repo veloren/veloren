@@ -14,8 +14,9 @@ pub struct Locals {
     rel_rain_dir_mat: [[f32; 4]; 4],
     /// A value to offset the rain, to make it move over time.
     integrated_rain_vel: f32,
+    rain_density: f32,
     // To keep 16-byte-aligned.
-    occlusion_dummy: [f32; 3],
+    occlusion_dummy: [f32; 2],
 }
 /// Make sure Locals is 16-byte-aligned.
 const _: () = assert!(core::mem::size_of::<Locals>() % 16 == 0);
@@ -25,6 +26,7 @@ impl Locals {
         rain_occlusion_matrices: Mat4<f32>,
         rain_occlusion_texture_mat: Mat4<f32>,
         rel_rain_dir_mat: Mat4<f32>,
+        rain_density: f32,
         integrated_rain_vel: f32,
     ) -> Self {
         Self {
@@ -32,7 +34,8 @@ impl Locals {
             rain_occlusion_texture_mat: rain_occlusion_texture_mat.into_col_arrays(),
             rel_rain_dir_mat: rel_rain_dir_mat.into_col_arrays(),
             integrated_rain_vel,
-            occlusion_dummy: [0.0; 3],
+            rain_density,
+            occlusion_dummy: [0.0; 2],
         }
     }
 }

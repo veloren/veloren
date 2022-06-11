@@ -30,7 +30,8 @@ uniform u_rain_occlusion {
     mat4 rain_occlusion_texture_mat;
     mat4 rel_rain_dir_mat;
     float integrated_rain_vel;
-    vec3 occlusion_dummy; // Fix alignment.
+    float rain_density;
+    vec2 occlusion_dummy; // Fix alignment.
 };
 
 /* Accurate packed shadow maps for many lights at once!

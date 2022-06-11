@@ -1027,12 +1027,16 @@ impl Scene {
                 shadow_mat,
                 texture_mat,
                 rel_rain_dir_mat,
+                weather.rain,
                 self.integrated_rain_vel,
             );
 
             renderer.update_consts(&mut self.data.rain_occlusion_mats, &[rain_occlusion_locals]);
-        } else {
+        } else if self.integrated_rain_vel > 0.0 {
             self.integrated_rain_vel = 0.0;
+            // Need to set rain to zero
+            let rain_occlusion_locals = RainOcclusionLocals::default();
+            renderer.update_consts(&mut self.data.rain_occlusion_mats, &[rain_occlusion_locals]);
         }
 
         let sun_dir = scene_data.get_sun_dir();

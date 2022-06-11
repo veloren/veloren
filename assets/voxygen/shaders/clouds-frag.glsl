@@ -113,8 +113,7 @@ void main() {
     // called each iteration of the loop. With the current implementation
     // of rain_dir this has issues with being in a place where it doesn't rain
     // and seeing rain. 
-    float rain = rain_density_at(cam_wpos.xy);
-    if (medium.x == MEDIUM_AIR && rain > 0.0) {
+    if (medium.x == MEDIUM_AIR && rain_density > 0.0) {
         float rain_dist = 50.0;
         for (int i = 0; i < 4; i ++) {
             float old_rain_dist = rain_dist;
@@ -141,7 +140,7 @@ void main() {
             if (dot(rpos * vec3(1, 1, 0.5), rpos) < 1.0) {
                 break;
             }
-            float rain_density = rain * rain_occlusion_at(cam_pos.xyz + rpos.xyz) * 10.0;
+            float rain_density = rain_density * rain_occlusion_at(cam_pos.xyz + rpos.xyz) * 10.0;
 
             if (rain_density < 0.001 || fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
                 continue;
