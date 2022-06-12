@@ -107,9 +107,9 @@ void main() {
         if (medium.x == MEDIUM_AIR && rain_density > 0.0) {
             float rain_dist = 50.0;
             #if (CLOUD_MODE <= CLOUD_MODE_LOW)
-                int iterations = 2;
+                const int iterations = 2;
             #else
-                int iterations = 4;
+                const int iterations = 4;
             #endif
 
             for (int i = 0; i < iterations; i ++) {
