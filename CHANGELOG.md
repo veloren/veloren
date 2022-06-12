@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bamboo collectibles now spawn near rivers
 - Chest sprites can longer be exploded
 - Smoke varies by temperature, humidity, time of day and house
+- Added loot ownership for drops from mining
 
 ### Changed
 
