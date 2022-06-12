@@ -42,34 +42,13 @@ layout(location = 0) in vec2 uv;
 
 layout (std140, set = 2, binding = 4)
 uniform u_locals {
-    //mat4 proj_mat_inv;
-    //mat4 view_mat_inv;
     mat4 all_mat_inv;
 };
 
 layout(location = 0) out vec4 tgt_color;
 
-// start
-// 777 instructions with low clouds commented out
-// 0.55 - 0.58 ms staring at high time area in sky in rain
-// 0.48 ms staring at roughly open sky in rain 45 degree
-// 0.35 ms staring at feet in rain
-
-// precombine inversion matrix
-// 683 instructions (-94) 
-// 0.55 ms starting at high time area in sky in rain
-// 0.46 ms staring roughly open sky roughly 45 degree in rain
-// 0.33 ms staring at feet in rain
-
-// rebase on moving rain_density to a uniform
-// 664 instructions (-19)
-// 0.54 ms staring at high time area in sky in rain
-// 0.51 ms staring rougly open sky roughly 45 degree in rain
-// 0.276 ms staring at feet in rain
-
 vec3 wpos_at(vec2 uv) {
     float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x;
-    //mat4 inv = view_mat_inv * proj_mat_inv;//inverse(all_mat);
     vec4 clip_space = vec4((uv * 2.0 - 1.0) * vec2(1, -1), buf_depth, 1.0);
     vec4 view_space = all_mat_inv * clip_space;
     view_space /= view_space.w;
@@ -80,19 +59,6 @@ vec3 wpos_at(vec2 uv) {
         return view_space.xyz;
     }
 }
-
-/*mat4 spin_in_axis(vec3 axis, float angle)
-{
-    axis = normalize(axis);
-    float s = sin(angle);
-    float c = cos(angle);
-    float oc = 1.0 - c;
-
-    return mat4(oc * axis.x * axis.x + c,  oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0,
-        oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c,          oc * axis.y * axis.z - axis.x * s, 0,
-        oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c,          0,
-        0,                                 0,                                 0,                                 1);
-}*/
 
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
@@ -120,17 +86,6 @@ void main() {
     #else
         vec3 old_color = color.rgb;
 
-        // 0.43 ms extra without this
-        // 0.01 ms spent on rain_density_at?
-        // 0.49 -> 0.13 (0.36 ms with full occupancy)
-        // 1.118 -> 0.689 (0.43 ms extra with low clouds)
-        // 0.264 -> 0.073 (0.191 ms commented clouds, 2 iterations, break -> continue)
-        // 2.08  -> 1.60 (0.48 ms low clouds, break -> continue)
-        //tgt_color = vec4(color.rgb, 1);
-        //tgt_color = vec4(vec3(hash(vec4(0.0, uv * 300.0, 0.0))), 1);
-        //return;
-
-        // 1.118 -> 1.114 (cost 0.004 ms, roughly 1% of the 0.43 ms total)
         // normalized direction from the camera position to the fragment in world, transformed by the relative rain direction
         dir = (vec4(dir, 0) * rel_rain_dir_mat).xyz;
 
@@ -138,12 +93,7 @@ void main() {
         float z = (-1 / (abs(dir.z) - 1) - 1) * sign(dir.z);
         // normalize xy to get a 2d direction
         vec2 dir_2d = normalize(dir.xy);
-        // view_pos is the angle from x axis (except x and y are flipped, so the
-        // angle 0 is looking along the y-axis)
-        //
-        // combined with stretched z position essentially we unroll a cylinder
-        // around the z axis while stretching it to make the sections near the
-        // origin larger in the Z direction
+        // sort of map cylinder around the camera to 2d grid 
         vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
         // compute camera position in the world
@@ -176,13 +126,6 @@ void main() {
 
                 vec2 cell = floor(rain_pos * drop_density) / drop_density;
 
-                // For reference:
-                //
-                // float hash(vec4 p) {
-                //     p = fract(p * 0.3183099 + 0.1) - fract(p + 23.22121);
-                //     p *= 17.0;
-                //     return (fract(p.x * p.y * (1.0 - p.z) * p.w * (p.x + p.y + p.z + p.w)) - 0.5) * 2.0;
-                // }
                 float drop_depth = mix(
                     old_rain_dist,
                     rain_dist,
@@ -195,16 +138,8 @@ void main() {
                 }
 
                 if (dot(rpos * vec3(1, 1, 0.5), rpos) < 1.0) {
-                    // replacing this break with continue saves ~0.04 ms, roughly 10% of time (commenting out the break saves the same amount of time)
-                    // this also causes the loop to be unrolled
-                    // seems to only save 0.02 ms with clouds uncommented
-                    // note: testing on integrated intel doesn't seem to show any observable difference here
                     break;
-                    // 0.467 0.487 0.467
-                    // 0.425 0.445 0.425
-                    //continue;
                 }
-                // costs ~0.04 ms, roughly 10% of rain time (37 instructions)
                 float rain_density = 10.0 * rain_density * rain_occlusion_at(cam_pos.xyz + rpos.xyz);
 
                 if (rain_density < 0.001 || fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
