@@ -62,7 +62,6 @@ vec3 wpos_at(vec2 uv) {
 
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
-    color.rgb *= 0.25;
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(color.rgb, 1);
@@ -79,7 +78,7 @@ void main() {
         cloud_blend = 1.0 - color.a;
         dist = DIST_CAP;
     }
-   color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
+    color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
 
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
@@ -109,15 +108,13 @@ void main() {
             float rain_dist = 50.0;
             #if (CLOUD_MODE <= CLOUD_MODE_LOW)
                 int iterations = 2;
-            #elif (CLOUD_MODE == CLOUD_MODE_MEDIUM)
-                int iterations = 3;
             #else
                 int iterations = 4;
             #endif
 
             for (int i = 0; i < iterations; i ++) {
                 float old_rain_dist = rain_dist;
-                rain_dist *= 0.3;
+                rain_dist *= 0.3 / 4.0 * iterations;
 
                 vec2 drop_density = vec2(30, 1);
 
