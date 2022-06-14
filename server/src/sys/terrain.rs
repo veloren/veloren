@@ -223,7 +223,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Insert a safezone if chunk contains the spawn position
-            if server_settings.safe_spawn && is_spawn_chunk(key, *spawn_point, &terrain) {
+            if server_settings.gameplay.safe_spawn && is_spawn_chunk(key, *spawn_point, &terrain) {
                 server_emitter.emit(ServerEvent::CreateSafezone {
                     range: Some(SAFE_ZONE_RADIUS),
                     pos: Pos(spawn_point.0),

@@ -635,7 +635,7 @@ impl StateExt for State {
                     // but without this code, character gets battle_mode from
                     // another character on this account.
                     let settings = self.ecs().read_resource::<Settings>();
-                    let mode = settings.battle_mode.default_mode();
+                    let mode = settings.gameplay.battle_mode.default_mode();
                     if let Some(mut player_info) = players.get_mut(entity) {
                         player_info.battle_mode = mode;
                         player_info.last_battlemode_change = None;

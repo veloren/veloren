@@ -654,6 +654,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, owner: Option<Uid>) {
     // Go through all other entities
     let ecs = &server.state.ecs();
+    let settings = server.settings();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
     let time = ecs.read_resource::<Time>();
     let owner_entity = owner.and_then(|uid| {
@@ -780,7 +781,9 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let mut block_change = ecs.write_resource::<BlockChange>();
                 for block_pos in touched_blocks {
                     if let Ok(block) = terrain.get(block_pos) {
-                        if !matches!(block.kind(), BlockKind::Lava | BlockKind::GlowingRock) {
+                        if !matches!(block.kind(), BlockKind::Lava | BlockKind::GlowingRock)
+                            && settings.gameplay.explosion_burn_marks
+                        {
                             let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
                             let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
                             if let Some(mut color) = block.get_color() {
