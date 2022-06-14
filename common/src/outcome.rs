@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use vek::*;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct DamageInfo {
+pub struct HealthChangeInfo {
     pub amount: f32,
     pub crit: bool,
     pub target: Uid,
@@ -67,9 +67,9 @@ pub enum Outcome {
         pos: Vec3<f32>,
         body: comp::Body,
     },
-    Damage {
+    HealthChange {
         pos: Vec3<f32>,
-        info: DamageInfo,
+        info: HealthChangeInfo,
     },
     Death {
         pos: Vec3<f32>,
@@ -106,7 +106,7 @@ impl Outcome {
             | Outcome::Beam { pos, .. }
             | Outcome::SkillPointGain { pos, .. }
             | Outcome::SummonedCreature { pos, .. }
-            | Outcome::Damage { pos, .. }
+            | Outcome::HealthChange { pos, .. }
             | Outcome::Death { pos, .. }
             | Outcome::Block { pos, .. }
             | Outcome::PoiseChange { pos, .. }

@@ -451,7 +451,6 @@ pub struct BuffInfo {
 }
 
 pub struct ExpFloater {
-    pub owner: Uid,
     pub exp_change: u32,
     pub timer: f32,
     pub jump_timer: f32,
@@ -1331,9 +1330,7 @@ impl Hud {
             if let Some(health) = healths.get(me) {
                 // Hurt Frame
                 let hp_percentage = health.current() / health.maximum() * 100.0;
-                self.hp_pulse += (dt.as_secs_f32() * 10.0 / hp_percentage)
-                    .min(0.07)
-                    .max(0.02);
+                self.hp_pulse += dt.as_secs_f32() * 10.0 / hp_percentage.max(3.0).min(7.0);
                 if hp_percentage < 10.0 && !health.is_dead {
                     let hurt_fade = (self.hp_pulse).sin() * 0.5 + 0.6; //Animation timer
                     Image::new(self.imgs.hurt_bg)
@@ -1425,7 +1422,7 @@ impl Hud {
                     };
 
                     for floater in floaters {
-                        let number_speed = 50.0; // Player Heal Speed
+                        let number_speed = 50.0; // Player number speed
                         let player_sct_bg_id = player_sct_bg_id_walker.next(
                             &mut self.ids.player_sct_bgs,
                             &mut ui_widgets.widget_id_generator(),
@@ -1523,82 +1520,76 @@ impl Hud {
                     f.timer -= dt.as_secs_f32();
                     f.jump_timer += dt.as_secs_f32();
                 });
+                // TODO:Change the other floaters as well if this is the right method
                 self.floaters.exp_floaters.retain(|f| f.timer > 0.0);
-                if let Some(uid) = uids.get(me) {
-                    for floater in self
-                        .floaters
-                        .exp_floaters
-                        .iter_mut()
-                        .filter(|f| f.owner == *uid)
-                    {
-                        let number_speed = 50.0; // Number Speed for Single EXP
-                        let player_sct_bg_id = player_sct_bg_id_walker.next(
-                            &mut self.ids.player_sct_bgs,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        let player_sct_id = player_sct_id_walker.next(
-                            &mut self.ids.player_scts,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        /*let player_sct_icon_id = player_sct_id_walker.next(
-                            &mut self.ids.player_scts,
-                            &mut ui_widgets.widget_id_generator(),
-                        );*/
-                        // Increase font size based on fraction of maximum Experience
-                        // "flashes" by having a larger size in the first 100ms
-                        let font_size_xp = 30
-                            + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32
-                            + if floater.jump_timer < 0.1 {
-                                FLASH_MAX * (((1.0 - floater.jump_timer * 10.0) * 10.0) as u32)
-                            } else {
-                                0
-                            };
-                        let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
-                        //let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets
-                        // text transparency
-                        let fade = floater.timer.min(1.0);
+                for floater in self.floaters.exp_floaters.iter_mut() {
+                    let number_speed = 50.0; // Number Speed for Single EXP
+                    let player_sct_bg_id = player_sct_bg_id_walker.next(
+                        &mut self.ids.player_sct_bgs,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+                    let player_sct_id = player_sct_id_walker.next(
+                        &mut self.ids.player_scts,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+                    /*let player_sct_icon_id = player_sct_id_walker.next(
+                        &mut self.ids.player_scts,
+                        &mut ui_widgets.widget_id_generator(),
+                    );*/
+                    // Increase font size based on fraction of maximum Experience
+                    // "flashes" by having a larger size in the first 100ms
+                    let font_size_xp = 30
+                        + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32
+                        + if floater.jump_timer < 0.1 {
+                            FLASH_MAX * (((1.0 - floater.jump_timer * 10.0) * 10.0) as u32)
+                        } else {
+                            0
+                        };
+                    let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                    //let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets
+                    // text transparency
+                    let fade = floater.timer.min(1.0);
 
-                        if floater.exp_change > 0 {
-                            let xp_pool = &floater.xp_pools;
-                            // Don't show 0 Exp
-                            let exp_string = &i18n
-                                .get("hud.sct.experience")
-                                .replace("{amount}", &floater.exp_change.max(1).to_string());
-                            Text::new(exp_string)
-                                .font_size(font_size_xp)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                                .x_y(
-                                    ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
-                                    ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y
-                                        - 3.0,
-                                )
-                                .set(player_sct_bg_id, ui_widgets);
-                            Text::new(exp_string)
-                                .font_size(font_size_xp)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(
-                                    if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
-                                        Color::Rgba(0.18, 0.32, 0.9, fade)
-                                    } else {
-                                        Color::Rgba(0.59, 0.41, 0.67, fade)
-                                    },
-                                )
-                                .x_y(
-                                    ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
-                                    ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
-                                )
-                                .set(player_sct_id, ui_widgets);
-                            // Exp Source Image (TODO: fix widget id crash)
-                            /*if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
-                                Image::new(self.imgs.pickaxe_ico)
-                                    .w_h(font_size_xp as f64, font_size_xp as f64)
-                                    .left_from(player_sct_id, 5.0)
-                                    .set(player_sct_icon_id, ui_widgets);
-                            }*/
-                        }
+                    if floater.exp_change > 0 {
+                        let xp_pool = &floater.xp_pools;
+                        // Don't show 0 Exp
+                        let exp_string = &i18n
+                            .get("hud.sct.experience")
+                            .replace("{amount}", &floater.exp_change.max(1).to_string());
+                        Text::new(exp_string)
+                            .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .x_y(
+                                ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y - 3.0,
+                            )
+                            .set(player_sct_bg_id, ui_widgets);
+                        Text::new(exp_string)
+                            .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(
+                                if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
+                                    Color::Rgba(0.18, 0.32, 0.9, fade)
+                                } else {
+                                    Color::Rgba(0.59, 0.41, 0.67, fade)
+                                },
+                            )
+                            .x_y(
+                                ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
+                            )
+                            .set(player_sct_id, ui_widgets);
+                        // Exp Source Image (TODO: fix widget id crash)
+                        /*if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
+                            Image::new(self.imgs.pickaxe_ico)
+                                .w_h(font_size_xp as f64, font_size_xp as f64)
+                                .left_from(player_sct_id, 5.0)
+                                .set(player_sct_icon_id, ui_widgets);
+                        }*/
                     }
                 }
+
                 // Skill points
                 self.floaters
                     .skill_point_displays
@@ -2172,7 +2163,7 @@ impl Hud {
                     };
 
                     for floater in floaters {
-                        let number_speed = 250.0; // Single Numbers Speed
+                        let number_speed = 250.0; // Enemy number speed
                         let sct_id = sct_walker
                             .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
                         let sct_bg_id = sct_bg_walker
@@ -4353,22 +4344,28 @@ impl Hud {
         let interface = &global_state.settings.interface;
         match outcome {
             Outcome::ExpChange { uid, exp, xp_pools } => {
-                match self.floaters.exp_floaters.last_mut() {
-                    Some(floater)
-                        if floater.timer > (EXP_FLOATER_LIFETIME - EXP_ACCUMULATION_DURATION)
-                            && floater.owner == *uid =>
-                    {
-                        floater.jump_timer = 0.0;
-                        floater.exp_change += *exp;
-                    },
-                    _ => self.floaters.exp_floaters.push(ExpFloater {
-                        owner: *uid,
-                        exp_change: *exp,
-                        timer: EXP_FLOATER_LIFETIME,
-                        jump_timer: 0.0,
-                        rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
-                        xp_pools: xp_pools.clone(),
-                    }),
+                let ecs = client.state().ecs();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+
+                if uids.get(me).map_or(false, |me| *me == *uid) {
+                    match self.floaters.exp_floaters.last_mut() {
+                        Some(floater)
+                            if floater.timer
+                                > (EXP_FLOATER_LIFETIME - EXP_ACCUMULATION_DURATION)
+                                && global_state.settings.interface.accum_experience =>
+                        {
+                            floater.jump_timer = 0.0;
+                            floater.exp_change += *exp;
+                        },
+                        _ => self.floaters.exp_floaters.push(ExpFloater {
+                            exp_change: *exp,
+                            timer: EXP_FLOATER_LIFETIME,
+                            jump_timer: 0.0,
+                            rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
+                            xp_pools: xp_pools.clone(),
+                        }),
+                    }
                 }
             },
             Outcome::SkillPointGain {
@@ -4395,7 +4392,7 @@ impl Hud {
                     timer: 1.0,
                 })
             },
-            Outcome::Damage { info, .. } => {
+            Outcome::HealthChange { info, .. } => {
                 let ecs = client.state().ecs();
                 let mut hp_floater_lists = ecs.write_storage::<vcomp::HpFloaterList>();
                 let uids = ecs.read_storage::<Uid>();
@@ -4404,7 +4401,9 @@ impl Hud {
 
                 if let Some(entity) = ecs.entity_from_uid(info.target.0) {
                     if let Some(floater_list) = hp_floater_lists.get_mut(entity) {
-                        let hit_me = my_uid.map_or(false, |&uid| info.target == uid);
+                        let hit_me = my_uid.map_or(false, |&uid| {
+                            (info.target == uid) && global_state.settings.interface.sct_inc_dmg
+                        });
                         if match info.by {
                             Some(by) => {
                                 let by_me = my_uid.map_or(false, |&uid| by.uid() == uid);
@@ -4437,26 +4436,27 @@ impl Hud {
 
                             // To separate healing and damage floaters alongside the crit and
                             // non-crit ones
-                            let last_floater = floater_list.floaters.iter_mut().rev().find(|f| {
-                                (if info.amount < 0.0 {
-                                    f.info.amount < 0.0
-                                } else {
-                                    f.info.amount > 0.0
-                                }) && (hit_me
-                                    // Ignore crit floaters if damage isn't incoming
-                                    || !f.info.crit)
-                            });
+                            let last_floater = if !info.crit || hit_me {
+                                floater_list.floaters.iter_mut().rev().find(|f| {
+                                    (if info.amount < 0.0 {
+                                        f.info.amount < 0.0
+                                    } else {
+                                        f.info.amount > 0.0
+                                    }) && f.timer
+                                        < if hit_me {
+                                            interface.sct_inc_dmg_accum_duration
+                                        } else {
+                                            interface.sct_dmg_accum_duration
+                                        }
+                                    // Ignore crit floaters, unless the damage is incoming
+                                    && (hit_me || !f.info.crit)
+                                })
+                            } else {
+                                None
+                            };
 
                             match last_floater {
-                                Some(f)
-                                    if f.timer < if hit_me {
-                                        interface.sct_inc_dmg_accum_duration
-                                    } else {
-                                        interface.sct_dmg_accum_duration
-                                    }
-                                    // To avoid grouping up crits with non-crits
-                                    && (!info.crit || hit_me) =>
-                                {
+                                Some(f) => {
                                     f.jump_timer = 0.0;
                                     f.info.amount += info.amount;
                                     f.info.crit = info.crit;

@@ -23,7 +23,7 @@ use common::{
         Player, Poise, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
-    outcome::{DamageInfo, Outcome},
+    outcome::{HealthChangeInfo, Outcome},
     resources::Time,
     rtsim::RtSimEntity,
     terrain::{Block, BlockKind, TerrainGrid},
@@ -66,22 +66,18 @@ pub fn handle_poise(server: &Server, entity: EcsEntity, change: comp::PoiseChang
 
 pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
-    let outcomes = ecs.write_resource::<EventBus<Outcome>>();
-    let mut outcomes_emitter = outcomes.emitter();
-    let mut changed = false;
-    if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
-        changed = health.change_by(change);
-    }
-    if let (Some(pos), Some(uid)) = (
+    if let (Some(pos), Some(uid), Some(mut health)) = (
         ecs.read_storage::<Pos>().get(entity),
         ecs.read_storage::<Uid>().get(entity),
+        ecs.write_storage::<Health>().get_mut(entity),
     ) {
-        // If the absolute health change amount was greater than the health epsilon,
-        // push a new Damage outcome
-        if changed {
-            outcomes_emitter.emit(Outcome::Damage {
+        let outcomes = ecs.write_resource::<EventBus<Outcome>>();
+        let mut outcomes_emitter = outcomes.emitter();
+        // If the change amount was not zero
+        if health.change_by(change) {
+            outcomes_emitter.emit(Outcome::HealthChange {
                 pos: pos.0,
-                info: DamageInfo {
+                info: HealthChangeInfo {
                     amount: change.amount,
                     by: change.by,
                     target: *uid,

@@ -98,6 +98,7 @@ pub enum Interface {
     Sct(bool),
     SctRoundDamage(bool),
     SctDamageAccumDuration(f32),
+    SctIncomingDamage(bool),
     SctIncomingDamageAccumDuration(f32),
     SpeechBubbleSelf(bool),
     SpeechBubbleDarkMode(bool),
@@ -135,6 +136,7 @@ pub enum Interface {
     MapShowPeaks(bool),
     MapShowBiomes(bool),
     MapShowVoxelMap(bool),
+    AccumExperience(bool),
 
     ResetInterfaceSettings,
 }
@@ -464,6 +466,9 @@ impl SettingsChange {
                     Interface::SctDamageAccumDuration(sct_dmg_accum_duration) => {
                         settings.interface.sct_dmg_accum_duration = sct_dmg_accum_duration;
                     },
+                    Interface::SctIncomingDamage(sct_inc_dmg_accum_duration) => {
+                        settings.interface.sct_inc_dmg = sct_inc_dmg_accum_duration;
+                    },
                     Interface::SctIncomingDamageAccumDuration(sct_inc_dmg_accum_duration) => {
                         settings.interface.sct_inc_dmg_accum_duration = sct_inc_dmg_accum_duration;
                     },
@@ -562,6 +567,9 @@ impl SettingsChange {
                     },
                     Interface::MapShowVoxelMap(map_show_voxel_map) => {
                         settings.interface.map_show_voxel_map = map_show_voxel_map;
+                    },
+                    Interface::AccumExperience(accum_experience) => {
+                        settings.interface.accum_experience = accum_experience;
                     },
                     Interface::ResetInterfaceSettings => {
                         // Reset Interface Settings

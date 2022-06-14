@@ -157,6 +157,7 @@ impl Health {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
+    /// Returns a boolean if the delta was not zero.
     pub fn change_by(&mut self, change: HealthChange) -> bool {
         let prev_health = i64::from(self.current);
         self.current = (((self.current() + change.amount).clamp(0.0, f32::from(Self::MAX_HEALTH))
@@ -185,7 +186,7 @@ impl Health {
                 (change.time.0 - last_damage_time.0) < DAMAGE_CONTRIB_PRUNE_SECS
             });
         }
-        delta.abs() > (Self::HEALTH_EPSILON * Self::SCALING_FACTOR_FLOAT) as i64
+        delta != 0
     }
 
     pub fn damage_contributions(&self) -> impl Iterator<Item = (&DamageContributor, &u64)> {

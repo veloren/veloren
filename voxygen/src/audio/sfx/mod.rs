@@ -514,7 +514,7 @@ impl SfxMgr {
                     false,
                 );
             },
-            Outcome::Damage { pos, info, .. } => {
+            Outcome::HealthChange { pos, info, .. } => {
                 // Don't emit sound effects from positive damage (healing)
                 if info.amount < Health::HEALTH_EPSILON {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Damage);

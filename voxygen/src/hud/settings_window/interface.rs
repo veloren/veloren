@@ -82,6 +82,8 @@ widget_ids! {
         sct_dmg_accum_duration_slider,
         sct_dmg_accum_duration_text,
         sct_dmg_accum_duration_value,
+        sct_show_inc_dmg_text,
+        sct_show_inc_dmg_radio,
         sct_inc_dmg_accum_duration_slider,
         sct_inc_dmg_accum_duration_text,
         sct_inc_dmg_accum_duration_value,
@@ -93,6 +95,10 @@ widget_ids! {
         speech_bubble_dark_mode_button,
         speech_bubble_icon_text,
         speech_bubble_icon_button,
+        //
+        experience_numbers_title,
+        accum_experience_text,
+        accum_experience_button,
     }
 }
 
@@ -710,10 +716,9 @@ impl<'a> Widget for Interface<'a> {
         /*Scrolling Combat text
 
         O Show Damage Numbers
-                O Damage Accumulation Duration: 0s ----I----2s
-            O Show incoming Damage
+            O Damage Accumulation Duration: 0s ----I----2s
+            O Show incoming Damage -- //TODO: add this back
                 O Incoming Damage Accumulation Duration: 0s ----I----2s
-            O Batch incoming Numbers
             O Round Damage Numbers
             */
         // SCT/ Scrolling Combat Text
@@ -796,40 +801,67 @@ impl<'a> Widget for Interface<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.sct_dmg_accum_duration_value, ui);
 
-            Text::new(
-                self.localized_strings
-                    .get("hud.settings.incoming_damage_accumulation_duration"),
+            // Conditionally toggle incoming damage
+            let show_inc_dmg = ToggleButton::new(
+                self.global_state.settings.interface.sct_inc_dmg,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
             )
+            .w_h(18.0, 18.0)
             .down_from(state.ids.sct_dmg_accum_duration_slider, 8.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.sct_inc_dmg_accum_duration_text, ui);
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.sct_show_inc_dmg_radio, ui);
 
-            if let Some(new_val) = ImageSlider::continuous(
-                sct_inc_dmg_accum_duration,
-                0.0,
-                2.0,
-                self.imgs.slider_indicator,
-                self.imgs.slider,
-            )
-            .w_h(104.0, 22.0)
-            .down_from(state.ids.sct_inc_dmg_accum_duration_text, 8.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(state.ids.sct_inc_dmg_accum_duration_slider, ui)
-            {
-                events.push(SctIncomingDamageAccumDuration(new_val));
+            if self.global_state.settings.interface.sct_inc_dmg != show_inc_dmg {
+                events.push(SctIncomingDamage(
+                    !self.global_state.settings.interface.sct_inc_dmg,
+                ))
             }
-
-            Text::new(&format!("{:.2}", sct_inc_dmg_accum_duration,))
-                .right_from(state.ids.sct_inc_dmg_accum_duration_slider, 8.0)
+            Text::new(self.localized_strings.get("hud.settings.incoming_damage"))
+                .right_from(state.ids.sct_show_inc_dmg_radio, 10.0)
                 .font_size(self.fonts.cyri.scale(14))
-                .graphics_for(state.ids.sct_inc_dmg_accum_duration_slider)
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.sct_show_inc_dmg_radio)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_show_inc_dmg_text, ui);
+            if self.global_state.settings.interface.sct_inc_dmg {
+                Text::new(
+                    self.localized_strings
+                        .get("hud.settings.incoming_damage_accumulation_duration"),
+                )
+                .down_from(state.ids.sct_show_inc_dmg_radio, 8.0)
+                .right_from(state.ids.sct_show_inc_dmg_radio, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
-                .set(state.ids.sct_inc_dmg_accum_duration_value, ui);
+                .set(state.ids.sct_inc_dmg_accum_duration_text, ui);
+
+                if let Some(new_val) = ImageSlider::continuous(
+                    sct_inc_dmg_accum_duration,
+                    0.0,
+                    2.0,
+                    self.imgs.slider_indicator,
+                    self.imgs.slider,
+                )
+                .w_h(104.0, 22.0)
+                .down_from(state.ids.sct_inc_dmg_accum_duration_text, 8.0)
+                .track_breadth(12.0)
+                .slider_length(10.0)
+                .pad_track((5.0, 5.0))
+                .set(state.ids.sct_inc_dmg_accum_duration_slider, ui)
+                {
+                    events.push(SctIncomingDamageAccumDuration(new_val));
+                }
+
+                Text::new(&format!("{:.2}", sct_inc_dmg_accum_duration,))
+                    .right_from(state.ids.sct_inc_dmg_accum_duration_slider, 8.0)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .graphics_for(state.ids.sct_inc_dmg_accum_duration_slider)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.sct_inc_dmg_accum_duration_value, ui);
+            }
 
             // Round Damage
             let show_sct_damage_rounding = ToggleButton::new(
@@ -838,7 +870,15 @@ impl<'a> Widget for Interface<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .down_from(state.ids.sct_inc_dmg_accum_duration_slider, 8.0)
+            .down_from(
+                if self.global_state.settings.interface.sct_inc_dmg {
+                    state.ids.sct_inc_dmg_accum_duration_slider
+                } else {
+                    state.ids.sct_show_inc_dmg_radio
+                },
+                8.0,
+            )
+            .x_align_to(state.ids.sct_show_inc_dmg_radio, Align::Start)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.sct_round_dmg_radio, ui);
@@ -1071,6 +1111,46 @@ impl<'a> Widget for Interface<'a> {
             .graphics_for(state.ids.always_show_bars_button)
             .color(TEXT_COLOR)
             .set(state.ids.always_show_bars_label, ui);
+
+        // Experience Numbers
+        Text::new(
+            self.localized_strings
+                .get("hud.settings.experience_numbers"),
+        )
+        .down_from(state.ids.always_show_bars_button, 20.0)
+        .font_size(self.fonts.cyri.scale(18))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.experience_numbers_title, ui);
+
+        // Acuumulate Experience Gained
+        let accum_experience = ToggleButton::new(
+            self.global_state.settings.interface.accum_experience,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.experience_numbers_title, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.accum_experience_button, ui);
+
+        if self.global_state.settings.interface.accum_experience != accum_experience {
+            events.push(AccumExperience(
+                !self.global_state.settings.interface.accum_experience,
+            ));
+        }
+
+        Text::new(
+            self.localized_strings
+                .get("hud.settings.accumulate_experience"),
+        )
+        .right_from(state.ids.accum_experience_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.accum_experience_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.accum_experience_text, ui);
 
         // Reset the interface settings to the default settings
         if Button::image(self.imgs.button)

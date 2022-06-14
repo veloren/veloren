@@ -1,4 +1,4 @@
-use common::{comp::Ori, outcome::DamageInfo};
+use common::{comp::Ori, outcome::HealthChangeInfo};
 use specs::Component;
 use specs_idvs::IdvStorage;
 use vek::*;
@@ -10,7 +10,7 @@ pub struct HpFloater {
     pub timer: f32,
     // Used for the "jumping" animation of the HpFloater whenever it changes it's value
     pub jump_timer: f32,
-    pub info: DamageInfo,
+    pub info: HealthChangeInfo,
     // Used for randomly offsetting
     pub rand: f32,
 }

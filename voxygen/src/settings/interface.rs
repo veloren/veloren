@@ -17,6 +17,7 @@ pub struct InterfaceSettings {
     pub sct: bool,
     pub sct_damage_rounding: bool,
     pub sct_dmg_accum_duration: f32,
+    pub sct_inc_dmg: bool,
     pub sct_inc_dmg_accum_duration: f32,
     pub speech_bubble_self: bool,
     pub speech_bubble_dark_mode: bool,
@@ -45,6 +46,7 @@ pub struct InterfaceSettings {
     pub minimap_show: bool,
     pub minimap_face_north: bool,
     pub minimap_zoom: f64,
+    pub accum_experience: bool,
 }
 
 impl Default for InterfaceSettings {
@@ -58,6 +60,7 @@ impl Default for InterfaceSettings {
             sct: true,
             sct_damage_rounding: false,
             sct_dmg_accum_duration: 0.45,
+            sct_inc_dmg: true,
             sct_inc_dmg_accum_duration: 0.45,
             speech_bubble_self: true,
             speech_bubble_dark_mode: false,
@@ -86,6 +89,7 @@ impl Default for InterfaceSettings {
             minimap_show: true,
             minimap_face_north: true,
             minimap_zoom: 160.0,
+            accum_experience: true,
         }
     }
 }
