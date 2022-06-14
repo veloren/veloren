@@ -48,6 +48,7 @@ use common::{
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
+use itertools::Itertools;
 use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
 use specs::{Entity as EcsEntity, Join, ParJoin, Read, WriteExpect, WriteStorage};
@@ -748,10 +749,43 @@ impl<'a> AgentData<'a> {
         agent.action_state.timer = 0.0;
         let mut aggro_on = false;
 
+        // Search the area.
+        // TODO: choose target by more than just distance
+        let common::CachedSpatialGrid(grid) = self.cached_spatial_grid;
+
+        let entities_nearby = grid
+            .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
+            .collect_vec();
+
+        let can_ambush = |entity: EcsEntity, read_data: &ReadData| {
+            let self_different_from_entity = || {
+                read_data
+                    .uids
+                    .get(entity)
+                    .map_or(false, |eu| eu != self.uid)
+            };
+            if self.will_ambush()
+                && self_different_from_entity()
+                && !self.passive_towards(entity, read_data)
+            {
+                let surrounding_humanoids = entities_nearby
+                    .iter()
+                    .filter(|e| read_data.bodies.get(**e).map_or(false, |b| b.is_humanoid()))
+                    .collect_vec();
+                surrounding_humanoids.len() == 2
+                    && surrounding_humanoids.iter().any(|e| **e == entity)
+            } else {
+                false
+            }
+        };
+
         let get_pos = |entity| read_data.positions.get(entity);
         let get_enemy = |(entity, attack_target): (EcsEntity, bool)| {
             if attack_target {
                 if self.is_enemy(entity, read_data) {
+                    Some((entity, true))
+                } else if can_ambush(entity, read_data) {
+                    aggro_on = true;
                     Some((entity, true))
                 } else if self.should_defend(entity, read_data) {
                     if let Some(attacker) = get_attacker(entity, read_data) {
@@ -822,13 +856,9 @@ impl<'a> AgentData<'a> {
                 || self.can_see_entity(agent, controller, entity, e_pos, read_data)
         };
 
-        // Search the area.
-        // TODO: choose target by more than just distance
-        let common::CachedSpatialGrid(grid) = self.cached_spatial_grid;
-
-        let target = grid
-            .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
-            .filter_map(is_valid_target)
+        let target = entities_nearby
+            .iter()
+            .filter_map(|e| is_valid_target(*e))
             .filter_map(get_enemy)
             .filter_map(|(entity, attack_target)| {
                 get_pos(entity).map(|pos| (entity, pos, attack_target))
@@ -1630,6 +1660,14 @@ impl<'a> AgentData<'a> {
             && (are_our_owners_hostile(self.alignment, other_alignment, read_data)
                 || self.remembers_fight_with(entity, read_data)
                 || (is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)))
+    }
+
+    fn will_ambush(&self) -> bool {
+        self.health
+            .map_or(false, |h| h.current() / h.maximum() > 0.7)
+            && self
+                .rtsim_entity
+                .map_or(false, |re| re.brain.personality.will_ambush)
     }
 
     fn should_defend(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
