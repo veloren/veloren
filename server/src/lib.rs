@@ -73,7 +73,7 @@ use common::{
     assets::AssetExt,
     calendar::Calendar,
     character::CharacterId,
-    cmd::ChatCommand,
+    cmd::ServerChatCommand,
     comp,
     event::{EventBus, ServerEvent},
     recipe::{default_component_recipe_book, default_recipe_book},
@@ -1210,7 +1210,7 @@ impl Server {
 
     fn process_command(&mut self, entity: EcsEntity, name: String, args: Vec<String>) {
         // Find the command object and run its handler.
-        if let Ok(command) = name.parse::<ChatCommand>() {
+        if let Ok(command) = name.parse::<ServerChatCommand>() {
             command.execute(self, entity, args);
         } else {
             #[cfg(feature = "plugins")]

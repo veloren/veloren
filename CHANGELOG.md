@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
+- Chat commands to mute and unmute players
 - Waypoints saved between sessions and shared with group members.
 - New rocks
 - Weapon trails

@@ -14,6 +14,7 @@ use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
+    uuid::Uuid,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -229,6 +230,7 @@ pub struct PlayerInfo {
     pub is_online: bool,
     pub player_alias: String,
     pub character: Option<CharacterInfo>,
+    pub uuid: Uuid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

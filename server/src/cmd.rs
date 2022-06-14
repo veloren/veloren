@@ -21,7 +21,7 @@ use common::{
     assets,
     calendar::Calendar,
     cmd::{
-        ChatCommand, KitSpec, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH,
+        KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH,
         PRESET_MANIFEST_PATH,
     },
     comp::{
@@ -39,6 +39,7 @@ use common::{
     link::Is,
     mounting::Rider,
     npc::{self, get_npc_name},
+    parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
@@ -68,7 +69,7 @@ use tracing::{error, info, warn};
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>);
 }
-impl ChatCommandExt for ChatCommand {
+impl ChatCommandExt for ServerChatCommand {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>) {
         if let Err(err) = do_command(server, entity, entity, args, self) {
             server.notify_client(
@@ -100,14 +101,14 @@ type CmdResult<T> = Result<T, String>;
 /// failed; on failure, the string is sent to the client who initiated the
 /// command.
 type CommandHandler =
-    fn(&mut Server, EcsEntity, EcsEntity, Vec<String>, &ChatCommand) -> CmdResult<()>;
+    fn(&mut Server, EcsEntity, EcsEntity, Vec<String>, &ServerChatCommand) -> CmdResult<()>;
 
 fn do_command(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    cmd: &ChatCommand,
+    cmd: &ServerChatCommand,
 ) -> CmdResult<()> {
     // Make sure your role is at least high enough to execute this command.
     if cmd.needs_role() > server.entity_admin_role(client) {
@@ -118,77 +119,77 @@ fn do_command(
     }
 
     let handler: CommandHandler = match cmd {
-        ChatCommand::Adminify => handle_adminify,
-        ChatCommand::Airship => handle_spawn_airship,
-        ChatCommand::Alias => handle_alias,
-        ChatCommand::ApplyBuff => handle_apply_buff,
-        ChatCommand::Ban => handle_ban,
-        ChatCommand::BattleMode => handle_battlemode,
-        ChatCommand::BattleModeForce => handle_battlemode_force,
-        ChatCommand::Build => handle_build,
-        ChatCommand::BuildAreaAdd => handle_build_area_add,
-        ChatCommand::BuildAreaList => handle_build_area_list,
-        ChatCommand::BuildAreaRemove => handle_build_area_remove,
-        ChatCommand::Campfire => handle_spawn_campfire,
-        ChatCommand::DebugColumn => handle_debug_column,
-        ChatCommand::DisconnectAllPlayers => handle_disconnect_all_players,
-        ChatCommand::DropAll => handle_drop_all,
-        ChatCommand::Dummy => handle_spawn_training_dummy,
-        ChatCommand::Explosion => handle_explosion,
-        ChatCommand::Faction => handle_faction,
-        ChatCommand::GiveItem => handle_give_item,
-        ChatCommand::Goto => handle_goto,
-        ChatCommand::Group => handle_group,
-        ChatCommand::GroupInvite => handle_group_invite,
-        ChatCommand::GroupKick => handle_group_kick,
-        ChatCommand::GroupLeave => handle_group_leave,
-        ChatCommand::GroupPromote => handle_group_promote,
-        ChatCommand::Health => handle_health,
-        ChatCommand::Help => handle_help,
-        ChatCommand::Home => handle_home,
-        ChatCommand::JoinFaction => handle_join_faction,
-        ChatCommand::Jump => handle_jump,
-        ChatCommand::Kick => handle_kick,
-        ChatCommand::Kill => handle_kill,
-        ChatCommand::KillNpcs => handle_kill_npcs,
-        ChatCommand::Kit => handle_kit,
-        ChatCommand::Lantern => handle_lantern,
-        ChatCommand::Light => handle_light,
-        ChatCommand::MakeBlock => handle_make_block,
-        ChatCommand::MakeNpc => handle_make_npc,
-        ChatCommand::MakeSprite => handle_make_sprite,
-        ChatCommand::Motd => handle_motd,
-        ChatCommand::Object => handle_object,
-        ChatCommand::PermitBuild => handle_permit_build,
-        ChatCommand::Players => handle_players,
-        ChatCommand::Region => handle_region,
-        ChatCommand::ReloadChunks => handle_reload_chunks,
-        ChatCommand::RemoveLights => handle_remove_lights,
-        ChatCommand::RevokeBuild => handle_revoke_build,
-        ChatCommand::RevokeBuildAll => handle_revoke_build_all,
-        ChatCommand::Safezone => handle_safezone,
-        ChatCommand::Say => handle_say,
-        ChatCommand::ServerPhysics => handle_server_physics,
-        ChatCommand::SetMotd => handle_set_motd,
-        ChatCommand::Ship => handle_spawn_ship,
-        ChatCommand::Site => handle_site,
-        ChatCommand::SkillPoint => handle_skill_point,
-        ChatCommand::SkillPreset => handle_skill_preset,
-        ChatCommand::Spawn => handle_spawn,
-        ChatCommand::Sudo => handle_sudo,
-        ChatCommand::Tell => handle_tell,
-        ChatCommand::Time => handle_time,
-        ChatCommand::Tp => handle_tp,
-        ChatCommand::Unban => handle_unban,
-        ChatCommand::Version => handle_version,
-        ChatCommand::Waypoint => handle_waypoint,
-        ChatCommand::Wiring => handle_spawn_wiring,
-        ChatCommand::Whitelist => handle_whitelist,
-        ChatCommand::World => handle_world,
-        ChatCommand::MakeVolume => handle_make_volume,
-        ChatCommand::Location => handle_location,
-        ChatCommand::CreateLocation => handle_create_location,
-        ChatCommand::DeleteLocation => handle_delete_location,
+        ServerChatCommand::Adminify => handle_adminify,
+        ServerChatCommand::Airship => handle_spawn_airship,
+        ServerChatCommand::Alias => handle_alias,
+        ServerChatCommand::ApplyBuff => handle_apply_buff,
+        ServerChatCommand::Ban => handle_ban,
+        ServerChatCommand::BattleMode => handle_battlemode,
+        ServerChatCommand::BattleModeForce => handle_battlemode_force,
+        ServerChatCommand::Build => handle_build,
+        ServerChatCommand::BuildAreaAdd => handle_build_area_add,
+        ServerChatCommand::BuildAreaList => handle_build_area_list,
+        ServerChatCommand::BuildAreaRemove => handle_build_area_remove,
+        ServerChatCommand::Campfire => handle_spawn_campfire,
+        ServerChatCommand::DebugColumn => handle_debug_column,
+        ServerChatCommand::DisconnectAllPlayers => handle_disconnect_all_players,
+        ServerChatCommand::DropAll => handle_drop_all,
+        ServerChatCommand::Dummy => handle_spawn_training_dummy,
+        ServerChatCommand::Explosion => handle_explosion,
+        ServerChatCommand::Faction => handle_faction,
+        ServerChatCommand::GiveItem => handle_give_item,
+        ServerChatCommand::Goto => handle_goto,
+        ServerChatCommand::Group => handle_group,
+        ServerChatCommand::GroupInvite => handle_group_invite,
+        ServerChatCommand::GroupKick => handle_group_kick,
+        ServerChatCommand::GroupLeave => handle_group_leave,
+        ServerChatCommand::GroupPromote => handle_group_promote,
+        ServerChatCommand::Health => handle_health,
+        ServerChatCommand::Help => handle_help,
+        ServerChatCommand::Home => handle_home,
+        ServerChatCommand::JoinFaction => handle_join_faction,
+        ServerChatCommand::Jump => handle_jump,
+        ServerChatCommand::Kick => handle_kick,
+        ServerChatCommand::Kill => handle_kill,
+        ServerChatCommand::KillNpcs => handle_kill_npcs,
+        ServerChatCommand::Kit => handle_kit,
+        ServerChatCommand::Lantern => handle_lantern,
+        ServerChatCommand::Light => handle_light,
+        ServerChatCommand::MakeBlock => handle_make_block,
+        ServerChatCommand::MakeNpc => handle_make_npc,
+        ServerChatCommand::MakeSprite => handle_make_sprite,
+        ServerChatCommand::Motd => handle_motd,
+        ServerChatCommand::Object => handle_object,
+        ServerChatCommand::PermitBuild => handle_permit_build,
+        ServerChatCommand::Players => handle_players,
+        ServerChatCommand::Region => handle_region,
+        ServerChatCommand::ReloadChunks => handle_reload_chunks,
+        ServerChatCommand::RemoveLights => handle_remove_lights,
+        ServerChatCommand::RevokeBuild => handle_revoke_build,
+        ServerChatCommand::RevokeBuildAll => handle_revoke_build_all,
+        ServerChatCommand::Safezone => handle_safezone,
+        ServerChatCommand::Say => handle_say,
+        ServerChatCommand::ServerPhysics => handle_server_physics,
+        ServerChatCommand::SetMotd => handle_set_motd,
+        ServerChatCommand::Ship => handle_spawn_ship,
+        ServerChatCommand::Site => handle_site,
+        ServerChatCommand::SkillPoint => handle_skill_point,
+        ServerChatCommand::SkillPreset => handle_skill_preset,
+        ServerChatCommand::Spawn => handle_spawn,
+        ServerChatCommand::Sudo => handle_sudo,
+        ServerChatCommand::Tell => handle_tell,
+        ServerChatCommand::Time => handle_time,
+        ServerChatCommand::Tp => handle_tp,
+        ServerChatCommand::Unban => handle_unban,
+        ServerChatCommand::Version => handle_version,
+        ServerChatCommand::Waypoint => handle_waypoint,
+        ServerChatCommand::Wiring => handle_spawn_wiring,
+        ServerChatCommand::Whitelist => handle_whitelist,
+        ServerChatCommand::World => handle_world,
+        ServerChatCommand::MakeVolume => handle_make_volume,
+        ServerChatCommand::Location => handle_location,
+        ServerChatCommand::CreateLocation => handle_create_location,
+        ServerChatCommand::DeleteLocation => handle_delete_location,
     };
 
     handler(server, client, target, args, cmd)
@@ -440,43 +441,12 @@ fn edit_setting_feedback<S: EditableSetting>(
     }
 }
 
-/// Parse a series of command arguments into values, including collecting all
-/// trailing arguments.
-macro_rules! parse_args {
-    ($args:expr, $($t:ty),* $(, ..$tail:ty)? $(,)?) => {
-        {
-            let mut args = $args.into_iter().peekable();
-            (
-                // We only consume the input argument when parsing is successful. If this fails, we
-                // will then attempt to parse it as the next argument type. This is done regardless
-                // of whether the argument is optional because that information is not available
-                // here. Nevertheless, if the caller only precedes to use the parsed arguments when
-                // all required arguments parse successfully to `Some(val)` this should not create
-                // any unexpected behavior.
-                //
-                // This does mean that optional arguments will be included in the trailing args or
-                // that one optional arg could be interpreted as another, if the user makes a
-                // mistake that causes an optional arg to fail to parse. But there is no way to
-                // discern this in the current model with the optional args and trailing arg being
-                // solely position based.
-                $({
-                    let parsed = args.peek().and_then(|s| s.parse::<$t>().ok());
-                    // Consume successfully parsed arg.
-                    if parsed.is_some() { args.next(); }
-                    parsed
-                }),*
-                $(, args.map(|s| s.to_string()).collect::<$tail>())?
-            )
-        }
-    };
-}
-
 fn handle_drop_all(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
 
@@ -518,9 +488,9 @@ fn handle_give_item(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(item_name), give_amount_opt) = parse_args!(args, String, u32) {
+    if let (Some(item_name), give_amount_opt) = parse_cmd_args!(args, String, u32) {
         let give_amount = give_amount_opt.unwrap_or(1);
         if let Ok(item) = Item::new_from_asset(&item_name.replace('/', ".").replace('\\', ".")) {
             let mut item: Item = item;
@@ -592,9 +562,9 @@ fn handle_make_block(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(block_name), r, g, b) = parse_args!(args, String, u8, u8, u8) {
+    if let (Some(block_name), r, g, b) = parse_cmd_args!(args, String, u8, u8, u8) {
         if let Ok(bk) = BlockKind::from_str(block_name.as_str()) {
             let pos = position(server, target, "target")?;
             let new_block = Block::new(bk, Rgb::new(r, g, b).map(|e| e.unwrap_or(255)));
@@ -623,9 +593,9 @@ fn handle_make_npc(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let (entity_config, number) = parse_args!(args, String, i8);
+    let (entity_config, number) = parse_cmd_args!(args, String, i8);
 
     let entity_config = entity_config.ok_or_else(|| action.help_string())?;
     let number = match number {
@@ -716,9 +686,9 @@ fn handle_make_sprite(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(sprite_name) = parse_args!(args, String) {
+    if let Some(sprite_name) = parse_cmd_args!(args, String) {
         if let Ok(sk) = SpriteKind::try_from(sprite_name.as_str()) {
             let pos = position(server, target, "target")?;
             let pos = pos.0.map(|e| e.floor() as i32);
@@ -752,7 +722,7 @@ fn handle_motd(
     client: EcsEntity,
     _target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     server.notify_client(
         client,
@@ -769,14 +739,14 @@ fn handle_set_motd(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let data_dir = server.data_dir();
     let client_uuid = uuid(server, client, "client")?;
     // Ensure the person setting this has a real role in the settings file, since
     // it's persistent.
     let _client_real_role = real_role(server, client_uuid, "client")?;
-    match parse_args!(args, String) {
+    match parse_cmd_args!(args, String) {
         Some(msg) => {
             let edit =
                 server
@@ -814,9 +784,9 @@ fn handle_jump(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(x), Some(y), Some(z)) = parse_args!(args, f32, f32, f32) {
+    if let (Some(x), Some(y), Some(z)) = parse_cmd_args!(args, f32, f32, f32) {
         position_mut(server, target, "target", |current_pos| {
             current_pos.0 += Vec3::new(x, y, z)
         })
@@ -830,9 +800,9 @@ fn handle_goto(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(x), Some(y), Some(z)) = parse_args!(args, f32, f32, f32) {
+    if let (Some(x), Some(y), Some(z)) = parse_cmd_args!(args, f32, f32, f32) {
         position_mut(server, target, "target", |current_pos| {
             current_pos.0 = Vec3::new(x, y, z)
         })
@@ -848,10 +818,10 @@ fn handle_site(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     #[cfg(feature = "worldgen")]
-    if let Some(dest_name) = parse_args!(args, String) {
+    if let Some(dest_name) = parse_cmd_args!(args, String) {
         let site = server
             .world
             .civs()
@@ -884,7 +854,7 @@ fn handle_home(
     _client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let home_pos = server.state.mut_resource::<SpawnPoint>().0;
     let time = *server.state.mut_resource::<common::resources::Time>();
@@ -905,7 +875,7 @@ fn handle_kill(
     _client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     server
         .state
@@ -921,7 +891,7 @@ fn handle_time(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     const DAY: u64 = 86400;
 
@@ -940,7 +910,7 @@ fn handle_time(
             }
     };
 
-    let time = parse_args!(args, String);
+    let time = parse_cmd_args!(args, String);
     let new_time = match time.as_deref() {
         Some("midnight") => {
             next_cycle(NaiveTime::from_hms(0, 0, 0).num_seconds_from_midnight() as f64)
@@ -1072,9 +1042,9 @@ fn handle_health(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(hp) = parse_args!(args, f32) {
+    if let Some(hp) = parse_cmd_args!(args, f32) {
         if let Some(mut health) = server
             .state
             .ecs()
@@ -1103,9 +1073,9 @@ fn handle_alias(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(alias) = parse_args!(args, String) {
+    if let Some(alias) = parse_cmd_args!(args, String) {
         // Prevent silly aliases
         comp::Player::alias_validate(&alias).map_err(|e| e.to_string())?;
 
@@ -1155,9 +1125,9 @@ fn handle_tp(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let player = if let Some(alias) = parse_args!(args, String) {
+    let player = if let Some(alias) = parse_cmd_args!(args, String) {
         find_alias(server.state.ecs(), &alias)?.0
     } else if client != target {
         client
@@ -1175,9 +1145,9 @@ fn handle_spawn(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    match parse_args!(args, String, npc::NpcBody, u32, bool) {
+    match parse_cmd_args!(args, String, npc::NpcBody, u32, bool) {
         (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai) => {
             let uid = uid(server, target, "target")?;
             let alignment = parse_alignment(uid, &opt_align)?;
@@ -1269,7 +1239,7 @@ fn handle_spawn_training_dummy(
     client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
     let vel = Vec3::new(
@@ -1311,9 +1281,9 @@ fn handle_spawn_airship(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let angle = parse_args!(args, f32);
+    let angle = parse_cmd_args!(args, f32);
     let mut pos = position(server, target, "target")?;
     pos.0.z += 50.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
@@ -1359,9 +1329,9 @@ fn handle_spawn_ship(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let angle = parse_args!(args, f32);
+    let angle = parse_cmd_args!(args, f32);
     let mut pos = position(server, target, "target")?;
     pos.0.z += 50.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
@@ -1407,7 +1377,7 @@ fn handle_make_volume(
     client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use comp::body::ship::figuredata::VoxelCollider;
 
@@ -1447,7 +1417,7 @@ fn handle_spawn_campfire(
     client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
     server
@@ -1498,9 +1468,9 @@ fn handle_safezone(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let range = parse_args!(args, f32);
+    let range = parse_cmd_args!(args, f32);
     let pos = position(server, target, "target")?;
     server.state.create_safezone(range, pos).build();
 
@@ -1516,9 +1486,9 @@ fn handle_permit_build(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(area_name) = parse_args!(args, String) {
+    if let Some(area_name) = parse_cmd_args!(args, String) {
         let bb_id = area(server, &area_name)?;
         let mut can_build = server.state.ecs().write_storage::<comp::CanBuild>();
         let entry = can_build
@@ -1557,9 +1527,9 @@ fn handle_revoke_build(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(area_name) = parse_args!(args, String) {
+    if let Some(area_name) = parse_cmd_args!(args, String) {
         let bb_id = area(server, &area_name)?;
         let mut can_build = server.state.ecs_mut().write_storage::<comp::CanBuild>();
         if let Some(mut comp_can_build) = can_build.get_mut(target) {
@@ -1595,7 +1565,7 @@ fn handle_revoke_build_all(
     client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
 
@@ -1621,7 +1591,7 @@ fn handle_players(
     client: EcsEntity,
     _target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
 
@@ -1649,7 +1619,7 @@ fn handle_build(
     client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let Some(mut can_build) = server
         .state
@@ -1689,10 +1659,10 @@ fn handle_build_area_add(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let (Some(area_name), Some(xlo), Some(xhi), Some(ylo), Some(yhi), Some(zlo), Some(zhi)) =
-        parse_args!(args, String, i32, i32, i32, i32, i32, i32)
+        parse_cmd_args!(args, String, i32, i32, i32, i32, i32, i32)
     {
         let build_areas = server.state.mut_resource::<BuildAreas>();
         let msg = ServerGeneral::server_msg(
@@ -1717,7 +1687,7 @@ fn handle_build_area_list(
     client: EcsEntity,
     _target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let build_areas = server.state.mut_resource::<BuildAreas>();
     let msg = ServerGeneral::server_msg(
@@ -1743,9 +1713,9 @@ fn handle_build_area_remove(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(area_name) = parse_args!(args, String) {
+    if let Some(area_name) = parse_cmd_args!(args, String) {
         let build_areas = server.state.mut_resource::<BuildAreas>();
 
         build_areas.remove(&area_name).map_err(|err| match err {
@@ -1773,9 +1743,9 @@ fn handle_help(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(cmd) = parse_args!(args, ChatCommand) {
+    if let Some(cmd) = parse_cmd_args!(args, ServerChatCommand) {
         server.notify_client(
             client,
             ServerGeneral::server_msg(ChatType::CommandInfo, cmd.help_string()),
@@ -1785,14 +1755,14 @@ fn handle_help(
         let entity_role = server.entity_admin_role(client);
 
         // Iterate through all commands you have permission to use.
-        ChatCommand::iter()
+        ServerChatCommand::iter()
             .filter(|cmd| cmd.needs_role() <= entity_role)
             .for_each(|cmd| {
                 message += &cmd.help_string();
                 message += "\n";
             });
         message += "Additionally, you can use the following shortcuts:";
-        ChatCommand::iter()
+        ServerChatCommand::iter()
             .filter_map(|cmd| cmd.short_keyword().map(|k| (k, cmd)))
             .for_each(|(k, cmd)| {
                 message += &format!(" /{} => /{}", k, cmd.keyword());
@@ -1821,9 +1791,9 @@ fn handle_kill_npcs(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let kill_pets = if let Some(kill_option) = parse_args!(args, String) {
+    let kill_pets = if let Some(kill_option) = parse_cmd_args!(args, String) {
         kill_option.contains("--also-pets")
     } else {
         false
@@ -1869,7 +1839,7 @@ fn handle_kit(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use common::cmd::KitManifest;
 
@@ -1879,7 +1849,7 @@ fn handle_kit(
             ServerGeneral::server_msg(ChatType::CommandInfo, format!("Gave kit: {}", kit_name)),
         );
     };
-    let name = parse_args!(args, String).ok_or_else(|| action.help_string())?;
+    let name = parse_cmd_args!(args, String).ok_or_else(|| action.help_string())?;
 
     match name.as_str() {
         "all" => {
@@ -1989,9 +1959,9 @@ fn handle_object(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let obj_type = parse_args!(args, String);
+    let obj_type = parse_cmd_args!(args, String);
 
     let pos = position(server, target, "target")?;
     let ori = server
@@ -2048,10 +2018,10 @@ fn handle_light(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let (opt_r, opt_g, opt_b, opt_x, opt_y, opt_z, opt_s) =
-        parse_args!(args, f32, f32, f32, f32, f32, f32, f32);
+        parse_cmd_args!(args, f32, f32, f32, f32, f32, f32, f32);
 
     let mut light_emitter = comp::LightEmitter::default();
     let mut light_offset_opt = None;
@@ -2101,9 +2071,9 @@ fn handle_lantern(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(s), r, g, b) = parse_args!(args, f32, f32, f32, f32) {
+    if let (Some(s), r, g, b) = parse_cmd_args!(args, f32, f32, f32, f32) {
         if let Some(mut light) = server
             .state
             .ecs()
@@ -2148,9 +2118,9 @@ fn handle_explosion(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let power = parse_args!(args, f32).unwrap_or(8.0);
+    let power = parse_cmd_args!(args, f32).unwrap_or(8.0);
 
     const MIN_POWER: f32 = 0.0;
     const MAX_POWER: f32 = 512.0;
@@ -2202,7 +2172,7 @@ fn handle_waypoint(
     client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
     let time = *server.state.mut_resource::<common::resources::Time>();
@@ -2228,7 +2198,7 @@ fn handle_spawn_wiring(
     client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     // Obviously it is a WIP - use it for debug
 
@@ -2397,9 +2367,9 @@ fn handle_adminify(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(alias), desired_role) = parse_args!(args, String, String) {
+    if let (Some(alias), desired_role) = parse_cmd_args!(args, String, String) {
         let desired_role = if let Some(mut desired_role) = desired_role {
             desired_role.make_ascii_lowercase();
             Some(match &*desired_role {
@@ -2507,11 +2477,11 @@ fn handle_tell(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
-    if let (Some(alias), message_opt) = parse_args!(args, String, ..Vec<String>) {
+    if let (Some(alias), message_opt) = parse_cmd_args!(args, String, ..Vec<String>) {
         let ecs = server.state.ecs();
         let player = find_alias(ecs, &alias)?.0;
 
@@ -2540,7 +2510,7 @@ fn handle_faction(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
@@ -2567,7 +2537,7 @@ fn handle_group(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
@@ -2594,9 +2564,9 @@ fn handle_group_invite(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(target_alias) = parse_args!(args, String) {
+    if let Some(target_alias) = parse_cmd_args!(args, String) {
         let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
         let uid = uid(server, target_player, "player")?;
 
@@ -2633,10 +2603,10 @@ fn handle_group_kick(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     // Checking if leader is already done in group_manip
-    if let Some(target_alias) = parse_args!(args, String) {
+    if let Some(target_alias) = parse_cmd_args!(args, String) {
         let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
         let uid = uid(server, target_player, "player")?;
 
@@ -2655,7 +2625,7 @@ fn handle_group_leave(
     _client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     server
         .state
@@ -2669,10 +2639,10 @@ fn handle_group_promote(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     // Checking if leader is already done in group_manip
-    if let Some(target_alias) = parse_args!(args, String) {
+    if let Some(target_alias) = parse_cmd_args!(args, String) {
         let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
         let uid = uid(server, target_player, "player")?;
 
@@ -2694,7 +2664,7 @@ fn handle_region(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
@@ -2715,7 +2685,7 @@ fn handle_say(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
@@ -2736,7 +2706,7 @@ fn handle_world(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
 
@@ -2757,12 +2727,12 @@ fn handle_join_faction(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let players = server.state.ecs().read_storage::<comp::Player>();
     if let Some(alias) = players.get(target).map(|player| player.alias.clone()) {
         drop(players);
-        let (faction_leave, mode) = if let Some(faction) = parse_args!(args, String) {
+        let (faction_leave, mode) = if let Some(faction) = parse_cmd_args!(args, String) {
             let mode = comp::ChatMode::Faction(faction.clone());
             insert_or_replace_component(server, target, mode.clone(), "target")?;
             let faction_join = server
@@ -2808,7 +2778,7 @@ fn handle_debug_column(
     client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     Err("Unsupported without worldgen enabled".into())
 }
@@ -2819,12 +2789,12 @@ fn handle_debug_column(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let sim = server.world.sim();
     let calendar = (*server.state.ecs().read_resource::<Calendar>()).clone();
     let sampler = server.world.sample_columns();
-    let wpos = if let (Some(x), Some(y)) = parse_args!(args, i32, i32) {
+    let wpos = if let (Some(x), Some(y)) = parse_cmd_args!(args, i32, i32) {
         Vec2::new(x, y)
     } else {
         let pos = position(server, target, "target")?;
@@ -2895,13 +2865,13 @@ fn handle_disconnect_all_players(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let client_uuid = uuid(server, client, "client")?;
     // Make sure temporary mods/admins can't run this command.
     let _role = real_role(server, client_uuid, "role")?;
 
-    if parse_args!(args, String).as_deref() != Some("confirm") {
+    if parse_cmd_args!(args, String).as_deref() != Some("confirm") {
         return Err(
             "Please run the command again with the second argument of \"confirm\" to confirm that \
              you really want to disconnect all players from the server"
@@ -2939,9 +2909,9 @@ fn handle_skill_point(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(a_skill_tree), Some(sp), a_alias) = parse_args!(args, String, u16, String) {
+    if let (Some(a_skill_tree), Some(sp), a_alias) = parse_cmd_args!(args, String, u16, String) {
         let skill_tree = parse_skill_tree(&a_skill_tree)?;
         let player = a_alias
             .map(|alias| find_alias(server.state.ecs(), &alias).map(|(target, _)| target))
@@ -2983,7 +2953,7 @@ fn handle_reload_chunks(
     _client: EcsEntity,
     _target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     server.state.clear_terrain();
 
@@ -2995,9 +2965,9 @@ fn handle_remove_lights(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let opt_radius = parse_args!(args, f32);
+    let opt_radius = parse_cmd_args!(args, f32);
     let player_pos = position(server, target, "target")?;
     let mut to_delete = vec![];
 
@@ -3039,10 +3009,10 @@ fn handle_sudo(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let (Some(player_alias), Some(cmd), cmd_args) =
-        parse_args!(args, String, String, ..Vec<String>)
+        parse_cmd_args!(args, String, String, ..Vec<String>)
     {
         if let Ok(action) = cmd.parse() {
             let (player, player_uuid) = find_alias(server.state.ecs(), &player_alias)?;
@@ -3071,7 +3041,7 @@ fn handle_version(
     client: EcsEntity,
     _target: EcsEntity,
     _args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     server.notify_client(
         client,
@@ -3092,11 +3062,11 @@ fn handle_whitelist(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let now = Utc::now();
 
-    if let (Some(whitelist_action), Some(username)) = parse_args!(args, String, String) {
+    if let (Some(whitelist_action), Some(username)) = parse_cmd_args!(args, String, String) {
         let client_uuid = uuid(server, client, "client")?;
         let client_username = uuid_to_username(server, client, client_uuid)?;
         let client_role = real_role(server, client_uuid, "client")?;
@@ -3190,9 +3160,9 @@ fn handle_kick(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(target_alias), reason_opt) = parse_args!(args, String, String) {
+    if let (Some(target_alias), reason_opt) = parse_cmd_args!(args, String, String) {
         let client_uuid = uuid(server, client, "client")?;
         let reason = reason_opt.unwrap_or_default();
         let ecs = server.state.ecs();
@@ -3220,10 +3190,10 @@ fn handle_ban(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let (Some(username), overwrite, parse_duration, reason_opt) =
-        parse_args!(args, String, bool, HumanDuration, String)
+        parse_cmd_args!(args, String, bool, HumanDuration, String)
     {
         let reason = reason_opt.unwrap_or_default();
         let overwrite = overwrite.unwrap_or(false);
@@ -3298,7 +3268,7 @@ fn handle_battlemode(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     // TODO: discuss time
     const COOLDOWN: f64 = 60.0 * 5.0;
@@ -3306,7 +3276,7 @@ fn handle_battlemode(
     let ecs = server.state.ecs();
     let time = ecs.read_resource::<Time>();
     let settings = ecs.read_resource::<Settings>();
-    if let Some(mode) = parse_args!(args, String) {
+    if let Some(mode) = parse_cmd_args!(args, String) {
         if !settings.gameplay.battle_mode.allow_choosing() {
             return Err("Command disabled in server settings".to_owned());
         }
@@ -3404,14 +3374,14 @@ fn handle_battlemode_force(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
     let settings = ecs.read_resource::<Settings>();
     if !settings.gameplay.battle_mode.allow_choosing() {
         return Err("Command disabled in server settings".to_owned());
     }
-    let mode = parse_args!(args, String).ok_or_else(|| action.help_string())?;
+    let mode = parse_cmd_args!(args, String).ok_or_else(|| action.help_string())?;
     let mode = match mode.as_str() {
         "pvp" => BattleMode::PvP,
         "pve" => BattleMode::PvE,
@@ -3437,9 +3407,9 @@ fn handle_unban(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(username) = parse_args!(args, String) {
+    if let Some(username) = parse_cmd_args!(args, String) {
         let player_uuid = find_username(server, &username)?;
 
         let client_uuid = uuid(server, client, "client")?;
@@ -3482,9 +3452,9 @@ fn handle_server_physics(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(username), enabled_opt) = parse_args!(args, String, bool) {
+    if let (Some(username), enabled_opt) = parse_cmd_args!(args, String, bool) {
         let uuid = find_username(server, &username)?;
         let server_force = enabled_opt.unwrap_or(true);
 
@@ -3514,9 +3484,9 @@ fn handle_apply_buff(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(buff), strength, duration) = parse_args!(args, String, f32, f64) {
+    if let (Some(buff), strength, duration) = parse_cmd_args!(args, String, f32, f64) {
         let strength = strength.unwrap_or(0.01);
         let duration = Duration::from_secs_f64(duration.unwrap_or(1.0));
         let buffdata = BuffData::new(strength, Some(duration));
@@ -3553,9 +3523,9 @@ fn handle_skill_preset(
     _client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(preset) = parse_args!(args, String) {
+    if let Some(preset) = parse_cmd_args!(args, String) {
         if let Some(mut skill_set) = server
             .state
             .ecs_mut()
@@ -3615,9 +3585,9 @@ fn handle_location(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    _action: &ChatCommand,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(name) = parse_args!(args, String) {
+    if let Some(name) = parse_cmd_args!(args, String) {
         let loc = server.state.ecs().read_resource::<Locations>().get(&name);
         match loc {
             Ok(loc) => position_mut(server, target, "target", |target_pos| {
@@ -3649,9 +3619,9 @@ fn handle_create_location(
     client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(name) = parse_args!(args, String) {
+    if let Some(name) = parse_cmd_args!(args, String) {
         let target_pos = position(server, target, "target")?;
 
         let res = server
@@ -3682,9 +3652,9 @@ fn handle_delete_location(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(name) = parse_args!(args, String) {
+    if let Some(name) = parse_cmd_args!(args, String) {
         let res = server
             .state
             .ecs_mut()

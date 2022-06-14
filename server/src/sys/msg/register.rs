@@ -88,6 +88,7 @@ impl<'a> System<'a> for Sys {
                     character: stats.map(|stats| CharacterInfo {
                         name: stats.name.clone(),
                     }),
+                    uuid: player.uuid(),
                 })
             })
             .collect::<HashMap<_, _>>();
@@ -239,6 +240,7 @@ impl<'a> System<'a> for Sys {
                             is_online: true,
                             is_moderator: admins.get(entity).is_some(),
                             character: None, // new players will be on character select.
+                            uuid: player.uuid(),
                         }),
                     )));
                 }

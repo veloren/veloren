@@ -1,11 +1,11 @@
-use veloren_common::cmd::ChatCommand;
+use veloren_common::cmd::ServerChatCommand;
 
 /// This binary generates the markdown table used for the `players/commands.md`
 /// page in the Veloren Book. It can be run with `cargo cmd-doc-gen`.
 fn main() {
     println!("|Command|Description|Requires|Arguments|");
     println!("|-|-|-|-|");
-    for cmd in ChatCommand::iter() {
+    for cmd in ServerChatCommand::iter() {
         let args = cmd
             .data()
             .args

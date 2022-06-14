@@ -2,8 +2,8 @@ use super::{
     img_ids::Imgs, ChatTab, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR,
     OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
-use crate::{settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
-use client::{cmd, Client};
+use crate::{cmd::complete, settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
+use client::Client;
 use common::comp::{
     chat::{KillSource, KillType},
     group::Role,
@@ -108,7 +108,11 @@ impl<'a> Chat<'a> {
 
     pub fn prepare_tab_completion(mut self, input: String) -> Self {
         self.force_completions = if let Some(index) = input.find('\t') {
-            Some(cmd::complete(&input[..index], self.client))
+            Some(complete(
+                &input[..index],
+                self.client,
+                self.global_state.settings.chat.chat_cmd_prefix,
+            ))
         } else {
             None
         };
@@ -659,7 +663,7 @@ impl<'a> Widget for Chat<'a> {
                     s.history.truncate(self.history_max);
                 }
             });
-            if let Some(msg) = msg.strip_prefix('/') {
+            if let Some(msg) = msg.strip_prefix(chat_settings.chat_cmd_prefix) {
                 match parse_cmd(msg) {
                     Ok((name, args)) => events.push(Event::SendCommand(name, args)),
                     Err(err) => self.new_messages.push_back(ChatMsg {

@@ -3,7 +3,6 @@
 #![feature(label_break_value, option_zip)]
 
 pub mod addr;
-pub mod cmd;
 pub mod error;
 
 // Reexports
