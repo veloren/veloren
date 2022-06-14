@@ -41,6 +41,7 @@ use common_net::{
 
 use crate::{
     audio::sfx::SfxEvent,
+    cmd::run_command,
     error::Error,
     game_input::GameInput,
     hud::{
@@ -1155,7 +1156,16 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().send_chat(msg);
                     },
                     HudEvent::SendCommand(name, args) => {
-                        self.client.borrow_mut().send_command(name, args);
+                        match run_command(&mut self.client.borrow_mut(), global_state, &name, args)
+                        {
+                            Ok(Some(info)) => {
+                                self.hud.new_message(ChatType::CommandInfo.chat_msg(&info))
+                            },
+                            Ok(None) => {}, // Server will provide an info message
+                            Err(error) => {
+                                self.hud.new_message(ChatType::CommandError.chat_msg(error))
+                            },
+                        };
                     },
                     HudEvent::CharacterSelection => {
                         self.client.borrow_mut().request_remove_character()

@@ -53,6 +53,7 @@ use social::Social;
 use trade::Trade;
 
 use crate::{
+    cmd::get_player_uuid,
     ecs::{comp as vcomp, comp::HpFloaterList},
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
@@ -1788,6 +1789,21 @@ impl Hud {
             let now = Instant::now();
             self.speech_bubbles
                 .retain(|_uid, bubble| bubble.timeout > now);
+
+            // Don't show messages from muted players
+            self.new_messages.retain(|msg| match msg.uid() {
+                Some(uid) => match client.player_list().get(&uid) {
+                    Some(player_info) => {
+                        if let Some(uuid) = get_player_uuid(client, &player_info.player_alias) {
+                            !global_state.profile.mutelist.contains_key(&uuid)
+                        } else {
+                            true
+                        }
+                    },
+                    None => true,
+                },
+                None => true,
+            });
 
             // Push speech bubbles
             for msg in self.new_messages.iter() {

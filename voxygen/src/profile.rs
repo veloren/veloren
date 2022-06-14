@@ -1,5 +1,5 @@
 use crate::hud;
-use common::character::CharacterId;
+use common::{character::CharacterId, uuid::Uuid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -57,6 +57,7 @@ impl Default for ServerProfile {
 #[serde(default)]
 pub struct Profile {
     pub servers: HashMap<String, ServerProfile>,
+    pub mutelist: HashMap<Uuid, String>,
     /// Temporary character profile, used when it should
     /// not be persisted to the disk.
     #[serde(skip)]

@@ -18,6 +18,7 @@
 #[macro_use]
 pub mod ui;
 pub mod audio;
+pub mod cmd;
 pub mod controller;
 mod credits;
 mod ecs;

@@ -10,6 +10,7 @@ mod widgets;
 
 use client::{Client, Join, World, WorldExt};
 use common::{
+    cmd::ServerChatCommand,
     comp,
     comp::{inventory::item::armor::Friction, Poise, PoiseState},
 };
@@ -24,10 +25,7 @@ use crate::{
     admin::draw_admin_commands_window, character_states::draw_char_state_group,
     experimental_shaders::draw_experimental_shaders_window, widgets::two_col_row,
 };
-use common::{
-    cmd::ChatCommand,
-    comp::{aura::AuraKind::Buff, Body, Fluid},
-};
+use common::comp::{aura::AuraKind::Buff, Body, Fluid};
 use egui_winit_platform::Platform;
 use std::time::Duration;
 #[cfg(feature = "use-dyn-lib")]
@@ -131,7 +129,10 @@ pub enum EguiDebugShapeAction {
 }
 
 pub enum EguiAction {
-    ChatCommand { cmd: ChatCommand, args: Vec<String> },
+    ChatCommand {
+        cmd: ServerChatCommand,
+        args: Vec<String>,
+    },
     DebugShape(EguiDebugShapeAction),
     SetExperimentalShader(String, bool),
 }
@@ -613,13 +614,20 @@ fn selected_entity_window(
                                 .spacing([40.0, 4.0])
                                 .max_col_width(100.0)
                                 .striped(true)
-                                .show(ui, |ui| #[rustfmt::skip] {
+                                // Apparently, if the #[rustfmt::skip] is in front of the closure scope, rust-analyzer can't 
+                                // parse the code properly. Things will *sometimes* work if the skip is on the other side of
+                                // the opening bracket (even though that should only skip formatting the first line of the
+                                // closure), but things as arbitrary as adding a comment to the code cause it to be formatted
+                                // again. Thus, there is a completely pointless inner scope in this closure, just so that the
+                                // code doesn't take up an unreasonable amount of space when formatted. We need that space for
+                                // interesting and educational code comments like this one.
+                                .show(ui, |ui| { #[rustfmt::skip] {
                                     ui.label("State");
                                     poise_state_label(ui, poise);
                                     ui.end_row();
                                     two_col_row(ui, "Current", format!("{:.1}/{:.1}", poise.current(), poise.maximum()));
                                     two_col_row(ui, "Base Max", format!("{:.1}", poise.base_max()));
-                                });
+                                }});
                         });
                 }
 

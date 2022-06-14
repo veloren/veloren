@@ -431,6 +431,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
                             name: s.name.clone(),
                         }
                     }),
+                    uuid: player.uuid(),
                 }),
             );
             let remove_player_msg = ServerGeneral::PlayerListUpdate(

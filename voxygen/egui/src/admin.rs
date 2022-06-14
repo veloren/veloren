@@ -1,5 +1,5 @@
 use crate::{AdminCommandState, EguiAction, EguiActions};
-use common::cmd::ChatCommand;
+use common::cmd::ServerChatCommand;
 use egui::{CollapsingHeader, CtxRef, Resize, Slider, Ui, Vec2, Window};
 use lazy_static::lazy_static;
 
@@ -45,7 +45,7 @@ fn draw_kits(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut Egui
     ui.vertical(|ui| {
         if ui.button("Give Kit").clicked() {
             egui_actions.actions.push(EguiAction::ChatCommand {
-                cmd: ChatCommand::Kit,
+                cmd: ServerChatCommand::Kit,
                 args: vec![common::cmd::KITS[state.kits_selected_idx].clone()],
             });
         };
@@ -67,7 +67,7 @@ fn draw_give_items(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mu
                 );
                 if ui.button("Give Items").clicked() {
                     egui_actions.actions.push(EguiAction::ChatCommand {
-                        cmd: ChatCommand::GiveItem,
+                        cmd: ServerChatCommand::GiveItem,
                         args: vec![
                             format!(
                                 "common.items.{}",
