@@ -3307,7 +3307,7 @@ fn handle_battlemode(
     let time = ecs.read_resource::<Time>();
     let settings = ecs.read_resource::<Settings>();
     if let Some(mode) = parse_args!(args, String) {
-        if !settings.battle_mode.allow_choosing() {
+        if !settings.gameplay.battle_mode.allow_choosing() {
             return Err("Command disabled in server settings".to_owned());
         }
 
@@ -3378,7 +3378,7 @@ fn handle_battlemode(
             "Error!"
         })?;
         let mut msg = format!("Current battle mode: {:?}.", player.battle_mode);
-        if settings.battle_mode.allow_choosing() {
+        if settings.gameplay.battle_mode.allow_choosing() {
             msg.push_str(" Possible to change.");
         } else {
             msg.push_str(" Global.");
@@ -3408,7 +3408,7 @@ fn handle_battlemode_force(
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
     let settings = ecs.read_resource::<Settings>();
-    if !settings.battle_mode.allow_choosing() {
+    if !settings.gameplay.battle_mode.allow_choosing() {
         return Err("Command disabled in server settings".to_owned());
     }
     let mode = parse_args!(args, String).ok_or_else(|| action.help_string())?;

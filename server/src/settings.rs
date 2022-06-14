@@ -43,6 +43,10 @@ pub enum ServerBattleMode {
     PerPlayer { default: BattleMode },
 }
 
+impl Default for ServerBattleMode {
+    fn default() -> Self { Self::Global(BattleMode::PvP) }
+}
+
 impl ServerBattleMode {
     pub fn allow_choosing(&self) -> bool {
         match self {
@@ -69,6 +73,26 @@ pub enum Protocol {
     Tcp {
         address: SocketAddr,
     },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GameplaySettings {
+    #[serde(default)]
+    pub battle_mode: ServerBattleMode,
+    #[serde(default)]
+    pub safe_spawn: bool,
+    #[serde(default)]
+    pub explosion_burn_marks: bool,
+}
+
+impl Default for GameplaySettings {
+    fn default() -> Self {
+        Self {
+            battle_mode: ServerBattleMode::default(),
+            safe_spawn: false,
+            explosion_burn_marks: true,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -102,7 +126,6 @@ pub struct Settings {
     pub auth_server_address: Option<String>,
     pub max_players: usize,
     pub world_seed: u32,
-    pub battle_mode: ServerBattleMode,
     pub server_name: String,
     pub start_time: f64,
     /// When set to None, loads the default map file (if available); otherwise,
@@ -113,7 +136,6 @@ pub struct Settings {
     pub max_player_group_size: u32,
     pub client_timeout: Duration,
     pub spawn_town: Option<String>,
-    pub safe_spawn: bool,
     pub max_player_for_kill_broadcast: Option<usize>,
     pub calendar_mode: CalendarMode,
 
@@ -121,6 +143,9 @@ pub struct Settings {
     /// removed at *any time* with no migration.
     #[serde(default, skip_serializing)]
     pub experimental_terrain_persistence: bool,
+
+    #[serde(default)]
+    pub gameplay: GameplaySettings,
 }
 
 impl Default for Settings {
@@ -139,7 +164,6 @@ impl Default for Settings {
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".into(),
             max_players: 100,
-            battle_mode: ServerBattleMode::Global(BattleMode::PvP),
             start_time: 9.0 * 3600.0,
             map_file: None,
             max_view_distance: Some(65),
@@ -148,9 +172,9 @@ impl Default for Settings {
             calendar_mode: CalendarMode::Auto,
             client_timeout: Duration::from_secs(40),
             spawn_town: None,
-            safe_spawn: true,
             max_player_for_kill_broadcast: None,
             experimental_terrain_persistence: false,
+            gameplay: GameplaySettings::default(),
         }
     }
 }
@@ -229,7 +253,6 @@ impl Settings {
             max_players: 100,
             start_time: 9.0 * 3600.0,
             max_view_distance: None,
-            safe_spawn: false,
             client_timeout: Duration::from_secs(180),
             ..load // Fill in remaining fields from server_settings.ron.
         }
