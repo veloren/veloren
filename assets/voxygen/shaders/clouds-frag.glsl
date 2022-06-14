@@ -86,12 +86,12 @@ void main() {
         vec3 old_color = color.rgb;
 
         // normalized direction from the camera position to the fragment in world, transformed by the relative rain direction
-        dir = (vec4(dir, 0) * rel_rain_dir_mat).xyz;
+        vec3 adjusted_dir = (vec4(dir, 0) * rel_rain_dir_mat).xyz;
 
         // stretch z values as they move away from 0
-        float z = (-1 / (abs(dir.z) - 1) - 1) * sign(dir.z);
+        float z = (-1 / (abs(adjusted_dir.z) - 1) - 1) * sign(adjusted_dir.z);
         // normalize xy to get a 2d direction
-        vec2 dir_2d = normalize(dir.xy);
+        vec2 dir_2d = normalize(adjusted_dir.xy);
         // sort of map cylinder around the camera to 2d grid 
         vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
@@ -128,8 +128,9 @@ void main() {
                     rain_dist,
                     fract(hash(fract(vec4(cell, rain_dist, 0) * 0.1)))
                 );
-                vec3 rpos = vec3(vec2(dir_2d), view_pos.y) * drop_depth;
-                float dist_to_rain = length(rpos);
+
+                float dist_to_rain = drop_depth / length(dir.xy);
+                vec3 rpos = dir * dist_to_rain; 
                 if (dist < dist_to_rain || cam_wpos.z + rpos.z > CLOUD_AVG_ALT) {
                     continue;
                 }
@@ -137,7 +138,7 @@ void main() {
                 if (dot(rpos * vec3(1, 1, 0.5), rpos) < 1.0) {
                     break;
                 }
-                float rain_density = 10.0 * rain_density * rain_occlusion_at(cam_pos.xyz + rpos.xyz);
+                float rain_density = 10.0 * rain_density * floor(rain_occlusion_at(cam_pos.xyz + rpos.xyz));
 
                 if (rain_density < 0.001 || fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
                     continue;
