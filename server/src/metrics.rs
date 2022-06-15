@@ -64,6 +64,10 @@ pub struct TickMetrics {
     pub light_count: IntGauge,
 }
 
+pub struct ServerEventMetrics {
+    pub event_count: IntGaugeVec,
+}
+
 impl PhysicsMetrics {
     pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
         let entity_entity_collision_checks_count = IntCounter::with_opts(Opts::new(
@@ -396,5 +400,17 @@ impl TickMetrics {
             time_of_day,
             light_count,
         })
+    }
+}
+
+impl ServerEventMetrics {
+    pub fn new(registry: &Registry) -> Result<Self, Box<dyn Error>> {
+        let event_count = IntGaugeVec::new(
+            Opts::new("event_count", "number of ServerEvents handled this tick"),
+            &["event"],
+        )?;
+        registry.register(Box::new(event_count.clone()))?;
+
+        Ok(Self { event_count })
     }
 }

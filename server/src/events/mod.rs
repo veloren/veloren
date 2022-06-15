@@ -2,7 +2,7 @@ use crate::{
     events::interaction::handle_tame_pet, persistence::PersistedComponents, state_ext::StateExt,
     Server,
 };
-use common::event::{EventBus, ServerEvent};
+use common::event::{EventBus, ServerEvent, ServerEventDiscriminants};
 use common_base::span;
 use entity_creation::{
     handle_beam, handle_create_npc, handle_create_ship, handle_create_waypoint,
@@ -65,7 +65,13 @@ impl Server {
             .read_resource::<EventBus<ServerEvent>>()
             .recv_all();
 
+        use strum::VariantNames;
+        let mut event_counts = vec![0u32; ServerEventDiscriminants::VARIANTS.len()];
+
         for event in events {
+            // Count events by variant for metrics
+            event_counts[ServerEventDiscriminants::from(&event) as usize] += 1;
+
             match event {
                 ServerEvent::Explosion {
                     pos,
@@ -268,6 +274,22 @@ impl Server {
                     handle_update_map_marker(self, entity, update)
                 },
             }
+        }
+
+        {
+            let server_event_metrics = self
+                .state
+                .ecs()
+                .read_resource::<crate::metrics::ServerEventMetrics>();
+            event_counts
+                .into_iter()
+                .zip(ServerEventDiscriminants::VARIANTS)
+                .for_each(|(count, event_name)| {
+                    server_event_metrics
+                        .event_count
+                        .with_label_values(&[event_name])
+                        .set(i64::from(count));
+                })
         }
 
         for (entity, name, args) in commands {
