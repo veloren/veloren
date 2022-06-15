@@ -288,7 +288,7 @@ impl Server {
                     server_event_metrics
                         .event_count
                         .with_label_values(&[event_name])
-                        .set(i64::from(count));
+                        .inc_by(count.into());
                 })
         }
 

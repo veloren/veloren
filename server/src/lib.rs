@@ -1023,6 +1023,7 @@ impl Server {
                     .duration_since(before_state_tick)
                     .as_secs_f64(),
             );
+            tick_metrics.tick_count.inc();
         }
 
         // 9) Finish the tick, pass control back to the frontend.
