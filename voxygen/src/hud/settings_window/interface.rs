@@ -716,9 +716,11 @@ impl<'a> Widget for Interface<'a> {
         /*Scrolling Combat text
 
         O Show Damage Numbers
-            O Damage Accumulation Duration: 0s ----I----2s
-            O Show incoming Damage -- //TODO: add this back
-                O Incoming Damage Accumulation Duration: 0s ----I----2s
+            Damage Accumulation Duration:
+            [0s ----I----2s]
+            O Show incoming Damage
+                Incoming Damage Accumulation Duration:
+                [0s ----I----2s]
             O Round Damage Numbers
             */
         // SCT/ Scrolling Combat Text

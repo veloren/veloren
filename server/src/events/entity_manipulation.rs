@@ -66,25 +66,26 @@ pub fn handle_poise(server: &Server, entity: EcsEntity, change: comp::PoiseChang
 
 pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
-    if let (Some(pos), Some(uid), Some(mut health)) = (
-        ecs.read_storage::<Pos>().get(entity),
-        ecs.read_storage::<Uid>().get(entity),
-        ecs.write_storage::<Health>().get_mut(entity),
-    ) {
-        let outcomes = ecs.write_resource::<EventBus<Outcome>>();
-        let mut outcomes_emitter = outcomes.emitter();
+    if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
         // If the change amount was not zero
-        if health.change_by(change) {
-            outcomes_emitter.emit(Outcome::HealthChange {
-                pos: pos.0,
-                info: HealthChangeInfo {
-                    amount: change.amount,
-                    by: change.by,
-                    target: *uid,
-                    crit: change.crit,
-                    instance: change.instance,
-                },
-            });
+        let changed = health.change_by(change);
+        if let (Some(pos), Some(uid)) = (
+            ecs.read_storage::<Pos>().get(entity),
+            ecs.read_storage::<Uid>().get(entity),
+        ) {
+            if changed {
+                let outcomes = ecs.write_resource::<EventBus<Outcome>>();
+                outcomes.emit_now(Outcome::HealthChange {
+                    pos: pos.0,
+                    info: HealthChangeInfo {
+                        amount: change.amount,
+                        by: change.by,
+                        target: *uid,
+                        crit: change.crit,
+                        instance: change.instance,
+                    },
+                });
+            }
         }
     }
     // This if statement filters out anything under 5 damage, for DOT ticks

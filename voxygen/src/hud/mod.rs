@@ -451,6 +451,7 @@ pub struct BuffInfo {
 }
 
 pub struct ExpFloater {
+    pub owner: Uid,
     pub exp_change: u32,
     pub timer: f32,
     pub jump_timer: f32,
@@ -459,7 +460,6 @@ pub struct ExpFloater {
 }
 
 pub struct SkillPointGain {
-    pub owner: Uid,
     pub skill_tree: SkillGroupKind,
     pub total_points: u16,
     pub timer: f32,
@@ -467,13 +467,11 @@ pub struct SkillPointGain {
 
 #[derive(Debug, Clone, Copy)]
 pub struct ComboFloater {
-    pub owner: Uid,
     pub combo: u32,
     pub timer: f64,
 }
 
 pub struct BlockFloater {
-    pub owner: Uid,
     pub timer: f32,
 }
 
@@ -1001,7 +999,7 @@ impl PromptDialogSettings {
 pub struct Floaters {
     pub exp_floaters: Vec<ExpFloater>,
     pub skill_point_displays: Vec<SkillPointGain>,
-    pub combo_floaters: VecDeque<ComboFloater>,
+    pub combo_floater: Option<ComboFloater>,
     pub block_floaters: Vec<BlockFloater>,
 }
 
@@ -1213,7 +1211,7 @@ impl Hud {
             floaters: Floaters {
                 exp_floaters: Vec::new(),
                 skill_point_displays: Vec::new(),
-                combo_floaters: VecDeque::new(),
+                combo_floater: None,
                 block_floaters: Vec::new(),
             },
             map_drag: Vec2::zero(),
@@ -1520,7 +1518,6 @@ impl Hud {
                     f.timer -= dt.as_secs_f32();
                     f.jump_timer += dt.as_secs_f32();
                 });
-                // TODO:Change the other floaters as well if this is the right method
                 self.floaters.exp_floaters.retain(|f| f.timer > 0.0);
                 for floater in self.floaters.exp_floaters.iter_mut() {
                     let number_speed = 50.0; // Number Speed for Single EXP
@@ -1598,149 +1595,136 @@ impl Hud {
                 self.floaters
                     .skill_point_displays
                     .retain(|d| d.timer > 0_f32);
-                if let Some(uid) = uids.get(me) {
-                    if let Some(display) = self
-                        .floaters
-                        .skill_point_displays
-                        .iter_mut()
-                        .find(|d| d.owner == *uid)
-                    {
-                        let fade = if display.timer < 3.0 {
-                            display.timer * 0.33
-                        } else if display.timer < 2.0 {
-                            display.timer * 0.33 * 0.1
-                        } else {
-                            1.0
-                        };
-                        // Background image
-                        let offset = if display.timer < 2.0 {
-                            300.0 - (display.timer as f64 - 2.0) * -300.0
-                        } else {
-                            300.0
-                        };
-                        Image::new(self.imgs.level_up)
-                            .w_h(328.0, 126.0)
-                            .mid_top_with_margin_on(ui_widgets.window, offset)
-                            .graphics_for(ui_widgets.window)
-                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-                            .set(self.ids.player_rank_up, ui_widgets);
-                        // Rank Number
-                        let rank = display.total_points;
-                        let fontsize = match rank {
-                            1..=99 => (20, 8.0),
-                            100..=999 => (18, 9.0),
-                            1000..=9999 => (17, 10.0),
-                            _ => (14, 12.0),
-                        };
-                        Text::new(&format!("{}", rank))
-                            .font_size(fontsize.0)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .mid_top_with_margin_on(self.ids.player_rank_up, fontsize.1)
-                            .set(self.ids.player_rank_up_txt_number, ui_widgets);
-                        // Static "New Rank!" text
-                        Text::new(i18n.get("hud.rank_up"))
-                            .font_size(40)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
-                            .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
-                        Text::new(i18n.get("hud.rank_up"))
-                            .font_size(40)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .bottom_left_with_margins_on(self.ids.player_rank_up_txt_0_bg, 2.0, 2.0)
-                            .set(self.ids.player_rank_up_txt_0, ui_widgets);
-                        // Variable skilltree text
-                        let skill = match display.skill_tree {
-                            General => i18n.get("common.weapons.general"),
-                            Weapon(ToolKind::Hammer) => i18n.get("common.weapons.hammer"),
-                            Weapon(ToolKind::Axe) => i18n.get("common.weapons.axe"),
-                            Weapon(ToolKind::Sword) => i18n.get("common.weapons.sword"),
-                            Weapon(ToolKind::Sceptre) => i18n.get("common.weapons.sceptre"),
-                            Weapon(ToolKind::Bow) => i18n.get("common.weapons.bow"),
-                            Weapon(ToolKind::Staff) => i18n.get("common.weapons.staff"),
-                            Weapon(ToolKind::Pick) => i18n.get("common.tool.mining"),
-                            _ => "Unknown",
-                        };
-                        Text::new(skill)
-                            .font_size(20)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .mid_top_with_margin_on(self.ids.player_rank_up, 45.0)
-                            .set(self.ids.player_rank_up_txt_1_bg, ui_widgets);
-                        Text::new(skill)
-                            .font_size(20)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .bottom_left_with_margins_on(self.ids.player_rank_up_txt_1_bg, 2.0, 2.0)
-                            .set(self.ids.player_rank_up_txt_1, ui_widgets);
-                        // Variable skilltree icon
-                        use crate::hud::SkillGroupKind::{General, Weapon};
-                        Image::new(match display.skill_tree {
-                            General => self.imgs.swords_crossed,
-                            Weapon(ToolKind::Hammer) => self.imgs.hammer,
-                            Weapon(ToolKind::Axe) => self.imgs.axe,
-                            Weapon(ToolKind::Sword) => self.imgs.sword,
-                            Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
-                            Weapon(ToolKind::Bow) => self.imgs.bow,
-                            Weapon(ToolKind::Staff) => self.imgs.staff,
-                            Weapon(ToolKind::Pick) => self.imgs.mining,
-                            _ => self.imgs.swords_crossed,
-                        })
-                        .w_h(20.0, 20.0)
-                        .left_from(self.ids.player_rank_up_txt_1_bg, 5.0)
+                if let Some(display) = self.floaters.skill_point_displays.iter_mut().next() {
+                    let fade = if display.timer < 3.0 {
+                        display.timer * 0.33
+                    } else if display.timer < 2.0 {
+                        display.timer * 0.33 * 0.1
+                    } else {
+                        1.0
+                    };
+                    // Background image
+                    let offset = if display.timer < 2.0 {
+                        300.0 - (display.timer as f64 - 2.0) * -300.0
+                    } else {
+                        300.0
+                    };
+                    Image::new(self.imgs.level_up)
+                        .w_h(328.0, 126.0)
+                        .mid_top_with_margin_on(ui_widgets.window, offset)
+                        .graphics_for(ui_widgets.window)
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-                        .set(self.ids.player_rank_up_icon, ui_widgets);
-                    }
+                        .set(self.ids.player_rank_up, ui_widgets);
+                    // Rank Number
+                    let rank = display.total_points;
+                    let fontsize = match rank {
+                        1..=99 => (20, 8.0),
+                        100..=999 => (18, 9.0),
+                        1000..=9999 => (17, 10.0),
+                        _ => (14, 12.0),
+                    };
+                    Text::new(&format!("{}", rank))
+                        .font_size(fontsize.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                        .mid_top_with_margin_on(self.ids.player_rank_up, fontsize.1)
+                        .set(self.ids.player_rank_up_txt_number, ui_widgets);
+                    // Static "New Rank!" text
+                    Text::new(i18n.get("hud.rank_up"))
+                        .font_size(40)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                        .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
+                        .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
+                    Text::new(i18n.get("hud.rank_up"))
+                        .font_size(40)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                        .bottom_left_with_margins_on(self.ids.player_rank_up_txt_0_bg, 2.0, 2.0)
+                        .set(self.ids.player_rank_up_txt_0, ui_widgets);
+                    // Variable skilltree text
+                    let skill = match display.skill_tree {
+                        General => i18n.get("common.weapons.general"),
+                        Weapon(ToolKind::Hammer) => i18n.get("common.weapons.hammer"),
+                        Weapon(ToolKind::Axe) => i18n.get("common.weapons.axe"),
+                        Weapon(ToolKind::Sword) => i18n.get("common.weapons.sword"),
+                        Weapon(ToolKind::Sceptre) => i18n.get("common.weapons.sceptre"),
+                        Weapon(ToolKind::Bow) => i18n.get("common.weapons.bow"),
+                        Weapon(ToolKind::Staff) => i18n.get("common.weapons.staff"),
+                        Weapon(ToolKind::Pick) => i18n.get("common.tool.mining"),
+                        _ => "Unknown",
+                    };
+                    Text::new(skill)
+                        .font_size(20)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                        .mid_top_with_margin_on(self.ids.player_rank_up, 45.0)
+                        .set(self.ids.player_rank_up_txt_1_bg, ui_widgets);
+                    Text::new(skill)
+                        .font_size(20)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                        .bottom_left_with_margins_on(self.ids.player_rank_up_txt_1_bg, 2.0, 2.0)
+                        .set(self.ids.player_rank_up_txt_1, ui_widgets);
+                    // Variable skilltree icon
+                    use crate::hud::SkillGroupKind::{General, Weapon};
+                    Image::new(match display.skill_tree {
+                        General => self.imgs.swords_crossed,
+                        Weapon(ToolKind::Hammer) => self.imgs.hammer,
+                        Weapon(ToolKind::Axe) => self.imgs.axe,
+                        Weapon(ToolKind::Sword) => self.imgs.sword,
+                        Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
+                        Weapon(ToolKind::Bow) => self.imgs.bow,
+                        Weapon(ToolKind::Staff) => self.imgs.staff,
+                        Weapon(ToolKind::Pick) => self.imgs.mining,
+                        _ => self.imgs.swords_crossed,
+                    })
+                    .w_h(20.0, 20.0)
+                    .left_from(self.ids.player_rank_up_txt_1_bg, 5.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
+                    .set(self.ids.player_rank_up_icon, ui_widgets);
                 }
+
                 // Scrolling Combat Text for Parrying an attack
                 self.floaters
                     .block_floaters
                     .iter_mut()
                     .for_each(|f| f.timer -= dt.as_secs_f32());
                 self.floaters.block_floaters.retain(|f| f.timer > 0_f32);
-                if let Some(uid) = uids.get(me) {
-                    for floater in self
-                        .floaters
-                        .block_floaters
-                        .iter_mut()
-                        .filter(|f| f.owner == *uid)
-                    {
-                        let number_speed = 50.0;
-                        let player_sct_bg_id = player_sct_bg_id_walker.next(
-                            &mut self.ids.player_sct_bgs,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        let player_sct_id = player_sct_id_walker.next(
-                            &mut self.ids.player_scts,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        let font_size = 30;
-                        let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
-                        // text transparency
-                        let fade = if floater.timer < 0.25 {
-                            floater.timer / 0.25
-                        } else {
-                            1.0
-                        };
+                for floater in self.floaters.block_floaters.iter_mut() {
+                    let number_speed = 50.0;
+                    let player_sct_bg_id = player_sct_bg_id_walker.next(
+                        &mut self.ids.player_sct_bgs,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+                    let player_sct_id = player_sct_id_walker.next(
+                        &mut self.ids.player_scts,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+                    let font_size = 30;
+                    let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                    // text transparency
+                    let fade = if floater.timer < 0.25 {
+                        floater.timer / 0.25
+                    } else {
+                        1.0
+                    };
 
-                        Text::new(i18n.get("hud.sct.block"))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .x_y(
-                                ui_widgets.win_w * (0.0),
-                                ui_widgets.win_h * (-0.3) + y - 3.0,
-                            )
-                            .set(player_sct_bg_id, ui_widgets);
-                        Text::new(i18n.get("hud.sct.block"))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.69, 0.82, 0.88, fade))
-                            .x_y(ui_widgets.win_w * 0.0, ui_widgets.win_h * -0.3 + y)
-                            .set(player_sct_id, ui_widgets);
-                    }
+                    Text::new(i18n.get("hud.sct.block"))
+                        .font_size(font_size)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                        .x_y(
+                            ui_widgets.win_w * (0.0),
+                            ui_widgets.win_h * (-0.3) + y - 3.0,
+                        )
+                        .set(player_sct_bg_id, ui_widgets);
+                    Text::new(i18n.get("hud.sct.block"))
+                        .font_size(font_size)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(0.69, 0.82, 0.88, fade))
+                        .x_y(ui_widgets.win_w * 0.0, ui_widgets.win_h * -0.3 + y)
+                        .set(player_sct_id, ui_widgets);
                 }
             }
 
@@ -2699,20 +2683,12 @@ impl Hud {
         let bodies = ecs.read_storage::<comp::Body>();
         let poises = ecs.read_storage::<comp::Poise>();
         // Combo floater stuffs
-        self.floaters
-            .combo_floaters
-            .iter_mut()
-            .for_each(|f| f.timer -= dt.as_secs_f64());
-        self.floaters.combo_floaters.retain(|f| f.timer > 0_f64);
-        let combo = if let Some(uid) = ecs.read_storage::<Uid>().get(entity) {
-            self.floaters
-                .combo_floaters
-                .iter()
-                .find(|c| c.owner == *uid)
-                .copied()
-        } else {
-            None
-        };
+        self.floaters.combo_floater = self.floaters.combo_floater.map(|mut f| {
+            f.timer -= dt.as_secs_f64();
+            f
+        });
+        self.floaters.combo_floater.filter(|f| f.timer > 0_f64);
+        let combo = self.floaters.combo_floater;
 
         if let (
             Some(health),
@@ -4353,12 +4329,15 @@ impl Hud {
                         Some(floater)
                             if floater.timer
                                 > (EXP_FLOATER_LIFETIME - EXP_ACCUMULATION_DURATION)
-                                && global_state.settings.interface.accum_experience =>
+                                && global_state.settings.interface.accum_experience
+                                && floater.owner == *uid =>
                         {
                             floater.jump_timer = 0.0;
                             floater.exp_change += *exp;
                         },
                         _ => self.floaters.exp_floaters.push(ExpFloater {
+                            // Store the owner as to not accumulate old experience floaters
+                            owner: *uid,
                             exp_change: *exp,
                             timer: EXP_FLOATER_LIFETIME,
                             jump_timer: 0.0,
@@ -4373,24 +4352,41 @@ impl Hud {
                 skill_tree,
                 total_points,
                 ..
-            } => self.floaters.skill_point_displays.push(SkillPointGain {
-                owner: *uid,
-                skill_tree: *skill_tree,
-                total_points: *total_points,
-                timer: 5.0,
-            }),
+            } => {
+                let ecs = client.state().ecs();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+
+                if uids.get(me).map_or(false, |me| *me == *uid) {
+                    self.floaters.skill_point_displays.push(SkillPointGain {
+                        skill_tree: *skill_tree,
+                        total_points: *total_points,
+                        timer: 5.0,
+                    });
+                }
+            },
             Outcome::ComboChange { uid, combo } => {
-                self.floaters.combo_floaters.push_front(ComboFloater {
-                    owner: *uid,
-                    combo: *combo,
-                    timer: comp::combo::COMBO_DECAY_START,
-                })
+                let ecs = client.state().ecs();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+
+                if uids.get(me).map_or(false, |me| *me == *uid) {
+                    self.floaters.combo_floater = Some(ComboFloater {
+                        combo: *combo,
+                        timer: comp::combo::COMBO_DECAY_START,
+                    });
+                }
             },
             Outcome::Block { uid, parry, .. } if *parry => {
-                self.floaters.block_floaters.push(BlockFloater {
-                    owner: *uid,
-                    timer: 1.0,
-                })
+                let ecs = client.state().ecs();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+
+                if uids.get(me).map_or(false, |me| *me == *uid) {
+                    self.floaters
+                        .block_floaters
+                        .push(BlockFloater { timer: 1.0 });
+                }
             },
             Outcome::HealthChange { info, .. } => {
                 let ecs = client.state().ecs();
