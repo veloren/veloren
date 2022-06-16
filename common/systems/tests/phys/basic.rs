@@ -301,7 +301,7 @@ fn cant_run_during_fall() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn physics_theory() -> Result<(), Box<dyn Error>> {
-    let tick = |i: usize, move_dir: f64, vel: f64, pos: f64, dt: f64| {
+    let tick = |i: usize, move_dir: f64, acc: f64, vel: f64, pos: f64, dt: f64| {
         /*
            ROLLING_FRICTION_FORCE + AIR_FRICTION_FORCE + TILT_FRICT_FORCE + ACCEL_FORCE = TOTAL_FORCE
 
@@ -337,14 +337,24 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
         // I know what you think, wtf, yep: https://math.stackexchange.com/questions/1929436/line-integral-of-force-of-air-resistanc
         // basically an integral of the air resistance formula which scales with v^2
         // transformed with an ODE.
-        let vel = if acc == 0.0 {
-            vel
-        } else {
-            (mass * acc.abs() / c).sqrt()
-                * (((c / acc.abs() / mass).sqrt() * old_vel).atanh()
-                    + acc.signum() * (c * acc.abs() / mass).sqrt() * dt)
-                    .tanh()
-        };
+
+        // The function besically takes its last result calculates the inverse* of it,
+        // adds the newly get speed to it and then run tanh again *inverse of
+        // the tanh and the factors before.
+        let past_fak = (c / (mass * acc.abs())).sqrt() * old_vel;
+        // the original algorithm isn't able to keep a speed over the terminal velocity
+        // based on acc. however that is necessary, e.g. for pushbacks, falling,
+        // external factors and stopping (because of we stop acc would be 0 and the
+        // terminal vel would be 0 too) here we decide to reduce that factor by
+        // c each second.
+        let over_vel_keep = (past_fak * c.powf(dt)).max(1.0) * past_fak.signum(); //TODO signum needed
+        let vel = (((mass * acc.abs()) / c).sqrt() * over_vel_keep)
+            * ((past_fak.clamp(-1.0, 1.0)).atanh()
+                + acc.signum() * (c * acc.abs() / mass).sqrt() * dt)
+                .tanh();
+        //let vel =  ((mass * acc.abs() + old_acc ) / c).sqrt() * ( ( ( (c / (mass *
+        // acc.abs() ) ).sqrt() * old_vel).clamp(-1.0, 1.0) ).atanh() + acc.signum() *
+        // (c * acc.abs() / mass).sqrt() * dt ).tanh();
 
         //physics
         let distance_last = mass / c * (((old_vel * (c / acc / mass).sqrt()).atanh()).cosh()).ln();
@@ -352,16 +362,17 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
             * (((old_vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
                 .ln();
         let diff = distance - distance_last;
-        let diff = if diff.is_nan() { 0.0 } else { diff };
+        let diff = if !diff.is_finite() { 0.0 } else { diff };
 
         let pos = pos + diff;
 
-        //if ((i+1) as f64 *dt * 10.0).round() as i64 % 2 == 0 {
-        println!(
-            "[{:0>2.1}]:    move_dir: {:0>1.1},    acc: {:0>4.4},    vel: {:0>4.4},    dist: \
-             {:0>7.4},    dist: {:0>7.4},    pos: {:0>7.4},    c: {:0>4.4}",
+        let ending = ((i + 1) as f64 * dt * 10.0).round() as i64;
+        let line = format!(
+            "[{:0>2.1}]:    move_dir: {:0>1.1},    over_vel_keep: {:0>4.4},    acc: {:0>4.4},    \
+             vel: {:0>4.4},    dist: {:0>7.4},    dist: {:0>7.4},    pos: {:0>7.4},    c: {:0>4.4}",
             (i + 1) as f64 * dt,
             move_dir,
+            over_vel_keep,
             acc,
             vel,
             distance_last,
@@ -369,7 +380,14 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
             pos,
             c
         );
-        //}
+        if ending % 10 == 0 {
+            println!("\x1b[91m{}\x1b[0m", line)
+        } else if ending % 2 != 0 {
+            println!("\x1b[94m{}\x1b[0m", line)
+        } else {
+            println!("{}", line)
+        }
+
         (acc, vel, pos)
     };
 
@@ -377,18 +395,18 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
         let dt = 1.0 / tps as f64;
         println!("");
         println!("dt: {}", dt);
-        let (_acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
+        let (mut acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
         let mut i = 0;
-        for _ in 0..tps {
-            (_, vel, pos) = tick(i, 1.0, vel, pos, dt);
+        for _ in 0..tps * 2 {
+            (acc, vel, pos) = tick(i, 1.0, acc, vel, pos, dt);
+            i += 1;
+        }
+        for _ in 0..tps * 2 {
+            (acc, vel, pos) = tick(i, 0.1, acc, vel, pos, dt);
             i += 1;
         }
         for _ in 0..tps {
-            (_, vel, pos) = tick(i, -1.0, vel, pos, dt);
-            i += 1;
-        }
-        for _ in 0..tps {
-            (_, vel, pos) = tick(i, 1.0, vel, pos, dt);
+            (acc, vel, pos) = tick(i, 1.0, acc, vel, pos, dt);
             i += 1;
         }
         (vel, pos)
