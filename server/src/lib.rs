@@ -237,6 +237,8 @@ impl Server {
         let ecs_system_metrics = EcsSystemMetrics::new(&registry).unwrap();
         let tick_metrics = TickMetrics::new(&registry).unwrap();
         let physics_metrics = PhysicsMetrics::new(&registry).unwrap();
+        let server_event_metrics = metrics::ServerEventMetrics::new(&registry).unwrap();
+
         let battlemode_buffer = BattleModeBuffer::default();
 
         let mut state = State::server();
@@ -268,6 +270,7 @@ impl Server {
         state.ecs_mut().insert(ecs_system_metrics);
         state.ecs_mut().insert(tick_metrics);
         state.ecs_mut().insert(physics_metrics);
+        state.ecs_mut().insert(server_event_metrics);
         if settings.experimental_terrain_persistence {
             #[cfg(feature = "persistent_world")]
             {
@@ -1020,6 +1023,7 @@ impl Server {
                     .duration_since(before_state_tick)
                     .as_secs_f64(),
             );
+            tick_metrics.tick_count.inc();
         }
 
         // 9) Finish the tick, pass control back to the frontend.

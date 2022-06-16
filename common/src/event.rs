@@ -36,6 +36,9 @@ pub enum LocalEvent {
 }
 
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
+#[derive(strum::EnumDiscriminants)]
+#[strum_discriminants(repr(usize))]
+#[strum_discriminants(derive(strum::EnumVariantNames))]
 pub enum ServerEvent {
     Explosion {
         pos: Vec3<f32>,
