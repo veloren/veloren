@@ -18,6 +18,7 @@
         "hud.settings.opacity": "Opakotasuna",        
         "hud.settings.toggle_shortcuts": "Aldatu laster teklak",
         "hud.settings.toggle_bar_experience": "Erakutsi/ezkutatu esperientzia barra",        
+        "hud.settings.incoming_damage": "Jasotako kaltea banaka erakutsi",
         "hud.settings.energybar_numbers": "Zenbakiak energia barran",
         "hud.settings.always_show_bars": "Erakutsi beti energia barra",
         "hud.settings.values": "Balioak",

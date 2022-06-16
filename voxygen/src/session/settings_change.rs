@@ -466,8 +466,8 @@ impl SettingsChange {
                     Interface::SctDamageAccumDuration(sct_dmg_accum_duration) => {
                         settings.interface.sct_dmg_accum_duration = sct_dmg_accum_duration;
                     },
-                    Interface::SctIncomingDamage(sct_inc_dmg_accum_duration) => {
-                        settings.interface.sct_inc_dmg = sct_inc_dmg_accum_duration;
+                    Interface::SctIncomingDamage(sct_inc_dmg) => {
+                        settings.interface.sct_inc_dmg = sct_inc_dmg;
                     },
                     Interface::SctIncomingDamageAccumDuration(sct_inc_dmg_accum_duration) => {
                         settings.interface.sct_inc_dmg_accum_duration = sct_inc_dmg_accum_duration;

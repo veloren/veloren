@@ -25,6 +25,7 @@
         "hud.settings.buffs_mmap": "Wzmocnienia na minimapie",
         "hud.settings.toggle_bar_experience": "Przełącz pasek doświadczenia",
         "hud.settings.scrolling_combat_text": "Przewijanie tekstu podczas walki",
+        "hud.settings.incoming_damage": "Otrzymywane obrażenia",
         "hud.settings.speech_bubble": "Dymek rozmowy",
         "hud.settings.speech_bubble_self": "Pokazuj swój dymek rozmowy",
         "hud.settings.speech_bubble_dark_mode": "Dymek rozmowy w trybie ciemnym",

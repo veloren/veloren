@@ -25,6 +25,7 @@
         "hud.settings.buffs_mmap": "Buffs al Minimapa",
         "hud.settings.toggle_bar_experience": "Mostra Barra d'Experiència",
         "hud.settings.scrolling_combat_text": "Text de Combat Desplaçat",
+        "hud.settings.incoming_damage": "Dany Imminent",
         "hud.settings.speech_bubble": "Bafarades",
         "hud.settings.speech_bubble_self": "Mostrar les Bafarades pròpies",
         "hud.settings.speech_bubble_dark_mode": "Bafarades Mode Fosc",

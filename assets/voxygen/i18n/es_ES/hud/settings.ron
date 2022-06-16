@@ -25,6 +25,7 @@
         "hud.settings.buffs_mmap": "Estados en el Minimapa",
         "hud.settings.toggle_bar_experience": "Alternar Barra de Experiencia",
         "hud.settings.scrolling_combat_text": "Texto de Combate Deslizante",
+        "hud.settings.incoming_damage": "Daño Entrante",
         "hud.settings.speech_bubble": "Burbuja de Diálogo",
         "hud.settings.speech_bubble_self": "Mostrar Diálogos propios en Burbuja",
         "hud.settings.speech_bubble_dark_mode": "Modo Oscuro de Burbuja de Diálogo",

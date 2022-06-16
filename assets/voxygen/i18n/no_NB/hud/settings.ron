@@ -21,6 +21,7 @@
         "hud.settings.buffs_mmap": "Ikoner på Minimap",
         "hud.settings.toggle_bar_experience": "Veksle erfaringsbar",
         "hud.settings.scrolling_combat_text": "Rullende kamptekst",
+        "hud.settings.incoming_damage": "Innkommende skade",
         "hud.settings.speech_bubble": "Snakkeboble",
         "hud.settings.speech_bubble_dark_mode": "Mørk modus for snakkeboble",
         "hud.settings.speech_bubble_icon": "Snakkeboble ikon",

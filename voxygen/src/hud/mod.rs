@@ -54,7 +54,6 @@ use trade::Trade;
 
 use crate::{
     cmd::get_player_uuid,
-    ecs::{comp as vcomp, comp::{HpFloater, HpFloaterList}, sys::floater},
     ecs::{
         comp as vcomp,
         comp::{HpFloater, HpFloaterList},
@@ -2687,8 +2686,7 @@ impl Hud {
             f.timer -= dt.as_secs_f64();
             f
         });
-        self.floaters.combo_floater.filter(|f| f.timer > 0_f64);
-        let combo = self.floaters.combo_floater;
+        self.floaters.combo_floater = self.floaters.combo_floater.filter(|f| f.timer > 0_f64);
 
         if let (
             Some(health),
@@ -2729,7 +2727,7 @@ impl Hud {
                 &mut self.slot_manager,
                 i18n,
                 &msm,
-                combo,
+                self.floaters.combo_floater,
             )
             .set(self.ids.skillbar, ui_widgets);
         }

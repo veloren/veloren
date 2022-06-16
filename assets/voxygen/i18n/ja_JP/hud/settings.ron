@@ -22,6 +22,7 @@
         "hud.settings.buffs_mmap": "Buffs at Minimap",
         "hud.settings.toggle_bar_experience": "経験値バーの切り替え",
         "hud.settings.scrolling_combat_text": "戦闘メッセージのスクロール",
+        "hud.settings.incoming_damage": "Incoming Damage",
         "hud.settings.speech_bubble": "吹き出し",
         "hud.settings.speech_bubble_dark_mode": "ダークモード吹き出し",
         "hud.settings.speech_bubble_icon": "アイコン吹き出し",

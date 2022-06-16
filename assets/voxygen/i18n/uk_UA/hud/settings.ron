@@ -24,6 +24,7 @@
         "hud.settings.buffs_mmap": "Бафи біля Мінімапи",
         "hud.settings.toggle_bar_experience": "Панель досвіду",
         "hud.settings.scrolling_combat_text": "Відображення Пошкоджень/Зцілень",
+        "hud.settings.incoming_damage": "Роздільно отримані Гравцем",
         "hud.settings.speech_bubble": "Діалоги",
         "hud.settings.speech_bubble_dark_mode": "Темний режим",
         "hud.settings.speech_bubble_icon": "Піктограма",

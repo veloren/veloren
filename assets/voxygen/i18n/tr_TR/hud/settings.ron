@@ -22,6 +22,7 @@
         "hud.settings.buffs_mmap": "Etkiler haritanın yanında",
         "hud.settings.toggle_bar_experience": "Tecrübe çubuğunu aç/kapa",
         "hud.settings.scrolling_combat_text": "Verilen/Alınan Hasar Yazısı",
+        "hud.settings.incoming_damage": "Alınan Hasarı Tek Tek Göster",
         "hud.settings.speech_bubble": "Konuşma balonu",
         "hud.settings.speech_bubble_dark_mode": "Konuşma balonunda karanlık tema kullan",
         "hud.settings.speech_bubble_icon": "Konuşma balonunda ikon göster",

@@ -592,14 +592,18 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 stats.get(entity),
                 &msm,
             );
-            let change =
-                damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0, *time, rand::random());
+            let change = damage.calculate_health_change(
+                damage_reduction,
+                None,
+                false,
+                0.0,
+                1.0,
+                *time,
+                rand::random(),
+            );
             health.change_by(change);
             let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
-            server_eventbus.emit_now(ServerEvent::HealthChange {
-                entity,
-                change,
-            });
+            server_eventbus.emit_now(ServerEvent::HealthChange { entity, change });
         }
 
         // Handle poise change

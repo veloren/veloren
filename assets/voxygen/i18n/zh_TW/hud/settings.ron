@@ -20,6 +20,7 @@
         "hud.settings.toggle_shortcuts": "顯示快捷鍵",
         "hud.settings.toggle_bar_experience": "顯示經驗條",
         "hud.settings.scrolling_combat_text": "戰鬥訊息",
+        "hud.settings.incoming_damage": "所受傷害",
         "hud.settings.energybar_numbers": "能量條",
         "hud.settings.values": "數字",
         "hud.settings.percentages": "百分比",

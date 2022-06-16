@@ -25,6 +25,7 @@
         "hud.settings.buffs_mmap": "Effets sur la minimap",
         "hud.settings.toggle_bar_experience": "Activer la barre d'expérience",
         "hud.settings.scrolling_combat_text": "Dégats de combat",
+        "hud.settings.incoming_damage": "Dégats reçus",
         "hud.settings.speech_bubble": "Bulle de dialogue",
         "hud.settings.speech_bubble_self": "Montrer ses propres bulles de dialogue",
         "hud.settings.speech_bubble_dark_mode": "Bulle de dialogue Mode Sombre",

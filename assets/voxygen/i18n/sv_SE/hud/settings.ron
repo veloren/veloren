@@ -25,6 +25,7 @@
         "hud.settings.buffs_mmap": "Effekter vid Minikartan",
         "hud.settings.toggle_bar_experience": "Visa/dölj erfarenhetsmätare",
         "hud.settings.scrolling_combat_text": "Rullande stridstext",
+        "hud.settings.incoming_damage": "Inkommande skada",
         "hud.settings.speech_bubble": "Pratbubbla",
         "hud.settings.speech_bubble_self": "Visa egna pratbubblor",
         "hud.settings.speech_bubble_dark_mode": "Pratbubbla mörkt läge",

@@ -19,6 +19,7 @@
         "hud.settings.toggle_shortcuts": "Mostar/Ocultar atalhos",
         "hud.settings.toggle_bar_experience": "Mostar/Ocultar barra de experiência",
         "hud.settings.scrolling_combat_text": "Texto de combate deslizante",
+        "hud.settings.incoming_damage": "Dano recebido",
         "hud.settings.energybar_numbers": "Números da barra de energia",
         "hud.settings.values": "Valores",
         "hud.settings.percentages": "Percentagens",

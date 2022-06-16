@@ -25,6 +25,7 @@
         "hud.settings.buffs_mmap": "Buff alla Minimappa",
         "hud.settings.toggle_bar_experience": "Attiva/Disattiva Barra dell'Esperienza",
         "hud.settings.scrolling_combat_text": "Testo del Combattimento a Scorrimento",
+        "hud.settings.incoming_damage": "Danno in Entrata",
         "hud.settings.speech_bubble": "Fumetto",
         "hud.settings.speech_bubble_self": "Mostra i Propri Fumetti",
         "hud.settings.speech_bubble_dark_mode": "Fumetto Modalità Scura",
