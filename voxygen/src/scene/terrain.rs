@@ -1527,7 +1527,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             // Find a way to keep this?
             // .filter(|chunk| chunk.can_shadow_sun())
             .filter_map(|chunk| {
-                // TODO: Should the fluid model also be considered here?
                 chunk
                     .opaque_model
                     .as_ref()
