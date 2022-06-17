@@ -1,7 +1,7 @@
 BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.75,
-    recover_duration: 0.8,
+    recover_duration: 1.6,
     projectile: ExplodingPumpkin(
         damage: 37.5,
         knockback: 25.0,

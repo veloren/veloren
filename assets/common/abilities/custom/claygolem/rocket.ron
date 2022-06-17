@@ -1,7 +1,7 @@
 BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.2,
-    recover_duration: 0.5,
+    recover_duration: 1.0,
     projectile: ClayRocket(
         damage: 75.0,
         knockback: 18.0,

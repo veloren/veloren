@@ -1,6 +1,6 @@
 BasicBeam(
     buildup_duration: 0.3,
-    recover_duration: 0.50,
+    recover_duration: 1.0,
     beam_duration: 1.0,
     damage: 22.5,
     tick_rate: 5.0,

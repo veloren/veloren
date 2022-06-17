@@ -1,7 +1,7 @@
 SpinMelee(
     buildup_duration: 0.25,
     swing_duration: 0.3,
-    recover_duration: 0.5,
+    recover_duration: 1.0,
     melee_constructor: (
         kind: SonicWave(
             damage: 10,

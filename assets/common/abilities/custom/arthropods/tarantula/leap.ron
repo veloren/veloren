@@ -1,9 +1,9 @@
 LeapMelee(
     energy_cost: 0,
     buildup_duration: 1.0,
-    movement_duration: 0.4,
+    movement_duration: 0.8,
     swing_duration: 0.075,
-    recover_duration: 0.2,
+    recover_duration: 0.4,
     melee_constructor: (
         kind: Bash(
             damage: 70.0,

@@ -1,7 +1,7 @@
 BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.0,
-    recover_duration: 0.35,
+    recover_duration: 0.7,
     projectile: Fireball(
         damage: 20.0,
         radius: 5.0,
