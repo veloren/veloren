@@ -62,7 +62,6 @@ pub struct TickMetrics {
     pub start_time: IntGauge,
     pub time_of_day: Gauge,
     pub light_count: IntGauge,
-    pub tick_count: IntCounter,
 }
 
 pub struct ServerEventMetrics {
@@ -372,10 +371,6 @@ impl TickMetrics {
             )
             .buckets(bucket),
         )?;
-        let tick_count = IntCounter::with_opts(Opts::new(
-            "tick_count",
-            "counts the number of ticks that have been processed",
-        ))?;
 
         let since_the_epoch = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -392,7 +387,6 @@ impl TickMetrics {
         registry.register(Box::new(light_count.clone()))?;
         registry.register(Box::new(tick_time.clone()))?;
         registry.register(Box::new(tick_time_hist.clone()))?;
-        registry.register(Box::new(tick_count.clone()))?;
 
         Ok(Self {
             chonks_count,
@@ -405,7 +399,6 @@ impl TickMetrics {
             start_time,
             time_of_day,
             light_count,
-            tick_count,
         })
     }
 }
