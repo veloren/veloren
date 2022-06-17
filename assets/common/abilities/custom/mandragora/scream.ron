@@ -1,10 +1,10 @@
 SpinMelee(
-    buildup_duration: 0.5,
+    buildup_duration: 0.25,
     swing_duration: 0.3,
     recover_duration: 0.5,
     melee_constructor: (
         kind: SonicWave(
-            damage: 5,
+            damage: 10,
             poise: 100,
             knockback: 20,
         ),

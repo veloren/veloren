@@ -1,12 +1,12 @@
 LeapMelee(
     energy_cost: 0,
-    buildup_duration: 0.5,
+    buildup_duration: 1.0,
     movement_duration: 0.4,
     swing_duration: 0.075,
     recover_duration: 0.2,
     melee_constructor: (
         kind: Bash(
-            damage: 30.0,
+            damage: 60.0,
             poise: 20.0,
             knockback: 4.0,
             energy_regen: 0.0,

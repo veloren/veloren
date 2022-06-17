@@ -8,7 +8,7 @@ DashMelee(
             energy_regen: 0.0,
         ),
         scaled: Some(Bash(
-            damage: 25.0,
+            damage: 12.5,
             poise: 40.0,
             knockback: 30.0,
             energy_regen: 0.0,
@@ -18,7 +18,7 @@ DashMelee(
     ),
     energy_drain: 0,
     forward_speed: 10.0,
-    buildup_duration: 0.4,
+    buildup_duration: 0.6,
     charge_duration: 2.0,
     swing_duration: 0.1,
     recover_duration: 0.5,

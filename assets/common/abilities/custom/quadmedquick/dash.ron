@@ -2,13 +2,13 @@ DashMelee(
     energy_cost: 0,
     melee_constructor: (
         kind: Bash(
-            damage: 7.5,
+            damage: 15.0,
             poise: 28.0,
             knockback: 3.0,
             energy_regen: 0.0,
         ),
         scaled: Some(Bash(
-            damage: 2.0,
+            damage: 4.0,
             poise: 28.0,
             knockback: 7.0,
             energy_regen: 0.0,
@@ -18,7 +18,7 @@ DashMelee(
     ),
     energy_drain: 0,
     forward_speed: 2.5,
-    buildup_duration: 1.2,
+    buildup_duration: 2.4,
     charge_duration: 1.0,
     swing_duration: 0.1,
     recover_duration: 1.0,

@@ -2,13 +2,13 @@ DashMelee(
     energy_cost: 0,
     melee_constructor: (
         kind: Stab(
-            damage: 15.0,
+            damage: 22.5,
             poise: 25.0,
             knockback: 10.0,
             energy_regen: 0.0,
         ),
         scaled: Some(Stab(
-            damage: 60.0,
+            damage: 90.0,
             poise: 100.0,
             knockback: 30.0,
             energy_regen: 0.0,
@@ -24,7 +24,7 @@ DashMelee(
     ),
     energy_drain: 0,
     forward_speed: 5.0,
-    buildup_duration: 0.4,
+    buildup_duration: 0.6,
     charge_duration: 4.0,
     swing_duration: 0.1,
     recover_duration: 1.7,

@@ -3,7 +3,7 @@ ChargedMelee(
     energy_drain: 0,
     melee_constructor: (
         kind: Slash(
-            damage: 5.0,
+            damage: 7.5,
             poise: 50.0,
             knockback: 0.0,
             energy_regen: 0.0,
@@ -17,7 +17,7 @@ ChargedMelee(
         range: 5.0,
         angle: 45.0,
     ),
-    charge_duration: 1.5,
+    charge_duration: 2.25,
     swing_duration: 0.1,
     hit_timing: 0.8,
     recover_duration: 0.5,

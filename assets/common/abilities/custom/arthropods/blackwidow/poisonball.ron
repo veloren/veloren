@@ -1,9 +1,9 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 0.6,
+    buildup_duration: 1.2,
     recover_duration: 0.35,
     projectile: Poisonball(
-        damage: 25.0,
+        damage: 50.0,
         radius: 3.0,
         energy_regen: 0,
         min_falloff: 0.2,
