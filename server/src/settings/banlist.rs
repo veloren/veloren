@@ -127,15 +127,15 @@ pub enum BanOperation {
     Ban {
         reason: String,
         info: BanInfo,
-        /// NOTE: Should always be higher than start_date, if both are
-        /// present!
+        /// NOTE: Should always be higher than the `now` date provided to
+        /// [`BanList::ban_operation`] , if this is present!
         end_date: Option<chrono::DateTime<chrono::Utc>>,
     },
     BanIp {
         reason: String,
         info: BanInfo,
-        /// NOTE: Should always be higher than start_date, if both are
-        /// present!
+        /// NOTE: Should always be higher than the `now` date provided to
+        /// [`BanList::ban_operation`] , if this is present!
         end_date: Option<chrono::DateTime<chrono::Utc>>,
         ip: std::net::IpAddr,
     },
@@ -710,8 +710,8 @@ mod v2 {
         pub reason: String,
         /// NOTE: Should only be None for migrations from legacy data.
         pub info: Option<BanInfo>,
-        /// NOTE: Should always be higher than start_date, if both are
-        /// present!
+        /// NOTE: Should always be higher than the `date` in the record
+        /// containing this, if this is present!
         pub end_date: Option<DateTime<Utc>>,
     }
 
