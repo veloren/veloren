@@ -1411,7 +1411,6 @@ impl Hud {
                 ) {
                     let player_font_col = |crit: bool| {
                         if crit {
-                            // TODO: Temporary color for crits
                             Rgb::new(1.0, 0.9, 0.0)
                         } else {
                             Rgb::new(1.0, 0.1, 0.0)
@@ -2128,17 +2127,10 @@ impl Hud {
                         DARK_ORANGE,
                         RED_ORANGE,
                     ];
-
-                    // Crit sizes
-                    // const CRIT_SIZES: [f32; 6] = [
-
-                    // ];
-
                     // Largest value that select the first color is 40, then it shifts colors
                     // every 5
                     let font_col = |font_size: u32, crit: bool| {
                         if crit {
-                            // TODO: Temporary color for crits
                             Rgb::new(1.0, 0.9, 0.0)
                         } else {
                             DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
