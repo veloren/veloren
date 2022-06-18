@@ -8,9 +8,9 @@ DashMelee(
             energy_regen: 0.0,
         ),
         scaled: Some(Bash(
-            damage: 56.0,
-            poise: 40.0,
-            knockback: 17.0,
+            damage: 65.0,
+            poise: 35.0,
+            knockback: 14.0,
             energy_regen: 0.0,
         )),
         range: 2.5,
