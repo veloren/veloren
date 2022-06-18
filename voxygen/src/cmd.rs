@@ -339,7 +339,7 @@ pub fn complete(line: &str, client: &Client, cmd_prefix: char) -> Vec<String> {
     if line.starts_with(cmd_prefix) {
         let line = line.strip_prefix(cmd_prefix).unwrap_or(line);
         let mut iter = line.split_whitespace();
-        let cmd = iter.next().unwrap();
+        let cmd = iter.next().unwrap_or("");
         let i = iter.count() + if word.is_empty() { 1 } else { 0 };
         if i == 0 {
             // Completing chat command name. This is the start of the line so the prefix
