@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added an option for experience number accumulation.
+- Added an option for damage number rounding (when greater than or equal to 1.0).
+- Added sliders for incoming/non-incoming damage accumulation duration.
 - Chat commands to mute and unmute players
 - Waypoints saved between sessions and shared with group members.
 - New rocks
@@ -34,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Damage from the same source dealt in the same tick will now be grouped up.
+- Critical hits are now shown differently in the damage numbers.
+- Fall damage and some (extra) buffs/debuffs now show up in the damage numbers. 
 - Improved site placement
 - [Server] Kick clients who send messages on the wrong stream
 - Reworked Merchant trade price calculation, Merchants offer more wares
@@ -45,8 +51,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed module component modifier costs to the following scheme, based on base material: 1 -> 2 -> 5 -> 10 -> 15 -> 25
 
 ### Removed
+- Removed the options for single and cumulated damage.
 
 ### Fixed
+- Fixed an issue where the hurt animation would "jump" whenever you lost/gained health.
+- Fixed a bug where, if you dealt any extra damage, such as the extra damage from slashing weapons, the damage would be shown partially.
+- Fixed a bug where multiple damage sources in the same tick would show up as a singular attack.
+- Fixed an issue where, if the same amount of healing and damage was received in the same tick, nothing would be shown.
 - Fixed bug that would sometimes cause taking a screenshot to panic because a buffer was mapped at the wrong time.
 - Players can no longer push waypoints around
 - Sites will now also be placed near the edge of the map
