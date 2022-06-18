@@ -1244,6 +1244,8 @@ impl Item {
         }
     }
 
+    pub fn reset_durability(&mut self) { self.durability = self.durability.map(|_| 0); }
+
     #[cfg(test)]
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
         let ability_map = &AbilityMap::load().read();

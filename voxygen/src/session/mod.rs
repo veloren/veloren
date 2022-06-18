@@ -1777,6 +1777,9 @@ impl PlayState for SessionState {
                     HudEvent::SalvageItem { slot, salvage_pos } => {
                         self.client.borrow_mut().salvage_item(slot, salvage_pos);
                     },
+                    HudEvent::RepairItem { slot, sprite_pos } => {
+                        self.client.borrow_mut().repair_item(slot, sprite_pos);
+                    },
                     HudEvent::InviteMember(uid) => {
                         self.client.borrow_mut().send_invite(uid, InviteKind::Group);
                     },

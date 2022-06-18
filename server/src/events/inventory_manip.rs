@@ -856,6 +856,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         None
                     }
                 },
+                CraftEvent::Repair(slot) => {
+                    let sprite = get_craft_sprite(state, craft_sprite);
+                    if matches!(sprite, Some(SpriteKind::RepairBench)) {
+                        inventory.repair_item_at_slot(slot);
+                    }
+                    None
+                },
             };
 
             // Attempt to insert items into inventory, dropping them if there is not enough

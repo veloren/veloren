@@ -105,6 +105,7 @@ pub enum CraftEvent {
         modifier: Option<InvSlotId>,
         slots: Vec<(u32, InvSlotId)>,
     },
+    Repair(Slot),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

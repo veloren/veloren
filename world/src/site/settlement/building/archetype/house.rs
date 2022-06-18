@@ -536,7 +536,7 @@ impl Archetype for House {
                             center_offset.x,
                             center_offset.y,
                             z + 100,
-                        )) % 13
+                        )) % 14
                         {
                             0..=1 => SpriteKind::Crate,
                             2 => SpriteKind::Bench,
@@ -550,6 +550,7 @@ impl Archetype for House {
                             10 => SpriteKind::SpinningWheel,
                             11 => SpriteKind::TanningRack,
                             12 => SpriteKind::DismantlingBench,
+                            13 => SpriteKind::RepairBench,
                             _ => unreachable!(),
                         };
 

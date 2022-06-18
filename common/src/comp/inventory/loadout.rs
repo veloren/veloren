@@ -435,6 +435,18 @@ impl Loadout {
                 }
             })
     }
+
+    /// Resets durability of item in specified slot
+    pub(super) fn repair_item_at_slot(&mut self, equip_slot: EquipSlot) {
+        if let Some(item) = self
+            .slots
+            .iter_mut()
+            .find(|slot| slot.equip_slot == equip_slot)
+            .and_then(|slot| slot.slot.as_mut())
+        {
+            item.reset_durability();
+        }
+    }
 }
 
 #[cfg(test)]

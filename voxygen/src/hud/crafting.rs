@@ -86,7 +86,9 @@ widget_ids! {
         dismantle_title,
         dismantle_img,
         dismantle_txt,
-        dismantle_highlight_txt,
+        repair_title,
+        repair_img,
+        repair_txt,
         modular_inputs[],
         modular_art,
         modular_desc_txt,
@@ -122,6 +124,7 @@ pub struct CraftingShow {
     pub crafting_search_key: Option<String>,
     pub craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     pub salvage: bool,
+    pub repair: bool,
     // TODO: Maybe try to do something that doesn't need to allocate?
     pub recipe_inputs: HashMap<u32, InvSlotId>,
 }
@@ -133,6 +136,7 @@ impl Default for CraftingShow {
             crafting_search_key: None,
             craft_sprite: None,
             salvage: false,
+            repair: false,
             recipe_inputs: HashMap::new(),
         }
     }
@@ -207,7 +211,8 @@ pub enum CraftingTab {
     Bag,
     Utility,
     Glider,
-    Dismantle, // Needs to be the last one or widget alignment will be messed up
+    Dismantle,
+    Repair,
 }
 
 impl CraftingTab {
@@ -224,6 +229,7 @@ impl CraftingTab {
             CraftingTab::Bag => "hud-crafting-tabs-bag",
             CraftingTab::ProcessedMaterial => "hud-crafting-tabs-processed_material",
             CraftingTab::Dismantle => "hud-crafting-tabs-dismantle",
+            CraftingTab::Repair => "hud-crafting-tabs-repair",
         }
     }
 
@@ -239,14 +245,16 @@ impl CraftingTab {
             CraftingTab::Weapon => imgs.icon_weapon,
             CraftingTab::Bag => imgs.icon_bag,
             CraftingTab::ProcessedMaterial => imgs.icon_processed_material,
-            CraftingTab::Dismantle => imgs.icon_dismantle,
+            // These tabs are never shown, so using not found is fine
+            CraftingTab::Dismantle => imgs.not_found,
+            CraftingTab::Repair => imgs.not_found,
         }
     }
 
     fn satisfies(self, recipe: &Recipe) -> bool {
         let (item, _count) = &recipe.output;
         match self {
-            CraftingTab::All | CraftingTab::Dismantle => true,
+            CraftingTab::All | CraftingTab::Dismantle | CraftingTab::Repair => true,
             CraftingTab::Food => item.tags().contains(&ItemTag::Food),
             CraftingTab::Armor => match &*item.kind() {
                 ItemKind::Armor(_) => !item.tags().contains(&ItemTag::Bag),
@@ -271,6 +279,10 @@ impl CraftingTab {
             },
         }
     }
+
+    // Tells UI whether tab is an adhoc tab that should only sometimes be present
+    // depending on what station is accessed
+    fn is_adhoc(self) -> bool { matches!(self, CraftingTab::Dismantle | CraftingTab::Repair) }
 }
 
 pub struct State {
@@ -434,56 +446,57 @@ impl<'a> Widget for Crafting<'a> {
             })
         };
         let sel_crafting_tab = &self.show.crafting_fields.crafting_tab;
-        for (i, crafting_tab) in CraftingTab::iter().enumerate() {
-            if crafting_tab != CraftingTab::Dismantle {
-                let tab_img = crafting_tab.img_id(self.imgs);
-                // Button Background
-                let mut bg = Image::new(self.imgs.pixel)
-                    .w_h(40.0, 30.0)
-                    .color(Some(UI_MAIN));
-                if i == 0 {
-                    bg = bg.top_left_with_margins_on(state.ids.window_frame, 50.0, -40.0)
-                } else {
-                    bg = bg.down_from(state.ids.category_bgs[i - 1], 0.0)
-                };
-                bg.set(state.ids.category_bgs[i], ui);
-                // Category Button
-                if Button::image(if crafting_tab == *sel_crafting_tab {
-                    self.imgs.wpn_icon_border_pressed
-                } else {
-                    self.imgs.wpn_icon_border
-                })
-                .wh_of(state.ids.category_bgs[i])
-                .middle_of(state.ids.category_bgs[i])
-                .hover_image(if crafting_tab == *sel_crafting_tab {
-                    self.imgs.wpn_icon_border_pressed
-                } else {
-                    self.imgs.wpn_icon_border_mo
-                })
-                .press_image(if crafting_tab == *sel_crafting_tab {
-                    self.imgs.wpn_icon_border_pressed
-                } else {
-                    self.imgs.wpn_icon_border_press
-                })
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get_msg(crafting_tab.name_key()),
-                    "",
-                    &tabs_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.ids.category_tabs[i], ui)
-                .was_clicked()
-                {
-                    events.push(Event::ChangeCraftingTab(crafting_tab))
-                };
-                // Tab images
-                Image::new(tab_img)
-                    .middle_of(state.ids.category_tabs[i])
-                    .w_h(20.0, 20.0)
-                    .graphics_for(state.ids.category_tabs[i])
-                    .set(state.ids.category_imgs[i], ui);
-            }
+        for (i, crafting_tab) in CraftingTab::iter()
+            .filter(|tab| !tab.is_adhoc())
+            .enumerate()
+        {
+            let tab_img = crafting_tab.img_id(self.imgs);
+            // Button Background
+            let mut bg = Image::new(self.imgs.pixel)
+                .w_h(40.0, 30.0)
+                .color(Some(UI_MAIN));
+            if i == 0 {
+                bg = bg.top_left_with_margins_on(state.ids.window_frame, 50.0, -40.0)
+            } else {
+                bg = bg.down_from(state.ids.category_bgs[i - 1], 0.0)
+            };
+            bg.set(state.ids.category_bgs[i], ui);
+            // Category Button
+            if Button::image(if crafting_tab == *sel_crafting_tab {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border
+            })
+            .wh_of(state.ids.category_bgs[i])
+            .middle_of(state.ids.category_bgs[i])
+            .hover_image(if crafting_tab == *sel_crafting_tab {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border_mo
+            })
+            .press_image(if crafting_tab == *sel_crafting_tab {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border_press
+            })
+            .with_tooltip(
+                self.tooltip_manager,
+                &self.localized_strings.get_msg(crafting_tab.name_key()),
+                "",
+                &tabs_tooltip,
+                TEXT_COLOR,
+            )
+            .set(state.ids.category_tabs[i], ui)
+            .was_clicked()
+            {
+                events.push(Event::ChangeCraftingTab(crafting_tab))
+            };
+            // Tab images
+            Image::new(tab_img)
+                .middle_of(state.ids.category_tabs[i])
+                .w_h(20.0, 20.0)
+                .graphics_for(state.ids.category_tabs[i])
+                .set(state.ids.category_imgs[i], ui);
         }
 
         // TODO: Consider UX for filtering searches, maybe a checkbox or a dropdown if
@@ -735,12 +748,9 @@ impl<'a> Widget for Crafting<'a> {
                 if state.selected_recipe.as_ref() == Some(name) {
                     state.update(|s| s.selected_recipe = None);
                 } else {
-                    if matches!(
-                        self.show.crafting_fields.crafting_tab,
-                        CraftingTab::Dismantle
-                    ) {
-                        // If current tab is dismantle, and recipe is selected, change to general
-                        // tab, as in dismantle tab recipe gets deselected
+                    if self.show.crafting_fields.crafting_tab.is_adhoc() {
+                        // If current tab is an adhoc tab, and recipe is selected, change to general
+                        // tab
                         events.push(Event::ChangeCraftingTab(CraftingTab::All));
                     }
                     state.update(|s| s.selected_recipe = Some(name.clone()));
@@ -802,12 +812,9 @@ impl<'a> Widget for Crafting<'a> {
             }
         }
 
-        // Deselect recipe if current tab is dismantle, elsewhere if recipe selected
-        // while dismantling, tab is changed to general
-        if matches!(
-            self.show.crafting_fields.crafting_tab,
-            CraftingTab::Dismantle
-        ) {
+        // Deselect recipe if current tab is an adhoc tab, elsewhere if recipe selected
+        // while in an adhoc tab, tab is changed to general
+        if self.show.crafting_fields.crafting_tab.is_adhoc() {
             state.update(|s| s.selected_recipe = None);
         }
 
@@ -1854,6 +1861,42 @@ impl<'a> Widget for Crafting<'a> {
             .color(TEXT_COLOR)
             .parent(state.ids.window)
             .set(state.ids.dismantle_txt, ui);
+        } else if *sel_crafting_tab == CraftingTab::Repair {
+            // Title
+            Text::new(&self.localized_strings.get_msg("hud-crafting-repair_title"))
+                .mid_top_with_margin_on(state.ids.align_ing, 0.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(24))
+                .color(TEXT_COLOR)
+                .parent(state.ids.window)
+                .set(state.ids.repair_title, ui);
+
+            // Bench Icon
+            let size = 140.0;
+            Image::new(animate_by_pulse(
+                &self
+                    .item_imgs
+                    .img_ids_or_not_found_img(ItemKey::Simple("RepairBench".to_string())),
+                self.pulse,
+            ))
+            .wh([size; 2])
+            .mid_top_with_margin_on(state.ids.align_ing, 50.0)
+            .parent(state.ids.align_ing)
+            .set(state.ids.repair_img, ui);
+
+            // Explanation
+
+            Text::new(
+                &self
+                    .localized_strings
+                    .get_msg("hud-crafting-repair_explanation"),
+            )
+            .mid_bottom_with_margin_on(state.ids.repair_img, -60.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .color(TEXT_COLOR)
+            .parent(state.ids.window)
+            .set(state.ids.repair_txt, ui);
         }
 
         // Search / Title Recipes

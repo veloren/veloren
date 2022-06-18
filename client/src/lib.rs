@@ -1289,6 +1289,34 @@ impl Client {
         )));
     }
 
+    /// Repairs the item in the given inventory slot. `sprite_pos` should be
+    /// the location of a relevant crafting station within range of the player.
+    pub fn repair_item(&mut self, slot: Slot, sprite_pos: Vec3<i32>) -> bool {
+        let is_repairable = {
+            let inventories = self.inventories();
+            let inventory = inventories.get(self.entity());
+            inventory.map_or(false, |inv| {
+                if let Some(item) = match slot {
+                    Slot::Equip(equip_slot) => inv.equipped(equip_slot),
+                    Slot::Inventory(invslot) => inv.get(invslot),
+                } {
+                    item.has_durability()
+                } else {
+                    false
+                }
+            })
+        };
+        if is_repairable {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                InventoryEvent::CraftRecipe {
+                    craft_event: CraftEvent::Repair(slot),
+                    craft_sprite: Some(sprite_pos),
+                },
+            )));
+        }
+        is_repairable
+    }
+
     fn update_available_recipes(&mut self) {
         self.available_recipes = self
             .recipe_book

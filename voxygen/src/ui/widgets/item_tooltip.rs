@@ -675,7 +675,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let durability = MAX_DURABILITY - durability.min(MAX_DURABILITY);
                     widget::Text::new(&format!(
                         "{} : {}/{}",
-                        i18n.get("common.stats.durability"),
+                        i18n.get_msg("common-stats-durability"),
                         durability,
                         MAX_DURABILITY
                     ))
@@ -900,7 +900,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     stat_text(
                         format!(
                             "{} : {}/{}",
-                            i18n.get("common.stats.durability"),
+                            i18n.get_msg("common-stats-durability"),
                             durability,
                             Item::MAX_DURABILITY
                         ),

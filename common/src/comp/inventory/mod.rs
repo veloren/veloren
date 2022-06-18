@@ -887,6 +887,20 @@ impl Inventory {
     ) {
         self.loadout.apply_durability(ability_map, msm)
     }
+
+    /// Resets durability of item in specified slot
+    pub fn repair_item_at_slot(&mut self, slot: Slot) {
+        match slot {
+            Slot::Inventory(invslot) => {
+                if let Some(Some(item)) = self.slot_mut(invslot).map(Option::as_mut) {
+                    item.reset_durability();
+                }
+            },
+            Slot::Equip(equip_slot) => {
+                self.loadout.repair_item_at_slot(equip_slot);
+            },
+        }
+    }
 }
 
 impl Component for Inventory {

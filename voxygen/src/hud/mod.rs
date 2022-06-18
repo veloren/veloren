@@ -87,7 +87,11 @@ use common::{
         self,
         ability::{AuxiliaryAbility, Stance},
         fluid_dynamics,
-        inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
+        inventory::{
+            slot::{InvSlotId, Slot},
+            trade_pricing::TradePricing,
+            CollectFailedReason,
+        },
         item::{
             tool::{AbilityContext, ToolKind},
             ItemDesc, MaterialStatManifest, Quality,
@@ -721,6 +725,10 @@ pub enum Event {
         modifier: Option<InvSlotId>,
         craft_sprite: Option<Vec3<i32>>,
     },
+    RepairItem {
+        slot: Slot,
+        sprite_pos: Vec3<i32>,
+    },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -914,6 +922,8 @@ impl Show {
             self.bag = open;
             self.map = false;
             self.crafting_fields.salvage = false;
+            self.crafting_fields.repair = false;
+
             if !open {
                 self.crafting = false;
             }
@@ -937,6 +947,7 @@ impl Show {
             self.bag = false;
             self.crafting = false;
             self.crafting_fields.salvage = false;
+            self.crafting_fields.repair = false;
             self.social = false;
             self.quest = false;
             self.diary = false;
@@ -973,6 +984,7 @@ impl Show {
             }
             self.crafting = open;
             self.crafting_fields.salvage = false;
+            self.crafting_fields.repair = false;
             self.crafting_fields.recipe_inputs = HashMap::new();
             self.bag = open;
             self.map = false;
@@ -992,6 +1004,10 @@ impl Show {
             self.crafting_fields.craft_sprite,
             Some((_, SpriteKind::DismantlingBench))
         ) && matches!(tab, CraftingTab::Dismantle);
+        self.crafting_fields.repair = matches!(
+            self.crafting_fields.craft_sprite,
+            Some((_, SpriteKind::RepairBench))
+        ) && matches!(tab, CraftingTab::Repair);
     }
 
     fn diary(&mut self, open: bool) {
@@ -1000,6 +1016,7 @@ impl Show {
             self.quest = false;
             self.crafting = false;
             self.crafting_fields.salvage = false;
+            self.crafting_fields.repair = false;
             self.bag = false;
             self.map = false;
             self.diary_fields = diary::DiaryShow::default();
@@ -1020,6 +1037,7 @@ impl Show {
             self.quest = false;
             self.crafting = false;
             self.crafting_fields.salvage = false;
+            self.crafting_fields.repair = false;
             self.diary = false;
             self.want_grab = !self.any_window_requires_cursor();
         }
@@ -3688,7 +3706,6 @@ impl Hud {
 
         // Maintain slot manager
         'slot_events: for event in self.slot_manager.maintain(ui_widgets) {
-            use comp::slot::Slot;
             use slots::{AbilitySlot, InventorySlot, SlotKind::*};
             let to_slot = |slot_kind| match slot_kind {
                 Inventory(InventorySlot {
@@ -3919,6 +3936,17 @@ impl Hud {
                                 (from, self.show.crafting_fields.craft_sprite)
                             {
                                 events.push(Event::SalvageItem { slot, salvage_pos })
+                            }
+                        } else if self.show.crafting_fields.repair
+                            && matches!(self.show.crafting_fields.crafting_tab, CraftingTab::Repair)
+                        {
+                            if let Some((sprite_pos, _sprite_kind)) =
+                                self.show.crafting_fields.craft_sprite
+                            {
+                                events.push(Event::RepairItem {
+                                    slot: from,
+                                    sprite_pos,
+                                })
                             }
                         } else {
                             events.push(Event::UseSlot {
