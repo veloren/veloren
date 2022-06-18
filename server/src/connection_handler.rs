@@ -108,7 +108,7 @@ impl ConnectionHandler {
     }
 
     async fn init_participant(
-        participant: Participant,
+        mut participant: Participant,
         client_sender: Sender<IncomingClient>,
         info_requester_sender: Sender<Sender<ServerInfoPacket>>,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -142,9 +142,33 @@ impl ConnectionHandler {
             Some(client_type) => client_type?,
         };
 
+        use network::ParticipantEvent;
+        let connected_from = match select!(
+            _ = tokio::time::sleep(TIMEOUT).fuse() => None,
+            connected_from = participant.fetch_event().fuse() => Some(connected_from),
+        ) {
+            None => {
+                error!("Did not receive initial channel created event. This is a bug!");
+                return Ok(());
+            },
+            Some(Err(err)) => {
+                debug!("Participant error when trying to receive event: {err:?}");
+                return Ok(());
+            },
+            Some(Ok(ParticipantEvent::ChannelDeleted(_))) => {
+                error!(
+                    "Received channel deleted event instead of the initial channel created event. \
+                     This is a bug!"
+                );
+                return Ok(());
+            },
+            Some(Ok(ParticipantEvent::ChannelCreated(connected_from))) => connected_from,
+        };
+
         let client = Client::new(
             client_type,
             participant,
+            connected_from,
             server_data.time,
             None,
             general_stream,

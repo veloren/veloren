@@ -1,5 +1,5 @@
 use crate::{
-    settings::{AdminRecord, Banlist, WhitelistRecord},
+    settings::{AdminRecord, Ban, Banlist, WhitelistRecord},
     Client,
 };
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
@@ -11,6 +11,24 @@ use specs::Component;
 use std::{str::FromStr, sync::Arc};
 use tokio::{runtime::Runtime, sync::oneshot};
 use tracing::{error, info};
+
+/// Determines whether a user is banned, given a ban record connected to a user,
+/// the `AdminRecord` of that user (if it exists), and the current time.
+pub fn ban_applies(
+    ban: &Ban,
+    admin: Option<&AdminRecord>,
+    now: chrono::DateTime<chrono::Utc>,
+) -> bool {
+    // Make sure the ban is active, and that we can't override it.
+    //
+    // If we are an admin and our role is at least as high as the role of the
+    // person who banned us, we can override the ban; we negate this to find
+    // people who cannot override it.
+    let exceeds_ban_role = |admin: &AdminRecord| {
+        AdminRole::from(admin.role) >= AdminRole::from(ban.performed_by_role())
+    };
+    !ban.is_expired(now) && !admin.map_or(false, exceeds_ban_role)
+}
 
 fn derive_uuid(username: &str) -> Uuid {
     let mut state = 144066263297769815596495629667062367629;
@@ -106,32 +124,23 @@ impl LoginProvider {
             Ok(Err(e)) => Some(Err(e)),
             Ok(Ok((username, uuid))) => {
                 let now = Utc::now();
+                // We ignore mpsc connections since those aren't to an external
+                // process.
+                let ip = client.connected_from_addr().socket_addr().map(|s| s.ip());
                 // Hardcoded admins can always log in.
                 let admin = admins.get(&uuid);
                 if let Some(ban) = banlist
                     .uuid_bans()
                     .get(&uuid)
-                    .and_then(|ban_record| ban_record.current.action.ban())
+                    .and_then(|ban_entry| ban_entry.current.action.ban())
                     .into_iter()
-                    .chain({
-                        let ip = client.participant.as_ref()?.peer_socket_addr()?.ip();
+                    .chain(ip.and_then(|ip| {
                         banlist
                             .ip_bans()
                             .get(&ip)
-                            .and_then(|ban_record| ban_record.current.action.ban())
-                    })
-                    .find(|ban| {
-                        // Make sure the ban is active, and that we can't override it.
-                        //
-                        // If we are an admin and our role is at least as high as the role of the
-                        // person who banned us, we can override the ban; we negate this to find
-                        // people who cannot override it.
-                        let exceeds_ban_role = |admin: &AdminRecord| {
-                            Into::<AdminRole>::into(admin.role)
-                                >= Into::<AdminRole>::into(ban.performed_by_role())
-                        };
-                        !ban.is_expired(now) && !admin.map_or(false, exceeds_ban_role)
-                    })
+                            .and_then(|ban_entry| ban_entry.current.action.ban())
+                    }))
+                    .find(|ban| ban_applies(ban, admin, now))
                 {
                     // Pull reason string out of ban record and send a copy of it
                     return Some(Err(RegisterError::Banned(ban.info())));

@@ -1,8 +1,8 @@
 use common_net::msg::{ClientType, ServerGeneral, ServerMsg};
-use network::{Message, Participant, Stream, StreamError, StreamParams};
+use network::{ConnectAddr, Message, Participant, Stream, StreamError, StreamParams};
 use serde::{de::DeserializeOwned, Serialize};
 use specs::Component;
-use std::sync::atomic::AtomicBool;
+use std::{net::SocketAddr, sync::atomic::AtomicBool};
 
 /// Client handles ALL network related information of everything that connects
 /// to the server Client DOES NOT handle game states
@@ -13,6 +13,8 @@ use std::sync::atomic::AtomicBool;
 pub struct Client {
     pub client_type: ClientType,
     pub participant: Option<Participant>,
+    pub current_ip_addrs: Vec<SocketAddr>,
+    connected_from_addr: ConnectAddr,
     pub last_ping: f64,
     pub login_msg_sent: AtomicBool,
     pub locale: Option<String>,
@@ -48,6 +50,7 @@ impl Client {
     pub(crate) fn new(
         client_type: ClientType,
         participant: Participant,
+        connected_from: ConnectAddr,
         last_ping: f64,
         locale: Option<String>,
         general_stream: Stream,
@@ -66,6 +69,8 @@ impl Client {
         Client {
             client_type,
             participant: Some(participant),
+            current_ip_addrs: connected_from.socket_addr().into_iter().collect(),
+            connected_from_addr: connected_from,
             last_ping,
             locale,
             login_msg_sent: AtomicBool::new(false),
@@ -83,6 +88,8 @@ impl Client {
             terrain_stream_params,
         }
     }
+
+    pub(crate) fn connected_from_addr(&self) -> &ConnectAddr { &self.connected_from_addr }
 
     pub(crate) fn send<M: Into<ServerMsg>>(&self, msg: M) -> Result<(), StreamError> {
         // TODO: hack to avoid locking stream mutex while serializing the message,

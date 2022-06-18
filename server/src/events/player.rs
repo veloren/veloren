@@ -175,11 +175,15 @@ pub fn handle_client_disconnect(
 ) -> Event {
     span!(_guard, "handle_client_disconnect");
     let mut emit_logoff_event = true;
+
+    // Entity deleted below and persist_entity doesn't require a `Client` component,
+    // so we can just remove the Client component to get ownership of the
+    // participant.
     if let Some(client) = server
         .state()
         .ecs()
         .write_storage::<Client>()
-        .get_mut(entity)
+        .remove(entity)
     {
         // NOTE: There are not and likely will not be a way to safeguard against
         // receiving multiple `ServerEvent::ClientDisconnect` messages in a tick
@@ -193,7 +197,7 @@ pub fn handle_client_disconnect(
             .with_label_values(&[get_reason_str(&reason)])
             .inc();
 
-        if let Some(participant) = client.participant.take() {
+        if let Some(participant) = client.participant {
             let pid = participant.remote_pid();
             server.runtime.spawn(
                 async {
@@ -269,6 +273,8 @@ pub fn handle_client_disconnect(
 /// that this function will not be called twice on an entity with the same
 /// character id.
 pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
+    // NOTE: `Client` component may already be removed by the caller to close the
+    // connection. Don't depend on it here!
     if let (
         Some(presence),
         Some(skill_set),

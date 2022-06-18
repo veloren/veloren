@@ -290,11 +290,12 @@ fn socket_addr(server: &Server, entity: EcsEntity, descriptor: &str) -> CmdResul
         .ecs()
         .read_storage::<Client>()
         .get(entity)
-        .and_then(|c| c.participant.as_ref()?.peer_socket_addr())
+        .ok_or_else(|| Content::Plain(format!("Cannot get player entity for {descriptor:?}")))?
+        .connected_from_addr()
+        .socket_addr()
         .ok_or_else(|| {
             Content::Plain(format!(
-                "Cannot get player information for {:?}",
-                descriptor
+                "Cannot get socker addr (connected via mpsc connection) for {descriptor:?}"
             ))
         })
 }
@@ -4849,10 +4850,9 @@ fn handle_ban_ip(
             .join()
             .filter(|(_, client, _)| {
                 client
-                    .participant
-                    .as_ref()
-                    .and_then(|p| p.peer_socket_addr())
-                    .map_or(false, |addr| addr.ip() == player_socket_addr.ip())
+                    .current_ip_addrs
+                    .iter()
+                    .any(|socket_addr| socket_addr.ip() == player_socket_addr.ip())
             })
             .map(|(entity, _, player)| (entity, player.uuid()))
             .collect::<Vec<_>>();
