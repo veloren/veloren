@@ -15,7 +15,7 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: Some(Two),
-            weapon_name: Universal("Long Pole"),
+            weapon_name: Universal("Longpole"),
         )
     ),
     quality: Low,
