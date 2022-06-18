@@ -4,7 +4,7 @@ BasicRanged(
     recover_duration: 0.7,
     projectile: Poisonball(
         damage: 50.0,
-        radius: 3.0,
+        radius: 2.75,
         energy_regen: 0,
         min_falloff: 0.2,
     ),
@@ -14,6 +14,6 @@ BasicRanged(
         ..Default::default()
     }),*/
     projectile_speed: 260.0,
-    num_projectiles: 3,
+    num_projectiles: 1,
     projectile_spread: 0.3,
 )

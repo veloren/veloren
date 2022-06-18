@@ -549,18 +549,18 @@ pub fn apply_caves_supplement<'a>(
                                     _ => "common.entity.wild.aggressive.batfox",
                                 }
                             } else if cave_depth < 120.0 {
-                                match dynamic_rng.gen_range(0..5) {
-                                    0 => "common.entity.wild.aggressive.rocksnapper",
-                                    1 => "common.entity.wild.aggressive.cave_salamander",
-                                    2 => "common.entity.wild.aggressive.cave_spider",
-                                    4 => "common.entity.wild.peaceful.crawler_molten",
+                                match dynamic_rng.gen_range(0..10) {
+                                    2 => "common.entity.wild.aggressive.rocksnapper",
+                                    5 => "common.entity.wild.aggressive.cave_salamander",
+                                    7 => "common.entity.wild.aggressive.cave_spider",
+                                    8 => "common.entity.wild.peaceful.crawler_molten",
                                     _ => "common.entity.wild.aggressive.asp",
                                 }
                             } else if cave_depth < 190.0 {
-                                match dynamic_rng.gen_range(0..4) {
-                                    0 => "common.entity.wild.aggressive.rocksnapper",
-                                    1 => "common.entity.wild.aggressive.lavadrake",
-                                    2 => "common.entity.wild.aggressive.black_widow",
+                                match dynamic_rng.gen_range(0..5) {
+                                    1 => "common.entity.wild.aggressive.rocksnapper",
+                                    2 => "common.entity.wild.aggressive.lavadrake",
+                                    3 => "common.entity.wild.aggressive.black_widow",
                                     _ => "common.entity.wild.aggressive.basilisk",
                                 }
                             } else {

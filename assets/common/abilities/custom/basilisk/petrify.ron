@@ -1,9 +1,9 @@
 BasicBeam(
     buildup_duration: 1.8,
     recover_duration: 1.0,
-    beam_duration: 1.0,
-    damage: 84.0,
-    tick_rate: 0.5,
+    beam_duration: 1.15,
+    damage: 64.0,
+    tick_rate: 0.35,
     range: 22.0,
     max_angle: 5.0,
     damage_effect: Some(Buff((
