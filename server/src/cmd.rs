@@ -4831,7 +4831,7 @@ fn handle_ban_ip(
             result,
             || {
                 Content::Plain(format!(
-                    "Added {} to the banlist with reason: {}",
+                    "Added {} to the regular banlist and IP banlist with reason: {}",
                     username, reason
                 ))
             },
@@ -5047,6 +5047,8 @@ fn handle_unban(
             server,
             client,
             result.map(|_| ()),
+            // TODO: it would be useful to indicate here whether an IP ban was also removed but we
+            // don't have that info.
             || Content::Plain(format!("{} was successfully unbanned", username)),
             || Content::Plain(format!("{} was already unbanned", username)),
         )
@@ -5088,7 +5090,13 @@ fn handle_unban_ip(
             server,
             client,
             result.map(|_| ()),
-            || Content::Plain(format!("{} was successfully unbanned", username)),
+            || {
+                Content::Plain(format!(
+                    "The IP banned via user \"{}\" was successfully unbanned (this user will \
+                     remain banned)",
+                    username
+                ))
+            },
             || Content::Plain(format!("{} was already unbanned", username)),
         )
     } else {
