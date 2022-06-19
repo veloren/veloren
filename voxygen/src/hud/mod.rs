@@ -1261,7 +1261,7 @@ impl Hud {
             let healths = ecs.read_storage::<comp::Health>();
             let buffs = ecs.read_storage::<comp::Buffs>();
             let energy = ecs.read_storage::<comp::Energy>();
-            let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
+            let mut hp_floater_lists = ecs.write_storage::<vcomp::HpFloaterList>();
             let uids = ecs.read_storage::<Uid>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let scales = ecs.read_storage::<comp::Scale>();
@@ -1405,7 +1405,7 @@ impl Hud {
                 let mut player_sct_id_walker = self.ids.player_scts.walk();
                 if let (Some(HpFloaterList { floaters, .. }), Some(health)) = (
                     hp_floater_lists
-                        .get(me)
+                        .get_mut(me)
                         .filter(|fl| !fl.floaters.is_empty()),
                     healths.get(me),
                 ) {
@@ -1417,6 +1417,14 @@ impl Hud {
                         }
                     };
 
+                    fn calc_fade(floater: &HpFloater) -> f32 {
+                        ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
+                            * 0.25)
+                            + 0.2
+                    }
+
+                    floaters.retain(|fl| calc_fade(fl) > 0.0);
+
                     for floater in floaters {
                         let number_speed = 50.0; // Player number speed
                         let player_sct_bg_id = player_sct_bg_id_walker.next(
@@ -1427,6 +1435,7 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
+                        // Clamp the amount so you don't have absurdly large damage numbers
                         let max_hp_frac = floater
                             .info
                             .amount
@@ -1445,13 +1454,7 @@ impl Hud {
                         let crit = floater.info.crit;
 
                         // Timer sets text transparency
-                        let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
-                            * 0.25)
-                            + 0.2;
-                        // Skip floater if fade is less than or equal to 0.0
-                        if hp_fade <= 0.0 {
-                            continue;
-                        }
+                        let hp_fade = calc_fade(floater);
 
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
@@ -1963,7 +1966,7 @@ impl Hud {
                 energy.maybe(),
                 scales.maybe(),
                 &bodies,
-                &hp_floater_lists,
+                &mut hp_floater_lists,
                 &uids,
                 &inventories,
                 players.maybe(),
@@ -2110,6 +2113,15 @@ impl Hud {
 
                 // Enemy SCT
                 if global_state.settings.interface.sct && !hpfl.floaters.is_empty() {
+                    fn calc_fade(floater: &HpFloater) -> f32 {
+                        if floater.info.crit {
+                            ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75) + 0.5
+                        } else {
+                            ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25) + 0.2
+                        } 
+                    }
+
+                    hpfl.floaters.retain(|fl| calc_fade(fl) > 0.0);
                     let floaters = &hpfl.floaters;
 
                     // Colors
@@ -2143,7 +2155,7 @@ impl Hud {
                             .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
                         let sct_bg_id = sct_bg_walker
                             .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
-                        // Calculate total change
+                        // Clamp the amount so you don't have absurdly large damage numbers
                         let max_hp_frac = floater
                             .info
                             .amount
@@ -2161,15 +2173,7 @@ impl Hud {
                         };
                         let crit = floater.info.crit;
                         // Timer sets text transparency
-                        let fade = if crit {
-                            ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75) + 0.5
-                        } else {
-                            ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25) + 0.2
-                        };
-                        // Skip floater if fade is less than or equal to 0.0
-                        if fade <= 0.0 {
-                            continue;
-                        }
+                        let fade = calc_fade(floater);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size =
