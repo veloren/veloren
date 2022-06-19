@@ -238,14 +238,22 @@ fn handle_main_events_cleared(
         // running at hundreds/thousands of FPS resulting in high GPU usage for
         // effectively doing nothing.
         let max_fps = get_fps(global_state.settings.graphics.max_fps);
-        let max_background_fps = get_fps(global_state.settings.graphics.max_background_fps);
-        const TITLE_SCREEN_FPS_CAP: u32 = 60;
-        let target_fps = if !global_state.window.focused {
-            u32::min(max_background_fps, max_fps)
-        } else if capped_fps {
-            u32::min(TITLE_SCREEN_FPS_CAP, max_fps)
-        } else {
+        let max_background_fps = u32::min(
+            max_fps,
+            get_fps(global_state.settings.graphics.max_background_fps),
+        );
+        let max_fps_focus_adjusted = if global_state.window.focused {
             max_fps
+        } else {
+            max_background_fps
+        };
+
+        const TITLE_SCREEN_FPS_CAP: u32 = 60;
+
+        let target_fps = if capped_fps {
+            u32::min(TITLE_SCREEN_FPS_CAP, max_fps_focus_adjusted)
+        } else {
+            max_fps_focus_adjusted
         };
 
         global_state
