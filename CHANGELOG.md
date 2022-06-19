@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an error where '{amount} Exp' floater did not use existing localizations
 - Fix villagers seeing cultists and familiar enemies through objects.
 - Menacing agents are now less spammy with their menacing messages
+- Fixed the title screen FPS cap not applying when the background FPS limit was set higher than 60 FPS 
 
 ## [0.12.0] - 2022-02-19
 
