@@ -1,7 +1,7 @@
 use crate::{
     channel::ProtocolsError,
     message::{partial_eq_bincode, Message},
-    participant::{A2bStreamOpen, S2bShutdownBparticipant},
+    participant::{A2bReportChannel, A2bStreamOpen, S2bShutdownBparticipant},
     scheduler::{A2sConnect, Scheduler},
 };
 use bytes::Bytes;
@@ -61,6 +61,7 @@ pub struct Participant {
     remote_pid: Pid,
     a2b_open_stream_s: Mutex<mpsc::UnboundedSender<A2bStreamOpen>>,
     b2a_stream_opened_r: Mutex<mpsc::UnboundedReceiver<Stream>>,
+    a2b_report_channel_s: Option<Mutex<Option<mpsc::UnboundedSender<A2bReportChannel>>>>,
     b2a_bandwidth_stats_r: watch::Receiver<f32>,
     a2s_disconnect_s: A2sDisconnect,
 }
@@ -520,6 +521,7 @@ impl Participant {
         remote_pid: Pid,
         a2b_open_stream_s: mpsc::UnboundedSender<A2bStreamOpen>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
+        a2b_report_channel_s: mpsc::UnboundedSender<A2bReportChannel>,
         b2a_bandwidth_stats_r: watch::Receiver<f32>,
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>,
     ) -> Self {
@@ -528,6 +530,7 @@ impl Participant {
             remote_pid,
             a2b_open_stream_s: Mutex::new(a2b_open_stream_s),
             b2a_stream_opened_r: Mutex::new(b2a_stream_opened_r),
+            a2b_report_channel_s: Some(Mutex::new(Some(a2b_report_channel_s))),
             b2a_bandwidth_stats_r,
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
@@ -709,6 +712,9 @@ impl Participant {
     pub async fn disconnect(self) -> Result<(), ParticipantError> {
         // Remove, Close and try_unwrap error when unwrap fails!
         debug!("Closing participant from network");
+        if let Some(s) = &self.a2b_report_channel_s {
+            let _ = s.lock().await.take(); // drop so that bparticipant can close
+        }
 
         //Streams will be closed by BParticipant
         match self.a2s_disconnect_s.lock().await.take() {
@@ -750,6 +756,38 @@ impl Participant {
                 Err(ParticipantError::ParticipantDisconnected)
             },
         }
+    }
+
+    /// Returns a list of [`ConnectAddr`] that can be used to connect to the
+    /// respective remote. This only reports the current state of the
+    /// Participant at the point of calling. Also there is no guarantee that
+    /// the remote is listening on this address. Note: Due to timing
+    /// problems even if you call this repeatedly you might miss some addr that
+    /// got connected and disconnected quickly, though this is more of a
+    /// theoretical problem.
+    ///
+    /// [`ConnectAddr`]: ConnectAddr
+    pub async fn report_current_connect_addr(&self) -> Result<Vec<ConnectAddr>, ParticipantError> {
+        let (p2a_return_report_s, p2a_return_report_r) = oneshot::channel::<Vec<ConnectAddr>>();
+        if let Some(s) = &self.a2b_report_channel_s {
+            if let Some(s) = &*s.lock().await {
+                match s.send(p2a_return_report_s) {
+                    Ok(()) => match p2a_return_report_r.await {
+                        Ok(list) => return Ok(list),
+                        Err(_) => {
+                            debug!("p2a_return_report_r failed, closing participant");
+                            return Err(ParticipantError::ParticipantDisconnected);
+                        },
+                    },
+                    Err(e) => {
+                        debug!(?e, "bParticipant is already closed, notifying");
+                        return Err(ParticipantError::ParticipantDisconnected);
+                    },
+                }
+            }
+        }
+        debug!("Participant is already closed, notifying");
+        Err(ParticipantError::ParticipantDisconnected)
     }
 
     /// Returns the current approximation on the maximum bandwidth available.
@@ -1148,6 +1186,7 @@ impl Drop for Participant {
         // ignore closed, as we need to send it even though we disconnected the
         // participant from network
         debug!("Shutting down Participant");
+        let _ = self.a2b_report_channel_s.take(); // drop so that bparticipant can close
 
         match self.a2s_disconnect_s.try_lock() {
             Err(e) => debug!(?e, "Participant is beeing dropped by Network right now"),

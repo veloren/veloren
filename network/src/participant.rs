@@ -1,5 +1,5 @@
 use crate::{
-    api::{ParticipantError, Stream},
+    api::{ConnectAddr, ParticipantError, Stream},
     channel::{Protocols, ProtocolsError, RecvProtocols, SendProtocols},
     metrics::NetworkMetrics,
     util::DeferredTracer,
@@ -27,7 +27,8 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
 
 pub(crate) type A2bStreamOpen = (Prio, Promises, Bandwidth, oneshot::Sender<Stream>);
-pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, oneshot::Sender<()>);
+pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, ConnectAddr, oneshot::Sender<()>);
+pub(crate) type A2bReportChannel = oneshot::Sender<Vec<ConnectAddr>>;
 pub(crate) type S2bShutdownBparticipant = (Duration, oneshot::Sender<Result<(), ParticipantError>>);
 pub(crate) type B2sPrioStatistic = (Pid, u64, u64);
 
@@ -36,6 +37,7 @@ pub(crate) type B2sPrioStatistic = (Pid, u64, u64);
 struct ChannelInfo {
     cid: Cid,
     cid_string: String, //optimisationmetrics
+    remote_con_addr: ConnectAddr,
 }
 
 #[derive(Debug)]
@@ -53,6 +55,7 @@ struct ControlChannels {
     a2b_open_stream_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
     b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
     s2b_create_channel_r: mpsc::UnboundedReceiver<S2bCreateChannel>,
+    a2b_report_channel_r: mpsc::UnboundedReceiver<A2bReportChannel>,
     b2a_bandwidth_stats_s: watch::Sender<f32>,
     s2b_shutdown_bparticipant_r: oneshot::Receiver<S2bShutdownBparticipant>, /* own */
 }
@@ -81,6 +84,7 @@ impl BParticipant {
     // We use integer instead of Barrier to not block mgr from freeing at the end
     const BARR_CHANNEL: i32 = 1;
     const BARR_RECV: i32 = 4;
+    const BARR_REPORT: i32 = 8;
     const BARR_SEND: i32 = 2;
     const TICK_TIME: Duration = Duration::from_millis(Self::TICK_TIME_MS);
     const TICK_TIME_MS: u64 = 5;
@@ -95,6 +99,7 @@ impl BParticipant {
         mpsc::UnboundedSender<A2bStreamOpen>,
         mpsc::UnboundedReceiver<Stream>,
         mpsc::UnboundedSender<S2bCreateChannel>,
+        mpsc::UnboundedSender<A2bReportChannel>,
         oneshot::Sender<S2bShutdownBparticipant>,
         watch::Receiver<f32>,
     ) {
@@ -102,12 +107,15 @@ impl BParticipant {
         let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded_channel::<Stream>();
         let (s2b_shutdown_bparticipant_s, s2b_shutdown_bparticipant_r) = oneshot::channel();
         let (s2b_create_channel_s, s2b_create_channel_r) = mpsc::unbounded_channel();
+        let (a2b_report_channel_s, a2b_report_channel_r) =
+            mpsc::unbounded_channel::<A2bReportChannel>();
         let (b2a_bandwidth_stats_s, b2a_bandwidth_stats_r) = watch::channel::<f32>(0.0);
 
         let run_channels = Some(ControlChannels {
             a2b_open_stream_r,
             b2a_stream_opened_s,
             s2b_create_channel_r,
+            a2b_report_channel_r,
             b2a_bandwidth_stats_s,
             s2b_shutdown_bparticipant_r,
         });
@@ -121,7 +129,7 @@ impl BParticipant {
                 channels: Arc::new(RwLock::new(HashMap::new())),
                 streams: RwLock::new(HashMap::new()),
                 shutdown_barrier: AtomicI32::new(
-                    Self::BARR_CHANNEL + Self::BARR_SEND + Self::BARR_RECV,
+                    Self::BARR_CHANNEL + Self::BARR_SEND + Self::BARR_RECV + Self::BARR_REPORT,
                 ),
                 run_channels,
                 metrics,
@@ -130,6 +138,7 @@ impl BParticipant {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             s2b_create_channel_s,
+            a2b_report_channel_s,
             s2b_shutdown_bparticipant_s,
             b2a_bandwidth_stats_r,
         )
@@ -185,6 +194,7 @@ impl BParticipant {
                 b2b_add_send_protocol_s,
                 b2b_add_recv_protocol_s,
             ),
+            self.report_channels_mgr(run_channels.a2b_report_channel_r),
             self.participant_shutdown_mgr(
                 run_channels.s2b_shutdown_bparticipant_r,
                 b2b_close_send_protocol_s.clone(),
@@ -560,39 +570,65 @@ impl BParticipant {
     ) {
         let s2b_create_channel_r = UnboundedReceiverStream::new(s2b_create_channel_r);
         s2b_create_channel_r
-            .for_each_concurrent(None, |(cid, _, protocol, b2s_create_channel_done_s)| {
-                // This channel is now configured, and we are running it in scope of the
-                // participant.
-                let channels = Arc::clone(&self.channels);
-                let b2b_add_send_protocol_s = b2b_add_send_protocol_s.clone();
-                let b2b_add_recv_protocol_s = b2b_add_recv_protocol_s.clone();
-                async move {
-                    let mut lock = channels.write().await;
-                    let mut channel_no = lock.len();
-                    lock.insert(
-                        cid,
-                        Mutex::new(ChannelInfo {
+            .for_each_concurrent(
+                None,
+                |(cid, _, protocol, remote_con_addr, b2s_create_channel_done_s)| {
+                    // This channel is now configured, and we are running it in scope of the
+                    // participant.
+                    let channels = Arc::clone(&self.channels);
+                    let b2b_add_send_protocol_s = b2b_add_send_protocol_s.clone();
+                    let b2b_add_recv_protocol_s = b2b_add_recv_protocol_s.clone();
+                    async move {
+                        let mut lock = channels.write().await;
+                        let mut channel_no = lock.len();
+                        lock.insert(
                             cid,
-                            cid_string: cid.to_string(),
-                        }),
-                    );
-                    drop(lock);
-                    let (send, recv) = protocol.split();
-                    b2b_add_send_protocol_s.send((cid, send)).unwrap();
-                    b2b_add_recv_protocol_s.send((cid, recv)).unwrap();
-                    b2s_create_channel_done_s.send(()).unwrap();
-                    if channel_no > 5 {
-                        debug!(?channel_no, "metrics will overwrite channel #5");
-                        channel_no = 5;
+                            Mutex::new(ChannelInfo {
+                                cid,
+                                cid_string: cid.to_string(),
+                                remote_con_addr,
+                            }),
+                        );
+                        drop(lock);
+                        let (send, recv) = protocol.split();
+                        b2b_add_send_protocol_s.send((cid, send)).unwrap();
+                        b2b_add_recv_protocol_s.send((cid, recv)).unwrap();
+                        b2s_create_channel_done_s.send(()).unwrap();
+                        if channel_no > 5 {
+                            debug!(?channel_no, "metrics will overwrite channel #5");
+                            channel_no = 5;
+                        }
+                        self.metrics
+                            .channels_connected(&self.remote_pid_string, channel_no, cid);
                     }
-                    self.metrics
-                        .channels_connected(&self.remote_pid_string, channel_no, cid);
-                }
-            })
+                },
+            )
             .await;
         trace!("Stop create_channel_mgr");
         self.shutdown_barrier
             .fetch_sub(Self::BARR_CHANNEL, Ordering::SeqCst);
+    }
+
+    async fn report_channels_mgr(
+        &self,
+        mut a2b_report_channel_r: mpsc::UnboundedReceiver<A2bReportChannel>,
+    ) {
+        while let Some(b2a_report_channel_s) = a2b_report_channel_r.recv().await {
+            let data = {
+                let lock = self.channels.read().await;
+                let mut data = Vec::new();
+                for (_, c) in lock.iter() {
+                    data.push(c.lock().await.remote_con_addr.clone());
+                }
+                data
+            };
+            if b2a_report_channel_s.send(data).is_err() {
+                warn!("couldn't report back connect_addrs");
+            };
+        }
+        trace!("Stop report_channels_mgr");
+        self.shutdown_barrier
+            .fetch_sub(Self::BARR_REPORT, Ordering::SeqCst);
     }
 
     /// sink shutdown:
@@ -784,6 +820,7 @@ mod tests {
         mpsc::UnboundedSender<A2bStreamOpen>,
         mpsc::UnboundedReceiver<Stream>,
         mpsc::UnboundedSender<S2bCreateChannel>,
+        mpsc::UnboundedSender<A2bReportChannel>,
         oneshot::Sender<S2bShutdownBparticipant>,
         mpsc::UnboundedReceiver<B2sPrioStatistic>,
         watch::Receiver<f32>,
@@ -800,6 +837,7 @@ mod tests {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             s2b_create_channel_s,
+            a2b_report_channel_s,
             s2b_shutdown_bparticipant_s,
             b2a_bandwidth_stats_r,
         ) = runtime_clone.block_on(async move {
@@ -817,6 +855,7 @@ mod tests {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             s2b_create_channel_s,
+            a2b_report_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             b2a_bandwidth_stats_r,
@@ -836,7 +875,7 @@ mod tests {
         let p1 = Protocols::new_mpsc(s1, r2, metrics);
         let (complete_s, complete_r) = oneshot::channel();
         create_channel
-            .send((cid, Sid::new(0), p1, complete_s))
+            .send((cid, Sid::new(0), p1, ConnectAddr::Mpsc(42), complete_s))
             .unwrap();
         complete_r.await.unwrap();
         let metrics = ProtocolMetricCache::new(&cid.to_string(), met);
@@ -850,6 +889,7 @@ mod tests {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             mut s2b_create_channel_s,
+            a2b_report_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             _b2a_bandwidth_stats_r,
@@ -863,6 +903,7 @@ mod tests {
         let before = Instant::now();
         runtime.block_on(async {
             drop(s2b_create_channel_s);
+            drop(a2b_report_channel_s);
             s2b_shutdown_bparticipant_s
                 .send((Duration::from_secs(1), s))
                 .unwrap();
@@ -886,6 +927,7 @@ mod tests {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             mut s2b_create_channel_s,
+            a2b_report_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             _b2a_bandwidth_stats_r,
@@ -899,6 +941,7 @@ mod tests {
         let before = Instant::now();
         runtime.block_on(async {
             drop(s2b_create_channel_s);
+            drop(a2b_report_channel_s);
             s2b_shutdown_bparticipant_s
                 .send((Duration::from_secs(2), s))
                 .unwrap();
@@ -923,6 +966,7 @@ mod tests {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             mut s2b_create_channel_s,
+            a2b_report_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             _b2a_bandwidth_stats_r,
@@ -958,6 +1002,7 @@ mod tests {
         let (s, r) = oneshot::channel();
         runtime.block_on(async {
             drop(s2b_create_channel_s);
+            drop(a2b_report_channel_s);
             s2b_shutdown_bparticipant_s
                 .send((Duration::from_secs(1), s))
                 .unwrap();
@@ -978,6 +1023,7 @@ mod tests {
             a2b_open_stream_s,
             mut b2a_stream_opened_r,
             mut s2b_create_channel_s,
+            a2b_report_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             _b2a_bandwidth_stats_r,
@@ -1004,6 +1050,7 @@ mod tests {
         let (s, r) = oneshot::channel();
         runtime.block_on(async {
             drop(s2b_create_channel_s);
+            drop(a2b_report_channel_s);
             s2b_shutdown_bparticipant_s
                 .send((Duration::from_secs(1), s))
                 .unwrap();
@@ -1014,6 +1061,50 @@ mod tests {
         runtime.block_on(handle).unwrap();
 
         drop((a2b_open_stream_s, b2a_stream_opened_r, b2s_prio_statistic_r));
+        drop(runtime);
+    }
+
+    #[test]
+    fn report_conn_addr() {
+        let (
+            runtime,
+            a2b_open_stream_s,
+            _b2a_stream_opened_r,
+            mut s2b_create_channel_s,
+            a2b_report_channel_s,
+            s2b_shutdown_bparticipant_s,
+            b2s_prio_statistic_r,
+            _b2a_bandwidth_stats_r,
+            handle,
+        ) = mock_bparticipant();
+
+        let _remote = runtime.block_on(mock_mpsc(0, &runtime, &mut s2b_create_channel_s));
+        std::thread::sleep(Duration::from_millis(50));
+
+        let result = runtime.block_on(async {
+            let (s, r) = oneshot::channel();
+            a2b_report_channel_s.send(s).unwrap();
+            r.await.unwrap()
+        });
+
+        assert_eq!(result.len(), 1);
+        if !matches!(result[0], ConnectAddr::Mpsc(42)) {
+            panic!("wrong code");
+        }
+
+        let (s, r) = oneshot::channel();
+        runtime.block_on(async {
+            drop(s2b_create_channel_s);
+            drop(a2b_report_channel_s);
+            s2b_shutdown_bparticipant_s
+                .send((Duration::from_secs(1), s))
+                .unwrap();
+            r.await.unwrap().unwrap();
+        });
+
+        runtime.block_on(handle).unwrap();
+
+        drop((a2b_open_stream_s, b2s_prio_statistic_r));
         drop(runtime);
     }
 }

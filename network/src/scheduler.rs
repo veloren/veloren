@@ -223,8 +223,8 @@ impl Scheduler {
                     };
                     let _ = s2a_listen_result_s.send(res);
 
-                    while let Some((prot, cid)) = c2s_protocol_r.recv().await {
-                        self.init_protocol(prot, cid, None, true).await;
+                    while let Some((prot, con_addr, cid)) = c2s_protocol_r.recv().await {
+                        self.init_protocol(prot, con_addr, cid, None, true).await;
                     }
                 }
             })
@@ -239,7 +239,7 @@ impl Scheduler {
             let metrics =
                 ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&self.protocol_metrics));
             self.metrics.connect_request(&addr);
-            let protocol = match addr {
+            let protocol = match addr.clone() {
                 ConnectAddr::Tcp(addr) => Protocols::with_tcp_connect(addr, metrics).await,
                 #[cfg(feature = "quic")]
                 ConnectAddr::Quic(addr, ref config, name) => {
@@ -255,7 +255,7 @@ impl Scheduler {
                     continue;
                 },
             };
-            self.init_protocol(protocol, cid, Some(pid_sender), false)
+            self.init_protocol(protocol, addr, cid, Some(pid_sender), false)
                 .await;
         }
         trace!("Stop connect_mgr");
@@ -375,6 +375,7 @@ impl Scheduler {
     async fn init_protocol(
         &self,
         mut protocol: Protocols,
+        con_addr: ConnectAddr, //address necessary to connect to the remote
         cid: Cid,
         s2a_return_pid_s: Option<oneshot::Sender<Result<Participant, NetworkConnectError>>>,
         send_handshake: bool,
@@ -418,6 +419,7 @@ impl Scheduler {
                                 a2b_open_stream_s,
                                 b2a_stream_opened_r,
                                 s2b_create_channel_s,
+                                a2b_report_channel_s,
                                 s2b_shutdown_bparticipant_s,
                                 b2a_bandwidth_stats_r,
                             ) = BParticipant::new(local_pid, pid, sid, Arc::clone(&metrics));
@@ -427,6 +429,7 @@ impl Scheduler {
                                 pid,
                                 a2b_open_stream_s,
                                 b2a_stream_opened_r,
+                                a2b_report_channel_s,
                                 b2a_bandwidth_stats_r,
                                 participant_channels.a2s_disconnect_s,
                             );
@@ -451,7 +454,7 @@ impl Scheduler {
                                 oneshot::channel();
                             //From now on wire connects directly with bparticipant!
                             s2b_create_channel_s
-                                .send((cid, sid, protocol, b2s_create_channel_done_s))
+                                .send((cid, sid, protocol, con_addr, b2s_create_channel_done_s))
                                 .unwrap();
                             b2s_create_channel_done_r.await.unwrap();
                             if let Some(pid_oneshot) = s2a_return_pid_s {

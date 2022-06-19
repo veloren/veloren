@@ -1,4 +1,4 @@
-use crate::api::NetworkConnectError;
+use crate::api::{ConnectAddr, NetworkConnectError};
 use async_trait::async_trait;
 use bytes::BytesMut;
 use futures_util::FutureExt;
@@ -65,6 +65,7 @@ pub(crate) type C2cMpscConnect = (
     mpsc::Sender<MpscMsg>,
     oneshot::Sender<mpsc::Sender<MpscMsg>>,
 );
+pub(crate) type C2sProtocol = (Protocols, ConnectAddr, Cid);
 
 impl Protocols {
     const MPSC_CHANNEL_BOUND: usize = 1000;
@@ -92,7 +93,7 @@ impl Protocols {
         cids: Arc<AtomicU64>,
         metrics: Arc<ProtocolMetrics>,
         s2s_stop_listening_r: oneshot::Receiver<()>,
-        c2s_protocol_s: mpsc::UnboundedSender<(Self, Cid)>,
+        c2s_protocol_s: mpsc::UnboundedSender<C2sProtocol>,
     ) -> std::io::Result<()> {
         use socket2::{Domain, Socket, Type};
         let domain = Domain::for_address(addr);
@@ -132,7 +133,11 @@ impl Protocols {
                 let cid = cids.fetch_add(1, Ordering::Relaxed);
                 info!(?remote_addr, ?cid, "Accepting Tcp from");
                 let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
-                let _ = c2s_protocol_s.send((Self::new_tcp(stream, metrics.clone()), cid));
+                let _ = c2s_protocol_s.send((
+                    Self::new_tcp(stream, metrics.clone()),
+                    ConnectAddr::Tcp(remote_addr),
+                    cid,
+                ));
             }
         });
         Ok(())
@@ -192,7 +197,7 @@ impl Protocols {
         cids: Arc<AtomicU64>,
         metrics: Arc<ProtocolMetrics>,
         s2s_stop_listening_r: oneshot::Receiver<()>,
-        c2s_protocol_s: mpsc::UnboundedSender<(Self, Cid)>,
+        c2s_protocol_s: mpsc::UnboundedSender<C2sProtocol>,
     ) -> io::Result<()> {
         let (mpsc_s, mut mpsc_r) = mpsc::unbounded_channel();
         MPSC_POOL.lock().await.insert(addr, mpsc_s);
@@ -214,6 +219,7 @@ impl Protocols {
                 let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
                 let _ = c2s_protocol_s.send((
                     Self::new_mpsc(local_to_remote_s, remote_to_local_r, metrics.clone()),
+                    ConnectAddr::Mpsc(addr),
                     cid,
                 ));
             }
@@ -276,7 +282,7 @@ impl Protocols {
         cids: Arc<AtomicU64>,
         metrics: Arc<ProtocolMetrics>,
         s2s_stop_listening_r: oneshot::Receiver<()>,
-        c2s_protocol_s: mpsc::UnboundedSender<(Self, Cid)>,
+        c2s_protocol_s: mpsc::UnboundedSender<C2sProtocol>,
     ) -> io::Result<()> {
         let (_endpoint, mut listener) = match quinn::Endpoint::server(server_config, addr) {
             Ok(v) => v,
@@ -303,7 +309,12 @@ impl Protocols {
                 let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
                 match Protocols::new_quic(connection, true, metrics).await {
                     Ok(quic) => {
-                        let _ = c2s_protocol_s.send((quic, cid));
+                        let connect_addr = ConnectAddr::Quic(
+                            addr,
+                            quinn::ClientConfig::with_native_roots(),
+                            "TODO_remote_hostname".to_string(),
+                        );
+                        let _ = c2s_protocol_s.send((quic, connect_addr, cid));
                     },
                     Err(e) => {
                         trace!(?e, "failed to start quic");

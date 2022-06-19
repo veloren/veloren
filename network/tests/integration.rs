@@ -1,4 +1,6 @@
-use std::sync::Arc;
+#![feature(assert_matches)]
+
+use std::{assert_matches::assert_matches, sync::Arc};
 use tokio::runtime::Runtime;
 use veloren_network::{NetworkError, StreamError};
 mod helper;
@@ -306,4 +308,20 @@ fn listen_on_ipv6_doesnt_block_ipv4() {
 
     drop((s1_a, s1_b, _n_a, _n_b, _p_a, _p_b));
     drop((s1_a2, s1_b2, _n_a2, _n_b2, _p_a2, _p_b2)); //clean teardown
+}
+
+#[test]
+fn report_ip() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, p_a, _s1_a, _n_b, p_b, _s1_b) = network_participant_stream(tcp());
+
+    let list_a = r.block_on(p_a.report_current_connect_addr()).unwrap();
+    assert_eq!(list_a.len(), 1);
+    assert_matches!(list_a[0], ConnectAddr::Tcp(ip) if ip.ip() == std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)));
+
+    let list_b = r.block_on(p_b.report_current_connect_addr()).unwrap();
+    assert_eq!(list_b.len(), 1);
+    assert_matches!(list_b[0], ConnectAddr::Tcp(ip) if ip.ip() == std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)));
+    assert_matches!((list_a[0].clone() , list_b[0].clone()), (ConnectAddr::Tcp(a), ConnectAddr::Tcp(b)) if a.port() != b.port()); // ports need to be different
+    drop((_n_a, _n_b, p_a, p_b)); //clean teardown
 }
