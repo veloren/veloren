@@ -1747,6 +1747,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "etagere"
+version = "0.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6301151a318f367f392c31395beb1cfba5ccd9abc44d1db0db3a4b27b9601c89"
+dependencies = [
+ "euclid",
+ "svg_fmt",
+]
+
+[[package]]
 name = "euc"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2411,8 +2421,6 @@ dependencies = [
 [[package]]
 name = "guillotiere"
 version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b62d5865c036cb1393e23c50693df631d3f5d7bcca4c04fe4cc0fd592e74a782"
 dependencies = [
  "euclid",
  "svg_fmt",
@@ -6688,6 +6696,7 @@ dependencies = [
  "egui_wgpu_backend",
  "egui_winit_platform",
  "enum-iterator",
+ "etagere",
  "euc",
  "gilrs",
  "glyph_brush",

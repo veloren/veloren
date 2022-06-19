@@ -4,7 +4,7 @@ pub use self::watcher::{BlocksOfInterest, FireplaceType, Interaction};
 
 use crate::{
     mesh::{
-        greedy::GreedyMesh,
+        greedy::{GreedyMesh, SpriteAtlasAllocator},
         segment::generate_mesh_base_vol_sprite,
         terrain::{generate_mesh, SUNLIGHT},
     },
@@ -152,6 +152,7 @@ struct SpriteConfig<Model> {
     wind_sway: f32,
 }
 
+// TODO: reduce llvm IR lines from this
 /// Configuration data for all sprite models.
 ///
 /// NOTE: Model is an asset path to the appropriate sprite .vox model.
@@ -437,12 +438,13 @@ impl SpriteRenderContext {
         }
 
         let join_handle = std::thread::spawn(move || {
+            prof_span!("mesh all sprites");
             // Load all the sprite config data.
             let sprite_config =
                 Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
 
             let max_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
-            let mut greedy = GreedyMesh::new(max_size);
+            let mut greedy = GreedyMesh::<SpriteAtlasAllocator>::new(max_size);
             let mut sprite_mesh = Mesh::new();
             // NOTE: Tracks the start vertex of the next model to be meshed.
             let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
@@ -484,7 +486,9 @@ impl SpriteRenderContext {
                                         scale
                                     }
                                 });
-                            move |greedy: &mut GreedyMesh, sprite_mesh: &mut Mesh<SpriteVertex>| {
+                            move |greedy: &mut GreedyMesh<SpriteAtlasAllocator>,
+                                  sprite_mesh: &mut Mesh<SpriteVertex>| {
+                                prof_span!("mesh sprite");
                                 let lod_sprite_data = scaled.map(|lod_scale_orig| {
                                     let lod_scale = model_scale
                                         * if lod_scale_orig == 1.0 {
@@ -531,7 +535,10 @@ impl SpriteRenderContext {
                 .map(|f| f(&mut greedy, &mut sprite_mesh))
                 .collect();
 
-            let sprite_col_lights = greedy.finalize();
+            let sprite_col_lights = {
+                prof_span!("finalize");
+                greedy.finalize()
+            };
 
             SpriteWorkerResponse {
                 sprite_config,
