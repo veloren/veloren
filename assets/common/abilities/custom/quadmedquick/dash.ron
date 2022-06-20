@@ -17,7 +17,7 @@ DashMelee(
         angle: 45.0,
     ),
     energy_drain: 0,
-    forward_speed: 2.5,
+    forward_speed: 1.8,
     buildup_duration: 1.5,
     charge_duration: 1.2,
     swing_duration: 0.1,
