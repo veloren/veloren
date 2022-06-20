@@ -419,7 +419,6 @@ impl Scheduler {
                                 a2b_open_stream_s,
                                 b2a_stream_opened_r,
                                 s2b_create_channel_s,
-                                a2b_report_channel_s,
                                 s2b_shutdown_bparticipant_s,
                                 b2a_bandwidth_stats_r,
                             ) = BParticipant::new(local_pid, pid, sid, Arc::clone(&metrics));
@@ -429,7 +428,6 @@ impl Scheduler {
                                 pid,
                                 a2b_open_stream_s,
                                 b2a_stream_opened_r,
-                                a2b_report_channel_s,
                                 b2a_bandwidth_stats_r,
                                 participant_channels.a2s_disconnect_s,
                             );
