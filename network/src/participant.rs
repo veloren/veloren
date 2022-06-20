@@ -153,6 +153,7 @@ impl BParticipant {
             async_channel::unbounded::<Cid>();
         let (b2b_force_close_recv_protocol_s, b2b_force_close_recv_protocol_r) =
             async_channel::unbounded::<Cid>();
+        let (b2b_close_report_channel_s, b2b_close_report_channel_r) = oneshot::channel();
         let (b2b_notify_send_of_recv_open_s, b2b_notify_send_of_recv_open_r) =
             crossbeam_channel::unbounded::<(Cid, Sid, Prio, Promises, u64)>();
         let (b2b_notify_send_of_recv_close_s, b2b_notify_send_of_recv_close_r) =
@@ -194,11 +195,15 @@ impl BParticipant {
                 b2b_add_send_protocol_s,
                 b2b_add_recv_protocol_s,
             ),
-            self.report_channels_mgr(run_channels.a2b_report_channel_r),
+            self.report_channels_mgr(
+                run_channels.a2b_report_channel_r,
+                b2b_close_report_channel_r
+            ),
             self.participant_shutdown_mgr(
                 run_channels.s2b_shutdown_bparticipant_r,
                 b2b_close_send_protocol_s.clone(),
                 b2b_force_close_recv_protocol_s,
+                b2b_close_report_channel_s,
             ),
         );
     }
@@ -612,19 +617,30 @@ impl BParticipant {
     async fn report_channels_mgr(
         &self,
         mut a2b_report_channel_r: mpsc::UnboundedReceiver<A2bReportChannel>,
+        b2b_close_report_channel_r: oneshot::Receiver<()>,
     ) {
-        while let Some(b2a_report_channel_s) = a2b_report_channel_r.recv().await {
-            let data = {
-                let lock = self.channels.read().await;
-                let mut data = Vec::new();
-                for (_, c) in lock.iter() {
-                    data.push(c.lock().await.remote_con_addr.clone());
-                }
-                data
-            };
-            if b2a_report_channel_s.send(data).is_err() {
-                warn!("couldn't report back connect_addrs");
-            };
+        let mut b2b_close_report_channel_r = b2b_close_report_channel_r.fuse();
+        loop {
+            let report = select!(
+                n = a2b_report_channel_r.recv().fuse() => n,
+                _ = &mut b2b_close_report_channel_r => break,
+            );
+            match report {
+                Some(b2a_report_channel_s) => {
+                    let data = {
+                        let lock = self.channels.read().await;
+                        let mut data = Vec::new();
+                        for (_, c) in lock.iter() {
+                            data.push(c.lock().await.remote_con_addr.clone());
+                        }
+                        data
+                    };
+                    if b2a_report_channel_s.send(data).is_err() {
+                        warn!("couldn't report back connect_addrs");
+                    };
+                },
+                None => break,
+            }
         }
         trace!("Stop report_channels_mgr");
         self.shutdown_barrier
@@ -658,6 +674,7 @@ impl BParticipant {
         s2b_shutdown_bparticipant_r: oneshot::Receiver<S2bShutdownBparticipant>,
         b2b_close_send_protocol_s: async_channel::Sender<Cid>,
         b2b_force_close_recv_protocol_s: async_channel::Sender<Cid>,
+        b2b_close_report_channel_s: oneshot::Sender<()>,
     ) {
         let wait_for_manager = || async {
             let mut sleep = 0.01f64;
@@ -699,6 +716,13 @@ impl BParticipant {
             }
         }
         drop(lock);
+        trace!("close report_channel_mgr");
+        if let Err(e) = b2b_close_report_channel_s.send(()) {
+            debug!(
+                ?e,
+                "report_channel_mgr could be closed if Participant was dropped already here"
+            );
+        }
 
         trace!("wait for other managers");
         let timeout = tokio::time::sleep(
