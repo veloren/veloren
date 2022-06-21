@@ -494,13 +494,15 @@ impl UnreliableSink for TcpSink {
     type DataFormat = BytesMut;
 
     async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError<Self::CustomErr>> {
-        self.buffer.resize(1500, 0u8);
-        match self.half.read(&mut self.buffer).await {
+        if self.buffer.capacity() < 1500 {
+            self.buffer.reserve(1500 * 4); // reserve multiple, so that we alloc less often
+        }
+        match self.half.read_buf(&mut self.buffer).await {
             Ok(0) => Err(ProtocolError::Custom(ProtocolsError::Tcp(io::Error::new(
                 io::ErrorKind::BrokenPipe,
                 "read returned 0 bytes",
             )))),
-            Ok(n) => Ok(self.buffer.split_to(n)),
+            Ok(_) => Ok(self.buffer.split()),
             Err(e) => Err(ProtocolError::Custom(ProtocolsError::Tcp(e))),
         }
     }
