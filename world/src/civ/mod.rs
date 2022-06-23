@@ -129,7 +129,7 @@ impl Civs {
                         }
                     },
                     32..=37 => (SiteKind::Gnarling, (&gnarling_enemies, 40)),
-                    // 32..=37 => (SiteKind::Citadel, 5, (&castle_enemies, 20)),
+                    // 32..=37 => (SiteKind::Citadel, (&castle_enemies, 20)),
                     38..=43 => (SiteKind::ChapelSite, (&chapel_site_enemies, 40)),
                     _ => (SiteKind::Dungeon, (&dungeon_enemies, 40)),
                 };
