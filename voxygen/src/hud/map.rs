@@ -1425,17 +1425,13 @@ impl<'a> Widget for Map<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.zoom_txt, ui);
 
-        Text::new(
-            &location_marker_binding
-                .display_shortened(key_layout)
-                .unwrap_or_default(),
-        )
-        .right_from(state.ids.zoom_txt, 15.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .graphics_for(state.ids.map_layers[0])
-        .color(TEXT_COLOR)
-        .set(state.ids.waypoint_binding_txt, ui);
+        Text::new(&location_marker_binding.try_shortened(key_layout))
+            .right_from(state.ids.zoom_txt, 15.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.map_layers[0])
+            .color(TEXT_COLOR)
+            .set(state.ids.waypoint_binding_txt, ui);
 
         Text::new(i18n.get("hud.map.mid_click"))
             .right_from(state.ids.waypoint_binding_txt, 5.0)

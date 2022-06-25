@@ -366,6 +366,11 @@ impl KeyMouse {
 
         Some(key_string.to_owned())
     }
+
+    pub fn try_shortened(&self, key_layout: &Option<KeyLayout>) -> String {
+        self.display_shortened(key_layout)
+            .unwrap_or_else(|| self.display_string(key_layout))
+    }
 }
 
 pub struct Window {
