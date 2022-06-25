@@ -878,7 +878,7 @@ impl<'a> Widget for Diary<'a> {
                     ]
                     .get(i)
                     .and_then(|input| keys.get_binding(*input))
-                    .map(|key| key.try_shortened(key_layout))
+                    .map(|key| key.display_shortest(key_layout))
                     .unwrap_or_default();
 
                     Text::new(&ability_key)

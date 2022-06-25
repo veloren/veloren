@@ -134,7 +134,7 @@ impl<'a> Widget for Controls<'a> {
                         format!(
                             "{} {}",
                             key.display_string(key_layout),
-                            key.display_shortened(key_layout)
+                            key.try_shortened(key_layout)
                                 .map_or("".to_owned(), |short| format!("({})", short))
                         ),
                         if controls.has_conflicting_bindings(key) {

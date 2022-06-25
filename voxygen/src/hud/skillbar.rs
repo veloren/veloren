@@ -655,7 +655,7 @@ impl<'a> Skillbar<'a> {
                     let position_bg = entry.shortcut_position_bg;
                     let (id, id_bg) = entry.shortcut_widget_ids;
 
-                    let key_desc = key.try_shortened(key_layout);
+                    let key_desc = key.display_shortest(key_layout);
                     // shortcut text
                     Text::new(&key_desc)
                         .position(position)

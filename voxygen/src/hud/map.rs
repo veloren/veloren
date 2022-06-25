@@ -1425,7 +1425,7 @@ impl<'a> Widget for Map<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.zoom_txt, ui);
 
-        Text::new(&location_marker_binding.try_shortened(key_layout))
+        Text::new(&location_marker_binding.display_shortest(key_layout))
             .right_from(state.ids.zoom_txt, 15.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
