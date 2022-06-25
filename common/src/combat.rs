@@ -286,10 +286,27 @@ impl Attack {
                             time,
                         };
                         if change.abs() > Poise::POISE_EPSILON {
-                            emit(ServerEvent::PoiseChange {
-                                entity: target.entity,
-                                change: poise_change,
-                            });
+                            // If target is in a stunned state, apply extra poise damage as health
+                            // damage instead
+                            if let Some(CharacterState::Stunned(data)) = target.char_state {
+                                let health_change =
+                                    change * data.static_data.poise_state.damage_multiplier();
+                                let health_change = HealthChange {
+                                    amount: health_change,
+                                    by: attacker.map(|x| x.into()),
+                                    cause: Some(damage.damage.source),
+                                    time,
+                                };
+                                emit(ServerEvent::HealthChange {
+                                    entity: target.entity,
+                                    change: health_change,
+                                });
+                            } else {
+                                emit(ServerEvent::PoiseChange {
+                                    entity: target.entity,
+                                    change: poise_change,
+                                });
+                            }
                         }
                     },
                     // Piercing damage ignores some penetration, and is handled when damage

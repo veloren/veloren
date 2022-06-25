@@ -55,24 +55,11 @@ enum DamageContrib {
 pub fn handle_poise(server: &Server, entity: EcsEntity, change: comp::PoiseChange) {
     let ecs = &server.state.ecs();
     if let Some(character_state) = ecs.read_storage::<CharacterState>().get(entity) {
-        // Entity is invincible to poise change during stunned/staggered character
-        // state, but the mitigated poise damage is converted to health damage instead
-        if let CharacterState::Stunned(data) = character_state {
-            let health_change = change.amount * data.static_data.poise_state.damage_multiplier();
-            let time = ecs.read_resource::<Time>();
-            let health_change = HealthChange {
-                amount: health_change,
-                by: None,
-                cause: None,
-                time: *time,
-            };
-            let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
-            server_eventbus.emit_now(ServerEvent::HealthChange {
-                entity,
-                change: health_change,
-            });
-        } else if let Some(mut poise) = ecs.write_storage::<Poise>().get_mut(entity) {
-            poise.change(change);
+        // Entity is invincible to poise change during stunned character state
+        if !matches!(character_state, CharacterState::Stunned(_)) {
+            if let Some(mut poise) = ecs.write_storage::<Poise>().get_mut(entity) {
+                poise.change(change);
+            }
         }
     }
 }
