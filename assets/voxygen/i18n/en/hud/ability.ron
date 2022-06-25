@@ -1,0 +1,35 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        // Debug stick
+        "common.abilities.debug.possess.name": "Possessing Arrow",
+        "common.abilities.debug.possess.desc": "Shoots a poisonous arrow. Lets you control your target.",
+        // Sword
+        "common.abilities.sword.spin.name": "Whirlwind",
+        "common.abilities.sword.spin.desc": "Move forward while spinning with your sword.",
+        // Axe
+        "common.abilities.axe.leap.name": "Axe Jump",
+        "common.abilities.axe.leap.desc": "A jump with the slashing leap to position of cursor.",
+        // Hammer
+        "common.abilities.hammer.leap.name": "Smash of Doom",
+        "common.abilities.hammer.leap.desc": "An AOE attack with knockback. Leaps to position of cursor.",
+        // Bow
+        "common.abilities.bow.shotgun.name": "Burst",
+        "common.abilities.bow.shotgun.desc": "Launches a burst of arrows",
+        // Staff
+        "common.abilities.staff.fireshockwave.name": "Ring of Fire",
+        "common.abilities.staff.fireshockwave.desc": "Ignites the ground with fiery shockwave.",
+        // Sceptre
+        "common.abilities.sceptre.wardingaura.name": "Warding Aura",
+        "common.abilities.sceptre.wardingaura.desc": "Wards your allies against enemy attacks.",
+        // Unknown
+        "common.abilities.unknown.name": "Ability has no title",
+        "common.abilities.unknown.desc": "Ability has no description",
+    },
+
+
+    vector_map: {
+    }
+)

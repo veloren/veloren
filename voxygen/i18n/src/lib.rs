@@ -80,17 +80,14 @@ struct Language {
 
 impl Language {
     /// Get a localized text from the given key
-    pub fn get<'a>(&'a self, key: &'a str) -> Option<&str> {
+    pub fn get<'a>(&'a self, key: &str) -> Option<&str> {
         self.string_map.get(key).map(String::as_str)
     }
 
     /// Get a variation of localized text from the given key
     ///
     /// `index` should be a random number from `0` to `u16::max()`
-    ///
-    /// If the key is not present in the localization object
-    /// then the key is returned.
-    pub fn get_variation<'a>(&'a self, key: &'a str, index: u16) -> Option<&str> {
+    pub fn get_variation<'a>(&'a self, key: &str, index: u16) -> Option<&str> {
         self.vector_map.get(key).and_then(|v| {
             if v.is_empty() {
                 None
@@ -167,15 +164,26 @@ impl LocalizationGuard {
     ///
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
+    pub fn get_opt<'a>(&'a self, key: &str) -> Option<&'a str> {
+        self.active
+            .get(key)
+            .or_else(|| self.fallback.as_ref().and_then(|f| f.get(key)))
+    }
+
+    /// Get a localized text from the given key
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
     /// If the key is not present in the localization object
     /// then the key is returned.
-    pub fn get<'a>(&'a self, key: &'a str) -> &str {
-        self.active.get(key).unwrap_or_else(|| {
-            self.fallback
-                .as_ref()
-                .and_then(|f| f.get(key))
-                .unwrap_or(key)
-        })
+    pub fn get<'a>(&'a self, key: &'a str) -> &str { self.get_opt(key).unwrap_or(key) }
+
+    /// Get a localized text from the given key
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
+    pub fn get_or<'a>(&'a self, key: &str, fallback_key: &str) -> Option<&'a str> {
+        self.get_opt(key).or_else(|| self.get_opt(fallback_key))
     }
 
     /// Get a variation of localized text from the given key

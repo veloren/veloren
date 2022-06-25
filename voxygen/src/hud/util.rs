@@ -356,48 +356,20 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
     }
 }
 
-#[rustfmt::skip]
-pub fn ability_description(ability_id: &str) -> (Cow<str>, &str) {
-    let (name, desc) = match ability_id {
-        // Debug stick
-        "common.abilities.debug.possess" => (
-            "Possessing Arrow",
-            "Shoots a poisonous arrow. Lets you control your target.",
+pub fn ability_description<'a>(
+    ability_id: &'a str,
+    loc: &'a i18n::Localization,
+) -> (Cow<'a, str>, &'a str) {
+    let (name, desc) = (
+        format!("{}.name", ability_id),
+        format!("{}.desc", ability_id),
+    );
+    (
+        Cow::Borrowed(
+            loc.get_or(&name, "common.abilities.unknown.name")
+                .unwrap_or(ability_id),
         ),
-        // Sword
-        "common.abilities.sword.spin" => (
-            "Whirlwind",
-            "Move forward while spinning with your sword.",
-        ),
-        // Axe
-        "common.abilities.axe.leap" => (
-            "Axe Jump",
-            "A jump with the slashing leap to position of cursor.",
-        ),
-        // Hammer
-        "common.abilities.hammer.leap" => (
-            "Smash of Doom",
-            "An AOE attack with knockback. Leaps to position of cursor.",
-        ),
-        // Bow
-        "common.abilities.bow.shotgun" => (
-            "Burst",
-            "Launches a burst of arrows",
-        ),
-        // Staff
-        "common.abilities.staff.fireshockwave" => (
-            "Ring of Fire",
-            "Ignites the ground with fiery shockwave.",
-        ),
-        // Sceptre
-        "common.abilities.sceptre.wardingaura" => (
-            "Thorn Bulwark",
-            "Protects you and your group with thorns for a short amount of time.",
-        ),
-        _ => (
-            "Ability has no title",
-            "Ability has no description."
-        ),
-    };
-    (Cow::Borrowed(name), desc)
+        loc.get_or(&desc, "common.abilities.unknown.desc")
+            .unwrap_or(ability_id),
+    )
 }
