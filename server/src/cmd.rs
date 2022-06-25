@@ -514,11 +514,6 @@ fn edit_banlist_feedback(
         // target was already banned/unbanned, the user of this command will always get the same
         // error message here, which seems like it could be misleading.
         Err(BanOperationError::NoEffect) => Err(failure()),
-        Err(BanOperationError::UsernameWhenBannedNotUnique) => {
-            let msg = "The provided \"username when banned\" is not unique so the current \
-                       username must be provided instead";
-            Err(Content::Plain(msg.into()))
-        },
         Err(BanOperationError::EditFailed(setting_error)) => {
             edit_setting_error_feedback(server, client, setting_error, info)
         },
@@ -5074,7 +5069,7 @@ fn handle_unban_ip(
 
         let unban = BanOperation::UnbanIp {
             info: ban_info,
-            identifier: crate::settings::UnbanIpIdentifier::Uuid(player_uuid),
+            uuid: player_uuid,
         };
 
         let result = server.editable_settings_mut().banlist.ban_operation(

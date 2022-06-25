@@ -109,11 +109,6 @@ pub enum BanError {
     },
 }
 
-pub enum UnbanIpIdentifier {
-    UsernameWhenBanned(String),
-    Uuid(Uuid),
-}
-
 /// NOTE: This isn't serialized so we can place it outside the versioned
 /// modules.
 ///
@@ -144,16 +139,10 @@ pub enum BanOperation {
     },
     UnbanIp {
         info: BanInfo,
-        /// Identifier used to find the IP to unban. Note, a single user can
-        /// only be linked to at most one active IP ban.
-        ///
-        /// If `UnbanIpIdentifier::UsernameWhenBanned` is provided, multiple
-        /// entries exist for this key, and the uuids in those entries don't
-        /// all match, an error will be produced and a uuid will be required
-        /// (which can be derived from the current username). Note, to prevent
-        /// mistakes, this applies even if the only entries with differing
-        /// uuids are in the unbanned state.
-        identifier: UnbanIpIdentifier,
+        /// The Uuid linked to the IP ban (currently no functionality to created
+        /// or remove non-uuid linked IP bans even though the model can
+        /// support them)
+        uuid: Uuid,
     },
 }
 
@@ -161,10 +150,6 @@ pub enum BanOperation {
 pub enum BanOperationError {
     /// Operation cancelled without performing any changes for some reason.
     NoEffect,
-    /// Cannot use "username when banned" identifier when the value provided is
-    /// present for multiple different users (discerned via Uuid).
-    /// (note: this error only occurs for ip unbans)
-    UsernameWhenBannedNotUnique,
     /// Validation or IO error.
     EditFailed(crate::settings::editable::Error<Final>),
 }
@@ -625,7 +610,6 @@ mod v1 {
 mod v2 {
     use super::{
         v1 as prev, BanError, BanErrorKind, BanKind, BanOperation, BanOperationError, Final,
-        UnbanIpIdentifier,
     };
     use crate::settings::editable::{EditableSetting, Version};
     use authc::Uuid;
@@ -1214,14 +1198,6 @@ mod v2 {
         /// return `Err(BanOperationError::NoEffect)` if such effects are
         /// encountered.
         ///
-        /// For convenience, IP unbans can be issued using the "username when
-        /// banned" to identify the user for which the corresponding IP ban
-        /// should be lifted. However, because these username have the potential
-        /// to change, this could potentially correspond to multiple banned
-        /// users. To avoid mistakes, we return
-        /// `Err(BanOperationError::UsernameWhenBannedNotUnique)` if this is the
-        /// case.
-        ///
         /// If the errors outlined above are successfully avoided, we attempt
         /// the edit either succeeding and returning `Ok(())` or returning
         /// `Err(BanOperationError::EditFailed(error))`, which works as follows.
@@ -1262,10 +1238,6 @@ mod v2 {
                 action,
                 date: now,
             };
-
-            // Hacky, no other way to report an error from `edit` while also
-            // canceling the edit.
-            let mut unban_ip_username_not_unique = false;
 
             // Perform an atomic edit.
             let edit_result = self.edit(data_dir.as_ref(), |banlist| {
@@ -1347,41 +1319,7 @@ mod v2 {
                         // Only submit edit if one of these had an effect.
                         .or(ban_effect).map(|_| None)
                     },
-                    BanOperation::UnbanIp { info, identifier } => {
-                        let uuid = match identifier {
-                            UnbanIpIdentifier::UsernameWhenBanned(username) => {
-                                // IP bans associated with users always have an associated uuid ban
-                                // so we can lookup an uuid via the username_when_performed in the
-                                // uuid ban entries.
-                                let mut uuids =
-                                    banlist.uuid_bans.iter().filter_map(|(uuid, entry)| {
-                                        core::iter::once(&entry.current)
-                                            .chain(&entry.history)
-                                            .any(|record| {
-                                                record.username_when_performed == username
-                                            })
-                                            .then(|| uuid)
-                                    });
-
-                                if let Some(uuid) = uuids.next() {
-                                    // Ensure only one user was banned with this username,
-                                    // otherwise we don't allow this form of identification since
-                                    // this could lead to mistakes (e.g. running unban twice with
-                                    // the same input could unban two different users)
-                                    if uuids.next().is_some() {
-                                        unban_ip_username_not_unique = true;
-                                        return None;
-                                    }
-
-                                    *uuid
-                                } else {
-                                    // No matcing username_when_performed found.
-                                    return None;
-                                }
-                            },
-                            UnbanIpIdentifier::Uuid(uuid) => uuid,
-                        };
-
+                    BanOperation::UnbanIp { info, uuid } => {
                         let ip = banlist
                             .ip_bans
                             .iter()
@@ -1409,11 +1347,7 @@ mod v2 {
             match edit_result {
                 Some((info, Ok(()))) => Ok(info),
                 Some((_, Err(err))) => Err(BanOperationError::EditFailed(err)),
-                None => Err(if unban_ip_username_not_unique {
-                    BanOperationError::UsernameWhenBannedNotUnique
-                } else {
-                    BanOperationError::NoEffect
-                }),
+                None => Err(BanOperationError::NoEffect),
             }
         }
 
