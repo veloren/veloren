@@ -1262,12 +1262,11 @@ mod v2 {
                         let frontend_info = ban.info();
                         let action = BanAction::Ban(ban);
                         let ban_record = make_record(action);
+                        // NOTE: If there is linked IP ban, `overwrite` based changes may fail. In
+                        // the future, we may want to switch this to autoupdate the IP ban.
                         banlist
                             .apply_ban_record(uuid, ban_record, overwrite, now)
                             .map(|_| Some(frontend_info))
-                        // TODO: if there is already an associated IP ban we
-                        // should probably autoupdate it
-                        // here (or linked invariant won't be maintained).
                     },
                     BanOperation::BanIp {
                         reason,
