@@ -105,7 +105,11 @@ pub enum BanError {
         kind: BanErrorKind,
         /// Uuid of affected user
         uuid: Option<Uuid>,
-        // TODO: include username?
+        /// `username_when_performed` from the associated uuid ban entry, if the
+        /// associated entry is missing (which would cause a validation
+        /// error) or there is no associated entry (uuid is None) then
+        /// this will be None.
+        username_from_uuid_entry: Option<String>,
     },
 }
 
@@ -950,10 +954,6 @@ mod v2 {
 
     #[derive(Clone, Deserialize, Serialize)]
     pub struct IpBanRecord {
-        // TODO(before merge): It seems like it would be useful to include the
-        // username_when_performed here as well for human readers of the file,
-        // even if we can get it via the corresponding UUID ban record.
-        ///
         /// Uuid of the user through which this IP ban was applied.
         ///
         /// This is optional to allow for the potenital of non-user-associated
@@ -1098,9 +1098,16 @@ mod v2 {
             now: DateTime<Utc>,
             uuid_bans: &HashMap<Uuid, BanEntry>,
         ) -> Result<Version, <Final as EditableSetting>::Error> {
-            let make_error = |kind, current_entry: &IpBanRecord| BanError::Ip {
-                kind,
-                uuid: current_entry.uuid_when_performed,
+            let make_error = |kind, current_entry: &IpBanRecord| {
+                let uuid = current_entry.uuid_when_performed;
+
+                BanError::Ip {
+                    kind,
+                    uuid,
+                    username_from_uuid_entry: uuid
+                        .and_then(|u| uuid_bans.get(&u))
+                        .map(|e| e.current.username_when_performed.clone()),
+                }
             };
             // First, go forwards through history (also forwards in terms of the iterator
             // direction), validating each entry in turn.
@@ -1503,6 +1510,9 @@ mod v2 {
                         return Err(BanError::Ip {
                             kind: BanErrorKind::ActiveIpBansShareUuid,
                             uuid: Some(uuid),
+                            username_from_uuid_entry: uuid_bans
+                                .get(&uuid)
+                                .map(|e| e.current.username_when_performed.clone()),
                         });
                     }
                 }
