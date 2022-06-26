@@ -835,7 +835,7 @@ impl<'a> Widget for Diary<'a> {
                         )
                         .ability_id(Some(self.inventory));
                     let (ability_title, ability_desc) = if let Some(ability_id) = ability_id {
-                        util::ability_description(ability_id)
+                        util::ability_description(ability_id, self.localized_strings)
                     } else {
                         (Cow::Borrowed("Drag an ability here to use it."), "")
                     };
@@ -878,7 +878,7 @@ impl<'a> Widget for Diary<'a> {
                     ]
                     .get(i)
                     .and_then(|input| keys.get_binding(*input))
-                    .map(|key| key.display_string(key_layout))
+                    .map(|key| key.display_shortest(key_layout))
                     .unwrap_or_default();
 
                     Text::new(&ability_key)
@@ -1033,7 +1033,7 @@ impl<'a> Widget for Diary<'a> {
                     .enumerate()
                 {
                     let (ability_title, ability_desc) =
-                        util::ability_description(ability_id.unwrap_or(""));
+                        util::ability_description(ability_id.unwrap_or(""), self.localized_strings);
 
                     let (align_state, image_offsets) = if id_index < 6 {
                         (state.ids.sb_page_left_align, 120.0 * id_index as f64)

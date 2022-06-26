@@ -612,7 +612,7 @@ impl<'a> Skillbar<'a> {
                             .get(i)
                             .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
                     })
-                    .map(util::ability_description),
+                    .map(|id| util::ability_description(id, self.localized_strings)),
             })
         };
 
@@ -655,9 +655,7 @@ impl<'a> Skillbar<'a> {
                     let position_bg = entry.shortcut_position_bg;
                     let (id, id_bg) = entry.shortcut_widget_ids;
 
-                    let key_desc = key
-                        .display_shortened(key_layout)
-                        .unwrap_or_else(|| key.display_string(key_layout));
+                    let key_desc = key.display_shortest(key_layout);
                     // shortcut text
                     Text::new(&key_desc)
                         .position(position)

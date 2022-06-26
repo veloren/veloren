@@ -344,10 +344,9 @@ impl KeyMouse {
         key_string.to_owned()
     }
 
-    /// Returns shortened key name (e.g. Left Click -> LMB)
-    ///
-    /// Use it in case if space does really matter.
-    pub fn display_shortened(&self, _key_layout: &Option<KeyLayout>) -> Option<String> {
+    /// If it exists, returns the shortened version of a key name
+    /// (e.g. Left Click -> M1)
+    pub fn try_shortened(&self, _key_layout: &Option<KeyLayout>) -> Option<String> {
         use self::KeyMouse::*;
         use winit::event::{MouseButton, VirtualKeyCode::*};
         let key_string = match self {
@@ -365,6 +364,15 @@ impl KeyMouse {
         };
 
         Some(key_string.to_owned())
+    }
+
+    /// Returns shortest name of key (e.g. Left Click - M1)
+    /// If key doesn't have shorter version, use regular one.
+    ///
+    /// Use it in case if space does really matter.
+    pub fn display_shortest(&self, key_layout: &Option<KeyLayout>) -> String {
+        self.try_shortened(key_layout)
+            .unwrap_or_else(|| self.display_string(key_layout))
     }
 }
 
