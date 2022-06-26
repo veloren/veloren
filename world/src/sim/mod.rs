@@ -183,6 +183,176 @@ impl Default for FileOpts {
     fn default() -> Self { Self::Generate(SizeOpts::default()) }
 }
 
+impl FileOpts {
+    fn content(&self) -> (Option<ModernMap>, MapSizeLg, f64) {
+        let parsed_world_file = self.try_to_map();
+
+        let map_size_lg = parsed_world_file
+            .as_ref()
+            .and_then(|map| match MapSizeLg::new(map.map_size_lg) {
+                Ok(map_size_lg) => Some(map_size_lg),
+                Err(e) => {
+                    warn!("World size of map does not satisfy invariants: {:?}", e);
+                    None
+                },
+            })
+            .unwrap_or_else(|| self.map_size());
+
+        // NOTE: Change 1.0 to 4.0 for a 4x
+        // improvement in world detail.  We also use this to automatically adjust
+        // grid_scale (multiplying by 4.0) and multiply mins_per_sec by
+        // 1.0 / (4.0 * 4.0) in ./erosion.rs, in order to get a similar rate of river
+        // formation.
+        //
+        // FIXME: This is a hack!  At some point we will have a more principled way of
+        // dealing with this.
+        let default_continent_scale_hack = 2.0/*4.0*/;
+        let continent_scale_hack = if let Some(map) = &parsed_world_file {
+            map.continent_scale_hack
+        } else {
+            self.continent_scale_hack(default_continent_scale_hack)
+        };
+
+        (parsed_world_file, map_size_lg, continent_scale_hack)
+    }
+
+    fn map_size(&self) -> MapSizeLg {
+        match self {
+            Self::Generate(opts) | Self::Save(opts) => MapSizeLg::new(Vec2 {
+                x: opts.x_lg,
+                y: opts.y_lg,
+            })
+            .unwrap_or_else(|e| {
+                warn!("World size does not satisfy invariants: {:?}", e);
+                DEFAULT_WORLD_CHUNKS_LG
+            }),
+            _ => DEFAULT_WORLD_CHUNKS_LG,
+        }
+    }
+
+    fn continent_scale_hack(&self, default: f64) -> f64 {
+        match self {
+            Self::Generate(opts) | Self::Save(opts) => opts.scale,
+            _ => default,
+        }
+    }
+
+    fn try_to_map(&self) -> Option<ModernMap> {
+        let map = match self {
+            Self::LoadLegacy(ref path) => {
+                let file = match File::open(path) {
+                    Ok(file) => file,
+                    Err(e) => {
+                        warn!(?e, ?path, "Couldn't read path for maps");
+                        return None;
+                    },
+                };
+
+                let reader = BufReader::new(file);
+                let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
+                    Ok(map) => map,
+                    Err(e) => {
+                        warn!(
+                            ?e,
+                            "Couldn't parse legacy map.  Maybe you meant to try a regular load?"
+                        );
+                        return None;
+                    },
+                };
+
+                map.into_modern()
+            },
+            Self::Load(ref path) => {
+                let file = match File::open(path) {
+                    Ok(file) => file,
+                    Err(e) => {
+                        warn!(?e, ?path, "Couldn't read path for maps");
+                        return None;
+                    },
+                };
+
+                let reader = BufReader::new(file);
+                let map: WorldFile = match bincode::deserialize_from(reader) {
+                    Ok(map) => map,
+                    Err(e) => {
+                        warn!(
+                            ?e,
+                            "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
+                        );
+                        return None;
+                    },
+                };
+
+                map.into_modern()
+            },
+            Self::LoadAsset(ref specifier) => match WorldFile::load_owned(specifier) {
+                Ok(map) => map.into_modern(),
+                Err(err) => {
+                    match err.reason().downcast_ref::<std::io::Error>() {
+                        Some(e) => {
+                            warn!(?e, ?specifier, "Couldn't read asset specifier for maps");
+                        },
+                        None => {
+                            warn!(
+                                ?err,
+                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
+                            );
+                        },
+                    }
+                    return None;
+                },
+            },
+            Self::Generate { .. } | Self::Save { .. } => return None,
+        };
+
+        match map {
+            Ok(map) => Some(map),
+            Err(e) => {
+                match e {
+                    WorldFileError::WorldSizeInvalid => {
+                        warn!("World size of map is invalid.");
+                    },
+                }
+                None
+            },
+        }
+    }
+
+    fn save(&self, map: &WorldFile) {
+        if let FileOpts::Save { .. } = self {
+            use std::time::SystemTime;
+            // Check if folder exists and create it if it does not
+            let mut path = PathBuf::from("./maps");
+            if !path.exists() {
+                if let Err(e) = std::fs::create_dir(&path) {
+                    warn!(?e, ?path, "Couldn't create folder for map");
+                    return;
+                }
+            }
+            path.push(format!(
+                // TODO: Work out a nice bincode file extension.
+                "map_{}.bin",
+                SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .map(|d| d.as_millis())
+                    .unwrap_or(0)
+            ));
+            let file = match File::create(path.clone()) {
+                Ok(file) => file,
+                Err(e) => {
+                    warn!(?e, ?path, "Couldn't create file for maps");
+                    return;
+                },
+            };
+
+            let writer = BufWriter::new(file);
+            if let Err(e) = bincode::serialize_into(writer, map) {
+                warn!(?e, "Couldn't write map");
+            }
+        }
+    }
+}
+
 pub struct WorldOpts {
     /// Set to false to disable seeding elements during worldgen.
     pub seed_elements: bool,
@@ -399,129 +569,9 @@ impl WorldSim {
     pub fn generate(seed: u32, opts: WorldOpts, threadpool: &rayon::ThreadPool) -> Self {
         let calendar = opts.calendar; // separate lifetime of elements
         let world_file = opts.world_file;
+
         // Parse out the contents of various map formats into the values we need.
-        let parsed_world_file = (|| {
-            let map = match world_file {
-                FileOpts::LoadLegacy(ref path) => {
-                    let file = match File::open(path) {
-                        Ok(file) => file,
-                        Err(e) => {
-                            warn!(?e, ?path, "Couldn't read path for maps");
-                            return None;
-                        },
-                    };
-
-                    let reader = BufReader::new(file);
-                    let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
-                        Ok(map) => map,
-                        Err(e) => {
-                            warn!(
-                                ?e,
-                                "Couldn't parse legacy map.  Maybe you meant to try a regular \
-                                 load?"
-                            );
-                            return None;
-                        },
-                    };
-
-                    map.into_modern()
-                },
-                FileOpts::Load(ref path) => {
-                    let file = match File::open(path) {
-                        Ok(file) => file,
-                        Err(e) => {
-                            warn!(?e, ?path, "Couldn't read path for maps");
-                            return None;
-                        },
-                    };
-
-                    let reader = BufReader::new(file);
-                    let map: WorldFile = match bincode::deserialize_from(reader) {
-                        Ok(map) => map,
-                        Err(e) => {
-                            warn!(
-                                ?e,
-                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
-                            );
-                            return None;
-                        },
-                    };
-
-                    map.into_modern()
-                },
-                FileOpts::LoadAsset(ref specifier) => match WorldFile::load_owned(specifier) {
-                    Ok(map) => map.into_modern(),
-                    Err(err) => {
-                        match err.reason().downcast_ref::<std::io::Error>() {
-                            Some(e) => {
-                                warn!(?e, ?specifier, "Couldn't read asset specifier for maps");
-                            },
-                            None => {
-                                warn!(
-                                    ?err,
-                                    "Couldn't parse modern map.  Maybe you meant to try a legacy \
-                                     load?"
-                                );
-                            },
-                        }
-                        return None;
-                    },
-                },
-                FileOpts::Generate { .. } | FileOpts::Save { .. } => return None,
-            };
-
-            match map {
-                Ok(map) => Some(map),
-                Err(e) => {
-                    match e {
-                        WorldFileError::WorldSizeInvalid => {
-                            warn!("World size of map is invalid.");
-                        },
-                    }
-                    None
-                },
-            }
-        })();
-
-        // NOTE: Change 1.0 to 4.0 for a 4x
-        // improvement in world detail.  We also use this to automatically adjust
-        // grid_scale (multiplying by 4.0) and multiply mins_per_sec by
-        // 1.0 / (4.0 * 4.0) in ./erosion.rs, in order to get a similar rate of river
-        // formation.
-        //
-        // FIXME: This is a hack!  At some point we will hae a more principled way of
-        // dealing with this.
-        let continent_scale_hack = 2.0/*4.0*/;
-        let (parsed_world_file, map_size_lg) = parsed_world_file
-            .and_then(|map| match MapSizeLg::new(map.map_size_lg) {
-                Ok(map_size_lg) => Some((Some(map), map_size_lg)),
-                Err(e) => {
-                    warn!("World size of map does not satisfy invariants: {:?}", e);
-                    None
-                },
-            })
-            .unwrap_or_else(|| {
-                let size_lg = match world_file {
-                    FileOpts::Generate(SizeOpts { x_lg, y_lg, .. })
-                    | FileOpts::Save(SizeOpts { x_lg, y_lg, .. }) => {
-                        MapSizeLg::new(Vec2 { x: x_lg, y: y_lg }).unwrap_or_else(|e| {
-                            warn!("World size does not satisfy invariants: {:?}", e);
-                            DEFAULT_WORLD_CHUNKS_LG
-                        })
-                    },
-                    _ => DEFAULT_WORLD_CHUNKS_LG,
-                };
-                (None, size_lg)
-            });
-        let continent_scale_hack = if let Some(map) = &parsed_world_file {
-            map.continent_scale_hack
-        } else if let FileOpts::Generate(SizeOpts { scale, .. })
-        | FileOpts::Save(SizeOpts { scale, .. }) = world_file
-        {
-            scale
-        } else {
-            continent_scale_hack
-        };
+        let (parsed_world_file, map_size_lg, continent_scale_hack) = world_file.content();
 
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let continent_scale = continent_scale_hack
@@ -1147,39 +1197,7 @@ impl WorldSim {
             alt,
             basement,
         });
-        (|| {
-            if let FileOpts::Save { .. } = world_file {
-                use std::time::SystemTime;
-                // Check if folder exists and create it if it does not
-                let mut path = PathBuf::from("./maps");
-                if !path.exists() {
-                    if let Err(e) = std::fs::create_dir(&path) {
-                        warn!(?e, ?path, "Couldn't create folder for map");
-                        return;
-                    }
-                }
-                path.push(format!(
-                    // TODO: Work out a nice bincode file extension.
-                    "map_{}.bin",
-                    SystemTime::now()
-                        .duration_since(SystemTime::UNIX_EPOCH)
-                        .map(|d| d.as_millis())
-                        .unwrap_or(0)
-                ));
-                let file = match File::create(path.clone()) {
-                    Ok(file) => file,
-                    Err(e) => {
-                        warn!(?e, ?path, "Couldn't create file for maps");
-                        return;
-                    },
-                };
-
-                let writer = BufWriter::new(file);
-                if let Err(e) = bincode::serialize_into(writer, &map) {
-                    warn!(?e, "Couldn't write map");
-                }
-            }
-        })();
+        world_file.save(&map);
 
         // Skip validation--we just performed a no-op conversion for this map, so it had
         // better be valid!
