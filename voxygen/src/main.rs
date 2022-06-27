@@ -268,10 +268,7 @@ fn main() {
 
     let clipboard = iced_winit::Clipboard::connect(window.window());
 
-    let mut lazy_init = SpriteRenderContext::new(window.renderer_mut());
-    let _t = lazy_init(window.renderer_mut());
-    std::thread::sleep(std::time::Duration::from_millis(1000));
-    std::process::exit(0);
+    let lazy_init = SpriteRenderContext::new(window.renderer_mut());
 
     #[cfg(feature = "egui-ui")]
     let egui_state = EguiState::new(&window);

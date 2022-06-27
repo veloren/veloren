@@ -136,17 +136,7 @@ impl AtlasAllocator for guillotiere::SimpleAtlasAllocator {
     fn size(&self) -> Vec2<i32> { self.size().to_array().into() }
 
     /// Grows the size of the atlas to the provided size.
-    fn grow(&mut self, new_size: Vec2<i32>) {
-        {
-            prof_span!("debug");
-            let free_space = self.free_space();
-            //let (lw, lh) = self.largest_free_size();
-            let area = self.size().width * self.size().height; // - lw * lh;
-            let used = area - free_space;
-            dbg!((used, free_space, area, area as f32 / used as f32,));
-        }
-        self.grow(guillotiere_size(new_size))
-    }
+    fn grow(&mut self, new_size: Vec2<i32>) { self.grow(guillotiere_size(new_size)) }
 }
 
 pub struct GuillotiereTiled {
@@ -167,28 +157,23 @@ pub struct GuillotiereTiled {
 }
 
 impl GuillotiereTiled {
+    // We can potentially further optimize packing by deferring the allocations
+    // until all rectangles are available for packing.
+    //
     // Tested with sprites:
     // 64 1.63s 1.109 packing
     // 128 1.65s 1.083 packing
     // 256 1.77s 1.070 packing
     // 512 2.27s 1.055 packing
-    // 1024 5.32s 1.045 packing (didn't fill up)
+    // 1024 5.32s 1.045 packing
     // 2048 10.49s n/a packing (didn't fill up)
-    const TILE_SIZE: u16 = 256;
+    const TILE_SIZE: u16 = 512;
 
     fn allocator_options() -> guillotiere::AllocatorOptions {
-        // TODO: Collect information to see if we can choose a good value here.
-        let large_size_threshold = 8; //256.min(min_max_dim / 2 + 1);
-        let small_size_threshold = 3; //33.min(large_size_threshold / 2 + 1);
-
-        // (12, 3) 24.5
-        // (12, 2) 33.2
-        // (12, 4) 27.2
-        // (14, 3) 25.6
-        // (10, 3) 20.9
-        // (8, 3) 17.9
-        // (6, 3) 18.0
-        // (5, 3) 18.0
+        // TODO: Collect information to see if we can choose a better value here (these
+        // values were picked before switching to this tiled implementation).
+        let large_size_threshold = 8;
+        let small_size_threshold = 3;
 
         guillotiere::AllocatorOptions {
             alignment: guillotiere::Size::new(1, 1),
@@ -261,7 +246,6 @@ impl AtlasAllocator for GuillotiereTiled {
                 None => self.next_tile(),
             }
         }
-        dbg!(size);
 
         None
     }
@@ -275,10 +259,8 @@ impl AtlasAllocator for GuillotiereTiled {
 
     /// Grows the size of the atlas to the provided size.
     fn grow(&mut self, new_size: Vec2<i32>) {
-        {
-            prof_span!("debug");
-            tracing::error!("here");
-            println!(
+        if tracing::enabled!(tracing::Level::TRACE) {
+            tracing::trace!(
                 "Tile count: {}",
                 self.history.len() + self.free_tiles.len() + self.current.is_some() as usize
             );
@@ -288,21 +270,18 @@ impl AtlasAllocator for GuillotiereTiled {
                 total_area += area;
                 total_used += used;
             }
-            dbg!(total_area as f32 / total_used as f32);
+            tracing::trace!("Packing ratio: {}", total_area as f32 / total_used as f32);
         }
 
         let diff = (new_size - self.size()).map(|e| e.max(0));
-        dbg!(self.size());
-        dbg!(new_size);
-        dbg!(diff);
-        // TODO: as cast
+        // NOTE: `e` should fit in usize since it is a postive i32 (and we aren't
+        // targeting 16-bit platforms, although this will probably hit the max
+        // texture size limit first regardless)
         // NOTE: growing only occurs in increments of tiles size so any remaining size
         // is ignored.
         let diff_tiles = diff.map(|e| e as usize / usize::from(Self::TILE_SIZE));
-        dbg!(diff_tiles);
         let old_size = self.size;
         self.size += diff_tiles;
-        dbg!(self.size);
 
         // Add new tiles to free tile list
         for x in old_size.x..self.size.x {
