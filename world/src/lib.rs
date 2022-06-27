@@ -11,7 +11,8 @@
     bool_to_option,
     label_break_value,
     option_zip,
-    arbitrary_enum_discriminant
+    arbitrary_enum_discriminant,
+    let_else
 )]
 
 mod all;
@@ -180,6 +181,14 @@ impl World {
                                 wpos: pos,
                             }),
                     )
+                    .chain(layer::cave::surface_entrances(&Land::from_sim(self.sim()))
+                        .enumerate()
+                        .map(|(i, wpos)| world_msg::SiteInfo {
+                            id: 65536 + i as u64, // Generate a fake ID, TODO: don't do this
+                            name: None,
+                            kind: world_msg::SiteKind::Cave,
+                            wpos,
+                        }))
                     .collect(),
                 ..self.sim.get_map(index, self.sim().calendar.as_ref())
             }
@@ -387,6 +396,7 @@ impl World {
         if index.features.spots {
             layer::apply_spots_to(&mut canvas, &mut dynamic_rng);
         }
+        layer::apply_caves2_to(&mut canvas, &mut dynamic_rng);
         // layer::apply_coral_to(&mut canvas);
 
         // Apply site generation

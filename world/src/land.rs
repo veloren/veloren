@@ -11,6 +11,8 @@ pub struct Land<'a> {
 impl<'a> Land<'a> {
     pub fn empty() -> Self { Self { sim: None } }
 
+    pub fn size(&self) -> Vec2<u32> { self.sim.map_or(Vec2::one(), |s| s.get_size()) }
+
     pub fn from_sim(sim: &'a sim::WorldSim) -> Self { Self { sim: Some(sim) } }
 
     pub fn get_alt_approx(&self, wpos: Vec2<i32>) -> f32 {
