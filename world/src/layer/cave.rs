@@ -234,7 +234,6 @@ struct Biome {
     humidity: f32,
     temp: f32,
     mineral: f32,
-    fungal: f32,
 }
 
 fn write_column(
@@ -267,7 +266,7 @@ fn write_column(
                 .cave_nz
                 .get(wpos2d.map(|e| e as f64 / 2048.0).into_array())
                 .add(
-                    ((col.alt as f64 - z_range.start as f64) / (AVG_LEVEL_DEPTH as f64 * 2.0))
+                    ((col.alt as f64 - z_range.start as f64) / (AVG_LEVEL_DEPTH as f64 * 2.75))
                         .clamped(0.0, 2.0),
                 ) as f32,
             below,
@@ -277,13 +276,6 @@ fn write_column(
             .noise
             .cave_nz
             .get(wpos2d.map(|e| e as f64 / 256.0).into_array())
-            .mul(0.5)
-            .add(0.5) as f32,
-        fungal: info
-            .index()
-            .noise
-            .cave_nz
-            .get(wpos2d.map(|e| e as f64 / 512.0).into_array())
             .mul(0.5)
             .add(0.5) as f32,
     };
@@ -322,37 +314,64 @@ fn write_column(
             .max(-32.0)
     };
 
+    let underground = ((col.alt as f32 - z_range.end as f32) / 80.0).clamped(0.0, 1.0);
+    let mushroom_glow =
+        underground * close(biome.humidity, 1.0, 0.6) * close(biome.temp, 0.25, 0.7);
+
     let dirt = if exposed { 0 } else { 1 };
     let bedrock = z_range.start + lava as i32;
     let base = bedrock + (stalactite * 0.4) as i32;
     let floor = base + dirt;
     let ceiling = z_range.end - stalactite as i32;
     for z in bedrock..z_range.end {
-        canvas.map(wpos2d.with_z(z), |block| {
+        let wpos = wpos2d.with_z(z);
+        canvas.map(wpos, |block| {
             if !block.is_filled() {
                 block.into_vacant()
             } else if z < z_range.start - 4 {
                 Block::new(BlockKind::Lava, Rgb::new(255, 100, 0))
             } else if z < base || z >= ceiling {
-                Block::new(BlockKind::WeakRock, Rgb::new(80, 100, 150))
+                let stalactite: Rgb<i16> =
+                    Lerp::lerp(Rgb::new(80, 100, 150), Rgb::new(0, 75, 200), mushroom_glow);
+                Block::new(
+                    if rand.chance(wpos, mushroom_glow * biome.mineral) {
+                        BlockKind::GlowingWeakRock
+                    } else {
+                        BlockKind::WeakRock
+                    },
+                    stalactite.map(|e| e as u8),
+                )
             } else if z >= base && z < floor {
+                let dry_mud =
+                    Lerp::lerp(Rgb::new(40, 20, 0), Rgb::new(80, 80, 30), col.marble_small);
+                let mycelium =
+                    Lerp::lerp(Rgb::new(20, 65, 175), Rgb::new(20, 100, 80), col.marble_mid);
+                let fire_rock =
+                    Lerp::lerp(Rgb::new(100, 20, 50), Rgb::new(80, 80, 100), col.marble_mid);
                 let surf_color: Rgb<i16> = Lerp::lerp(
-                    Lerp::lerp(Rgb::new(40, 20, 0), Rgb::new(80, 80, 30), col.marble_small),
-                    Lerp::lerp(Rgb::new(100, 20, 50), Rgb::new(80, 80, 100), col.marble_mid),
-                    ((col.alt - z as f32) / 300.0).clamped(0.0, 1.0),
+                    Lerp::lerp(dry_mud, mycelium, mushroom_glow),
+                    fire_rock,
+                    (biome.temp - 1.0).mul(4.0).clamped(0.0, 1.0),
                 );
 
                 Block::new(BlockKind::Sand, surf_color.map(|e| e as u8))
             } else if let Some(sprite) = (z == floor && !exposed)
                 .then(|| {
-                    if rand.chance(
-                        wpos2d.with_z(1),
-                        close(biome.humidity, 1.0, 0.5) * close(biome.temp, 0.0, 0.75) * 0.02,
-                    ) {
+                    if rand.chance(wpos2d.with_z(0), mushroom_glow * 0.02) {
                         Some(SpriteKind::CaveMushroom)
+                    } else if rand.chance(wpos2d.with_z(1), mushroom_glow * 0.1) {
+                        Some(
+                            *[
+                                SpriteKind::CavernGrassBlueShort,
+                                SpriteKind::CavernGrassBlueMedium,
+                                SpriteKind::CavernGrassBlueLong,
+                            ]
+                            .choose(rng)
+                            .unwrap(),
+                        )
                     } else if rand.chance(
-                        wpos2d.with_z(1),
-                        close(biome.humidity, 0.0, 0.5) * biome.mineral * 0.02,
+                        wpos2d.with_z(2),
+                        close(biome.humidity, 0.0, 0.5) * biome.mineral * 0.005,
                     ) {
                         Some(SpriteKind::CrystalLow)
                     } else {
@@ -362,13 +381,27 @@ fn write_column(
                 .flatten()
             {
                 Block::air(sprite)
-            } else if z == ceiling - 1 && rand.chance(wpos2d.with_z(0), 0.0075) {
-                use SpriteKind::*;
-                Block::air(
-                    *[Orb, CavernMycelBlue, CrystalHigh, CeilingMushroom]
-                        .choose(rng)
-                        .unwrap(),
-                )
+            } else if let Some(sprite) = (z == ceiling - 1)
+                .then(|| {
+                    if rand.chance(wpos2d.with_z(3), mushroom_glow * 0.02) {
+                        Some(
+                            *[SpriteKind::CavernMycelBlue, SpriteKind::CeilingMushroom]
+                                .choose(rng)
+                                .unwrap(),
+                        )
+                    } else if rand.chance(wpos2d.with_z(4), 0.0075) {
+                        Some(
+                            *[SpriteKind::CrystalHigh, SpriteKind::Orb]
+                                .choose(rng)
+                                .unwrap(),
+                        )
+                    } else {
+                        None
+                    }
+                })
+                .flatten()
+            {
+                Block::air(sprite)
             } else {
                 Block::air(SpriteKind::Empty)
             }
