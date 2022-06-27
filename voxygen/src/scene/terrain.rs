@@ -24,7 +24,7 @@ use common::{
     assets::{self, AssetExt, DotVoxAsset},
     figure::Segment,
     spiral::Spiral2d,
-    terrain::{sprite, Block, SpriteKind, TerrainChunk},
+    terrain::{Block, SpriteKind, TerrainChunk},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol},
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
@@ -157,7 +157,7 @@ struct SpriteConfig<Model> {
 /// NOTE: Model is an asset path to the appropriate sprite .vox model.
 #[derive(Deserialize)]
 #[serde(transparent)]
-struct SpriteSpec(sprite::sprite_kind::PureCases<Option<SpriteConfig<String>>>);
+struct SpriteSpec(HashMap<SpriteKind, Option<SpriteConfig<String>>>);
 
 impl assets::Asset for SpriteSpec {
     type Loader = assets::RonLoader;
@@ -236,7 +236,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                             continue;
                         };
 
-                        if let Some(cfg) = sprite.elim_case_pure(&sprite_config.0) {
+                        if let Some(cfg) = sprite_config.0.get(&sprite).and_then(Option::as_ref) {
                             let seed = wpos.x as u64 * 3
                                 + wpos.y as u64 * 7
                                 + wpos.x as u64 * wpos.y as u64; // Awful PRNG
@@ -394,10 +394,16 @@ impl SpriteRenderContext {
             let max_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
             let mut greedy = GreedyMesh::new(max_size);
             let mut sprite_mesh = Mesh::new();
-            let sprite_config_ = &sprite_config;
             // NOTE: Tracks the start vertex of the next model to be meshed.
             let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
-                .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_.0).as_ref()?)))
+                .filter_map(|kind| {
+                    let config = sprite_config
+                        .0
+                        .get(&kind)
+                        .unwrap_or_else(|| panic!("{kind:?}"))
+                        .as_ref()?;
+                    Some((kind, config))
+                })
                 .flat_map(|(kind, sprite_config)| {
                     sprite_config.variations.iter().enumerate().map(
                         move |(

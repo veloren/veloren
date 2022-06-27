@@ -1,5 +1,7 @@
 #![enable(unwrap_newtypes)]
-(
+{
+// Represents the lack of a sprite.
+Empty: None,
 // Windows
 Window1: Some((
     variations: [
@@ -1348,7 +1350,7 @@ Ember: Some((
     wind_sway: 0.0,
 )),
 // Smoke dummy
-Smoke: Some((
+SmokeDummy: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.ember.dummy",
@@ -2902,7 +2904,11 @@ GiantKelp: Some((
     ],
     wind_sway: 0.2,
 )),
-//Seagrass
+// Red Algae 
+RedAlgae: None,
+// Underwater Vent
+UnderwaterVent: None,
+// Seagrass
 Seagrass: Some((
     variations: [
         (
@@ -3945,4 +3951,4 @@ Eldwood: Some((
     ],
     wind_sway: 0.0,
 )),
-)
+}
