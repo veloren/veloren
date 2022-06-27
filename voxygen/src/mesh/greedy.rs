@@ -108,8 +108,8 @@ impl AtlasAllocator for guillotiere::SimpleAtlasAllocator {
         // current values were optimized for sprites, but we are using a
         // different allocator for them so different values might be better
         // here.
-        let large_size_threshold = inline_tweak::release_tweak!(8); //256.min(min_max_dim / 2 + 1);
-        let small_size_threshold = inline_tweak::release_tweak!(3); //33.min(large_size_threshold / 2 + 1);
+        let large_size_threshold = 8; //256.min(min_max_dim / 2 + 1);
+        let small_size_threshold = !(3); //33.min(large_size_threshold / 2 + 1);
         // (12, 3) 24.5
         // (12, 2) 33.2
         // (12, 4) 27.2
@@ -149,22 +149,17 @@ impl AtlasAllocator for guillotiere::SimpleAtlasAllocator {
     }
 }
 
-fn etagere_size(size: Vec2<i32>) -> etagere::Size { etagere::Size::new(size.x, size.y) }
-
-// TODO: replace with constant after testing
-fn tile_size() -> u16 { inline_tweak::release_tweak!(64) }
-
 pub struct GuillotiereTiled {
     // TODO: Try BucketsAtlasAllocator
-    // Each tile is tile_size() (unless max size is not aligned to this, in which case the tiles
-    // that reach the max size are truncated below this value).
+    // Each tile is Self::TILE_SIZE (unless max size is not aligned to this, in which case the
+    // tiles that reach the max size are truncated below this value).
     allocator: guillotiere::SimpleAtlasAllocator,
-    // (offset, size)
-    free_tiles: Vec<(Vec2<usize>, Vec2<i32>)>,
-    // Total width and height texels of the whole grid of tiles (in case this isn't a square).
+    // offset in tiles
+    free_tiles: Vec<Vec2<usize>>,
+    // Total width and height in tiles (in case this isn't a square).
     // Not zero
     size: Vec2<usize>,
-    // Offset (in texels) of current tile being allocated from (others returned `None` on last
+    // Offset (in tiles) of current tile being allocated from (others returned `None` on last
     // allocation attempt)
     current: Option<Vec2<usize>>,
     // Efficiency history (total area, used area)
@@ -172,10 +167,19 @@ pub struct GuillotiereTiled {
 }
 
 impl GuillotiereTiled {
+    // Tested with sprites:
+    // 64 1.63s 1.109 packing
+    // 128 1.65s 1.083 packing
+    // 256 1.77s 1.070 packing
+    // 512 2.27s 1.055 packing
+    // 1024 5.32s 1.045 packing (didn't fill up)
+    // 2048 10.49s n/a packing (didn't fill up)
+    const TILE_SIZE: u16 = 256;
+
     fn allocator_options() -> guillotiere::AllocatorOptions {
         // TODO: Collect information to see if we can choose a good value here.
-        let large_size_threshold = inline_tweak::release_tweak!(8); //256.min(min_max_dim / 2 + 1);
-        let small_size_threshold = inline_tweak::release_tweak!(3); //33.min(large_size_threshold / 2 + 1);
+        let large_size_threshold = 8; //256.min(min_max_dim / 2 + 1);
+        let small_size_threshold = 3; //33.min(large_size_threshold / 2 + 1);
 
         // (12, 3) 24.5
         // (12, 2) 33.2
@@ -194,6 +198,7 @@ impl GuillotiereTiled {
     }
 
     fn next_tile(&mut self) {
+        tracing::error!("next tile");
         if self.current.is_some() {
             prof_span!("stats");
             let free_space = self.allocator.free_space();
@@ -203,8 +208,11 @@ impl GuillotiereTiled {
             self.history.push((area, used));
         }
 
-        self.current = if let Some((offset, size)) = self.free_tiles.pop() {
-            self.allocator.reset(guillotiere_size(size), &Self::AllocatorOptions);
+        self.current = if let Some(offset) = self.free_tiles.pop() {
+            self.allocator.reset(
+                guillotiere_size(Vec2::broadcast(i32::from(Self::TILE_SIZE))),
+                &Self::allocator_options(),
+            );
             Some(offset)
         } else {
             None
@@ -214,16 +222,18 @@ impl GuillotiereTiled {
 
 impl AtlasAllocator for GuillotiereTiled {
     fn with_max_size(max_size: Vec2<i32>) -> Self {
-        let size = guillotiere_size(Vec2::broadcast(i32::from(tile_size())))
+        let size = guillotiere_size(Vec2::broadcast(i32::from(Self::TILE_SIZE)))
             .min(guillotiere_size(max_size));
 
-        let allocator = guillotiere::SimpleAtlasAllocator::with_options(size, &Self::allocator_options())
+        let allocator =
+            guillotiere::SimpleAtlasAllocator::with_options(size, &Self::allocator_options());
 
         Self {
             allocator,
             free_tiles: Vec::new(),
-            width: 1,
+            size: Vec2::new(1, 1),
             current: Some(Vec2::new(0, 0)),
+            history: Vec::new(),
         }
     }
 
@@ -234,10 +244,12 @@ impl AtlasAllocator for GuillotiereTiled {
         let size = guillotiere_size(size);
 
         while let Some(current) = self.current {
-            let index = current.x + current.y * self.width;
-            match self.allocator.allocate(size)  {
+            match self.allocator.allocate(size) {
                 Some(r) => {
-                    let offset = guillotiere_size(self.offset(index));
+                    // NOTE: The offset will always be smaller or equal to the `i32`s passed into
+                    // `with_max_size`/`grow` so this won't overflow.
+                    let offset =
+                        guillotiere_size(current.map(|e| e as i32 * i32::from(Self::TILE_SIZE)));
 
                     let offset_rect = guillotiere::Rectangle {
                         min: r.min.add_size(&offset),
@@ -246,10 +258,7 @@ impl AtlasAllocator for GuillotiereTiled {
 
                     return Some(offset_rect);
                 },
-                None => {
-                    self.current = self.free_tiles.pop();
-                    tracing::error!("next tile");
-                },
+                None => self.next_tile(),
             }
         }
         dbg!(size);
@@ -258,132 +267,56 @@ impl AtlasAllocator for GuillotiereTiled {
     }
 
     /// Retrieves the current size of the atlas being allocated from.
-    fn size(&self) -> Vec2<i32> { self.size() }
+    fn size(&self) -> Vec2<i32> {
+        // NOTE: The size will always be smaller or equal to the `i32`s passed into
+        // `with_max_size`/`grow` so this won't overflow.
+        self.size.map(|e| e as i32 * i32::from(Self::TILE_SIZE))
+    }
 
     /// Grows the size of the atlas to the provided size.
     fn grow(&mut self, new_size: Vec2<i32>) {
-        let print_efficiency = inline_tweak::release_tweak!(true);
-        if print_efficiency {
+        {
             prof_span!("debug");
             tracing::error!("here");
-            println!("Tile count: {}", self.tiles.len());
+            println!(
+                "Tile count: {}",
+                self.history.len() + self.free_tiles.len() + self.current.is_some() as usize
+            );
             let mut total_area = 0;
             let mut total_used = 0;
-            for tile in self.tiles.iter() {
-                let free_space = tile.free_space();
-                let area = tile.size().width * tile.size().height;
-                let used = area - free_space;
-                dbg!((used, free_space, area, area as f32 / used as f32));
+            for (area, used) in self.history.iter() {
                 total_area += area;
                 total_used += used;
             }
             dbg!(total_area as f32 / total_used as f32);
         }
-        let last_tile_size = self
-            .free_tiles
-            .first()
-            .map(|(_offset, size)| size.to_array())
-            .unwrap_or_else(|| self.allocator.size().to_array());
-        if last_tile_size != [i32::from(tile_size()); 2] {
-            dbg!(new_size);
-            dbg!(last_tile_size);
-            let tile_size = tile_size();
-            // We want to avoid this as it would create many tiles of irregular sizes.
-            //tracing::error!(
-            panic!(
-                "Growing when last tile is non-multiple-of-{tile_size}. Max size was already \
-                 reached or growing by non-power-of-two increments"
-            );
-        }
-        let diff = (new_size - self.size).map(|e| e.max(0));
+
+        let diff = (new_size - self.size()).map(|e| e.max(0));
         dbg!(self.size());
         dbg!(new_size);
         dbg!(diff);
         // TODO: as cast
-        let diff_tiles = diff.map(|e| e as usize / usize::from(tile_size()));
-        // TODO: test when remainder isn't 0
-        let diff_remainder = diff.map(|e| e % i32::from(tile_size()));
-        let additional_tiles = diff_tiles.map2(diff_remainder, |tiles, rem| tiles + if rem != 0 { 1 } else { 0 });
+        // NOTE: growing only occurs in increments of tiles size so any remaining size
+        // is ignored.
+        let diff_tiles = diff.map(|e| e as usize / usize::from(Self::TILE_SIZE));
         dbg!(diff_tiles);
-        dbg!(additional_tiles);
-        let old_dims = self.dimensions;
-        let old_remainder = old_dims.map(|e| e % usize::from(tile_size()));
-        self.dimensions += diff:
-        dbg!(self.dimensions);
-        // Insert new colums
-        for _ in 0.. {
-                let last = column == self.width - 1;
-                let width = if last && diff_remainder.x != 0 {
-                    diff_remainder.x
-                } else {
-                    i32::from(tile_size())
-                };
-
-            for x in 0..diff_tiles.x {
-                self.free_tiles.push(
-                    Self::new_tile(guillotiere_size(Vec2::broadcast(i32::from(tile_size())))),
-                );
-            }
-            if diff_remainder.x != 0 {
-                let index = end_of_row + diff_tiles.x;
-                self.tiles.insert(
-                    index,
-                    Self::new_tile(guillotiere_size(Vec2::new(diff.x, i32::from(tile_size())))),
-                )
-            }
-        }
-        if old_height % usize::from(tile_size()) != 0 {
-                let last = column == self.width - 1;
-                let width = if last && diff.x != 0 {
-                    diff.x
-                } else {
-                    i32::from(tile_size())
-                };
-                self.tiles
-                    .push(Self::new_tile(guillotiere_size(Vec2::new(width, diff.y))));
-            }
-        }
-        // Insert new rows
-        for _ in 0..diff_tiles.y {
-            for column in 0..self.width {
-                let last = column == self.width - 1;
-                let width = if last && diff_remainder.x != 0 {
-                    diff_remainder.x
-                } else {
-                    i32::from(tile_size())
-                };
-                self.tiles.push(Self::new_tile(guillotiere_size(Vec2::new(
-                    width,
-                    i32::from(tile_size()),
-                ))));
-            }
-        }
-        if diff_remainder.y != 0 {
-            for column in 0..self.width {
-                let last = column == self.width - 1;
-                let width = if last && diff.x != 0 {
-                    diff.x
-                } else {
-                    i32::from(tile_size())
-                };
-                self.tiles
-                    .push(Self::new_tile(guillotiere_size(Vec2::new(width, diff.y))));
-            }
-        }
+        let old_size = self.size;
+        self.size += diff_tiles;
+        dbg!(self.size);
 
         // Add new tiles to free tile list
-        for x in old_width..self.width {
-            for y in 0..old_height {
+        for x in old_size.x..self.size.x {
+            for y in 0..old_size.y {
                 self.free_tiles.push(Vec2::new(x, y));
             }
         }
-        for y in old_height..self.height() {
-            for x in 0..self.width {
+        for y in old_size.y..self.size.y {
+            for x in 0..self.size.x {
                 self.free_tiles.push(Vec2::new(x, y));
             }
         }
         if self.current.is_none() {
-            self.current = self.free_tiles.pop();
+            self.next_tile();
         }
     }
 }
