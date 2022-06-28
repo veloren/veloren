@@ -76,13 +76,14 @@ pub fn surface_entrances<'a>(land: &'a Land) -> impl Iterator<Item = Vec2<i32>> 
         .filter_map(|cell| {
             let tunnel = tunnels_below_from_cell(cell, 0, land)?;
             // Hacky, moves the entrance position closer to the actual entrance
-            Some(Lerp::lerp(tunnel.a.wpos.xy(), tunnel.b.wpos.xy(), 0.25))
+            Some(Lerp::lerp(tunnel.a.wpos.xy(), tunnel.b.wpos.xy(), 0.125))
         })
 }
 
 struct Tunnel {
     a: Node,
     b: Node,
+    curve: f32,
 }
 
 fn tunnels_at<'a>(
@@ -113,6 +114,9 @@ fn tunnels_at<'a>(
                 .map(move |(other_cell_pos, other_cell)| Tunnel {
                     a: current_cell,
                     b: other_cell,
+                    curve: RandomField::new(13)
+                        .get_f32(current_cell.wpos.xy().with_z(0))
+                        .powf(0.25) as f32,
                 })
         })
 }
@@ -126,6 +130,7 @@ fn tunnels_below_from_cell(cell: Vec2<i32>, level: u32, land: &Land) -> Option<T
             level + 1,
             land,
         )?,
+        curve: 0.0,
     })
 }
 
@@ -150,29 +155,25 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         for level in 1..4 {
             let rand = RandomField::new(37 + level);
             let tunnel_bounds = tunnels_at(wpos2d, level, &land)
-                .chain(tunnels_down_from(wpos2d, level, &land))
+                .chain(tunnels_down_from(wpos2d, level - 1, &land))
                 .filter_map(|tunnel| {
                     let start = tunnel.a.wpos.xy().map(|e| e as f64 + 0.5);
                     let end = tunnel.b.wpos.xy().map(|e| e as f64 + 0.5);
                     let dist = LineSegment2 { start, end }
                         .distance_to_point(wpos2d.map(|e| e as f64 + 0.5));
 
-                    let curve = (
-                        RandomField::new(13)
-                            .get_f32(tunnel.a.wpos.xy().with_z(0))
-                            .powf(0.25) as f64,
+                    let curve_dir =
                         (RandomField::new(14).get_f32(tunnel.a.wpos.xy().with_z(0)) as f64 - 0.5)
-                            .signum(),
-                    );
+                            .signum();
 
                     if let Some((t, closest, _)) = quadratic_nearest_point(
                         &river_spline_coeffs(
                             start,
                             ((end - start) * 0.5
                                 + ((end - start) * 0.5).rotated_z(PI / 2.0)
-                                    * 4.0
-                                    * curve.0
-                                    * curve.1)
+                                    * 6.0
+                                    * tunnel.curve as f64
+                                    * curve_dir)
                                 .map(|e| e as f32),
                             end,
                         ),
@@ -316,7 +317,7 @@ fn write_column(
 
     let underground = ((col.alt as f32 - z_range.end as f32) / 80.0).clamped(0.0, 1.0);
     let mushroom_glow =
-        underground * close(biome.humidity, 1.0, 0.6) * close(biome.temp, 0.25, 0.7);
+        underground * close(biome.humidity, 1.0, 0.5) * close(biome.temp, 0.25, 0.7);
 
     let dirt = if exposed { 0 } else { 1 };
     let bedrock = z_range.start + lava as i32;
@@ -365,6 +366,24 @@ fn write_column(
                                 SpriteKind::CavernGrassBlueShort,
                                 SpriteKind::CavernGrassBlueMedium,
                                 SpriteKind::CavernGrassBlueLong,
+                                SpriteKind::Mushroom,
+                            ]
+                            .choose(rng)
+                            .unwrap(),
+                        )
+                    } else if rand.chance(
+                        wpos2d.with_z(1),
+                        close(biome.humidity, 1.0, 0.5) * close(biome.temp, 0.0, 1.25) * 0.05,
+                    ) {
+                        Some(
+                            *[
+                                SpriteKind::JungleFern,
+                                SpriteKind::JungleLeafyPlant,
+                                SpriteKind::JungleRedGrass,
+                                SpriteKind::Mushroom,
+                                SpriteKind::EnsnaringVines,
+                                SpriteKind::Fern,
+                                SpriteKind::LeafyPlant,
                             ]
                             .choose(rng)
                             .unwrap(),
@@ -374,6 +393,39 @@ fn write_column(
                         close(biome.humidity, 0.0, 0.5) * biome.mineral * 0.005,
                     ) {
                         Some(SpriteKind::CrystalLow)
+                    } else if rand.chance(wpos2d.with_z(2), close(biome.temp, 1.5, 0.75) * 0.001) {
+                        Some(SpriteKind::Pyrebloom)
+                    } else if rand.chance(wpos2d.with_z(2), close(biome.mineral, 1.0, 0.5) * 0.001)
+                    {
+                        Some(
+                            *[
+                                SpriteKind::Velorite,
+                                SpriteKind::VeloriteFrag,
+                                SpriteKind::AmethystSmall,
+                                SpriteKind::TopazSmall,
+                                SpriteKind::DiamondSmall,
+                                SpriteKind::RubySmall,
+                                SpriteKind::EmeraldSmall,
+                                SpriteKind::SapphireSmall,
+                            ]
+                            .choose(rng)
+                            .unwrap(),
+                        )
+                    } else if rand.chance(
+                        wpos2d.with_z(2),
+                        close(biome.humidity, 0.0, 0.65) * close(biome.temp, -0.25, 1.25) * 0.008,
+                    ) {
+                        Some(
+                            *[
+                                SpriteKind::Bones,
+                                SpriteKind::Stones,
+                                SpriteKind::DeadBush,
+                                SpriteKind::EnsnaringWeb,
+                                SpriteKind::Mud,
+                            ]
+                            .choose(rng)
+                            .unwrap(),
+                        )
                     } else {
                         None
                     }
@@ -385,9 +437,13 @@ fn write_column(
                 .then(|| {
                     if rand.chance(wpos2d.with_z(3), mushroom_glow * 0.02) {
                         Some(
-                            *[SpriteKind::CavernMycelBlue, SpriteKind::CeilingMushroom]
-                                .choose(rng)
-                                .unwrap(),
+                            *[
+                                SpriteKind::CavernMycelBlue,
+                                SpriteKind::CeilingMushroom,
+                                SpriteKind::Liana,
+                            ]
+                            .choose(rng)
+                            .unwrap(),
                         )
                     } else if rand.chance(wpos2d.with_z(4), 0.0075) {
                         Some(
