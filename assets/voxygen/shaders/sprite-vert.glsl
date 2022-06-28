@@ -83,8 +83,10 @@ void main() {
     f_pos += chunk_offs;
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
-        // Terrain 'pop-in' effect
-        f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+        #ifndef EXPERIMENTAL_NOTERRAINPOP
+            // Terrain 'pop-in' effect
+            f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+        #endif
     #endif
 
     #ifdef EXPERIMENTAL_CURVEDWORLD
