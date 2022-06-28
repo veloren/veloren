@@ -173,7 +173,7 @@ impl Tunnel {
             .mul(0.5)
             .add(0.5) as f32;
 
-        let underground = ((col.alt as f32 - wpos.z as f32) / 80.0).clamped(0.0, 1.0);
+        let underground = ((col.alt as f32 - wpos.z as f32) / 80.0 - 1.0).clamped(0.0, 1.0);
 
         let [_, mushroom, fire, leafy, dusty] = {
             let barren = 0.01;
