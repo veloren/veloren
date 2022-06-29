@@ -16,7 +16,7 @@ use std::{
     cmp::Ordering,
     collections::HashMap,
     f64::consts::PI,
-    ops::{Add, Mul, Range, Sub},
+    ops::{Add, Mul, Neg, Range, Sub},
 };
 use vek::*;
 
@@ -90,7 +90,7 @@ struct Tunnel {
 }
 
 impl Tunnel {
-    fn z_range_at(&self, wposf: Vec2<f64>, nz: &Fbm) -> Option<Range<i32>> {
+    fn z_range_at(&self, wposf: Vec2<f64>, nz: &Fbm) -> Option<(Range<i32>, f64)> {
         let start = self.a.wpos.xy().map(|e| e as f64 + 0.5);
         let end = self.b.wpos.xy().map(|e| e as f64 + 0.5);
 
@@ -126,7 +126,10 @@ impl Tunnel {
                         * 48.0
                         * ((1.0 - (t - 0.5).abs() * 2.0) * 8.0).min(1.0);
                     let depth = Lerp::lerp(self.a.wpos.z as f64, self.b.wpos.z as f64, t) + z_offs;
-                    Some((depth - height_here * 0.3) as i32..(depth + height_here * 1.35) as i32)
+                    Some((
+                        (depth - height_here * 0.3) as i32..(depth + height_here * 1.35) as i32,
+                        radius,
+                    ))
                 } else {
                     None
                 }
@@ -283,23 +286,35 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             let rand = RandomField::new(37 + level);
             let tunnel_bounds = tunnels_at(wpos2d, level, &land)
                 .chain(tunnels_down_from(wpos2d, level - 1, &land))
-                .filter_map(|tunnel| Some((tunnel.z_range_at(wposf, &nz)?, tunnel)));
+                .filter_map(|tunnel| {
+                    let (z_range, radius) = tunnel.z_range_at(wposf, &nz)?;
+                    // Avoid cave entrances intersecting water
+                    let z_range = Lerp::lerp(
+                        z_range.end,
+                        z_range.start,
+                        1.0 - (1.0 - ((col.alt - col.water_level) / 4.0).clamped(0.0, 1.0))
+                            * (1.0 - ((col.alt - z_range.end as f32) / 8.0).clamped(0.0, 1.0)),
+                    )..z_range.end;
+                    Some((z_range, radius, tunnel))
+                })
+                .collect::<Vec<_>>();
 
-            for (z_range, tunnel) in tunnel_bounds {
-                // Avoid cave entrances intersecting water
-                let z_range = Lerp::lerp(
-                    z_range.end,
-                    z_range.start,
-                    1.0 - (1.0 - ((col.alt - col.water_level) / 4.0).clamped(0.0, 1.0))
-                        * (1.0 - ((col.alt - z_range.end as f32) / 8.0).clamped(0.0, 1.0)),
-                )..z_range.end;
+            // First, clear out tunnels
+            for (z_range, _, tunnel) in &tunnel_bounds {
+                for z in z_range.clone() {
+                    canvas.set(wpos2d.with_z(z), Block::air(SpriteKind::Empty));
+                }
+            }
+
+            for (z_range, radius, tunnel) in &tunnel_bounds {
                 write_column(
                     canvas,
                     col,
                     level,
                     wpos2d,
-                    z_range,
+                    z_range.clone(),
                     tunnel,
+                    *radius,
                     &nz,
                     &mut mushroom_cache,
                     rng,
@@ -332,7 +347,8 @@ fn write_column<R: Rng>(
     level: u32,
     wpos2d: Vec2<i32>,
     z_range: Range<i32>,
-    tunnel: Tunnel,
+    tunnel: &Tunnel,
+    radius: f64,
     nz: &Fbm,
     mushroom_cache: &mut HashMap<(Vec3<i32>, Vec2<i32>), Option<Mushroom>>,
     rng: &mut R,
@@ -340,8 +356,11 @@ fn write_column<R: Rng>(
     mushroom_cache.clear();
     let info = canvas.info();
 
+    // Exposed to the sky, or some other void above
+    let void_above = !canvas.get(wpos2d.with_z(z_range.end)).is_filled();
+    let void_below = !canvas.get(wpos2d.with_z(z_range.start - 1)).is_filled();
     // Exposed to the sky
-    let exposed = z_range.end as f32 > col.alt;
+    let sky_above = z_range.end as f32 > col.alt;
 
     let biome = tunnel.biome_at(wpos2d.with_z(z_range.start), &info);
 
@@ -375,9 +394,22 @@ fn write_column<R: Rng>(
             .max(-32.0)
     };
 
+    let bridge = {
+        info.index()
+            .noise
+            .cave_nz
+            .get(wpos2d.map(|e| e as f64 / 128.0).into_array())
+            .sub(0.5)
+            .abs()
+            .sub(0.15)
+            .neg()
+            .mul(1.0 / 0.15)
+            .max(0.0)
+    };
+
     let rand = RandomField::new(37 + level);
 
-    let dirt = if exposed { 0 } else { 1 };
+    let dirt = 1;
     let bedrock = z_range.start + lava as i32;
     let base = bedrock + (stalactite * 0.4) as i32;
     let floor = base + dirt;
@@ -390,7 +422,7 @@ fn write_column<R: Rng>(
                 .entry((tunnel.a.wpos, wpos2d))
                 .or_insert_with(|| {
                     let mut rng = RandomPerm::new(seed);
-                    let z_range = tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), nz)?;
+                    let z_range = tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), nz)?.0;
                     let (cavern_bottom, cavern_top, floor, water_level) = (
                         z_range.start,
                         z_range.end,
@@ -496,11 +528,9 @@ fn write_column<R: Rng>(
     for z in bedrock..z_range.end {
         let wpos = wpos2d.with_z(z);
         canvas.map(wpos, |block| {
-            if !block.is_filled() {
-                block.into_vacant()
-            } else if z < z_range.start - 4 {
+            if z < z_range.start - 4 {
                 Block::new(BlockKind::Lava, Rgb::new(255, 65, 0))
-            } else if z < base || z >= ceiling {
+            } else if (z < base && !void_below) || (z >= ceiling && !void_above) {
                 let stalactite: Rgb<i16> =
                     Lerp::lerp(Rgb::new(80, 100, 150), Rgb::new(0, 75, 200), biome.mushroom);
                 Block::new(
@@ -511,7 +541,7 @@ fn write_column<R: Rng>(
                     },
                     stalactite.map(|e| e as u8),
                 )
-            } else if z >= base && z < floor {
+            } else if z >= base && z < floor && !void_below && !sky_above {
                 let dry_mud =
                     Lerp::lerp(Rgb::new(40, 20, 0), Rgb::new(80, 80, 30), col.marble_small);
                 let mycelium =
@@ -539,7 +569,7 @@ fn write_column<R: Rng>(
                 );
 
                 Block::new(BlockKind::Sand, surf_color.map(|e| e as u8))
-            } else if let Some(sprite) = (z == floor && !exposed)
+            } else if let Some(sprite) = (z == floor && !void_below && !sky_above)
                 .then(|| {
                     if rand.chance(wpos2d.with_z(1), biome.mushroom * 0.1) {
                         Some(
@@ -630,7 +660,7 @@ fn write_column<R: Rng>(
                 .flatten()
             {
                 Block::air(sprite)
-            } else if let Some(sprite) = (z == ceiling - 1)
+            } else if let Some(sprite) = (z == ceiling - 1 && !void_above)
                 .then(|| {
                     if rand.chance(wpos2d.with_z(3), biome.mushroom * 0.02) {
                         Some(
@@ -655,8 +685,21 @@ fn write_column<R: Rng>(
                 .flatten()
             {
                 Block::air(sprite)
+            } else if {
+                let h = 25;
+                bridge > 0.0
+                    && z >= bedrock
+                        + ((h as f64
+                            - ((75.0 - (z_range.end - z_range.start) as f64) / h as f64).powf(2.0)
+                                * h as f64
+                                * bridge) as i32)
+                            .min(h - 2)
+                    && z < bedrock + h
+                    && radius > 30.0
+            } {
+                Block::new(BlockKind::Rock, col.stone_col)
             } else {
-                get_mushroom(wpos, rng).unwrap_or(Block::air(SpriteKind::Empty))
+                get_mushroom(wpos, rng).unwrap_or(block)
             }
         });
     }

@@ -382,6 +382,9 @@ void main() {
     reflected_light *= f_light;
     max_light *= f_light;
 
+    // TODO: Hack to add a small amount of underground ambient light to the scene
+    reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
+
     // TODO: Apply AO after this
     vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2) * pow(max(dot(face_norm, f_norm), 0), 2);
     reflected_light += glow * cam_attenuation;
