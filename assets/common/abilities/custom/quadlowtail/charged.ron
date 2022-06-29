@@ -3,13 +3,13 @@ ChargedMelee(
     energy_drain: 0,
     melee_constructor: (
         kind: Bash(
-            damage: 4.0,
+            damage: 8.0,
             poise: 30.0,
             knockback: 10.0,
             energy_regen: 0.0,
         ),
         scaled: Some(Bash(
-            damage: 20.0,
+            damage: 40.0,
             poise: 80.0,
             knockback: 20.0,
             energy_regen: 0.0,
@@ -17,7 +17,7 @@ ChargedMelee(
         range: 6.0,
         angle: 90.0,
     ),
-    charge_duration: 0.8,
+    charge_duration: 3.2,
     swing_duration: 0.7,
     hit_timing: 0.9,
     recover_duration: 0.7,

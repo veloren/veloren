@@ -1,9 +1,9 @@
 BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.5,
-    recover_duration: 0.35,
+    recover_duration: 1.4,
     projectile: Frostball(
-        damage: 12.0,
+        damage: 24.0,
         radius: 5.0,
         min_falloff: 0.5,
     ),

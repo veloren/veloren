@@ -2,17 +2,17 @@ ComboMelee(
     stage_data: [
         (
             stage: 1,
-            base_damage: 37,
+            base_damage: 74,
             damage_increase: 0,
             base_poise_damage: 27.5,
             poise_damage_increase: 0,
             knockback: 9.0,
             range: 3.0,
             angle: 60.0,
-            base_buildup_duration: 0.7,
+            base_buildup_duration: 1.4,
             base_swing_duration: 0.1,
             hit_timing: 0.5,
-            base_recover_duration: 0.4,
+            base_recover_duration: 0.8,
             forward_movement: 1.0,
             damage_kind: Crushing,
             damage_effect: Some(Buff((

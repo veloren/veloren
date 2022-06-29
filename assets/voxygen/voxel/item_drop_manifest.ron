@@ -174,7 +174,7 @@
     ModularWeapon(("common.items.modular.weapon.primary.sword.ornate", "common.items.mineral.ingot.orichalcum", One)): "voxel.weapon.sword.ornate.orichalcum-1h",
     ModularWeapon(("common.items.modular.weapon.primary.sword.sabre", "common.items.mineral.ingot.orichalcum", One)): "voxel.weapon.sword.sabre.orichalcum-1h",
     ModularWeapon(("common.items.modular.weapon.primary.sword.sawblade", "common.items.mineral.ingot.orichalcum", One)): "voxel.weapon.sword.sawblade.orichalcum-1h",
-    Simple("common.items.weapons.sword_1h.starter"): "voxel.weapon.sword_1h.starter",
+    Simple("common.items.weapons.sword_1h.starter"): "voxel.weapon.sword.starter_1h",
     // Axes
     ModularWeapon(("common.items.modular.weapon.primary.axe.axe", "common.items.mineral.ingot.bronze", Two)): "voxel.weapon.axe.axe.bronze-2h",
     ModularWeapon(("common.items.modular.weapon.primary.axe.battleaxe", "common.items.mineral.ingot.bronze", Two)): "voxel.weapon.axe.battleaxe.bronze-2h",
