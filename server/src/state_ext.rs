@@ -422,7 +422,7 @@ impl StateExt for State {
             .with(comp::Ori::default())
             .with(capsule(&object.into()))
             .with(comp::Body::Object(object))
-            .with(comp::Mass(10.0))
+            .with(comp::Mass(100.0))
             // .with(comp::Sticky)
             .with(wiring_element)
             .with(comp::LightEmitter {
