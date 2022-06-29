@@ -11,7 +11,7 @@ use crate::{
     },
     sys::terrain::NpcData,
     wiring,
-    wiring::{Logic, OutputFormula},
+    wiring::OutputFormula,
     Server, Settings, SpawnPoint, StateExt,
 };
 use assets::AssetExt;
@@ -60,7 +60,7 @@ use specs::{
 };
 use std::{str::FromStr, sync::Arc};
 use vek::*;
-use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
+use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
 use world::util::Sampler;
 
 use common::comp::Alignment;
@@ -2200,118 +2200,58 @@ fn handle_spawn_wiring(
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    // Obviously it is a WIP - use it for debug
-
     let mut pos = position(server, target, "target")?;
     pos.0.x += 3.0;
 
     let mut outputs1 = HashMap::new();
-    outputs1.insert(
-        "deaths_last_tick".to_string(),
-        wiring::OutputFormula::OnDeath {
-            value: 1.0,
-            radius: 30.0,
-        },
-    );
-    outputs1.insert(
-        "deaths_accumulated".to_string(),
-        OutputFormula::Logic(Box::new(Logic {
-            kind: wiring::LogicKind::Sum,
-            left: OutputFormula::Logic(Box::new(Logic {
-                kind: wiring::LogicKind::Sub,
-                left: OutputFormula::Input {
-                    name: "deaths_accumulated".to_string(),
-                },
-                right: OutputFormula::Logic(Box::new(Logic {
-                    kind: wiring::LogicKind::Min,
-                    left: OutputFormula::Input {
-                        name: "pressed".to_string(),
-                    },
-                    right: OutputFormula::Input {
-                        name: "deaths_accumulated".to_string(),
-                    },
-                })),
-            })),
-            right: OutputFormula::Input {
-                name: "deaths_last_tick".to_string(),
-            },
-        })),
-    );
-    outputs1.insert("pressed".to_string(), OutputFormula::OnCollide {
-        value: f32::MAX,
+    outputs1.insert("button".to_string(), OutputFormula::OnCollide {
+        value: 1.0,
     });
 
+    // Create the first element of the circuit.
+    // This is a coin body. This element does not have any inputs or actions.
+    // Instead there is one output. When there is a collision with this element the
+    // value of 1.0 will be sent as an input with the "button" label. Any
+    // element with an `Input` for the name "button" can use this value as an
+    // input. The threshold does not matter as there are no effects for this
+    // element.
     let builder1 = server
         .state
         .create_wiring(pos, comp::object::Body::Coins, WiringElement {
-            actions: vec![WiringAction {
-                formula: wiring::OutputFormula::Constant { value: 1.0 },
-                threshold: 1.0,
-                effects: vec![WiringActionEffect::SetLight {
-                    r: wiring::OutputFormula::Input {
-                        name: String::from("color"),
-                    },
-                    g: wiring::OutputFormula::Input {
-                        name: String::from("color"),
-                    },
-                    b: wiring::OutputFormula::Input {
-                        name: String::from("color"),
-                    },
-                }],
-            }],
             inputs: HashMap::new(),
             outputs: outputs1,
+            actions: Vec::new(),
         })
-        .with(comp::Density(100_f32))
-        .with(comp::Sticky);
+        .with(comp::Density(100_f32));
     let ent1 = builder1.build();
 
     pos.0.x += 3.0;
+    // The second element has no elements in the `inputs` field to start with. When
+    // the circuit runs, the input as specified by the `Input` OutputFormula is
+    // added to the inputs. The next tick the effect(s) are applied based on the
+    // input value.
     let builder2 = server
         .state
         .create_wiring(pos, comp::object::Body::Coins, WiringElement {
-            actions: vec![
-                WiringAction {
-                    formula: wiring::OutputFormula::Input {
-                        name: String::from("deaths_accumulated"),
-                    },
-                    threshold: 5.0,
-                    effects: vec![WiringActionEffect::SpawnProjectile {
-                        constr: comp::ProjectileConstructor::Arrow {
-                            damage: 1.0,
-                            energy_regen: 0.0,
-                            knockback: 0.0,
-                        },
-                    }],
-                },
-                WiringAction {
-                    formula: wiring::OutputFormula::Input {
-                        name: String::from("deaths_accumulated"),
-                    },
-                    threshold: 1.0,
-                    effects: vec![WiringActionEffect::SetBlock {
-                        coords: vek::Vec3::new(0, 0, pos.0.z as i32),
-                        block: Block::new(BlockKind::Water, vek::Rgb::new(0, 0, 0)),
-                    }],
-                },
-                WiringAction {
-                    formula: wiring::OutputFormula::Constant { value: 1.0 },
-                    threshold: 1.0,
-                    effects: vec![WiringActionEffect::SetLight {
-                        r: wiring::OutputFormula::Input {
-                            name: String::from("color"),
-                        },
-                        g: wiring::OutputFormula::Input {
-                            name: String::from("color"),
-                        },
-                        b: wiring::OutputFormula::Input {
-                            name: String::from("color"),
-                        },
-                    }],
-                },
-            ],
             inputs: HashMap::new(),
             outputs: HashMap::new(),
+            actions: vec![WiringAction {
+                formula: OutputFormula::Input {
+                    name: String::from("button"),
+                },
+                threshold: 0.0,
+                effects: vec![WiringActionEffect::SetLight {
+                    r: OutputFormula::Input {
+                        name: String::from("button"),
+                    },
+                    g: OutputFormula::Input {
+                        name: String::from("button"),
+                    },
+                    b: OutputFormula::Input {
+                        name: String::from("button"),
+                    },
+                }],
+            }],
         })
         .with(comp::Density(100_f32));
     let ent2 = builder2.build();
@@ -2320,39 +2260,15 @@ fn handle_spawn_wiring(
     let builder3 = server
         .state
         .create_wiring(pos, comp::object::Body::TrainingDummy, WiringElement {
-            actions: vec![],
             inputs: HashMap::new(),
             outputs: HashMap::new(),
+            actions: Vec::new(),
         })
         .with(comp::Density(comp::object::Body::TrainingDummy.density().0))
-        .with(Circuit {
-            wires: vec![
-                Wire {
-                    input_entity: ent1,
-                    input_field: String::from("deaths_last_tick"),
-                    output_entity: ent1,
-                    output_field: String::from("deaths_last_tick"),
-                },
-                Wire {
-                    input_entity: ent1,
-                    input_field: String::from("deaths_accumulated"),
-                    output_entity: ent1,
-                    output_field: String::from("deaths_accumulated"),
-                },
-                Wire {
-                    input_entity: ent1,
-                    input_field: String::from("pressed"),
-                    output_entity: ent1,
-                    output_field: String::from("pressed"),
-                },
-                Wire {
-                    input_entity: ent1,
-                    input_field: String::from("deaths_accumulated"),
-                    output_entity: ent2,
-                    output_field: String::from("deaths_accumulated"),
-                },
-            ],
-        });
+        .with(Circuit::new(vec![Wire {
+            input: WireNode::new(ent1, "button".to_string()),
+            output: WireNode::new(ent2, "button".to_string()),
+        }]));
     builder3.build();
 
     server.notify_client(
