@@ -699,7 +699,7 @@ fn write_column<R: Rng>(
             } {
                 Block::new(BlockKind::Rock, col.stone_col)
             } else {
-                get_mushroom(wpos, rng).unwrap_or(block)
+                get_mushroom(wpos, rng).unwrap_or(Block::air(SpriteKind::Empty))
             }
         });
     }
