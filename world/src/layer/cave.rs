@@ -550,6 +550,7 @@ fn write_column<R: Rng>(
                                 (SpriteKind::CavernGrassBlueShort, 1.0),
                                 (SpriteKind::CavernGrassBlueMedium, 1.0),
                                 (SpriteKind::CavernGrassBlueLong, 1.0),
+                                (SpriteKind::Moonbell, 0.01),
                             ]
                             .choose_weighted(rng, |(_, w)| *w)
                             .unwrap()
