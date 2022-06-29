@@ -287,7 +287,6 @@ impl Attack {
                             by: attacker.map(|x| x.into()),
                             cause: Some(damage.damage.source),
                             time,
-                            instance: damage.instance,
                         };
                         if change.abs() > Poise::POISE_EPSILON {
                             // If target is in a stunned state, apply extra poise damage as health
@@ -299,6 +298,8 @@ impl Attack {
                                     amount: health_change,
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
+                                    instance: damage.instance,
+                                    crit: false,
                                     time,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -379,7 +380,6 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
-                                    instance: rand::random(),
                                 };
                                 emit(ServerEvent::PoiseChange {
                                     entity: target.entity,
@@ -527,7 +527,6 @@ impl Attack {
                                 by: attacker.map(|x| x.into()),
                                 cause: Some(attack_source.into()),
                                 time,
-                                instance: rand::random(),
                             };
                             emit(ServerEvent::PoiseChange {
                                 entity: target.entity,

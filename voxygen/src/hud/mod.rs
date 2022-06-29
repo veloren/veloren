@@ -1418,9 +1418,7 @@ impl Hud {
                     };
 
                     fn calc_fade(floater: &HpFloater) -> f32 {
-                        ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
-                            * 0.25)
-                            + 0.2
+                        ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer) * 0.25) + 0.2
                     }
 
                     floaters.retain(|fl| calc_fade(fl) > 0.0);
@@ -2118,7 +2116,7 @@ impl Hud {
                             ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75) + 0.5
                         } else {
                             ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25) + 0.2
-                        } 
+                        }
                     }
 
                     hpfl.floaters.retain(|fl| calc_fade(fl) > 0.0);

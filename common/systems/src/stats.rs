@@ -173,7 +173,6 @@ impl<'a> System<'a> for Sys {
                             by: None,
                             cause: None,
                             time: *read_data.time,
-                            instance: rand::random(),
                         };
                         poise.change(poise_change);
                         poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt).min(10.0);

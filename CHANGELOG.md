@@ -55,7 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed an issue where the hurt animation would "jump" whenever you lost/gained health.
-- Fixed a bug where, if you dealt any extra damage, such as the extra damage from slashing weapons, the damage would be shown partially.
 - Fixed a bug where multiple damage sources in the same tick would show up as a singular attack.
 - Fixed an issue where, if the same amount of healing and damage was received in the same tick, nothing would be shown.
 - Fixed bug that would sometimes cause taking a screenshot to panic because a buffer was mapped at the wrong time.

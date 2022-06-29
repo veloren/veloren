@@ -189,7 +189,6 @@ impl StateExt for State {
                             cause: None,
                             by: damage_contributor,
                             time: *time,
-                            instance: rand::random(),
                         };
                         self.ecs()
                             .write_storage::<comp::Poise>()
