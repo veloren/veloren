@@ -695,7 +695,7 @@ fn write_column<R: Rng>(
                                 * bridge) as i32)
                             .min(h - 2)
                     && z < bedrock + h
-                    && radius > 30.0
+                    && radius > 25.0
             } {
                 Block::new(BlockKind::Rock, col.stone_col)
             } else {

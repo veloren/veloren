@@ -375,6 +375,9 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
             light(pos + range.min)
         }
     };
+    let get_ao = |_: &mut (), pos: Vec3<i32>| {
+        if flat_get(pos).is_opaque() { 0.0 } else { 1.0 }
+    };
     let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
     let get_color =
         |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or_else(Rgb::zero);
@@ -399,6 +402,7 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
         draw_delta,
         greedy_size,
         greedy_size_cross,
+        get_ao,
         get_light,
         get_glow,
         get_opacity,
@@ -427,8 +431,8 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
                 ));
             },
         },
-        make_face_texel: |data: &mut (), pos, light, glow| {
-            TerrainVertex::make_col_light(light, glow, get_color(data, pos))
+        make_face_texel: |data: &mut (), pos, light, glow, ao| {
+            TerrainVertex::make_col_light(light, glow, get_color(data, pos), ao)
         },
     });
 

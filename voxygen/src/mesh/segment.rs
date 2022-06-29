@@ -78,6 +78,7 @@ where
         draw_delta,
         greedy_size,
         greedy_size_cross,
+        get_ao: |_: &mut V, _: Vec3<i32>| 1.0,
         get_light,
         get_glow,
         get_opacity,
@@ -93,7 +94,7 @@ where
                 |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
             ));
         },
-        make_face_texel: |vol: &mut V, pos, light, _| {
+        make_face_texel: |vol: &mut V, pos, light, _, _| {
             let cell = vol.get(pos).ok();
             let (glowy, shiny) = cell
                 .map(|c| (c.is_glowy(), c.is_shiny()))
@@ -218,6 +219,7 @@ where
         draw_delta,
         greedy_size,
         greedy_size_cross,
+        get_ao: |_: &mut _, _: Vec3<i32>| 1.0,
         get_light,
         get_glow,
         get_opacity,
@@ -233,8 +235,8 @@ where
                 |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
             ));
         },
-        make_face_texel: move |flat: &mut _, pos, light, glow| {
-            TerrainVertex::make_col_light(light, glow, get_color(flat, pos))
+        make_face_texel: move |flat: &mut _, pos, light, glow, ao| {
+            TerrainVertex::make_col_light(light, glow, get_color(flat, pos), ao)
         },
     });
 
@@ -305,6 +307,7 @@ where
         draw_delta,
         greedy_size,
         greedy_size_cross,
+        get_ao: |_: &mut V, _: Vec3<i32>| 1.0,
         get_light,
         get_glow,
         get_opacity,
@@ -320,8 +323,8 @@ where
                 |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
             ));
         },
-        make_face_texel: move |vol: &mut V, pos, light, glow| {
-            TerrainVertex::make_col_light(light, glow, get_color(vol, pos))
+        make_face_texel: move |vol: &mut V, pos, light, glow, ao| {
+            TerrainVertex::make_col_light(light, glow, get_color(vol, pos), ao)
         },
     });
 

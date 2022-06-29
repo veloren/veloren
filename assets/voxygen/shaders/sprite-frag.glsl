@@ -40,8 +40,8 @@ layout(location = 0) out vec4 tgt_color;
 const float FADE_DIST = 32.0;
 
 void main() {
-    float f_ao, f_glow;
-    vec3 f_col = greedy_extract_col_light_glow(t_col_light, s_col_light, f_uv_pos, f_ao, f_glow);
+    float f_ao, f_glow, f_ao_unused;
+    vec3 f_col = greedy_extract_col_light_glow(t_col_light, s_col_light, f_uv_pos, f_ao, f_ao_unused, f_glow);
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);

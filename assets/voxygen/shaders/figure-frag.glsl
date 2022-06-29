@@ -92,9 +92,9 @@ void main() {
     // vec3 f_col = f_col_light.rgb;
     // float f_ao = f_col_light.a;
 
-    float f_ao, f_glow;
+    float f_ao, f_glow, f_ao_unused;
     uint material = 0xFFu;
-    vec3 f_col = greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_ao, f_glow, material);
+    vec3 f_col = greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_ao, f_glow, f_ao_unused, material);
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);

@@ -9,7 +9,7 @@ type TodoRect = (
     Vec3<i32>,
 );
 
-pub struct GreedyConfig<D, FL, FG, FO, FS, FP, FT> {
+pub struct GreedyConfig<D, FA, FL, FG, FO, FS, FP, FT> {
     pub data: D,
     /// The minimum position to mesh, in the coordinate system used
     /// for queries against the volume.
@@ -31,6 +31,9 @@ pub struct GreedyConfig<D, FL, FG, FO, FS, FP, FT> {
     /// the number of *horizontal* planes large enough to cover the whole
     /// chunk.
     pub greedy_size_cross: Vec3<usize>,
+    /// Given a position, return the AO information for the voxel at that
+    /// position (0.0 - 1.0).
+    pub get_ao: FA,
     /// Given a position, return the lighting information for the voxel at that
     /// position.
     pub get_light: FL,
@@ -367,16 +370,17 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
     /// Returns an estimate of the bounds of the current meshed model.
     ///
     /// For more information on the config parameter, see [GreedyConfig].
-    pub fn push<M: PartialEq, D: 'a, FL, FG, FO, FS, FP, FT>(
+    pub fn push<M: PartialEq, D: 'a, FA, FL, FG, FO, FS, FP, FT>(
         &mut self,
-        config: GreedyConfig<D, FL, FG, FO, FS, FP, FT>,
+        config: GreedyConfig<D, FA, FL, FG, FO, FS, FP, FT>,
     ) where
+        FA: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
         FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
         FG: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
         FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
         FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
         FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-        FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8) -> [u8; 4] + 'a,
+        FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8, bool) -> [u8; 4] + 'a,
     {
         span!(_guard, "push", "GreedyMesh::push");
         let cont = greedy_mesh(
@@ -401,7 +405,7 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
         span!(_guard, "finalize", "GreedyMesh::finalize");
         let cur_size = self.col_lights_size;
         let col_lights = vec![
-            TerrainVertex::make_col_light(254, 0, Rgb::broadcast(254));
+            TerrainVertex::make_col_light(254, 0, Rgb::broadcast(254), true);
             cur_size.x as usize * cur_size.y as usize
         ];
         let mut col_lights_info = (col_lights, cur_size);
@@ -414,7 +418,9 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
     pub fn max_size(&self) -> Vec2<u16> { self.max_size }
 }
 
-fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FO, FS, FP, FT, Allocator: AtlasAllocator>(
+
+
+fn greedy_mesh<'a, M: PartialEq, D: 'a, FA, FL, FG, FO, FS, FP, FT, Allocator: AtlasAllocator>(
     atlas: &mut Allocator,
     col_lights_size: &mut Vec2<u16>,
     max_size: Vec2<u16>,
@@ -423,21 +429,23 @@ fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FO, FS, FP, FT, Allocator: Atlas
         draw_delta,
         greedy_size,
         greedy_size_cross,
+        get_ao,
         get_light,
         get_glow,
         get_opacity,
         mut should_draw,
         mut push_quad,
         make_face_texel,
-    }: GreedyConfig<D, FL, FG, FO, FS, FP, FT>,
+    }: GreedyConfig<D, FA, FL, FG, FO, FS, FP, FT>,
 ) -> Box<SuspendedMesh<'a>>
 where
+    FA: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
     FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
     FG: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
     FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
     FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
     FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-    FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8) -> [u8; 4] + 'a,
+    FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8, bool) -> [u8; 4] + 'a,
 {
     span!(_guard, "greedy_mesh");
     // TODO: Collect information to see if we can choose a good value here.
@@ -573,6 +581,7 @@ where
             &mut data,
             todo_rects,
             draw_delta,
+            get_ao,
             get_light,
             get_glow,
             get_opacity,
@@ -725,10 +734,11 @@ fn draw_col_lights<D>(
     data: &mut D,
     todo_rects: Vec<TodoRect>,
     draw_delta: Vec3<i32>,
+    mut get_ao: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_light: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_glow: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_opacity: impl FnMut(&mut D, Vec3<i32>) -> bool,
-    mut make_face_texel: impl FnMut(&mut D, Vec3<i32>, u8, u8) -> [u8; 4],
+    mut make_face_texel: impl FnMut(&mut D, Vec3<i32>, u8, u8, bool) -> [u8; 4],
 ) {
     todo_rects.into_iter().for_each(|(pos, uv, rect, delta)| {
         // NOTE: Conversions are safe because width, height, and offset must be
@@ -793,6 +803,15 @@ fn draw_col_lights<D>(
                                 0.0
                             }
                     ) / 4.0;
+                    let ao = (get_ao(data, light_pos)
+                        + get_ao(data, light_pos - uv.x)
+                        + get_ao(data, light_pos - uv.y)
+                        + if direct_u_opacity || direct_v_opacity {
+                            get_ao(data, light_pos - uv.x - uv.y)
+                        } else {
+                            0.0
+                        })
+                        / 4.0;
                     let glowiness = (get_glow(data, light_pos)
                         + get_glow(data, light_pos - uv.x)
                         + get_glow(data, light_pos - uv.y)
@@ -804,7 +823,8 @@ fn draw_col_lights<D>(
                         / 4.0;
                     let light = (darkness * 31.5) as u8;
                     let glow = (glowiness * 31.5) as u8;
-                    *col_light = make_face_texel(data, pos, light, glow);
+                    let ao = ao > 0.7;
+                    *col_light = make_face_texel(data, pos, light, glow, ao);
                 });
         });
     });

@@ -12,7 +12,7 @@ use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
         self, aura, beam, body, buff, item::Reagent, object, shockwave, BeamSegment, Body,
-        CharacterState, Shockwave, Vel,
+        CharacterState, Ori, Pos, Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -763,13 +763,18 @@ impl ParticleMgr {
         let time = state.get_time();
         let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
 
-        for (interpolated, beam) in (
-            &ecs.read_storage::<Interpolated>(),
+        for (interp, pos, ori, beam) in (
+            ecs.read_storage::<Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Ori>(),
             &ecs.read_storage::<BeamSegment>(),
         )
             .join()
-            .filter(|(_, b)| b.creation.map_or(true, |c| (c + dt as f64) >= time))
+            .filter(|(_, _, _, b)| b.creation.map_or(true, |c| (c + dt as f64) >= time))
         {
+            let pos = interp.map_or(pos.0, |i| i.pos);
+            let ori = interp.map_or(*ori, |i| i.ori);
+
             // TODO: Handle this less hackily. Done this way as beam segments are created
             // every server tick, which is approximately 33 ms. Heartbeat scheduler used to
             // account for clients with less than 30 fps because they start the creation
@@ -779,11 +784,11 @@ impl ParticleMgr {
             match beam.properties.specifier {
                 beam::FrontendSpecifier::Flamethrower => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *interpolated.ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     // Emit a light when using flames
                     lights.push(Light::new(
-                        interpolated.pos,
+                        pos,
                         Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
                         2.0,
                     ));
@@ -802,19 +807,19 @@ impl ParticleMgr {
                                 beam.properties.duration,
                                 time,
                                 ParticleMode::FlameThrower,
-                                interpolated.pos,
-                                interpolated.pos + random_ori * range,
+                                pos,
+                                pos + random_ori * range,
                             )
                         },
                     );
                 },
                 beam::FrontendSpecifier::Cultist => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *interpolated.ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     // Emit a light when using flames
                     lights.push(Light::new(
-                        interpolated.pos,
+                        pos,
                         Rgb::new(1.0, 0.0, 1.0).map(|e| e * rng.gen_range(0.5..1.0)),
                         2.0,
                     ));
@@ -833,23 +838,23 @@ impl ParticleMgr {
                                 beam.properties.duration,
                                 time,
                                 ParticleMode::CultistFlame,
-                                interpolated.pos,
-                                interpolated.pos + random_ori * range,
+                                pos,
+                                pos + random_ori * range,
                             )
                         },
                     );
                 },
                 beam::FrontendSpecifier::LifestealBeam => {
                     // Emit a light when using lifesteal beam
-                    lights.push(Light::new(interpolated.pos, Rgb::new(0.8, 1.0, 0.5), 1.0));
+                    lights.push(Light::new(pos, Rgb::new(0.8, 1.0, 0.5), 1.0));
                     self.particles.reserve(beam_tick_count as usize);
                     for i in 0..beam_tick_count {
                         self.particles.push(Particle::new_directed(
                             beam.properties.duration,
                             time + i as f64 / 1000.0,
                             ParticleMode::LifestealBeam,
-                            interpolated.pos,
-                            interpolated.pos + *interpolated.ori.look_dir() * range,
+                            pos,
+                            pos + *ori.look_dir() * range,
                         ));
                     }
                 },
@@ -859,8 +864,8 @@ impl ParticleMgr {
                             beam.properties.duration,
                             time,
                             ParticleMode::Laser,
-                            interpolated.pos,
-                            interpolated.pos + *interpolated.ori.look_dir() * range,
+                            pos,
+                            pos + *ori.look_dir() * range,
                         )
                     })
                 },
@@ -870,14 +875,14 @@ impl ParticleMgr {
                             beam.properties.duration,
                             time,
                             ParticleMode::WebStrand,
-                            interpolated.pos,
-                            interpolated.pos + *interpolated.ori.look_dir() * range,
+                            pos,
+                            pos + *ori.look_dir() * range,
                         )
                     })
                 },
                 beam::FrontendSpecifier::Bubbles => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *interpolated.ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 15,
@@ -894,15 +899,15 @@ impl ParticleMgr {
                                 beam.properties.duration,
                                 time,
                                 ParticleMode::Bubbles,
-                                interpolated.pos,
-                                interpolated.pos + random_ori * range,
+                                pos,
+                                pos + random_ori * range,
                             )
                         },
                     );
                 },
                 beam::FrontendSpecifier::Frost => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *interpolated.ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 4,
@@ -919,8 +924,8 @@ impl ParticleMgr {
                                 beam.properties.duration,
                                 time,
                                 ParticleMode::Ice,
-                                interpolated.pos,
-                                interpolated.pos + random_ori * range,
+                                pos,
+                                pos + random_ori * range,
                             )
                         },
                     );
@@ -936,12 +941,15 @@ impl ParticleMgr {
         let mut rng = thread_rng();
         let dt = scene_data.state.get_delta_time();
 
-        for (interpolated, auras) in (
-            &ecs.read_storage::<Interpolated>(),
+        for (interp, pos, auras) in (
+            ecs.read_storage::<Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<comp::Auras>(),
         )
             .join()
         {
+            let pos = interp.map_or(pos.0, |i| i.pos);
+
             for (_, aura) in auras.auras.iter() {
                 match aura.aura_kind {
                     aura::AuraKind::Buff {
@@ -960,8 +968,8 @@ impl ParticleMgr {
                                     aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
                                     time,
                                     ParticleMode::EnergyNature,
-                                    interpolated.pos,
-                                    interpolated.pos + init_pos,
+                                    pos,
+                                    pos + init_pos,
                                 )
                             },
                         );
@@ -992,8 +1000,8 @@ impl ParticleMgr {
                                     aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
                                     time,
                                     ParticleMode::EnergyHealing,
-                                    interpolated.pos,
-                                    interpolated.pos + init_pos,
+                                    pos,
+                                    pos + init_pos,
                                 )
                             },
                         );
@@ -1016,15 +1024,15 @@ impl ParticleMgr {
                                     let radius = aura.radius * rng.gen::<f32>().sqrt();
                                     let x = radius * theta.sin();
                                     let y = radius * theta.cos();
-                                    Vec2::new(x, y) + interpolated.pos.xy()
+                                    Vec2::new(x, y) + pos.xy()
                                 };
                                 let max_dur = Duration::from_secs(1);
                                 Particle::new_directed(
                                     aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
                                     time,
                                     ParticleMode::FlameThrower,
-                                    rand_pos.with_z(interpolated.pos.z),
-                                    rand_pos.with_z(interpolated.pos.z + 1.0),
+                                    rand_pos.with_z(pos.z),
+                                    rand_pos.with_z(pos.z + 1.0),
                                 )
                             });
                     },
@@ -1044,8 +1052,8 @@ impl ParticleMgr {
                                     aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
                                     time,
                                     ParticleMode::EnergyBuffing,
-                                    interpolated.pos,
-                                    interpolated.pos + init_pos,
+                                    pos,
+                                    pos + init_pos,
                                 )
                             },
                         );
@@ -1062,13 +1070,16 @@ impl ParticleMgr {
         let time = state.get_time();
         let mut rng = rand::thread_rng();
 
-        for (interpolated, buffs, body) in (
-            &ecs.read_storage::<Interpolated>(),
+        for (interp, pos, buffs, body) in (
+            ecs.read_storage::<Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<comp::Buffs>(),
             &ecs.read_storage::<comp::Body>(),
         )
             .join()
         {
+            let pos = interp.map_or(pos.0, |i| i.pos);
+
             for (buff_kind, _) in buffs.kinds.iter() {
                 use buff::BuffKind;
                 match buff_kind {
@@ -1077,7 +1088,7 @@ impl ParticleMgr {
                             self.particles.len()
                                 + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
                             || {
-                                let start_pos = interpolated.pos
+                                let start_pos = pos
                                     + Vec3::unit_z() * body.height() * 0.25
                                     + Vec3::<f32>::zero()
                                         .map(|_| rng.gen_range(-1.0..1.0))
@@ -1107,7 +1118,7 @@ impl ParticleMgr {
                             self.particles.len()
                                 + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
                             || {
-                                let start_pos = interpolated.pos
+                                let start_pos = pos
                                     + Vec3::new(
                                         body.max_radius(),
                                         body.max_radius(),
@@ -1361,13 +1372,18 @@ impl ParticleMgr {
         let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
         let terrain = scene_data.state.ecs().fetch::<TerrainGrid>();
 
-        for (_entity, interpolated, shockwave) in (
+        for (_entity, interp, pos, ori, shockwave) in (
             &ecs.entities(),
-            &ecs.read_storage::<Interpolated>(),
+            ecs.read_storage::<Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Ori>(),
             &ecs.read_storage::<Shockwave>(),
         )
             .join()
         {
+            let pos = interp.map_or(pos.0, |i| i.pos);
+            let ori = interp.map_or(*ori, |i| i.ori);
+
             let elapsed = time - shockwave.creation.unwrap_or(time);
             let speed = shockwave.properties.speed;
 
@@ -1377,7 +1393,7 @@ impl ParticleMgr {
 
             let radians = shockwave.properties.angle.to_radians();
 
-            let ori_vec = interpolated.ori.look_vec();
+            let ori_vec = ori.look_vec();
             let theta = ori_vec.y.atan2(ori_vec.x) - radians / 2.0;
             let dtheta = radians / distance;
 
@@ -1406,7 +1422,7 @@ impl ParticleMgr {
                         for d in 0..(new_particle_count as i32) {
                             let arc_position = theta + dtheta * d as f32 / particle_count_factor;
 
-                            let position = interpolated.pos
+                            let position = pos
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
                             // Arbitrary number chosen that is large enough to be able to accurately
@@ -1456,7 +1472,7 @@ impl ParticleMgr {
                         for d in 0..3 * distance as i32 {
                             let arc_position = theta + dtheta * d as f32 / 3.0;
 
-                            let position = interpolated.pos
+                            let position = pos
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
                             self.particles.push(Particle::new(
@@ -1489,7 +1505,7 @@ impl ParticleMgr {
                             // Sub tick dt
                             let dt = (j as f32 / heartbeats as f32) * dt;
                             let distance = distance + speed * dt;
-                            let pos1 = interpolated.pos + distance * direction - Vec3::unit_z();
+                            let pos1 = pos + distance * direction - Vec3::unit_z();
                             let pos2 = pos1 + (Vec3::unit_z() + direction) * 3.0;
                             let time = time + dt as f64;
 
@@ -1532,8 +1548,7 @@ impl ParticleMgr {
                             // Sub tick dt
                             let dt = (j as f32 / heartbeats as f32) * dt;
                             let scaled_distance = scaled_distance + scaled_speed * dt;
-                            let pos1 =
-                                interpolated.pos + (scaled_distance * direction).floor() * scale;
+                            let pos1 = pos + (scaled_distance * direction).floor() * scale;
                             let time = time + dt as f64;
 
                             let get_positions = |a| {
