@@ -116,7 +116,7 @@ impl Tunnel {
                 let radius = Lerp::lerp(
                     radius.start,
                     radius.end,
-                    (nz.get((wposf / 200.0).into_array()) * 2.0 * 0.5 + 0.5)
+                    (nz.get((wposf.with_z(self.a.wpos.z as f64) / 200.0).into_array()) * 2.0 * 0.5 + 0.5)
                         .clamped(0.0, 1.0)
                         .powf(3.0),
                 ); // Lerp::lerp(8.0, 24.0, (t * 0.075 * tunnel_len).sin() * 0.5 + 0.5);
@@ -696,6 +696,7 @@ fn write_column<R: Rng>(
                             .min(h - 2)
                     && z < bedrock + h
                     && radius > 25.0
+                    && !sky_above
             } {
                 Block::new(BlockKind::Rock, col.stone_col)
             } else {
