@@ -422,7 +422,7 @@ fn write_column<R: Rng>(
                 .entry((tunnel.a.wpos, wpos2d))
                 .or_insert_with(|| {
                     let mut rng = RandomPerm::new(seed);
-                    let z_range = tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), nz)?.0;
+                    let (z_range, radius) = tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), nz)?;
                     let (cavern_bottom, cavern_top, floor, water_level) = (
                         z_range.start,
                         z_range.end,
@@ -430,21 +430,21 @@ fn write_column<R: Rng>(
                         0,
                     );
                     let pos = wpos2d.with_z(cavern_bottom + floor);
-                    if rng.gen_bool(0.75)
-                        && cavern_top - cavern_bottom > 15
+                    if rng.gen_bool(0.5 * close(radius as f32, 64.0, 48.0) as f64)
                         && tunnel.biome_at(pos, &info).mushroom > 0.5
                     // && pos.z as i32 > water_level - 2
                     {
+                        let purp = rng.gen_range(0..50);
                         Some(Mushroom {
                             pos,
                             stalk: 8.0
                                 + rng.gen::<f32>().powf(2.0)
                                     * (cavern_top - cavern_bottom - 8) as f32
-                                    * 0.85,
+                                    * 0.75,
                             head_color: Rgb::new(
-                                50,
-                                rng.gen_range(70..110),
-                                rng.gen_range(100..200),
+                                40 + purp,
+                                rng.gen_range(60..120),
+                                rng.gen_range(80..200) + purp,
                             ),
                         })
                     } else {
@@ -697,6 +697,7 @@ fn write_column<R: Rng>(
                     && z < bedrock + h
                     && radius > 25.0
                     && !sky_above
+                    && false
             } {
                 Block::new(BlockKind::Rock, col.stone_col)
             } else {

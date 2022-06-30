@@ -629,10 +629,13 @@ vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, v
     ) / 255.0;
 
     // TODO: Figure out how to use `texture` and modulation to avoid needing to do manual filtering
+    vec4 tex_10 = texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0);
+    vec4 tex_01 = texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0);
+    vec4 tex_11 = texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 1), 0);
     vec3 light_00 = vec3(uvec2(f_col_light.rg) >> 3u, f_col_light.a & 1u);
-    vec3 light_10 = vec3(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0).rg * 255.0) >> 3u, uint(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0).a * 255.0) & 1u);
-    vec3 light_01 = vec3(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0).rg * 255.0) >> 3u, uint(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0).a * 255.0) & 1u);
-    vec3 light_11 = vec3(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 1), 0).rg * 255.0) >> 3u, uint(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 1), 0).a * 255.0) & 1u);
+    vec3 light_10 = vec3(uvec2(tex_10.rg * 255.0) >> 3u, uint(tex_10.a * 255.0) & 1u);
+    vec3 light_01 = vec3(uvec2(tex_01.rg * 255.0) >> 3u, uint(tex_01.a * 255.0) & 1u);
+    vec3 light_11 = vec3(uvec2(tex_11.rg * 255.0) >> 3u, uint(tex_11.a * 255.0) & 1u);
     vec3 light_0 = mix(light_00, light_01, fract(f_uv_pos.y));
     vec3 light_1 = mix(light_10, light_11, fract(f_uv_pos.y));
     vec3 light = mix(light_0, light_1, fract(f_uv_pos.x));
