@@ -20,7 +20,7 @@ use std::{
 };
 use vek::*;
 
-const CELL_SIZE: i32 = 1024;
+const CELL_SIZE: i32 = 1536;
 
 #[derive(Copy, Clone)]
 pub struct Node {
@@ -40,7 +40,7 @@ const LAYERS: u32 = 4;
 fn node_at(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Node> {
     let rand = RandomField::new(37 + level);
 
-    if rand.chance(cell.with_z(0), 0.85) || level == 0 {
+    if rand.chance(cell.with_z(0), 0.75) || level == 0 {
         let dx = RandomField::new(38 + level);
         let dy = RandomField::new(39 + level);
         let wpos = to_wpos(cell, level)
@@ -78,8 +78,29 @@ pub fn surface_entrances<'a>(land: &'a Land) -> impl Iterator<Item = Vec2<i32>> 
         .flat_map(move |x| (0..sz_cells.y + 1).map(move |y| Vec2::new(x, y)))
         .filter_map(|cell| {
             let tunnel = tunnel_below_from_cell(cell, 0, land)?;
-            // Hacky, moves the entrance position closer to the actual entrance
-            Some(Lerp::lerp(tunnel.a.wpos.xy(), tunnel.b.wpos.xy(), 0.125))
+
+            let start = tunnel.a.wpos.map(|e| e as f32 + 0.5);
+            let end = tunnel.b.wpos.map(|e| e as f32 + 0.5);
+            let bez = QuadraticBezier2 {
+                start: start.xy(),
+                ctrl: start.xy() + tunnel.ctrl_offset(),
+                end: end.xy(),
+            };
+
+            // Search for the point at which the tunnel enters the ground
+            // TODO: Binary search?
+            Some(
+                (0..32)
+                    .map(|i| i as f32 / 32.0)
+                    .map(|t| {
+                        bez.evaluate(t)
+                            .with_z(Lerp::lerp(start.z, end.z, t))
+                            .map(|e| e as i32)
+                    })
+                    .find(|wpos| land.get_alt_approx(wpos.xy()) > wpos.z as f32)
+                    .unwrap_or(tunnel.b.wpos)
+                    .xy(),
+            )
         })
 }
 
@@ -90,18 +111,20 @@ struct Tunnel {
 }
 
 impl Tunnel {
+    fn ctrl_offset(&self) -> Vec2<f32> {
+        let start = self.a.wpos.xy().map(|e| e as f64 + 0.5);
+        let end = self.b.wpos.xy().map(|e| e as f64 + 0.5);
+
+        ((end - start) * 0.5 + ((end - start) * 0.5).rotated_z(PI / 2.0) * 6.0 * self.curve as f64)
+            .map(|e| e as f32)
+    }
+
     fn z_range_at(&self, wposf: Vec2<f64>, nz: &Fbm) -> Option<(Range<i32>, f64)> {
         let start = self.a.wpos.xy().map(|e| e as f64 + 0.5);
         let end = self.b.wpos.xy().map(|e| e as f64 + 0.5);
 
         if let Some((t, closest, _)) = quadratic_nearest_point(
-            &river_spline_coeffs(
-                start,
-                ((end - start) * 0.5
-                    + ((end - start) * 0.5).rotated_z(PI / 2.0) * 6.0 * self.curve as f64)
-                    .map(|e| e as f32),
-                end,
-            ),
+            &river_spline_coeffs(start, self.ctrl_offset(), end),
             wposf,
             Vec2::new(start, end),
         ) {
@@ -116,7 +139,8 @@ impl Tunnel {
                 let radius = Lerp::lerp(
                     radius.start,
                     radius.end,
-                    (nz.get((wposf.with_z(self.a.wpos.z as f64) / 200.0).into_array()) * 2.0 * 0.5 + 0.5)
+                    (nz.get((wposf.with_z(self.a.wpos.z as f64) / 200.0).into_array()) * 2.0 * 0.5
+                        + 0.5)
                         .clamped(0.0, 1.0)
                         .powf(3.0),
                 ); // Lerp::lerp(8.0, 24.0, (t * 0.075 * tunnel_len).sin() * 0.5 + 0.5);
@@ -422,7 +446,8 @@ fn write_column<R: Rng>(
                 .entry((tunnel.a.wpos, wpos2d))
                 .or_insert_with(|| {
                     let mut rng = RandomPerm::new(seed);
-                    let (z_range, radius) = tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), nz)?;
+                    let (z_range, radius) =
+                        tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), nz)?;
                     let (cavern_bottom, cavern_top, floor, water_level) = (
                         z_range.start,
                         z_range.end,
