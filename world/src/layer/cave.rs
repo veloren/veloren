@@ -298,6 +298,36 @@ fn tunnels_down_from<'a>(
         .filter_map(move |rpos| tunnel_below_from_cell(col_cell + rpos, level, land))
 }
 
+fn tunnel_bounds_at<'a>(
+    wpos2d: Vec2<i32>,
+    info: &'a CanvasInfo,
+    land: &'a Land,
+    nz: &'a Fbm,
+) -> impl Iterator<Item = (u32, Range<i32>, f64, Tunnel)> + 'a {
+    let col = info.col_or_gen(wpos2d);
+    let wposf = wpos2d.map(|e| e as f64 + 0.5);
+    info.col_or_gen(wpos2d).into_iter().flat_map(move |col| {
+        let col_alt = col.alt;
+        let col_water_level = col.water_level;
+        (1..LAYERS + 1).flat_map(move |level| {
+            let rand = RandomField::new(37 + level);
+            tunnels_at(wpos2d, level, land)
+                .chain(tunnels_down_from(wpos2d, level - 1, land))
+                .filter_map(move |tunnel| {
+                    let (z_range, radius) = tunnel.z_range_at(wposf, nz)?;
+                    // Avoid cave entrances intersecting water
+                    let z_range = Lerp::lerp(
+                        z_range.end,
+                        z_range.start,
+                        1.0 - (1.0 - ((col_alt - col_water_level) / 4.0).clamped(0.0, 1.0))
+                            * (1.0 - ((col_alt - z_range.end as f32) / 8.0).clamped(0.0, 1.0)),
+                    )..z_range.end;
+                    Some((level, z_range, radius, tunnel))
+                })
+        })
+    })
+}
+
 pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     let nz = Fbm::new();
     let info = canvas.info();
@@ -306,44 +336,28 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         let wposf = wpos2d.map(|e| e as f64 + 0.5);
         let land = info.land();
 
-        for level in 1..LAYERS + 1 {
-            let rand = RandomField::new(37 + level);
-            let tunnel_bounds = tunnels_at(wpos2d, level, &land)
-                .chain(tunnels_down_from(wpos2d, level - 1, &land))
-                .filter_map(|tunnel| {
-                    let (z_range, radius) = tunnel.z_range_at(wposf, &nz)?;
-                    // Avoid cave entrances intersecting water
-                    let z_range = Lerp::lerp(
-                        z_range.end,
-                        z_range.start,
-                        1.0 - (1.0 - ((col.alt - col.water_level) / 4.0).clamped(0.0, 1.0))
-                            * (1.0 - ((col.alt - z_range.end as f32) / 8.0).clamped(0.0, 1.0)),
-                    )..z_range.end;
-                    Some((z_range, radius, tunnel))
-                })
-                .collect::<Vec<_>>();
+        let tunnel_bounds = tunnel_bounds_at(wpos2d, &info, &land, &nz).collect::<Vec<_>>();
 
-            // First, clear out tunnels
-            for (z_range, _, tunnel) in &tunnel_bounds {
-                for z in z_range.clone() {
-                    canvas.set(wpos2d.with_z(z), Block::air(SpriteKind::Empty));
-                }
+        // First, clear out tunnels
+        for (_, z_range, _, tunnel) in &tunnel_bounds {
+            for z in z_range.clone() {
+                canvas.set(wpos2d.with_z(z), Block::air(SpriteKind::Empty));
             }
+        }
 
-            for (z_range, radius, tunnel) in &tunnel_bounds {
-                write_column(
-                    canvas,
-                    col,
-                    level,
-                    wpos2d,
-                    z_range.clone(),
-                    tunnel,
-                    *radius,
-                    &nz,
-                    &mut mushroom_cache,
-                    rng,
-                );
-            }
+        for (level, z_range, radius, tunnel) in tunnel_bounds {
+            write_column(
+                canvas,
+                col,
+                level,
+                wpos2d,
+                z_range.clone(),
+                tunnel,
+                radius,
+                &nz,
+                &mut mushroom_cache,
+                rng,
+            );
         }
     });
 }
@@ -371,7 +385,7 @@ fn write_column<R: Rng>(
     level: u32,
     wpos2d: Vec2<i32>,
     z_range: Range<i32>,
-    tunnel: &Tunnel,
+    tunnel: Tunnel,
     radius: f64,
     nz: &Fbm,
     mushroom_cache: &mut HashMap<(Vec3<i32>, Vec2<i32>), Option<Mushroom>>,
@@ -457,6 +471,9 @@ fn write_column<R: Rng>(
                     let pos = wpos2d.with_z(cavern_bottom + floor);
                     if rng.gen_bool(0.5 * close(radius as f32, 64.0, 48.0) as f64)
                         && tunnel.biome_at(pos, &info).mushroom > 0.5
+                        // Ensure that we're not placing the mushroom over a void
+                        && !tunnel_bounds_at(pos.xy(), &info, &info.land(), nz)
+                            .any(|(_, z_range, _, _)| z_range.contains(&(cavern_bottom - 1)))
                     // && pos.z as i32 > water_level - 2
                     {
                         let purp = rng.gen_range(0..50);
