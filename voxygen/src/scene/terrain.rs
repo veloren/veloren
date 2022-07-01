@@ -28,7 +28,7 @@ use common::{
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol},
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
-use common_base::span;
+use common_base::{prof_span, span};
 use core::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
 use crossbeam_channel as channel;
 use enum_iterator::IntoEnumIterator;
@@ -156,8 +156,58 @@ struct SpriteConfig<Model> {
 ///
 /// NOTE: Model is an asset path to the appropriate sprite .vox model.
 #[derive(Deserialize)]
-#[serde(transparent)]
-struct SpriteSpec(HashMap<SpriteKind, Option<SpriteConfig<String>>>);
+#[serde(try_from = "HashMap<SpriteKind, Option<SpriteConfig<String>>>")]
+struct SpriteSpec([Option<SpriteConfig<String>>; 256]);
+
+impl SpriteSpec {
+    fn get(&self, kind: SpriteKind) -> Option<&SpriteConfig<String>> {
+        const _: () = assert!(core::mem::size_of::<SpriteKind>() == 1);
+        // NOTE: This will never be out of bounds since `SpriteKind` is `repr(u8)`
+        self.0[kind as usize].as_ref()
+    }
+}
+
+/// Conversion of SpriteSpec from a hashmap failed because some sprites were
+/// missing.
+struct SpritesMissing(Vec<SpriteKind>);
+
+use core::fmt;
+
+impl fmt::Display for SpritesMissing {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "Missing entries in the sprite manifest for these sprites: {:?}",
+            &self.0,
+        )
+    }
+}
+
+// Here we ensure all variants have an entry in the config.
+impl TryFrom<HashMap<SpriteKind, Option<SpriteConfig<String>>>> for SpriteSpec {
+    type Error = SpritesMissing;
+
+    fn try_from(
+        mut map: HashMap<SpriteKind, Option<SpriteConfig<String>>>,
+    ) -> Result<Self, Self::Error> {
+        let mut array = [(); 256].map(|()| None);
+        let sprites_missing = SpriteKind::into_enum_iter()
+            .filter(|kind| match map.remove(kind) {
+                Some(config) => {
+                    array[*kind as usize] = config;
+                    false
+                },
+                None => true,
+            })
+            .collect::<Vec<_>>();
+
+        if sprites_missing.is_empty() {
+            Ok(Self(array))
+        } else {
+            Err(SpritesMissing(sprites_missing))
+        }
+    }
+}
 
 impl assets::Asset for SpriteSpec {
     type Loader = assets::RonLoader;
@@ -216,7 +266,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
         pos,
         // Extract sprite locations from volume
         sprite_instances: {
-            span!(_guard, "extract sprite_instances");
+            prof_span!("extract sprite_instances");
             let mut instances = [(); SPRITE_LOD_LEVELS].map(|()| Vec::new());
 
             for x in 0..V::RECT_SIZE.x as i32 {
@@ -236,7 +286,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                             continue;
                         };
 
-                        if let Some(cfg) = sprite_config.0.get(&sprite).and_then(Option::as_ref) {
+                        if let Some(cfg) = sprite_config.get(sprite) {
                             let seed = wpos.x as u64 * 3
                                 + wpos.y as u64 * 7
                                 + wpos.x as u64 * wpos.y as u64; // Awful PRNG
@@ -396,14 +446,7 @@ impl SpriteRenderContext {
             let mut sprite_mesh = Mesh::new();
             // NOTE: Tracks the start vertex of the next model to be meshed.
             let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
-                .filter_map(|kind| {
-                    let config = sprite_config
-                        .0
-                        .get(&kind)
-                        .unwrap_or_else(|| panic!("{kind:?}"))
-                        .as_ref()?;
-                    Some((kind, config))
-                })
+                .filter_map(|kind| Some((kind, sprite_config.get(kind)?)))
                 .flat_map(|(kind, sprite_config)| {
                     sprite_config.variations.iter().enumerate().map(
                         move |(
