@@ -1,3 +1,4 @@
+#![feature(assert_matches)]
 //! How to read those tests:
 //!  - in the first line we call the helper, this is only debug code. in case
 //!    you want to have tracing for a special test you set set the bool = true
@@ -18,9 +19,9 @@
 //!  - You sometimes see sleep(1000ms) this is used when we rely on the
 //!    underlying TCP functionality, as this simulates client and server
 
-use std::sync::Arc;
+use std::{assert_matches::assert_matches, sync::Arc};
 use tokio::runtime::Runtime;
-use veloren_network::{Network, ParticipantError, Pid, Promises, StreamError};
+use veloren_network::{Network, ParticipantError, ParticipantEvent, Pid, Promises, StreamError};
 mod helper;
 use helper::{network_participant_stream, tcp, SLEEP_EXTERNAL, SLEEP_INTERNAL};
 
@@ -389,15 +390,35 @@ fn close_network_scheduler_completely() {
     let addr = tcp();
     r.block_on(n_a.listen(addr.0)).unwrap();
     let p_b = r.block_on(n_b.connect(addr.1)).unwrap();
+    assert_matches!(
+        r.block_on(p_b.fetch_event()),
+        Ok(ParticipantEvent::ChannelCreated(_))
+    );
     let mut s1_b = r.block_on(p_b.open(4, Promises::empty(), 0)).unwrap();
     s1_b.send("HelloWorld").unwrap();
 
     let p_a = r.block_on(n_a.connected()).unwrap();
+    assert_matches!(
+        r.block_on(p_a.fetch_event()),
+        Ok(ParticipantEvent::ChannelCreated(_))
+    );
+    assert_matches!(p_a.try_fetch_event(), Ok(None));
+    assert_matches!(p_b.try_fetch_event(), Ok(None));
     let mut s1_a = r.block_on(p_a.opened()).unwrap();
     assert_eq!(r.block_on(s1_a.recv()), Ok("HelloWorld".to_string()));
     drop(n_a);
     drop(n_b);
     std::thread::sleep(SLEEP_EXTERNAL); //p_b is INTERNAL, but p_a is EXTERNAL
+    assert_matches!(
+        p_a.try_fetch_event(),
+        Ok(Some(ParticipantEvent::ChannelDeleted(_)))
+    );
+    assert_matches!(
+        r.block_on(p_b.fetch_event()),
+        Ok(ParticipantEvent::ChannelDeleted(_))
+    );
+    assert_matches!(p_a.try_fetch_event(), Err(_));
+    assert_matches!(p_b.try_fetch_event(), Err(_));
 
     drop(p_b);
     drop(p_a);

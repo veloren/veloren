@@ -418,6 +418,7 @@ impl Scheduler {
                                 bparticipant,
                                 a2b_open_stream_s,
                                 b2a_stream_opened_r,
+                                b2a_event_r,
                                 s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
                                 b2a_bandwidth_stats_r,
@@ -428,6 +429,7 @@ impl Scheduler {
                                 pid,
                                 a2b_open_stream_s,
                                 b2a_stream_opened_r,
+                                b2a_event_r,
                                 b2a_bandwidth_stats_r,
                                 participant_channels.a2s_disconnect_s,
                             );
