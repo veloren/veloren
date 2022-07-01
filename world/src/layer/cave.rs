@@ -209,12 +209,12 @@ impl Tunnel {
             let mushroom = underground
                 * close(humidity, 1.0, 0.75)
                 * close(temp, 0.25, 1.2)
-                * close(depth, 1.0, 0.75);
+                * close(depth, 1.0, 0.6);
             let fire = underground * close(humidity, 0.0, 0.75) * close(temp, 2.0, 0.6);
             let leafy = underground
                 * close(humidity, 1.0, 0.75)
                 * close(temp, -0.1, 0.75)
-                * close(depth, 0.0, 0.75);
+                * close(depth, 0.0, 0.6);
             let dusty = underground * close(humidity, 0.0, 0.5) * close(temp, -0.3, 0.65);
 
             let biomes = [barren, mushroom, fire, leafy, dusty];
@@ -317,6 +317,7 @@ fn tunnel_bounds_at<'a>(
     info.col_or_gen(wpos2d).into_iter().flat_map(move |col| {
         let col_alt = col.alt;
         let col_water_level = col.water_level;
+        let col_water_dist = col.water_dist;
         (1..LAYERS + 1).flat_map(move |level| {
             let rand = RandomField::new(37 + level);
             tunnels_at(wpos2d, level, land)
@@ -327,8 +328,11 @@ fn tunnel_bounds_at<'a>(
                     let z_range = Lerp::lerp(
                         z_range.end,
                         z_range.start,
-                        1.0 - (1.0 - ((col_alt - col_water_level) / 4.0).clamped(0.0, 1.0))
-                            * (1.0 - ((col_alt - z_range.end as f32) / 8.0).clamped(0.0, 1.0)),
+                        1.0 - (1.0
+                            - ((col_water_dist.unwrap_or(1000.0) - 4.0).max(0.0) / 32.0)
+                                .clamped(0.0, 1.0))
+                            * (1.0
+                                - ((col_alt - z_range.end as f32 - 4.0) / 8.0).clamped(0.0, 1.0)),
                     )..z_range.end;
                     Some((level, z_range, radius, tunnel))
                 })
@@ -673,6 +677,8 @@ fn write_column<R: Rng>(
                             (SpriteKind::EnsnaringVines, 0.2),
                             (SpriteKind::Fern, 0.75),
                             (SpriteKind::LeafyPlant, 0.8),
+                            (SpriteKind::Twigs, 0.07),
+                            (SpriteKind::Wood, 0.03),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
