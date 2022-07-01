@@ -1,4 +1,5 @@
 use super::scatter::close;
+
 use crate::{
     util::{sampler::Sampler, FastNoise, RandomField, RandomPerm, StructureGen2d, LOCALITY},
     Canvas, CanvasInfo, ColumnSample, Land,
@@ -170,6 +171,7 @@ impl Tunnel {
 
         // Below the ground
         let below = ((col.alt - wpos.z as f32) / 50.0).clamped(0.0, 1.0);
+        let depth = (col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32);
 
         let humidity = Lerp::lerp(
             col.humidity,
@@ -204,9 +206,15 @@ impl Tunnel {
 
         let [_, mushroom, fire, leafy, dusty] = {
             let barren = 0.01;
-            let mushroom = underground * close(humidity, 1.0, 0.75) * close(temp, 0.25, 1.2);
-            let fire = underground * close(humidity, 0.0, 0.75) * close(temp, 2.0, 0.65);
-            let leafy = underground * close(humidity, 1.0, 0.75) * close(temp, -0.1, 0.75);
+            let mushroom = underground
+                * close(humidity, 1.0, 0.75)
+                * close(temp, 0.25, 1.2)
+                * close(depth, 1.0, 0.75);
+            let fire = underground * close(humidity, 0.0, 0.75) * close(temp, 2.0, 0.6);
+            let leafy = underground
+                * close(humidity, 1.0, 0.75)
+                * close(temp, -0.1, 0.75)
+                * close(depth, 0.0, 0.75);
             let dusty = underground * close(humidity, 0.0, 0.5) * close(temp, -0.3, 0.65);
 
             let biomes = [barren, mushroom, fire, leafy, dusty];
@@ -417,7 +425,21 @@ fn write_column<R: Rng>(
             .mul(8.0 + cavern_height * 0.4)
     };
 
-    let lava = {
+    let bassalt = if biome.fire > 0.0 {
+        let cavern_height = (z_range.end - z_range.start) as f64;
+        info.index()
+            .noise
+            .cave_nz
+            .get(wpos2d.map(|e| e as f64 / 48.0).into_array())
+            .sub(0.5)
+            .max(0.0)
+            .mul(6.0 + cavern_height * 0.5)
+            .mul(biome.fire as f64)
+    } else {
+        0.0
+    };
+
+    let lava = if biome.fire > 0.0 {
         info.index()
             .noise
             .cave_nz
@@ -430,6 +452,8 @@ fn write_column<R: Rng>(
             .mul((biome.fire as f64 - 0.5).mul(30.0).clamped(0.0, 1.0))
             .mul(64.0)
             .max(-32.0)
+    } else {
+        0.0
     };
 
     let bridge = {
@@ -570,8 +594,19 @@ fn write_column<R: Rng>(
     for z in bedrock..z_range.end {
         let wpos = wpos2d.with_z(z);
         canvas.map(wpos, |block| {
-            if z < z_range.start - 4 {
+            if z < z_range.start - 4 && !void_below {
                 Block::new(BlockKind::Lava, Rgb::new(255, 65, 0))
+            } else if bassalt > 0.0
+                && z < bedrock / 6 * 6
+                    + 2
+                    + bassalt as i32 / 4 * 4
+                    + (RandomField::new(77)
+                        .get_f32(((wpos2d + Vec2::new(wpos2d.y, -wpos2d.x) / 2) / 4).with_z(0))
+                        * 6.0)
+                        .floor() as i32
+                && !void_below
+            {
+                Block::new(BlockKind::Rock, Rgb::new(50, 35, 75))
             } else if (z < base && !void_below) || (z >= ceiling && !void_above) {
                 let stalactite: Rgb<i16> =
                     Lerp::lerp(Rgb::new(80, 100, 150), Rgb::new(0, 75, 200), biome.mushroom);
@@ -614,51 +649,45 @@ fn write_column<R: Rng>(
             } else if let Some(sprite) = (z == floor && !void_below && !sky_above)
                 .then(|| {
                     if rand.chance(wpos2d.with_z(1), biome.mushroom * 0.1) {
-                        Some(
-                            [
-                                (SpriteKind::CaveMushroom, 0.3),
-                                (SpriteKind::Mushroom, 0.3),
-                                (SpriteKind::GrassBlue, 1.0),
-                                (SpriteKind::CavernGrassBlueShort, 1.0),
-                                (SpriteKind::CavernGrassBlueMedium, 1.0),
-                                (SpriteKind::CavernGrassBlueLong, 1.0),
-                                (SpriteKind::Moonbell, 0.01),
-                            ]
-                            .choose_weighted(rng, |(_, w)| *w)
-                            .unwrap()
-                            .0,
-                        )
+                        [
+                            (SpriteKind::CaveMushroom, 0.3),
+                            (SpriteKind::Mushroom, 0.25),
+                            (SpriteKind::GrassBlue, 1.0),
+                            (SpriteKind::CavernGrassBlueShort, 1.0),
+                            (SpriteKind::CavernGrassBlueMedium, 1.0),
+                            (SpriteKind::CavernGrassBlueLong, 1.0),
+                            (SpriteKind::Moonbell, 0.01),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(1), biome.leafy * 0.25) {
-                        Some(
-                            [
-                                (SpriteKind::LongGrass, 1.0),
-                                (SpriteKind::MediumGrass, 2.0),
-                                (SpriteKind::ShortGrass, 2.0),
-                                (SpriteKind::JungleFern, 0.5),
-                                (SpriteKind::JungleLeafyPlant, 0.5),
-                                (SpriteKind::JungleRedGrass, 0.35),
-                                (SpriteKind::Mushroom, 0.3),
-                                (SpriteKind::EnsnaringVines, 0.2),
-                                (SpriteKind::Fern, 0.75),
-                                (SpriteKind::LeafyPlant, 0.8),
-                            ]
-                            .choose_weighted(rng, |(_, w)| *w)
-                            .unwrap()
-                            .0,
-                        )
+                        [
+                            (SpriteKind::LongGrass, 1.0),
+                            (SpriteKind::MediumGrass, 2.0),
+                            (SpriteKind::ShortGrass, 2.0),
+                            (SpriteKind::JungleFern, 0.5),
+                            (SpriteKind::JungleLeafyPlant, 0.5),
+                            (SpriteKind::JungleRedGrass, 0.35),
+                            (SpriteKind::Mushroom, 0.15),
+                            (SpriteKind::EnsnaringVines, 0.2),
+                            (SpriteKind::Fern, 0.75),
+                            (SpriteKind::LeafyPlant, 0.8),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(2), biome.dusty * 0.01) {
-                        Some(
-                            [
-                                (SpriteKind::Bones, 0.5),
-                                (SpriteKind::Stones, 1.5),
-                                (SpriteKind::DeadBush, 1.0),
-                                (SpriteKind::EnsnaringWeb, 0.5),
-                                (SpriteKind::Mud, 0.025),
-                            ]
-                            .choose_weighted(rng, |(_, w)| *w)
-                            .unwrap()
-                            .0,
-                        )
+                        [
+                            (SpriteKind::Bones, 0.5),
+                            (SpriteKind::Stones, 1.5),
+                            (SpriteKind::DeadBush, 1.0),
+                            (SpriteKind::EnsnaringWeb, 0.5),
+                            (SpriteKind::Mud, 0.025),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
                     } else if rand.chance(
                         wpos2d.with_z(3),
                         close(biome.humidity, 0.0, 0.5) * biome.mineral * 0.005,
@@ -693,8 +722,8 @@ fn write_column<R: Rng>(
                             (None, 1.0),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
-                        .unwrap()
-                        .0
+                        .ok()
+                        .and_then(|s| s.0)
                     } else {
                         None
                     }
@@ -714,12 +743,17 @@ fn write_column<R: Rng>(
                             .choose(rng)
                             .unwrap(),
                         )
-                    } else if rand.chance(wpos2d.with_z(4), 0.0075) {
-                        Some(
-                            *[SpriteKind::CrystalHigh, SpriteKind::Liana]
-                                .choose(rng)
-                                .unwrap(),
-                        )
+                    } else if rand.chance(wpos2d.with_z(4), biome.leafy * 0.05) {
+                        [
+                            (SpriteKind::Liana, 1.0),
+                            (SpriteKind::Orb, 0.35),
+                            (SpriteKind::CrystalHigh, 0.1),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
+                    } else if rand.chance(wpos2d.with_z(5), 0.0075) {
+                        Some(*[SpriteKind::CrystalHigh].choose(rng).unwrap())
                     } else {
                         None
                     }
