@@ -1011,7 +1011,7 @@ impl Scene {
             let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
             let rain_vel = weather.rain_vel();
             let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_vel, up);
-            
+
             self.integrated_rain_vel += rain_vel.magnitude() * dt;
             let rain_dir_mat = Mat4::rotation_from_to_3d(-Vec3::unit_z(), rain_vel);
 

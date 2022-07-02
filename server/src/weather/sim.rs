@@ -1,7 +1,7 @@
 use common::{
     grid::Grid,
     resources::TimeOfDay,
-    weather::{Weather, WeatherGrid, CELL_SIZE},
+    weather::{Weather, WeatherGrid, CELL_SIZE, CHUNKS_PER_CELL},
 };
 use noise::{NoiseFn, SuperSimplex, Turbulence};
 use vek::*;
@@ -18,15 +18,42 @@ struct WeatherZone {
     time_to_live: f32,
 }
 
+struct CellConsts {
+    rain_factor: f32,
+}
+
 pub struct WeatherSim {
     size: Vec2<u32>,
+    consts: Grid<CellConsts>,
     zones: Grid<Option<WeatherZone>>,
 }
 
 impl WeatherSim {
-    pub fn new(size: Vec2<u32>, _world: &World) -> Self {
+    pub fn new(size: Vec2<u32>, world: &World) -> Self {
         Self {
             size,
+            consts: Grid::from_raw(
+                size.as_(),
+                (0..size.x * size.y)
+                    .map(|i| Vec2::new(i % size.x, i / size.x))
+                    .map(|p| {
+                        let mut humid_sum = 0.0;
+
+                        for y in 0..CHUNKS_PER_CELL {
+                            for x in 0..CHUNKS_PER_CELL {
+                                let chunk_pos = p * CHUNKS_PER_CELL + Vec2::new(x, y);
+                                if let Some(chunk) = world.sim().get(chunk_pos.as_()) {
+                                    let env = chunk.get_environment();
+                                    humid_sum += env.humid;
+                                }
+                            }
+                        }
+                        let average_humid = humid_sum / (CHUNKS_PER_CELL * CHUNKS_PER_CELL) as f32;
+                        let rain_factor = (2.0 * average_humid.powf(0.2)).min(1.0);
+                        CellConsts { rain_factor }
+                    })
+                    .collect::<Vec<_>>(),
+            ),
             zones: Grid::new(size.as_(), None),
         }
     }
@@ -89,7 +116,8 @@ impl WeatherSim {
 
                 const RAIN_CLOUD_THRESHOLD: f32 = 0.26;
                 cell.cloud = (1.0 - pressure) * 0.5;
-                cell.rain = (1.0 - pressure - RAIN_CLOUD_THRESHOLD).max(0.0).powf(1.0);
+                cell.rain = (1.0 - pressure - RAIN_CLOUD_THRESHOLD).max(0.0)
+                    * self.consts[point].rain_factor;
                 cell.wind = Vec2::new(
                     rain_nz.get(spos.into_array()).powi(3) as f32,
                     rain_nz.get((spos + 1.0).into_array()).powi(3) as f32,
