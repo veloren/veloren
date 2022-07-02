@@ -488,11 +488,6 @@ impl Scene {
             .get(scene_data.player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        let player_vel = ecs
-            .read_storage::<comp::Vel>()
-            .get(scene_data.player_entity)
-            .map_or(Vec3::zero(), |vel| vel.0);
-
         let player_rolling = ecs
             .read_storage::<comp::CharacterState>()
             .get(scene_data.player_entity)
@@ -1016,9 +1011,9 @@ impl Scene {
             let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
             let rain_vel = weather.rain_vel();
             let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_vel, up);
-            let relative_rain_vel = rain_vel - player_vel;
-            self.integrated_rain_vel += relative_rain_vel.magnitude() * dt;
-            let rel_rain_dir_mat = Mat4::rotation_from_to_3d(-Vec3::unit_z(), relative_rain_vel);
+            
+            self.integrated_rain_vel += rain_vel.magnitude() * dt;
+            let rain_dir_mat = Mat4::rotation_from_to_3d(-Vec3::unit_z(), rain_vel);
 
             let (shadow_mat, texture_mat) =
                 directed_mats(rain_view_mat, rain_vel.into(), &visible_occlusion_volume);
@@ -1026,7 +1021,7 @@ impl Scene {
             let rain_occlusion_locals = RainOcclusionLocals::new(
                 shadow_mat,
                 texture_mat,
-                rel_rain_dir_mat,
+                rain_dir_mat,
                 weather.rain,
                 self.integrated_rain_vel,
             );

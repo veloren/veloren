@@ -86,7 +86,7 @@ void main() {
         vec3 old_color = color.rgb;
 
         // normalized direction from the camera position to the fragment in world, transformed by the relative rain direction
-        vec3 adjusted_dir = (vec4(dir, 0) * rel_rain_dir_mat).xyz;
+        vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
 
         // stretch z values as they move away from 0
         float z = (-1 / (abs(adjusted_dir.z) - 1) - 1) * sign(adjusted_dir.z);

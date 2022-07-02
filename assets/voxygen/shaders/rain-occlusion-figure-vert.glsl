@@ -30,7 +30,7 @@ layout (std140, set = 0, binding = 14)
 uniform u_rain_occlusion {
     mat4 rainOcclusionMatrices;
     mat4 texture_mat;
-    mat4 rel_rain_dir_mat;
+    mat4 rain_dir_mat;
     float integrated_rain_vel;
     float rain_density;
     vec2 occlusion_dummy; // Fix alignment.

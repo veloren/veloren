@@ -11,7 +11,7 @@ pub struct Locals {
     rain_occlusion_texture_mat: [[f32; 4]; 4],
     /// A rotation of the direction of the rain, relative to the players
     /// velocity.
-    rel_rain_dir_mat: [[f32; 4]; 4],
+    rain_dir_mat: [[f32; 4]; 4],
     /// A value to offset the rain, to make it move over time.
     integrated_rain_vel: f32,
     rain_density: f32,
@@ -25,14 +25,14 @@ impl Locals {
     pub fn new(
         rain_occlusion_matrices: Mat4<f32>,
         rain_occlusion_texture_mat: Mat4<f32>,
-        rel_rain_dir_mat: Mat4<f32>,
+        rain_dir_mat: Mat4<f32>,
         rain_density: f32,
         integrated_rain_vel: f32,
     ) -> Self {
         Self {
             rain_occlusion_matrices: rain_occlusion_matrices.into_col_arrays(),
             rain_occlusion_texture_mat: rain_occlusion_texture_mat.into_col_arrays(),
-            rel_rain_dir_mat: rel_rain_dir_mat.into_col_arrays(),
+            rain_dir_mat: rain_dir_mat.into_col_arrays(),
             integrated_rain_vel,
             rain_density,
             occlusion_dummy: [0.0; 2],
