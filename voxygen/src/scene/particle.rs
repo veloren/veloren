@@ -284,7 +284,7 @@ impl ParticleMgr {
             | Outcome::ExpChange { .. }
             | Outcome::SkillPointGain { .. }
             | Outcome::ComboChange { .. }
-            | Outcome::Damage { .. }
+            | Outcome::HealthChange { .. }
             | Outcome::PoiseChange { .. }
             | Outcome::Utterance { .. }
             | Outcome::Glider { .. } => {},

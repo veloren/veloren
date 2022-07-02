@@ -54,7 +54,10 @@ use trade::Trade;
 
 use crate::{
     cmd::get_player_uuid,
-    ecs::{comp as vcomp, comp::HpFloaterList},
+    ecs::{
+        comp as vcomp,
+        comp::{HpFloater, HpFloaterList},
+    },
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     render::UiDrawer,
@@ -86,7 +89,7 @@ use common::{
         loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind},
-        BuffData, BuffKind, Item, MapMarkerChange,
+        BuffData, BuffKind, Health, Item, MapMarkerChange,
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
@@ -205,6 +208,8 @@ const NAMETAG_DMG_TIME: f32 = 60.0;
 const NAMETAG_DMG_RANGE: f32 = 120.0;
 /// Range to display speech-bubbles at
 const SPEECH_BUBBLE_RANGE: f32 = NAMETAG_RANGE;
+const EXP_FLOATER_LIFETIME: f32 = 2.0;
+const EXP_ACCUMULATION_DURATION: f32 = 0.5;
 
 widget_ids! {
     struct Ids {
@@ -448,12 +453,12 @@ pub struct ExpFloater {
     pub owner: Uid,
     pub exp_change: u32,
     pub timer: f32,
+    pub jump_timer: f32,
     pub rand_offset: (f32, f32),
     pub xp_pools: HashSet<SkillGroupKind>,
 }
 
 pub struct SkillPointGain {
-    pub owner: Uid,
     pub skill_tree: SkillGroupKind,
     pub total_points: u16,
     pub timer: f32,
@@ -461,13 +466,11 @@ pub struct SkillPointGain {
 
 #[derive(Debug, Clone, Copy)]
 pub struct ComboFloater {
-    pub owner: Uid,
     pub combo: u32,
     pub timer: f64,
 }
 
 pub struct BlockFloater {
-    pub owner: Uid,
     pub timer: f32,
 }
 
@@ -995,7 +998,7 @@ impl PromptDialogSettings {
 pub struct Floaters {
     pub exp_floaters: Vec<ExpFloater>,
     pub skill_point_displays: Vec<SkillPointGain>,
-    pub combo_floaters: VecDeque<ComboFloater>,
+    pub combo_floater: Option<ComboFloater>,
     pub block_floaters: Vec<BlockFloater>,
 }
 
@@ -1080,6 +1083,7 @@ pub struct Hud {
     force_chat_cursor: Option<Index>,
     tab_complete: Option<String>,
     pulse: f32,
+    hp_pulse: f32,
     slot_manager: slots::SlotManager,
     hotbar: hotbar::State,
     events: Vec<Event>,
@@ -1198,6 +1202,7 @@ impl Hud {
             force_chat_cursor: None,
             tab_complete: None,
             pulse: 0.0,
+            hp_pulse: 0.0,
             slot_manager,
             hotbar: hotbar_state,
             events: Vec::new(),
@@ -1205,7 +1210,7 @@ impl Hud {
             floaters: Floaters {
                 exp_floaters: Vec::new(),
                 skill_point_displays: Vec::new(),
-                combo_floaters: VecDeque::new(),
+                combo_floater: None,
                 block_floaters: Vec::new(),
             },
             map_drag: Vec2::zero(),
@@ -1256,7 +1261,7 @@ impl Hud {
             let healths = ecs.read_storage::<comp::Health>();
             let buffs = ecs.read_storage::<comp::Buffs>();
             let energy = ecs.read_storage::<comp::Energy>();
-            let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
+            let mut hp_floater_lists = ecs.write_storage::<vcomp::HpFloaterList>();
             let uids = ecs.read_storage::<Uid>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let scales = ecs.read_storage::<comp::Scale>();
@@ -1322,11 +1327,9 @@ impl Hud {
             if let Some(health) = healths.get(me) {
                 // Hurt Frame
                 let hp_percentage = health.current() / health.maximum() * 100.0;
+                self.hp_pulse += dt.as_secs_f32() * 10.0 / hp_percentage.max(3.0).min(7.0);
                 if hp_percentage < 10.0 && !health.is_dead {
-                    let hurt_fade =
-                        (self.pulse * (10.0 - hp_percentage as f32) * 0.1/* speed factor */).sin()
-                            * 0.5
-                            + 0.6; //Animation timer
+                    let hurt_fade = (self.hp_pulse).sin() * 0.5 + 0.6; //Animation timer
                     Image::new(self.imgs.hurt_bg)
                         .wh_of(ui_widgets.window)
                         .middle_of(ui_widgets.window)
@@ -1394,7 +1397,7 @@ impl Hud {
                 .read_storage::<comp::Pos>()
                 .get(client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
-            // SCT Output values are called hp_damage and floater.hp_change
+            // SCT Output values are called hp_damage and floater.info.amount
             // Numbers are currently divided by 10 and rounded
             if global_state.settings.interface.sct {
                 // Render Player SCT numbers
@@ -1402,74 +1405,26 @@ impl Hud {
                 let mut player_sct_id_walker = self.ids.player_scts.walk();
                 if let (Some(HpFloaterList { floaters, .. }), Some(health)) = (
                     hp_floater_lists
-                        .get(me)
+                        .get_mut(me)
                         .filter(|fl| !fl.floaters.is_empty()),
                     healths.get(me),
                 ) {
-                    if global_state.settings.interface.sct_player_batch {
-                        let number_speed = 100.0; // Player Batched Numbers Speed
-                        let player_sct_bg_id = player_sct_bg_id_walker.next(
-                            &mut self.ids.player_sct_bgs,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        let player_sct_id = player_sct_id_walker.next(
-                            &mut self.ids.player_scts,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        // Calculate total change
-                        // Ignores healing
-                        let hp_damage: f32 = floaters.iter().map(|f| f.hp_change.min(0.0)).sum();
-                        // .fold(0.0, |acc, f| f.hp_change.min(0.0) + acc);
-                        let hp_dmg_rounded_abs = hp_damage.round().abs() as u32;
-                        let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
-                        let timer = floaters
-                            .last()
-                            .expect("There must be at least one floater")
-                            .timer;
-                        // Increase font size based on fraction of maximum health
-                        // "flashes" by having a larger size in the first 100ms
-                        let font_size = 30
-                            + ((max_hp_frac * 10.0) as u32) * 3
-                            + if timer < 0.1 {
-                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
-                            } else {
-                                0
-                            };
-                        // Timer sets the widget offset
-                        let y = timer as f64 * number_speed * -1.0;
-                        // Timer sets text transparency
-                        let hp_fade =
-                            ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
-                        Text::new(&format!("{}", hp_dmg_rounded_abs))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(if hp_damage < 0.0 {
-                                Color::Rgba(0.0, 0.0, 0.0, hp_fade)
-                            } else {
-                                Color::Rgba(0.0, 0.0, 0.0, 0.0)
-                            })
-                            .mid_bottom_with_margin_on(ui_widgets.window, 297.0 + y)
-                            .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{}", hp_dmg_rounded_abs))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(if hp_damage < 0.0 {
-                                Color::Rgba(1.0, 0.1, 0.0, hp_fade)
-                            } else {
-                                Color::Rgba(0.0, 0.0, 0.0, 0.0)
-                            })
-                            .mid_bottom_with_margin_on(ui_widgets.window, 300.0 + y)
-                            .set(player_sct_id, ui_widgets);
-                    };
-                    for floater in floaters {
-                        // Healing always single numbers so just skip damage when in batch mode
-
-                        if global_state.settings.interface.sct_player_batch
-                            && floater.hp_change < 0.0
-                        {
-                            continue;
+                    let player_font_col = |crit: bool| {
+                        if crit {
+                            Rgb::new(1.0, 0.9, 0.0)
+                        } else {
+                            Rgb::new(1.0, 0.1, 0.0)
                         }
-                        let number_speed = 50.0; // Player Heal Speed
+                    };
+
+                    fn calc_fade(floater: &HpFloater) -> f32 {
+                        ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer) * 0.25) + 0.2
+                    }
+
+                    floaters.retain(|fl| calc_fade(fl) > 0.0);
+
+                    for floater in floaters {
+                        let number_speed = 50.0; // Player number speed
                         let player_sct_bg_id = player_sct_bg_id_walker.next(
                             &mut self.ids.player_sct_bgs,
                             &mut ui_widgets.widget_id_generator(),
@@ -1478,159 +1433,159 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
-                        let max_hp_frac = floater.hp_change.abs() as f32 / health.maximum() as f32;
+                        // Clamp the amount so you don't have absurdly large damage numbers
+                        let max_hp_frac = floater
+                            .info
+                            .amount
+                            .abs()
+                            .clamp(Health::HEALTH_EPSILON, health.maximum() * 1.25)
+                            / health.maximum();
+                        let hp_dmg_text = if floater.info.amount.abs() < 0.1 {
+                            String::new()
+                        } else if global_state.settings.interface.sct_damage_rounding
+                            && floater.info.amount.abs() >= 1.0
+                        {
+                            format!("{:.0}", floater.info.amount.abs())
+                        } else {
+                            format!("{:.1}", floater.info.amount.abs())
+                        };
+                        let crit = floater.info.crit;
+
+                        // Timer sets text transparency
+                        let hp_fade = calc_fade(floater);
+
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
-                        let font_size = 30
-                            + ((max_hp_frac * 10.0) as u32) * 3
-                            + if floater.timer < 0.1 {
-                                FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
+                        let font_size =
+                            30 + (if crit {
+                                (max_hp_frac * 10.0) as u32 * 3 + 10
+                            } else {
+                                (max_hp_frac * 10.0) as u32 * 3
+                            }) + if floater.jump_timer < 0.1 {
+                                FLASH_MAX
+                                    * (((1.0 - floater.jump_timer * 10.0)
+                                        * 10.0
+                                        * if crit { 1.25 } else { 1.0 })
+                                        as u32)
                             } else {
                                 0
                             };
+                        let font_col = player_font_col(crit);
                         // Timer sets the widget offset
-                        let y = if floater.hp_change < 0.0 {
+                        let y = if floater.info.amount < 0.0 {
                             floater.timer as f64
-                            * number_speed
-                            * floater.hp_change.signum() as f64
-                            //* -1.0
-                            + 300.0
+                                * number_speed
+                                * floater.info.amount.signum() as f64
+                                //* -1.0
+                                + 300.0
                                 - ui_widgets.win_h * 0.5
                         } else {
                             floater.timer as f64
                                 * number_speed
-                                * floater.hp_change.signum() as f64
+                                * floater.info.amount.signum() as f64
                                 * -1.0
                                 + 300.0
                                 - ui_widgets.win_h * 0.5
                         };
                         // Healing is offset randomly
-                        let x = if floater.hp_change < 0.0 {
+                        let x = if floater.info.amount < 0.0 {
                             0.0
                         } else {
-                            (floater.rand as f64 - 0.5) * 0.2 * ui_widgets.win_w
+                            (floater.rand as f64 - 0.5) * 0.08 * ui_widgets.win_w
+                                + (0.03 * ui_widgets.win_w * (floater.rand as f64 - 0.5).signum())
                         };
-                        // Timer sets text transparency
-                        let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
-                            * 0.25)
-                            + 0.2;
-                        if floater.hp_change.abs() > 1.0 {
-                            Text::new(&format!("{:.0}", floater.hp_change.abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
-                                .x_y(x, y - 3.0)
-                                .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{:.0}", floater.hp_change.abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(if floater.hp_change < 0.0 {
-                                    Color::Rgba(1.0, 0.1, 0.0, hp_fade)
-                                } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, hp_fade)
-                                })
-                                .x_y(x, y)
-                                .set(player_sct_id, ui_widgets);
-                        } else {
-                            Text::new(&format!("{:.1}", floater.hp_change.abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
-                                .x_y(x, y - 3.0)
-                                .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{:.1}", floater.hp_change.abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(if floater.hp_change < 0.0 {
-                                    Color::Rgba(1.0, 0.1, 0.0, hp_fade)
-                                } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, hp_fade)
-                                })
-                                .x_y(x, y)
-                                .set(player_sct_id, ui_widgets);
-                        }
+                        Text::new(&hp_dmg_text)
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
+                            .x_y(x, y - 3.0)
+                            .set(player_sct_bg_id, ui_widgets);
+                        Text::new(&hp_dmg_text)
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(if floater.info.amount < 0.0 {
+                                Color::Rgba(font_col.r, font_col.g, font_col.b, hp_fade)
+                            } else {
+                                Color::Rgba(0.1, 1.0, 0.1, hp_fade)
+                            })
+                            .x_y(x, y)
+                            .set(player_sct_id, ui_widgets);
                     }
                 }
                 // EXP Numbers
-                self.floaters
-                    .exp_floaters
-                    .iter_mut()
-                    .for_each(|f| f.timer -= dt.as_secs_f32());
-                self.floaters.exp_floaters.retain(|f| f.timer > 0_f32);
-                if let Some(uid) = uids.get(me) {
-                    for floater in self
-                        .floaters
-                        .exp_floaters
-                        .iter_mut()
-                        .filter(|f| f.owner == *uid)
-                    {
-                        let number_speed = 50.0; // Number Speed for Single EXP
-                        let player_sct_bg_id = player_sct_bg_id_walker.next(
-                            &mut self.ids.player_sct_bgs,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        let player_sct_id = player_sct_id_walker.next(
-                            &mut self.ids.player_scts,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        /*let player_sct_icon_id = player_sct_id_walker.next(
-                            &mut self.ids.player_scts,
-                            &mut ui_widgets.widget_id_generator(),
-                        );*/
-                        // Increase font size based on fraction of maximum Experience
-                        // "flashes" by having a larger size in the first 100ms
-                        let font_size_xp =
-                            30 + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32;
-                        let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
-                        //let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets
-                        // text transparency
-                        let fade = if floater.timer < 1.0 {
-                            floater.timer as f32
+                self.floaters.exp_floaters.iter_mut().for_each(|f| {
+                    f.timer -= dt.as_secs_f32();
+                    f.jump_timer += dt.as_secs_f32();
+                });
+                self.floaters.exp_floaters.retain(|f| f.timer > 0.0);
+                for floater in self.floaters.exp_floaters.iter_mut() {
+                    let number_speed = 50.0; // Number Speed for Single EXP
+                    let player_sct_bg_id = player_sct_bg_id_walker.next(
+                        &mut self.ids.player_sct_bgs,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+                    let player_sct_id = player_sct_id_walker.next(
+                        &mut self.ids.player_scts,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+                    /*let player_sct_icon_id = player_sct_id_walker.next(
+                        &mut self.ids.player_scts,
+                        &mut ui_widgets.widget_id_generator(),
+                    );*/
+                    // Increase font size based on fraction of maximum Experience
+                    // "flashes" by having a larger size in the first 100ms
+                    let font_size_xp = 30
+                        + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32
+                        + if floater.jump_timer < 0.1 {
+                            FLASH_MAX * (((1.0 - floater.jump_timer * 10.0) * 10.0) as u32)
                         } else {
-                            1.0
+                            0
                         };
+                    let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                    //let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets
+                    // text transparency
+                    let fade = floater.timer.min(1.0);
 
-                        if floater.exp_change > 0 {
-                            let xp_pool = &floater.xp_pools;
-                            // Don't show 0 Exp
-                            let exp_string = &i18n
-                                .get("hud.sct.experience")
-                                .replace("{amount}", &floater.exp_change.max(1).to_string());
-                            Text::new(exp_string)
-                                .font_size(font_size_xp)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                                .x_y(
-                                    ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
-                                    ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y
-                                        - 3.0,
-                                )
-                                .set(player_sct_bg_id, ui_widgets);
-                            Text::new(exp_string)
-                                .font_size(font_size_xp)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(
-                                    if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
-                                        Color::Rgba(0.18, 0.32, 0.9, fade)
-                                    } else {
-                                        Color::Rgba(0.59, 0.41, 0.67, fade)
-                                    },
-                                )
-                                .x_y(
-                                    ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
-                                    ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
-                                )
-                                .set(player_sct_id, ui_widgets);
-                            // Exp Source Image (TODO: fix widget id crash)
-                            /*if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
-                                Image::new(self.imgs.pickaxe_ico)
-                                    .w_h(font_size_xp as f64, font_size_xp as f64)
-                                    .left_from(player_sct_id, 5.0)
-                                    .set(player_sct_icon_id, ui_widgets);
-                            }*/
-                        }
+                    if floater.exp_change > 0 {
+                        let xp_pool = &floater.xp_pools;
+                        // Don't show 0 Exp
+                        let exp_string = &i18n
+                            .get("hud.sct.experience")
+                            .replace("{amount}", &floater.exp_change.max(1).to_string());
+                        Text::new(exp_string)
+                            .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .x_y(
+                                ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y - 3.0,
+                            )
+                            .set(player_sct_bg_id, ui_widgets);
+                        Text::new(exp_string)
+                            .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(
+                                if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
+                                    Color::Rgba(0.18, 0.32, 0.9, fade)
+                                } else {
+                                    Color::Rgba(0.59, 0.41, 0.67, fade)
+                                },
+                            )
+                            .x_y(
+                                ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
+                            )
+                            .set(player_sct_id, ui_widgets);
+                        // Exp Source Image (TODO: fix widget id crash)
+                        /*if xp_pool.contains(&SkillGroupKind::Weapon(ToolKind::Pick)) {
+                            Image::new(self.imgs.pickaxe_ico)
+                                .w_h(font_size_xp as f64, font_size_xp as f64)
+                                .left_from(player_sct_id, 5.0)
+                                .set(player_sct_icon_id, ui_widgets);
+                        }*/
                     }
                 }
+
                 // Skill points
                 self.floaters
                     .skill_point_displays
@@ -1639,149 +1594,136 @@ impl Hud {
                 self.floaters
                     .skill_point_displays
                     .retain(|d| d.timer > 0_f32);
-                if let Some(uid) = uids.get(me) {
-                    if let Some(display) = self
-                        .floaters
-                        .skill_point_displays
-                        .iter_mut()
-                        .find(|d| d.owner == *uid)
-                    {
-                        let fade = if display.timer < 3.0 {
-                            display.timer as f32 * 0.33
-                        } else if display.timer < 2.0 {
-                            display.timer as f32 * 0.33 * 0.1
-                        } else {
-                            1.0
-                        };
-                        // Background image
-                        let offset = if display.timer < 2.0 {
-                            300.0 - (display.timer as f64 - 2.0) * -300.0
-                        } else {
-                            300.0
-                        };
-                        Image::new(self.imgs.level_up)
-                            .w_h(328.0, 126.0)
-                            .mid_top_with_margin_on(ui_widgets.window, offset)
-                            .graphics_for(ui_widgets.window)
-                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-                            .set(self.ids.player_rank_up, ui_widgets);
-                        // Rank Number
-                        let rank = display.total_points;
-                        let fontsize = match rank {
-                            1..=99 => (20, 8.0),
-                            100..=999 => (18, 9.0),
-                            1000..=9999 => (17, 10.0),
-                            _ => (14, 12.0),
-                        };
-                        Text::new(&format!("{}", rank))
-                            .font_size(fontsize.0)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .mid_top_with_margin_on(self.ids.player_rank_up, fontsize.1)
-                            .set(self.ids.player_rank_up_txt_number, ui_widgets);
-                        // Static "New Rank!" text
-                        Text::new(i18n.get("hud.rank_up"))
-                            .font_size(40)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
-                            .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
-                        Text::new(i18n.get("hud.rank_up"))
-                            .font_size(40)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .bottom_left_with_margins_on(self.ids.player_rank_up_txt_0_bg, 2.0, 2.0)
-                            .set(self.ids.player_rank_up_txt_0, ui_widgets);
-                        // Variable skilltree text
-                        let skill = match display.skill_tree {
-                            General => i18n.get("common.weapons.general"),
-                            Weapon(ToolKind::Hammer) => i18n.get("common.weapons.hammer"),
-                            Weapon(ToolKind::Axe) => i18n.get("common.weapons.axe"),
-                            Weapon(ToolKind::Sword) => i18n.get("common.weapons.sword"),
-                            Weapon(ToolKind::Sceptre) => i18n.get("common.weapons.sceptre"),
-                            Weapon(ToolKind::Bow) => i18n.get("common.weapons.bow"),
-                            Weapon(ToolKind::Staff) => i18n.get("common.weapons.staff"),
-                            Weapon(ToolKind::Pick) => i18n.get("common.tool.mining"),
-                            _ => "Unknown",
-                        };
-                        Text::new(skill)
-                            .font_size(20)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .mid_top_with_margin_on(self.ids.player_rank_up, 45.0)
-                            .set(self.ids.player_rank_up_txt_1_bg, ui_widgets);
-                        Text::new(skill)
-                            .font_size(20)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .bottom_left_with_margins_on(self.ids.player_rank_up_txt_1_bg, 2.0, 2.0)
-                            .set(self.ids.player_rank_up_txt_1, ui_widgets);
-                        // Variable skilltree icon
-                        use crate::hud::SkillGroupKind::{General, Weapon};
-                        Image::new(match display.skill_tree {
-                            General => self.imgs.swords_crossed,
-                            Weapon(ToolKind::Hammer) => self.imgs.hammer,
-                            Weapon(ToolKind::Axe) => self.imgs.axe,
-                            Weapon(ToolKind::Sword) => self.imgs.sword,
-                            Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
-                            Weapon(ToolKind::Bow) => self.imgs.bow,
-                            Weapon(ToolKind::Staff) => self.imgs.staff,
-                            Weapon(ToolKind::Pick) => self.imgs.mining,
-                            _ => self.imgs.swords_crossed,
-                        })
-                        .w_h(20.0, 20.0)
-                        .left_from(self.ids.player_rank_up_txt_1_bg, 5.0)
+                if let Some(display) = self.floaters.skill_point_displays.iter_mut().next() {
+                    let fade = if display.timer < 3.0 {
+                        display.timer * 0.33
+                    } else if display.timer < 2.0 {
+                        display.timer * 0.33 * 0.1
+                    } else {
+                        1.0
+                    };
+                    // Background image
+                    let offset = if display.timer < 2.0 {
+                        300.0 - (display.timer as f64 - 2.0) * -300.0
+                    } else {
+                        300.0
+                    };
+                    Image::new(self.imgs.level_up)
+                        .w_h(328.0, 126.0)
+                        .mid_top_with_margin_on(ui_widgets.window, offset)
+                        .graphics_for(ui_widgets.window)
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-                        .set(self.ids.player_rank_up_icon, ui_widgets);
-                    }
+                        .set(self.ids.player_rank_up, ui_widgets);
+                    // Rank Number
+                    let rank = display.total_points;
+                    let fontsize = match rank {
+                        1..=99 => (20, 8.0),
+                        100..=999 => (18, 9.0),
+                        1000..=9999 => (17, 10.0),
+                        _ => (14, 12.0),
+                    };
+                    Text::new(&format!("{}", rank))
+                        .font_size(fontsize.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                        .mid_top_with_margin_on(self.ids.player_rank_up, fontsize.1)
+                        .set(self.ids.player_rank_up_txt_number, ui_widgets);
+                    // Static "New Rank!" text
+                    Text::new(i18n.get("hud.rank_up"))
+                        .font_size(40)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                        .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
+                        .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
+                    Text::new(i18n.get("hud.rank_up"))
+                        .font_size(40)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                        .bottom_left_with_margins_on(self.ids.player_rank_up_txt_0_bg, 2.0, 2.0)
+                        .set(self.ids.player_rank_up_txt_0, ui_widgets);
+                    // Variable skilltree text
+                    let skill = match display.skill_tree {
+                        General => i18n.get("common.weapons.general"),
+                        Weapon(ToolKind::Hammer) => i18n.get("common.weapons.hammer"),
+                        Weapon(ToolKind::Axe) => i18n.get("common.weapons.axe"),
+                        Weapon(ToolKind::Sword) => i18n.get("common.weapons.sword"),
+                        Weapon(ToolKind::Sceptre) => i18n.get("common.weapons.sceptre"),
+                        Weapon(ToolKind::Bow) => i18n.get("common.weapons.bow"),
+                        Weapon(ToolKind::Staff) => i18n.get("common.weapons.staff"),
+                        Weapon(ToolKind::Pick) => i18n.get("common.tool.mining"),
+                        _ => "Unknown",
+                    };
+                    Text::new(skill)
+                        .font_size(20)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                        .mid_top_with_margin_on(self.ids.player_rank_up, 45.0)
+                        .set(self.ids.player_rank_up_txt_1_bg, ui_widgets);
+                    Text::new(skill)
+                        .font_size(20)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                        .bottom_left_with_margins_on(self.ids.player_rank_up_txt_1_bg, 2.0, 2.0)
+                        .set(self.ids.player_rank_up_txt_1, ui_widgets);
+                    // Variable skilltree icon
+                    use crate::hud::SkillGroupKind::{General, Weapon};
+                    Image::new(match display.skill_tree {
+                        General => self.imgs.swords_crossed,
+                        Weapon(ToolKind::Hammer) => self.imgs.hammer,
+                        Weapon(ToolKind::Axe) => self.imgs.axe,
+                        Weapon(ToolKind::Sword) => self.imgs.sword,
+                        Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
+                        Weapon(ToolKind::Bow) => self.imgs.bow,
+                        Weapon(ToolKind::Staff) => self.imgs.staff,
+                        Weapon(ToolKind::Pick) => self.imgs.mining,
+                        _ => self.imgs.swords_crossed,
+                    })
+                    .w_h(20.0, 20.0)
+                    .left_from(self.ids.player_rank_up_txt_1_bg, 5.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
+                    .set(self.ids.player_rank_up_icon, ui_widgets);
                 }
+
                 // Scrolling Combat Text for Parrying an attack
                 self.floaters
                     .block_floaters
                     .iter_mut()
                     .for_each(|f| f.timer -= dt.as_secs_f32());
                 self.floaters.block_floaters.retain(|f| f.timer > 0_f32);
-                if let Some(uid) = uids.get(me) {
-                    for floater in self
-                        .floaters
-                        .block_floaters
-                        .iter_mut()
-                        .filter(|f| f.owner == *uid)
-                    {
-                        let number_speed = 50.0;
-                        let player_sct_bg_id = player_sct_bg_id_walker.next(
-                            &mut self.ids.player_sct_bgs,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        let player_sct_id = player_sct_id_walker.next(
-                            &mut self.ids.player_scts,
-                            &mut ui_widgets.widget_id_generator(),
-                        );
-                        let font_size = 30;
-                        let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
-                        // text transparency
-                        let fade = if floater.timer < 0.25 {
-                            floater.timer as f32 / 0.25
-                        } else {
-                            1.0
-                        };
+                for floater in self.floaters.block_floaters.iter_mut() {
+                    let number_speed = 50.0;
+                    let player_sct_bg_id = player_sct_bg_id_walker.next(
+                        &mut self.ids.player_sct_bgs,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+                    let player_sct_id = player_sct_id_walker.next(
+                        &mut self.ids.player_scts,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+                    let font_size = 30;
+                    let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                    // text transparency
+                    let fade = if floater.timer < 0.25 {
+                        floater.timer / 0.25
+                    } else {
+                        1.0
+                    };
 
-                        Text::new(i18n.get("hud.sct.block"))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .x_y(
-                                ui_widgets.win_w * (0.0),
-                                ui_widgets.win_h * (-0.3) + y - 3.0,
-                            )
-                            .set(player_sct_bg_id, ui_widgets);
-                        Text::new(i18n.get("hud.sct.block"))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.69, 0.82, 0.88, fade))
-                            .x_y(ui_widgets.win_w * 0.0, ui_widgets.win_h * -0.3 + y)
-                            .set(player_sct_id, ui_widgets);
-                    }
+                    Text::new(i18n.get("hud.sct.block"))
+                        .font_size(font_size)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                        .x_y(
+                            ui_widgets.win_w * (0.0),
+                            ui_widgets.win_h * (-0.3) + y - 3.0,
+                        )
+                        .set(player_sct_bg_id, ui_widgets);
+                    Text::new(i18n.get("hud.sct.block"))
+                        .font_size(font_size)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(Color::Rgba(0.69, 0.82, 0.88, fade))
+                        .x_y(ui_widgets.win_w * 0.0, ui_widgets.win_h * -0.3 + y)
+                        .set(player_sct_id, ui_widgets);
                 }
             }
 
@@ -2022,7 +1964,7 @@ impl Hud {
                 energy.maybe(),
                 scales.maybe(),
                 &bodies,
-                &hp_floater_lists,
+                &mut hp_floater_lists,
                 &uids,
                 &inventories,
                 players.maybe(),
@@ -2169,6 +2111,15 @@ impl Hud {
 
                 // Enemy SCT
                 if global_state.settings.interface.sct && !hpfl.floaters.is_empty() {
+                    fn calc_fade(floater: &HpFloater) -> f32 {
+                        if floater.info.crit {
+                            ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75) + 0.5
+                        } else {
+                            ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25) + 0.2
+                        }
+                    }
+
+                    hpfl.floaters.retain(|fl| calc_fade(fl) > 0.0);
                     let floaters = &hpfl.floaters;
 
                     // Colors
@@ -2188,168 +2139,94 @@ impl Hud {
                     ];
                     // Largest value that select the first color is 40, then it shifts colors
                     // every 5
-                    let font_col = |font_size: u32| {
-                        DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
+                    let font_col = |font_size: u32, crit: bool| {
+                        if crit {
+                            Rgb::new(1.0, 0.9, 0.0)
+                        } else {
+                            DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
+                        }
                     };
 
-                    if global_state.settings.interface.sct_damage_batch {
-                        let number_speed = 50.0; // Damage number speed
+                    for floater in floaters {
+                        let number_speed = 250.0; // Enemy number speed
                         let sct_id = sct_walker
                             .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
                         let sct_bg_id = sct_bg_walker
                             .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
-                        // Calculate total change
-                        // Ignores healing
-                        let hp_damage = floaters.iter().fold(0.0, |acc, f| {
-                            if f.hp_change < 0.0 {
-                                acc + f.hp_change
-                            } else {
-                                acc
-                            }
-                        });
-                        let hp_dmg_rounded_abs = hp_damage.round().abs();
-                        let max_hp_frac = hp_damage.abs() / health.map_or(1.0, |h| h.maximum());
-                        let timer = floaters
-                            .last()
-                            .expect("There must be at least one floater")
-                            .timer;
+                        // Clamp the amount so you don't have absurdly large damage numbers
+                        let max_hp_frac = floater
+                            .info
+                            .amount
+                            .abs()
+                            .clamp(Health::HEALTH_EPSILON, health.map_or(1.0, |h| h.maximum()))
+                            / health.map_or(1.0, |h| h.maximum());
+                        let hp_dmg_text = if floater.info.amount.abs() < 0.1 {
+                            String::new()
+                        } else if global_state.settings.interface.sct_damage_rounding
+                            && floater.info.amount.abs() >= 1.0
+                        {
+                            format!("{:.0}", floater.info.amount.abs())
+                        } else {
+                            format!("{:.1}", floater.info.amount.abs())
+                        };
+                        let crit = floater.info.crit;
+                        // Timer sets text transparency
+                        let fade = calc_fade(floater);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
-                        let font_size = 30
-                            + ((max_hp_frac * 10.0) as u32) * 3
-                            + if timer < 0.1 {
-                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
+                        let font_size =
+                            30 + (if crit {
+                                (max_hp_frac * 10.0) as u32 * 3 + 10
+                            } else {
+                                (max_hp_frac * 10.0) as u32 * 3
+                            }) + if floater.jump_timer < 0.1 {
+                                FLASH_MAX
+                                    * (((1.0 - floater.jump_timer * 10.0)
+                                        * 10.0
+                                        * if crit { 1.25 } else { 1.0 })
+                                        as u32)
                             } else {
                                 0
                             };
-                        let font_col = font_col(font_size);
+                        let font_col = font_col(font_size, crit);
                         // Timer sets the widget offset
-                        let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
-                            * number_speed)
-                            + 100.0;
-                        // Timer sets text transparency
-                        let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
-                        if hp_damage.abs() < 1.0 {
-                            // Damage and heal below 10/10 are shown as decimals
-                            Text::new(&format!("{}", hp_damage.abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                                .x_y(0.0, y - 3.0)
-                                .position_ingame(ingame_pos)
-                                .set(sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", hp_damage.abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .x_y(0.0, y)
-                                .color(if hp_damage < 0.0 {
-                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                                } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, fade)
-                                })
-                                .position_ingame(ingame_pos)
-                                .set(sct_id, ui_widgets);
+                        let y = if crit {
+                            ui_widgets.win_h * (floater.rand as f64 % 0.1) + ui_widgets.win_h * 0.05
                         } else {
-                            // Damage and heal above 10/10 are shown rounded
-                            Text::new(&format!("{}", hp_dmg_rounded_abs))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                                .x_y(0.0, y - 3.0)
-                                .position_ingame(ingame_pos)
-                                .set(sct_bg_id, ui_widgets);
-
-                            Text::new(&format!("{}", hp_dmg_rounded_abs))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .x_y(0.0, y)
-                                .color(if hp_damage < 0.0 {
-                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                                } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, fade)
-                                })
-                                .position_ingame(ingame_pos)
-                                .set(sct_id, ui_widgets);
-                        };
-                    } else {
-                        for floater in floaters {
-                            let number_speed = 250.0; // Single Numbers Speed
-                            let sct_id = sct_walker
-                                .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
-                            let sct_bg_id = sct_bg_walker
-                                .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
-                            // Calculate total change
-                            let max_hp_frac = floater.hp_change.abs() as f32
-                                / health.map_or(1.0, |h| h.maximum() as f32);
-                            // Increase font size based on fraction of maximum health
-                            // "flashes" by having a larger size in the first 100ms
-                            let font_size = 30
-                                + ((max_hp_frac * 10.0) as u32) * 3
-                                + if floater.timer < 0.1 {
-                                    FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
-                                } else {
-                                    0
-                                };
-                            let font_col = font_col(font_size);
-                            // Timer sets the widget offset
-                            let y = (floater.timer as f64
-                                / crate::ecs::sys::floater::HP_SHOWTIME as f64
+                            (floater.timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
                                 * number_speed)
-                                + 100.0;
-                            // Timer sets text transparency
-                            let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer)
-                                * 0.25)
-                                + 0.2;
-                            if floater.hp_change.abs() < 1.0 {
-                                // Damage and heal below 10/10 are shown as decimals
-                                Text::new(&format!("{:.0}", floater.hp_change.abs()))
-                                    .font_size(font_size)
-                                    .font_id(self.fonts.cyri.conrod_id)
-                                    .color(if floater.hp_change < 0.0 {
-                                        Color::Rgba(0.0, 0.0, 0.0, fade)
-                                    } else {
-                                        Color::Rgba(0.0, 0.0, 0.0, 1.0)
-                                    })
-                                    .x_y(0.0, y - 3.0)
-                                    .position_ingame(ingame_pos)
-                                    .set(sct_bg_id, ui_widgets);
-                                Text::new(&format!("{:.0}", floater.hp_change.abs()))
-                                    .font_size(font_size)
-                                    .font_id(self.fonts.cyri.conrod_id)
-                                    .x_y(0.0, y)
-                                    .color(if floater.hp_change < 0.0 {
-                                        Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                                    } else {
-                                        Color::Rgba(0.1, 1.0, 0.1, 1.0)
-                                    })
-                                    .position_ingame(ingame_pos)
-                                    .set(sct_id, ui_widgets);
+                                + 100.0
+                        };
+
+                        let x = if !crit {
+                            0.0
+                        } else {
+                            (floater.rand as f64 - 0.5) * 0.075 * ui_widgets.win_w
+                                + (0.03 * ui_widgets.win_w * (floater.rand as f64 - 0.5).signum())
+                        };
+
+                        Text::new(&hp_dmg_text)
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(if floater.info.amount < 0.0 {
+                                Color::Rgba(0.0, 0.0, 0.0, fade)
                             } else {
-                                // Damage and heal above 10/10 are shown rounded
-                                Text::new(&format!("{:.1}", floater.hp_change.abs()))
-                                    .font_size(font_size)
-                                    .font_id(self.fonts.cyri.conrod_id)
-                                    .color(if floater.hp_change < 0.0 {
-                                        Color::Rgba(0.0, 0.0, 0.0, fade)
-                                    } else {
-                                        Color::Rgba(0.0, 0.0, 0.0, 1.0)
-                                    })
-                                    .x_y(0.0, y - 3.0)
-                                    .position_ingame(ingame_pos)
-                                    .set(sct_bg_id, ui_widgets);
-                                Text::new(&format!("{:.1}", floater.hp_change.abs()))
-                                    .font_size(font_size)
-                                    .font_id(self.fonts.cyri.conrod_id)
-                                    .x_y(0.0, y)
-                                    .color(if floater.hp_change < 0.0 {
-                                        Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                                    } else {
-                                        Color::Rgba(0.1, 1.0, 0.1, 1.0)
-                                    })
-                                    .position_ingame(ingame_pos)
-                                    .set(sct_id, ui_widgets);
-                            }
-                        }
+                                Color::Rgba(0.0, 0.0, 0.0, 1.0)
+                            })
+                            .x_y(x, y - 3.0)
+                            .position_ingame(ingame_pos)
+                            .set(sct_bg_id, ui_widgets);
+                        Text::new(&hp_dmg_text)
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .x_y(x, y)
+                            .color(if floater.info.amount < 0.0 {
+                                Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                            } else {
+                                Color::Rgba(0.1, 1.0, 0.1, 1.0)
+                            })
+                            .position_ingame(ingame_pos)
+                            .set(sct_id, ui_widgets);
                     }
                 }
             }
@@ -2799,20 +2676,11 @@ impl Hud {
         let bodies = ecs.read_storage::<comp::Body>();
         let poises = ecs.read_storage::<comp::Poise>();
         // Combo floater stuffs
-        self.floaters
-            .combo_floaters
-            .iter_mut()
-            .for_each(|f| f.timer -= dt.as_secs_f64());
-        self.floaters.combo_floaters.retain(|f| f.timer > 0_f64);
-        let combo = if let Some(uid) = ecs.read_storage::<Uid>().get(entity) {
-            self.floaters
-                .combo_floaters
-                .iter()
-                .find(|c| c.owner == *uid)
-                .copied()
-        } else {
-            None
-        };
+        self.floaters.combo_floater = self.floaters.combo_floater.map(|mut f| {
+            f.timer -= dt.as_secs_f64();
+            f
+        });
+        self.floaters.combo_floater = self.floaters.combo_floater.filter(|f| f.timer > 0_f64);
 
         if let (
             Some(health),
@@ -2853,7 +2721,7 @@ impl Hud {
                 &mut self.slot_manager,
                 i18n,
                 &msm,
-                combo,
+                self.floaters.combo_floater,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -4435,41 +4303,166 @@ impl Hud {
 
     pub fn camera_clamp(&mut self, camera_clamp: bool) { self.show.camera_clamp = camera_clamp; }
 
-    pub fn handle_outcome(&mut self, outcome: &Outcome) {
+    pub fn handle_outcome(
+        &mut self,
+        outcome: &Outcome,
+        client: &Client,
+        global_state: &GlobalState,
+    ) {
+        let interface = &global_state.settings.interface;
         match outcome {
             Outcome::ExpChange { uid, exp, xp_pools } => {
-                self.floaters.exp_floaters.push(ExpFloater {
-                    owner: *uid,
-                    exp_change: *exp,
-                    timer: 4.0,
-                    rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
-                    xp_pools: xp_pools.clone(),
-                })
+                let ecs = client.state().ecs();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+
+                if uids.get(me).map_or(false, |me| *me == *uid) {
+                    match self.floaters.exp_floaters.last_mut() {
+                        Some(floater)
+                            if floater.timer
+                                > (EXP_FLOATER_LIFETIME - EXP_ACCUMULATION_DURATION)
+                                && global_state.settings.interface.accum_experience
+                                && floater.owner == *uid =>
+                        {
+                            floater.jump_timer = 0.0;
+                            floater.exp_change += *exp;
+                        },
+                        _ => self.floaters.exp_floaters.push(ExpFloater {
+                            // Store the owner as to not accumulate old experience floaters
+                            owner: *uid,
+                            exp_change: *exp,
+                            timer: EXP_FLOATER_LIFETIME,
+                            jump_timer: 0.0,
+                            rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
+                            xp_pools: xp_pools.clone(),
+                        }),
+                    }
+                }
             },
             Outcome::SkillPointGain {
                 uid,
                 skill_tree,
                 total_points,
                 ..
-            } => self.floaters.skill_point_displays.push(SkillPointGain {
-                owner: *uid,
-                skill_tree: *skill_tree,
-                total_points: *total_points,
-                timer: 5.0,
-            }),
+            } => {
+                let ecs = client.state().ecs();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+
+                if uids.get(me).map_or(false, |me| *me == *uid) {
+                    self.floaters.skill_point_displays.push(SkillPointGain {
+                        skill_tree: *skill_tree,
+                        total_points: *total_points,
+                        timer: 5.0,
+                    });
+                }
+            },
             Outcome::ComboChange { uid, combo } => {
-                self.floaters.combo_floaters.push_front(ComboFloater {
-                    owner: *uid,
-                    combo: *combo,
-                    timer: comp::combo::COMBO_DECAY_START,
-                })
+                let ecs = client.state().ecs();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+
+                if uids.get(me).map_or(false, |me| *me == *uid) {
+                    self.floaters.combo_floater = Some(ComboFloater {
+                        combo: *combo,
+                        timer: comp::combo::COMBO_DECAY_START,
+                    });
+                }
             },
             Outcome::Block { uid, parry, .. } if *parry => {
-                self.floaters.block_floaters.push(BlockFloater {
-                    owner: *uid,
-                    timer: 1.0,
-                })
+                let ecs = client.state().ecs();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+
+                if uids.get(me).map_or(false, |me| *me == *uid) {
+                    self.floaters
+                        .block_floaters
+                        .push(BlockFloater { timer: 1.0 });
+                }
             },
+            Outcome::HealthChange { info, .. } => {
+                let ecs = client.state().ecs();
+                let mut hp_floater_lists = ecs.write_storage::<vcomp::HpFloaterList>();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+                let my_uid = uids.get(me);
+
+                if let Some(entity) = ecs.entity_from_uid(info.target.0) {
+                    if let Some(floater_list) = hp_floater_lists.get_mut(entity) {
+                        let hit_me = my_uid.map_or(false, |&uid| {
+                            (info.target == uid) && global_state.settings.interface.sct_inc_dmg
+                        });
+                        if match info.by {
+                            Some(by) => {
+                                let by_me = my_uid.map_or(false, |&uid| by.uid() == uid);
+                                // If the attack was by me also reset this timer
+                                if by_me {
+                                    floater_list.time_since_last_dmg_by_me = Some(0.0);
+                                }
+                                hit_me || by_me
+                            },
+                            None => hit_me,
+                        } {
+                            // Group up damage from the same tick and instance number
+                            for floater in floater_list.floaters.iter_mut().rev() {
+                                if floater.timer > 0.0 {
+                                    break;
+                                }
+                                if floater.info.instance == info.instance
+                                    // Group up crits and regular attacks for incoming damage
+                                    && (hit_me
+                                        || floater.info.crit
+                                            == info.crit)
+                                {
+                                    floater.info.amount += info.amount;
+                                    if info.crit {
+                                        floater.info.crit = info.crit
+                                    }
+                                    return;
+                                }
+                            }
+
+                            // To separate healing and damage floaters alongside the crit and
+                            // non-crit ones
+                            let last_floater = if !info.crit || hit_me {
+                                floater_list.floaters.iter_mut().rev().find(|f| {
+                                    (if info.amount < 0.0 {
+                                        f.info.amount < 0.0
+                                    } else {
+                                        f.info.amount > 0.0
+                                    }) && f.timer
+                                        < if hit_me {
+                                            interface.sct_inc_dmg_accum_duration
+                                        } else {
+                                            interface.sct_dmg_accum_duration
+                                        }
+                                    // Ignore crit floaters, unless the damage is incoming
+                                    && (hit_me || !f.info.crit)
+                                })
+                            } else {
+                                None
+                            };
+
+                            match last_floater {
+                                Some(f) => {
+                                    f.jump_timer = 0.0;
+                                    f.info.amount += info.amount;
+                                    f.info.crit = info.crit;
+                                },
+                                _ => {
+                                    floater_list.floaters.push(HpFloater {
+                                        timer: 0.0,
+                                        jump_timer: 0.0,
+                                        info: *info,
+                                        rand: rand::random(),
+                                    });
+                                },
+                            }
+                        }
+                    }
+                }
+            },
+
             _ => {},
         }
     }

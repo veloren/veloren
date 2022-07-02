@@ -235,10 +235,11 @@ impl Attack {
                 self.crit_multiplier,
                 strength_modifier,
                 time,
+                damage.instance,
             );
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
-            emit_outcome(Outcome::Damage { pos: target.pos });
+
             if change.amount.abs() > Health::HEALTH_EPSILON {
                 emit(ServerEvent::HealthChange {
                     entity: target.entity,
@@ -257,6 +258,8 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
+                                    crit: is_crit,
+                                    instance: damage.instance,
                                 };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
@@ -295,6 +298,8 @@ impl Attack {
                                     amount: health_change,
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
+                                    instance: damage.instance,
+                                    crit: false,
                                     time,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -354,6 +359,8 @@ impl Attack {
                                     by: attacker.map(|a| a.into()),
                                     cause: None,
                                     time,
+                                    crit: false,
+                                    instance: rand::random(),
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
                                     emit(ServerEvent::HealthChange {
@@ -386,6 +393,8 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
+                                crit: false,
+                                instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -497,6 +506,8 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
+                                crit: false,
+                                instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -529,6 +540,8 @@ impl Attack {
                             by: attacker.map(|a| a.into()),
                             cause: None,
                             time,
+                            crit: false,
+                            instance: rand::random(),
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
                             emit(ServerEvent::HealthChange {
@@ -618,15 +631,18 @@ pub struct AttackDamage {
     damage: Damage,
     target: Option<GroupTarget>,
     effects: Vec<CombatEffect>,
+    /// A random ID, used to group up attacks
+    instance: u64,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl AttackDamage {
-    pub fn new(damage: Damage, target: Option<GroupTarget>) -> Self {
+    pub fn new(damage: Damage, target: Option<GroupTarget>, instance: u64) -> Self {
         Self {
             damage,
             target,
             effects: Vec::new(),
+            instance,
         }
     }
 
@@ -818,6 +834,7 @@ impl Damage {
         crit_mult: f32,
         damage_modifier: f32,
         time: Time,
+        instance: u64,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
         let critdamage = if is_crit {
@@ -841,6 +858,8 @@ impl Damage {
                     by: damage_contributor,
                     cause: Some(self.source),
                     time,
+                    crit: is_crit,
+                    instance,
                 }
             },
             DamageSource::Falling => {
@@ -853,6 +872,8 @@ impl Damage {
                     by: None,
                     cause: Some(self.source),
                     time,
+                    crit: false,
+                    instance,
                 }
             },
             DamageSource::Buff(_) | DamageSource::Other => HealthChange {
@@ -860,6 +881,8 @@ impl Damage {
                 by: None,
                 cause: Some(self.source),
                 time,
+                crit: false,
+                instance,
             },
         }
     }

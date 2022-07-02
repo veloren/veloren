@@ -159,6 +159,7 @@ impl StateExt for State {
                     0.0,
                     1.0,
                     *time,
+                    rand::random(),
                 );
                 self.ecs()
                     .write_storage::<comp::Health>()

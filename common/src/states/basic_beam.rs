@@ -116,6 +116,7 @@ impl CharacterBehavior for Data {
                             value: self.static_data.damage,
                         },
                         Some(GroupTarget::OutOfGroup),
+                        rand::random(),
                     );
                     if let Some(effect) = self.static_data.damage_effect {
                         damage = damage.with_effect(effect);

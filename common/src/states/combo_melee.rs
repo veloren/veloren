@@ -264,6 +264,7 @@ impl CharacterBehavior for Data {
                             value: damage as f32,
                         },
                         Some(GroupTarget::OutOfGroup),
+                        rand::random(),
                     );
                     if let Some(effect) = self.static_data.stage_data[stage_index].damage_effect {
                         damage = damage.with_effect(effect);

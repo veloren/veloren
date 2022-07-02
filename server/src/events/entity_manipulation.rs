@@ -23,7 +23,7 @@ use common::{
         Player, Poise, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
-    outcome::Outcome,
+    outcome::{HealthChangeInfo, Outcome},
     resources::Time,
     rtsim::RtSimEntity,
     terrain::{Block, BlockKind, TerrainGrid},
@@ -67,7 +67,26 @@ pub fn handle_poise(server: &Server, entity: EcsEntity, change: comp::PoiseChang
 pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
     if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
-        health.change_by(change);
+        // If the change amount was not zero
+        let changed = health.change_by(change);
+        if let (Some(pos), Some(uid)) = (
+            ecs.read_storage::<Pos>().get(entity),
+            ecs.read_storage::<Uid>().get(entity),
+        ) {
+            if changed {
+                let outcomes = ecs.write_resource::<EventBus<Outcome>>();
+                outcomes.emit_now(Outcome::HealthChange {
+                    pos: pos.0,
+                    info: HealthChangeInfo {
+                        amount: change.amount,
+                        by: change.by,
+                        target: *uid,
+                        crit: change.crit,
+                        instance: change.instance,
+                    },
+                });
+            }
+        }
     }
     // This if statement filters out anything under 5 damage, for DOT ticks
     // TODO: Find a better way to separate direct damage from DOT here
@@ -573,10 +592,20 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 stats.get(entity),
                 &msm,
             );
-            let change =
-                damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0, *time);
+            let change = damage.calculate_health_change(
+                damage_reduction,
+                None,
+                false,
+                0.0,
+                1.0,
+                *time,
+                rand::random(),
+            );
             health.change_by(change);
+            let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
+            server_eventbus.emit_now(ServerEvent::HealthChange { entity, change });
         }
+
         // Handle poise change
         if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {
             let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);

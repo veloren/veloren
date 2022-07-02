@@ -24,6 +24,10 @@ pub struct HealthChange {
     pub cause: Option<DamageSource>,
     /// The time that the health change occurred at
     pub time: Time,
+    /// A boolean that tells you if the change was a crit
+    pub crit: bool,
+    /// A random ID, used to group up health changes from the same attack
+    pub instance: u64,
 }
 
 impl HealthChange {
@@ -132,7 +136,9 @@ impl Health {
                 amount: 0.0,
                 by: None,
                 cause: None,
+                crit: false,
                 time: Time(0.0),
+                instance: rand::random(),
             },
             is_dead: false,
             damage_contributors: HashMap::new(),
@@ -151,7 +157,8 @@ impl Health {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn change_by(&mut self, change: HealthChange) {
+    /// Returns a boolean if the delta was not zero.
+    pub fn change_by(&mut self, change: HealthChange) -> bool {
         let prev_health = i64::from(self.current);
         self.current = (((self.current() + change.amount).clamp(0.0, f32::from(Self::MAX_HEALTH))
             * Self::SCALING_FACTOR_FLOAT) as u32)
@@ -179,6 +186,7 @@ impl Health {
                 (change.time.0 - last_damage_time.0) < DAMAGE_CONTRIB_PRUNE_SECS
             });
         }
+        delta != 0
     }
 
     pub fn damage_contributions(&self) -> impl Iterator<Item = (&DamageContributor, &u64)> {
@@ -210,7 +218,9 @@ impl Health {
                 amount: 0.0,
                 by: None,
                 cause: None,
+                crit: false,
                 time: Time(0.0),
+                instance: rand::random(),
             },
             is_dead: false,
             damage_contributors: HashMap::new(),
@@ -244,6 +254,8 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
+            crit: false,
+            instance: rand::random(),
         };
 
         health.change_by(health_change);
@@ -269,6 +281,8 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
+            crit: false,
+            instance: rand::random(),
         };
 
         health.change_by(health_change);
@@ -288,6 +302,8 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
+            crit: false,
+            instance: rand::random(),
         };
         health.change_by(health_change);
         health.change_by(health_change);
@@ -313,6 +329,8 @@ mod tests {
             time: Time(10.0),
             by: Some(damage_contrib1),
             cause: None,
+            crit: false,
+            instance: rand::random(),
         };
         health.change_by(health_change);
 
@@ -322,6 +340,8 @@ mod tests {
             time: Time(100.0),
             by: Some(damage_contrib2),
             cause: None,
+            crit: false,
+            instance: rand::random(),
         };
         health.change_by(health_change);
 
@@ -335,6 +355,8 @@ mod tests {
             time: Time(620.0),
             by: Some(damage_contrib2),
             cause: None,
+            crit: false,
+            instance: rand::random(),
         };
         health.change_by(health_change);
 

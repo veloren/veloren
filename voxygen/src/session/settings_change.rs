@@ -96,8 +96,10 @@ pub enum Graphics {
 #[derive(Clone)]
 pub enum Interface {
     Sct(bool),
-    SctPlayerBatch(bool),
-    SctDamageBatch(bool),
+    SctRoundDamage(bool),
+    SctDamageAccumDuration(f32),
+    SctIncomingDamage(bool),
+    SctIncomingDamageAccumDuration(f32),
     SpeechBubbleSelf(bool),
     SpeechBubbleDarkMode(bool),
     SpeechBubbleIcon(bool),
@@ -134,6 +136,7 @@ pub enum Interface {
     MapShowPeaks(bool),
     MapShowBiomes(bool),
     MapShowVoxelMap(bool),
+    AccumExperience(bool),
 
     ResetInterfaceSettings,
 }
@@ -457,11 +460,17 @@ impl SettingsChange {
                     Interface::Sct(sct) => {
                         settings.interface.sct = sct;
                     },
-                    Interface::SctPlayerBatch(sct_player_batch) => {
-                        settings.interface.sct_player_batch = sct_player_batch;
+                    Interface::SctRoundDamage(sct_round_damage) => {
+                        settings.interface.sct_damage_rounding = sct_round_damage;
                     },
-                    Interface::SctDamageBatch(sct_damage_batch) => {
-                        settings.interface.sct_damage_batch = sct_damage_batch;
+                    Interface::SctDamageAccumDuration(sct_dmg_accum_duration) => {
+                        settings.interface.sct_dmg_accum_duration = sct_dmg_accum_duration;
+                    },
+                    Interface::SctIncomingDamage(sct_inc_dmg) => {
+                        settings.interface.sct_inc_dmg = sct_inc_dmg;
+                    },
+                    Interface::SctIncomingDamageAccumDuration(sct_inc_dmg_accum_duration) => {
+                        settings.interface.sct_inc_dmg_accum_duration = sct_inc_dmg_accum_duration;
                     },
                     Interface::SpeechBubbleSelf(sbdm) => {
                         settings.interface.speech_bubble_self = sbdm;
@@ -558,6 +567,9 @@ impl SettingsChange {
                     },
                     Interface::MapShowVoxelMap(map_show_voxel_map) => {
                         settings.interface.map_show_voxel_map = map_show_voxel_map;
+                    },
+                    Interface::AccumExperience(accum_experience) => {
+                        settings.interface.accum_experience = accum_experience;
                     },
                     Interface::ResetInterfaceSettings => {
                         // Reset Interface Settings

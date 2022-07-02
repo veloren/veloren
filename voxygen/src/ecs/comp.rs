@@ -1,4 +1,4 @@
-use common::comp::Ori;
+use common::{comp::Ori, outcome::HealthChangeInfo};
 use specs::Component;
 use specs_idvs::IdvStorage;
 use vek::*;
@@ -8,8 +8,9 @@ use vek::*;
 #[derive(Copy, Clone, Debug)]
 pub struct HpFloater {
     pub timer: f32,
-    // Numbers of times significant damage has been dealt
-    pub hp_change: f32,
+    // Used for the "jumping" animation of the HpFloater whenever it changes it's value
+    pub jump_timer: f32,
+    pub info: HealthChangeInfo,
     // Used for randomly offsetting
     pub rand: f32,
 }
@@ -17,9 +18,7 @@ pub struct HpFloater {
 pub struct HpFloaterList {
     // Order oldest to newest
     pub floaters: Vec<HpFloater>,
-    // Keep from spawning more floaters from same hp change
-    // Note: this can't detect a change if equivalent healing and damage take place simultaneously
-    pub last_hp: f32,
+
     // The time since you last damaged this entity
     // Used to display nametags outside normal range if this time is below a certain value
     pub time_since_last_dmg_by_me: Option<f32>,

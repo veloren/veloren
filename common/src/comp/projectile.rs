@@ -99,6 +99,7 @@ impl ProjectileConstructor {
         crit_mult: f32,
         buff_strength: f32,
     ) -> Projectile {
+        let instance = rand::random();
         use ProjectileConstructor::*;
         match self {
             Arrow {
@@ -129,6 +130,7 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 )
                 .with_effect(buff);
                 let attack = Attack::default()
@@ -169,6 +171,7 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 )
                 .with_effect(buff);
                 let attack = Attack::default()
@@ -207,6 +210,7 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
@@ -250,6 +254,7 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
@@ -286,6 +291,7 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
@@ -337,6 +343,7 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
@@ -373,6 +380,7 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
@@ -424,6 +432,7 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 );
                 let attack = Attack::default()
                     .with_damage(damage)

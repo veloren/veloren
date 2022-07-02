@@ -95,7 +95,7 @@ use common::{
         item::{ItemDefinitionId, ItemKind, ToolKind},
         object,
         poise::PoiseState,
-        quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType,
+        quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType, Health,
         InventoryUpdateEvent, UtteranceKind,
     },
     outcome::Outcome,
@@ -514,9 +514,12 @@ impl SfxMgr {
                     false,
                 );
             },
-            Outcome::Damage { pos, .. } => {
-                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Damage);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
+            Outcome::HealthChange { pos, info, .. } => {
+                // Don't emit sound effects from positive damage (healing)
+                if info.amount < Health::HEALTH_EPSILON {
+                    let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Damage);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
+                }
             },
             Outcome::Death { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Death);
