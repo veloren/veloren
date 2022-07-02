@@ -35,7 +35,7 @@ where
     // in order to store the bone index.  The two bits are instead taken out
     // of the atlas coordinates, which is why we "only" allow 1 << 15 per
     // coordinate instead of 1 << 16.
-    assert!(max_size.width.max(max_size.height) < 1 << 15);
+    assert!(max_size.reduce_max() < 1 << 15);
 
     let lower_bound = vol.lower_bound();
     let upper_bound = vol.upper_bound();
@@ -130,7 +130,7 @@ where
     // in order to store the bone index.  The two bits are instead taken out
     // of the atlas coordinates, which is why we "only" allow 1 << 15 per
     // coordinate instead of 1 << 16.
-    assert!(max_size.width.max(max_size.height) < 1 << 16);
+    assert!(u32::from(max_size.reduce_max()) < 1 << 16);
 
     let lower_bound = vol.lower_bound();
     let upper_bound = vol.upper_bound();
@@ -253,7 +253,7 @@ where
     // in order to store the bone index.  The two bits are instead taken out
     // of the atlas coordinates, which is why we "only" allow 1 << 15 per
     // coordinate instead of 1 << 16.
-    assert!(max_size.width.max(max_size.height) < 1 << 16);
+    assert!(u32::from(max_size.reduce_max()) < 1 << 16);
 
     let lower_bound = vol.lower_bound();
     let upper_bound = vol.upper_bound();

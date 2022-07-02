@@ -1599,7 +1599,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
         // NOTE: If we add texturing we may eventually try to share it among all
         // particles in a single atlas.
         let max_texture_size = renderer.max_texture_size();
-        let max_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
+        let max_size = Vec2::from(u16::try_from(max_texture_size).unwrap_or(u16::MAX));
         let mut greedy = GreedyMesh::new(max_size);
 
         let segment = Segment::from(&vox.read().0);

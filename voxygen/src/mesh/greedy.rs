@@ -87,29 +87,31 @@ pub trait AtlasAllocator {
 
     /// Creates a new instance of this atlas allocator taking into account the
     /// provided max size;
-    fn with_max_size(max_size: Vec2<i32>) -> Self;
+    fn with_max_size(max_size: Vec2<u16>) -> Self;
 
     /// Allocates a rectangle of the given size.
     // TODO: don't use guillotiere type here
-    fn allocate(&mut self, size: Vec2<i32>) -> Option<guillotiere::Rectangle>;
+    fn allocate(&mut self, size: Vec2<u16>) -> Option<guillotiere::Rectangle>;
 
     /// Retrieves the current size of the atlas being allocated from.
-    fn size(&self) -> Vec2<i32>;
+    fn size(&self) -> Vec2<u16>;
 
     /// Grows the size of the atlas to the provided size.
-    fn grow(&mut self, new_size: Vec2<i32>);
+    fn grow(&mut self, new_size: Vec2<u16>);
 }
 
-fn guillotiere_size(size: Vec2<i32>) -> guillotiere::Size { guillotiere::Size::new(size.x, size.y) }
+fn guillotiere_size<T: Into<i32>>(size: Vec2<T>) -> guillotiere::Size {
+    guillotiere::Size::new(size.x.into(), size.y.into())
+}
 
 impl AtlasAllocator for guillotiere::SimpleAtlasAllocator {
-    fn with_max_size(max_size: Vec2<i32>) -> Self {
+    fn with_max_size(max_size: Vec2<u16>) -> Self {
         // TODO: Collect information to see if we can choose a good value here. These
         // current values were optimized for sprites, but we are using a
         // different allocator for them so different values might be better
         // here.
         let large_size_threshold = 8; //256.min(min_max_dim / 2 + 1);
-        let small_size_threshold = !(3); //33.min(large_size_threshold / 2 + 1);
+        let small_size_threshold = 3; //33.min(large_size_threshold / 2 + 1);
         // (12, 3) 24.5
         // (12, 2) 33.2
         // (12, 4) 27.2
@@ -128,19 +130,22 @@ impl AtlasAllocator for guillotiere::SimpleAtlasAllocator {
     }
 
     /// Allocates a rectangle of the given size.
-    fn allocate(&mut self, size: Vec2<i32>) -> Option<guillotiere::Rectangle> {
+    fn allocate(&mut self, size: Vec2<u16>) -> Option<guillotiere::Rectangle> {
         self.allocate(guillotiere_size(size))
     }
 
     /// Retrieves the current size of the atlas being allocated from.
-    fn size(&self) -> Vec2<i32> { self.size().to_array().into() }
+    fn size(&self) -> Vec2<u16> {
+        // NOTE: with_max_size / grow take a u16 so the size will never be larger than
+        // u16::MAX
+        Vec2::<i32>::from(self.size().to_array()).map(|e| e as u16)
+    }
 
     /// Grows the size of the atlas to the provided size.
-    fn grow(&mut self, new_size: Vec2<i32>) { self.grow(guillotiere_size(new_size)) }
+    fn grow(&mut self, new_size: Vec2<u16>) { self.grow(guillotiere_size(new_size)) }
 }
 
 pub struct GuillotiereTiled {
-    // TODO: Try BucketsAtlasAllocator
     // Each tile is Self::TILE_SIZE (unless max size is not aligned to this, in which case the
     // tiles that reach the max size are truncated below this value).
     allocator: guillotiere::SimpleAtlasAllocator,
@@ -152,13 +157,18 @@ pub struct GuillotiereTiled {
     // Offset (in tiles) of current tile being allocated from (others returned `None` on last
     // allocation attempt)
     current: Option<Vec2<usize>>,
-    // Efficiency history (total area, used area)
-    history: Vec<(i32, i32)>,
+    // Efficiency history for filled tiles (total area, used area)
+    //
+    // This is useful to examine packing efficiency.
+    history: Vec<(u32, u32)>,
+    used_in_current_tile: u32,
 }
 
 impl GuillotiereTiled {
     // We can potentially further optimize packing by deferring the allocations
-    // until all rectangles are available for packing.
+    // until all rectangles are available for packing. We could also cache this
+    // for sprites if we get to the point of having the rest of start up times
+    // fast enough for this to be helpful (e.g. for iterative work).
     //
     // Tested with sprites:
     // 64 1.63s 1.109 packing
@@ -171,7 +181,8 @@ impl GuillotiereTiled {
 
     fn allocator_options() -> guillotiere::AllocatorOptions {
         // TODO: Collect information to see if we can choose a better value here (these
-        // values were picked before switching to this tiled implementation).
+        // values were picked before switching to this tiled implementation). I
+        // suspect these are still near optimal though.
         let large_size_threshold = 8;
         let small_size_threshold = 3;
 
@@ -183,21 +194,21 @@ impl GuillotiereTiled {
     }
 
     fn next_tile(&mut self) {
-        tracing::error!("next tile");
         if self.current.is_some() {
             prof_span!("stats");
-            let free_space = self.allocator.free_space();
             let size = self.allocator.size();
-            let area = size.width * size.height;
-            let used = area - free_space;
+            // NOTE: TILE_SIZE is small enough that this won't overflow.
+            let area = size.width as u32 * size.height as u32;
+            let used = self.used_in_current_tile;
             self.history.push((area, used));
         }
 
         self.current = if let Some(offset) = self.free_tiles.pop() {
             self.allocator.reset(
-                guillotiere_size(Vec2::broadcast(i32::from(Self::TILE_SIZE))),
+                guillotiere_size(Vec2::broadcast(Self::TILE_SIZE)),
                 &Self::allocator_options(),
             );
+            self.used_in_current_tile = 0;
             Some(offset)
         } else {
             None
@@ -206,9 +217,9 @@ impl GuillotiereTiled {
 }
 
 impl AtlasAllocator for GuillotiereTiled {
-    fn with_max_size(max_size: Vec2<i32>) -> Self {
-        let size = guillotiere_size(Vec2::broadcast(i32::from(Self::TILE_SIZE)))
-            .min(guillotiere_size(max_size));
+    fn with_max_size(max_size: Vec2<u16>) -> Self {
+        let size =
+            guillotiere_size(Vec2::broadcast(Self::TILE_SIZE)).min(guillotiere_size(max_size));
 
         let allocator =
             guillotiere::SimpleAtlasAllocator::with_options(size, &Self::allocator_options());
@@ -219,27 +230,27 @@ impl AtlasAllocator for GuillotiereTiled {
             size: Vec2::new(1, 1),
             current: Some(Vec2::new(0, 0)),
             history: Vec::new(),
+            used_in_current_tile: 0,
         }
     }
 
     /// Allocates a rectangle of the given size.
-    fn allocate(&mut self, size: Vec2<i32>) -> Option<guillotiere::Rectangle> {
-        //prof_span!("allocate_tiled");
-        //tracing::info!("size {}", size);
+    fn allocate(&mut self, size: Vec2<u16>) -> Option<guillotiere::Rectangle> {
         let size = guillotiere_size(size);
 
         while let Some(current) = self.current {
             match self.allocator.allocate(size) {
                 Some(r) => {
-                    // NOTE: The offset will always be smaller or equal to the `i32`s passed into
+                    // NOTE: The offset will always be smaller or equal to the `u16`s passed into
                     // `with_max_size`/`grow` so this won't overflow.
-                    let offset =
-                        guillotiere_size(current.map(|e| e as i32 * i32::from(Self::TILE_SIZE)));
+                    let offset = guillotiere_size(current.map(|e| e as u16 * Self::TILE_SIZE));
 
                     let offset_rect = guillotiere::Rectangle {
                         min: r.min.add_size(&offset),
                         max: r.max.add_size(&offset),
                     };
+                    // NOTE: `i32` -> `u32` conversion is fine since these will always be positive.
+                    self.used_in_current_tile += size.width as u32 * size.height as u32;
 
                     return Some(offset_rect);
                 },
@@ -251,14 +262,14 @@ impl AtlasAllocator for GuillotiereTiled {
     }
 
     /// Retrieves the current size of the atlas being allocated from.
-    fn size(&self) -> Vec2<i32> {
-        // NOTE: The size will always be smaller or equal to the `i32`s passed into
+    fn size(&self) -> Vec2<u16> {
+        // NOTE: The size will always be smaller or equal to the `u16`s passed into
         // `with_max_size`/`grow` so this won't overflow.
-        self.size.map(|e| e as i32 * i32::from(Self::TILE_SIZE))
+        self.size.map(|e| e as u16 * Self::TILE_SIZE)
     }
 
     /// Grows the size of the atlas to the provided size.
-    fn grow(&mut self, new_size: Vec2<i32>) {
+    fn grow(&mut self, new_size: Vec2<u16>) {
         if tracing::enabled!(tracing::Level::TRACE) {
             tracing::trace!(
                 "Tile count: {}",
@@ -274,12 +285,10 @@ impl AtlasAllocator for GuillotiereTiled {
         }
 
         let diff = (new_size - self.size()).map(|e| e.max(0));
-        // NOTE: `e` should fit in usize since it is a postive i32 (and we aren't
-        // targeting 16-bit platforms, although this will probably hit the max
-        // texture size limit first regardless)
-        // NOTE: growing only occurs in increments of tiles size so any remaining size
-        // is ignored.
-        let diff_tiles = diff.map(|e| e as usize / usize::from(Self::TILE_SIZE));
+        // NOTE: Growing only occurs in increments of TILE_SIZE so any remaining size is
+        // ignored. Max size is not known here so this must truncate instead of rounding
+        // up.
+        let diff_tiles = diff.map(|e| usize::from(e) / usize::from(Self::TILE_SIZE));
         let old_size = self.size;
         self.size += diff_tiles;
 
@@ -309,7 +318,7 @@ pub struct GreedyMesh<'a, Allocator: AtlasAllocator = guillotiere::SimpleAtlasAl
     //atlas: guillotiere::SimpleAtlasAllocator,
     atlas: Allocator,
     col_lights_size: Vec2<u16>,
-    max_size: Vec2<i32>,
+    max_size: Vec2<u16>,
     suspended: Vec<Box<SuspendedMesh<'a>>>,
 }
 
@@ -319,7 +328,8 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
     /// Takes as input the maximum allowable size of the texture atlas used to
     /// store the light/color data for this mesh.
     ///
-    /// NOTE: It is an error to pass any size > u16::MAX.
+    /// NOTE: It is an error to pass any size > u16::MAX (this is now enforced
+    /// by the type being `u16`).
     ///
     /// Even aside from the above limitation, this will not necessarily always
     /// be the same as the maximum atlas size supported by the hardware.
@@ -328,10 +338,7 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
     /// to have at least 2 bits of the normal; thus, it can only take up at
     /// most 30 bits total, meaning we are restricted to "only" at most 2^15
     /// × 2^15 atlases even if the hardware supports larger ones.
-    // TODO: could we change i32 -> u16 here?
-    // TODO: use this: pub fn new(max_size: Vec2<i32>) -> Self {
-    pub fn new(max_size: guillotiere::Size) -> Self {
-        let max_size = Vec2::new(max_size.width, max_size.height);
+    pub fn new(max_size: Vec2<u16>) -> Self {
         span!(_guard, "new", "GreedyMesh::new");
         let min_max_dim = max_size.reduce_min();
         assert!(
@@ -405,14 +412,13 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
         col_lights_info
     }
 
-    // TODO: don't use guillotiere type here
-    pub fn max_size(&self) -> guillotiere::Size { guillotiere_size(self.max_size) }
+    pub fn max_size(&self) -> Vec2<u16> { self.max_size }
 }
 
 fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FO, FS, FP, FT, Allocator: AtlasAllocator>(
     atlas: &mut Allocator,
     col_lights_size: &mut Vec2<u16>,
-    max_size: Vec2<i32>,
+    max_size: Vec2<u16>,
     GreedyConfig {
         mut data,
         draw_delta,
@@ -648,16 +654,16 @@ fn add_to_atlas<Allocator: AtlasAllocator>(
     dim: Vec2<usize>,
     norm: Vec3<i16>,
     faces_forward: bool,
-    max_size: Vec2<i32>,
+    max_size: Vec2<u16>,
     cur_size: &mut Vec2<u16>,
 ) -> guillotiere::Rectangle {
     //prof_span!("add_to_atlas");
     // TODO: Check this conversion.
     let atlas_rect = loop {
-        // NOTE: Conversion to i32 is safe because he x, y, and z dimensions for any
+        // NOTE: Conversion to u16 is safe because he x, y, and z dimensions for any
         // chunk index must fit in at least an i16 (lower for x and y, probably
-        // lower for z).
-        let res = atlas.allocate(Vec2::new(dim.x as i32 + 1, dim.y as i32 + 1));
+        // lower for z) and at least x and y are not negative.
+        let res = atlas.allocate(Vec2::new(dim.x as u16 + 1, dim.y as u16 + 1));
         if let Some(atlas_rect) = res {
             break atlas_rect;
         }
@@ -688,9 +694,9 @@ fn add_to_atlas<Allocator: AtlasAllocator>(
         });
         atlas.grow(new_size);
     };
-    // NOTE: Conversion is correct because our initial max size for the atlas was
-    // a u16 and we never grew the atlas, meaning all valid coordinates within the
-    // atlas also fit into a u16.
+    // NOTE: Conversion is correct because our initial max size for the atlas was a
+    // u16 and we never grew the atlas past the max size, meaning all valid
+    // coordinates within the atlas also fit into a u16.
     *cur_size = Vec2::new(
         cur_size.x.max(atlas_rect.max.x as u16),
         cur_size.y.max(atlas_rect.max.y as u16),
