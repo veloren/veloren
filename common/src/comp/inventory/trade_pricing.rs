@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, AssetExt},
-    comp::item::Item,
+    comp::item::{Item, ItemDefinitionId},
     lottery::LootSpec,
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
@@ -59,6 +59,22 @@ impl std::ops::Add for MaterialUse {
         vector_add_eq(&mut result.0, &rhs.0);
         result
     }
+}
+
+impl std::ops::AddAssign for MaterialUse {
+    fn add_assign(&mut self, rhs: Self) {
+        vector_add_eq(&mut self.0, &rhs.0);
+    }
+}
+
+impl std::iter::Sum<MaterialUse> for MaterialUse {
+   fn sum<I>(iter: I) -> Self where I: Iterator<Item=Self> {
+        let mut ret = Self::default();
+        for i in iter {
+            ret += i;
+        }
+        ret
+   }
 }
 
 impl std::ops::Deref for MaterialUse {
@@ -362,6 +378,7 @@ impl TradePricing {
             _ if name.starts_with("common.items.armor.") => Good::Armor,
 
             _ if name.starts_with("common.items.weapons.") => Good::Tools,
+            _ if name.starts_with("common.items.modular.weapon.") => Good::Tools,
             _ if name.starts_with("common.items.tool.") => Good::Tools,
 
             _ if name.starts_with("common.items.crafting_ing.") => Good::Ingredients,
@@ -663,7 +680,16 @@ impl TradePricing {
         result
     }
 
-    fn get_materials_impl(&self, item: &str) -> Option<&MaterialUse> { self.price_lookup(item) }
+    fn get_materials_impl(&self, item: ItemDefinitionId<'_>) -> Option<MaterialUse> {
+        let tmp = format!("{:?}", item);
+        let ret = match item {
+            ItemDefinitionId::Simple(id) => self.price_lookup(id).cloned(),
+            ItemDefinitionId::Modular { components, .. } => Some(components.into_iter().filter_map(|comp| self.get_materials_impl(comp)).sum()),
+            ItemDefinitionId::Compound { simple_base, components } => Some(self.price_lookup(simple_base).cloned().unwrap_or_else(MaterialUse::default) + components.into_iter().filter_map(|comp| self.get_materials_impl(comp)).sum()),
+        };
+        println!("{} -> {:?}", tmp, ret);
+        ret
+    }
 
     #[must_use]
     pub fn random_items(
@@ -677,7 +703,7 @@ impl TradePricing {
     }
 
     #[must_use]
-    pub fn get_materials(item: &str) -> Option<&MaterialUse> {
+    pub fn get_materials(item: ItemDefinitionId<'_>) -> Option<MaterialUse> {
         TRADE_PRICING.get_materials_impl(item)
     }
 

@@ -5,7 +5,7 @@ use crate::{
         item::{
             modular,
             tool::{AbilityMap, ToolKind},
-            ItemBase, ItemDef, ItemKind, ItemTag, MaterialStatManifest,
+            ItemBase, ItemDef, ItemDefinitionIdOwned, ItemKind, ItemTag, MaterialStatManifest,
         },
         Inventory, Item,
     },
@@ -472,12 +472,21 @@ pub struct ComponentRecipeBook {
     recipes: HashMap<ComponentKey, ComponentRecipe>,
 }
 
+#[derive(Clone, Debug)]
+pub struct ReverseComponentRecipeBook {
+    recipes: HashMap<ItemDefinitionIdOwned, ComponentRecipe>,
+}
+
 impl ComponentRecipeBook {
     pub fn get(&self, key: &ComponentKey) -> Option<&ComponentRecipe> { self.recipes.get(key) }
 
     pub fn iter(&self) -> impl ExactSizeIterator<Item = (&ComponentKey, &ComponentRecipe)> {
         self.recipes.iter()
     }
+}
+
+impl ReverseComponentRecipeBook {
+    pub fn get(&self, key: &ItemDefinitionIdOwned) -> Option<&ComponentRecipe> { self.recipes.get(key) }
 }
 
 #[derive(Clone, Deserialize)]
@@ -644,6 +653,26 @@ impl ComponentRecipe {
                 .map(|(input, amount)| (input, *amount)),
             inv,
         )
+    }
+
+    pub fn itemdef_output(&self) -> ItemDefinitionIdOwned {
+        match &self.output {
+            ComponentOutput::ItemComponents {
+                item: item_def,
+                components,
+            } => {
+                let components = components
+                    .iter()
+                    .map(|item_def| {
+                        ItemDefinitionIdOwned::Simple(item_def.id().to_owned())
+                    })
+                    .collect::<Vec<_>>();
+                ItemDefinitionIdOwned::Compound {
+                    simple_base: item_def.id().to_owned(),
+                    components,
+                }
+            },
+        }
     }
 
     pub fn item_output(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Item {
@@ -817,4 +846,15 @@ pub fn default_recipe_book() -> AssetHandle<RecipeBook> {
 
 pub fn default_component_recipe_book() -> AssetHandle<ComponentRecipeBook> {
     ComponentRecipeBook::load_expect("common.component_recipe_book")
+}
+
+impl assets::Compound for ReverseComponentRecipeBook {
+    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
+        let forward = cache.load::<ComponentRecipeBook>(specifier)?.cloned();
+        let mut recipes = HashMap::new();
+        for (_, recipe) in forward.iter() {
+            recipes.insert(recipe.itemdef_output(), recipe.clone());
+        }
+        Ok(ReverseComponentRecipeBook { recipes })
+    }
 }

@@ -5,7 +5,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            ItemDesc, ItemKind, MaterialKind, MaterialStatManifest,
+            ItemDefinitionId, ItemDesc, ItemKind, MaterialKind, MaterialStatManifest,
         },
         BuffKind,
     },
@@ -18,7 +18,7 @@ use std::{borrow::Cow, fmt::Write};
 
 pub fn price_desc(
     prices: &Option<SitePrices>,
-    item_definition_id: &str,
+    item_definition_id: ItemDefinitionId<'_>,
     i18n: &Localization,
 ) -> Option<(String, String, f32)> {
     if let Some(prices) = prices {

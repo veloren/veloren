@@ -389,12 +389,7 @@ impl SitePrices {
                     .as_ref()
                     .and_then(|ri| {
                         ri.inventory.get(slot).map(|item| {
-                            if let Some(vec) = item
-                                .name
-                                .as_ref()
-                                // TODO: This won't handle compound items with components well, or pure modular items at all
-                                .itemdef_id()
-                                .and_then(TradePricing::get_materials)
+                            if let Some(vec) = TradePricing::get_materials(item.name.as_ref())
                             {
                                 vec.iter()
                                     .map(|(amount2, material)| {
