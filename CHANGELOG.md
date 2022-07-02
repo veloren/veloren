@@ -49,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Damage from the same source dealt in the same tick will now be grouped up.
 - Critical hits are now shown differently in the damage numbers.
 - Fall damage and some (extra) buffs/debuffs now show up in the damage numbers. 
+- Optimized sprite processing decreasing the startup time of voxygen (and long freezes when trying
+  to enter the world when this hasn't finished).
 
 ### Removed
 - Removed the options for single and cumulated damage.
