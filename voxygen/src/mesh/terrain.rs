@@ -351,8 +351,7 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
         (start, end)
     });
 
-    let max_size =
-        guillotiere::Size::new(i32::from(max_texture_size.x), i32::from(max_texture_size.y));
+    let max_size = max_texture_size;
     assert!(z_end >= z_start);
     let greedy_size = Vec3::new(range.size().w - 2, range.size().h - 2, z_end - z_start + 1);
     // NOTE: Terrain sizes are limited to 32 x 32 x 16384 (to fit in 24 bits: 5 + 5
@@ -389,7 +388,10 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
         |atlas_pos, pos, norm, meta| TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta);
     let create_transparent = |_atlas_pos, pos, norm| FluidVertex::new(pos + mesh_delta, norm);
 
-    let mut greedy = GreedyMesh::new(max_size);
+    let mut greedy = GreedyMesh::<guillotiere::SimpleAtlasAllocator>::new(
+        max_size,
+        crate::mesh::greedy::general_config(),
+    );
     let mut opaque_mesh = Mesh::new();
     let mut fluid_mesh = Mesh::new();
     greedy.push(GreedyConfig {
