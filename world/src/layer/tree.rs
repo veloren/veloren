@@ -2,8 +2,9 @@ use crate::{
     all::*,
     block::block_from_structure,
     column::ColumnGen,
+    layer::cave::tunnel_bounds_at,
     util::{gen_cache::StructureGenCache, RandomPerm, Sampler, UnitChooser},
-    Canvas, ColumnSample,
+    Canvas, CanvasInfo, ColumnSample,
 };
 use common::{
     assets::AssetHandle,
@@ -34,11 +35,20 @@ static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
 // Ensure that it's valid to place a tree here
-pub fn tree_valid_at(col: &ColumnSample, seed: u32) -> bool {
+pub fn tree_valid_at(
+    wpos: Vec2<i32>,
+    col: &ColumnSample,
+    info: Option<CanvasInfo<'_>>,
+    seed: u32,
+) -> bool {
     if col.alt < col.water_level
         || col.spawn_rate < 0.9
         || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
         || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
+        || info.map_or(false, |info| {
+            tunnel_bounds_at(wpos, &info, &info.land())
+                .any(|(_, z_range, _, _)| z_range.contains(&(col.alt as i32 - 1)))
+        })
     {
         return false;
     }
@@ -85,7 +95,7 @@ pub fn apply_trees_to(
 
             let col = ColumnGen::new(info.chunks()).get((wpos, info.index(), calendar))?;
 
-            if !tree_valid_at(&col, seed) {
+            if !tree_valid_at(wpos, &col, Some(info), seed) {
                 return None;
             }
 

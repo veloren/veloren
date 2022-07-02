@@ -378,6 +378,7 @@ impl World {
         if index.features.caves {
             layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
         }
+        layer::apply_caves2_to(&mut canvas, &mut dynamic_rng);
         if index.features.rocks {
             layer::apply_rocks_to(&mut canvas, &mut dynamic_rng);
         }
@@ -396,7 +397,6 @@ impl World {
         if index.features.spots {
             layer::apply_spots_to(&mut canvas, &mut dynamic_rng);
         }
-        layer::apply_caves2_to(&mut canvas, &mut dynamic_rng);
         // layer::apply_coral_to(&mut canvas);
 
         // Apply site generation
@@ -492,7 +492,7 @@ impl World {
                 .filter_map(|attr| {
                     ColumnGen::new(self.sim())
                         .get((attr.pos, index, self.sim().calendar.as_ref()))
-                        .filter(|col| layer::tree::tree_valid_at(col, attr.seed))
+                        .filter(|col| layer::tree::tree_valid_at(attr.pos, col, None, attr.seed))
                         .zip(Some(attr))
                 })
                 .filter_map(|(col, tree)| {
