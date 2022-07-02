@@ -444,7 +444,10 @@ impl SpriteRenderContext {
                 Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
 
             let max_size = Vec2::from(u16::try_from(max_texture_size).unwrap_or(u16::MAX));
-            let mut greedy = GreedyMesh::<SpriteAtlasAllocator>::new(max_size);
+            let mut greedy = GreedyMesh::<SpriteAtlasAllocator>::new(
+                max_size,
+                crate::mesh::greedy::sprite_config(),
+            );
             let mut sprite_mesh = Mesh::new();
             // NOTE: Tracks the start vertex of the next model to be meshed.
             let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()

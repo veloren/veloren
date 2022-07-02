@@ -1600,7 +1600,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
         // particles in a single atlas.
         let max_texture_size = renderer.max_texture_size();
         let max_size = Vec2::from(u16::try_from(max_texture_size).unwrap_or(u16::MAX));
-        let mut greedy = GreedyMesh::new(max_size);
+        let mut greedy = GreedyMesh::new(max_size, crate::mesh::greedy::general_config());
 
         let segment = Segment::from(&vox.read().0);
         let segment_size = segment.size();

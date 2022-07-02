@@ -93,7 +93,7 @@ impl FigureModel {
         // of the atlas coordinates, which is why we "only" allow 1 << 15 per
         // coordinate instead of 1 << 16.
         let max_size = Vec2::new((1 << 15) - 1, (1 << 15) - 1);
-        GreedyMesh::new(max_size)
+        GreedyMesh::new(max_size, crate::mesh::greedy::general_config())
     }
 }
 
