@@ -192,6 +192,8 @@ impl Tunnel {
                 .noise
                 .cave_nz
                 .get(wpos.xy().map(|e| e as f64 / 2048.0).into_array())
+                .mul(2.0)
+                .sub(1.0)
                 .add(
                     ((col.alt as f64 - wpos.z as f64)
                         / (AVG_LEVEL_DEPTH as f64 * LAYERS as f64 * 0.8))
@@ -209,7 +211,7 @@ impl Tunnel {
 
         let underground = ((col.alt as f32 - wpos.z as f32) / 80.0 - 1.0).clamped(0.0, 1.0);
 
-        let [_, mushroom, fire, leafy, dusty] = {
+        let [_, mushroom, fire, leafy, dusty, icy] = {
             let barren = 0.01;
             let mushroom = underground
                 * close(humidity, 1.0, 0.75)
@@ -220,9 +222,10 @@ impl Tunnel {
                 * close(humidity, 1.0, 0.75)
                 * close(temp, -0.1, 0.75)
                 * close(depth, 0.0, 0.6);
-            let dusty = underground * close(humidity, 0.0, 0.5) * close(temp, -0.3, 0.65);
+            let dusty = close(humidity, 0.0, 0.5) * close(temp, -0.3, 0.65);
+            let icy = close(temp, -1.0, 0.7);
 
-            let biomes = [barren, mushroom, fire, leafy, dusty];
+            let biomes = [barren, mushroom, fire, leafy, dusty, icy];
             let max = biomes
                 .into_iter()
                 .max_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal))
@@ -238,6 +241,7 @@ impl Tunnel {
             fire,
             leafy,
             dusty,
+            icy,
         }
     }
 }
@@ -384,6 +388,7 @@ struct Biome {
     fire: f32,
     leafy: f32,
     dusty: f32,
+    icy: f32,
 }
 
 struct Mushroom {
@@ -612,10 +617,21 @@ fn write_column<R: Rng>(
             {
                 Block::new(BlockKind::Rock, Rgb::new(50, 35, 75))
             } else if (z < base && !void_below) || (z >= ceiling && !void_above) {
-                let stalactite: Rgb<i16> =
-                    Lerp::lerp(Rgb::new(80, 100, 150), Rgb::new(0, 75, 200), biome.mushroom);
+                let stalactite: Rgb<i16> = Lerp::lerp(
+                    Lerp::lerp(
+                        Lerp::lerp(Rgb::new(80, 100, 150), Rgb::new(0, 75, 200), biome.mushroom),
+                        Lerp::lerp(
+                            Rgb::new(100, 40, 40),
+                            Rgb::new(100, 75, 100),
+                            col.marble_small,
+                        ),
+                        biome.fire,
+                    ),
+                    Lerp::lerp(Rgb::new(100, 150, 255), Rgb::new(100, 120, 255), col.marble),
+                    biome.icy,
+                );
                 Block::new(
-                    if rand.chance(wpos, biome.mushroom * biome.mineral) {
+                    if rand.chance(wpos, (biome.mushroom * biome.mineral).max(biome.icy)) {
                         BlockKind::GlowingWeakRock
                     } else {
                         BlockKind::WeakRock
@@ -634,16 +650,21 @@ fn write_column<R: Rng>(
                     Rgb::new(80, 100, 20),
                     col.marble_small,
                 );
+                let icy = Rgb::new(150, 175, 255);
                 let dusty = Lerp::lerp(Rgb::new(50, 50, 75), Rgb::new(75, 75, 50), col.marble_mid);
                 let surf_color: Rgb<i16> = Lerp::lerp(
                     Lerp::lerp(
                         Lerp::lerp(
-                            Lerp::lerp(dry_mud, dusty, biome.dusty),
-                            mycelium,
-                            biome.mushroom,
+                            Lerp::lerp(
+                                Lerp::lerp(dry_mud, dusty, biome.dusty),
+                                mycelium,
+                                biome.mushroom,
+                            ),
+                            grassy,
+                            biome.leafy,
                         ),
-                        grassy,
-                        biome.leafy,
+                        icy,
+                        biome.icy,
                     ),
                     fire_rock,
                     biome.fire,
@@ -783,7 +804,7 @@ fn write_column<R: Rng>(
             } {
                 Block::new(BlockKind::Rock, col.stone_col)
             } else {
-                get_mushroom(wpos, rng).unwrap_or(block)
+                get_mushroom(wpos, rng).unwrap_or(Block::air(SpriteKind::Empty))
             }
         });
     }
