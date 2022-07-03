@@ -41,6 +41,10 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_event_bus.emitter();
 
         for (entity, client) in (&entities, &clients).join() {
+            // ignore network events
+            while let Some(Ok(Some(_))) = client.participant.as_ref().map(|p| p.try_fetch_event()) {
+            }
+
             let res = super::try_recv_all(client, 4, Self::handle_ping_msg);
 
             match res {

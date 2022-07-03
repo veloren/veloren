@@ -1,5 +1,5 @@
 use crate::{
-    api::{ConnectAddr, ParticipantError, Stream},
+    api::{ConnectAddr, ParticipantError, ParticipantEvent, Stream},
     channel::{Protocols, ProtocolsError, RecvProtocols, SendProtocols},
     metrics::NetworkMetrics,
     util::DeferredTracer,
@@ -53,6 +53,7 @@ struct StreamInfo {
 struct ControlChannels {
     a2b_open_stream_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
     b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
+    b2a_event_s: mpsc::UnboundedSender<ParticipantEvent>,
     s2b_create_channel_r: mpsc::UnboundedReceiver<S2bCreateChannel>,
     b2a_bandwidth_stats_s: watch::Sender<f32>,
     s2b_shutdown_bparticipant_r: oneshot::Receiver<S2bShutdownBparticipant>, /* own */
@@ -95,12 +96,14 @@ impl BParticipant {
         Self,
         mpsc::UnboundedSender<A2bStreamOpen>,
         mpsc::UnboundedReceiver<Stream>,
+        mpsc::UnboundedReceiver<ParticipantEvent>,
         mpsc::UnboundedSender<S2bCreateChannel>,
         oneshot::Sender<S2bShutdownBparticipant>,
         watch::Receiver<f32>,
     ) {
         let (a2b_open_stream_s, a2b_open_stream_r) = mpsc::unbounded_channel::<A2bStreamOpen>();
         let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded_channel::<Stream>();
+        let (b2a_event_s, b2a_event_r) = mpsc::unbounded_channel::<ParticipantEvent>();
         let (s2b_shutdown_bparticipant_s, s2b_shutdown_bparticipant_r) = oneshot::channel();
         let (s2b_create_channel_s, s2b_create_channel_r) = mpsc::unbounded_channel();
         let (b2a_bandwidth_stats_s, b2a_bandwidth_stats_r) = watch::channel::<f32>(0.0);
@@ -108,6 +111,7 @@ impl BParticipant {
         let run_channels = Some(ControlChannels {
             a2b_open_stream_r,
             b2a_stream_opened_s,
+            b2a_event_s,
             s2b_create_channel_r,
             b2a_bandwidth_stats_s,
             s2b_shutdown_bparticipant_r,
@@ -130,6 +134,7 @@ impl BParticipant {
             },
             a2b_open_stream_s,
             b2a_stream_opened_r,
+            b2a_event_r,
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2a_bandwidth_stats_r,
@@ -168,6 +173,7 @@ impl BParticipant {
                 b2b_close_send_protocol_r,
                 b2b_notify_send_of_recv_open_r,
                 b2b_notify_send_of_recv_close_r,
+                run_channels.b2a_event_s.clone(),
                 b2s_prio_statistic_s,
                 run_channels.b2a_bandwidth_stats_s,
             )
@@ -185,6 +191,7 @@ impl BParticipant {
                 run_channels.s2b_create_channel_r,
                 b2b_add_send_protocol_s,
                 b2b_add_recv_protocol_s,
+                run_channels.b2a_event_s,
             ),
             self.participant_shutdown_mgr(
                 run_channels.s2b_shutdown_bparticipant_r,
@@ -238,6 +245,7 @@ impl BParticipant {
             Bandwidth,
         )>,
         b2b_notify_send_of_recv_close_r: crossbeam_channel::Receiver<(Cid, Sid)>,
+        b2a_event_s: mpsc::UnboundedSender<ParticipantEvent>,
         _b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>,
         b2a_bandwidth_stats_s: watch::Sender<f32>,
     ) {
@@ -382,6 +390,13 @@ impl BParticipant {
                 // recv
                 trace!("TODO: for now decide to FAIL this participant and not wait for a failover");
                 sorted_send_protocols.delete(&cid).unwrap();
+                if let Some(info) = self.channels.write().await.get(&cid) {
+                    if let Err(e) = b2a_event_s.send(ParticipantEvent::ChannelDeleted(
+                        info.lock().await.remote_con_addr.clone(),
+                    )) {
+                        debug!(?e, "Participant was dropped during channel disconnect");
+                    };
+                }
                 self.metrics.channels_disconnected(&self.remote_pid_string);
                 if sorted_send_protocols.data.is_empty() {
                     break;
@@ -392,6 +407,13 @@ impl BParticipant {
                 debug!(?cid, "remove protocol");
                 match sorted_send_protocols.delete(&cid) {
                     Some(mut prot) => {
+                        if let Some(info) = self.channels.write().await.get(&cid) {
+                            if let Err(e) = b2a_event_s.send(ParticipantEvent::ChannelDeleted(
+                                info.lock().await.remote_con_addr.clone(),
+                            )) {
+                                debug!(?e, "Participant was dropped during channel disconnect");
+                            };
+                        }
                         self.metrics.channels_disconnected(&self.remote_pid_string);
                         trace!("blocking flush");
                         let _ = prot.flush(u64::MAX, Duration::from_secs(1)).await;
@@ -558,6 +580,7 @@ impl BParticipant {
         s2b_create_channel_r: mpsc::UnboundedReceiver<S2bCreateChannel>,
         b2b_add_send_protocol_s: mpsc::UnboundedSender<(Cid, SendProtocols)>,
         b2b_add_recv_protocol_s: mpsc::UnboundedSender<(Cid, RecvProtocols)>,
+        b2a_event_s: mpsc::UnboundedSender<ParticipantEvent>,
     ) {
         let s2b_create_channel_r = UnboundedReceiverStream::new(s2b_create_channel_r);
         s2b_create_channel_r
@@ -569,6 +592,7 @@ impl BParticipant {
                     let channels = Arc::clone(&self.channels);
                     let b2b_add_send_protocol_s = b2b_add_send_protocol_s.clone();
                     let b2b_add_recv_protocol_s = b2b_add_recv_protocol_s.clone();
+                    let b2a_event_s = b2a_event_s.clone();
                     async move {
                         let mut lock = channels.write().await;
                         let mut channel_no = lock.len();
@@ -577,13 +601,18 @@ impl BParticipant {
                             Mutex::new(ChannelInfo {
                                 cid,
                                 cid_string: cid.to_string(),
-                                remote_con_addr,
+                                remote_con_addr: remote_con_addr.clone(),
                             }),
                         );
                         drop(lock);
                         let (send, recv) = protocol.split();
                         b2b_add_send_protocol_s.send((cid, send)).unwrap();
                         b2b_add_recv_protocol_s.send((cid, recv)).unwrap();
+                        if let Err(e) =
+                            b2a_event_s.send(ParticipantEvent::ChannelCreated(remote_con_addr))
+                        {
+                            debug!(?e, "Participant was dropped during channel connect");
+                        };
                         b2s_create_channel_done_s.send(()).unwrap();
                         if channel_no > 5 {
                             debug!(?channel_no, "metrics will overwrite channel #5");
@@ -777,6 +806,7 @@ impl BParticipant {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core::assert_matches::assert_matches;
     use network_protocol::{ProtocolMetricCache, ProtocolMetrics};
     use tokio::{
         runtime::Runtime,
@@ -788,6 +818,7 @@ mod tests {
         Arc<Runtime>,
         mpsc::UnboundedSender<A2bStreamOpen>,
         mpsc::UnboundedReceiver<Stream>,
+        mpsc::UnboundedReceiver<ParticipantEvent>,
         mpsc::UnboundedSender<S2bCreateChannel>,
         oneshot::Sender<S2bShutdownBparticipant>,
         mpsc::UnboundedReceiver<B2sPrioStatistic>,
@@ -804,6 +835,7 @@ mod tests {
             bparticipant,
             a2b_open_stream_s,
             b2a_stream_opened_r,
+            b2a_event_r,
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2a_bandwidth_stats_r,
@@ -821,6 +853,7 @@ mod tests {
             runtime_clone,
             a2b_open_stream_s,
             b2a_stream_opened_r,
+            b2a_event_r,
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
@@ -854,6 +887,7 @@ mod tests {
             runtime,
             a2b_open_stream_s,
             b2a_stream_opened_r,
+            mut b2a_event_r,
             mut s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
@@ -877,6 +911,15 @@ mod tests {
             before.elapsed() > Duration::from_millis(900),
             "timeout wasn't triggered"
         );
+        assert_matches!(
+            b2a_event_r.try_recv().unwrap(),
+            ParticipantEvent::ChannelCreated(_)
+        );
+        assert_matches!(
+            b2a_event_r.try_recv().unwrap(),
+            ParticipantEvent::ChannelDeleted(_)
+        );
+        assert_matches!(b2a_event_r.try_recv(), Err(_));
 
         runtime.block_on(handle).unwrap();
 
@@ -890,6 +933,7 @@ mod tests {
             runtime,
             a2b_open_stream_s,
             b2a_stream_opened_r,
+            mut b2a_event_r,
             mut s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
@@ -914,6 +958,15 @@ mod tests {
             before.elapsed() < Duration::from_millis(1900),
             "timeout was triggered"
         );
+        assert_matches!(
+            b2a_event_r.try_recv().unwrap(),
+            ParticipantEvent::ChannelCreated(_)
+        );
+        assert_matches!(
+            b2a_event_r.try_recv().unwrap(),
+            ParticipantEvent::ChannelDeleted(_)
+        );
+        assert_matches!(b2a_event_r.try_recv(), Err(_));
 
         runtime.block_on(handle).unwrap();
 
@@ -927,6 +980,7 @@ mod tests {
             runtime,
             a2b_open_stream_s,
             b2a_stream_opened_r,
+            _b2a_event_r,
             mut s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
@@ -982,6 +1036,7 @@ mod tests {
             runtime,
             a2b_open_stream_s,
             mut b2a_stream_opened_r,
+            _b2a_event_r,
             mut s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,

@@ -1,10 +1,11 @@
+#![feature(assert_matches)]
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 use veloren_network::{NetworkError, StreamError};
 mod helper;
 use helper::{mpsc, network_participant_stream, quic, tcp, udp, SLEEP_EXTERNAL, SLEEP_INTERNAL};
 use std::io::ErrorKind;
-use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
+use veloren_network::{ConnectAddr, ListenAddr, Network, ParticipantEvent, Pid, Promises};
 
 #[test]
 fn stream_simple() {
@@ -306,4 +307,56 @@ fn listen_on_ipv6_doesnt_block_ipv4() {
 
     drop((s1_a, s1_b, _n_a, _n_b, _p_a, _p_b));
     drop((s1_a2, s1_b2, _n_a2, _n_b2, _p_a2, _p_b2)); //clean teardown
+}
+
+#[test]
+fn check_correct_channel_events() {
+    let (_, _) = helper::setup(false, 0);
+    let con_addr = tcp();
+    let (r, _n_a, p_a, _, _n_b, p_b, _) = network_participant_stream(con_addr.clone());
+
+    let event_a = r.block_on(p_a.fetch_event()).unwrap();
+    let event_b = r.block_on(p_b.fetch_event()).unwrap();
+    if let ConnectAddr::Tcp(listen_addr) = con_addr.1 {
+        match event_a {
+            ParticipantEvent::ChannelCreated(ConnectAddr::Tcp(socket_addr)) => {
+                assert_ne!(socket_addr, listen_addr);
+                assert_eq!(socket_addr.ip(), std::net::Ipv4Addr::LOCALHOST);
+            },
+            e => panic!("wrong event {:?}", e),
+        }
+        match event_b {
+            ParticipantEvent::ChannelCreated(ConnectAddr::Tcp(socket_addr)) => {
+                assert_eq!(socket_addr, listen_addr);
+            },
+            e => panic!("wrong event {:?}", e),
+        }
+    } else {
+        unreachable!();
+    }
+
+    std::thread::sleep(SLEEP_EXTERNAL);
+    drop((_n_a, _n_b)); //drop network
+
+    let event_a = r.block_on(p_a.fetch_event()).unwrap();
+    let event_b = r.block_on(p_b.fetch_event()).unwrap();
+    if let ConnectAddr::Tcp(listen_addr) = con_addr.1 {
+        match event_a {
+            ParticipantEvent::ChannelDeleted(ConnectAddr::Tcp(socket_addr)) => {
+                assert_ne!(socket_addr, listen_addr);
+                assert_eq!(socket_addr.ip(), std::net::Ipv4Addr::LOCALHOST);
+            },
+            e => panic!("wrong event {:?}", e),
+        }
+        match event_b {
+            ParticipantEvent::ChannelDeleted(ConnectAddr::Tcp(socket_addr)) => {
+                assert_eq!(socket_addr, listen_addr);
+            },
+            e => panic!("wrong event {:?}", e),
+        }
+    } else {
+        unreachable!();
+    }
+
+    drop((p_a, p_b)); //clean teardown
 }

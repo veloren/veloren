@@ -2364,6 +2364,11 @@ impl Client {
             return Err(Error::ServerTimeout);
         }
 
+        // ignore network events
+        while let Some(Ok(Some(event))) = self.participant.as_ref().map(|p| p.try_fetch_event()) {
+            trace!(?event, "received network event");
+        }
+
         Ok(frontend_events)
     }
 
