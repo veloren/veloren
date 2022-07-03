@@ -1,5 +1,5 @@
 use crate::{
-    api::{ParticipantError, Stream},
+    api::{ConnectAddr, ParticipantError, Stream},
     channel::{Protocols, ProtocolsError, RecvProtocols, SendProtocols},
     metrics::NetworkMetrics,
     util::DeferredTracer,
@@ -27,7 +27,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
 
 pub(crate) type A2bStreamOpen = (Prio, Promises, Bandwidth, oneshot::Sender<Stream>);
-pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, oneshot::Sender<()>);
+pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, ConnectAddr, oneshot::Sender<()>);
 pub(crate) type S2bShutdownBparticipant = (Duration, oneshot::Sender<Result<(), ParticipantError>>);
 pub(crate) type B2sPrioStatistic = (Pid, u64, u64);
 
@@ -36,6 +36,7 @@ pub(crate) type B2sPrioStatistic = (Pid, u64, u64);
 struct ChannelInfo {
     cid: Cid,
     cid_string: String, //optimisationmetrics
+    remote_con_addr: ConnectAddr,
 }
 
 #[derive(Debug)]
@@ -560,35 +561,39 @@ impl BParticipant {
     ) {
         let s2b_create_channel_r = UnboundedReceiverStream::new(s2b_create_channel_r);
         s2b_create_channel_r
-            .for_each_concurrent(None, |(cid, _, protocol, b2s_create_channel_done_s)| {
-                // This channel is now configured, and we are running it in scope of the
-                // participant.
-                let channels = Arc::clone(&self.channels);
-                let b2b_add_send_protocol_s = b2b_add_send_protocol_s.clone();
-                let b2b_add_recv_protocol_s = b2b_add_recv_protocol_s.clone();
-                async move {
-                    let mut lock = channels.write().await;
-                    let mut channel_no = lock.len();
-                    lock.insert(
-                        cid,
-                        Mutex::new(ChannelInfo {
+            .for_each_concurrent(
+                None,
+                |(cid, _, protocol, remote_con_addr, b2s_create_channel_done_s)| {
+                    // This channel is now configured, and we are running it in scope of the
+                    // participant.
+                    let channels = Arc::clone(&self.channels);
+                    let b2b_add_send_protocol_s = b2b_add_send_protocol_s.clone();
+                    let b2b_add_recv_protocol_s = b2b_add_recv_protocol_s.clone();
+                    async move {
+                        let mut lock = channels.write().await;
+                        let mut channel_no = lock.len();
+                        lock.insert(
                             cid,
-                            cid_string: cid.to_string(),
-                        }),
-                    );
-                    drop(lock);
-                    let (send, recv) = protocol.split();
-                    b2b_add_send_protocol_s.send((cid, send)).unwrap();
-                    b2b_add_recv_protocol_s.send((cid, recv)).unwrap();
-                    b2s_create_channel_done_s.send(()).unwrap();
-                    if channel_no > 5 {
-                        debug!(?channel_no, "metrics will overwrite channel #5");
-                        channel_no = 5;
+                            Mutex::new(ChannelInfo {
+                                cid,
+                                cid_string: cid.to_string(),
+                                remote_con_addr,
+                            }),
+                        );
+                        drop(lock);
+                        let (send, recv) = protocol.split();
+                        b2b_add_send_protocol_s.send((cid, send)).unwrap();
+                        b2b_add_recv_protocol_s.send((cid, recv)).unwrap();
+                        b2s_create_channel_done_s.send(()).unwrap();
+                        if channel_no > 5 {
+                            debug!(?channel_no, "metrics will overwrite channel #5");
+                            channel_no = 5;
+                        }
+                        self.metrics
+                            .channels_connected(&self.remote_pid_string, channel_no, cid);
                     }
-                    self.metrics
-                        .channels_connected(&self.remote_pid_string, channel_no, cid);
-                }
-            })
+                },
+            )
             .await;
         trace!("Stop create_channel_mgr");
         self.shutdown_barrier
@@ -836,7 +841,7 @@ mod tests {
         let p1 = Protocols::new_mpsc(s1, r2, metrics);
         let (complete_s, complete_r) = oneshot::channel();
         create_channel
-            .send((cid, Sid::new(0), p1, complete_s))
+            .send((cid, Sid::new(0), p1, ConnectAddr::Mpsc(42), complete_s))
             .unwrap();
         complete_r.await.unwrap();
         let metrics = ProtocolMetricCache::new(&cid.to_string(), met);
