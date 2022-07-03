@@ -309,6 +309,10 @@ impl Protocols {
                 let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
                 match Protocols::new_quic(connection, true, metrics).await {
                     Ok(quic) => {
+                        // TODO: we cannot guess the client hostname in quic server here.
+                        // though we need it for the certificate to be validated, in the future
+                        // this will either go away with new auth, or we have to do something like
+                        // a reverse DNS lookup
                         let connect_addr = ConnectAddr::Quic(
                             addr,
                             quinn::ClientConfig::with_native_roots(),
