@@ -2,6 +2,10 @@
 #![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
+#[cfg(all(target_os = "windows", not(feature = "tracy-memory")))]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 // Allow profiling allocations with Tracy
 #[cfg_attr(feature = "tracy-memory", global_allocator)]
 #[cfg(feature = "tracy-memory")]

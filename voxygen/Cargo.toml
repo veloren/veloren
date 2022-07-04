@@ -136,6 +136,9 @@ dispatch = "0.1.4"
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
 
+[target.'cfg(windows)'.dependencies]
+mimalloc = "0.1.29"
+
 # Mumble
 [target.'cfg(not(target_os="macos"))'.dependencies]
 mumble-link = "0.1.0"
