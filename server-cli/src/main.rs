@@ -2,6 +2,10 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(bool_to_option)]
 
+#[cfg(target_os = "windows")]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 /// `server-cli` interface commands not to be confused with the commands sent
 /// from the client to the server
 mod cli;
