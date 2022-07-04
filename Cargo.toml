@@ -35,7 +35,6 @@ overflow-checks = true
 debug-assertions = true
 panic = "abort"
 debug = false
-codegen-units = 8
 lto = false
 incremental = true
 # All packages that aren't members of this workspace
