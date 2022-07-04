@@ -30,6 +30,7 @@ pub use self::{
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
         postprocess::Locals as PostProcessLocals,
+        rain_occlusion::Locals as RainOcclusionLocals,
         shadow::{Locals as ShadowLocals, PointLightMatrix},
         skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
         sprite::{
@@ -120,6 +121,10 @@ pub enum CloudMode {
     /// Lots of detail with good-but-costly derivation of parameters.
     #[serde(other)]
     High,
+}
+
+impl CloudMode {
+    pub fn is_enabled(&self) -> bool { *self != CloudMode::None }
 }
 
 impl Default for CloudMode {
@@ -342,6 +347,7 @@ pub struct RenderMode {
     pub fluid: FluidMode,
     pub lighting: LightingMode,
     pub shadow: ShadowMode,
+    pub rain_occlusion: ShadowMapMode,
     pub bloom: BloomMode,
     /// 0.0..1.0
     pub point_glow: f32,
@@ -361,6 +367,7 @@ impl Default for RenderMode {
             fluid: FluidMode::default(),
             lighting: LightingMode::default(),
             shadow: ShadowMode::default(),
+            rain_occlusion: ShadowMapMode::default(),
             bloom: BloomMode::default(),
             point_glow: 0.35,
             experimental_shaders: HashSet::default(),
@@ -380,6 +387,7 @@ impl RenderMode {
                 fluid: self.fluid,
                 lighting: self.lighting,
                 shadow: self.shadow,
+                rain_occlusion: self.rain_occlusion,
                 bloom: self.bloom,
                 point_glow: self.point_glow,
                 experimental_shaders: self.experimental_shaders,
@@ -398,10 +406,11 @@ impl RenderMode {
 #[derive(PartialEq, Clone, Debug)]
 pub struct PipelineModes {
     aa: AaMode,
-    cloud: CloudMode,
+    pub cloud: CloudMode,
     fluid: FluidMode,
     lighting: LightingMode,
     pub shadow: ShadowMode,
+    pub rain_occlusion: ShadowMapMode,
     bloom: BloomMode,
     point_glow: f32,
     experimental_shaders: HashSet<ExperimentalShader>,
@@ -467,4 +476,6 @@ pub enum ExperimentalShader {
     /// Display grid lines to visualize the distribution of shadow map texels
     /// for the directional light from the sun.
     DirectionalShadowMapTexelGrid,
+    /// Enable rainbows
+    Rainbows,
 }

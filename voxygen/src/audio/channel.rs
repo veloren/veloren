@@ -11,7 +11,7 @@
 //! [`AudioSettings`](../../settings/struct.AudioSettings.html)
 //!
 //! When the AudioFrontend's
-//! [`play_sfx`](../struct.AudioFrontend.html#method.play_sfx)
+//! [`emit_sfx`](../struct.AudioFrontend.html#method.emit_sfx)
 //! methods is called, it attempts to retrieve an SfxChannel for playback. If
 //! the channel capacity has been reached and all channels are occupied, a
 //! warning is logged, and no sound is played.
@@ -22,6 +22,8 @@ use crate::audio::{
 };
 use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
 use serde::Deserialize;
+use std::time::Instant;
+use strum::EnumIter;
 use tracing::warn;
 use vek::*;
 
@@ -157,16 +159,22 @@ impl MusicChannel {
 
 /// AmbientChannelTags are used for non-positional sfx. Currently the only use
 /// is for wind.
-#[derive(Debug, PartialEq, Clone, Copy, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Deserialize, EnumIter)]
 pub enum AmbientChannelTag {
     Wind,
+    Rain,
+    Thunder,
+    Leaves,
 }
+
 /// A AmbientChannel uses a non-positional audio sink designed to play sounds
 /// which are always heard at the camera's position.
 pub struct AmbientChannel {
     tag: AmbientChannelTag,
-    multiplier: f32,
+    pub multiplier: f32,
     sink: Sink,
+    pub began_playing: Instant,
+    pub next_track_change: f32,
 }
 
 impl AmbientChannel {
@@ -177,13 +185,17 @@ impl AmbientChannel {
                 tag,
                 multiplier,
                 sink,
+                began_playing: Instant::now(),
+                next_track_change: 0.0,
             },
             Err(_) => {
-                warn!("Failed to create rodio sink. May not play wind sounds.");
+                warn!("Failed to create rodio sink. May not play ambient sounds.");
                 Self {
                     tag,
                     multiplier,
                     sink: Sink::new_idle().0,
+                    began_playing: Instant::now(),
+                    next_track_change: 0.0,
                 }
             },
         }
@@ -203,11 +215,11 @@ impl AmbientChannel {
 
     pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume * self.multiplier); }
 
-    pub fn set_multiplier(&mut self, multiplier: f32) { self.multiplier = multiplier; }
-
-    pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
+    // pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
 
     pub fn get_tag(&self) -> AmbientChannelTag { self.tag }
+
+    // pub fn set_tag(&mut self, tag: AmbientChannelTag) { self.tag = tag }
 }
 
 /// An SfxChannel uses a positional audio sink, and is designed for short-lived
@@ -252,6 +264,8 @@ impl SfxChannel {
 
     pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
 
+    pub fn stop(&mut self) { self.sink.stop(); }
+
     pub fn is_done(&self) -> bool { self.sink.empty() }
 
     pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
@@ -266,4 +280,32 @@ impl SfxChannel {
         self.sink
             .set_right_ear_position(listener.ear_right_rpos.into_array());
     }
+}
+
+pub struct UiChannel {
+    sink: Sink,
+}
+
+impl UiChannel {
+    pub fn new(stream: &OutputStreamHandle) -> Self {
+        Self {
+            sink: Sink::try_new(stream).unwrap(),
+        }
+    }
+
+    pub fn play<S>(&mut self, source: S)
+    where
+        S: Source + Send + 'static,
+        S::Item: Sample,
+        S::Item: Send,
+        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+    {
+        self.sink.append(source);
+    }
+
+    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
+
+    pub fn stop(&mut self) { self.sink.stop(); }
+
+    pub fn is_done(&self) -> bool { self.sink.empty() }
 }

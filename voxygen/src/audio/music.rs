@@ -48,6 +48,7 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     terrain::{BiomeKind, SitesKind},
+    weather::WeatherKind,
 };
 use common_state::State;
 use hashbrown::HashMap;
@@ -78,6 +79,8 @@ pub struct SoundtrackItem {
     length: f32,
     /// Whether this track should play during day or night
     timing: Option<DayPeriod>,
+    /// Whether this track should play during a certain weather
+    weather: Option<WeatherKind>,
     /// What biomes this track should play in with chance of play
     biomes: Vec<(BiomeKind, u8)>,
     /// Whether this track should play in a specific site
@@ -98,6 +101,7 @@ enum RawSoundtrackItem {
     Segmented {
         title: String,
         timing: Option<DayPeriod>,
+        weather: Option<WeatherKind>,
         biomes: Vec<(BiomeKind, u8)>,
         site: Option<SitesKind>,
         segments: Vec<(String, f32, MusicState, Option<MusicActivity>)>,
@@ -224,6 +228,11 @@ impl MusicMgr {
 
         use common::comp::{group::ENEMY, Group, Health, Pos};
         use specs::{Join, WorldExt};
+        // Checks if the music volume is set to zero or audio is disabled
+        // This prevents us from running all the following code unnecessarily
+        if !audio.music_enabled() {
+            return;
+        }
 
         let mut activity_state = MusicActivity::Explore;
 
@@ -328,6 +337,7 @@ impl MusicMgr {
 
         let is_dark = (state.get_day_period().is_dark()) as bool;
         let current_period_of_day = Self::get_current_day_period(is_dark);
+        let current_weather = client.weather_at_player();
         let current_biome = client.current_biome();
         let current_site = client.current_site();
 
@@ -347,6 +357,9 @@ impl MusicMgr {
                     None => true,
                 }) && match &track.site {
                     Some(site) => site == &current_site,
+                    None => true,
+                } && match &track.weather {
+                    Some(weather) => weather == &current_weather.get_kind(),
                     None => true,
                 }
             })
@@ -457,6 +470,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                     RawSoundtrackItem::Segmented {
                         title,
                         timing,
+                        weather,
                         biomes,
                         site,
                         segments,
@@ -467,6 +481,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                                 path,
                                 length,
                                 timing: timing.clone(),
+                                weather,
                                 biomes: biomes.clone(),
                                 site,
                                 music_state,

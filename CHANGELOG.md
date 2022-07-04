@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an option for experience number accumulation.
 - Added an option for damage number rounding (when greater than or equal to 1.0).
 - Added sliders for incoming/non-incoming damage accumulation duration.
+- New ambience sounds
+- Slider for ambience volume
+- Weather generated on server is sent to clients, and seen on clients as rain/clouds.
 
 ### Changed
 
@@ -69,6 +72,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where the hurt animation would "jump" whenever you lost/gained health.
 - Fixed a bug where multiple damage sources in the same tick would show up as a singular attack.
 - Fixed an issue where, if the same amount of healing and damage was received in the same tick, nothing would be shown.
+- UI sfx now play from UI instead of from camera (allowing stereo sfx)
+- Most sfx now correctly play when camera is underwater
+- All sounds now stop upon quitting to main menu
+
 ## [0.12.0] - 2022-02-19
 
 ### Added

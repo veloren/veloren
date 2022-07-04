@@ -1,3 +1,5 @@
+use crate::render::pipelines::rain_occlusion;
+
 use super::{
     super::{
         pipelines::{
@@ -72,6 +74,16 @@ impl Renderer {
     pub fn create_shadow_bound_locals(&mut self, locals: &[shadow::Locals]) -> shadow::BoundLocals {
         let locals = self.create_consts(locals);
         self.layouts.shadow.bind_locals(&self.device, locals)
+    }
+
+    pub fn create_rain_occlusion_bound_locals(
+        &mut self,
+        locals: &[rain_occlusion::Locals],
+    ) -> rain_occlusion::BoundLocals {
+        let locals = self.create_consts(locals);
+        self.layouts
+            .rain_occlusion
+            .bind_locals(&self.device, locals)
     }
 
     pub fn figure_bind_col_light(&self, col_light: Texture) -> ColLights<figure::Locals> {

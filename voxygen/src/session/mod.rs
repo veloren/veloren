@@ -175,6 +175,21 @@ impl SessionState {
         self.scene
             .maintain_debug_hitboxes(&client, &global_state.settings, &mut self.hitboxes);
 
+        // All this camera code is just to determine if it's underwater for the sfx
+        // filter
+        let camera = self.scene.camera_mut();
+        camera.compute_dependents(&*client.state().terrain());
+        let camera::Dependents { cam_pos, .. } = self.scene.camera().dependents();
+        let focus_pos = self.scene.camera().get_focus_pos();
+        let focus_off = focus_pos.map(|e| e.trunc());
+        let cam_pos = cam_pos + focus_off;
+        let underwater = client
+            .state()
+            .terrain()
+            .get(cam_pos.map(|e| e.floor() as i32))
+            .map(|b| b.is_liquid())
+            .unwrap_or(false);
+
         #[cfg(not(target_os = "macos"))]
         {
             // Update mumble positional audio
@@ -245,7 +260,24 @@ impl SessionState {
                     let sfx_triggers = self.scene.sfx_mgr.triggers.read();
 
                     let sfx_trigger_item = sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
-                    global_state.audio.emit_sfx_item(sfx_trigger_item);
+
+                    match inv_event {
+                        InventoryUpdateEvent::Dropped
+                        | InventoryUpdateEvent::Swapped
+                        | InventoryUpdateEvent::Given
+                        | InventoryUpdateEvent::Collected(_)
+                        | InventoryUpdateEvent::EntityCollectFailed { .. }
+                        | InventoryUpdateEvent::BlockCollectFailed { .. }
+                        | InventoryUpdateEvent::Craft => {
+                            global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
+                        },
+                        _ => global_state.audio.emit_sfx(
+                            sfx_trigger_item,
+                            client.position().unwrap_or_default(),
+                            Some(1.0),
+                            underwater,
+                        ),
+                    }
 
                     match inv_event {
                         InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
@@ -358,6 +390,7 @@ impl PlayState for SessionState {
             let client = self.client.borrow();
             (client.presence(), client.registered())
         };
+
         if client_presence.is_some() {
             let camera = self.scene.camera_mut();
 
@@ -1172,7 +1205,11 @@ impl PlayState for SessionState {
                     },
                     HudEvent::Logout => {
                         self.client.borrow_mut().logout();
+                        // Stop all sounds
+                        // TODO: Abstract this behavior to all instances of PlayStateResult::Pop
+                        // somehow
                         global_state.audio.stop_ambient_sounds();
+                        global_state.audio.stop_all_sfx();
                         return PlayStateResult::Pop;
                     },
                     HudEvent::Quit => {
@@ -1577,8 +1614,13 @@ impl PlayState for SessionState {
 
                     // Process outcomes from client
                     for outcome in outcomes {
-                        self.scene
-                            .handle_outcome(&outcome, &scene_data, &mut global_state.audio);
+                        self.scene.handle_outcome(
+                            &outcome,
+                            &scene_data,
+                            &mut global_state.audio,
+                            client.state(),
+                            cam_pos,
+                        );
                         self.hud
                             .handle_outcome(&outcome, scene_data.client, global_state);
                     }

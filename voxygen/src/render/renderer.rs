@@ -3,6 +3,7 @@ pub(super) mod drawer;
 // Consts and bind groups for post-process and clouds
 mod locals;
 mod pipeline_creation;
+mod rain_occlusion_map;
 mod screenshot;
 mod shaders;
 mod shadow_map;
@@ -14,6 +15,8 @@ use pipeline_creation::{
 use shaders::Shaders;
 use shadow_map::{ShadowMap, ShadowMapRenderer};
 
+use self::{pipeline_creation::RainOcclusionPipelines, rain_occlusion_map::RainOcclusionMap};
+
 use super::{
     buffer::Buffer,
     consts::Consts,
@@ -21,8 +24,8 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, bloom, clouds, debug, figure, postprocess, shadow, sprite, terrain, ui,
-        GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
+        blit, bloom, clouds, debug, figure, postprocess, rain_occlusion, shadow, sprite, terrain,
+        ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
     AaMode, AddressMode, FilterMode, OtherModes, PipelineModes, RenderError, RenderMode,
@@ -54,6 +57,7 @@ struct ImmutableLayouts {
     debug: debug::DebugLayout,
     figure: figure::FigureLayout,
     shadow: shadow::ShadowLayout,
+    rain_occlusion: rain_occlusion::RainOcclusionLayout,
     sprite: sprite::SpriteLayout,
     terrain: terrain::TerrainLayout,
     clouds: clouds::CloudsLayout,
@@ -90,6 +94,7 @@ struct Views {
 
 /// Shadow rendering textures, layouts, pipelines, and bind groups
 struct Shadow {
+    rain_map: RainOcclusionMap,
     map: ShadowMap,
     bind: ShadowTexturesBindGroup,
 }
@@ -104,6 +109,7 @@ enum State {
     Interface {
         pipelines: InterfacePipelines,
         shadow_views: Option<(Texture, Texture)>,
+        rain_occlusion_view: Option<Texture>,
         // In progress creation of the remaining pipelines in the background
         creating: PipelineCreation<IngameAndShadowPipelines>,
     },
@@ -117,6 +123,7 @@ enum State {
                     (
                         Pipelines,
                         ShadowPipelines,
+                        RainOcclusionPipelines,
                         Arc<postprocess::PostProcessLayout>,
                     ),
                     RenderError,
@@ -359,6 +366,13 @@ impl Renderer {
         })
         .ok();
 
+        let rain_occlusion_view =
+            RainOcclusionMap::create_view(&device, &pipeline_modes.rain_occlusion)
+                .map_err(|err| {
+                    warn!("Could not create rain occlusion map views: {:?}", err);
+                })
+                .ok();
+
         let shaders = Shaders::load_expect("");
         let shaders_watcher = shaders.reload_watcher();
 
@@ -368,6 +382,7 @@ impl Renderer {
             let debug = debug::DebugLayout::new(&device);
             let figure = figure::FigureLayout::new(&device);
             let shadow = shadow::ShadowLayout::new(&device);
+            let rain_occlusion = rain_occlusion::RainOcclusionLayout::new(&device);
             let sprite = sprite::SpriteLayout::new(&device);
             let terrain = terrain::TerrainLayout::new(&device);
             let clouds = clouds::CloudsLayout::new(&device);
@@ -385,6 +400,7 @@ impl Renderer {
                 debug,
                 figure,
                 shadow,
+                rain_occlusion,
                 sprite,
                 terrain,
                 clouds,
@@ -417,6 +433,7 @@ impl Renderer {
         let state = State::Interface {
             pipelines: interface_pipelines,
             shadow_views,
+            rain_occlusion_view,
             creating,
         };
 
@@ -680,20 +697,32 @@ impl Renderer {
 
             // Get mutable reference to shadow views out of the current state
             let shadow_views = match &mut self.state {
-                State::Interface { shadow_views, .. } => {
-                    shadow_views.as_mut().map(|s| (&mut s.0, &mut s.1))
-                },
+                State::Interface {
+                    shadow_views,
+                    rain_occlusion_view,
+                    ..
+                } => shadow_views
+                    .as_mut()
+                    .map(|s| (&mut s.0, &mut s.1))
+                    .zip(rain_occlusion_view.as_mut()),
                 State::Complete {
                     shadow:
                         Shadow {
                             map: ShadowMap::Enabled(shadow_map),
+                            rain_map: RainOcclusionMap::Enabled(rain_occlusion_map),
                             ..
                         },
                     ..
-                } => Some((&mut shadow_map.point_depth, &mut shadow_map.directed_depth)),
+                } => Some((
+                    (&mut shadow_map.point_depth, &mut shadow_map.directed_depth),
+                    &mut rain_occlusion_map.depth,
+                )),
                 State::Complete { .. } => None,
                 State::Nothing => None, // Should never hit this
             };
+
+            let mut update_shadow_bind = false;
+            let (shadow_views, rain_views) = shadow_views.unzip();
 
             if let (Some((point_depth, directed_depth)), ShadowMode::Map(mode)) =
                 (shadow_views, self.pipeline_modes.shadow)
@@ -702,27 +731,48 @@ impl Renderer {
                     Ok((new_point_depth, new_directed_depth)) => {
                         *point_depth = new_point_depth;
                         *directed_depth = new_directed_depth;
-                        // Recreate the shadow bind group if needed
-                        if let State::Complete {
-                            shadow:
-                                Shadow {
-                                    bind,
-                                    map: ShadowMap::Enabled(shadow_map),
-                                    ..
-                                },
-                            ..
-                        } = &mut self.state
-                        {
-                            *bind = self.layouts.global.bind_shadow_textures(
-                                &self.device,
-                                &shadow_map.point_depth,
-                                &shadow_map.directed_depth,
-                            );
-                        }
+
+                        update_shadow_bind = true;
                     },
                     Err(err) => {
                         warn!("Could not create shadow map views: {:?}", err);
                     },
+                }
+            }
+            if let Some(rain_depth) = rain_views {
+                match RainOcclusionMap::create_view(
+                    &self.device,
+                    &self.pipeline_modes.rain_occlusion,
+                ) {
+                    Ok(new_rain_depth) => {
+                        *rain_depth = new_rain_depth;
+
+                        update_shadow_bind = true;
+                    },
+                    Err(err) => {
+                        warn!("Could not create rain occlusion map view: {:?}", err);
+                    },
+                }
+            }
+            if update_shadow_bind {
+                // Recreate the shadow bind group if needed
+                if let State::Complete {
+                    shadow:
+                        Shadow {
+                            bind,
+                            map: ShadowMap::Enabled(shadow_map),
+                            rain_map: RainOcclusionMap::Enabled(rain_occlusion_map),
+                            ..
+                        },
+                    ..
+                } = &mut self.state
+                {
+                    *bind = self.layouts.global.bind_shadow_textures(
+                        &self.device,
+                        &shadow_map.point_depth,
+                        &shadow_map.directed_depth,
+                        &rain_occlusion_map.depth,
+                    );
                 }
             }
         } else {
@@ -951,12 +1001,17 @@ impl Renderer {
         self.state = if let State::Interface {
             pipelines: interface,
             shadow_views,
+            rain_occlusion_view,
             creating,
         } = state
         {
             match creating.try_complete() {
                 Ok(pipelines) => {
-                    let IngameAndShadowPipelines { ingame, shadow } = pipelines;
+                    let IngameAndShadowPipelines {
+                        ingame,
+                        shadow,
+                        rain_occlusion,
+                    } = pipelines;
 
                     let pipelines = Pipelines::consolidate(interface, ingame);
 
@@ -969,14 +1024,26 @@ impl Renderer {
                         shadow_views,
                     );
 
+                    let rain_occlusion_map = RainOcclusionMap::new(
+                        &self.device,
+                        &self.queue,
+                        rain_occlusion.terrain,
+                        rain_occlusion.figure,
+                        rain_occlusion_view,
+                    );
+
                     let shadow_bind = {
                         let (point, directed) = shadow_map.textures();
-                        self.layouts
-                            .global
-                            .bind_shadow_textures(&self.device, point, directed)
+                        self.layouts.global.bind_shadow_textures(
+                            &self.device,
+                            point,
+                            directed,
+                            rain_occlusion_map.texture(),
+                        )
                     };
 
                     let shadow = Shadow {
+                        rain_map: rain_occlusion_map,
                         map: shadow_map,
                         bind: shadow_bind,
                     };
@@ -991,6 +1058,7 @@ impl Renderer {
                 Err(creating) => State::Interface {
                     pipelines: interface,
                     shadow_views,
+                    rain_occlusion_view,
                     creating,
                 },
             }
@@ -1002,7 +1070,12 @@ impl Renderer {
         } = state
         {
             match pipeline_creation.try_complete() {
-                Ok(Ok((pipelines, shadow_pipelines, postprocess_layout))) => {
+                Ok(Ok((
+                    pipelines,
+                    shadow_pipelines,
+                    rain_occlusion_pipelines,
+                    postprocess_layout,
+                ))) => {
                     if let (
                         Some(point_pipeline),
                         Some(terrain_directed_pipeline),
@@ -1017,6 +1090,19 @@ impl Renderer {
                         shadow_map.point_pipeline = point_pipeline;
                         shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
                         shadow_map.figure_directed_pipeline = figure_directed_pipeline;
+                    }
+
+                    if let (
+                        Some(terrain_directed_pipeline),
+                        Some(figure_directed_pipeline),
+                        RainOcclusionMap::Enabled(rain_occlusion_map),
+                    ) = (
+                        rain_occlusion_pipelines.terrain,
+                        rain_occlusion_pipelines.figure,
+                        &mut shadow.rain_map,
+                    ) {
+                        rain_occlusion_map.terrain_pipeline = terrain_directed_pipeline;
+                        rain_occlusion_map.figure_pipeline = figure_directed_pipeline;
                     }
 
                     self.pipeline_modes = new_pipeline_modes;

@@ -8,8 +8,7 @@ use vek::*;
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Locals {
-    proj_mat_inv: [[f32; 4]; 4],
-    view_mat_inv: [[f32; 4]; 4],
+    all_mat_inv: [[f32; 4]; 4],
 }
 
 impl Default for Locals {
@@ -19,8 +18,7 @@ impl Default for Locals {
 impl Locals {
     pub fn new(proj_mat_inv: Mat4<f32>, view_mat_inv: Mat4<f32>) -> Self {
         Self {
-            proj_mat_inv: proj_mat_inv.into_col_arrays(),
-            view_mat_inv: view_mat_inv.into_col_arrays(),
+            all_mat_inv: (view_mat_inv * proj_mat_inv).into_col_arrays(),
         }
     }
 }
@@ -153,7 +151,11 @@ impl CloudsPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Clouds pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals, &layout.layout],
+                bind_group_layouts: &[
+                    &global_layout.globals,
+                    &global_layout.shadow_textures,
+                    &layout.layout,
+                ],
             });
 
         let samples = match aa_mode {

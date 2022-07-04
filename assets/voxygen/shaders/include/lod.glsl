@@ -5,19 +5,11 @@
 #include <sky.glsl>
 #include <srgb.glsl>
 
-layout(set = 0, binding = 5) uniform texture2D t_alt;
-layout(set = 0, binding = 6) uniform sampler s_alt;
 layout(set = 0, binding = 7) uniform texture2D t_horizon;
 layout(set = 0, binding = 8) uniform sampler s_horizon;
 
-const float MIN_SHADOW = 0.33;
 
-vec2 pos_to_uv(texture2D tex, sampler s, vec2 pos) {
-    // Want: (pixel + 0.5) / W
-    vec2 texSize = textureSize(sampler2D(tex, s), 0);
-    vec2 uv_pos = (focus_off.xy + pos + 16) / (32.0 * texSize);
-    return vec2(uv_pos.x, /*1.0 - */uv_pos.y);
-}
+const float MIN_SHADOW = 0.33;
 
 vec2 pos_to_tex(vec2 pos) {
     // Want: (pixel + 0.5)
@@ -34,6 +26,12 @@ vec4 cubic(float v) {
     float z = s.z - 4.0 * s.y + 6.0 * s.x;
     float w = 6.0 - x - y - z;
     return vec4(x, y, z, w) * (1.0/6.0);
+}
+
+// Computes atan(y, x), except with more stability when x is near 0.
+float atan2(in float y, in float x) {
+    bool s = (abs(x) > abs(y));
+    return mix(PI/2.0 - atan(x,y), atan(y,x), s);
 }
 
 // NOTE: We assume the sampled coordinates are already in "texture pixels".
@@ -126,8 +124,9 @@ vec2 textureBicubic16(texture2D tex, sampler sampl, vec2 texCoords) {
     , sy);
 }
 
+// Gets the altitude at a position relative to focus_off.
 float alt_at(vec2 pos) {
-    vec4 alt_sample = textureLod/*textureBicubic16*/(sampler2D(t_alt, s_alt), pos_to_uv(t_alt, s_alt, pos), 0);
+    vec4 alt_sample = textureLod/*textureBicubic16*/(sampler2D(t_alt, s_alt), wpos_to_uv(focus_off.xy + pos), 0);
     return (/*round*/((alt_sample.r / 256.0 + alt_sample.g) * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
     //+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 

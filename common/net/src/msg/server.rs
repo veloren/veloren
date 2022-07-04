@@ -15,6 +15,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
     uuid::Uuid,
+    weather::WeatherGrid,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -197,6 +198,7 @@ pub enum ServerGeneral {
     /// Economic information about sites
     SiteEconomy(EconomyInfo),
     MapMarker(comp::MapMarkerUpdate),
+    WeatherUpdate(WeatherGrid),
 }
 
 impl ServerGeneral {
@@ -309,7 +311,8 @@ impl ServerMsg {
                         | ServerGeneral::UpdatePendingTrade(_, _, _)
                         | ServerGeneral::FinishedTrade(_)
                         | ServerGeneral::SiteEconomy(_)
-                        | ServerGeneral::MapMarker(_) => {
+                        | ServerGeneral::MapMarker(_)
+                        | ServerGeneral::WeatherUpdate(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

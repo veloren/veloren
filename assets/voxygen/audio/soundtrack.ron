@@ -1,4 +1,3 @@
-// TODO: Add an ambient-soundtrack that runs independently from the musical soundtrack
 // Times: Some(Day), Some(Night), None [both]
 // Biomes: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean, Jungle, Savannah, Taiga
 //          planned biomes: Swamp
@@ -122,6 +121,7 @@
             path: "voxygen.audio.soundtrack.town.rest_assured",
             length: 189.0,
             timing: Some(Day),
+            weather: None,
             biomes: [],
             site: Some(Settlement),
             music_state: Activity(Explore),
@@ -132,6 +132,7 @@
             path: "voxygen.audio.soundtrack.town.im_home",
             length: 125.0,
             timing: Some(Night),
+            weather: None,
             biomes: [],
             site: Some(Settlement),
             music_state: Activity(Explore),
@@ -142,6 +143,7 @@
             path: "voxygen.audio.soundtrack.dungeon.dank_dungeon",
             length: 130.0,
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Dungeon),
             music_state: Activity(Explore),
@@ -152,6 +154,7 @@
             path: "voxygen.audio.soundtrack.overworld.calming_hills",
             length: 101.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Mountain, 1),
             ],
@@ -164,6 +167,7 @@
             path: "voxygen.audio.soundtrack.town.fiesta_del_pueblo",
             length: 183.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Desert, 1)
             ],
@@ -176,6 +180,7 @@
             path: "voxygen.audio.soundtrack.dungeon.ruination",
             length: 135.0,
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Dungeon),
             music_state: Activity(Explore),
@@ -186,6 +191,7 @@
             path: "voxygen.audio.soundtrack.cave.saturated_hallows",
             length: 227.0,
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Cave),
             music_state: Activity(Explore),
@@ -196,6 +202,7 @@
             path: "voxygen.audio.soundtrack.dungeon.vast_onslaught",
             length: 237.0,
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Dungeon),
             music_state: Activity(Explore),
@@ -206,6 +213,7 @@
             path: "voxygen.audio.soundtrack.dungeon.sacred_temple",
             length: 75.0,
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Dungeon),
             music_state: Activity(Explore),
@@ -216,6 +224,7 @@
             path: "voxygen.audio.soundtrack.overworld.true_nature",
             length: 169.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Forest, 2),
             ],
@@ -228,6 +237,7 @@
             path: "voxygen.audio.soundtrack.overworld.jungle_ambient",
             length: 218.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Jungle, 1),
             ],
@@ -240,6 +250,7 @@
             path: "voxygen.audio.soundtrack.overworld.ethereal_bonds",
             length: 59.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Mountain, 1),
             ],
@@ -252,6 +263,7 @@
             path: "voxygen.audio.soundtrack.overworld.leap_of_faith",
             length: 269.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Ocean, 1),
                 (Lake, 1),
@@ -265,6 +277,7 @@
             path: "voxygen.audio.soundtrack.overworld.highland_of_the_hawk",
             length: 283.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Desert, 1),
                 (Savannah, 1),
@@ -278,6 +291,7 @@
             path: "voxygen.audio.soundtrack.overworld.verdant_glades",
             length: 97.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Grassland, 1),
             ],
@@ -290,6 +304,7 @@
             path: "voxygen.audio.soundtrack.overworld.calling_wild",
             length: 160.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Grassland, 1),
                 (Savannah, 1),
@@ -303,6 +318,7 @@
             path: "voxygen.audio.soundtrack.overworld.drifting_along",
             length: 164.0,
             timing: None,
+            weather: None,
             biomes: [
                 (Lake, 1),
                 (Ocean, 1),
@@ -316,6 +332,7 @@
             path: "voxygen.audio.soundtrack.overworld.winter_falls",
             length: 215.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Snowland, 1),
                 (Taiga, 1),
@@ -329,6 +346,7 @@
             path: "voxygen.audio.soundtrack.overworld.short_meandering",
             length: 147.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Desert, 1),
                 (Mountain, 1),
@@ -342,6 +360,7 @@
             path: "voxygen.audio.soundtrack.overworld.oceania",
             length: 135.0,
             timing: None,
+            weather: None,
             biomes: [
                 (Lake, 1),
                 (Ocean, 1),
@@ -355,6 +374,7 @@
             path: "voxygen.audio.soundtrack.overworld.a_solemn_quest",
             length: 206.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Forest, 2),
             ],
@@ -367,6 +387,7 @@
             path: "voxygen.audio.soundtrack.overworld.into_the_dark_forest",
             length: 184.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Forest, 2),
                 (Jungle, 1),
@@ -380,6 +401,7 @@
             path: "voxygen.audio.soundtrack.overworld.field_grazing",
             length: 154.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Grassland, 1),
                 (Forest, 2),
@@ -393,6 +415,7 @@
             path: "voxygen.audio.soundtrack.overworld.wandering_voices",
             length: 137.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Grassland, 1),
             ],
@@ -405,6 +428,7 @@
             path: "voxygen.audio.soundtrack.overworld.snowtop_volume",
             length: 89.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Snowland, 1),
                 (Taiga, 1),
@@ -418,6 +442,7 @@
             path: "voxygen.audio.soundtrack.cave.mineral_deposits",
             length: 148.0,
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Cave),
             music_state: Activity(Explore),
@@ -428,6 +453,7 @@
             path: "voxygen.audio.soundtrack.overworld.moonbeams",
             length: 158.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Snowland, 1),
                 (Taiga, 1),
@@ -441,6 +467,7 @@
             path: "voxygen.audio.soundtrack.overworld.serene_meadows",
             length: 173.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Grassland, 1),
             ],
@@ -453,6 +480,7 @@
             path: "voxygen.audio.soundtrack.overworld.just_the_beginning",
             length: 188.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Grassland, 1),
             ],
@@ -465,6 +493,7 @@
             path: "voxygen.audio.soundtrack.overworld.campfire_stories",
             length: 100.0,
             timing: Some(Night),
+            weather: None,
             biomes: [
                 (Forest, 2),
             ],
@@ -477,6 +506,7 @@
             path: "voxygen.audio.soundtrack.overworld.limits",
             length: 203.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Mountain, 1),
             ],
@@ -489,6 +519,7 @@
             path: "voxygen.audio.soundtrack.dungeon.down_the_rabbit_hole",
             length: 244.0,
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Cave),
             music_state: Activity(Explore),
@@ -499,13 +530,36 @@
             path: "voxygen.audio.soundtrack.overworld.between_the_fairies",
             length: 175.0,
             timing: Some(Day),
+            weather: None,
             biomes: [
                 (Forest, 2),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
             artist: "badbbad",
-       )),
+        )),
+        Individual((
+            title: "The Heavens Weep",
+            path: "voxygen.audio.soundtrack.overworld.the_heavens_weep",
+            length: 209.0,
+            timing: None,
+            weather: Some(Rain),
+            biomes: [],
+            site: None,
+            music_state: Activity(Explore),
+            artist: "Oolnokk",
+        )),
+        Individual((
+            title: "A Heroes Sorrow",
+            path: "voxygen.audio.soundtrack.overworld.a_heroes_sorrow",
+            length: 251.0,
+            timing: None,
+            weather: Some(Rain),
+            biomes: [],
+            site: None,
+            music_state: Activity(Explore),
+            artist: "Oolnokk",
+        )),
 
         // Combat Music
 
@@ -513,6 +567,7 @@
             title: "Barred Paths",
             author: "DaforLynx",
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Dungeon),
             segments: [

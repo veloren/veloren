@@ -125,6 +125,13 @@ lazy_static! {
     .map(|s| s.to_string())
     .collect();
 
+    static ref WEATHERS: Vec<String> = vec![
+        "clear", "cloudy", "rain", "wind", "storm"
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
+
     pub static ref BUFF_PARSER: HashMap<String, BuffKind> = {
         let string_from_buff = |kind| match kind {
             BuffKind::Burning => "burning",
@@ -297,6 +304,7 @@ pub enum ServerChatCommand {
     Location,
     CreateLocation,
     DeleteLocation,
+    WeatherZone,
 }
 
 impl ServerChatCommand {
@@ -686,6 +694,15 @@ impl ServerChatCommand {
                 "Delete a location",
                 Some(Moderator),
             ),
+            ServerChatCommand::WeatherZone => cmd(
+                vec![
+                    Enum("weather kind", WEATHERS.clone(), Required),
+                    Float("radius", 500.0, Optional),
+                    Float("time", 300.0, Optional),
+                ],
+                "Create a weather zone",
+                Some(Admin),
+            ),
         }
     }
 
@@ -763,6 +780,7 @@ impl ServerChatCommand {
             ServerChatCommand::Location => "location",
             ServerChatCommand::CreateLocation => "create_location",
             ServerChatCommand::DeleteLocation => "delete_location",
+            ServerChatCommand::WeatherZone => "weather_zone",
         }
     }
 

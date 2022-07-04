@@ -654,16 +654,16 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.1.8"
+version = "3.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71c47df61d9e16dc010b55dba1952a57d8c215dbb533fd13cdd13369aac73b1c"
+checksum = "3124f3f75ce09e22d1410043e1e24f2ecc44fad3afe4f08408f1f7663d68da2b"
 dependencies = [
  "atty",
  "bitflags",
  "clap_derive",
+ "clap_lex",
  "indexmap",
  "lazy_static",
- "os_str_bytes",
  "strsim 0.10.0",
  "termcolor",
  "textwrap 0.15.0",
@@ -680,6 +680,15 @@ dependencies = [
  "proc-macro2 1.0.36",
  "quote 1.0.17",
  "syn 1.0.90",
+]
+
+[[package]]
+name = "clap_lex"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "189ddd3b5d32a70b35e7686054371742a937b0d99128e76dde6340210e966669"
+dependencies = [
+ "os_str_bytes",
 ]
 
 [[package]]
@@ -3980,9 +3989,6 @@ name = "os_str_bytes"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e22443d1643a904602595ba1cd8f7d896afe56d26712531c5ff73a15b2fbf64"
-dependencies = [
- "memchr",
-]
 
 [[package]]
 name = "owned_ttf_parser"
@@ -6362,7 +6368,7 @@ dependencies = [
  "async-channel",
  "authc",
  "byteorder",
- "clap 3.1.8",
+ "clap 3.1.10",
  "hashbrown 0.11.2",
  "image",
  "num 0.4.0",
@@ -6551,7 +6557,7 @@ dependencies = [
  "bincode",
  "bitflags",
  "bytes",
- "clap 3.1.8",
+ "clap 3.1.10",
  "criterion",
  "crossbeam-channel",
  "futures-core",
@@ -6635,6 +6641,7 @@ dependencies = [
  "humantime",
  "itertools",
  "lazy_static",
+ "noise",
  "num_cpus",
  "portpicker",
  "prometheus",
@@ -6673,7 +6680,7 @@ name = "veloren-server-cli"
 version = "0.12.0"
 dependencies = [
  "ansi-parser",
- "clap 3.1.8",
+ "clap 3.1.10",
  "crossterm 0.23.2",
  "lazy_static",
  "mimalloc",
@@ -6824,7 +6831,7 @@ dependencies = [
 name = "veloren-voxygen-i18n"
 version = "0.10.0"
 dependencies = [
- "clap 3.1.8",
+ "clap 3.1.10",
  "deunicode",
  "git2",
  "hashbrown 0.11.2",
@@ -6841,7 +6848,7 @@ dependencies = [
  "arr_macro",
  "bincode",
  "bitvec",
- "clap 3.1.8",
+ "clap 3.1.10",
  "criterion",
  "csv",
  "deflate",

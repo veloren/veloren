@@ -215,7 +215,7 @@ void main() {
                     vec3(rand2 * 0.1, rand3 * 0.1, 2.0 + rand4 * 1.0)
                 ),
                 vec3(1.0),
-                vec4(2, 1.5 + rand5 * 0.5, 0, start_end(1.0, 0.0)),
+                vec4(6, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
             );
             break;
@@ -431,16 +431,16 @@ void main() {
             attr = Attr(
                 (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
                 vec3((2.5 * (1 - slow_start(0.2)))),
-                vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, 1),
+                vec4(6, 3 + rand5 * 0.6 - 0.8 * percent(), 0.4, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
         case EXPLOSION:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
             attr = Attr(
-                inst_dir * ((rand0+1.0)/2 + 0.4) * slow_end(2.0) + 0.3 * grav_vel(earth_gravity),
+                inst_dir * ((rand0+1.0)/2 + 0.4) * slow_end(0.25) + 0.3 * grav_vel(earth_gravity),
                 vec3((3 * (1 - slow_start(0.1)))),
-                vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, 1),
+                vec4(6, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
@@ -459,7 +459,7 @@ void main() {
             attr = Attr(
                 vec3(rand0, rand1, lifetime * 10 + rand2),
                 vec3((5 * (1 - slow_start(0.5)))),
-                vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, 1),
+                vec4(6, 3 + rand5 * 0.6 - 0.8 * percent(), 0.4, 1),
                 spin_in_axis(vec3(rand3, rand4, rand5), rand6)
             );
             break;

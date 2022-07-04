@@ -113,7 +113,8 @@ impl Client {
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
                     | ServerGeneral::UpdatePendingTrade(_, _, _)
-                    | ServerGeneral::FinishedTrade(_) => {
+                    | ServerGeneral::FinishedTrade(_)
+                    | ServerGeneral::WeatherUpdate(_) => {
                         self.in_game_stream.lock().unwrap().send(g)
                     },
                     //Ingame related, terrain
@@ -187,7 +188,8 @@ impl Client {
                     | ServerGeneral::SiteEconomy(_)
                     | ServerGeneral::UpdatePendingTrade(_, _, _)
                     | ServerGeneral::FinishedTrade(_)
-                    | ServerGeneral::MapMarker(_) => {
+                    | ServerGeneral::MapMarker(_)
+                    | ServerGeneral::WeatherUpdate(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },
                     //Ingame related, terrain

@@ -116,6 +116,9 @@ widget_ids! {
         shadow_mode_map_resolution_text,
         shadow_mode_map_resolution_slider,
         shadow_mode_map_resolution_value,
+        rain_map_resolution_text,
+        rain_map_resolution_slider,
+        rain_map_resolution_value,
         save_window_size_button,
 
     }
@@ -1116,11 +1119,51 @@ impl<'a> Widget for Video<'a> {
                 .set(state.ids.shadow_mode_map_resolution_value, ui);
         }
 
+        // Rain occlusion texture size
+        // Display the shadow map mode if selected.
+        Text::new(
+            self.localized_strings
+                .get("hud.settings.rain_occlusion.resolution"),
+        )
+        .down_from(state.ids.shadow_mode_list, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.rain_map_resolution_text, ui);
+
+        if let Some(new_val) = ImageSlider::discrete(
+            (render_mode.rain_occlusion.resolution.log2() * 4.0).round() as i8,
+            -8,
+            8,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .right_from(state.ids.rain_map_resolution_text, 8.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.rain_map_resolution_slider, ui)
+        {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
+                rain_occlusion: ShadowMapMode {
+                    resolution: 2.0f32.powf(f32::from(new_val) / 4.0),
+                },
+                ..render_mode.clone()
+            })));
+        }
+        Text::new(&format!("{}", render_mode.rain_occlusion.resolution))
+            .right_from(state.ids.rain_map_resolution_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.rain_map_resolution_value, ui);
+
         // GPU Profiler
         Text::new(self.localized_strings.get("hud.settings.gpu_profiler"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .down_from(state.ids.shadow_mode_list, 8.0)
+            .down_from(state.ids.rain_map_resolution_text, 8.0)
             .color(TEXT_COLOR)
             .set(state.ids.gpu_profiler_label, ui);
 

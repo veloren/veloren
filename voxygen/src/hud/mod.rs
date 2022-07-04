@@ -264,6 +264,7 @@ widget_ids! {
         current_site,
         graphics_backend,
         gpu_timings[],
+        weather,
 
         // Game Version
         version,
@@ -2385,12 +2386,28 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.time, ui_widgets);
+            // Weather
+            let weather = client.weather_at_player();
+            Text::new(&format!(
+                "Weather({kind}): {{cloud: {cloud:.2}, rain: {rain:.2}, wind: <{wind_x:.0}, \
+                 {wind_y:.0}>}}",
+                kind = weather.get_kind(),
+                cloud = weather.cloud,
+                rain = weather.rain,
+                wind_x = weather.wind.x,
+                wind_y = weather.wind.y
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.time, V_PAD)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .set(self.ids.weather, ui_widgets);
 
             // Number of entities
             let entity_count = client.state().ecs().entities().join().count();
             Text::new(&format!("Entity count: {}", entity_count))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.time, V_PAD)
+                .down_from(self.ids.weather, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.entity_count, ui_widgets);
@@ -2503,7 +2520,8 @@ impl Hud {
 
             // Set debug box dimensions, only timings height is dynamic
             // TODO: Make the background box size fully dynamic
-            let debug_bg_size = [320.0, 370.0 + timings_height];
+
+            let debug_bg_size = [320.0, 385.0 + timings_height];
 
             Rectangle::fill(debug_bg_size)
                 .rgba(0.0, 0.0, 0.0, global_state.settings.chat.chat_opacity)

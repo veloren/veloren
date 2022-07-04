@@ -155,7 +155,7 @@
                 "voxygen.audio.sfx.footsteps.stepgrass_5",
                 "voxygen.audio.sfx.footsteps.stepgrass_6",
             ],
-            threshold: 1.6,
+            threshold: 1.8,
         ),
         QuadRun(Grass): (
             files: [
@@ -166,7 +166,7 @@
                 "voxygen.audio.sfx.footsteps.stepgrass_5",
                 "voxygen.audio.sfx.footsteps.stepgrass_6",
             ],
-            threshold: 0.8,
+            threshold: 0.9,
         ),
         // For when sand 1) exists and 2) has unique sounds
         // Run(Sand): (
@@ -195,7 +195,7 @@
                 "voxygen.audio.sfx.footsteps.snow_step_2",
                 "voxygen.audio.sfx.footsteps.snow_step_3",
             ],
-            threshold: 1.6,
+            threshold: 1.8,
         ),
         QuadRun(Snow): (
             files: [
@@ -203,7 +203,7 @@
                 "voxygen.audio.sfx.footsteps.snow_step_2",
                 "voxygen.audio.sfx.footsteps.snow_step_3",
             ],
-            threshold: 0.8,
+            threshold: 0.9,
         ),
         Run(Rock): (
             files: [
@@ -220,7 +220,7 @@
                 "voxygen.audio.sfx.footsteps.stone_step_11",
                 "voxygen.audio.sfx.footsteps.stone_step_12",
             ],
-            threshold: 1.6,
+            threshold: 1.8,
         ),
         QuadRun(Rock): (
             files: [
@@ -237,39 +237,18 @@
                 "voxygen.audio.sfx.footsteps.stone_step_11",
                 "voxygen.audio.sfx.footsteps.stone_step_12",
             ],
-            threshold: 0.8,
+            threshold: 0.9,
         ),
-        //ExperienceGained: (
-        //    files: [
-        //        "voxygen.audio.sfx.character.experience_gained_1",
-        //        "voxygen.audio.sfx.character.experience_gained_2",
-        //        "voxygen.audio.sfx.character.experience_gained_3",
-        //    ],
-        //    threshold: 0.5,
-        //),
-        // unused for now
-        // Jump: (
-        //    files: [
-        //        "voxygen.audio.sfx.utterance.humanmale_hurt1"
-        //    ],
-        //    threshold: 0.25,
-        // ),
-        //Fall: (
-        //    files: [
-        //        // Event not implemented?
-        //    ],
-        //    threshold: 0.25,
-        //),
         Roll: (
             files: [
                 "voxygen.audio.sfx.character.dive_roll_1",
                 "voxygen.audio.sfx.character.dive_roll_2",
             ],
-            threshold: 0.25,
+            threshold: 0.3,
         ),
         Climb: (
            files: [
-                // TODO: sync with animation
+                // TODO: sync with animation, make actual sfx
                 "voxygen.audio.sfx.footsteps.stepdirt_1",
                 "voxygen.audio.sfx.footsteps.stepdirt_2",
                 "voxygen.audio.sfx.footsteps.stepdirt_3",
@@ -640,6 +619,12 @@
                 "voxygen.audio.sfx.inventory.drop_item",
             ],
             threshold: 0.3,
+        ),
+        Inventory(Craft): (
+            files: [
+                "voxygen.audio.sfx.crafting.hammer",
+            ],
+            threshold: 0.05,
         ),
 
         //

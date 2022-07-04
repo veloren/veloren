@@ -21,6 +21,7 @@ use common::{
     time::DayPeriod,
     trade::Trades,
     vol::{ReadVol, WriteVol},
+    weather::{Weather, WeatherGrid},
 };
 use common_base::span;
 use common_ecs::{PhysicsMetrics, SysMetrics};
@@ -206,6 +207,7 @@ impl State {
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));
         ecs.insert(Calendar::default());
+        ecs.insert(WeatherGrid::new(Vec2::zero()));
 
         // Register unsynced resources used by the ECS.
         ecs.insert(Time(0.0));
@@ -346,13 +348,28 @@ impl State {
     /// last game tick.
     pub fn terrain_changes(&self) -> Fetch<TerrainChanges> { self.ecs.read_resource() }
 
+    /// Get a reference the current in-game weather grid.
+    pub fn weather_grid(&self) -> Fetch<WeatherGrid> { self.ecs.read_resource() }
+
+    /// Get a mutable reference the current in-game weather grid.
+    pub fn weather_grid_mut(&mut self) -> FetchMut<WeatherGrid> { self.ecs.write_resource() }
+
+    /// Get the current weather at a position in worldspace.
+    pub fn weather_at(&self, pos: Vec2<f32>) -> Weather {
+        self.weather_grid().get_interpolated(pos)
+    }
+
+    /// Get the max weather near a position in worldspace.
+    pub fn max_weather_near(&self, pos: Vec2<f32>) -> Weather {
+        self.weather_grid().get_max_near(pos)
+    }
+
     /// Get the current in-game time of day.
     ///
     /// Note that this should not be used for physics, animations or other such
     /// localised timings.
     pub fn get_time_of_day(&self) -> f64 { self.ecs.read_resource::<TimeOfDay>().0 }
 
-    /// Get the current in-game day period (period of the day/night cycle)
     /// Get the current in-game day period (period of the day/night cycle)
     pub fn get_day_period(&self) -> DayPeriod { self.get_time_of_day().into() }
 

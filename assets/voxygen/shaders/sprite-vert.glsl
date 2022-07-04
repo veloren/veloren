@@ -30,7 +30,7 @@ layout(location = 7) in float inst_glow;
 layout(location = 8) in float model_wind_sway; // NOTE: this only varies per model
 layout(location = 9) in float model_z_scale; // NOTE: this only varies per model
 
-layout(set = 0, binding = 12) restrict readonly buffer sprite_verts {
+layout(set = 0, binding = 15) restrict readonly buffer sprite_verts {
     uvec2 verts[];
 };
 
@@ -92,6 +92,7 @@ void main() {
     #endif
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
+        // TODO: take wind_vel into account
         // Wind sway effect
         f_pos += model_wind_sway * vec3(
             sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),

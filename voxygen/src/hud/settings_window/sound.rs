@@ -31,6 +31,9 @@ widget_ids! {
         sfx_volume_text,
         sfx_volume_slider,
         sfx_volume_number,
+        ambience_volume_text,
+        ambience_volume_slider,
+        ambience_volume_number,
         //audio_device_list,
         //audio_device_text,
         reset_sound_button,
@@ -246,6 +249,40 @@ impl<'a> Widget for Sound<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.sfx_volume_number, ui);
+        // Ambience Volume
+        Text::new(self.localized_strings.get("hud.settings.ambience_volume"))
+            .down_from(state.ids.sfx_volume_slider, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.ambience_volume_text, ui);
+        // Ambience Volume Slider
+        if let Some(new_val) = ImageSlider::continuous(
+            self.global_state.settings.audio.ambience_volume,
+            0.0,
+            1.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.ambience_volume_text, 10.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.ambience_volume_slider, ui)
+        {
+            events.push(AdjustAmbienceVolume(new_val));
+        }
+        // Ambience Volume Number
+        Text::new(&format!(
+            "{:2.0}%",
+            self.global_state.settings.audio.ambience_volume * 100.0
+        ))
+        .right_from(state.ids.ambience_volume_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.ambience_volume_number, ui);
 
         // Audio Device Selector
         // --------------------------------------------
@@ -279,7 +316,7 @@ impl<'a> Widget for Sound<'a> {
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.sfx_volume_slider, 12.0)
+            .down_from(state.ids.ambience_volume_slider, 12.0)
             .label(self.localized_strings.get("hud.settings.reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)

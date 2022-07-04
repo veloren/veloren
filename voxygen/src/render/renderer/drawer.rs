@@ -9,6 +9,7 @@ use super::{
             ShadowTexturesBindGroup,
         },
     },
+    rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
     Renderer, ShadowMap, ShadowMapRenderer,
 };
 use core::{num::NonZeroU32, ops::Range};
@@ -135,6 +136,46 @@ impl<'frame> Drawer<'frame> {
     /// Get the pipeline modes.
     pub fn pipeline_modes(&self) -> &super::super::PipelineModes { self.borrow.pipeline_modes }
 
+    /// Returns None if the rain occlusion renderer is not enabled at some
+    /// level, the pipelines are not available yet or clouds are disabled.
+    pub fn rain_occlusion_pass(&mut self) -> Option<RainOcclusionPassDrawer> {
+        if !self.borrow.pipeline_modes.cloud.is_enabled() {
+            return None;
+        }
+
+        if let RainOcclusionMap::Enabled(ref rain_occlusion_renderer) = self.borrow.shadow?.rain_map
+        {
+            let encoder = self.encoder.as_mut().unwrap();
+            let device = self.borrow.device;
+            let mut render_pass = encoder.scoped_render_pass(
+                "rain_occlusion_pass",
+                device,
+                &wgpu::RenderPassDescriptor {
+                    label: Some("rain occlusion pass"),
+                    color_attachments: &[],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &rain_occlusion_renderer.depth.view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(1.0),
+                            store: true,
+                        }),
+                        stencil_ops: None,
+                    }),
+                },
+            );
+
+            render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
+
+            Some(RainOcclusionPassDrawer {
+                render_pass,
+                borrow: &self.borrow,
+                rain_occlusion_renderer,
+            })
+        } else {
+            None
+        }
+    }
+
     /// Returns None if the shadow renderer is not enabled at some level or the
     /// pipelines are not available yet
     pub fn shadow_pass(&mut self) -> Option<ShadowPassDrawer> {
@@ -216,6 +257,8 @@ impl<'frame> Drawer<'frame> {
     /// Returns None if the clouds pipeline is not available
     pub fn second_pass(&mut self) -> Option<SecondPassDrawer> {
         let pipelines = &self.borrow.pipelines.all()?;
+        let shadow = self.borrow.shadow?;
+
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
@@ -237,6 +280,7 @@ impl<'frame> Drawer<'frame> {
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
+        render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
 
         Some(SecondPassDrawer {
             render_pass,
@@ -619,7 +663,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
     pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
         let mut render_pass = self
             .render_pass
-            .scope("direcred_figure_shadows", self.borrow.device);
+            .scope("directed_figure_shadows", self.borrow.device);
 
         render_pass.set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -630,9 +674,40 @@ impl<'pass> ShadowPassDrawer<'pass> {
     pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
         let mut render_pass = self
             .render_pass
-            .scope("direcred_terrain_shadows", self.borrow.device);
+            .scope("directed_terrain_shadows", self.borrow.device);
 
         render_pass.set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
+
+        TerrainShadowDrawer { render_pass }
+    }
+}
+
+#[must_use]
+pub struct RainOcclusionPassDrawer<'pass> {
+    render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
+    borrow: &'pass RendererBorrow<'pass>,
+    rain_occlusion_renderer: &'pass RainOcclusionMapRenderer,
+}
+
+impl<'pass> RainOcclusionPassDrawer<'pass> {
+    pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
+        let mut render_pass = self
+            .render_pass
+            .scope("directed_figure_rain_occlusion", self.borrow.device);
+
+        render_pass.set_pipeline(&self.rain_occlusion_renderer.figure_pipeline.pipeline);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
+
+        FigureShadowDrawer { render_pass }
+    }
+
+    pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
+        let mut render_pass = self
+            .render_pass
+            .scope("directed_terrain_rain_occlusion", self.borrow.device);
+
+        render_pass.set_pipeline(&self.rain_occlusion_renderer.terrain_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
 
         TerrainShadowDrawer { render_pass }
@@ -970,7 +1045,7 @@ impl<'pass> SecondPassDrawer<'pass> {
         self.render_pass
             .set_pipeline(&self.clouds_pipeline.pipeline);
         self.render_pass
-            .set_bind_group(1, &self.borrow.locals.clouds_bind.bind_group, &[]);
+            .set_bind_group(2, &self.borrow.locals.clouds_bind.bind_group, &[]);
         self.render_pass.draw(0..3, 0..1);
     }
 

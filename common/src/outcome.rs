@@ -52,8 +52,6 @@ pub enum Outcome {
         uid: Uid,
         skill_tree: comp::skillset::SkillGroupKind,
         total_points: u16,
-        // TODO: Access ECS to get position from Uid to conserve bandwidth
-        pos: Vec3<f32>,
     },
     ComboChange {
         uid: Uid,
@@ -104,7 +102,6 @@ impl Outcome {
             | Outcome::ProjectileShot { pos, .. }
             | Outcome::ProjectileHit { pos, .. }
             | Outcome::Beam { pos, .. }
-            | Outcome::SkillPointGain { pos, .. }
             | Outcome::SummonedCreature { pos, .. }
             | Outcome::HealthChange { pos, .. }
             | Outcome::Death { pos, .. }
@@ -114,7 +111,9 @@ impl Outcome {
             | Outcome::Utterance { pos, .. }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
-            Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => None,
+            Outcome::ExpChange { .. }
+            | Outcome::ComboChange { .. }
+            | Outcome::SkillPointGain { .. } => None,
         }
     }
 }

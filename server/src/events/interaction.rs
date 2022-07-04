@@ -186,16 +186,13 @@ pub fn handle_mine_block(
                     ) {
                         let skill_group = SkillGroupKind::Weapon(tool);
                         let outcome_bus = state.ecs().read_resource::<EventBus<Outcome>>();
-                        let positions = state.ecs().read_component::<comp::Pos>();
-                        if let (Some(level_outcome), Some(pos)) = (
-                            skillset.add_experience(skill_group, exp_reward),
-                            positions.get(entity),
-                        ) {
+                        if let Some(level_outcome) =
+                            skillset.add_experience(skill_group, exp_reward)
+                        {
                             outcome_bus.emit_now(Outcome::SkillPointGain {
                                 uid,
                                 skill_tree: skill_group,
                                 total_points: level_outcome,
-                                pos: pos.0,
                             });
                         }
                         outcome_bus.emit_now(Outcome::ExpChange {

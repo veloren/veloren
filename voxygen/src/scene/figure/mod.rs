@@ -17,7 +17,7 @@ use crate::{
         camera::{Camera, CameraMode, Dependents},
         math,
         terrain::Terrain,
-        SceneData, TrailMgr,
+        SceneData, TrailMgr, RAIN_THRESHOLD,
     },
 };
 use anim::{
@@ -620,6 +620,7 @@ impl FigureMgr {
         scene_data: &SceneData,
         // Visible chunk data.
         visible_psr_bounds: math::Aabr<f32>,
+        visible_por_bounds: math::Aabr<f32>,
         camera: &Camera,
         terrain: Option<&Terrain>,
     ) -> anim::vek::Aabb<f32> {
@@ -637,25 +638,27 @@ impl FigureMgr {
         // of the image rendered from the light).  If the position projected
         // with the ray_mat matrix is valid, and shadows are otherwise enabled,
         // we mark can_shadow.
-        let can_shadow_sun = {
-            let ray_direction = scene_data.get_sun_dir();
-            let is_daylight = ray_direction.z < 0.0/*0.6*/;
-            // Are shadows enabled at all?
-            let can_shadow_sun = renderer.pipeline_modes().shadow.is_map() && is_daylight;
+        // Rain occlusion is very similar to sun shadows, but using a different ray_mat,
+        // and only if it's raining.
+        let (can_shadow_sun, can_occlude_rain) = {
             let Dependents {
                 proj_mat: _,
                 view_mat: _,
                 cam_pos,
                 ..
             } = camera.dependents();
-            let cam_pos = math::Vec3::from(cam_pos);
-            let ray_direction = math::Vec3::from(ray_direction);
 
-            // Transform (semi) world space to light space.
-            let ray_mat: math::Mat4<f32> =
-                math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::unit_y());
+            let sun_dir = scene_data.get_sun_dir();
+            let is_daylight = sun_dir.z < 0.0/*0.6*/;
+            // Are shadows enabled at all?
+            let can_shadow_sun = renderer.pipeline_modes().shadow.is_map() && is_daylight;
+
+            let weather = scene_data.state.weather_at(cam_pos.xy());
+
+            let cam_pos = math::Vec3::from(cam_pos);
+
             let focus_off = math::Vec3::from(camera.get_focus_pos().map(f32::trunc));
-            let ray_mat = ray_mat * math::Mat4::translation_3d(-focus_off);
+            let focus_off_mat = math::Mat4::translation_3d(-focus_off);
 
             let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
                 let min = math::Vec4::new(a.min.x, a.min.y, b.min.x, b.min.y);
@@ -665,22 +668,40 @@ impl FigureMgr {
                 #[cfg(not(feature = "simd"))]
                 return min.partial_cmple(&max).reduce_and();
             };
-            move |pos: (anim::vek::Vec3<f32>,), radius: f32| {
-                // Short circuit when there are no shadows to cast.
-                if !can_shadow_sun {
-                    return false;
+
+            let can_shadow = |ray_direction: Vec3<f32>,
+                              enabled: bool,
+                              visible_bounds: math::Aabr<f32>| {
+                let ray_direction = math::Vec3::from(ray_direction);
+                // Transform (semi) world space to light space.
+                let ray_mat: math::Mat4<f32> =
+                    math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::unit_y());
+                let ray_mat = ray_mat * focus_off_mat;
+                move |pos: (anim::vek::Vec3<f32>,), radius: f32| {
+                    // Short circuit when there are no shadows to cast.
+                    if !enabled {
+                        return false;
+                    }
+                    // First project center onto shadow map.
+                    let center = (ray_mat * math::Vec4::new(pos.0.x, pos.0.y, pos.0.z, 1.0)).xy();
+                    // Then, create an approximate bounding box (± radius).
+                    let figure_box = math::Aabr {
+                        min: center - radius,
+                        max: center + radius,
+                    };
+                    // Quick intersection test for membership in the PSC (potential shader caster)
+                    // list.
+                    collides_with_aabr(figure_box, visible_bounds)
                 }
-                // First project center onto shadow map.
-                let center = (ray_mat * math::Vec4::new(pos.0.x, pos.0.y, pos.0.z, 1.0)).xy();
-                // Then, create an approximate bounding box (± radius).
-                let figure_box = math::Aabr {
-                    min: center - radius,
-                    max: center + radius,
-                };
-                // Quick intersection test for membership in the PSC (potential shader caster)
-                // list.
-                collides_with_aabr(figure_box, visible_psr_bounds)
-            }
+            };
+            (
+                can_shadow(sun_dir, can_shadow_sun, visible_psr_bounds),
+                can_shadow(
+                    weather.rain_vel(),
+                    weather.rain > RAIN_THRESHOLD,
+                    visible_por_bounds,
+                ),
+            )
         };
 
         // Get player position.
@@ -812,6 +833,8 @@ impl FigureMgr {
             } else if vd_frac > 1.0 {
                 state.as_mut().map(|state| state.visible = false);
                 // Keep processing if this might be a shadow caster.
+                // NOTE: Not worth to do for rain_occlusion, since that only happens in closeby
+                // chunks.
                 if !can_shadow_prev {
                     continue;
                 }
@@ -841,6 +864,7 @@ impl FigureMgr {
                 } else {
                     // Check whether we can shadow.
                     meta.can_shadow_sun = can_shadow_sun(pos, radius);
+                    meta.can_occlude_rain = can_occlude_rain(pos, radius);
                 }
                 (in_frustum, lpindex)
             } else {
@@ -5551,17 +5575,16 @@ impl FigureMgr {
         visible_aabb
     }
 
-    pub fn render_shadows<'a>(
+    fn render_shadow_mapping<'a>(
         &'a self,
         drawer: &mut FigureShadowDrawer<'_, 'a>,
         state: &State,
         tick: u64,
         (camera, figure_lod_render_distance): CameraData,
+        filter_state: impl Fn(&FigureStateMeta) -> bool,
     ) {
-        span!(_guard, "render_shadows", "FigureManager::render_shadows");
         let ecs = state.ecs();
         let items = ecs.read_storage::<Item>();
-
         (
                 &ecs.entities(),
                 &ecs.read_storage::<Pos>(),
@@ -5590,12 +5613,42 @@ impl FigureMgr {
                         Some(Collider::Volume(vol)) => vol.mut_count,
                         _ => 0,
                     },
-                    |state| state.can_shadow_sun(),
+                    &filter_state,
                     if matches!(body, Body::ItemDrop(_)) { items.get(entity).map(ItemKey::from) } else { None },
                 ) {
                     drawer.draw(model, bound);
                 }
             });
+    }
+
+    pub fn render_shadows<'a>(
+        &'a self,
+        drawer: &mut FigureShadowDrawer<'_, 'a>,
+        state: &State,
+        tick: u64,
+        camera_data: CameraData,
+    ) {
+        span!(_guard, "render_shadows", "FigureManager::render_shadows");
+        self.render_shadow_mapping(drawer, state, tick, camera_data, |state| {
+            state.can_shadow_sun()
+        })
+    }
+
+    pub fn render_rain_occlusion<'a>(
+        &'a self,
+        drawer: &mut FigureShadowDrawer<'_, 'a>,
+        state: &State,
+        tick: u64,
+        camera_data: CameraData,
+    ) {
+        span!(
+            _guard,
+            "render_rain_occlusion",
+            "FigureManager::render_rain_occlusion"
+        );
+        self.render_shadow_mapping(drawer, state, tick, camera_data, |state| {
+            state.can_occlude_rain()
+        })
     }
 
     pub fn render<'a>(
@@ -6237,6 +6290,7 @@ pub struct FigureStateMeta {
     last_ori: anim::vek::Quaternion<f32>,
     lpindex: u8,
     can_shadow_sun: bool,
+    can_occlude_rain: bool,
     visible: bool,
     last_pos: Option<anim::vek::Vec3<f32>>,
     avg_vel: anim::vek::Vec3<f32>,
@@ -6252,6 +6306,11 @@ impl FigureStateMeta {
     pub fn can_shadow_sun(&self) -> bool {
         // Either visible, or explicitly a shadow caster.
         self.visible || self.can_shadow_sun
+    }
+
+    pub fn can_occlude_rain(&self) -> bool {
+        // Either visible, or explicitly a rain occluder.
+        self.visible || self.can_occlude_rain
     }
 }
 
@@ -6311,6 +6370,7 @@ impl<S: Skeleton> FigureState<S> {
                 lpindex: 0,
                 visible: false,
                 can_shadow_sun: false,
+                can_occlude_rain: false,
                 last_pos: None,
                 avg_vel: anim::vek::Vec3::zero(),
                 last_light: 1.0,

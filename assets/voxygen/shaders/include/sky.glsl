@@ -5,6 +5,7 @@
 #include <srgb.glsl>
 #include <shadows.glsl>
 #include <globals.glsl>
+#include <rain_occlusion.glsl>
 
 // Information about an approximately directional light, like the sun or moon.
 struct DirectionalLight {
@@ -97,10 +98,31 @@ vec2 wind_offset = vec2(time_of_day.x * wind_speed);
 
 float cloud_scale = view_distance.z / 150.0;
 
-float cloud_tendency_at(vec2 pos) {
-    float nz = textureLod(sampler2D(t_noise, s_noise), (pos + wind_offset) / 60000.0 / cloud_scale, 0).x - 0.3;
-    nz = pow(clamp(nz, 0, 1), 3);
-    return nz;
+layout(set = 0, binding = 5) uniform texture2D t_alt;
+layout(set = 0, binding = 6) uniform sampler s_alt;
+
+// Transforms coordinate in the range 0..WORLD_SIZE to 0..1
+vec2 wpos_to_uv(vec2 wpos) {
+    // Want: (pixel + 0.5) / W
+    vec2 texSize = textureSize(sampler2D(t_alt, s_alt), 0);
+    vec2 uv_pos = (wpos + 16) / (32.0 * texSize);
+    return vec2(uv_pos.x, /*1.0 - */uv_pos.y);
+}
+
+// Weather texture
+layout(set = 0, binding = 12) uniform texture2D t_weather;
+layout(set = 0, binding = 13) uniform sampler s_weather;
+
+vec4 sample_weather(vec2 wpos) {
+    return textureLod(sampler2D(t_weather, s_weather), wpos_to_uv(wpos), 0);
+}
+
+float cloud_tendency_at(vec2 wpos) {
+    return sample_weather(wpos).r;
+}
+
+float rain_density_at(vec2 wpos) {
+    return sample_weather(wpos).g;
 }
 
 float cloud_shadow(vec3 pos, vec3 light_dir) {
