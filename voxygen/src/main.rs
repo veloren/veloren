@@ -2,7 +2,11 @@
 #![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
-#[cfg(all(target_os = "windows", not(feature = "tracy-memory")))]
+#[cfg(all(
+    target_os = "windows",
+    not(feature = "tracy-memory"),
+    not(feature = "hot-egui")
+))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 

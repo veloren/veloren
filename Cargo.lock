@@ -6778,6 +6778,7 @@ version = "0.10.0"
 dependencies = [
  "bytemuck",
  "lazy_static",
+ "mimalloc",
  "vek 0.15.8",
  "veloren-common",
  "veloren-voxygen-dynlib",

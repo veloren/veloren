@@ -20,3 +20,6 @@ voxygen-dynlib = {package = "veloren-voxygen-dynlib", path = "../dynlib", option
 
 # Hot Reloading
 lazy_static = {version = "1.4.0", optional = true}
+
+[target.'cfg(windows)'.dependencies]
+mimalloc = "0.1.29"
