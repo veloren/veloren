@@ -381,6 +381,36 @@ fn get_scaling(contents: &AssetGuard<TradingPriceFile>, good: Good) -> f32 {
         .map_or(1.0, |(_, scaling)| *scaling)
 }
 
+#[cfg(test)]
+impl std::cmp::PartialOrd for ItemDefinitionIdOwned {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[cfg(test)]
+impl std::cmp::Ord for ItemDefinitionIdOwned {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self {
+            ItemDefinitionIdOwned::Simple(na) => match other {
+                ItemDefinitionIdOwned::Simple(nb) => na.cmp(nb),
+                _ => Ordering::Less,
+            }
+            ItemDefinitionIdOwned::Modular { pseudo_base, components } => match other {
+                ItemDefinitionIdOwned::Simple(_) => Ordering::Greater,
+                ItemDefinitionIdOwned::Modular { pseudo_base: pseudo_base2, components: components2 } =>
+                    pseudo_base.cmp(pseudo_base2).then_with(|| components.cmp(components2)),
+                _ => Ordering::Less,
+            }
+            ItemDefinitionIdOwned::Compound { simple_base, components } => match other {
+                ItemDefinitionIdOwned::Compound { simple_base: simple_base2, components: components2 } =>
+                    simple_base.cmp(simple_base2).then_with(|| components.cmp(components2)),
+                _ => Ordering::Greater,
+            }
+        }            
+    }
+}
+
 impl TradePricing {
     const COIN_ITEM: &'static str = "common.items.utility.coins";
     const CRAFTING_FACTOR: f32 = 0.95;
@@ -862,7 +892,7 @@ impl TradePricing {
                 .iter()
                 .fold(String::new(), |agg, i| agg + &format!("{:?}.", i.1));
             println!(
-                "{}, {}, {:>4.2}, {}, {:?}, {}, {},",
+                "{:?}, {}, {:>4.2}, {}, {:?}, {}, {},",
                 &item_id,
                 if *can_sell { "yes" } else { "no" },
                 pricesum,
@@ -966,7 +996,7 @@ mod tests {
 
         let loadout = TradePricing::random_items(&mut stock, 20, false, false, 999);
         for i in loadout.iter() {
-            info!("Random item {}*{}", i.0, i.1);
+            info!("Random item {:?}*{}", i.0, i.1);
         }
     }
 
