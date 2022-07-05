@@ -486,7 +486,9 @@ impl ComponentRecipeBook {
 }
 
 impl ReverseComponentRecipeBook {
-    pub fn get(&self, key: &ItemDefinitionIdOwned) -> Option<&ComponentRecipe> { self.recipes.get(key) }
+    pub fn get(&self, key: &ItemDefinitionIdOwned) -> Option<&ComponentRecipe> {
+        self.recipes.get(key)
+    }
 }
 
 #[derive(Clone, Deserialize)]
@@ -663,9 +665,7 @@ impl ComponentRecipe {
             } => {
                 let components = components
                     .iter()
-                    .map(|item_def| {
-                        ItemDefinitionIdOwned::Simple(item_def.id().to_owned())
-                    })
+                    .map(|item_def| ItemDefinitionIdOwned::Simple(item_def.id().to_owned()))
                     .collect::<Vec<_>>();
                 ItemDefinitionIdOwned::Compound {
                     simple_base: item_def.id().to_owned(),

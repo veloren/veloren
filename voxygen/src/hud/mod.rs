@@ -3644,7 +3644,9 @@ impl Hud {
                                         false,
                                     );
                                     if let Some(item) = inventory.get(slot) {
-                                        if let Some(materials) = TradePricing::get_materials(item.item_definition_id()) {
+                                        if let Some(materials) =
+                                            TradePricing::get_materials(&item.item_definition_id())
+                                        {
                                             let unit_price: f32 = materials
                                                 .iter()
                                                 .map(|e| {

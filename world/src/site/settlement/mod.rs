@@ -18,7 +18,9 @@ use common::{
     comp::{
         self, agent, bird_medium,
         inventory::{
-            loadout_builder::LoadoutBuilder, slot::ArmorSlot, trade_pricing::TradePricing,
+            loadout_builder::LoadoutBuilder,
+            slot::ArmorSlot,
+            trade_pricing::{item_from_definition_id, TradePricing},
         },
         quadruped_small, Item,
     },
@@ -1054,7 +1056,7 @@ pub fn merchant_loadout(
         TradePricing::random_items(&mut stockmap, slots as u32, true, true, 16)
             .iter()
             .map(|(n, a)| {
-                let mut i = Item::new_from_asset_expect(n);
+                let mut i = item_from_definition_id(n);
                 i.set_amount(*a)
                     .map_err(|_| tracing::error!("merchant loadout amount failure"))
                     .ok();

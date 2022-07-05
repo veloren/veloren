@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, AssetExt},
-    comp::item::{Item, ItemDefinitionId},
+    comp::item::{Item, ItemDefinitionId, ItemDefinitionIdOwned},
     lottery::LootSpec,
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
@@ -62,19 +62,20 @@ impl std::ops::Add for MaterialUse {
 }
 
 impl std::ops::AddAssign for MaterialUse {
-    fn add_assign(&mut self, rhs: Self) {
-        vector_add_eq(&mut self.0, &rhs.0);
-    }
+    fn add_assign(&mut self, rhs: Self) { vector_add_eq(&mut self.0, &rhs.0); }
 }
 
 impl std::iter::Sum<MaterialUse> for MaterialUse {
-   fn sum<I>(iter: I) -> Self where I: Iterator<Item=Self> {
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = Self>,
+    {
         let mut ret = Self::default();
         for i in iter {
             ret += i;
         }
         ret
-   }
+    }
 }
 
 impl std::ops::Deref for MaterialUse {
@@ -136,18 +137,18 @@ impl std::ops::AddAssign for MaterialFrequency {
     fn add_assign(&mut self, rhs: Self) { vector_add_eq(&mut self.0, &rhs.0); }
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 struct PriceEntry {
     // item asset specifier
-    name: String,
+    name: ItemDefinitionIdOwned,
     price: MaterialUse,
     // sellable by merchants
     sell: bool,
     stackable: bool,
 }
-#[derive(Default, Debug)]
+#[derive(Debug)]
 struct FreqEntry {
-    name: String,
+    name: ItemDefinitionIdOwned,
     freq: MaterialFrequency,
     sell: bool,
     stackable: bool,
@@ -177,7 +178,7 @@ impl FreqEntries {
     fn add(
         &mut self,
         eqset: &EqualitySet,
-        item_name: &str,
+        item_name: &ItemDefinitionIdOwned,
         good: Good,
         probability: f32,
         can_sell: bool,
@@ -197,15 +198,14 @@ impl FreqEntries {
         }) = old
         {
             if PRICING_DEBUG {
-                info!("Update {} {:?}+{:?}", asset, old_probability, probability);
+                info!("Update {:?} {:?}+{:?}", asset, old_probability, probability);
             }
             if !can_sell && *old_can_sell {
                 *old_can_sell = false;
             }
             *old_probability += new_freq;
         } else {
-            let item = Item::new_from_asset_expect(canonical_itemname);
-            let stackable = item.is_stackable();
+            let stackable = item_from_definition_id(canonical_itemname).is_stackable();
             let new_mat_prob: FreqEntry = FreqEntry {
                 name: canonical_itemname.to_owned(),
                 freq: new_freq,
@@ -241,7 +241,7 @@ lazy_static! {
 /// hierarchically from `LootSpec`s
 /// (probability, item id, average amount)
 pub struct ProbabilityFile {
-    pub content: Vec<(f32, String, f32)>,
+    pub content: Vec<(f32, ItemDefinitionIdOwned, f32)>,
 }
 
 impl assets::Asset for ProbabilityFile {
@@ -262,10 +262,15 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
             content: content
                 .into_iter()
                 .flat_map(|(p0, loot)| match loot {
-                    LootSpec::Item(asset) => vec![(p0 * rescale, asset, 1.0)].into_iter(),
-                    LootSpec::ItemQuantity(asset, a, b) => {
-                        vec![(p0 * rescale, asset, (a + b) as f32 * 0.5)].into_iter()
+                    LootSpec::Item(asset) => {
+                        vec![(p0 * rescale, ItemDefinitionIdOwned::Simple(asset), 1.0)].into_iter()
                     },
+                    LootSpec::ItemQuantity(asset, a, b) => vec![(
+                        p0 * rescale,
+                        ItemDefinitionIdOwned::Simple(asset),
+                        (a + b) as f32 * 0.5,
+                    )]
+                    .into_iter(),
                     LootSpec::LootTable(table_asset) => {
                         let unscaled = &Self::load_expect(&table_asset).read().content;
                         let scale = p0 * rescale;
@@ -275,9 +280,17 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                             .collect::<Vec<_>>()
                             .into_iter()
                     },
-                    LootSpec::Nothing
-                    // TODO: Let someone else wrangle modular weapons into the economy
-                    | LootSpec::ModularWeapon { .. } | LootSpec::ModularWeaponPrimaryComponent { .. } => Vec::new().into_iter(),
+                    LootSpec::ModularWeapon {
+                        tool,
+                        material,
+                        hands,
+                    } => Vec::new().into_iter(),
+                    LootSpec::ModularWeaponPrimaryComponent {
+                        tool,
+                        material,
+                        hands,
+                    } => Vec::new().into_iter(),
+                    LootSpec::Nothing => Vec::new().into_iter(),
                 })
                 .collect(),
         }
@@ -300,15 +313,15 @@ impl assets::Asset for TradingPriceFile {
 #[derive(Clone, Debug, Default)]
 struct EqualitySet {
     // which item should this item's occurrences be counted towards
-    equivalence_class: HashMap<String, String>,
+    equivalence_class: HashMap<ItemDefinitionIdOwned, ItemDefinitionIdOwned>,
 }
 
 impl EqualitySet {
-    fn canonical<'a>(&'a self, item_name: &'a str) -> &'a str {
+    fn canonical<'a>(&'a self, item_name: &'a ItemDefinitionIdOwned) -> &'a ItemDefinitionIdOwned {
         let canonical_itemname = self
             .equivalence_class
             .get(item_name)
-            .map_or(item_name, |i| &**i);
+            .map_or(item_name, |i| &*i);
 
         canonical_itemname
     }
@@ -328,22 +341,23 @@ impl assets::Compound for EqualitySet {
 
         let manifest = &cache.load::<assets::Ron<Vec<EqualitySpec>>>(id)?.read().0;
         for set in manifest {
-            let items = match set {
+            let items: Vec<ItemDefinitionIdOwned> = match set {
                 EqualitySpec::LootTable(table) => {
                     let acc = &ProbabilityFile::load_expect(table).read().content;
 
                     acc.iter().map(|(_p, item, _)| item).cloned().collect()
                 },
-                EqualitySpec::Set(xs) => xs.clone(),
+                EqualitySpec::Set(xs) => xs
+                    .iter()
+                    .map(|s| ItemDefinitionIdOwned::Simple(s.clone()))
+                    .collect(),
             };
             let mut iter = items.iter();
             if let Some(first) = iter.next() {
-                let first = first.to_string();
+                //let first = ItemDefinitionIdOwned::Simple(first);
                 eqset.equivalence_class.insert(first.clone(), first.clone());
                 for item in iter {
-                    eqset
-                        .equivalence_class
-                        .insert(item.to_string(), first.clone());
+                    eqset.equivalence_class.insert(item.clone(), first.clone());
                 }
             }
         }
@@ -353,10 +367,10 @@ impl assets::Compound for EqualitySet {
 
 #[derive(Debug)]
 struct RememberedRecipe {
-    output: String,
+    output: ItemDefinitionIdOwned,
     amount: u32,
     material_cost: Option<f32>,
-    input: Vec<(String, u32)>,
+    input: Vec<(ItemDefinitionIdOwned, u32)>,
 }
 
 fn get_scaling(contents: &AssetGuard<TradingPriceFile>, good: Good) -> f32 {
@@ -373,44 +387,88 @@ impl TradePricing {
     // increase price a bit compared to sum of ingredients
     const INVEST_FACTOR: f32 = 0.33;
 
-    fn good_from_item(name: &str) -> Good {
+    fn good_from_item(name: &ItemDefinitionIdOwned) -> Good {
         match name {
-            _ if name.starts_with("common.items.armor.") => Good::Armor,
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.armor.") => {
+                Good::Armor
+            },
 
-            _ if name.starts_with("common.items.weapons.") => Good::Tools,
-            _ if name.starts_with("common.items.modular.weapon.") => Good::Tools,
-            _ if name.starts_with("common.items.tool.") => Good::Tools,
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.weapons.") => {
+                Good::Tools
+            },
+            ItemDefinitionIdOwned::Simple(name)
+                if name.starts_with("common.items.modular.weapon.") =>
+            {
+                Good::Tools
+            },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.tool.") => {
+                Good::Tools
+            },
 
-            _ if name.starts_with("common.items.crafting_ing.") => Good::Ingredients,
-            _ if name.starts_with("common.items.mineral.") => Good::Ingredients,
-            _ if name.starts_with("common.items.log.") => Good::Ingredients,
-            _ if name.starts_with("common.items.flowers.") => Good::Ingredients,
+            ItemDefinitionIdOwned::Simple(name)
+                if name.starts_with("common.items.crafting_ing.") =>
+            {
+                Good::Ingredients
+            },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.mineral.") => {
+                Good::Ingredients
+            },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.log.") => {
+                Good::Wood
+            },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.flowers.") => {
+                Good::Ingredients
+            },
 
-            _ if name.starts_with("common.items.consumable.") => Good::Potions,
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.consumable.") => {
+                Good::Potions
+            },
 
-            _ if name.starts_with("common.items.food.") => Good::Food,
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.food.") => {
+                Good::Food
+            },
 
-            Self::COIN_ITEM => Good::Coin,
+            ItemDefinitionIdOwned::Simple(name) if name.as_str() == Self::COIN_ITEM => Good::Coin,
 
-            _ if name.starts_with("common.items.glider.") => Good::default(),
-            _ if name.starts_with("common.items.utility.") => Good::default(),
-            _ if name.starts_with("common.items.boss_drops.") => Good::default(),
-            _ if name.starts_with("common.items.crafting_tools.") => Good::default(),
-            _ if name.starts_with("common.items.lantern.") => Good::default(),
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.glider.") => {
+                Good::default()
+            },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.utility.") => {
+                Good::default()
+            },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.boss_drops.") => {
+                Good::default()
+            },
+            ItemDefinitionIdOwned::Simple(name)
+                if name.starts_with("common.items.crafting_tools.") =>
+            {
+                Good::default()
+            },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.lantern.") => {
+                Good::default()
+            },
+            ItemDefinitionIdOwned::Modular {
+                pseudo_base,
+                components,
+            } => Good::Tools,
+            ItemDefinitionIdOwned::Compound {
+                simple_base,
+                components,
+            } => Good::Ingredients,
             _ => {
-                warn!("unknown loot item {}", name);
+                warn!("unknown loot item {:?}", name);
                 Good::default()
             },
         }
     }
 
     // look up price (inverse frequency) of an item
-    fn price_lookup(&self, requested_name: &str) -> Option<&MaterialUse> {
+    fn price_lookup(&self, requested_name: &ItemDefinitionIdOwned) -> Option<&MaterialUse> {
         let canonical_name = self.equality_set.canonical(requested_name);
         self.items
             .0
             .iter()
-            .find(|e| e.name == canonical_name)
+            .find(|e| &e.name == canonical_name)
             .map(|e| &e.price)
     }
 
@@ -499,7 +557,7 @@ impl TradePricing {
         }
         freq.add(
             &result.equality_set,
-            Self::COIN_ITEM,
+            &ItemDefinitionIdOwned::Simple(Self::COIN_ITEM.into()),
             Good::Coin,
             get_scaling(&price_config, Good::Coin),
             true,
@@ -509,7 +567,7 @@ impl TradePricing {
             if elem.freq.0.is_empty() {
                 // likely equality
                 let canonical_name = result.equality_set.canonical(&elem.name);
-                let can_freq = freq.0.iter().find(|i| i.name == canonical_name);
+                let can_freq = freq.0.iter().find(|i| &i.name == canonical_name);
                 can_freq
                     .map(|e| PriceEntry {
                         name: elem.name.clone(),
@@ -544,7 +602,7 @@ impl TradePricing {
         for (_, recipe) in book.iter() {
             let (ref asset_path, amount) = recipe.output;
             ordered_recipes.push(RememberedRecipe {
-                output: asset_path.id().into(),
+                output: ItemDefinitionIdOwned::Simple(asset_path.id().into()),
                 amount,
                 material_cost: None,
                 input: recipe
@@ -556,7 +614,7 @@ impl TradePricing {
                             if count == 0 {
                                 None
                             } else {
-                                Some((it.id().into(), count))
+                                Some((ItemDefinitionIdOwned::Simple(it.id().into()), count))
                             }
                         } else {
                             None
@@ -584,8 +642,9 @@ impl TradePricing {
                                 .find(|item| item.name == *input)
                                 .map_or(false, |item| item.sell)
                         });
-                        let item = Item::new_from_asset_expect(&recipe.output);
-                        let stackable = item.is_stackable();
+                        //let item = Item::new_from_asset_expect(&recipe.output.);
+                        let stackable = item_from_definition_id(&recipe.output).is_stackable();
+                        //= item.is_stackable();
                         let new_entry = PriceEntry {
                             name: recipe.output.clone(),
                             price: usage * (1.0 / (recipe.amount as f32 * Self::CRAFTING_FACTOR)),
@@ -618,7 +677,7 @@ impl TradePricing {
         selling: bool,
         always_coin: bool,
         limit: u32,
-    ) -> Vec<(String, u32)> {
+    ) -> Vec<(ItemDefinitionIdOwned, u32)> {
         let mut candidates: Vec<&PriceEntry> = self
             .items
             .0
@@ -630,14 +689,18 @@ impl TradePricing {
                     .find(|j| j.0 >= stockmap.get(&j.1).cloned().unwrap_or_default());
                 excess.is_none()
                     && (!selling || i.sell)
-                    && (!always_coin || i.name != Self::COIN_ITEM)
+                    && (!always_coin
+                        || i.name != ItemDefinitionIdOwned::Simple(Self::COIN_ITEM.into()))
             })
             .collect();
         let mut result = Vec::new();
         if always_coin && number > 0 {
             let amount = stockmap.get(&Good::Coin).copied().unwrap_or_default() as u32;
             if amount > 0 {
-                result.push((Self::COIN_ITEM.into(), amount));
+                result.push((
+                    ItemDefinitionIdOwned::Simple(Self::COIN_ITEM.into()),
+                    amount,
+                ));
                 number -= 1;
             }
         }
@@ -680,14 +743,31 @@ impl TradePricing {
         result
     }
 
-    fn get_materials_impl(&self, item: ItemDefinitionId<'_>) -> Option<MaterialUse> {
-        let tmp = format!("{:?}", item);
-        let ret = match item {
-            ItemDefinitionId::Simple(id) => self.price_lookup(id).cloned(),
-            ItemDefinitionId::Modular { components, .. } => Some(components.into_iter().filter_map(|comp| self.get_materials_impl(comp)).sum()),
-            ItemDefinitionId::Compound { simple_base, components } => Some(self.price_lookup(simple_base).cloned().unwrap_or_else(MaterialUse::default) + components.into_iter().filter_map(|comp| self.get_materials_impl(comp)).sum()),
-        };
-        println!("{} -> {:?}", tmp, ret);
+    fn get_materials_impl(&self, item: &ItemDefinitionIdOwned) -> Option<MaterialUse> {
+        //let tmp = format!("{:?}", item);
+        let ret = self.price_lookup(item).cloned();
+        // match item {
+        //     ItemDefinitionIdOwned::Simple(id) => self.price_lookup(id).cloned(),
+        //     ItemDefinitionIdOwned::Modular { components, .. } => Some(
+        //         components
+        //             .into_iter()
+        //             .filter_map(|comp| self.get_materials_impl(comp))
+        //             .sum(),
+        //     ),
+        //     ItemDefinitionIdOwned::Compound {
+        //         simple_base,
+        //         components,
+        //     } => Some(
+        //         self.price_lookup(simple_base)
+        //             .cloned()
+        //             .unwrap_or_else(MaterialUse::default)
+        //             + components
+        //                 .into_iter()
+        //                 .filter_map(|comp| self.get_materials_impl(comp))
+        //                 .sum(),
+        //     ),
+        // };
+        println!("{:?} -> {:?}", item, ret);
         ret
     }
 
@@ -698,13 +778,13 @@ impl TradePricing {
         selling: bool,
         always_coin: bool,
         limit: u32,
-    ) -> Vec<(String, u32)> {
+    ) -> Vec<(ItemDefinitionIdOwned, u32)> {
         TRADE_PRICING.random_items_impl(stock, number, selling, always_coin, limit)
     }
 
     #[must_use]
-    pub fn get_materials(item: ItemDefinitionId<'_>) -> Option<MaterialUse> {
-        TRADE_PRICING.get_materials_impl(item)
+    pub fn get_materials(item: &ItemDefinitionId) -> Option<MaterialUse> {
+        TRADE_PRICING.get_materials_impl(&item.to_owned())
     }
 
     #[cfg(test)]
@@ -774,7 +854,7 @@ impl TradePricing {
             },
         ) in sorted.iter()
         {
-            let it = Item::new_from_asset_expect(item_id);
+            let it = item_from_definition_id(item_id);
             //let price = mat_use.iter().map(|(amount, _good)| *amount).sum::<f32>();
             let prob = 1.0 / pricesum;
             let (info, unit) = more_information(&it, prob);
@@ -797,8 +877,22 @@ impl TradePricing {
 
 /// hierarchically combine and scale this loot table
 #[must_use]
-pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, String, f32)> {
+pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, ItemDefinitionIdOwned, f32)> {
     ProbabilityFile::from(vec![(1.0, LootSpec::LootTable(loot_table.into()))]).content
+}
+
+pub fn item_from_definition_id(id: &ItemDefinitionIdOwned) -> Item {
+    match id {
+        ItemDefinitionIdOwned::Simple(str) => Item::new_from_asset_expect(str),
+        ItemDefinitionIdOwned::Modular {
+            pseudo_base,
+            components,
+        } => todo!(),
+        ItemDefinitionIdOwned::Compound {
+            simple_base,
+            components,
+        } => todo!(),
+    }
 }
 
 // if you want to take a look at the calculated values run:

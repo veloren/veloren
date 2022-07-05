@@ -389,8 +389,7 @@ impl SitePrices {
                     .as_ref()
                     .and_then(|ri| {
                         ri.inventory.get(slot).map(|item| {
-                            if let Some(vec) = TradePricing::get_materials(item.name.as_ref())
-                            {
+                            if let Some(vec) = TradePricing::get_materials(&item.name.as_ref()) {
                                 vec.iter()
                                     .map(|(amount2, material)| {
                                         self.values.get(material).copied().unwrap_or_default()
