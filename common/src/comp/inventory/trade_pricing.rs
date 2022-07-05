@@ -1,8 +1,8 @@
 use crate::{
     assets::{self, AssetExt},
-    comp::item::{Item, ItemDefinitionId, ItemDefinitionIdOwned},
+    comp::{item::{Item, ItemDefinitionId, ItemDefinitionIdOwned, ItemBase, MaterialStatManifest, ModularBase}, tool::AbilityMap},
     lottery::LootSpec,
-    recipe::{default_recipe_book, RecipeInput},
+    recipe::{default_component_recipe_book, default_recipe_book, RecipeInput},
     trade::Good,
 };
 use assets::AssetGuard;
@@ -10,7 +10,7 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use std::cmp::Ordering;
-use tracing::{error, info, warn};
+use tracing::{error, info, trace, warn};
 
 const PRICING_DEBUG: bool = false;
 
@@ -284,12 +284,18 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         tool,
                         material,
                         hands,
-                    } => Vec::new().into_iter(),
+                    } => {
+                        error!("Weapon {:?} {:?} {:?}", tool, material, hands);
+                        todo!()
+                    },
                     LootSpec::ModularWeaponPrimaryComponent {
                         tool,
                         material,
                         hands,
-                    } => Vec::new().into_iter(),
+                    } => {
+                        error!("Component {:?} {:?} {:?}", tool, material, hands);
+                        todo!()
+                    },
                     LootSpec::Nothing => Vec::new().into_iter(),
                 })
                 .collect(),
@@ -383,9 +389,7 @@ fn get_scaling(contents: &AssetGuard<TradingPriceFile>, good: Good) -> f32 {
 
 #[cfg(test)]
 impl std::cmp::PartialOrd for ItemDefinitionIdOwned {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
 }
 
 #[cfg(test)]
@@ -395,19 +399,33 @@ impl std::cmp::Ord for ItemDefinitionIdOwned {
             ItemDefinitionIdOwned::Simple(na) => match other {
                 ItemDefinitionIdOwned::Simple(nb) => na.cmp(nb),
                 _ => Ordering::Less,
-            }
-            ItemDefinitionIdOwned::Modular { pseudo_base, components } => match other {
+            },
+            ItemDefinitionIdOwned::Modular {
+                pseudo_base,
+                components,
+            } => match other {
                 ItemDefinitionIdOwned::Simple(_) => Ordering::Greater,
-                ItemDefinitionIdOwned::Modular { pseudo_base: pseudo_base2, components: components2 } =>
-                    pseudo_base.cmp(pseudo_base2).then_with(|| components.cmp(components2)),
+                ItemDefinitionIdOwned::Modular {
+                    pseudo_base: pseudo_base2,
+                    components: components2,
+                } => pseudo_base
+                    .cmp(pseudo_base2)
+                    .then_with(|| components.cmp(components2)),
                 _ => Ordering::Less,
-            }
-            ItemDefinitionIdOwned::Compound { simple_base, components } => match other {
-                ItemDefinitionIdOwned::Compound { simple_base: simple_base2, components: components2 } =>
-                    simple_base.cmp(simple_base2).then_with(|| components.cmp(components2)),
+            },
+            ItemDefinitionIdOwned::Compound {
+                simple_base,
+                components,
+            } => match other {
+                ItemDefinitionIdOwned::Compound {
+                    simple_base: simple_base2,
+                    components: components2,
+                } => simple_base
+                    .cmp(simple_base2)
+                    .then_with(|| components.cmp(components2)),
                 _ => Ordering::Greater,
-            }
-        }            
+            },
+        }
     }
 }
 
@@ -654,6 +672,27 @@ impl TradePricing {
             });
         }
 
+        // modular weapon recipes
+        let comp_book = default_component_recipe_book().read();
+        for (key, recipe) in comp_book.iter() {
+            ordered_recipes.push(RememberedRecipe {
+                output: recipe.itemdef_output(),
+                amount: 1,
+                material_cost: None,
+                input: recipe
+                    .inputs()
+                    .filter_map(|(ref recipe_input, count)| match recipe_input {
+                        RecipeInput::Item(it) => {
+                            Some((ItemDefinitionIdOwned::Simple(it.id().into()), count))
+                        },
+                        RecipeInput::Tag(_) => todo!(),
+                        RecipeInput::TagSameItem(_) => todo!(),
+                        RecipeInput::ListSameItem(_) => todo!(),
+                    })
+                    .collect(),
+            });
+        }
+
         // re-evaluate prices based on crafting tables
         // (start with cheap ones to avoid changing material prices after evaluation)
         while result.sort_by_price(&mut ordered_recipes) {
@@ -696,6 +735,7 @@ impl TradePricing {
             });
             //info!(?ordered_recipes);
         }
+
         result
     }
 
@@ -921,7 +961,18 @@ pub fn item_from_definition_id(id: &ItemDefinitionIdOwned) -> Item {
         ItemDefinitionIdOwned::Compound {
             simple_base,
             components,
-        } => todo!(),
+        } => {
+            warn!("simple_base {}", simple_base);
+            let ability_map = &AbilityMap::load().read();
+            let msm = &MaterialStatManifest::load().read();
+            let components = components.iter().map(|i| item_from_definition_id(i)).collect();
+            Item::new_from_item_base(
+                ItemBase::Modular(ModularBase::Tool),
+                components,
+                ability_map,
+                msm,
+            )
+        },
     }
 }
 
