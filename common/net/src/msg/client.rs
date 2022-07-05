@@ -79,6 +79,8 @@ pub enum ClientGeneral {
     UnlockSkillGroup(SkillGroupKind),
     RequestSiteInfo(SiteId),
     UpdateMapMarker(comp::MapMarkerChange),
+
+    SpectatePosition(Vec3<f32>),
     //Only in Game, via terrain stream
     TerrainChunkRequest {
         key: Vec2<i32>,
@@ -138,7 +140,8 @@ impl ClientMsg {
                         | ClientGeneral::RequestPlayerPhysics { .. }
                         | ClientGeneral::RequestLossyTerrainCompression { .. }
                         | ClientGeneral::AcknowledgePersistenceLoadError
-                        | ClientGeneral::UpdateMapMarker(_) => {
+                        | ClientGeneral::UpdateMapMarker(_)
+                        | ClientGeneral::SpectatePosition(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible

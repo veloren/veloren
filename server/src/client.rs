@@ -171,7 +171,8 @@ impl Client {
                     | ServerGeneral::CharacterActionError(_)
                     | ServerGeneral::CharacterCreated(_)
                     | ServerGeneral::CharacterEdited(_)
-                    | ServerGeneral::CharacterSuccess => {
+                    | ServerGeneral::CharacterSuccess
+                    | ServerGeneral::SpectatorSuccess(_) => {
                         PreparedMsg::new(1, &g, &self.character_screen_stream_params)
                     },
                     //In-game related
@@ -188,7 +189,8 @@ impl Client {
                     | ServerGeneral::UpdatePendingTrade(_, _, _)
                     | ServerGeneral::FinishedTrade(_)
                     | ServerGeneral::MapMarker(_)
-                    | ServerGeneral::WeatherUpdate(_) => {
+                    | ServerGeneral::WeatherUpdate(_)
+                    | ServerGeneral::SpectatePosition(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },
                     //In-game related, terrain

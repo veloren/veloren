@@ -107,6 +107,8 @@ pub trait StateExt {
     ) -> EcsEntityBuilder;
     /// Insert common/default components for a new character joining the server
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId);
+    /// Insert common/default components for a new spectator joining the server
+    fn initialize_spectator_data(&mut self, entity: EcsEntity);
     /// Update the components associated with the entity's current character.
     /// Performed after loading component data from the database
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
@@ -519,6 +521,32 @@ impl StateExt for State {
             // Tell the client its request was successful.
             if let Some(client) = self.ecs().read_storage::<Client>().get(entity) {
                 client.send_fallible(ServerGeneral::CharacterSuccess);
+            }
+        }
+    }
+
+    fn initialize_spectator_data(&mut self, entity: EcsEntity) {
+        let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
+
+        if self.read_component_copied::<Uid>(entity).is_some() {
+            // NOTE: By fetching the player_uid, we validated that the entity exists, and we
+            // call nothing that can delete it in any of the subsequent
+            // commands, so we can assume that all of these calls succeed,
+            // justifying ignoring the result of insertion.
+            self.write_component_ignore_entity_dead(entity, comp::Pos(spawn_point));
+
+            // Make sure physics components are updated
+            self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
+
+            const INITIAL_VD: u32 = 5; //will be changed after login
+            self.write_component_ignore_entity_dead(
+                entity,
+                Presence::new(INITIAL_VD, PresenceKind::Spectator),
+            );
+
+            // Tell the client its request was successful.
+            if let Some(client) = self.ecs().read_storage::<Client>().get(entity) {
+                client.send_fallible(ServerGeneral::SpectatorSuccess(spawn_point));
             }
         }
     }

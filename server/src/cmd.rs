@@ -6,6 +6,7 @@ use crate::{
     client::Client,
     location::Locations,
     login_provider::LoginProvider,
+    presence::Presence,
     settings::{
         Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
@@ -49,7 +50,7 @@ use common::{
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use common_net::{
-    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
+    msg::{DisconnectReason, Notification, PlayerListUpdate, PresenceKind, ServerGeneral},
     sync::WorldSyncExt,
 };
 use common_state::{BuildAreaError, BuildAreas};
@@ -231,19 +232,37 @@ fn position_mut<T>(
         })
         .unwrap_or(entity);
 
+    let mut maybe_pos = None;
+
     let res = server
         .state
         .ecs()
         .write_storage::<comp::Pos>()
         .get_mut(entity)
-        .map(f)
+        .map(|pos| {
+            let res = f(pos);
+            maybe_pos = Some(pos.0);
+            res
+        })
         .ok_or_else(|| format!("Cannot get position for {:?}!", descriptor));
-    if res.is_ok() {
-        let _ = server
+
+    if let Some(pos) = maybe_pos {
+        if server
             .state
             .ecs()
-            .write_storage::<comp::ForceUpdate>()
-            .insert(entity, comp::ForceUpdate);
+            .read_storage::<Presence>()
+            .get(entity)
+            .map(|presence| presence.kind == PresenceKind::Spectator)
+            .unwrap_or(false)
+        {
+            server.notify_client(entity, ServerGeneral::SpectatePosition(pos));
+        } else {
+            let _ = server
+                .state
+                .ecs()
+                .write_storage::<comp::ForceUpdate>()
+                .insert(entity, comp::ForceUpdate);
+        }
     }
     res
 }

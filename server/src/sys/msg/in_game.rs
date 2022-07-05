@@ -3,8 +3,8 @@ use crate::TerrainPersistence;
 use crate::{client::Client, presence::Presence, Settings};
 use common::{
     comp::{
-        Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet,
-        Vel,
+        Admin, AdminRole, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player,
+        Pos, SkillSet, Vel,
     },
     event::{EventBus, ServerEvent},
     link::Is,
@@ -14,7 +14,7 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{ClientGeneral, ServerGeneral};
+use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace, warn};
@@ -287,6 +287,13 @@ impl Sys {
             },
             ClientGeneral::UpdateMapMarker(update) => {
                 server_emitter.emit(ServerEvent::UpdateMapMarker { entity, update });
+            },
+            ClientGeneral::SpectatePosition(pos) => {
+                if let Some(admin) = maybe_admin && admin.0 >= AdminRole::Moderator && presence.kind == PresenceKind::Spectator {
+                    if let Some(position) = positions.get_mut(entity) {
+                        position.0 = pos;
+                    }
+                }
             },
             ClientGeneral::RequestCharacterList
             | ClientGeneral::CreateCharacter { .. }

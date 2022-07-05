@@ -1136,7 +1136,7 @@ impl Hud {
 
         let character_id = match client.presence().unwrap() {
             PresenceKind::Character(id) => Some(id),
-            PresenceKind::Spectator => unreachable!("HUD creation in Spectator mode!"),
+            PresenceKind::Spectator => None,
             PresenceKind::Possessor => None,
         };
 

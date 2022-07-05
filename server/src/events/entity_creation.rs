@@ -33,6 +33,11 @@ pub fn handle_initialize_character(
     server.state.initialize_character_data(entity, character_id);
 }
 
+pub fn handle_initialize_spectator(server: &mut Server, entity: EcsEntity) {
+    server.state.initialize_spectator_data(entity);
+    sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
+}
+
 pub fn handle_loaded_character_data(
     server: &mut Server,
     entity: EcsEntity,

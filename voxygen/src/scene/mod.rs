@@ -37,6 +37,7 @@ use common::{
     vol::ReadVol,
 };
 use common_base::{prof_span, span};
+use common_net::msg::PresenceKind;
 use common_state::State;
 use comp::item::Reagent;
 use hashbrown::HashMap;
@@ -299,10 +300,15 @@ impl Scene {
 
         let terrain = Terrain::new(renderer, &data, lod.get_data(), sprite_render_context);
 
+        let camera_mode = match client.presence() {
+            Some(PresenceKind::Spectator) => CameraMode::Freefly,
+            _ => CameraMode::ThirdPerson,
+        };
+
         Self {
             data,
             globals_bind_group,
-            camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
+            camera: Camera::new(resolution.x / resolution.y, camera_mode),
             camera_input_state: Vec2::zero(),
             event_lights: Vec::new(),
 

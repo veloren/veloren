@@ -140,6 +140,7 @@ pub enum ServerGeneral {
     CharacterCreated(character::CharacterId),
     CharacterEdited(character::CharacterId),
     CharacterSuccess,
+    SpectatorSuccess(Vec3<f32>),
     //Ingame related
     GroupUpdate(comp::group::ChangeNotification<Uid>),
     /// Indicate to the client that they are invited to join a group
@@ -199,6 +200,9 @@ pub enum ServerGeneral {
     SiteEconomy(EconomyInfo),
     MapMarker(comp::MapMarkerUpdate),
     WeatherUpdate(WeatherGrid),
+    /// Suggest the client to spectate a position. Called after client has
+    /// requested teleport etc.
+    SpectatePosition(Vec3<f32>),
 }
 
 impl ServerGeneral {
@@ -292,7 +296,7 @@ impl ServerMsg {
                         | ServerGeneral::CharacterCreated(_) => {
                             c_type != ClientType::ChatOnly && presence.is_none()
                         },
-                        ServerGeneral::CharacterSuccess => {
+                        ServerGeneral::CharacterSuccess | ServerGeneral::SpectatorSuccess(_) => {
                             c_type == ClientType::Game && presence.is_none()
                         },
                         //Ingame related
@@ -312,7 +316,8 @@ impl ServerMsg {
                         | ServerGeneral::FinishedTrade(_)
                         | ServerGeneral::SiteEconomy(_)
                         | ServerGeneral::MapMarker(_)
-                        | ServerGeneral::WeatherUpdate(_) => {
+                        | ServerGeneral::WeatherUpdate(_)
+                        | ServerGeneral::SpectatePosition(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

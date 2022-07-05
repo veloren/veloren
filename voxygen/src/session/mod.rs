@@ -358,6 +358,9 @@ impl SessionState {
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
                 },
+                client::Event::SpectatePosition(pos) => {
+                    self.scene.camera_mut().force_focus_pos(pos);
+                },
             }
         }
 
@@ -386,14 +389,13 @@ impl PlayState for SessionState {
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<Session as PlayState>::tick");
         // TODO: let mut client = self.client.borrow_mut();
-
         // TODO: can this be a method on the session or are there borrowcheck issues?
         let (client_presence, client_registered) = {
             let client = self.client.borrow();
             (client.presence(), client.registered())
         };
 
-        if client_presence.is_some() {
+        if let Some(presence) = client_presence {
             let camera = self.scene.camera_mut();
 
             // Clamp camera's vertical angle if the toggle is enabled
@@ -425,7 +427,7 @@ impl PlayState for SessionState {
             }
 
             // Compute camera data
-            camera.compute_dependents(&*self.client.borrow().state().terrain());
+            camera.compute_dependents(&*client.state().terrain());
             let camera::Dependents {
                 cam_pos, cam_dir, ..
             } = self.scene.camera().dependents();
@@ -479,6 +481,10 @@ impl PlayState for SessionState {
             );
 
             drop(client);
+
+            if presence == PresenceKind::Spectator {
+                self.client.borrow_mut().spectate_position(cam_pos);
+            }
 
             // Nearest block to consider with GameInput primary or secondary key.
             let nearest_block_dist = find_shortest_distance(&[
@@ -887,7 +893,14 @@ impl PlayState for SessionState {
                                 // The server should do its own filtering of which entities are sent
                                 // to clients to prevent abuse.
                                 let camera = self.scene.camera_mut();
-                                camera.next_mode(self.client.borrow().is_moderator());
+                                let client = self.client.borrow();
+                                camera.next_mode(
+                                    client.is_moderator(),
+                                    client
+                                        .presence()
+                                        .map(|presence| presence == PresenceKind::Spectator)
+                                        .unwrap_or(false),
+                                );
                             },
                             GameInput::Select => {
                                 if !state {
