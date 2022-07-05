@@ -148,6 +148,8 @@ pub enum GameInput {
     MapZoomOut,
     #[strum(serialize = "gameinput.map.locationmarkerbutton")]
     MapSetMarker,
+    #[strum(serialize = "gameinput.spectatespeedboost")]
+    SpectateSpeedBoost,
 }
 
 impl GameInput {

@@ -64,3 +64,4 @@ gameinput-mapzoomin = Increase map zoom
 gameinput-mapzoomout = Decrease map zoom
 gameinput-greet = Greet
 gameinput-map-locationmarkerbutton = Set a waypoint in the Map
+gameinput-spectatespeedboost = Spectate speed boost

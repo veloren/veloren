@@ -1046,6 +1046,7 @@ impl PlayState for SessionState {
                     const FREEFLY_ACCEL: f32 = 120.0;
                     const FREEFLY_DAMPING: f32 = 80.0;
                     const FREEFLY_MAX_SPEED: f32 = 50.0;
+                    const FREEFLY_SPEED_BOOST: f32 = 5.0;
 
                     let forward = self.scene.camera().forward();
                     let right = self.scene.camera().right();
@@ -1067,10 +1068,16 @@ impl PlayState for SessionState {
                         }
                     }
 
+                    let boost = if self.inputs_state.contains(&GameInput::SpectateSpeedBoost) {
+                        FREEFLY_SPEED_BOOST
+                    } else {
+                        1.0
+                    };
+
                     let pos = self.scene.camera().get_focus_pos();
                     self.scene
                         .camera_mut()
-                        .set_focus_pos(pos + self.freefly_vel * dt);
+                        .set_focus_pos(pos + self.freefly_vel * dt * boost);
 
                     // Do not apply any movement to the player character
                     self.inputs.move_dir = Vec2::zero();
