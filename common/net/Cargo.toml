@@ -22,11 +22,11 @@ vek = { version = "0.15.8", features = ["serde"] }
 tracing = { version = "0.1", default-features = false }
 
 # Data structures
-hashbrown = { version = "0.11", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.12", features = ["rayon", "serde", "nightly"] }
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46" }
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "8be2abcddf8f524cb5876e8dd20a7e47cfaf7573" }
+specs = { version = "0.18", features = ["serde", "storage-event-control"] }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "c17abc638f23ef221ce7384c7dd77eef757b82f4" }
 
 # Serde
 serde = { version = "1.0.110", features = ["derive"] }
