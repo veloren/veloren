@@ -190,6 +190,7 @@ impl ControlSettings {
             GameInput::MapZoomOut => KeyMouse::Key(VirtualKeyCode::Minus),
             GameInput::MapSetMarker => KeyMouse::Mouse(MouseButton::Middle),
             GameInput::SpectateSpeedBoost => KeyMouse::Key(VirtualKeyCode::LControl),
+            GameInput::SpectateViewpoint => KeyMouse::Mouse(MouseButton::Middle),
         }
     }
 }

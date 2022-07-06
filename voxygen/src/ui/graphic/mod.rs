@@ -1,6 +1,5 @@
 mod pixel_art;
 mod renderer;
-
 pub use renderer::{SampleStrat, Transform};
 
 use crate::{

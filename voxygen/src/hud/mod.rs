@@ -501,6 +501,8 @@ pub struct DebugInfo {
 pub struct HudInfo {
     pub is_aiming: bool,
     pub is_first_person: bool,
+    pub viewpoint_entity: specs::Entity,
+    pub mutable_viewpoint: bool,
     pub target_entity: Option<specs::Entity>,
     pub selected_entity: Option<(specs::Entity, Instant)>,
 }
@@ -1278,7 +1280,7 @@ impl Hud {
             let players = ecs.read_storage::<comp::Player>();
             let msm = ecs.read_resource::<MaterialStatManifest>();
             let entities = ecs.entities();
-            let me = client.entity();
+            let me = info.viewpoint_entity;
             let poises = ecs.read_storage::<comp::Poise>();
             let alignments = ecs.read_storage::<comp::Alignment>();
             let is_mount = ecs.read_storage::<Is<Mount>>();
@@ -2585,7 +2587,7 @@ impl Hud {
 
         // Bag button and nearby icons
         let ecs = client.state().ecs();
-        let entity = client.entity();
+        let entity = info.viewpoint_entity;
         let stats = ecs.read_storage::<comp::Stats>();
         let skill_sets = ecs.read_storage::<comp::SkillSet>();
         let buffs = ecs.read_storage::<comp::Buffs>();
@@ -2593,6 +2595,7 @@ impl Hud {
         if let (Some(player_stats), Some(skill_set)) = (stats.get(entity), skill_sets.get(entity)) {
             match Buttons::new(
                 client,
+                &info,
                 self.show.bag,
                 &self.imgs,
                 &self.fonts,
@@ -2705,14 +2708,12 @@ impl Hud {
         // Skillbar
         // Get player stats
         let ecs = client.state().ecs();
-        let entity = client.entity();
+        let entity = info.viewpoint_entity;
         let healths = ecs.read_storage::<Health>();
         let inventories = ecs.read_storage::<comp::Inventory>();
         let energies = ecs.read_storage::<comp::Energy>();
         let skillsets = ecs.read_storage::<comp::SkillSet>();
         let active_abilities = ecs.read_storage::<comp::ActiveAbilities>();
-        let character_states = ecs.read_storage::<comp::CharacterState>();
-        let controllers = ecs.read_storage::<comp::Controller>();
         let bodies = ecs.read_storage::<comp::Body>();
         let poises = ecs.read_storage::<comp::Poise>();
         // Combo floater stuffs
@@ -2722,25 +2723,16 @@ impl Hud {
         });
         self.floaters.combo_floater = self.floaters.combo_floater.filter(|f| f.timer > 0_f64);
 
-        if let (
-            Some(health),
-            Some(inventory),
-            Some(energy),
-            Some(skillset),
-            Some(body),
-            Some(_character_state),
-            Some(_controller),
-        ) = (
+        if let (Some(health), Some(inventory), Some(energy), Some(skillset), Some(body)) = (
             healths.get(entity),
             inventories.get(entity),
             energies.get(entity),
             skillsets.get(entity),
             bodies.get(entity),
-            character_states.get(entity),
-            controllers.get(entity).map(|c| &c.inputs),
         ) {
             Skillbar::new(
                 client,
+                &info,
                 global_state,
                 &self.imgs,
                 &self.item_imgs,
@@ -2775,8 +2767,8 @@ impl Hud {
                 Some(body),
                 Some(poise),
             ) = (
-                stats.get(client.entity()),
-                skill_sets.get(client.entity()),
+                stats.get(info.viewpoint_entity),
+                skill_sets.get(info.viewpoint_entity),
                 healths.get(entity),
                 energies.get(entity),
                 bodies.get(entity),
@@ -2784,6 +2776,7 @@ impl Hud {
             ) {
                 match Bag::new(
                     client,
+                    &info,
                     global_state,
                     &self.imgs,
                     &self.item_imgs,
@@ -2828,6 +2821,7 @@ impl Hud {
         if self.show.trade {
             if let Some(action) = Trade::new(
                 client,
+                &info,
                 &self.imgs,
                 &self.item_imgs,
                 &self.fonts,
@@ -2871,14 +2865,10 @@ impl Hud {
         }
 
         // Buffs
-        let ecs = client.state().ecs();
-        let entity = client.entity();
-        let health = ecs.read_storage::<Health>();
-        let energy = ecs.read_storage::<comp::Energy>();
         if let (Some(player_buffs), Some(health), Some(energy)) = (
-            buffs.get(client.entity()),
-            health.get(entity),
-            energy.get(entity),
+            buffs.get(info.viewpoint_entity),
+            healths.get(entity),
+            energies.get(entity),
         ) {
             for event in BuffsBar::new(
                 &self.imgs,
@@ -2905,6 +2895,7 @@ impl Hud {
                 for event in Crafting::new(
                     //&self.show,
                     client,
+                    &info,
                     &self.imgs,
                     &self.fonts,
                     &*i18n,
@@ -3038,6 +3029,7 @@ impl Hud {
         LootScroller::new(
             &mut self.new_loot_messages,
             client,
+            &info,
             &self.show,
             &self.imgs,
             &self.item_imgs,
@@ -3107,49 +3099,45 @@ impl Hud {
         if self.show.social {
             let ecs = client.state().ecs();
             let _stats = ecs.read_storage::<comp::Stats>();
-            let me = client.entity();
-            if let Some(_stats) = stats.get(me) {
-                for event in Social::new(
-                    &self.show,
-                    client,
-                    &self.imgs,
-                    &self.fonts,
-                    i18n,
-                    info.selected_entity,
-                    &self.rot_imgs,
-                    tooltip_manager,
-                )
-                .set(self.ids.social_window, ui_widgets)
-                {
-                    match event {
-                        social::Event::Close => {
-                            self.show.social(false);
-                            if !self.show.bag {
-                                self.show.want_grab = true;
-                                self.force_ungrab = false;
-                            } else {
-                                self.force_ungrab = true
-                            };
-                        },
-                        social::Event::Focus(widget_id) => {
-                            self.to_focus = Some(Some(widget_id));
-                        },
-                        social::Event::Invite(uid) => events.push(Event::InviteMember(uid)),
-                        social::Event::SearchPlayers(search_key) => {
-                            self.show.search_social_players(search_key)
-                        },
-                    }
+            for event in Social::new(
+                &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+                i18n,
+                info.selected_entity,
+                &self.rot_imgs,
+                tooltip_manager,
+            )
+            .set(self.ids.social_window, ui_widgets)
+            {
+                match event {
+                    social::Event::Close => {
+                        self.show.social(false);
+                        if !self.show.bag {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
+                    },
+                    social::Event::Focus(widget_id) => {
+                        self.to_focus = Some(Some(widget_id));
+                    },
+                    social::Event::Invite(uid) => events.push(Event::InviteMember(uid)),
+                    social::Event::SearchPlayers(search_key) => {
+                        self.show.search_social_players(search_key)
+                    },
                 }
             }
         }
 
         // Diary
         if self.show.diary {
-            let entity = client.entity();
+            let entity = info.viewpoint_entity;
             let skill_sets = ecs.read_storage::<comp::SkillSet>();
             if let (
                 Some(skill_set),
-                Some(active_abilities),
                 Some(inventory),
                 Some(health),
                 Some(energy),
@@ -3157,7 +3145,6 @@ impl Hud {
                 Some(poise),
             ) = (
                 skill_sets.get(entity),
-                active_abilities.get(entity),
                 inventories.get(entity),
                 healths.get(entity),
                 energies.get(entity),
@@ -3169,7 +3156,7 @@ impl Hud {
                     client,
                     global_state,
                     skill_set,
-                    active_abilities,
+                    active_abilities.get(entity).unwrap_or(&Default::default()),
                     inventory,
                     health,
                     energy,
@@ -3386,7 +3373,7 @@ impl Hud {
                     ) = (a, b)
                     {
                         if let Some(item) = inventories
-                            .get(client.entity())
+                            .get(info.viewpoint_entity)
                             .and_then(|inv| inv.get(slot))
                         {
                             self.hotbar.add_inventory_link(h, item);
@@ -3423,7 +3410,7 @@ impl Hud {
                                 events.push(Event::ChangeAbility(index, ability));
                             },
                             (AbilitySlot::Slot(a), AbilitySlot::Slot(b)) => {
-                                let me = client.entity();
+                                let me = info.viewpoint_entity;
                                 if let Some(active_abilities) = active_abilities.get(me) {
                                     let ability_a = active_abilities
                                         .auxiliary_set(inventories.get(me), skill_sets.get(me))
@@ -3447,7 +3434,7 @@ impl Hud {
                     } else if let (Inventory(i), Crafting(c)) = (a, b) {
                         // Add item to crafting input
                         if inventories
-                            .get(client.entity())
+                            .get(info.viewpoint_entity)
                             .and_then(|inv| inv.get(i.slot))
                             .map_or(false, |item| {
                                 (c.requirement)(item, client.component_recipe_book(), c.info)
@@ -3508,7 +3495,7 @@ impl Hud {
                         });
                     } else if let (Inventory(i), Hotbar(h)) = (a, b) {
                         if let Some(item) = inventories
-                            .get(client.entity())
+                            .get(info.viewpoint_entity)
                             .and_then(|inv| inv.get(i.slot))
                         {
                             self.hotbar.add_inventory_link(h, item);
@@ -3545,7 +3532,7 @@ impl Hud {
                                 events.push(Event::ChangeAbility(index, ability));
                             },
                             (AbilitySlot::Slot(a), AbilitySlot::Slot(b)) => {
-                                let me = client.entity();
+                                let me = info.viewpoint_entity;
                                 if let Some(active_abilities) = active_abilities.get(me) {
                                     let ability_a = active_abilities
                                         .auxiliary_set(inventories.get(me), skill_sets.get(me))
@@ -3592,7 +3579,7 @@ impl Hud {
                         // Used from hotbar
                         self.hotbar.get(h).map(|s| match s {
                             hotbar::SlotContents::Inventory(i, _) => {
-                                if let Some(inv) = inventories.get(client.entity()) {
+                                if let Some(inv) = inventories.get(info.viewpoint_entity) {
                                     // If the item in the inactive main hand is the same as the item
                                     // pressed in the hotbar, then swap active and inactive hands
                                     // instead of looking for
@@ -3643,7 +3630,7 @@ impl Hud {
                             };
                         }
                         let who = match ecs
-                            .uid_from_entity(client.entity())
+                            .uid_from_entity(info.viewpoint_entity)
                             .and_then(|uid| trade.which_party(uid))
                         {
                             Some(who) => who,
@@ -3752,7 +3739,7 @@ impl Hud {
                 },
             }
         }
-        self.hotbar.maintain_abilities(client);
+        self.hotbar.maintain_abilities(client, &info);
 
         // Temporary Example Quest
         let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer

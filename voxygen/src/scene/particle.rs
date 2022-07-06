@@ -1166,7 +1166,7 @@ impl ParticleMgr {
         let time = scene_data.state.get_time();
         let player_pos = scene_data
             .state
-            .read_component_copied::<Interpolated>(scene_data.player_entity)
+            .read_component_copied::<Interpolated>(scene_data.viewpoint_entity)
             .map(|i| i.pos)
             .unwrap_or_default();
         let player_chunk = player_pos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {

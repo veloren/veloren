@@ -707,7 +707,7 @@ impl FigureMgr {
         // Get player position.
         let player_pos = ecs
             .read_storage::<Pos>()
-            .get(scene_data.player_entity)
+            .get(scene_data.viewpoint_entity)
             .map_or(anim::vek::Vec3::zero(), |pos| anim::vek::Vec3::from(pos.0));
         let visible_aabb = anim::vek::Aabb {
             min: player_pos - 2.0,
@@ -716,7 +716,7 @@ impl FigureMgr {
         let camera_mode = camera.get_mode();
         let character_state_storage = state.read_storage::<CharacterState>();
         let slow_jobs = state.slow_job_pool();
-        let character_state = character_state_storage.get(scene_data.player_entity);
+        let character_state = character_state_storage.get(scene_data.viewpoint_entity);
 
         let focus_pos = anim::vek::Vec3::<f32>::from(camera.get_focus_pos());
 
@@ -771,13 +771,13 @@ impl FigureMgr {
             let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel);
 
             let look_dir = controller.map(|c| c.inputs.look_dir).unwrap_or_default();
-            let is_player = scene_data.player_entity == entity;
-            let player_camera_mode = if is_player {
+            let is_viewpoint = scene_data.viewpoint_entity == entity;
+            let viewpoint_camera_mode = if is_viewpoint {
                 camera_mode
             } else {
                 CameraMode::default()
             };
-            let player_character_state = if is_player { character_state } else { None };
+            let viewpoint_character_state = if is_viewpoint { character_state } else { None };
 
             let (pos, ori) = interpolated
                 .map(|i| {
@@ -941,7 +941,7 @@ impl FigureMgr {
                 dt,
                 _lpindex: lpindex,
                 _visible: in_frustum,
-                is_player,
+                is_player: is_viewpoint,
                 _camera: camera,
                 terrain,
                 ground_vel: physics.ground_vel,
@@ -956,8 +956,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -1856,8 +1856,8 @@ impl FigureMgr {
                             inventory,
                             (),
                             tick,
-                            player_camera_mode,
-                            player_character_state,
+                            viewpoint_camera_mode,
+                            viewpoint_character_state,
                             &slow_jobs,
                             None,
                         );
@@ -2056,8 +2056,8 @@ impl FigureMgr {
                             inventory,
                             (),
                             tick,
-                            player_camera_mode,
-                            player_character_state,
+                            viewpoint_camera_mode,
+                            viewpoint_character_state,
                             &slow_jobs,
                             None,
                         );
@@ -2373,8 +2373,8 @@ impl FigureMgr {
                             inventory,
                             (),
                             tick,
-                            player_camera_mode,
-                            player_character_state,
+                            viewpoint_camera_mode,
+                            viewpoint_character_state,
                             &slow_jobs,
                             None,
                         );
@@ -2730,8 +2730,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -2834,8 +2834,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -2917,8 +2917,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -3444,8 +3444,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -3531,8 +3531,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -3710,8 +3710,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -4002,8 +4002,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -4325,8 +4325,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -4408,8 +4408,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -5030,8 +5030,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -5271,8 +5271,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         None,
                     );
@@ -5393,8 +5393,8 @@ impl FigureMgr {
                         inventory,
                         (),
                         tick,
-                        player_camera_mode,
-                        player_character_state,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
                         &slow_jobs,
                         item_key,
                     );
@@ -5453,8 +5453,8 @@ impl FigureMgr {
                             inventory,
                             Arc::clone(vol),
                             tick,
-                            player_camera_mode,
-                            player_character_state,
+                            viewpoint_camera_mode,
+                            viewpoint_character_state,
                             &slow_jobs,
                             None,
                         );
@@ -5484,8 +5484,8 @@ impl FigureMgr {
                             inventory,
                             (),
                             tick,
-                            player_camera_mode,
-                            player_character_state,
+                            viewpoint_camera_mode,
+                            viewpoint_character_state,
                             &slow_jobs,
                             None,
                         )

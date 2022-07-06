@@ -2,7 +2,7 @@ use super::{
     animate_by_pulse, get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    Show, Windows, TEXT_COLOR,
+    HudInfo, Show, Windows, TEXT_COLOR,
 };
 use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
@@ -51,6 +51,7 @@ pub struct LootScroller<'a> {
     new_messages: &'a mut VecDeque<LootMessage>,
 
     client: &'a Client,
+    info: &'a HudInfo,
     show: &'a Show,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
@@ -68,6 +69,7 @@ impl<'a> LootScroller<'a> {
     pub fn new(
         new_messages: &'a mut VecDeque<LootMessage>,
         client: &'a Client,
+        info: &'a HudInfo,
         show: &'a Show,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
@@ -81,6 +83,7 @@ impl<'a> LootScroller<'a> {
         Self {
             new_messages,
             client,
+            info,
             show,
             imgs,
             item_imgs,
@@ -143,6 +146,7 @@ impl<'a> Widget for LootScroller<'a> {
                 )
             },
             self.client,
+            self.info,
             self.imgs,
             self.item_imgs,
             self.pulse,

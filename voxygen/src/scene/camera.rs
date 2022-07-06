@@ -16,7 +16,7 @@ const CLIPPING_MODE_DISTANCE: f32 = 20.0;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
-#[derive(PartialEq, Clone, Copy, Eq, Hash)]
+#[derive(PartialEq, Debug, Clone, Copy, Eq, Hash)]
 pub enum CameraMode {
     FirstPerson = 0,
     ThirdPerson = 1,
@@ -130,7 +130,11 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 ///     e = floor(ln(near/(far - near))/ln(2))
 ///     db/dz = 2^(2-e) / ((1 / far - 1 / near) * (far)^2)
 ///     ```
-///CameraMode::ThirdPerson
+///
+///     Then the maximum precision you can safely use to get a change in the
+/// integer representation     of the mantissa (assuming 32-bit floating points)
+/// is around:
+///
 ///     ```ignore
 ///     abs(2^(-23) / (db/dz)).
 ///     ```
@@ -721,10 +725,8 @@ impl Camera {
 
     /// Cycle the camera to its next valid mode. If is_admin is false then only
     /// modes which are accessible without admin access will be cycled to.
-    pub fn next_mode(&mut self, is_admin: bool, is_spectator: bool) {
-        if is_spectator && is_admin {
-            self.set_mode(CameraMode::Freefly);
-        } else {
+    pub fn next_mode(&mut self, is_admin: bool, has_target: bool) {
+        if has_target {
             self.set_mode(match self.mode {
                 CameraMode::ThirdPerson => CameraMode::FirstPerson,
                 CameraMode::FirstPerson => {
@@ -736,6 +738,8 @@ impl Camera {
                 },
                 CameraMode::Freefly => CameraMode::ThirdPerson,
             });
+        } else {
+            self.set_mode(CameraMode::Freefly);
         }
     }
 

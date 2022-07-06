@@ -31,7 +31,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{SlotKind, SlotManager, TradeSlot},
-    Hud, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    Hud, HudInfo, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use std::borrow::Cow;
 
@@ -75,6 +75,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Trade<'a> {
     client: &'a Client,
+    info: &'a HudInfo,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
@@ -92,6 +93,7 @@ pub struct Trade<'a> {
 impl<'a> Trade<'a> {
     pub fn new(
         client: &'a Client,
+        info: &'a HudInfo,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
@@ -105,6 +107,7 @@ impl<'a> Trade<'a> {
     ) -> Self {
         Self {
             client,
+            info,
             imgs,
             item_imgs,
             fonts,
@@ -313,6 +316,7 @@ impl<'a> Trade<'a> {
                 )
             },
             self.client,
+            self.info,
             self.imgs,
             self.item_imgs,
             self.pulse,

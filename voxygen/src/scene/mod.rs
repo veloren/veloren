@@ -116,7 +116,8 @@ pub struct Scene {
 pub struct SceneData<'a> {
     pub client: &'a Client,
     pub state: &'a State,
-    pub player_entity: specs::Entity,
+    pub viewpoint_entity: specs::Entity,
+    pub mutable_viewpoint: bool,
     pub target_entity: Option<specs::Entity>,
     pub loaded_distance: f32,
     pub view_distance: u32,
@@ -502,71 +503,104 @@ impl Scene {
 
         let dt = ecs.fetch::<DeltaTime>().0;
 
-        let player_pos = ecs
-            .read_storage::<comp::Pos>()
-            .get(scene_data.player_entity)
-            .map_or(Vec3::zero(), |pos| pos.0);
+        let positions = ecs.read_storage::<comp::Pos>();
 
-        let player_rolling = ecs
-            .read_storage::<comp::CharacterState>()
-            .get(scene_data.player_entity)
-            .map_or(false, |cs| cs.is_dodge());
+        let viewpoint_pos = if let Some(viewpoint_pos) =
+            positions.get(scene_data.viewpoint_entity).map(|pos| pos.0)
+        {
+            let viewpoint_ori = ecs
+                .read_storage::<comp::Ori>()
+                .get(scene_data.viewpoint_entity)
+                .map_or(Quaternion::identity(), |ori| ori.to_quat());
 
-        let is_running = ecs
-            .read_storage::<comp::Vel>()
-            .get(scene_data.player_entity)
-            .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2))
-            .unwrap_or(false);
+            let viewpoint_rolling = ecs
+                .read_storage::<comp::CharacterState>()
+                .get(scene_data.viewpoint_entity)
+                .map_or(false, |cs| cs.is_dodge());
 
-        let on_ground = ecs
-            .read_storage::<comp::PhysicsState>()
-            .get(scene_data.player_entity)
-            .map(|p| p.on_ground.is_some());
+            let is_running = ecs
+                .read_storage::<comp::Vel>()
+                .get(scene_data.viewpoint_entity)
+                .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2))
+                .unwrap_or(false);
 
-        let (player_height, player_eye_height) = scene_data
-            .state
-            .ecs()
-            .read_storage::<comp::Body>()
-            .get(scene_data.player_entity)
-            .map_or((1.0, 0.0), |b| (b.height(), b.eye_height()));
+            let on_ground = ecs
+                .read_storage::<comp::PhysicsState>()
+                .get(scene_data.viewpoint_entity)
+                .map(|p| p.on_ground.is_some());
 
-        // Add the analog input to camera
-        self.camera
-            .rotate_by(Vec3::from([self.camera_input_state.x, 0.0, 0.0]));
-        self.camera
-            .rotate_by(Vec3::from([0.0, self.camera_input_state.y, 0.0]));
+            let (viewpoint_height, viewpoint_eye_height) = scene_data
+                .state
+                .ecs()
+                .read_storage::<comp::Body>()
+                .get(scene_data.viewpoint_entity)
+                .map_or((1.0, 0.0), |b| (b.height(), b.eye_height()));
 
-        // Alter camera position to match player.
-        let tilt = self.camera.get_orientation().y;
-        let dist = self.camera.get_distance();
+            if scene_data.mutable_viewpoint || matches!(self.camera.get_mode(), CameraMode::Freefly)
+            {
+                // Add the analog input to camera if it's a mutable viewpoint
+                self.camera
+                    .rotate_by(Vec3::from([self.camera_input_state.x, 0.0, 0.0]));
+                self.camera
+                    .rotate_by(Vec3::from([0.0, self.camera_input_state.y, 0.0]));
+            } else {
+                // Otherwise set the cameras rotation to the viewpoints
+                let q = viewpoint_ori;
+                let sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
+                let cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+                let roll = sinr_cosp.atan2(cosr_cosp);
 
-        let up = match self.camera.get_mode() {
-            CameraMode::FirstPerson => {
-                if player_rolling {
-                    player_height * 0.42
-                } else if is_running && on_ground.unwrap_or(false) {
-                    player_eye_height + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
+                let sinp = 2.0 * (q.w * q.y - q.z * q.x);
+                let pitch = if sinp.abs() >= 1.0 {
+                    std::f32::consts::FRAC_PI_2.copysign(sinp)
                 } else {
-                    player_eye_height
-                }
-            },
-            CameraMode::ThirdPerson if scene_data.is_aiming => player_height * 1.16,
-            CameraMode::ThirdPerson => player_eye_height,
-            CameraMode::Freefly => 0.0,
-        };
+                    sinp.asin()
+                };
 
-        match self.camera.get_mode() {
-            CameraMode::FirstPerson | CameraMode::ThirdPerson => {
-                self.camera.set_focus_pos(
-                    player_pos + Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6),
-                );
-            },
-            CameraMode::Freefly => {},
-        };
+                let siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
+                let cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+                let yaw = siny_cosp.atan2(cosy_cosp);
 
-        // Tick camera for interpolation.
-        self.camera
-            .update(scene_data.state.get_time(), dt, scene_data.mouse_smoothing);
+                self.camera
+                    .set_orientation_instant(Vec3::new(yaw, pitch, -roll));
+            }
+
+            // Alter camera position to match player.
+            let tilt = self.camera.get_orientation().y;
+            let dist = self.camera.get_distance();
+
+            let up = match self.camera.get_mode() {
+                CameraMode::FirstPerson => {
+                    if viewpoint_rolling {
+                        viewpoint_height * 0.42
+                    } else if is_running && on_ground.unwrap_or(false) {
+                        viewpoint_eye_height
+                            + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
+                    } else {
+                        viewpoint_eye_height
+                    }
+                },
+                CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.16,
+                CameraMode::ThirdPerson => viewpoint_eye_height,
+                CameraMode::Freefly => 0.0,
+            };
+
+            match self.camera.get_mode() {
+                CameraMode::FirstPerson | CameraMode::ThirdPerson => {
+                    self.camera.set_focus_pos(
+                        viewpoint_pos + Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6),
+                    );
+                },
+                CameraMode::Freefly => {},
+            };
+
+            // Tick camera for interpolation.
+            self.camera
+                .update(scene_data.state.get_time(), dt, scene_data.mouse_smoothing);
+            viewpoint_pos
+        } else {
+            Vec3::zero()
+        };
 
         // Compute camera matrices.
         self.camera.compute_dependents(&*scene_data.state.terrain());
@@ -617,7 +651,7 @@ impl Scene {
                 .filter(|(pos, _, light_anim, h)| {
                     light_anim.col != Rgb::zero()
                         && light_anim.strength > 0.0
-                        && (pos.0.distance_squared(player_pos) as f32)
+                        && (pos.0.distance_squared(viewpoint_pos) as f32)
                             < loaded_distance.powi(2) + LIGHT_DIST_RADIUS
                         && h.map_or(true, |h| !h.is_dead)
                 })
@@ -632,7 +666,7 @@ impl Scene {
                         .map(|el| el.light.with_strength((el.fadeout)(el.timeout))),
                 ),
         );
-        lights.sort_by_key(|light| light.get_pos().distance_squared(player_pos) as i32);
+        lights.sort_by_key(|light| light.get_pos().distance_squared(viewpoint_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
         renderer.update_consts(&mut self.data.lights, lights);
 
@@ -657,7 +691,7 @@ impl Scene {
             .join()
             .filter(|(_, _, _, _, health)| !health.is_dead)
             .filter(|(pos, _, _, _, _)| {
-                (pos.0.distance_squared(player_pos) as f32)
+                (pos.0.distance_squared(viewpoint_pos) as f32)
                     < (loaded_distance.min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS).powi(2)
             })
             .map(|(pos, interpolated, scale, _, _)| {
@@ -668,7 +702,7 @@ impl Scene {
                 )
             })
             .collect::<Vec<_>>();
-        shadows.sort_by_key(|shadow| shadow.get_pos().distance_squared(player_pos) as i32);
+        shadows.sort_by_key(|shadow| shadow.get_pos().distance_squared(viewpoint_pos) as i32);
         shadows.truncate(MAX_SHADOW_COUNT);
         renderer.update_consts(&mut self.data.shadows, &shadows);
 
@@ -1139,7 +1173,7 @@ impl Scene {
         self.sfx_mgr.maintain(
             audio,
             scene_data.state,
-            scene_data.player_entity,
+            scene_data.viewpoint_entity,
             &self.camera,
             &self.terrain,
             client,
