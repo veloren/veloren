@@ -813,9 +813,9 @@ impl TradePricing {
         result
     }
 
-    fn get_materials_impl(&self, item: &ItemDefinitionIdOwned) -> Option<MaterialUse> {
+    fn get_materials_impl(&self, item: &ItemDefinitionId) -> Option<MaterialUse> {
         //let tmp = format!("{:?}", item);
-        let ret = self.price_lookup(item).cloned();
+        let ret = self.price_lookup(&item.to_owned()).cloned();
         // match item {
         //     ItemDefinitionIdOwned::Simple(id) => self.price_lookup(id).cloned(),
         //     ItemDefinitionIdOwned::Modular { components, .. } => Some(
@@ -854,7 +854,7 @@ impl TradePricing {
 
     #[must_use]
     pub fn get_materials(item: &ItemDefinitionId) -> Option<MaterialUse> {
-        TRADE_PRICING.get_materials_impl(&item.to_owned())
+        TRADE_PRICING.get_materials_impl(item)
     }
 
     #[cfg(test)]
