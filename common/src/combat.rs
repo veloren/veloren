@@ -299,7 +299,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     instance: damage.instance,
-                                    crit: false,
+                                    crit: is_crit,
                                     time,
                                 };
                                 emit(ServerEvent::HealthChange {
