@@ -23,6 +23,7 @@
         "hud.trade.tooltip_hint_2": "<Ctrl-Click para Equilibrar a troca.>",
         "hud.trade.your_offer": "Sua oferta",
         "hud.trade.their_offer": "Oferta do outro",
+        "hud.trade.amount_input": "Selecione um item"
     },
 
 

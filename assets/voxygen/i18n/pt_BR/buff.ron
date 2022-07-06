@@ -21,6 +21,8 @@
         "buff.desc.protectingward": "Você está protegido, de alguma forma, de ataques.",
         "buff.title.frenzied": "Frenético",
         "buff.desc.frenzied": "Você é imbuído de um deslocamento descomunal e ignora pequenas lesões.",
+        "buff.title.hastened": "Aceleração",
+        "buff.desc.hastened": "Seus movimentos e ataques são mais rápidos.",
         // Debuffs
         "buff.title.bleed": "Sangramento",
         "buff.desc.bleed": "Inflige Dano contínuo.",
