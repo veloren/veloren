@@ -138,7 +138,7 @@ dispatch = "0.1.4"
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
 
-[target.'cfg(windows)'.dependencies]
+[target.'cfg(all(windows, target_env="msvc"))'.dependencies]
 mimalloc = "0.1.29"
 
 # Mumble
