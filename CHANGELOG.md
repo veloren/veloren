@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hostile agent will now abort pursuing their target based on multiple metrics
 - Admin command to reload all chunks on the server
 - Furniture and waypoints in site2 towns
-- text input for trading
+- Text input for trading
 - Themed Site CliffTown, hoodoo/arabic inspired stone structures inhabited by mountaineer NPCs.
 - NPCs now have rudimentary personalities
 - Added Belarusian translation
@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New ambience sounds
 - Slider for ambience volume
 - Weather generated on server is sent to clients, and seen on clients as rain/clouds.
+- Updated Brazilian Portuguese Translation
 
 ### Changed
 

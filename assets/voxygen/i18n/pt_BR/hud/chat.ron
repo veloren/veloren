@@ -22,15 +22,15 @@
         "hud.chat.fall_kill_msg": "[{name}] morreu de dano de queda",
         "hud.chat.suicide_msg": "[{name}] morreu de dano autoinflingido",
 
-        "hud.chat.pvp_buff_kill_msg": "[{victim}] morreu de {buff} causado por [{attacker}]",
+        "hud.chat.died_of_pvp_buff_msg": "[{victim}] {died_of_buff} causado por [{attacker}]",
         "hud.chat.pvp_melee_kill_msg": "[{attacker}] derrotou [{victim}]",
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] atirou em [{victim}]",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] explodiu [{victim}]",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] matou [{victim}] com magia",
 
-        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] morreu de {buff}",
+        "hud.chat.died_of_buff_nonexistent_msg": "[{victim}] {died_of_buff}",
 
-        "hud.chat.npc_buff_kill_msg": "[{victim}] morreu de {buff} causado por [{attacker}]",
+        "hud.chat.died_of_npc_buff_msg": "[{victim}] {died_of_buff} causado por {attacker}",
         "hud.chat.npc_melee_kill_msg": "{attacker} matou [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} atirou em [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} explodiu [{victim}]",

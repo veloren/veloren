@@ -4,7 +4,7 @@
 (
     string_map: {
         "gameinput.primary": "Ataque Básico",
-        "gameinput.secondary": "Ataque Secundário/Bloqueio/Mira",
+        "gameinput.secondary": "Ataque Secundário",
         "gameinput.block": "Bloquear",
         "gameinput.slot1": "Hotbar Slot 1",
         "gameinput.slot2": "Hotbar Slot 2",
@@ -53,7 +53,7 @@
         "gameinput.togglewield": "Alternar Empunhadura",
         "gameinput.interact": "Interagir",
         "gameinput.freelook": "Câmera Livre",
-        "gameinput.autowalk": "Caminhar Automático",
+        "gameinput.autowalk": "Caminhar/Nadar Automáticamente",
         "gameinput.cameraclamp": "Trava de câmera vertical",
         "gameinput.dance": "Dançar",
         "gameinput.select": "Escolher",
@@ -68,6 +68,7 @@
         "gameinput.mapzoomin": "Aumentar zoom do mapa",
         "gameinput.mapzoomout": "Reduzir zoom do mapa",     
         "gameinput.greet": "Saudação",
+        "gameinput.map.locationmarkerbutton": "Insere um marcador no Mapa"
     },
 
 

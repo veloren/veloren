@@ -10,6 +10,7 @@
         "main.connecting": "Conectando",
         "main.creating_world": "Criando Mundo",
         "main.tip": "Dica:",
+        "main.unbound_key_tip": "não vinculado",
 
         // Mensagem de boas vindas que é exibida assim que o Veloren é iniciado
         "main.notice": r#"Bem-vindo a versão alfa de Veloren!
