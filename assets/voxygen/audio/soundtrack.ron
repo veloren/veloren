@@ -19,6 +19,7 @@
             timing: Some(Night),
             biomes: [
                 (Mountain, 1),
+                (Snowland, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
