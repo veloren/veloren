@@ -641,8 +641,8 @@
             biomes: [],
             site: Some(Dungeon),
             segments: [
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 56.0, Transition(Explore, Combat(High)), Some(Combat(High))),
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 55.97, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 53.97, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
             ],
         ),
@@ -653,8 +653,8 @@
             biomes: [],
             site: Some(Dungeon),
             segments: [
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 60.0, Transition(Explore, Combat(High)), Some(Combat(High))),
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 60.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 59.97, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 59.97, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 4.0, Transition(Combat(High), Explore), None),
             ],
         ),

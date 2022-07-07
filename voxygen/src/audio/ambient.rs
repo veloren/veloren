@@ -79,20 +79,17 @@ impl AmbientMgr {
                 // Update with sfx volume
                 channel.set_volume(ambience_volume);
 
-                // Set the duration of the loop to whatever the current value is (0.0 by
-                // default)
-
                 // If the sound should loop at this point:
                 if channel.began_playing.elapsed().as_secs_f32() > channel.next_track_change {
                     let track = ambience.tracks.iter().find(|track| track.tag == tag);
-                    // Set the channel's start point at this instant
+                    // Set the channel's start point to this instant
                     channel.began_playing = Instant::now();
                     if let Some(track) = track {
                         // Set loop duration to the one specified in the ron
                         channel.next_track_change = track.length;
                         // Play the file of the current tag at the current multiplier;
                         let current_multiplier = channel.multiplier;
-                        audio.play_ambient(tag, &track.path, current_multiplier);
+                        audio.play_ambient(tag, &track.path, current_multiplier * ambience_volume);
                     }
                 };
 

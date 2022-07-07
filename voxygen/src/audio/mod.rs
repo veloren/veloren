@@ -312,11 +312,11 @@ impl AudioFrontend {
         &mut self,
         channel_tag: AmbientChannelTag,
         sound: &str,
-        volume_multiplier: f32,
+        volume: f32,
     ) {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.get_ambient_channel(channel_tag) {
-                channel.set_volume(volume_multiplier);
+                channel.set_volume(volume);
                 channel.play(load_ogg(sound));
             }
         }
