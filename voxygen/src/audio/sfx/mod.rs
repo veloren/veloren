@@ -220,6 +220,7 @@ pub enum VoiceKind {
     Asp,
     Fungome,
     Truffler,
+    Wolf,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -250,8 +251,8 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             | quadruped_medium::Species::Lion
             | quadruped_medium::Species::Frostfang
             | quadruped_medium::Species::Snowleopard => VoiceKind::Lion,
-            quadruped_medium::Species::Wolf
-            | quadruped_medium::Species::Roshwalr
+            quadruped_medium::Species::Wolf => VoiceKind::Wolf,
+            quadruped_medium::Species::Roshwalr
             | quadruped_medium::Species::Tarasque
             | quadruped_medium::Species::Darkhound
             | quadruped_medium::Species::Bonerattler

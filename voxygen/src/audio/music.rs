@@ -290,6 +290,7 @@ impl MusicMgr {
 
         // TODO: Instead of a constant tick, make this a timer that starts only when
         // combat might end, providing a proper "buffer".
+        // interrupt_delay dictates the time between attempted interrupts
         let interrupt = matches!(music_state, MusicState::Transition(_, _))
             && self.last_interrupt.elapsed().as_secs_f32() > mtm.interrupt_delay;
 
@@ -331,6 +332,11 @@ impl MusicMgr {
                 rng.gen_range(100.0..130.0)
             } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
                 rng.gen_range(90.0..180.0)
+            } else if matches!(
+                music_state,
+                MusicState::Activity(MusicActivity::Combat(_)) | MusicState::Transition(_, _)
+            ) {
+                0.0
             } else {
                 rng.gen_range(30.0..60.0)
             };
@@ -373,13 +379,14 @@ impl MusicMgr {
         }
         // Second, prevent playing the last track (when not in combat, because then it
         // needs to loop)
-        if music_state == &MusicState::Activity(MusicActivity::Combat(CombatIntensity::High))
-            || music_state
-                == &MusicState::Transition(
+        if matches!(
+            music_state,
+            &MusicState::Activity(MusicActivity::Combat(CombatIntensity::High))
+                | &MusicState::Transition(
                     MusicActivity::Combat(CombatIntensity::High),
-                    MusicActivity::Explore,
+                    MusicActivity::Explore
                 )
-        {
+        ) {
             let filtered_tracks: Vec<_> = maybe_tracks
                 .iter()
                 .filter(|track| track.title.eq(&self.last_track))
