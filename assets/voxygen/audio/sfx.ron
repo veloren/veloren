@@ -950,6 +950,9 @@
             ],
             threshold: 1.0,
         ),
+
+        // Utterances (NPCs)
+
         Utterance(Angry, BipedLarge): (
             files: [
                 "voxygen.audio.sfx.utterance.ogre_angry1",
@@ -994,12 +997,6 @@
         Utterance(Angry, Saurok): (
             files: [
                 "voxygen.audio.sfx.utterance.saurok_angry1",
-            ],
-            threshold: 1.0,
-        ),
-        Utterance(Angry, Wendigo): (
-            files: [
-                "voxygen.audio.sfx.utterance.wendigo_angry1",
             ],
             threshold: 1.0,
         ),
@@ -1127,6 +1124,48 @@
         Utterance(Hurt, Asp): (
             files: [
                 "voxygen.audio.sfx.utterance.asp_hurt1",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Angry, Wendigo): (
+            files: [
+                "voxygen.audio.sfx.utterance.wendigo_angry1",
+                "voxygen.audio.sfx.utterance.wendigo_angry2",
+                "voxygen.audio.sfx.utterance.wendigo_angry3",
+                "voxygen.audio.sfx.utterance.wendigo_angry4",
+                "voxygen.audio.sfx.utterance.wendigo_angry5",
+                "voxygen.audio.sfx.utterance.wendigo_angry6",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Calm, Wendigo): (
+            files: [
+                "voxygen.audio.sfx.utterance.wendigo_calm1",
+                "voxygen.audio.sfx.utterance.wendigo_calm2",
+                "voxygen.audio.sfx.utterance.wendigo_calm3",
+                "voxygen.audio.sfx.utterance.wendigo_calm4",
+                "voxygen.audio.sfx.utterance.wendigo_calm5",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Angry, Wolf): (
+            files: [
+                "voxygen.audio.sfx.utterance.wolf_angry1",
+                "voxygen.audio.sfx.utterance.wolf_angry2",
+                "voxygen.audio.sfx.utterance.wolf_angry3",
+                "voxygen.audio.sfx.utterance.wolf_angry4",
+                "voxygen.audio.sfx.utterance.wolf_angry5",
+                "voxygen.audio.sfx.utterance.wolf_angry6",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Hurt, Wolf): (
+            files: [
+                "voxygen.audio.sfx.utterance.wolf_hurt1",
+                "voxygen.audio.sfx.utterance.wolf_hurt2",
+                "voxygen.audio.sfx.utterance.wolf_hurt3",
+                "voxygen.audio.sfx.utterance.wolf_hurt4",
+                "voxygen.audio.sfx.utterance.wolf_hurt5",
             ],
             threshold: 1.0,
         ),

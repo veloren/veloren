@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fall damage and some (extra) buffs/debuffs now show up in the damage numbers. 
 - Optimized sprite processing decreasing the startup time of voxygen (and long freezes when trying
   to enter the world when this hasn't finished).
+- Metadata added to music files. Listen to the soundtrack more easily!
 
 ### Removed
 - Removed the options for single and cumulated damage.
@@ -76,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI sfx now play from UI instead of from camera (allowing stereo sfx)
 - Most sfx now correctly play when camera is underwater
 - All sounds now stop upon quitting to main menu
+- Combat music now loops and ends properly
 
 ## [0.12.0] - 2022-02-19
 
