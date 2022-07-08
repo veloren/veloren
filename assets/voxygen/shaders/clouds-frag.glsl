@@ -82,6 +82,43 @@ void main() {
 
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
+    #elif (0 == 0)
+        if (medium.x == MEDIUM_AIR && rain_density > 0.0) {
+            vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
+
+            vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
+
+            vec2 dir2d = adjusted_dir.xy;
+            vec3 rpos = vec3(0);
+            float t = 0.0;
+            for (int i = 0; i < 10; i ++) {//t * (length(dir2d) + 0.25) < 30.0) {
+                const float PLANCK = 0.01;
+                float scale = min(pow(2, ceil(t / 2.0)), 32);
+                vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale)) / dir2d;
+                t += max(min(deltas.x, deltas.y) * scale, PLANCK);
+                rpos = cam_wpos + adjusted_dir * t;
+                vec3 wpos = cam_pos.xyz + focus_off.xyz + dir * t;
+
+                vec2 diff = abs(round(rpos.xy) - rpos.xy);
+                vec3 wall_pos = vec3((diff.x > diff.y) ? rpos.xy : rpos.yx, rpos.z + integrated_rain_vel * 0.5);
+                wall_pos.xz *= vec2(4, 0.3);
+                wall_pos.z += hash(fract(vec4(floor(wall_pos.xy + vec2(0, 0.5)), 0, 0) * 0.1));
+                if (abs(hash(vec4(floor(wall_pos.xyz), 0))) > rain_density) {
+                    continue;
+                }
+
+                if (rain_occlusion_at(wpos - focus_off.xyz) > 0.0 && t > 1 && t < dist) {
+                    if (length((fract(wall_pos.xz) - 0.5)) < 0.1) {
+                        float drop_size = 0.001;
+                        float alpha = sign(max(1 - length(rpos / drop_size * 0.1), 0));
+                        float light = sqrt(dot(color.rgb, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
+                        color.rgb = mix(color.rgb, vec3(0.2, 0.3, 0.5) * light, 0.9);
+
+                        /* color.rgb = mix(color.rgb, vec3(0.5, 0.5, 1), 0.5); */
+                    }
+                }
+            }
+        }
     #else
         vec3 old_color = color.rgb;
 
@@ -92,17 +129,17 @@ void main() {
         float z = (-1 / (abs(adjusted_dir.z) - 1) - 1) * sign(adjusted_dir.z);
         // normalize xy to get a 2d direction
         vec2 dir_2d = normalize(adjusted_dir.xy);
-        // sort of map cylinder around the camera to 2d grid 
+        // sort of map cylinder around the camera to 2d grid
         vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
         // compute camera position in the world
         vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
-        
-        // Rain density is now only based on the cameras current position. 
+
+        // Rain density is now only based on the cameras current position.
         // This could be affected by a setting where rain_density_at is instead
         // called each iteration of the loop. With the current implementation
         // of rain_dir this has issues with being in a place where it doesn't rain
-        // and seeing rain. 
+        // and seeing rain.
         float rain_density = rain_density * 1.0;
         if (medium.x == MEDIUM_AIR && rain_density > 0.0) {
             float rain_dist = 50.0;
@@ -130,7 +167,7 @@ void main() {
                 );
 
                 float dist_to_rain = drop_depth / length(dir.xy);
-                vec3 rpos = dir * dist_to_rain; 
+                vec3 rpos = dir * dist_to_rain;
                 if (dist < dist_to_rain || cam_wpos.z + rpos.z > CLOUD_AVG_ALT) {
                     continue;
                 }
