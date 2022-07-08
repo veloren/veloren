@@ -480,7 +480,9 @@ fn write_column<R: Rng>(
 
     let rand = RandomField::new(37 + level);
 
-    let dirt = 1;
+    let is_ice = biome.icy + col.marble * 0.2 > 0.5 && col.marble > 0.6;
+
+    let dirt = 1 + (!is_ice) as i32;
     let bedrock = z_range.start + lava as i32;
     let base = bedrock + (stalactite * 0.4) as i32;
     let floor = base + dirt;
@@ -650,7 +652,7 @@ fn write_column<R: Rng>(
                     Rgb::new(80, 100, 20),
                     col.marble_small,
                 );
-                let icy = Rgb::new(150, 175, 255);
+                let icy = Rgb::new(170, 195, 255);
                 let dusty = Lerp::lerp(Rgb::new(50, 50, 75), Rgb::new(75, 75, 50), col.marble_mid);
                 let surf_color: Rgb<i16> = Lerp::lerp(
                     Lerp::lerp(
@@ -670,7 +672,22 @@ fn write_column<R: Rng>(
                     biome.fire,
                 );
 
-                Block::new(BlockKind::Sand, surf_color.map(|e| e as u8))
+                if is_ice {
+                    Block::new(BlockKind::Ice, Rgb::new(120, 160, 255))
+                } else {
+                    Block::new(
+                        if biome.mushroom.max(biome.leafy) > 0.5 {
+                            BlockKind::Grass
+                        } else if biome.icy > 0.5 {
+                            BlockKind::Snow
+                        } else if biome.fire > 0.5 {
+                            BlockKind::Rock
+                        } else {
+                            BlockKind::Sand
+                        },
+                        surf_color.map(|e| e as u8),
+                    )
+                }
             } else if let Some(sprite) = (z == floor && !void_below && !sky_above)
                 .then(|| {
                     if rand.chance(wpos2d.with_z(1), biome.mushroom * 0.1) {
