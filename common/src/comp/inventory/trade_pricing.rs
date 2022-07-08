@@ -882,31 +882,7 @@ impl TradePricing {
     }
 
     fn get_materials_impl(&self, item: &ItemDefinitionId) -> Option<MaterialUse> {
-        //let tmp = format!("{:?}", item);
-        let ret = self.price_lookup(&item.to_owned()).cloned();
-        // match item {
-        //     ItemDefinitionIdOwned::Simple(id) => self.price_lookup(id).cloned(),
-        //     ItemDefinitionIdOwned::Modular { components, .. } => Some(
-        //         components
-        //             .into_iter()
-        //             .filter_map(|comp| self.get_materials_impl(comp))
-        //             .sum(),
-        //     ),
-        //     ItemDefinitionIdOwned::Compound {
-        //         simple_base,
-        //         components,
-        //     } => Some(
-        //         self.price_lookup(simple_base)
-        //             .cloned()
-        //             .unwrap_or_else(MaterialUse::default)
-        //             + components
-        //                 .into_iter()
-        //                 .filter_map(|comp| self.get_materials_impl(comp))
-        //                 .sum(),
-        //     ),
-        // };
-        println!("{:?} -> {:?}", item, ret);
-        ret
+        self.price_lookup(&item.to_owned()).cloned()
     }
 
     #[must_use]
@@ -1022,34 +998,6 @@ impl TradePricing {
 pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, ItemDefinitionIdOwned, f32)> {
     ProbabilityFile::from(vec![(1.0, LootSpec::LootTable(loot_table.into()))]).content
 }
-
-// pub fn item_from_definition_id(id: &ItemDefinitionIdOwned) -> Item {
-//     match id {
-//         ItemDefinitionIdOwned::Simple(str) =>
-// Item::new_from_asset_expect(str),         ItemDefinitionIdOwned::Modular {
-//             pseudo_base:_,
-//             components:_,
-//         } => todo!(),
-//         ItemDefinitionIdOwned::Compound {
-//             simple_base,
-//             components,
-//         } => {
-//             warn!("simple_base {}", simple_base);
-//             let ability_map = &AbilityMap::load().read();
-//             let msm = &MaterialStatManifest::load().read();
-//             let components = components
-//                 .iter()
-//                 .map(|i| item_from_definition_id(i))
-//                 .collect();
-//             Item::new_from_item_base(
-//                 ItemBase::Modular(ModularBase::Tool),
-//                 components,
-//                 ability_map,
-//                 msm,
-//             )
-//         },
-//     }
-// }
 
 // if you want to take a look at the calculated values run:
 // cd common && cargo test trade_pricing -- --nocapture
