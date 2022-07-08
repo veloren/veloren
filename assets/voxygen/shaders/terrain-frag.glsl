@@ -300,7 +300,7 @@ void main() {
         vec3 two_down = f_pos - offset_two;
 
         // Adjust this to change the size of the grid cells relative to the
-        // number of shadow texels 
+        // number of shadow texels
         float grid_cell_to_texel_ratio = 32.0;
 
         vec2 shadowTexSize = textureSize(sampler2D(t_directed_shadow_maps, s_directed_shadow_maps), 0) / grid_cell_to_texel_ratio;
@@ -320,7 +320,7 @@ void main() {
             return;
         }
     #endif
-     
+
     float max_light = 0.0;
 
     // After shadows are computed, we use a refracted sun and moon direction.

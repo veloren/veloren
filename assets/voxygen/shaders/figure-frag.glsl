@@ -164,6 +164,17 @@ void main() {
     vec3 surf_color = /*srgb_to_linear*/f_col;
     float alpha = 1.0;
     const float n2 = 1.5;
+
+
+    // This is a silly hack. It's not true reflectance (see below for that), but gives the desired
+    // effect without breaking the entire lighting model until we come up with a better way of doing
+    // reflectivity that accounts for physical surroundings like the ground
+    if ((material & (1u << 1u)) > 0u) {
+        vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
+        surf_color *= dot(vec3(1.0) - abs(fract(reflect_ray_dir * 1.5) * 2.0 - 1.0) * 0.85, vec3(1));
+        alpha = 0.1;
+    }
+
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
     const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
     const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
@@ -173,14 +184,6 @@ void main() {
     vec3 k_a = vec3(1.0);
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
-
-    // This is a silly hack. It's not true reflectance (see below for that), but gives the desired
-    // effect without breaking the entire lighting model until we come up with a better way of doing
-    // reflectivity that accounts for physical surroundings like the ground
-    if ((material & (1u << 1u)) > 0u) {
-        vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
-        surf_color *= dot(vec3(1.0) - abs(fract(reflect_ray_dir * 1.5) * 2.0 - 1.0) * 0.85, vec3(1));
-    }
 
     vec3 emitted_light, reflected_light;
 

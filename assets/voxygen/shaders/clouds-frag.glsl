@@ -89,6 +89,7 @@ void main() {
             vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
 
             vec2 dir2d = adjusted_dir.xy;
+            vec3 rorigin = (vec4(cam_wpos, 0) * rain_dir_mat).xyz;
             vec3 rpos = vec3(0.0);
             float t = 0.0;
             for (int i = 0; i < 10; i ++) {//t * (length(dir2d) + 0.25) < 30.0) {
@@ -97,7 +98,7 @@ void main() {
                 vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale)) / dir2d;
                 float jump = max(min(deltas.x, deltas.y) * scale, PLANCK);
                 t += jump;
-                rpos = cam_wpos + adjusted_dir * t;
+                rpos = rorigin + adjusted_dir * t;
 
                 vec2 diff = abs(round(rpos.xy) - rpos.xy);
                 vec3 wall_pos = vec3((diff.x > diff.y) ? rpos.xy : rpos.yx, rpos.z + integrated_rain_vel * 0.5);
