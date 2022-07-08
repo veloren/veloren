@@ -434,14 +434,14 @@ impl SfxMgr {
                 );
             },
             Outcome::Lightning { pos } => {
-                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Lightning);
-                // TODO: Don't use UI sfx, add a way to control position falloff
-                audio.emit_ui_sfx(
-                    sfx_trigger_item,
-                    Some(
-                        (1.0 - pos.distance(audio.listener.pos) / 10_000.0).clamped(0.0, 1.0) * 3.0,
-                    ),
-                );
+                let power = (1.0 - pos.distance(audio.listener.pos) / 3_500.0)
+                    .clamped(0.0, 1.0)
+                    .powf(0.5);
+                if power > 0.0 {
+                    let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Lightning);
+                    // TODO: Don't use UI sfx, add a way to control position falloff
+                    audio.emit_ui_sfx(sfx_trigger_item, Some(power * 3.0));
+                }
             },
             Outcome::GroundSlam { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GroundSlam);
