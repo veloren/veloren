@@ -190,6 +190,7 @@ pub enum SfxEvent {
     PoiseChange(PoiseState),
     GroundSlam,
     Utterance(UtteranceKind, VoiceKind),
+    Lightning,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -430,6 +431,16 @@ impl SfxMgr {
                     *pos,
                     Some((power.abs() / 2.5).min(1.5)),
                     underwater,
+                );
+            },
+            Outcome::Lightning { pos } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Lightning);
+                // TODO: Don't use UI sfx, add a way to control position falloff
+                audio.emit_ui_sfx(
+                    sfx_trigger_item,
+                    Some(
+                        (1.0 - pos.distance(audio.listener.pos) / 10_000.0).clamped(0.0, 1.0) * 3.0,
+                    ),
                 );
             },
             Outcome::GroundSlam { pos, .. } => {

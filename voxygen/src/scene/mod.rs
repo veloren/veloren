@@ -108,6 +108,7 @@ pub struct Scene {
     ambient_mgr: AmbientMgr,
 
     integrated_rain_vel: f32,
+    last_lightning: Option<(Vec3<f32>, f64)>,
 }
 
 pub struct SceneData<'a> {
@@ -325,6 +326,7 @@ impl Scene {
                 ambience: ambient::load_ambience_items(),
             },
             integrated_rain_vel: 0.0,
+            last_lightning: None,
         }
     }
 
@@ -426,6 +428,9 @@ impl Scene {
             .handle_outcome(outcome, audio, scene_data.client, underwater);
 
         match outcome {
+            Outcome::Lightning { pos } => {
+                self.last_lightning = Some((*pos, scene_data.state.get_time()));
+            },
             Outcome::Explosion {
                 pos,
                 power,
@@ -689,6 +694,7 @@ impl Scene {
             self.select_pos.map(|e| e - focus_off.map(|e| e as i32)),
             scene_data.gamma,
             scene_data.exposure,
+            self.last_lightning.unwrap_or((Vec3::zero(), -1000.0)),
             scene_data.ambiance,
             self.camera.get_mode(),
             scene_data.sprite_render_distance as f32 - 20.0,

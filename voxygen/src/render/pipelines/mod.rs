@@ -64,6 +64,7 @@ pub struct Globals {
     medium: [u32; 4],
     select_pos: [i32; 4],
     gamma_exposure: [f32; 4],
+    last_lightning: [f32; 4],
     ambiance: f32,
     cam_mode: u32,
     sprite_render_distance: f32,
@@ -108,6 +109,7 @@ impl Globals {
         select_pos: Option<Vec3<i32>>,
         gamma: f32,
         exposure: f32,
+        last_lightning: (Vec3<f32>, f64),
         ambiance: f32,
         cam_mode: CameraMode,
         sprite_render_distance: f32,
@@ -156,6 +158,10 @@ impl Globals {
                 .unwrap_or_else(Vec4::zero)
                 .into_array(),
             gamma_exposure: [gamma, exposure, 0.0, 0.0],
+            last_lightning: last_lightning
+                .0
+                .with_w(last_lightning.1 as f32)
+                .into_array(),
             ambiance: ambiance.clamped(0.0, 1.0),
             cam_mode: cam_mode as u32,
             sprite_render_distance,
@@ -202,6 +208,7 @@ impl Default for Globals {
             None,
             1.0,
             1.0,
+            (Vec3::zero(), -1000.0),
             1.0,
             CameraMode::ThirdPerson,
             250.0,

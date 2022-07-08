@@ -431,13 +431,31 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
         }
     #endif
 
+    float time_since_lightning = tick.x - last_lightning.w;
+    vec3 lightning = vec3(0.0);
+    if (time_since_lightning < 5.0) {
+        vec3 diff = wpos + focus_off.xyz - (last_lightning.xyz + vec3(0, 0, 250));
+        float dist = length(diff);
+        lightning = vec3(0.5, 0.8, 1.0)
+            // Strength
+            * 1000000
+            // Flash
+            * max(0.0, 1.0 - time_since_lightning * 1.0)
+            // Reverb
+            * max(sin(time_of_day.x * 0.4), 0.0)
+            // Direction
+            * (dot(norm, diff / dist) + 1.0)
+            // Attenuation
+            / pow(50.0 + dist, 2);
+    }
+
     reflected_light = R_t_r * (
         (1.0 - SUN_AMBIANCE) * sun_chroma * sun_shadow * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting) /*+
                       light_reflection_factor(norm, dir, normalize(sun_dir + vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha) +
                       light_reflection_factor(norm, dir, normalize(sun_dir - vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha)*/) +
         (1.0 - MOON_AMBIANCE) * moon_chroma * moon_shadow * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting) +
         emission
-    );
+    ) + lightning;
 
     /* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
     diffuse_light =

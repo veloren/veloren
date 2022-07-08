@@ -300,7 +300,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
                     };
                     float h = max(0.0, min(pos.z, 900.0 - pos.z) / 450.0);
                     float rain = rain_density_at(pos.xy) * pow(h, 0.1);
-                    
+
                     float sun = sun_access * get_sun_brightness();
                     float energy = pow(rain * sun * min(cdist / 500.0, 1.0), 2.0) * 0.4;
 

@@ -1,9 +1,12 @@
 use common::{
+    event::EventBus,
     grid::Grid,
+    outcome::Outcome,
     resources::TimeOfDay,
     weather::{Weather, WeatherGrid, CELL_SIZE, CHUNKS_PER_CELL},
 };
 use noise::{NoiseFn, SuperSimplex, Turbulence};
+use rand::prelude::*;
 use vek::*;
 use world::World;
 
@@ -20,6 +23,7 @@ struct WeatherZone {
 
 struct CellConsts {
     humidity: f32,
+    alt: f32,
 }
 
 pub struct WeatherSim {
@@ -49,8 +53,13 @@ impl WeatherSim {
                             }
                         }
                         let average_humid = humid_sum / (CHUNKS_PER_CELL * CHUNKS_PER_CELL) as f32;
-                        let humidity = average_humid.powf(0.2).min(1.0);
-                        CellConsts { humidity }
+                        CellConsts {
+                            humidity: average_humid.powf(0.2).min(1.0),
+                            alt: world
+                                .sim()
+                                .get_alt_approx(cell_to_wpos_center(p.map(|e| e as i32)))
+                                .unwrap_or(world::CONFIG.sea_level),
+                        }
                     })
                     .collect::<Vec<_>>(),
             ),
@@ -82,7 +91,12 @@ impl WeatherSim {
     }
 
     // Time step is cell size / maximum wind speed
-    pub fn tick(&mut self, time_of_day: &TimeOfDay, out: &mut WeatherGrid) {
+    pub fn tick(
+        &mut self,
+        time_of_day: &TimeOfDay,
+        outcomes: &EventBus<Outcome>,
+        out: &mut WeatherGrid,
+    ) {
         let time = time_of_day.0;
 
         let base_nz = Turbulence::new(
@@ -125,6 +139,12 @@ impl WeatherSim {
                     rain_nz.get((spos + 1.0).into_array()).powi(3) as f32,
                 ) * 200.0
                     * (1.0 - pressure);
+
+                if cell.rain > 0.02 && cell.cloud > 0.05 && thread_rng().gen_bool(0.01) {
+                    outcomes.emit_now(Outcome::Lightning {
+                        pos: wpos.map(|e| e as f32).with_z(self.consts[point].alt),
+                    });
+                }
             }
         }
     }
