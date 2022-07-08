@@ -92,10 +92,10 @@ void main() {
             vec3 rorigin = cam_pos.xyz + focus_off.xyz + 0.5;
             vec3 rpos = vec3(0.0);
             float t = 0.0;
-            for (int i = 0; i < 6; i ++) {
+            for (int i = 0; i < 8; i ++) {
                 const float PLANCK = 0.01;
-                float scale = min(pow(2, ceil(t / 2.0)), 32);
-                vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale)) / dir2d;
+                float scale = min(pow(2, ceil(t / 3.0)), 32);
+                vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale + 100.0)) / dir2d;
                 float jump = max(min(deltas.x, deltas.y) * scale, PLANCK);
                 t += jump;
                 rpos = rorigin + adjusted_dir * t;
@@ -104,21 +104,19 @@ void main() {
                 vec3 wall_pos = vec3((diff.x > diff.y) ? rpos.xy : rpos.yx, rpos.z + integrated_rain_vel);
                 wall_pos.xz *= vec2(4, 0.3);
                 wall_pos.z += hash(fract(vec4(floor(wall_pos.xy + vec2(0, 0.5)), 1000, 0) * 0.1));
-                if (abs(hash(vec4(floor(wall_pos.xyz), 0))) > rain_density) {
-                    continue;
-                }
 
                 float depth_adjust = abs(hash(vec4(floor(wall_pos.xyz), 2000)));
                 float wpos_dist = t - jump * depth_adjust;
                 vec3 wpos = cam_pos.xyz + dir * wpos_dist;
 
+                float density = rain_density * 3.0 * rain_occlusion_at(wpos);
+                if (density < 0.001 || fract(hash(vec4(floor(wall_pos.xyz), 0))) > density) { continue; }
+
                 if (wpos_dist > dist) { break; }
-                if (rain_occlusion_at(wpos) > 0.5) {
-                    if (length((fract(wall_pos.xz) - 0.5)) < 0.1 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
-                        float alpha = 0.9 * clamp((wpos_dist - 1.0) * 0.5, 0.0, 1.0);
-                        float light = sqrt(dot(color.rgb, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
-                        color.rgb = mix(color.rgb, vec3(0.2, 0.3, 0.5) * light, alpha);
-                    }
+                if (length((fract(wall_pos.xz) - 0.5)) < 0.1 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
+                    float alpha = 0.5 * clamp((wpos_dist - 1.0) * 0.5, 0.0, 1.0);
+                    float light = sqrt(dot(color.rgb, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
+                    color.rgb = mix(color.rgb, vec3(0.2, 0.3, 0.5) * light, alpha);
                 }
             }
         }
