@@ -83,7 +83,7 @@ void main() {
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
     #elif (0 == 0)
-        if (medium.x == MEDIUM_AIR && rain_density > 0.0) {
+        if (medium.x == MEDIUM_AIR && rain_density > 0.001) {
             vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
 
             vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
@@ -110,7 +110,7 @@ void main() {
                 vec3 wpos = cam_pos.xyz + dir * wpos_dist;
 
                 float density = rain_density * rain_occlusion_at(wpos);
-                if (density < 0.001 || fract(hash(vec4(floor(wall_pos.xyz), 0))) > density) { continue; }
+                if (fract(hash(vec4(floor(wall_pos.xyz), 0))) > density) { continue; }
 
                 if (wpos_dist > dist) { break; }
                 if (length((fract(wall_pos.xz) - 0.5)) < 0.1 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
