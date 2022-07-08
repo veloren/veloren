@@ -109,7 +109,7 @@ void main() {
                 float wpos_dist = t - jump * depth_adjust;
                 vec3 wpos = cam_pos.xyz + dir * wpos_dist;
 
-                float density = rain_density * 3.0 * rain_occlusion_at(wpos);
+                float density = rain_density * rain_occlusion_at(wpos);
                 if (density < 0.001 || fract(hash(vec4(floor(wall_pos.xyz), 0))) > density) { continue; }
 
                 if (wpos_dist > dist) { break; }
