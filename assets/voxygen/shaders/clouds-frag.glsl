@@ -89,7 +89,7 @@ void main() {
             vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
 
             vec2 dir2d = adjusted_dir.xy;
-            vec3 rorigin = (vec4(cam_wpos, 0) * rain_dir_mat).xyz;
+            vec3 rorigin = cam_pos.xyz + focus_off.xyz + 0.5;
             vec3 rpos = vec3(0.0);
             float t = 0.0;
             for (int i = 0; i < 6; i ++) {
@@ -114,8 +114,8 @@ void main() {
 
                 if (wpos_dist > dist) { break; }
                 if (rain_occlusion_at(wpos) > 0.5) {
-                    if (length((fract(wall_pos.xz) - 0.5)) < 0.1) {
-                        float alpha = 0.5 * clamp((wpos_dist - 1.0) * 0.5, 0.0, 1.0);
+                    if (length((fract(wall_pos.xz) - 0.5)) < 0.1 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
+                        float alpha = 0.9 * clamp((wpos_dist - 1.0) * 0.5, 0.0, 1.0);
                         float light = sqrt(dot(color.rgb, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
                         color.rgb = mix(color.rgb, vec3(0.2, 0.3, 0.5) * light, alpha);
                     }

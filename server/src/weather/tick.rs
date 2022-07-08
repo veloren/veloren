@@ -1,6 +1,7 @@
 use common::{resources::TimeOfDay, weather::WeatherGrid};
 use common_ecs::{Origin, Phase, System};
-use specs::{Read, Write, WriteExpect};
+use specs::{Read, ReadExpect, Write, WriteExpect};
+use std::sync::Arc;
 
 use crate::sys::SysScheduler;
 
@@ -12,6 +13,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, TimeOfDay>,
+        ReadExpect<'a, Arc<world::World>>,
         WriteExpect<'a, WeatherSim>,
         WriteExpect<'a, WeatherGrid>,
         Write<'a, SysScheduler<Self>>,
@@ -23,13 +25,13 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut common_ecs::Job<Self>,
-        (game_time, mut sim, mut grid, mut scheduler): Self::SystemData,
+        (game_time, world, mut sim, mut grid, mut scheduler): Self::SystemData,
     ) {
         if scheduler.should_run() {
             if grid.size() != sim.size() {
                 *grid = WeatherGrid::new(sim.size());
             }
-            sim.tick(&game_time, &mut grid);
+            sim.tick(&world, &game_time, &mut grid);
         }
     }
 }
