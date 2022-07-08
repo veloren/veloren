@@ -89,25 +89,28 @@ void main() {
             vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
 
             vec2 dir2d = adjusted_dir.xy;
-            vec3 rpos = vec3(0);
+            vec3 rpos = vec3(0.0);
             float t = 0.0;
             for (int i = 0; i < 10; i ++) {//t * (length(dir2d) + 0.25) < 30.0) {
                 const float PLANCK = 0.01;
                 float scale = min(pow(2, ceil(t / 2.0)), 32);
                 vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale)) / dir2d;
-                t += max(min(deltas.x, deltas.y) * scale, PLANCK);
+                float jump = max(min(deltas.x, deltas.y) * scale, PLANCK);
+                t += jump;
                 rpos = cam_wpos + adjusted_dir * t;
-                vec3 wpos = cam_pos.xyz + focus_off.xyz + dir * t;
 
                 vec2 diff = abs(round(rpos.xy) - rpos.xy);
                 vec3 wall_pos = vec3((diff.x > diff.y) ? rpos.xy : rpos.yx, rpos.z + integrated_rain_vel * 0.5);
                 wall_pos.xz *= vec2(4, 0.3);
-                wall_pos.z += hash(fract(vec4(floor(wall_pos.xy + vec2(0, 0.5)), 0, 0) * 0.1));
+                wall_pos.z += hash(fract(vec4(floor(wall_pos.xy + vec2(0, 0.5)), 1000, 0) * 0.1));
                 if (abs(hash(vec4(floor(wall_pos.xyz), 0))) > rain_density) {
                     continue;
                 }
 
-                if (rain_occlusion_at(wpos - focus_off.xyz) > 0.0 && t > 1 && t < dist) {
+                float depth_adjust = abs(hash(vec4(floor(wall_pos.xyz), 2000)));
+                vec3 wpos = cam_pos.xyz + dir * (t - jump * depth_adjust);
+
+                if (rain_occlusion_at(wpos) > 0.0 && t > 1 && t < dist) {
                     if (length((fract(wall_pos.xz) - 0.5)) < 0.1) {
                         float drop_size = 0.001;
                         float alpha = sign(max(1 - length(rpos / drop_size * 0.1), 0));
