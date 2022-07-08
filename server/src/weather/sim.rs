@@ -140,7 +140,7 @@ impl WeatherSim {
                 ) * 200.0
                     * (1.0 - pressure);
 
-                if cell.rain > 0.02 && cell.cloud > 0.05 && thread_rng().gen_bool(0.01) {
+                if cell.rain > 0.1 && cell.cloud > 0.12 && thread_rng().gen_bool(0.01) {
                     outcomes.emit_now(Outcome::Lightning {
                         pos: wpos.map(|e| e as f32).with_z(self.consts[point].alt),
                     });
