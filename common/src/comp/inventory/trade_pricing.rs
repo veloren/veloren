@@ -1,6 +1,12 @@
 use crate::{
     assets::{self, AssetExt},
-    comp::{item::{Item, ItemDefinitionId, ItemDefinitionIdOwned, ItemBase, MaterialStatManifest, ModularBase}, tool::AbilityMap},
+    comp::{
+        item::{
+            Item, ItemDefinitionId, ItemDefinitionIdOwned, ItemKind, MaterialStatManifest,
+            ModularBase,
+        },
+        tool::AbilityMap,
+    },
     lottery::LootSpec,
     recipe::{default_component_recipe_book, default_recipe_book, RecipeInput},
     trade::Good,
@@ -10,7 +16,9 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use std::cmp::Ordering;
-use tracing::{error, info, trace, warn};
+use tracing::{error, info, warn};
+
+use super::item::ToolKind;
 
 const PRICING_DEBUG: bool = false;
 
@@ -205,7 +213,12 @@ impl FreqEntries {
             }
             *old_probability += new_freq;
         } else {
-            let stackable = item_from_definition_id(canonical_itemname).is_stackable();
+            let stackable = Item::new_from_item_definition_id(
+                canonical_itemname.as_ref(),
+                &AbilityMap::load().read(),
+                &MaterialStatManifest::load().read(),
+            )
+            .map_or(false, |i| i.is_stackable());
             let new_mat_prob: FreqEntry = FreqEntry {
                 name: canonical_itemname.to_owned(),
                 freq: new_freq,
@@ -496,12 +509,12 @@ impl TradePricing {
                 Good::default()
             },
             ItemDefinitionIdOwned::Modular {
-                pseudo_base,
-                components,
+                pseudo_base: _,
+                components: _,
             } => Good::Tools,
             ItemDefinitionIdOwned::Compound {
-                simple_base,
-                components,
+                simple_base: _,
+                components: _,
             } => Good::Ingredients,
             _ => {
                 warn!("unknown loot item {:?}", name);
@@ -645,10 +658,24 @@ impl TradePricing {
         }
 
         // Apply recipe book
+        let mut secondaries: HashMap<ToolKind, Vec<ItemDefinitionIdOwned>> = HashMap::new();
         let book = default_recipe_book().read();
         let mut ordered_recipes: Vec<RememberedRecipe> = Vec::new();
         for (_, recipe) in book.iter() {
             let (ref asset_path, amount) = recipe.output;
+            if let ItemKind::ModularComponent(
+                crate::comp::inventory::item::modular::ModularComponent::ToolSecondaryComponent {
+                    toolkind,
+                    stats: _,
+                    hand_restriction: _,
+                },
+            ) = asset_path.kind
+            {
+                secondaries
+                    .entry(toolkind)
+                    .or_insert(Vec::new())
+                    .push(ItemDefinitionIdOwned::Simple(asset_path.id().into()));
+            }
             ordered_recipes.push(RememberedRecipe {
                 output: ItemDefinitionIdOwned::Simple(asset_path.id().into()),
                 amount,
@@ -673,28 +700,64 @@ impl TradePricing {
         }
 
         // modular weapon recipes
+        let mut primaries: HashMap<ToolKind, Vec<ItemDefinitionIdOwned>> = HashMap::new();
         let comp_book = default_component_recipe_book().read();
         for (key, recipe) in comp_book.iter() {
+            primaries
+                .entry(key.toolkind)
+                .or_insert(Vec::new())
+                .push(recipe.itemdef_output());
             ordered_recipes.push(RememberedRecipe {
                 output: recipe.itemdef_output(),
                 amount: 1,
                 material_cost: None,
                 input: recipe
                     .inputs()
-                    .filter_map(|(ref recipe_input, count)| match recipe_input {
-                        RecipeInput::Item(it) => {
-                            Some((ItemDefinitionIdOwned::Simple(it.id().into()), count))
-                        },
-                        RecipeInput::Tag(_) => todo!(),
-                        RecipeInput::TagSameItem(_) => todo!(),
-                        RecipeInput::ListSameItem(_) => todo!(),
+                    .filter_map(|(ref recipe_input, count)| {
+                        //info!("{:?} output {:?} input {:?}x{}", key, recipe.itemdef_output(),
+                        // recipe_input, count);
+                        if count == 0 {
+                            None
+                        } else {
+                            match recipe_input {
+                                RecipeInput::Item(it) => {
+                                    Some((ItemDefinitionIdOwned::Simple(it.id().into()), count))
+                                },
+                                RecipeInput::Tag(_) => todo!(),
+                                RecipeInput::TagSameItem(_) => todo!(),
+                                RecipeInput::ListSameItem(_) => todo!(),
+                            }
+                        }
                     })
                     .collect(),
             });
         }
 
+        // drain the larger map while iterating the shorter
+        for (kind, mut primary_vec) in primaries.drain() {
+            for primary in primary_vec.drain(0..) {
+                for secondary in secondaries[&kind].iter() {
+                    let input = vec![(primary.clone(), 1), (secondary.clone(), 1)];
+                    let components = vec![primary.clone(), secondary.clone()];
+                    let output = ItemDefinitionIdOwned::Modular {
+                        pseudo_base: ModularBase::Tool.pseudo_item_id().into(),
+                        components,
+                    };
+                    ordered_recipes.push(RememberedRecipe {
+                        output,
+                        amount: 1,
+                        material_cost: None,
+                        input,
+                    });
+                }
+            }
+        }
+        drop(secondaries);
+
         // re-evaluate prices based on crafting tables
         // (start with cheap ones to avoid changing material prices after evaluation)
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
         while result.sort_by_price(&mut ordered_recipes) {
             ordered_recipes.retain(|recipe| {
                 if recipe.material_cost.map_or(false, |p| p < 1e-5) || recipe.amount == 0 {
@@ -712,7 +775,12 @@ impl TradePricing {
                                 .map_or(false, |item| item.sell)
                         });
                         //let item = Item::new_from_asset_expect(&recipe.output.);
-                        let stackable = item_from_definition_id(&recipe.output).is_stackable();
+                        let stackable = Item::new_from_item_definition_id(
+                            recipe.output.as_ref(),
+                            ability_map,
+                            msm,
+                        )
+                        .map_or(false, |i| i.is_stackable());
                         //= item.is_stackable();
                         let new_entry = PriceEntry {
                             name: recipe.output.clone(),
@@ -924,7 +992,11 @@ impl TradePricing {
             },
         ) in sorted.iter()
         {
-            let it = item_from_definition_id(item_id);
+            let it = Item::new_from_item_definition_id(
+                item_id.as_ref(),
+                AbilityMap::load(),
+                MaterialStatManifest::load(),
+            );
             //let price = mat_use.iter().map(|(amount, _good)| *amount).sum::<f32>();
             let prob = 1.0 / pricesum;
             let (info, unit) = more_information(&it, prob);
@@ -951,30 +1023,33 @@ pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, ItemDefinitionIdOwned, f
     ProbabilityFile::from(vec![(1.0, LootSpec::LootTable(loot_table.into()))]).content
 }
 
-pub fn item_from_definition_id(id: &ItemDefinitionIdOwned) -> Item {
-    match id {
-        ItemDefinitionIdOwned::Simple(str) => Item::new_from_asset_expect(str),
-        ItemDefinitionIdOwned::Modular {
-            pseudo_base,
-            components,
-        } => todo!(),
-        ItemDefinitionIdOwned::Compound {
-            simple_base,
-            components,
-        } => {
-            warn!("simple_base {}", simple_base);
-            let ability_map = &AbilityMap::load().read();
-            let msm = &MaterialStatManifest::load().read();
-            let components = components.iter().map(|i| item_from_definition_id(i)).collect();
-            Item::new_from_item_base(
-                ItemBase::Modular(ModularBase::Tool),
-                components,
-                ability_map,
-                msm,
-            )
-        },
-    }
-}
+// pub fn item_from_definition_id(id: &ItemDefinitionIdOwned) -> Item {
+//     match id {
+//         ItemDefinitionIdOwned::Simple(str) =>
+// Item::new_from_asset_expect(str),         ItemDefinitionIdOwned::Modular {
+//             pseudo_base:_,
+//             components:_,
+//         } => todo!(),
+//         ItemDefinitionIdOwned::Compound {
+//             simple_base,
+//             components,
+//         } => {
+//             warn!("simple_base {}", simple_base);
+//             let ability_map = &AbilityMap::load().read();
+//             let msm = &MaterialStatManifest::load().read();
+//             let components = components
+//                 .iter()
+//                 .map(|i| item_from_definition_id(i))
+//                 .collect();
+//             Item::new_from_item_base(
+//                 ItemBase::Modular(ModularBase::Tool),
+//                 components,
+//                 ability_map,
+//                 msm,
+//             )
+//         },
+//     }
+// }
 
 // if you want to take a look at the calculated values run:
 // cd common && cargo test trade_pricing -- --nocapture
