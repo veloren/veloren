@@ -92,7 +92,7 @@ void main() {
             vec3 rorigin = (vec4(cam_wpos, 0) * rain_dir_mat).xyz;
             vec3 rpos = vec3(0.0);
             float t = 0.0;
-            for (int i = 0; i < 10; i ++) {//t * (length(dir2d) + 0.25) < 30.0) {
+            for (int i = 0; i < 6; i ++) {
                 const float PLANCK = 0.01;
                 float scale = min(pow(2, ceil(t / 2.0)), 32);
                 vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale)) / dir2d;
@@ -109,16 +109,15 @@ void main() {
                 }
 
                 float depth_adjust = abs(hash(vec4(floor(wall_pos.xyz), 2000)));
-                vec3 wpos = cam_pos.xyz + dir * (t - jump * depth_adjust);
+                float wpos_dist = t - jump * depth_adjust;
+                vec3 wpos = cam_pos.xyz + dir * wpos_dist;
 
-                if (rain_occlusion_at(wpos) > 0.0 && t > 1 && t < dist) {
+                if (wpos_dist > dist) { break; }
+                if (rain_occlusion_at(wpos) > 0.5) {
                     if (length((fract(wall_pos.xz) - 0.5)) < 0.1) {
-                        float drop_size = 0.001;
-                        float alpha = sign(max(1 - length(rpos / drop_size * 0.1), 0));
+                        float alpha = 0.5 * clamp((wpos_dist - 1.0) * 0.5, 0.0, 1.0);
                         float light = sqrt(dot(color.rgb, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
-                        color.rgb = mix(color.rgb, vec3(0.2, 0.3, 0.5) * light, 0.9);
-
-                        /* color.rgb = mix(color.rgb, vec3(0.5, 0.5, 1), 0.5); */
+                        color.rgb = mix(color.rgb, vec3(0.2, 0.3, 0.5) * light, alpha);
                     }
                 }
             }

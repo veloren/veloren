@@ -42,7 +42,7 @@ impl Weather {
 
     // Get the rain velocity for this weather
     pub fn rain_vel(&self) -> Vec3<f32> {
-        const FALL_RATE: f32 = 30.0;
+        const FALL_RATE: f32 = 20.0;
         Vec3::new(self.wind.x, self.wind.y, -FALL_RATE)
     }
 }
