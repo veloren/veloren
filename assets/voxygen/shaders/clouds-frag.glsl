@@ -101,7 +101,7 @@ void main() {
                 rpos = rorigin + adjusted_dir * t;
 
                 vec2 diff = abs(round(rpos.xy) - rpos.xy);
-                vec3 wall_pos = vec3((diff.x > diff.y) ? rpos.xy : rpos.yx, rpos.z + integrated_rain_vel * 0.5);
+                vec3 wall_pos = vec3((diff.x > diff.y) ? rpos.xy : rpos.yx, rpos.z + integrated_rain_vel);
                 wall_pos.xz *= vec2(4, 0.3);
                 wall_pos.z += hash(fract(vec4(floor(wall_pos.xy + vec2(0, 0.5)), 1000, 0) * 0.1));
                 if (abs(hash(vec4(floor(wall_pos.xyz), 0))) > rain_density) {
