@@ -605,8 +605,8 @@ void main() {
         case LIGHTNING:
             f_reflect = 0.0;
             perp_axis = normalize(cross(inst_dir, vec3(0.0, 0.0, 1.0)));
-            float z = (start_pos + inst_dir * percent()).z;
-            vec3 start_off = vec3(abs(fract(vec3(vec2(z) * vec2(0.015, 0.01), 0)) - 0.5) * z * 0.5);
+            float z = inst_dir.z * (percent() - 1.0);
+            vec3 start_off = vec3(abs(fract(vec3(vec2(z) * vec2(0.015, 0.01), 0)) - 0.5) * z * 0.35);
             attr = Attr(
                 inst_dir * percent() + start_off,
                 vec3(max(3.0, 0.05 * length(start_pos + inst_dir * percent()))),
