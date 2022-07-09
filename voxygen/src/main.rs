@@ -4,7 +4,6 @@
 
 #[cfg(all(
     target_os = "windows",
-    target_env = "msvc",
     not(feature = "tracy-memory"),
     not(feature = "hot-egui")
 ))]

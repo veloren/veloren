@@ -43,7 +43,7 @@ tracing = { version = "0.1", default-features = false }
 ron = {version = "0.7", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
 
-[target.'cfg(all(windows, target_env="msvc"))'.dependencies]
+[target.'cfg(windows)'.dependencies]
 mimalloc = "0.1.29"
 
 [dependencies.tui]

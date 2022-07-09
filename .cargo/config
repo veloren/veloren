@@ -3,6 +3,12 @@ rustflags = [
     "-C", "link-arg=-fuse-ld=gold",
 ]
 
+[target.x86_64-pc-windows-gnu]
+rustflags = [
+    # Required for mimalloc
+    "-C", "link-arg=-lpsapi",
+]
+
 [alias]
 # tools
 cmd-doc-gen = "run --features=bin_cmd_doc_gen --bin cmd_doc_gen"
