@@ -606,11 +606,11 @@ void main() {
             f_reflect = 0.0;
             perp_axis = normalize(cross(inst_dir, vec3(0.0, 0.0, 1.0)));
             float z = inst_dir.z * (percent() - 1.0);
-            vec3 start_off = vec3(abs(fract(vec3(vec2(z) * vec2(0.015, 0.01), 0)) - 0.5) * z * 0.35);
+            vec3 start_off = vec3(abs(fract(vec3(vec2(z) * vec2(0.015, 0.01), 0)) - 0.5) * z * 0.4);
             attr = Attr(
                 inst_dir * percent() + start_off,
                 vec3(max(3.0, 0.05 * length(start_pos + inst_dir * percent()))),
-                vec4(10.0, 30.0, 50.0, 1.0),// * (1.0 - length(inst_dir) * 0.1),
+                vec4(10.0, 20.0, 50.0, 1.0),// * (1.0 - length(inst_dir) * 0.1),
                 identity()//spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
             );
             break;

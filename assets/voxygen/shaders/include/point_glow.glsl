@@ -54,7 +54,7 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
         }
     #endif
     // Apply lightning
-    apply_point_glow_light(Light(last_lightning.xyzw + vec4(0, 0, LIGHTNING_HEIGHT, 0), vec4(vec3(0.5, 0.8, 1) * lightning_intensity() * 0.003, 1)), wpos, dir, max_dist, color);
+    apply_point_glow_light(Light(last_lightning.xyzw + vec4(0, 0, LIGHTNING_HEIGHT, 0), vec4(vec3(0.2, 0.4, 1) * lightning_intensity() * 0.003, 1)), wpos, dir, max_dist, color);
     return color;
 }
 
