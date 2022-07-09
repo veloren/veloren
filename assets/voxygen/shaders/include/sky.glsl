@@ -232,7 +232,7 @@ DirectionalLight get_moon_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*
     return DirectionalLight(/*dir, */shadow, block/*, get_moon_color(dir), get_moon_brightness(dir)*/);
 }
 
-const float LIGHTNING_HEIGHT = 350.0;
+const float LIGHTNING_HEIGHT = 25.0;
 
 float lightning_intensity() {
     float time_since_lightning = tick.x - last_lightning.w;

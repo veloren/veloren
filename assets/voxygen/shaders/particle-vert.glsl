@@ -41,7 +41,6 @@ const int SMOKE = 0;
 const int FIRE = 1;
 const int GUN_POWDER_SPARK = 2;
 const int SHRAPNEL = 3;
-
 const int FIREWORK_BLUE = 4;
 const int FIREWORK_GREEN = 5;
 const int FIREWORK_PURPLE = 6;
@@ -76,6 +75,7 @@ const int DEATH = 34;
 const int ENERGY_BUFFING = 35;
 const int WEB_STRAND = 36;
 const int BLACK_SMOKE = 37;
+const int LIGHTNING = 38;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -600,6 +600,18 @@ void main() {
                 vec3(1.0, 1.0, 50.0),
                 vec4(vec3(2.0), 1),
                 spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
+            );
+            break;
+        case LIGHTNING:
+            f_reflect = 0.0;
+            perp_axis = normalize(cross(inst_dir, vec3(0.0, 0.0, 1.0)));
+            float z = (start_pos + inst_dir * percent()).z;
+            vec3 start_off = vec3(abs(fract(vec3(vec2(z) * vec2(0.015, 0.01), 0)) - 0.5) * z * 0.5);
+            attr = Attr(
+                inst_dir * percent() + start_off,
+                vec3(16.0),
+                vec4(10.0, 30.0, 50.0, 1.0),// * (1.0 - length(inst_dir) * 0.1),
+                identity()//spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
             );
             break;
         default:

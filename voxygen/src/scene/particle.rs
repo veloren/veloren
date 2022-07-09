@@ -63,12 +63,12 @@ impl ParticleMgr {
 
         match outcome {
             Outcome::Lightning { pos } => {
-                self.particles.resize_with(self.particles.len() + 400, || {
+                self.particles.resize_with(self.particles.len() + 500, || {
                     Particle::new_directed(
-                        Duration::from_secs_f32(rng.gen_range(2.0..3.0)),
+                        Duration::from_secs_f32(rng.gen_range(0.5..1.0)),
                         time,
-                        ParticleMode::GunPowderSpark,
-                        *pos + Vec3::new(0.0, 0.0, rng.gen_range(250.0..1500.0)),
+                        ParticleMode::Lightning,
+                        *pos + Vec3::new(0.0, 0.0, rng.gen_range(0.0..600.0)),
                         *pos,
                     )
                 });
