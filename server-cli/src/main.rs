@@ -2,7 +2,7 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(bool_to_option)]
 
-#[cfg(all(target_os = "windows", target_env = "msvc"))]
+#[cfg(target_os = "windows")]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
