@@ -92,8 +92,8 @@ void main() {
             vec3 rorigin = cam_pos.xyz + focus_off.xyz + 0.5;
             vec3 rpos = vec3(0.0);
             float t = 0.0;
+            const float PLANCK = 0.01;
             while (t < 64.0) {
-                const float PLANCK = 0.01;
                 float scale = min(pow(2, ceil(t / 2.0)), 32);
                 vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale + 100.0)) / dir2d;
                 float jump = max(min(deltas.x, deltas.y) * scale, PLANCK);
@@ -103,17 +103,17 @@ void main() {
                 vec2 diff = abs(round(rpos.xy) - rpos.xy);
                 vec3 wall_pos = vec3((diff.x > diff.y) ? rpos.xy : rpos.yx, rpos.z + integrated_rain_vel);
                 wall_pos.xz *= vec2(4, 0.3);
-                wall_pos.z += hash(fract(vec4(floor(wall_pos.xy + vec2(0, 0.5)), 1000, 0) * 0.1));
+                wall_pos.z += hash_two(uvec2(wall_pos.xy + vec2(0, 0.5)));
 
-                float depth_adjust = fract(hash(vec4(floor(wall_pos.xyz), 2000)));
+                float depth_adjust = fract(hash_two(uvec2(wall_pos.xz)));
                 float wpos_dist = t - jump * depth_adjust;
                 vec3 wpos = cam_pos.xyz + dir * wpos_dist;
 
-                float density = rain_density * rain_occlusion_at(wpos);
-                if (fract(hash(vec4(floor(wall_pos.xyz), 0))) >= density) { continue; }
-
                 if (wpos_dist > dist) { break; }
                 if (length((fract(wall_pos.xz) - 0.5)) < 0.1 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
+                    float density = rain_density * rain_occlusion_at(wpos);
+                    if (fract(hash_two(uvec2(wall_pos.xz))) >= density) { continue; }
+
                     float alpha = 0.5 * clamp((wpos_dist - 1.0) * 0.5, 0.0, 1.0);
                     float light = dot(color.rgb, vec3(1)) + 0.1 + (get_sun_brightness() + get_moon_brightness()) * 0.3;
                     color.rgb = mix(color.rgb, vec3(0.1, 0.2, 0.5) * light, alpha);
