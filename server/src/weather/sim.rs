@@ -148,7 +148,7 @@ impl WeatherSim {
                 cell.rain = ((1.0 - pressure - RAIN_CLOUD_THRESHOLD).max(0.0)
                     * self.consts[point].humidity
                     * 2.5)
-                    .powf(1.5);
+                    .powf(0.75);
                 cell.wind = Vec2::new(
                     rain_nz.get(spos.into_array()).powi(3) as f32,
                     rain_nz.get((spos + 1.0).into_array()).powi(3) as f32,

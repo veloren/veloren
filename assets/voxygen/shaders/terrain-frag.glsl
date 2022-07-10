@@ -244,7 +244,7 @@ void main() {
             drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
             vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
 
-            if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * rain_occlusion_at(f_pos.xyz) * 2.0) {
+            if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * rain_occlusion_at(f_pos.xyz + vec3(0, 0, 0.25)) * 2.0) {
                 vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
                 vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
 
