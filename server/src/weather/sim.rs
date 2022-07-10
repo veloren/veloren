@@ -125,22 +125,37 @@ impl WeatherSim {
                 let time_scale = 100_000.0;
                 let spos = (pos / space_scale).with_z(time as f64 / time_scale);
 
-                let pressure =
-                    (base_nz.get(spos.into_array()) * 0.5 + 1.0).clamped(0.0, 1.0) as f32 + 0.55
-                        - self.consts[point].humidity * 0.6;
+                let scale = 10_000.0;
+                let avg_scale = 20_000.0;
+                let avg_delay = 250_000.0;
+                let pressure = ((base_nz.get(
+                    (pos / avg_scale)
+                        .with_z(time as f64 / avg_delay)
+                        .into_array(),
+                ) + base_nz.get(
+                    (pos / (avg_scale * 0.25))
+                        .with_z(time as f64 / (avg_delay * 0.25))
+                        .into_array(),
+                ) * 0.5)
+                    * 0.5
+                    + 1.0)
+                    .clamped(0.0, 1.0) as f32
+                    + 0.55
+                    - self.consts[point].humidity * 0.6;
 
                 const RAIN_CLOUD_THRESHOLD: f32 = 0.25;
                 cell.cloud = (1.0 - pressure).max(0.0) * 0.5;
                 cell.rain = ((1.0 - pressure - RAIN_CLOUD_THRESHOLD).max(0.0)
-                    * self.consts[point].humidity)
-                    .powf(0.5);
+                    * self.consts[point].humidity
+                    * 2.5)
+                    .powf(1.5);
                 cell.wind = Vec2::new(
                     rain_nz.get(spos.into_array()).powi(3) as f32,
                     rain_nz.get((spos + 1.0).into_array()).powi(3) as f32,
                 ) * 200.0
                     * (1.0 - pressure);
 
-                if cell.rain > 0.1 && cell.cloud > 0.12 && thread_rng().gen_bool(0.01) {
+                if cell.rain > 0.2 && cell.cloud > 0.15 && thread_rng().gen_bool(0.01) {
                     outcomes.emit_now(Outcome::Lightning {
                         pos: wpos.map(|e| e as f32).with_z(self.consts[point].alt),
                     });
