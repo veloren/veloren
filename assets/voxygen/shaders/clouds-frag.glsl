@@ -93,11 +93,14 @@ void main() {
             vec3 rpos = vec3(0.0);
             float t = 0.0;
             const float PLANCK = 0.01;
-            while (t < 64.0) {
+            while (true) {
                 float scale = min(pow(2, ceil(t / 2.0)), 32);
                 vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale + 100.0)) / dir2d;
                 float jump = max(min(deltas.x, deltas.y) * scale, PLANCK);
                 t += jump;
+
+                if (t >= 64.0) { break; }
+
                 rpos = rorigin + adjusted_dir * t;
 
                 vec2 diff = abs(round(rpos.xy) - rpos.xy);
@@ -105,18 +108,18 @@ void main() {
                 wall_pos.xz *= vec2(4, 0.3);
                 wall_pos.z += hash_two(uvec2(wall_pos.xy + vec2(0, 0.5)));
 
-                float depth_adjust = fract(hash_two(uvec2(wall_pos.xz)));
+                float depth_adjust = fract(hash_two(uvec2(wall_pos.xz) + 500u));
                 float wpos_dist = t - jump * depth_adjust;
                 vec3 wpos = cam_pos.xyz + dir * wpos_dist;
 
                 if (wpos_dist > dist) { break; }
                 if (length((fract(wall_pos.xz) - 0.5)) < 0.1 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
                     float density = rain_density * rain_occlusion_at(wpos);
-                    if (fract(hash_two(uvec2(wall_pos.xz))) >= density) { continue; }
+                    if (fract(hash_two(uvec2(wall_pos.xz) + 1000u)) >= density) { continue; }
 
                     float alpha = 0.5 * clamp((wpos_dist - 1.0) * 0.5, 0.0, 1.0);
-                    float light = dot(color.rgb, vec3(1)) + 0.1 + (get_sun_brightness() + get_moon_brightness()) * 0.3;
-                    color.rgb = mix(color.rgb, vec3(0.1, 0.2, 0.5) * light, alpha);
+                    float light = dot(color.rgb, vec3(1)) + 0.05 + (get_sun_brightness() + get_moon_brightness()) * 0.2;
+                    color.rgb = mix(color.rgb, vec3(0.3, 0.35, 0.5) * light, alpha);
                 }
             }
         }

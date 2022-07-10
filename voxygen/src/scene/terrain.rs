@@ -48,7 +48,7 @@ const SPRITE_LOD_LEVELS: usize = 5;
 
 // For rain occlusion we only need to render the closest chunks.
 /// How many chunks are maximally rendered for rain occlusion.
-pub const RAIN_OCCLUSION_CHUNKS: usize = 9;
+pub const RAIN_OCCLUSION_CHUNKS: usize = 25;
 
 #[derive(Clone, Copy, Debug)]
 struct Visibility {
