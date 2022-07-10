@@ -906,7 +906,7 @@ impl TradePricing {
 
     #[cfg(test)]
     fn print_sorted(&self) {
-        use crate::comp::item::{armor, ItemKind, MaterialStatManifest};
+        use crate::comp::item::armor; //, ItemKind, MaterialStatManifest};
 
         println!("Item, ForSale, Amount, Good, Quality, Deal, Unit,");
 
@@ -968,27 +968,30 @@ impl TradePricing {
             },
         ) in sorted.iter()
         {
-            let it = Item::new_from_item_definition_id(
+            Item::new_from_item_definition_id(
                 item_id.as_ref(),
-                AbilityMap::load(),
-                MaterialStatManifest::load(),
-            );
-            //let price = mat_use.iter().map(|(amount, _good)| *amount).sum::<f32>();
-            let prob = 1.0 / pricesum;
-            let (info, unit) = more_information(&it, prob);
-            let materials = mat_use
-                .iter()
-                .fold(String::new(), |agg, i| agg + &format!("{:?}.", i.1));
-            println!(
-                "{:?}, {}, {:>4.2}, {}, {:?}, {}, {},",
-                &item_id,
-                if *can_sell { "yes" } else { "no" },
-                pricesum,
-                materials,
-                it.quality(),
-                info,
-                unit,
-            );
+                &AbilityMap::load().read(),
+                &MaterialStatManifest::load().read(),
+            )
+            .ok()
+            .map(|it| {
+                //let price = mat_use.iter().map(|(amount, _good)| *amount).sum::<f32>();
+                let prob = 1.0 / pricesum;
+                let (info, unit) = more_information(&it, prob);
+                let materials = mat_use
+                    .iter()
+                    .fold(String::new(), |agg, i| agg + &format!("{:?}.", i.1));
+                println!(
+                    "{:?}, {}, {:>4.2}, {}, {:?}, {}, {},",
+                    &item_id,
+                    if *can_sell { "yes" } else { "no" },
+                    pricesum,
+                    materials,
+                    it.quality(),
+                    info,
+                    unit,
+                );
+            });
         }
     }
 }

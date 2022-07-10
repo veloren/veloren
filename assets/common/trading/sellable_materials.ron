@@ -30,8 +30,11 @@
     (4.0, Item("common.items.crafting_ing.hide.animal_hide")),
 
     // Mob Drops
+    (0.10, Item("common.items.crafting_ing.animal_misc.long_tusk")),
+    (0.15, Item("common.items.crafting_ing.animal_misc.elegant_crest")),
     (0.15, Item("common.items.crafting_ing.animal_misc.grim_eyeball")),
     (0.15, Item("common.items.crafting_ing.animal_misc.icy_fang")),
+    (0.2, Item("common.items.crafting_ing.animal_misc.strong_pincer")),
     (0.5, Item("common.items.crafting_ing.animal_misc.raptor_feather")),
     (1.2, Item("common.items.crafting_ing.animal_misc.claw")),
     (2.5, Item("common.items.crafting_ing.animal_misc.fur")),
