@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Most sfx now correctly play when camera is underwater
 - All sounds now stop upon quitting to main menu
 - Combat music now loops and ends properly
+- Modular weapons now have a selling price
 
 ## [0.12.0] - 2022-02-19
 

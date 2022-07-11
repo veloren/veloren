@@ -774,14 +774,12 @@ impl TradePricing {
                                 .find(|item| item.name == *input)
                                 .map_or(false, |item| item.sell)
                         });
-                        //let item = Item::new_from_asset_expect(&recipe.output.);
                         let stackable = Item::new_from_item_definition_id(
                             recipe.output.as_ref(),
                             ability_map,
                             msm,
                         )
                         .map_or(false, |i| i.is_stackable());
-                        //= item.is_stackable();
                         let new_entry = PriceEntry {
                             name: recipe.output.clone(),
                             price: usage * (1.0 / (recipe.amount as f32 * Self::CRAFTING_FACTOR)),
@@ -803,7 +801,6 @@ impl TradePricing {
             });
             //info!(?ordered_recipes);
         }
-
         result
     }
 
@@ -1027,9 +1024,6 @@ mod tests {
         init();
         info!("init");
 
-        // Note: This test breaks when the loot table contains `Nothing` as a potential
-        // drop.
-
         let loot = expand_loot_table("common.loot_tables.creature.quad_medium.gentle");
         let lootsum = loot.iter().fold(0.0, |s, i| s + i.0);
         assert!((lootsum - 1.0).abs() < 1e-3);
@@ -1039,11 +1033,8 @@ mod tests {
         assert!((lootsum2 - 1.0).abs() < 1e-4);
 
         // highly nested
-        // TODO: Re-enable this. See note at top of test (though this specific
-        // table can also be fixed by properly integrating modular weapons into
-        // probability files)
-        // let loot3 =
-        // expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
+        // fails due to line 310 still being a todo
+        // let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
         // let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
         // assert!((lootsum3 - 1.0).abs() < 1e-5);
     }

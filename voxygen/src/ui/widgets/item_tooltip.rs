@@ -1391,10 +1391,9 @@ impl<'a> Widget for ItemTooltip<'a> {
 
             //Tooltips for trade mini-tutorial
             widget::Text::new(&format!(
-                "{}\n{}\n{:?}",
+                "{}\n{}",
                 i18n.get("hud.trade.tooltip_hint_1"),
                 i18n.get("hud.trade.tooltip_hint_2"),
-                item.item_definition_id()
             ))
             .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
             .graphics_for(id)
