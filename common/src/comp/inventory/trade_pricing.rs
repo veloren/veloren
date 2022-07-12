@@ -1,6 +1,7 @@
 use crate::{
     assets::{self, AssetExt},
     comp::{
+        inventory,
         item::{
             Item, ItemDefinitionId, ItemDefinitionIdOwned, ItemKind, MaterialStatManifest,
             ModularBase,
@@ -18,7 +19,7 @@ use serde::Deserialize;
 use std::cmp::Ordering;
 use tracing::{error, info, warn};
 
-use super::item::ToolKind;
+use super::item::{Material, ToolKind};
 
 const PRICING_DEBUG: bool = false;
 
@@ -263,6 +264,59 @@ impl assets::Asset for ProbabilityFile {
     const EXTENSION: &'static str = "ron";
 }
 
+type PrimaryComponentPool =
+    HashMap<(ToolKind, String), Vec<(ItemDefinitionIdOwned, Option<inventory::item::Hands>)>>;
+
+lazy_static! {
+    static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
+        let mut component_pool = HashMap::new();
+
+        // Load recipe book (done to check that material is valid for a particular component)
+        use crate::recipe::ComponentKey;
+        let recipes = default_component_recipe_book().read();
+
+        recipes
+            .iter()
+            .for_each(|(ComponentKey { toolkind, material, .. }, recipe)| {
+                let component = recipe.itemdef_output();
+                // let hand_restriction = if let ItemKind::ModularComponent(inventory::item::modular::ModularComponent::ToolPrimaryComponent { hand_restriction, .. }) = &*component.kind() {
+                //     *hand_restriction
+                // } else {
+                //     return;
+                // };
+                let hand_restriction = None;
+                let entry = component_pool.entry((*toolkind, String::from(material))).or_insert(Vec::new());
+                entry.push((component, hand_restriction));
+            });
+
+        component_pool
+    };
+}
+
+// expand this loot specification towards individual item descriptions
+// partial duplicate of random_weapon_primary_component
+pub fn expand_primary_component(
+    tool: ToolKind,
+    material: Material,
+    hand_restriction: Option<inventory::item::Hands>,
+) -> Option<impl Iterator<Item = ItemDefinitionIdOwned>> {
+    if let Some(material_id) = material.asset_identifier() {
+        Some(
+            PRIMARY_COMPONENT_POOL
+                .get(&(tool, material_id.to_owned()))
+                .into_iter()
+                .flatten()
+                .filter(move |(_comp, hand)| match (hand_restriction, *hand) {
+                    (Some(restriction), Some(hand)) => restriction == hand,
+                    (None, _) | (_, None) => true,
+                })
+                .map(|e| e.0.clone()),
+        )
+    } else {
+        None
+    }
+}
+
 impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
     #[allow(clippy::cast_precision_loss)]
     fn from(content: Vec<(f32, LootSpec<String>)>) -> Self {
@@ -306,8 +360,10 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         material,
                         hands,
                     } => {
-                        error!("Component {:?} {:?} {:?}", tool, material, hands);
-                        todo!()
+                        let mut res = expand_primary_component(tool, material, hands).map_or(Vec::new(), |it| it.collect());
+                        let freq = if res.is_empty() { 0.0 } else { p0 * rescale / (res.len() as f32) };
+                        let res: Vec<(f32,ItemDefinitionIdOwned,f32)> = res.drain(0..).map(|e| (freq,e,1.0f32)).collect();
+                        res.into_iter()
                     },
                     LootSpec::Nothing => Vec::new().into_iter(),
                 })
@@ -373,7 +429,6 @@ impl assets::Compound for EqualitySet {
             };
             let mut iter = items.iter();
             if let Some(first) = iter.next() {
-                //let first = ItemDefinitionIdOwned::Simple(first);
                 eqset.equivalence_class.insert(first.clone(), first.clone());
                 for item in iter {
                     eqset.equivalence_class.insert(item.clone(), first.clone());
@@ -1034,9 +1089,9 @@ mod tests {
 
         // highly nested
         // fails due to line 310 still being a todo
-        // let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
-        // let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
-        // assert!((lootsum3 - 1.0).abs() < 1e-5);
+        let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
+        let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
+        assert!((lootsum3 - 1.0).abs() < 1e-5);
     }
 
     #[test]
