@@ -2192,7 +2192,8 @@ impl Hud {
                         let font_col = font_col(font_size, crit);
                         // Timer sets the widget offset
                         let y = if crit {
-                            ui_widgets.win_h * (floater.rand as f64 % 0.1) + ui_widgets.win_h * 0.05
+                            ui_widgets.win_h * (floater.rand as f64 % 0.075)
+                                + ui_widgets.win_h * 0.05
                         } else {
                             (floater.timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
                                 * number_speed)
