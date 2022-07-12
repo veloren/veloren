@@ -455,9 +455,12 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
             }
 
             if bdata.rng.gen::<f32>() < 0.1 {
-                bdata
-                    .agent_data
-                    .choose_target(bdata.agent, bdata.controller, bdata.read_data);
+                bdata.agent_data.choose_target(
+                    bdata.agent,
+                    bdata.controller,
+                    bdata.read_data,
+                    bdata.event_emitter,
+                );
             } else {
                 bdata.agent_data.handle_sounds_heard(
                     bdata.agent,
@@ -577,7 +580,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
 
                 if !in_aggro_range && is_time_to_retarget {
-                    agent_data.choose_target(agent, controller, read_data);
+                    agent_data.choose_target(agent, controller, read_data, event_emitter);
                 }
 
                 if aggro_on {

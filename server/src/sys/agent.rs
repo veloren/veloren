@@ -745,7 +745,13 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn choose_target(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
+    fn choose_target(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        read_data: &ReadData,
+        event_emitter: &mut Emitter<ServerEvent>,
+    ) {
         agent.action_state.timer = 0.0;
         let mut aggro_on = false;
 
@@ -785,6 +791,12 @@ impl<'a> AgentData<'a> {
                 if self.is_enemy(entity, read_data) {
                     Some((entity, true))
                 } else if can_ambush(entity, read_data) {
+                    controller.clone().push_utterance(UtteranceKind::Ambush);
+                    self.chat_npc_if_allowed_to_speak(
+                        "npc-speech-ambush".to_string(),
+                        agent,
+                        event_emitter,
+                    );
                     aggro_on = true;
                     Some((entity, true))
                 } else if self.should_defend(entity, read_data) {
