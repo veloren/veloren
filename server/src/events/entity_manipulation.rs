@@ -81,6 +81,7 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
                         amount: change.amount,
                         by: change.by,
                         target: *uid,
+                        cause: change.cause,
                         crit: change.crit,
                         instance: change.instance,
                     },
@@ -571,48 +572,47 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         let stats = ecs.read_storage::<Stats>();
         let time = ecs.read_resource::<Time>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
+        let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
 
-        // Handle health change
-        if let Some(mut health) = ecs.write_storage::<comp::Health>().get_mut(entity) {
-            let damage = Damage {
-                source: DamageSource::Falling,
-                kind: DamageKind::Crushing,
-                value: falldmg,
-            };
-            let damage_reduction = Damage::compute_damage_reduction(
-                Some(damage),
-                inventories.get(entity),
-                stats.get(entity),
-                &msm,
-            );
-            let change = damage.calculate_health_change(
-                damage_reduction,
-                None,
-                false,
-                0.0,
-                1.0,
-                *time,
-                rand::random(),
-            );
-            health.change_by(change);
-            let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
-            server_eventbus.emit_now(ServerEvent::HealthChange { entity, change });
-        }
+        // Emit health change
+        let damage = Damage {
+            source: DamageSource::Falling,
+            kind: DamageKind::Crushing,
+            value: falldmg,
+        };
+        let damage_reduction = Damage::compute_damage_reduction(
+            Some(damage),
+            inventories.get(entity),
+            stats.get(entity),
+            &msm,
+        );
+        let change = damage.calculate_health_change(
+            damage_reduction,
+            None,
+            false,
+            0.0,
+            1.0,
+            *time,
+            rand::random(),
+        );
 
-        // Handle poise change
-        if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {
-            let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
-            let poise_change =
-                Poise::apply_poise_reduction(poise_damage, inventories.get(entity), &msm);
-            let poise_change = comp::PoiseChange {
-                amount: poise_change,
-                impulse: Vec3::unit_z(),
-                by: None,
-                cause: None,
-                time: *time,
-            };
-            poise.change(poise_change);
-        }
+        server_eventbus.emit_now(ServerEvent::HealthChange { entity, change });
+
+        // Emit poise change
+        let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
+        let poise_change =
+            Poise::apply_poise_reduction(poise_damage, inventories.get(entity), &msm);
+        let poise_change = comp::PoiseChange {
+            amount: poise_change,
+            impulse: Vec3::unit_z(),
+            by: None,
+            cause: None,
+            time: *time,
+        };
+        server_eventbus.emit_now(ServerEvent::PoiseChange {
+            entity,
+            change: poise_change,
+        });
     }
 }
 

@@ -103,6 +103,7 @@ use common::{
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
     uid::Uid,
+    DamageSource,
 };
 use common_state::State;
 use event_mapper::SfxEventMapper;
@@ -527,8 +528,10 @@ impl SfxMgr {
                 );
             },
             Outcome::HealthChange { pos, info, .. } => {
-                // Don't emit sound effects from positive damage (healing)
-                if info.amount < Health::HEALTH_EPSILON {
+                // Ignore positive damage (healing) and buffs for now
+                if info.amount < Health::HEALTH_EPSILON
+                    && !matches!(info.cause, Some(DamageSource::Buff(_)))
+                {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Damage);
                     audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), underwater);
                 }
