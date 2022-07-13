@@ -363,71 +363,74 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
             1.0 / content.iter().map(|e| e.0).sum::<f32>()
         };
         Self {
-            content: content.into_iter().flat_map(|(p0, loot)| match loot {
-                LootSpec::Item(asset) => {
-                    vec![(p0 * rescale, ItemDefinitionIdOwned::Simple(asset), 1.0)]
-                },
-                LootSpec::ItemQuantity(asset, a, b) => vec![(
-                    p0 * rescale,
-                    ItemDefinitionIdOwned::Simple(asset),
-                    (a + b) as f32 * 0.5,
-                )],
-                LootSpec::LootTable(table_asset) => {
-                    let unscaled = &Self::load_expect(&table_asset).read().content;
-                    let scale = p0 * rescale;
-                    unscaled
-                        .iter()
-                        .map(|(p1, asset, amount)| (*p1 * scale, asset.clone(), *amount))
-                        .collect::<Vec<_>>()
-                },
-                LootSpec::ModularWeapon {
-                    tool,
-                    material,
-                    hands,
-                } => {
-                    let mut primary = expand_primary_component(tool, material, hands);
-                    let secondary: Vec<ItemDefinitionIdOwned> =
-                        expand_secondary_component(tool, material, hands).collect();
-                    let freq = if primary.is_empty() || secondary.is_empty() {
-                        0.0
-                    } else {
-                        p0 * rescale / ((primary.len() * secondary.len()) as f32)
-                    };
-                    let res: Vec<(f32, ItemDefinitionIdOwned, f32)> = primary
-                        .drain(0..)
-                        .flat_map(|p| {
-                            secondary.iter().map(move |s| {
-                                let components = vec![p.clone(), s.clone()];
-                                (
-                                    freq,
-                                    ItemDefinitionIdOwned::Modular {
-                                        pseudo_base: ModularBase::Tool.pseudo_item_id().into(),
-                                        components,
-                                    },
-                                    1.0f32,
-                                )
+            content: content
+                .into_iter()
+                .flat_map(|(p0, loot)| match loot {
+                    LootSpec::Item(asset) => {
+                        vec![(p0 * rescale, ItemDefinitionIdOwned::Simple(asset), 1.0)]
+                    },
+                    LootSpec::ItemQuantity(asset, a, b) => vec![(
+                        p0 * rescale,
+                        ItemDefinitionIdOwned::Simple(asset),
+                        (a + b) as f32 * 0.5,
+                    )],
+                    LootSpec::LootTable(table_asset) => {
+                        let unscaled = &Self::load_expect(&table_asset).read().content;
+                        let scale = p0 * rescale;
+                        unscaled
+                            .iter()
+                            .map(|(p1, asset, amount)| (*p1 * scale, asset.clone(), *amount))
+                            .collect::<Vec<_>>()
+                    },
+                    LootSpec::ModularWeapon {
+                        tool,
+                        material,
+                        hands,
+                    } => {
+                        let mut primary = expand_primary_component(tool, material, hands);
+                        let secondary: Vec<ItemDefinitionIdOwned> =
+                            expand_secondary_component(tool, material, hands).collect();
+                        let freq = if primary.is_empty() || secondary.is_empty() {
+                            0.0
+                        } else {
+                            p0 * rescale / ((primary.len() * secondary.len()) as f32)
+                        };
+                        let res: Vec<(f32, ItemDefinitionIdOwned, f32)> = primary
+                            .drain(0..)
+                            .flat_map(|p| {
+                                secondary.iter().map(move |s| {
+                                    let components = vec![p.clone(), s.clone()];
+                                    (
+                                        freq,
+                                        ItemDefinitionIdOwned::Modular {
+                                            pseudo_base: ModularBase::Tool.pseudo_item_id().into(),
+                                            components,
+                                        },
+                                        1.0f32,
+                                    )
+                                })
                             })
-                        })
-                        .collect();
-                    res
-                },
-                LootSpec::ModularWeaponPrimaryComponent {
-                    tool,
-                    material,
-                    hands,
-                } => {
-                    let mut res = expand_primary_component(tool, material, hands);
-                    let freq = if res.is_empty() {
-                        0.0
-                    } else {
-                        p0 * rescale / (res.len() as f32)
-                    };
-                    let res: Vec<(f32, ItemDefinitionIdOwned, f32)> =
-                        res.drain(0..).map(|e| (freq, e, 1.0f32)).collect();
-                    res
-                },
-                LootSpec::Nothing => Vec::new(),
-            }).collect(),
+                            .collect();
+                        res
+                    },
+                    LootSpec::ModularWeaponPrimaryComponent {
+                        tool,
+                        material,
+                        hands,
+                    } => {
+                        let mut res = expand_primary_component(tool, material, hands);
+                        let freq = if res.is_empty() {
+                            0.0
+                        } else {
+                            p0 * rescale / (res.len() as f32)
+                        };
+                        let res: Vec<(f32, ItemDefinitionIdOwned, f32)> =
+                            res.drain(0..).map(|e| (freq, e, 1.0f32)).collect();
+                        res
+                    },
+                    LootSpec::Nothing => Vec::new(),
+                })
+                .collect(),
         }
     }
 }
