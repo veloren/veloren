@@ -1169,5 +1169,11 @@
             ],
             threshold: 1.0,
         ),
+        Lightning: (
+            files: [
+                "voxygen.audio.sfx.ambient.lightning_1",
+            ],
+            threshold: 1.0,
+        ),
     }
 )

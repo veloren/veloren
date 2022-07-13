@@ -40,6 +40,7 @@ use common::{
     link::Is,
     mounting::Rider,
     npc::{self, get_npc_name},
+    outcome::Outcome,
     parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
@@ -192,6 +193,7 @@ fn do_command(
         ServerChatCommand::CreateLocation => handle_create_location,
         ServerChatCommand::DeleteLocation => handle_delete_location,
         ServerChatCommand::WeatherZone => handle_weather_zone,
+        ServerChatCommand::Lightning => handle_lightning,
     };
 
     handler(server, client, target, args, cmd)
@@ -3665,4 +3667,20 @@ fn handle_weather_zone(
     } else {
         Err(action.help_string())
     }
+}
+
+fn handle_lightning(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let pos = position(server, client, "player")?.0;
+    server
+        .state
+        .ecs()
+        .read_resource::<EventBus<Outcome>>()
+        .emit_now(Outcome::Lightning { pos });
+    Ok(())
 }

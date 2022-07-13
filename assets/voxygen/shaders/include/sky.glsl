@@ -232,6 +232,34 @@ DirectionalLight get_moon_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*
     return DirectionalLight(/*dir, */shadow, block/*, get_moon_color(dir), get_moon_brightness(dir)*/);
 }
 
+const float LIGHTNING_HEIGHT = 25.0;
+const float MAX_LIGHTNING_PERIOD = 5.0;
+
+float lightning_intensity() {
+    float time_since_lightning = tick.x - last_lightning.w;
+    return
+        // Strength
+        1000000
+        // Flash
+        * max(0.0, 1.0 - time_since_lightning * 1.0)
+        // Reverb
+        * max(sin(time_of_day.x * 0.4), 0.0);
+}
+
+vec3 lightning_at(vec3 wpos) {
+    float time_since_lightning = tick.x - last_lightning.w;
+    if (time_since_lightning < MAX_LIGHTNING_PERIOD) {
+        vec3 diff = wpos + focus_off.xyz - (last_lightning.xyz + vec3(0, 0, LIGHTNING_HEIGHT));
+        float dist = length(diff);
+        return vec3(0.5, 0.8, 1.0)
+            * lightning_intensity()
+            // Attenuation
+            / pow(50.0 + dist, 2);
+    } else {
+        return vec3(0.0);
+    }
+}
+
 // // Calculates extra emission and reflectance (due to sunlight / moonlight).
 // //
 // // reflectence = k_a * i_a + i_a,persistent
@@ -437,7 +465,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
                       light_reflection_factor(norm, dir, normalize(sun_dir - vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha)*/) +
         (1.0 - MOON_AMBIANCE) * moon_chroma * moon_shadow * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting) +
         emission
-    );
+    ) + lightning_at(wpos);
 
     /* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
     diffuse_light =

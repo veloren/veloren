@@ -28,6 +28,9 @@ pub enum Outcome {
         is_attack: bool,
         reagent: Option<Reagent>, // How can we better define this?
     },
+    Lightning {
+        pos: Vec3<f32>,
+    },
     ProjectileShot {
         pos: Vec3<f32>,
         body: comp::Body,
@@ -100,6 +103,8 @@ impl Outcome {
     pub fn get_pos(&self) -> Option<Vec3<f32>> {
         match self {
             Outcome::Explosion { pos, .. }
+            // TODO: Include this, but allow it to be sent to clients when outside of the VD
+            // | Outcome::Lightning { pos }
             | Outcome::ProjectileShot { pos, .. }
             | Outcome::ProjectileHit { pos, .. }
             | Outcome::Beam { pos, .. }
@@ -114,6 +119,7 @@ impl Outcome {
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }
+            | Outcome::Lightning { .. }
             | Outcome::SkillPointGain { .. } => None,
         }
     }

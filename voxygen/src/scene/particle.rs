@@ -62,6 +62,17 @@ impl ParticleMgr {
         let mut rng = rand::thread_rng();
 
         match outcome {
+            Outcome::Lightning { pos } => {
+                self.particles.resize_with(self.particles.len() + 800, || {
+                    Particle::new_directed(
+                        Duration::from_secs_f32(rng.gen_range(0.5..1.0)),
+                        time,
+                        ParticleMode::Lightning,
+                        *pos + Vec3::new(0.0, 0.0, rng.gen_range(0.0..600.0)),
+                        *pos,
+                    )
+                });
+            },
             Outcome::Explosion {
                 pos,
                 power,

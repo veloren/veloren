@@ -476,6 +476,8 @@ pub enum ExperimentalShader {
     /// Display grid lines to visualize the distribution of shadow map texels
     /// for the directional light from the sun.
     DirectionalShadowMapTexelGrid,
-    /// Enable rainbows
-    Rainbows,
+    /// Disable rainbows
+    NoRainbows,
+    /// Make objects appear wet when appropriate.
+    Wetness,
 }

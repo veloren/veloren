@@ -305,6 +305,7 @@ pub enum ServerChatCommand {
     CreateLocation,
     DeleteLocation,
     WeatherZone,
+    Lightning,
 }
 
 impl ServerChatCommand {
@@ -703,6 +704,9 @@ impl ServerChatCommand {
                 "Create a weather zone",
                 Some(Admin),
             ),
+            ServerChatCommand::Lightning => {
+                cmd(vec![], "Lightning strike at current position", Some(Admin))
+            },
         }
     }
 
@@ -781,6 +785,7 @@ impl ServerChatCommand {
             ServerChatCommand::CreateLocation => "create_location",
             ServerChatCommand::DeleteLocation => "delete_location",
             ServerChatCommand::WeatherZone => "weather_zone",
+            ServerChatCommand::Lightning => "lightning",
         }
     }
 

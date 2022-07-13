@@ -273,6 +273,7 @@ impl Scene {
             None,
             scene_data.gamma,
             scene_data.exposure,
+            (Vec3::zero(), -1000.0),
             scene_data.ambiance,
             self.camera.get_mode(),
             250.0,

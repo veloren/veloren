@@ -244,22 +244,50 @@ void main() {
             drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
             vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
 
-            if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * rain_occlusion_at(f_pos.xyz) * 50.0) {
-                vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
-                vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
+            if (rain_occlusion_at(f_pos.xyz + vec3(0, 0, 0.25)) > 0.5) {
+                #ifdef EXPERIMENTAL_WETNESS
+                    float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.03) - 0.5) * 20.0, 0.0, 1.0) * min(rain_density * 10.0, 1.0);
+                #else
+                    const float puddle = 1.0;
+                #endif
 
-                float dist = length((drop_pos - near_cell) / vec3(1, 1, 2));
-                float drop_rad = 0.1;
-                float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
-                k_a += distort;
-                k_d += distort;
-                k_s += distort;
-                f_norm.xy += (drop_pos - near_cell).xy
-                    * max(1.0 - abs(dist - drop_rad) * 30, 0)
-                    * 500.0
-                    * max(drop_pos.z - near_cell.z, 0)
-                    * sign(dist - drop_rad)
-                    * max(drop_pos.z - near_cell.z, 0);
+                if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * 2.0 && puddle > 0.3) {
+                    vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
+                    vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
+
+                    float dist = length((drop_pos - near_cell) / vec3(1, 1, 2));
+                    float drop_rad = 0.1;
+                    float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
+                    k_a += distort;
+                    k_d += distort;
+                    k_s += distort;
+
+                    #ifdef EXPERIMENTAL_WETNESS
+                        /* puddle = mix(puddle, 1.0, distort * 10); */
+                    #endif
+
+                    f_norm.xy += (drop_pos - near_cell).xy
+                        * max(1.0 - abs(dist - drop_rad) * 30, 0)
+                        * 500.0
+                        * max(drop_pos.z - near_cell.z, 0)
+                        * sign(dist - drop_rad)
+                        * max(drop_pos.z - near_cell.z, 0);
+                }
+
+                #ifdef EXPERIMENTAL_WETNESS
+                    if (puddle > 0.0) {
+                        float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        float hy = (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        f_norm.xy += mix(vec2(0), vec2(h - hx, h - hy) / 0.1 * 0.03, puddle);
+                        alpha = mix(1.0, 0.2, puddle);
+                        f_col.rgb *= mix(1.0, 0.7, puddle);
+                        k_s = mix(k_s, vec3(0.7, 0.7, 1.0), puddle);
+                    }
+                #endif
             }
         }
     #endif
@@ -300,7 +328,7 @@ void main() {
         vec3 two_down = f_pos - offset_two;
 
         // Adjust this to change the size of the grid cells relative to the
-        // number of shadow texels 
+        // number of shadow texels
         float grid_cell_to_texel_ratio = 32.0;
 
         vec2 shadowTexSize = textureSize(sampler2D(t_directed_shadow_maps, s_directed_shadow_maps), 0) / grid_cell_to_texel_ratio;
@@ -320,7 +348,7 @@ void main() {
             return;
         }
     #endif
-     
+
     float max_light = 0.0;
 
     // After shadows are computed, we use a refracted sun and moon direction.
