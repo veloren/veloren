@@ -369,6 +369,7 @@ impl FileOpts {
         match self {
             Self::Save { .. } => {
                 use std::time::SystemTime;
+
                 Some(format!(
                     "map_{}.bin",
                     SystemTime::now()
@@ -377,7 +378,20 @@ impl FileOpts {
                         .unwrap_or(0)
                 ))
             },
-            Self::CacheLoad(name, opts) => Some(format!("map_{}{:?}.bin", name, opts)),
+            Self::CacheLoad(name, opts) => {
+                use std::{
+                    collections::hash_map::DefaultHasher,
+                    hash::{Hash, Hasher},
+                };
+
+                // We convert opts to string, as opts isn't hasheable because
+                // of scale which is f64
+                let opts = format!("{opts:?}");
+                let mut hashed_opts = DefaultHasher::new();
+                opts.hash(&mut hashed_opts);
+
+                Some(format!("map_{}{:x}.bin", name, hashed_opts.finish()))
+            },
             _ => None,
         }
     }
