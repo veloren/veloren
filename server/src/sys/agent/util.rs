@@ -198,6 +198,7 @@ pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity
     read_data
         .healths
         .get(entity)
+        .filter(|health| health.last_change.amount < 0.0)
         .and_then(|health| health.last_change.damage_by())
         .and_then(|damage_contributor| get_entity_by_id(damage_contributor.uid().0, read_data))
 }
