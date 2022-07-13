@@ -356,7 +356,6 @@ pub fn expand_secondary_component(
 }
 
 impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
-    #[allow(clippy::cast_precision_loss)]
     fn from(content: Vec<(f32, LootSpec<String>)>) -> Self {
         let rescale = if content.is_empty() {
             1.0
@@ -705,7 +704,6 @@ impl TradePricing {
             .is_some()
     }
 
-    // #[allow(clippy::cast_precision_loss)]
     fn read() -> Self {
         let mut result = Self::default();
         let mut freq = FreqEntries::default();
@@ -830,8 +828,6 @@ impl TradePricing {
                 input: recipe
                     .inputs()
                     .filter_map(|(ref recipe_input, count)| {
-                        //info!("{:?} output {:?} input {:?}x{}", key, recipe.itemdef_output(),
-                        // recipe_input, count);
                         if count == 0 {
                             None
                         } else {
@@ -1151,13 +1147,13 @@ mod tests {
         // highly nested
         let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
         let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
-        tracing::trace!("{:?} {}", loot3, lootsum3);
+        //tracing::trace!("{:?} {}", loot3, lootsum3);
         assert!((lootsum3 - 1.0).abs() < 1e-5);
 
         // includes tier-5 modular weapons
         let loot4 = expand_loot_table("common.loot_tables.dungeon.tier-4.boss");
         let lootsum4 = loot4.iter().fold(0.0, |s, i| s + i.0);
-        tracing::trace!("{:?} {}", loot4, lootsum4);
+        //tracing::trace!("{:?} {}", loot4, lootsum4);
         assert!((lootsum4 - 1.0).abs() < 1e-5);
     }
 
