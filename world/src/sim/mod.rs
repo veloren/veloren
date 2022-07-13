@@ -164,6 +164,10 @@ pub enum FileOpts {
     /// If set, generate the world map and save the world file (path is created
     /// the same way screenshot paths are).
     Save(SizeOpts),
+    /// Combination of Save and Load.
+    /// Load map if exists or generate the world map and save the
+    /// world file as <name + opts>
+    CacheLoad(String, SizeOpts),
     /// If set, load the world file from this path in legacy format (errors if
     /// path not found).  This option may be removed at some point, since it
     /// only applies to maps generated before map saving was merged into
@@ -218,21 +222,23 @@ impl FileOpts {
 
     fn map_size(&self) -> MapSizeLg {
         match self {
-            Self::Generate(opts) | Self::Save(opts) => MapSizeLg::new(Vec2 {
-                x: opts.x_lg,
-                y: opts.y_lg,
-            })
-            .unwrap_or_else(|e| {
-                warn!("World size does not satisfy invariants: {:?}", e);
-                DEFAULT_WORLD_CHUNKS_LG
-            }),
+            Self::Generate(opts) | Self::Save(opts) | Self::CacheLoad(_, opts) => {
+                MapSizeLg::new(Vec2 {
+                    x: opts.x_lg,
+                    y: opts.y_lg,
+                })
+                .unwrap_or_else(|e| {
+                    warn!("World size does not satisfy invariants: {:?}", e);
+                    DEFAULT_WORLD_CHUNKS_LG
+                })
+            },
             _ => DEFAULT_WORLD_CHUNKS_LG,
         }
     }
 
     fn continent_scale_hack(&self, default: f64) -> f64 {
         match self {
-            Self::Generate(opts) | Self::Save(opts) => opts.scale,
+            Self::Generate(opts) | Self::Save(opts) | Self::CacheLoad(_, opts) => opts.scale,
             _ => default,
         }
     }
@@ -302,6 +308,46 @@ impl FileOpts {
                     return None;
                 },
             },
+            Self::CacheLoad { .. } => {
+                // FIXME:
+                // We check if map exists by comparing name and gen opts.
+                // But we also have another generation paramater that currently
+                // passed outside and used for both worldsim and worldgen.
+                //
+                // Ideally, we need to figure out how we want to use seed, i. e.
+                // moving worldgen seed to gen opts and use different sim seed from
+                // server config or grab sim seed from world file.
+                //
+                // `unwrap` is safe here, because CacheLoad has its path always defined
+                let path = self.map_path().unwrap();
+                let path = std::path::Path::new("./maps/").join(path);
+
+                let file = match File::open(&path) {
+                    Ok(file) => file,
+                    Err(e) => {
+                        warn!(
+                            ?e,
+                            ?path,
+                            "Couldn't find needed map. It will be regenerated."
+                        );
+                        return None;
+                    },
+                };
+
+                let reader = BufReader::new(file);
+                let map: WorldFile = match bincode::deserialize_from(reader) {
+                    Ok(map) => map,
+                    Err(e) => {
+                        warn!(
+                            ?e,
+                            "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
+                        );
+                        return None;
+                    },
+                };
+
+                map.into_modern()
+            },
             Self::Generate { .. } | Self::Save { .. } => return None,
         };
 
@@ -318,37 +364,51 @@ impl FileOpts {
         }
     }
 
-    fn save(&self, map: &WorldFile) {
-        if let FileOpts::Save { .. } = self {
-            use std::time::SystemTime;
-            // Check if folder exists and create it if it does not
-            let mut path = PathBuf::from("./maps");
-            if !path.exists() {
-                if let Err(e) = std::fs::create_dir(&path) {
-                    warn!(?e, ?path, "Couldn't create folder for map");
-                    return;
-                }
-            }
-            path.push(format!(
-                // TODO: Work out a nice bincode file extension.
-                "map_{}.bin",
-                SystemTime::now()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .map(|d| d.as_millis())
-                    .unwrap_or(0)
-            ));
-            let file = match File::create(path.clone()) {
-                Ok(file) => file,
-                Err(e) => {
-                    warn!(?e, ?path, "Couldn't create file for maps");
-                    return;
-                },
-            };
+    fn map_path(&self) -> Option<String> {
+        // TODO: Work out a nice bincode file extension.
+        match self {
+            Self::Save { .. } => {
+                use std::time::SystemTime;
+                Some(format!(
+                    "map_{}.bin",
+                    SystemTime::now()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .map(|d| d.as_millis())
+                        .unwrap_or(0)
+                ))
+            },
+            Self::CacheLoad(name, opts) => Some(format!("map_{}{:?}.bin", name, opts)),
+            _ => None,
+        }
+    }
 
-            let writer = BufWriter::new(file);
-            if let Err(e) = bincode::serialize_into(writer, map) {
-                warn!(?e, "Couldn't write map");
+    fn save(&self, map: &WorldFile) {
+        let name = if let Some(name) = self.map_path() {
+            name
+        } else {
+            return;
+        };
+
+        // Check if folder exists and create it if it does not
+        let mut path = PathBuf::from("./maps");
+        if !path.exists() {
+            if let Err(e) = std::fs::create_dir(&path) {
+                warn!(?e, ?path, "Couldn't create folder for map");
+                return;
             }
+        }
+        path.push(name);
+        let file = match File::create(path.clone()) {
+            Ok(file) => file,
+            Err(e) => {
+                warn!(?e, ?path, "Couldn't create file for maps");
+                return;
+            },
+        };
+
+        let writer = BufWriter::new(file);
+        if let Err(e) = bincode::serialize_into(writer, map) {
+            warn!(?e, "Couldn't write map");
         }
     }
 }
