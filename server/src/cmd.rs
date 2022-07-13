@@ -3673,8 +3673,8 @@ fn handle_lightning(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: Vec<String>,
-    action: &ServerChatCommand,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, client, "player")?.0;
     server

@@ -125,7 +125,6 @@ impl WeatherSim {
                 let time_scale = 100_000.0;
                 let spos = (pos / space_scale).with_z(time as f64 / time_scale);
 
-                let scale = 10_000.0;
                 let avg_scale = 20_000.0;
                 let avg_delay = 250_000.0;
                 let pressure = ((base_nz.get(

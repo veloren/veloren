@@ -478,4 +478,6 @@ pub enum ExperimentalShader {
     DirectionalShadowMapTexelGrid,
     /// Enable rainbows
     Rainbows,
+    /// Make objects appear wet when appropriate.
+    Wetness,
 }
