@@ -148,7 +148,6 @@ impl std::ops::AddAssign for MaterialFrequency {
 
 #[derive(Debug)]
 struct PriceEntry {
-    // item asset specifier
     name: ItemDefinitionIdOwned,
     price: MaterialUse,
     // sellable by merchants
@@ -264,11 +263,11 @@ impl assets::Asset for ProbabilityFile {
     const EXTENSION: &'static str = "ron";
 }
 
-type PrimaryComponentPool =
+type ComponentPool =
     HashMap<(ToolKind, String), Vec<(ItemDefinitionIdOwned, Option<inventory::item::Hands>)>>;
 
 lazy_static! {
-    static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
+    static ref PRIMARY_COMPONENT_POOL: ComponentPool = {
         let mut component_pool = HashMap::new();
 
         // Load recipe book (done to check that material is valid for a particular component)
@@ -279,15 +278,37 @@ lazy_static! {
             .iter()
             .for_each(|(ComponentKey { toolkind, material, .. }, recipe)| {
                 let component = recipe.itemdef_output();
-                // let hand_restriction = if let ItemKind::ModularComponent(inventory::item::modular::ModularComponent::ToolPrimaryComponent { hand_restriction, .. }) = &*component.kind() {
-                //     *hand_restriction
-                // } else {
-                //     return;
-                // };
-                let hand_restriction = None;
+                let hand_restriction = None; // once there exists a hand restriction add the logic here - for a slight price correction
                 let entry = component_pool.entry((*toolkind, String::from(material))).or_insert(Vec::new());
                 entry.push((component, hand_restriction));
             });
+
+        component_pool
+    };
+
+    static ref SECONDARY_COMPONENT_POOL: ComponentPool = {
+        let mut component_pool = HashMap::new();
+
+        // Load recipe book (done to check that material is valid for a particular component)
+        //use crate::recipe::ComponentKey;
+        let recipes = default_recipe_book().read();
+
+        recipes
+            .iter()
+            .for_each(|(_, recipe)| {
+                let (ref asset_path, _) = recipe.output;
+                if let ItemKind::ModularComponent(
+                    crate::comp::inventory::item::modular::ModularComponent::ToolSecondaryComponent {
+                        toolkind,
+                        stats: _,
+                        hand_restriction,
+                    },
+                ) = asset_path.kind
+                {
+                    let component = ItemDefinitionIdOwned::Simple(asset_path.id().into());
+                    let entry = component_pool.entry((toolkind, String::new())).or_insert(Vec::new());
+                    entry.push((component, hand_restriction));
+                }});
 
         component_pool
     };
@@ -315,6 +336,22 @@ pub fn expand_primary_component(
     } else {
         None
     }
+}
+
+pub fn expand_secondary_component(
+    tool: ToolKind,
+    _material: Material,
+    hand_restriction: Option<inventory::item::Hands>,
+) -> impl Iterator<Item = ItemDefinitionIdOwned> {
+    SECONDARY_COMPONENT_POOL
+        .get(&(tool, String::new()))
+        .into_iter()
+        .flatten()
+        .filter(move |(_comp, hand)| match (hand_restriction, *hand) {
+            (Some(restriction), Some(hand)) => restriction == hand,
+            (None, _) | (_, None) => true,
+        })
+        .map(|e| e.0.clone())
 }
 
 impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
@@ -352,17 +389,48 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         material,
                         hands,
                     } => {
-                        error!("Weapon {:?} {:?} {:?}", tool, material, hands);
-                        todo!()
+                        let mut primary = expand_primary_component(tool, material, hands)
+                            .map_or(Vec::new(), |it| it.collect());
+                        let secondary: Vec<ItemDefinitionIdOwned> =
+                            expand_secondary_component(tool, material, hands).collect();
+                        let freq = if primary.is_empty() || secondary.is_empty() {
+                            0.0
+                        } else {
+                            p0 * rescale / ((primary.len() * secondary.len()) as f32)
+                        };
+                        let res: Vec<(f32, ItemDefinitionIdOwned, f32)> = primary
+                            .drain(0..)
+                            .map(|p| {
+                                secondary.iter().map(move |s| {
+                                    let components = vec![p.clone(), s.clone()];
+                                    (
+                                        freq,
+                                        ItemDefinitionIdOwned::Modular {
+                                            pseudo_base: ModularBase::Tool.pseudo_item_id().into(),
+                                            components,
+                                        },
+                                        1.0f32,
+                                    )
+                                })
+                            })
+                            .flatten()
+                            .collect();
+                        res.into_iter()
                     },
                     LootSpec::ModularWeaponPrimaryComponent {
                         tool,
                         material,
                         hands,
                     } => {
-                        let mut res = expand_primary_component(tool, material, hands).map_or(Vec::new(), |it| it.collect());
-                        let freq = if res.is_empty() { 0.0 } else { p0 * rescale / (res.len() as f32) };
-                        let res: Vec<(f32,ItemDefinitionIdOwned,f32)> = res.drain(0..).map(|e| (freq,e,1.0f32)).collect();
+                        let mut res = expand_primary_component(tool, material, hands)
+                            .map_or(Vec::new(), |it| it.collect());
+                        let freq = if res.is_empty() {
+                            0.0
+                        } else {
+                            p0 * rescale / (res.len() as f32)
+                        };
+                        let res: Vec<(f32, ItemDefinitionIdOwned, f32)> =
+                            res.drain(0..).map(|e| (freq, e, 1.0f32)).collect();
                         res.into_iter()
                     },
                     LootSpec::Nothing => Vec::new().into_iter(),
@@ -1088,10 +1156,16 @@ mod tests {
         assert!((lootsum2 - 1.0).abs() < 1e-4);
 
         // highly nested
-        // fails due to line 310 still being a todo
         let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
         let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
+        tracing::trace!("{:?} {}", loot3, lootsum3);
         assert!((lootsum3 - 1.0).abs() < 1e-5);
+
+        // includes tier-5 modular weapons
+        let loot4 = expand_loot_table("common.loot_tables.dungeon.tier-4.boss");
+        let lootsum4 = loot4.iter().fold(0.0, |s, i| s + i.0);
+        tracing::trace!("{:?} {}", loot4, lootsum4);
+        assert!((lootsum4 - 1.0).abs() < 1e-5);
     }
 
     #[test]
