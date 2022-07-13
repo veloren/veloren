@@ -233,6 +233,7 @@ DirectionalLight get_moon_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*
 }
 
 const float LIGHTNING_HEIGHT = 25.0;
+const float MAX_LIGHTNING_PERIOD = 5.0;
 
 float lightning_intensity() {
     float time_since_lightning = tick.x - last_lightning.w;
@@ -247,7 +248,7 @@ float lightning_intensity() {
 
 vec3 lightning_at(vec3 wpos) {
     float time_since_lightning = tick.x - last_lightning.w;
-    if (time_since_lightning < 5.0) {
+    if (time_since_lightning < MAX_LIGHTNING_PERIOD) {
         vec3 diff = wpos + focus_off.xyz - (last_lightning.xyz + vec3(0, 0, LIGHTNING_HEIGHT));
         float dist = length(diff);
         return vec3(0.5, 0.8, 1.0)

@@ -23,7 +23,6 @@ struct WeatherZone {
 
 struct CellConsts {
     humidity: f32,
-    alt: f32,
 }
 
 pub struct WeatherSim {
@@ -55,10 +54,6 @@ impl WeatherSim {
                         let average_humid = humid_sum / (CHUNKS_PER_CELL * CHUNKS_PER_CELL) as f32;
                         CellConsts {
                             humidity: average_humid.powf(0.2).min(1.0),
-                            alt: world
-                                .sim()
-                                .get_alt_approx(cell_to_wpos_center(p.map(|e| e as i32)))
-                                .unwrap_or(world::CONFIG.sea_level),
                         }
                     })
                     .collect::<Vec<_>>(),
@@ -96,6 +91,7 @@ impl WeatherSim {
         time_of_day: &TimeOfDay,
         outcomes: &EventBus<Outcome>,
         out: &mut WeatherGrid,
+        world: &World,
     ) {
         let time = time_of_day.0;
 
@@ -155,8 +151,11 @@ impl WeatherSim {
                     * (1.0 - pressure);
 
                 if cell.rain > 0.2 && cell.cloud > 0.15 && thread_rng().gen_bool(0.01) {
+                    let wpos = wpos.map(|e| {
+                        e as f32 + thread_rng().gen_range(-1.0..1.0) * CELL_SIZE as f32 * 0.5
+                    });
                     outcomes.emit_now(Outcome::Lightning {
-                        pos: wpos.map(|e| e as f32).with_z(self.consts[point].alt),
+                        pos: wpos.with_z(world.sim().get_alt_approx(wpos.as_()).unwrap_or(0.0)),
                     });
                 }
             }

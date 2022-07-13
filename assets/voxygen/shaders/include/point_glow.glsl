@@ -55,7 +55,8 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
             apply_point_glow_light(L, wpos, dir, max_dist, color);
         }
     #endif
-    if (tick.x - last_lightning.w < 5.0) {
+    float time_since_lightning = tick.x - last_lightning.w;
+    if (time_since_lightning < MAX_LIGHTNING_PERIOD) {
         // Apply lightning
         apply_point_glow_light(Light(last_lightning.xyzw + vec4(0, 0, LIGHTNING_HEIGHT, 0), vec4(vec3(0.2, 0.4, 1) * lightning_intensity() * 0.003, 1)), wpos, dir, max_dist, color);
     }

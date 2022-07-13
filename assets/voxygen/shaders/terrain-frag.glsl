@@ -246,17 +246,7 @@ void main() {
 
             if (rain_occlusion_at(f_pos.xyz + vec3(0, 0, 0.25)) > 0.5) {
                 #ifdef EXPERIMENTAL_WETNESS
-                    float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.1) - 0.5) * 20.0, 0.0, 1.0);// * pow(rain_density, 0.05);
-
-                    float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3) + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
-                    float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3) + (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
-                    float hy = (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3) + (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
-                    f_norm.xy += mix(vec2(0), vec2(h - hx, h - hy) / 0.1 * 0.03, puddle);
-                    alpha = mix(1.0, 0.2, puddle);
-                    f_col.rgb *= mix(1.0, 0.7, puddle);
-                    /* k_a += 1.0; */
-                    /* k_d += 1.0; */
-                    k_s = mix(k_s, vec3(0.7, 0.7, 1.0), puddle);
+                    float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.03) - 0.5) * 20.0, 0.0, 1.0) * min(rain_density * 10.0, 1.0);
                 #else
                     const float puddle = 1.0;
                 #endif
@@ -271,6 +261,11 @@ void main() {
                     k_a += distort;
                     k_d += distort;
                     k_s += distort;
+
+                    #ifdef EXPERIMENTAL_WETNESS
+                        /* puddle = mix(puddle, 1.0, distort * 10); */
+                    #endif
+
                     f_norm.xy += (drop_pos - near_cell).xy
                         * max(1.0 - abs(dist - drop_rad) * 30, 0)
                         * 500.0
@@ -279,9 +274,20 @@ void main() {
                         * max(drop_pos.z - near_cell.z, 0);
                 }
 
-                /* k_s = vec3(1); */
-                /* k_d = vec3(0); */
-                /* alpha = 0.3; */
+                #ifdef EXPERIMENTAL_WETNESS
+                    if (puddle > 0.0) {
+                        float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        float hy = (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        f_norm.xy += mix(vec2(0), vec2(h - hx, h - hy) / 0.1 * 0.03, puddle);
+                        alpha = mix(1.0, 0.2, puddle);
+                        f_col.rgb *= mix(1.0, 0.7, puddle);
+                        k_s = mix(k_s, vec3(0.7, 0.7, 1.0), puddle);
+                    }
+                #endif
             }
         }
     #endif
