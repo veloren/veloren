@@ -316,25 +316,26 @@ lazy_static! {
 
 // expand this loot specification towards individual item descriptions
 // partial duplicate of random_weapon_primary_component
+// returning an Iterator is difficult due to the branch and it is always used as
+// a vec afterwards
 pub fn expand_primary_component(
     tool: ToolKind,
     material: Material,
     hand_restriction: Option<inventory::item::Hands>,
-) -> Option<impl Iterator<Item = ItemDefinitionIdOwned>> {
+) -> Vec<ItemDefinitionIdOwned> {
     if let Some(material_id) = material.asset_identifier() {
-        Some(
-            PRIMARY_COMPONENT_POOL
-                .get(&(tool, material_id.to_owned()))
-                .into_iter()
-                .flatten()
-                .filter(move |(_comp, hand)| match (hand_restriction, *hand) {
-                    (Some(restriction), Some(hand)) => restriction == hand,
-                    (None, _) | (_, None) => true,
-                })
-                .map(|e| e.0.clone()),
-        )
+        PRIMARY_COMPONENT_POOL
+            .get(&(tool, material_id.to_owned()))
+            .into_iter()
+            .flatten()
+            .filter(move |(_comp, hand)| match (hand_restriction, *hand) {
+                (Some(restriction), Some(hand)) => restriction == hand,
+                (None, _) | (_, None) => true,
+            })
+            .map(|e| e.0.clone())
+            .collect()
     } else {
-        None
+        Vec::new()
     }
 }
 
@@ -389,8 +390,7 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         material,
                         hands,
                     } => {
-                        let mut primary = expand_primary_component(tool, material, hands)
-                            .map_or(Vec::new(), |it| it.collect());
+                        let mut primary = expand_primary_component(tool, material, hands);
                         let secondary: Vec<ItemDefinitionIdOwned> =
                             expand_secondary_component(tool, material, hands).collect();
                         let freq = if primary.is_empty() || secondary.is_empty() {
@@ -422,8 +422,7 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         material,
                         hands,
                     } => {
-                        let mut res = expand_primary_component(tool, material, hands)
-                            .map_or(Vec::new(), |it| it.collect());
+                        let mut res = expand_primary_component(tool, material, hands);
                         let freq = if res.is_empty() {
                             0.0
                         } else {
