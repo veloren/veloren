@@ -400,7 +400,7 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         };
                         let res: Vec<(f32, ItemDefinitionIdOwned, f32)> = primary
                             .drain(0..)
-                            .map(|p| {
+                            .flat_map(|p| {
                                 secondary.iter().map(move |s| {
                                     let components = vec![p.clone(), s.clone()];
                                     (
@@ -413,7 +413,6 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                                     )
                                 })
                             })
-                            .flatten()
                             .collect();
                         res.into_iter()
                     },
