@@ -67,6 +67,7 @@
             timing: Some(Night),
             biomes: [
                 (Forest, 1),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -79,6 +80,7 @@
             timing: Some(Night),
             biomes: [
                 (Forest, 2),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -226,7 +228,6 @@
             weather: None,
             biomes: [
                 (Snowland, 1),
-                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -268,6 +269,7 @@
             weather: None,
             biomes: [
                 (Forest, 2),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -282,6 +284,7 @@
             biomes: [
                 (Forest, 2),
                 (Jungle, 1),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -322,7 +325,6 @@
             weather: None,
             biomes: [
                 (Snowland, 1),
-                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -336,7 +338,6 @@
             weather: None,
             biomes: [
                 (Snowland, 1),
-                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -376,6 +377,7 @@
             weather: None,
             biomes: [
                 (Forest, 2),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -389,6 +391,7 @@
             weather: None,
             biomes: [
                 (Mountain, 1),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -402,6 +405,7 @@
             weather: None,
             biomes: [
                 (Forest, 2),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -521,6 +525,16 @@
         
         // Cave music
 
+        Individual((
+            title: "Stars Like Stalactites",
+            path: "voxygen.audio.soundtrack.cave.stars_like_stalactites",
+            length: 130.0,
+            timing: None,
+            biomes: [],
+            site: Some(Cave),
+            music_state: Activity(Explore),
+            artist: "DragonDee",
+        )),
         Individual((
             title: "Cavernous Hollow",
             path: "voxygen.audio.soundtrack.cave.cavernous_hollow",

@@ -38,7 +38,7 @@ impl Default for AudioSettings {
         Self {
             master_volume: 1.0,
             inactive_master_volume_perc: 0.5,
-            music_volume: 0.3,
+            music_volume: 0.25,
             sfx_volume: 0.6,
             ambience_volume: 0.6,
             num_sfx_channels: 60,

@@ -212,7 +212,7 @@ impl EventMapper for BlockEventMapper {
                         // block of interest type which picks fewer leaf blocks
                         // Hack to reduce the number of bird, frog, and water sounds
                         if ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
-                            && thread_rng().gen_bool(0.999))
+                            && thread_rng().gen_bool(0.9995))
                             || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.75))
                             || (sounds.sfx == SfxEvent::RunningWaterSlow
                                 && thread_rng().gen_bool(0.5))
