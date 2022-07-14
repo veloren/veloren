@@ -1050,15 +1050,19 @@ pub fn merchant_loadout(
         .filter(|(good, _amount)| **good != Good::Coin)
         .for_each(|(_good, amount)| *amount *= 0.1);
     // Fill bags with stuff according to unclaimed stock
+    let ability_map = &comp::tool::AbilityMap::load().read();
+    let msm = &comp::item::MaterialStatManifest::load().read();
     let mut wares: Vec<Item> =
         TradePricing::random_items(&mut stockmap, slots as u32, true, true, 16)
             .iter()
-            .map(|(n, a)| {
-                let mut i = Item::new_from_asset_expect(n);
-                i.set_amount(*a)
-                    .map_err(|_| tracing::error!("merchant loadout amount failure"))
-                    .ok();
-                i
+            .filter_map(|(n, a)| {
+                let i = Item::new_from_item_definition_id(n.as_ref(), ability_map, msm).ok();
+                i.map(|mut i| {
+                    i.set_amount(*a)
+                        .map_err(|_| tracing::error!("merchant loadout amount failure"))
+                        .ok();
+                    i
+                })
             })
             .collect();
     sort_wares(&mut wares);

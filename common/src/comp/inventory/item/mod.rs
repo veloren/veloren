@@ -742,6 +742,42 @@ impl Item {
         item
     }
 
+    pub fn new_from_item_definition_id(
+        item_definition_id: ItemDefinitionId<'_>,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Result<Self, Error> {
+        let (base, components) = match item_definition_id {
+            ItemDefinitionId::Simple(spec) => {
+                let base = ItemBase::Simple(Arc::<ItemDef>::load_cloned(spec)?);
+                (base, Vec::new())
+            },
+            ItemDefinitionId::Modular {
+                pseudo_base,
+                components,
+            } => {
+                let base = ItemBase::Modular(ModularBase::load_from_pseudo_id(pseudo_base));
+                let components = components
+                    .into_iter()
+                    .map(|id| Item::new_from_item_definition_id(id, ability_map, msm))
+                    .collect::<Result<Vec<_>, _>>()?;
+                (base, components)
+            },
+            ItemDefinitionId::Compound {
+                simple_base,
+                components,
+            } => {
+                let base = ItemBase::Simple(Arc::<ItemDef>::load_cloned(simple_base)?);
+                let components = components
+                    .into_iter()
+                    .map(|id| Item::new_from_item_definition_id(id, ability_map, msm))
+                    .collect::<Result<Vec<_>, _>>()?;
+                (base, components)
+            },
+        };
+        Ok(Item::new_from_item_base(base, components, ability_map, msm))
+    }
+
     /// Creates a new instance of an `Item` from the provided asset identifier
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
