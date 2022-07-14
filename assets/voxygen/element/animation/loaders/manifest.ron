@@ -41,4 +41,10 @@
         "voxygen.element.animation.loaders.ship4",
         "voxygen.element.animation.loaders.ship5",
     ]),
+    (2.0, [
+        "voxygen.element.animation.loaders.boat1",
+        "voxygen.element.animation.loaders.boat2",
+        "voxygen.element.animation.loaders.boat3",
+        "voxygen.element.animation.loaders.boat4",
+    ]),
 ])
