@@ -3,7 +3,6 @@
 
 #include "sky.glsl"
 
-#ifdef POINT_GLOW_FACTOR
 void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout vec3 color) {
     vec3 light_pos = L.light_pos.xyz;
     // Project light_pos to dir line
@@ -39,10 +38,12 @@ void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout 
     const float LIGHT_AMBIANCE = 0.025;
     color += light_color
         * 0.002
+    #ifdef POINT_GLOW_FACTOR
         // Constant, *should* const fold
-        * POINT_GLOW_FACTOR;
+        * POINT_GLOW_FACTOR
+    #endif
+    ;
 }
-#endif
 
 vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
     #ifndef POINT_GLOW_FACTOR
