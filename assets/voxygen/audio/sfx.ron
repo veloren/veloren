@@ -11,8 +11,16 @@
         ),
         Birdcall: (
             files: [
-                "voxygen.audio.sfx.ambient.birdcall_1",
-                "voxygen.audio.sfx.ambient.birdcall_2",
+                "voxygen.audio.sfx.ambient.birdcall_01",
+                "voxygen.audio.sfx.ambient.birdcall_02",
+                "voxygen.audio.sfx.ambient.birdcall_03",
+                "voxygen.audio.sfx.ambient.birdcall_04",
+                "voxygen.audio.sfx.ambient.birdcall_05",
+                "voxygen.audio.sfx.ambient.birdcall_06",
+                "voxygen.audio.sfx.ambient.birdcall_07",
+                "voxygen.audio.sfx.ambient.birdcall_08",
+                "voxygen.audio.sfx.ambient.birdcall_09",
+                "voxygen.audio.sfx.ambient.birdcall_10",
             ],
             threshold: 10.0,
         ),

@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Weather generated on server is sent to clients, and seen on clients as rain/clouds.
 - Updated Brazilian Portuguese Translation
 - Lightning storms
+- More varied ambient birdcalls
 
 ### Changed
 
