@@ -211,7 +211,7 @@ impl Tunnel {
                 .into_iter()
                 .max_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal))
                 .unwrap();
-            biomes.map(|e| (e / max).powf(6.0))
+            biomes.map(|e| (e / max).powf(3.0))
         };
 
         Biome {
@@ -223,6 +223,7 @@ impl Tunnel {
             leafy,
             dusty,
             icy,
+            depth,
         }
     }
 }
@@ -370,6 +371,7 @@ struct Biome {
     leafy: f32,
     dusty: f32,
     icy: f32,
+    depth: f32,
 }
 
 struct Mushroom {
@@ -622,36 +624,38 @@ fn write_column<R: Rng>(
                     stalactite.map(|e| e as u8),
                 )
             } else if z >= base && z < floor && !void_below && !sky_above {
-                let dry_mud =
-                    Lerp::lerp(Rgb::new(40, 20, 0), Rgb::new(80, 80, 30), col.marble_small);
-                let mycelium =
-                    Lerp::lerp(Rgb::new(20, 65, 175), Rgb::new(20, 100, 80), col.marble_mid);
-                let fire_rock =
-                    Lerp::lerp(Rgb::new(120, 50, 20), Rgb::new(50, 5, 40), col.marble_small);
-                let grassy = Lerp::lerp(
-                    Rgb::new(0, 100, 50),
-                    Rgb::new(80, 100, 20),
-                    col.marble_small,
-                );
-                let icy = Rgb::new(170, 195, 255);
-                let dusty = Lerp::lerp(Rgb::new(50, 50, 75), Rgb::new(75, 75, 50), col.marble_mid);
-                let surf_color: Rgb<i16> = Lerp::lerp(
-                    Lerp::lerp(
-                        Lerp::lerp(
-                            Lerp::lerp(
-                                Lerp::lerp(dry_mud, dusty, biome.dusty),
-                                mycelium,
-                                biome.mushroom,
-                            ),
-                            grassy,
-                            biome.leafy,
-                        ),
-                        icy,
-                        biome.icy,
+                let (net_col, total) = [
+                    (
+                        Lerp::lerp(Rgb::new(40, 20, 0), Rgb::new(80, 80, 30), col.marble_small),
+                        0.05,
                     ),
-                    fire_rock,
-                    biome.fire,
-                );
+                    (
+                        Lerp::lerp(Rgb::new(50, 50, 75), Rgb::new(75, 75, 50), col.marble_mid),
+                        biome.dusty,
+                    ),
+                    (
+                        Lerp::lerp(Rgb::new(20, 65, 175), Rgb::new(20, 100, 80), col.marble_mid),
+                        biome.mushroom,
+                    ),
+                    (
+                        Lerp::lerp(Rgb::new(120, 50, 20), Rgb::new(50, 5, 40), col.marble_small),
+                        biome.fire,
+                    ),
+                    (
+                        Lerp::lerp(
+                            Rgb::new(0, 100, 50),
+                            Rgb::new(80, 100, 20),
+                            col.marble_small,
+                        ),
+                        biome.leafy,
+                    ),
+                    (Rgb::new(170, 195, 255), biome.icy),
+                ]
+                .into_iter()
+                .fold((Rgb::<f32>::zero(), 0.0), |a, x| {
+                    (a.0 + x.0.map(|e| e as f32) * x.1, a.1 + x.1)
+                });
+                let surf_color = net_col.map(|e| (e / total) as u8);
 
                 if is_ice {
                     Block::new(BlockKind::Ice, Rgb::new(120, 160, 255))
@@ -666,7 +670,7 @@ fn write_column<R: Rng>(
                         } else {
                             BlockKind::Sand
                         },
-                        surf_color.map(|e| e as u8),
+                        surf_color,
                     )
                 }
             } else if let Some(sprite) = (z == floor && !void_below && !sky_above)
@@ -718,24 +722,36 @@ fn write_column<R: Rng>(
                         close(biome.humidity, 0.0, 0.5) * biome.mineral * 0.005,
                     ) {
                         Some(SpriteKind::CrystalLow)
-                    } else if rand.chance(wpos2d.with_z(4), biome.fire * 0.0003) {
-                        Some(SpriteKind::Pyrebloom)
-                    } else if rand.chance(wpos2d.with_z(5), close(biome.mineral, 1.0, 0.5) * 0.001)
-                    {
-                        Some(
-                            *[
-                                SpriteKind::Velorite,
-                                SpriteKind::VeloriteFrag,
-                                SpriteKind::AmethystSmall,
-                                SpriteKind::TopazSmall,
-                                SpriteKind::DiamondSmall,
-                                SpriteKind::RubySmall,
-                                SpriteKind::EmeraldSmall,
-                                SpriteKind::SapphireSmall,
-                            ]
-                            .choose(rng)
-                            .unwrap(),
-                        )
+                    } else if rand.chance(wpos2d.with_z(4), biome.fire * 0.001) {
+                        [
+                            (SpriteKind::Pyrebloom, 0.3),
+                            (SpriteKind::Bloodstone, 0.3),
+                            (SpriteKind::Gold, 0.15),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
+                    } else if rand.chance(wpos2d.with_z(5), 0.0025) {
+                        [
+                            (Some(SpriteKind::VeloriteFrag), 0.3),
+                            (Some(SpriteKind::AmethystSmall), 0.3),
+                            (Some(SpriteKind::TopazSmall), 0.3),
+                            (Some(SpriteKind::DiamondSmall), 0.04),
+                            (Some(SpriteKind::RubySmall), 0.1),
+                            (Some(SpriteKind::EmeraldSmall), 0.08),
+                            (Some(SpriteKind::SapphireSmall), 0.08),
+                            (Some(SpriteKind::Velorite), 0.15),
+                            (Some(SpriteKind::Amethyst), 0.15),
+                            (Some(SpriteKind::Topaz), 0.15),
+                            (Some(SpriteKind::Diamond), 0.02),
+                            (Some(SpriteKind::Ruby), 0.05),
+                            (Some(SpriteKind::Emerald), 0.04),
+                            (Some(SpriteKind::Sapphire), 0.04),
+                            (None, 10.0),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .and_then(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(6), 0.0002) {
                         [
                             (Some(SpriteKind::DungeonChest0), 1.0),
@@ -745,6 +761,22 @@ fn write_column<R: Rng>(
                             (Some(SpriteKind::DungeonChest4), 0.01),
                             (Some(SpriteKind::DungeonChest5), 0.003),
                             (None, 1.0),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .and_then(|s| s.0)
+                    } else if rand.chance(wpos2d.with_z(6), 0.01) {
+                        let shallow = close(biome.depth, 0.0, 0.4);
+                        let middle = close(biome.depth, 0.5, 0.4);
+                        let deep = close(biome.depth, 1.0, 0.4);
+                        [
+                            (Some(SpriteKind::Copper), shallow),
+                            (Some(SpriteKind::Tin), shallow),
+                            (Some(SpriteKind::Iron), shallow * 0.3),
+                            (Some(SpriteKind::Coal), middle * 0.25),
+                            (Some(SpriteKind::Cobalt), middle * 0.05),
+                            (Some(SpriteKind::Silver), middle * 0.05),
+                            (None, 10.0),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
