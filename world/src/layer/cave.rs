@@ -25,14 +25,15 @@ const CELL_SIZE: i32 = 1536;
 
 #[derive(Copy, Clone)]
 pub struct Node {
-    pub wpos: Vec3<i32>,
+    pub wpos: Vec2<i32>,
+    pub depth: i32,
 }
 
 fn to_cell(wpos: Vec2<i32>, level: u32) -> Vec2<i32> {
-    (wpos + (level & 1) as i32 * CELL_SIZE / 2).map(|e| e.div_euclid(CELL_SIZE))
+    (wpos + (level & 1) as i32 * CELL_SIZE / 4).map(|e| e.div_euclid(CELL_SIZE))
 }
 fn to_wpos(cell: Vec2<i32>, level: u32) -> Vec2<i32> {
-    (cell * CELL_SIZE) - (level & 1) as i32 * CELL_SIZE / 2
+    (cell * CELL_SIZE) - (level & 1) as i32 * CELL_SIZE / 4
 }
 
 const AVG_LEVEL_DEPTH: i32 = 120;
@@ -49,7 +50,7 @@ fn node_at(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Node> {
             + (Vec2::new(dx.get(cell.with_z(0)), dy.get(cell.with_z(0))) % CELL_SIZE as u32 / 2)
                 .map(|e| e as i32);
         land.get_chunk_wpos(wpos).and_then(|chunk| {
-            let alt = chunk.alt as i32 + 8 - AVG_LEVEL_DEPTH * level as i32;
+            let depth = AVG_LEVEL_DEPTH * level as i32 - 8;
 
             if level > 0
                 || (!chunk.near_cliffs()
@@ -57,9 +58,7 @@ fn node_at(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Node> {
                     && chunk.sites.is_empty()
                     && land.get_gradient_approx(wpos) < 0.75)
             {
-                Some(Node {
-                    wpos: wpos.with_z(alt),
-                })
+                Some(Node { wpos, depth })
             } else {
                 None
             }
@@ -77,32 +76,7 @@ pub fn surface_entrances<'a>(land: &'a Land) -> impl Iterator<Item = Vec2<i32>> 
     );
     (0..sz_cells.x + 1)
         .flat_map(move |x| (0..sz_cells.y + 1).map(move |y| Vec2::new(x, y)))
-        .filter_map(|cell| {
-            let tunnel = tunnel_below_from_cell(cell, 0, land)?;
-
-            let start = tunnel.a.wpos.map(|e| e as f32 + 0.5);
-            let end = tunnel.b.wpos.map(|e| e as f32 + 0.5);
-            let bez = QuadraticBezier2 {
-                start: start.xy(),
-                ctrl: start.xy() + tunnel.ctrl_offset(),
-                end: end.xy(),
-            };
-
-            // Search for the point at which the tunnel enters the ground
-            // TODO: Binary search?
-            Some(
-                (0..32)
-                    .map(|i| i as f32 / 32.0)
-                    .map(|t| {
-                        bez.evaluate(t)
-                            .with_z(Lerp::lerp(start.z, end.z, t))
-                            .map(|e| e as i32)
-                    })
-                    .find(|wpos| land.get_alt_approx(wpos.xy()) > wpos.z as f32)
-                    .unwrap_or(tunnel.b.wpos)
-                    .xy(),
-            )
-        })
+        .filter_map(|cell| Some(tunnel_below_from_cell(cell, 0, land)?.a.wpos))
 }
 
 pub struct Tunnel {
@@ -113,16 +87,16 @@ pub struct Tunnel {
 
 impl Tunnel {
     fn ctrl_offset(&self) -> Vec2<f32> {
-        let start = self.a.wpos.xy().map(|e| e as f64 + 0.5);
-        let end = self.b.wpos.xy().map(|e| e as f64 + 0.5);
+        let start = self.a.wpos.map(|e| e as f64 + 0.5);
+        let end = self.b.wpos.map(|e| e as f64 + 0.5);
 
         ((end - start) * 0.5 + ((end - start) * 0.5).rotated_z(PI / 2.0) * 6.0 * self.curve as f64)
             .map(|e| e as f32)
     }
 
-    fn z_range_at(&self, wposf: Vec2<f64>, index: IndexRef) -> Option<(Range<i32>, f64)> {
-        let start = self.a.wpos.xy().map(|e| e as f64 + 0.5);
-        let end = self.b.wpos.xy().map(|e| e as f64 + 0.5);
+    fn z_range_at(&self, wposf: Vec2<f64>, info: CanvasInfo) -> Option<(Range<i32>, f64)> {
+        let start = self.a.wpos.map(|e| e as f64 + 0.5);
+        let end = self.b.wpos.map(|e| e as f64 + 0.5);
 
         if let Some((t, closest, _)) = quadratic_nearest_point(
             &river_spline_coeffs(start, self.ctrl_offset(), end),
@@ -140,24 +114,31 @@ impl Tunnel {
                 let radius = Lerp::lerp(
                     radius.start,
                     radius.end,
-                    (index
-                        .noise
-                        .cave_fbm_nz
-                        .get((wposf.with_z(self.a.wpos.z as f64) / 200.0).into_array())
-                        * 2.0
+                    (info.index().noise.cave_fbm_nz.get(
+                        (wposf.with_z(info.land().get_alt_approx(self.a.wpos) as f64) / 200.0)
+                            .into_array(),
+                    ) * 2.0
                         * 0.5
                         + 0.5)
                         .clamped(0.0, 1.0)
                         .powf(3.0),
-                ); // Lerp::lerp(8.0, 24.0, (t * 0.075 * tunnel_len).sin() * 0.5 + 0.5);
+                );
                 let height_here = (1.0 - dist / radius).max(0.0).powf(0.3) * radius;
                 if height_here > 0.0 {
-                    let z_offs = index.noise.cave_fbm_nz.get((wposf / 512.0).into_array())
-                        * 48.0
+                    let z_offs = info
+                        .index()
+                        .noise
+                        .cave_fbm_nz
+                        .get((wposf / 512.0).into_array())
+                        * 96.0
                         * ((1.0 - (t - 0.5).abs() * 2.0) * 8.0).min(1.0);
-                    let depth = Lerp::lerp(self.a.wpos.z as f64, self.b.wpos.z as f64, t) + z_offs;
+                    let base = Lerp::lerp(
+                        info.land().get_alt_approx(self.a.wpos) as f64 - self.a.depth as f64,
+                        info.land().get_alt_approx(self.b.wpos) as f64 - self.b.depth as f64,
+                        t,
+                    ) + z_offs;
                     Some((
-                        (depth - height_here * 0.3) as i32..(depth + height_here * 1.35) as i32,
+                        (base - height_here * 0.3) as i32..(base + height_here * 1.35) as i32,
                         radius,
                     ))
                 } else {
@@ -220,7 +201,7 @@ impl Tunnel {
             let fire = underground * close(humidity, 0.0, 0.75) * close(temp, 2.0, 0.6);
             let leafy = underground
                 * close(humidity, 1.0, 0.75)
-                * close(temp, -0.1, 0.75)
+                * close(temp, 0.1, 0.75)
                 * close(depth, 0.0, 0.6);
             let dusty = close(humidity, 0.0, 0.5) * close(temp, -0.3, 0.65);
             let icy = close(temp, -1.0, 0.7);
@@ -230,7 +211,7 @@ impl Tunnel {
                 .into_iter()
                 .max_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal))
                 .unwrap();
-            biomes.map(|e| (e / max).powf(4.0))
+            biomes.map(|e| (e / max).powf(6.0))
         };
 
         Biome {
@@ -278,10 +259,10 @@ fn tunnels_at<'a>(
                     a: current_cell,
                     b: other_cell,
                     curve: RandomField::new(13)
-                        .get_f32(current_cell.wpos.xy().with_z(0))
+                        .get_f32(current_cell.wpos.with_z(0))
                         .powf(0.25)
                         .mul(
-                            if RandomField::new(14).chance(current_cell.wpos.xy().with_z(0), 0.5) {
+                            if RandomField::new(14).chance(current_cell.wpos.with_z(0), 0.5) {
                                 1.0
                             } else {
                                 -1.0
@@ -330,7 +311,7 @@ pub fn tunnel_bounds_at<'a>(
             tunnels_at(wpos2d, level, land)
                 .chain(tunnels_down_from(wpos2d, level - 1, land))
                 .filter_map(move |tunnel| {
-                    let (z_range, radius) = tunnel.z_range_at(wposf, info.index())?;
+                    let (z_range, radius) = tunnel.z_range_at(wposf, *info)?;
                     // Avoid cave entrances intersecting water
                     let z_range = Lerp::lerp(
                         z_range.end,
@@ -492,11 +473,11 @@ fn write_column<R: Rng>(
     let mut get_mushroom = |wpos: Vec3<i32>, dynamic_rng: &mut R| {
         for (wpos2d, seed) in StructureGen2d::new(34537, 24, 8).get(wpos.xy()) {
             let mushroom = if let Some(mushroom) = mushroom_cache
-                .entry((tunnel.a.wpos, wpos2d))
+                .entry((tunnel.a.wpos.with_z(tunnel.a.depth), wpos2d))
                 .or_insert_with(|| {
                     let mut rng = RandomPerm::new(seed);
                     let (z_range, radius) =
-                        tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), info.index())?;
+                        tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), info)?;
                     let (cavern_bottom, cavern_top, floor, water_level) = (
                         z_range.start,
                         z_range.end,

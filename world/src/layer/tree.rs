@@ -47,7 +47,7 @@ pub fn tree_valid_at(
         || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
         || info.map_or(false, |info| {
             tunnel_bounds_at(wpos, &info, &info.land())
-                .any(|(_, z_range, _, _)| z_range.contains(&(col.alt as i32 - 1)))
+                .any(|(_, z_range, _, _)| z_range.contains(&(col.alt as i32 - 2)))
         })
     {
         return false;
