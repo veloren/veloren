@@ -1063,9 +1063,9 @@ fn erode(
     let mut h_stack = vec![Zero::zero(); dh.len()];
     let mut b_stack = vec![Zero::zero(); dh.len()];
     let mut area_stack = vec![Zero::zero(); dh.len()];
-    assert!(mstack.len() == dh.len());
-    assert!(b.len() == dh.len());
-    assert!(h_t.len() == dh.len());
+    assert_eq!(mstack.len(), dh.len());
+    assert_eq!(b.len(), dh.len());
+    assert_eq!(h_t.len(), dh.len());
     let mstack_inv = &mut *mstack_inv;
     mstack.iter().enumerate().for_each(|(stacki, &posi)| {
         let posi = posi as usize;
@@ -1472,7 +1472,7 @@ fn erode(
         .into_par_iter()
         .enumerate()
         .for_each(|(posi, (&stacki, h))| {
-            assert!(posi == mstack[stacki] as usize);
+            assert_eq!(posi, mstack[stacki] as usize);
             *h = h_stack[stacki];
         });
 
@@ -2270,7 +2270,7 @@ pub fn get_lakes<F: Float>(
                                 _ => {},
                             }
                         });
-                        assert!(rcv != -1);
+                        assert_ne!(rcv, -1);
                         downhill[node] = rcv;
                         tag[node] = Tag::WithRcv;
                     }
