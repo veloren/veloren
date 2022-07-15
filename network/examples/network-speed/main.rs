@@ -192,16 +192,16 @@ fn client(address: ConnectAddr, runtime: Arc<Runtime>) {
         }
         if id > 2000000 {
             println!("Stop");
-            std::thread::sleep(std::time::Duration::from_millis(2000));
+            thread::sleep(Duration::from_millis(2000));
             break;
         }
     }
     drop(s1);
-    std::thread::sleep(std::time::Duration::from_millis(2000));
+    thread::sleep(Duration::from_millis(2000));
     info!("Closing participant");
     runtime.block_on(p1.disconnect()).unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(2000));
+    thread::sleep(Duration::from_millis(2000));
     info!("DROPPING! client");
     drop(client);
-    std::thread::sleep(std::time::Duration::from_millis(2000));
+    thread::sleep(Duration::from_millis(2000));
 }

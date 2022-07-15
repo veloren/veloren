@@ -62,7 +62,7 @@ fn main() {
 }
 
 fn file_exists(file: &str) -> Result<(), String> {
-    let file: std::path::PathBuf = shellexpand::tilde(file).parse().unwrap();
+    let file: PathBuf = shellexpand::tilde(file).parse().unwrap();
     if file.exists() {
         Ok(())
     } else {

@@ -60,7 +60,7 @@ impl Animation for MountAnimation {
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
         let canceler = (speed / 24.0).powf(0.6);
         let _x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * canceler;
-        let tilt = if ::vek::Vec2::new(ori, last_ori)
+        let tilt = if vek::Vec2::new(ori, last_ori)
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()

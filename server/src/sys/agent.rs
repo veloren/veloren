@@ -1104,7 +1104,7 @@ impl<'a> AgentData<'a> {
                                             self.chat_npc(msg, event_emitter);
                                         }
                                     } else {
-                                        let mut rng = rand::thread_rng();
+                                        let mut rng = thread_rng();
                                         if let Some(extreme_trait) =
                                             self.rtsim_entity.and_then(|e| {
                                                 e.brain.personality.random_chat_trait(&mut rng)

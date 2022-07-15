@@ -1237,7 +1237,7 @@ fn erode(
         // TODO: Consider taking advantage of multi-receiver flow here.
         // Iterate in ascending height order.
         let mut sum_err: Compute = 0.0_f64;
-        itertools::izip!(&*mstack, &*elev, &*b_stack, &*h_t_stack, &*dh_stack, &*h_p)
+        izip!(&*mstack, &*elev, &*b_stack, &*h_t_stack, &*dh_stack, &*h_p)
             .enumerate()
             .rev()
             .for_each(|(stacki, (&posi, &elev_i, &b_i, &h_t_i, &dh_i, &h_p_i))| {

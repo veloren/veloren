@@ -447,26 +447,26 @@ impl Renderer {
         let create_sampler = |filter| {
             device.create_sampler(&wgpu::SamplerDescriptor {
                 label: None,
-                address_mode_u: wgpu::AddressMode::ClampToEdge,
-                address_mode_v: wgpu::AddressMode::ClampToEdge,
-                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                address_mode_u: AddressMode::ClampToEdge,
+                address_mode_v: AddressMode::ClampToEdge,
+                address_mode_w: AddressMode::ClampToEdge,
                 mag_filter: filter,
                 min_filter: filter,
-                mipmap_filter: wgpu::FilterMode::Nearest,
+                mipmap_filter: FilterMode::Nearest,
                 compare: None,
                 ..Default::default()
             })
         };
 
-        let sampler = create_sampler(wgpu::FilterMode::Linear);
-        let depth_sampler = create_sampler(wgpu::FilterMode::Nearest);
+        let sampler = create_sampler(FilterMode::Linear);
+        let depth_sampler = create_sampler(FilterMode::Nearest);
 
         let noise_tex = Texture::new(
             &device,
             &queue,
             &assets::Image::load_expect("voxygen.texture.noise").read().0,
-            Some(wgpu::FilterMode::Linear),
-            Some(wgpu::AddressMode::Repeat),
+            Some(FilterMode::Linear),
+            Some(AddressMode::Repeat),
         )?;
 
         let clouds_locals =
@@ -817,13 +817,13 @@ impl Renderer {
                 mip_level_count: levels,
                 sample_count,
                 dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Rgba16Float,
+                format: TextureFormat::Rgba16Float,
                 usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
             });
 
             tex.create_view(&wgpu::TextureViewDescriptor {
                 label: None,
-                format: Some(wgpu::TextureFormat::Rgba16Float),
+                format: Some(TextureFormat::Rgba16Float),
                 dimension: Some(wgpu::TextureViewDimension::D2),
                 // TODO: why is this not Color?
                 aspect: wgpu::TextureAspect::All,
@@ -861,12 +861,12 @@ impl Renderer {
             mip_level_count: levels,
             sample_count,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
+            format: TextureFormat::Depth32Float,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
         let tgt_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
-            format: Some(wgpu::TextureFormat::Depth32Float),
+            format: Some(TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
@@ -885,13 +885,13 @@ impl Renderer {
             mip_level_count: levels,
             sample_count,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
+            format: TextureFormat::Depth32Float,
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
         // TODO: Consider no depth buffer for the final draw to the window?
         let win_depth_view = win_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
-            format: Some(wgpu::TextureFormat::Depth32Float),
+            format: Some(TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,

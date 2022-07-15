@@ -65,7 +65,7 @@ pub enum SiteKind {
     Castle(Castle),
     Refactor(site2::Site),
     CliffTown(site2::Site),
-    Tree(tree::Tree),
+    Tree(Tree),
     GiantTree(site2::Site),
     Gnarling(site2::Site),
 }
@@ -113,7 +113,7 @@ impl Site {
         }
     }
 
-    pub fn tree(t: tree::Tree) -> Self {
+    pub fn tree(t: Tree) -> Self {
         Self {
             kind: SiteKind::Tree(t),
             economy: Economy::default(),

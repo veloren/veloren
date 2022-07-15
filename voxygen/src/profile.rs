@@ -80,7 +80,7 @@ impl Profile {
                     );
                     // Rename the corrupted profile file.
                     let new_path = path.with_extension("invalid.ron");
-                    if let Err(e) = std::fs::rename(path.clone(), new_path.clone()) {
+                    if let Err(e) = fs::rename(path.clone(), new_path.clone()) {
                         warn!(?e, ?path, ?new_path, "Failed to rename profile file.");
                     }
                 },

@@ -924,7 +924,7 @@ impl<'a> AgentData<'a> {
                     _ =>
                     // if some illegal value slipped in, get zero vector
                     {
-                        vek::Vec2::zero()
+                        Vec2::zero()
                     },
                 };
                 let obstacle = read_data

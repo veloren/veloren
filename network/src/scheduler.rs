@@ -402,7 +402,7 @@ impl Scheduler {
                 use network_protocol::InitProtocol;
                 let init_result = protocol
                     .initialize(send_handshake, local_pid, local_secret)
-                    .instrument(tracing::info_span!("handshake", ?cid))
+                    .instrument(info_span!("handshake", ?cid))
                     .await;
                 match init_result {
                     Ok((pid, sid, secret)) => {
@@ -447,7 +447,7 @@ impl Scheduler {
                             tokio::spawn(
                                 bparticipant
                                     .run(participant_channels.b2s_prio_statistic_s)
-                                    .instrument(tracing::info_span!("remote", ?p)),
+                                    .instrument(info_span!("remote", ?p)),
                             );
                             //create a new channel within BParticipant and wait for it to run
                             let (b2s_create_channel_done_s, b2s_create_channel_done_r) =
@@ -516,7 +516,7 @@ impl Scheduler {
                     },
                 }
             }
-            .instrument(tracing::info_span!("")),
+            .instrument(info_span!("")),
         ); /*WORKAROUND FOR SPAN NOT TO GET LOST*/
     }
 }

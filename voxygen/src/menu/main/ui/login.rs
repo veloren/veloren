@@ -187,7 +187,7 @@ impl Screen {
             .padding(3)
             .width(Length::Units(230));
 
-        let version = iced::Text::new(version).size(fonts.cyri.scale(15));
+        let version = Text::new(version).size(fonts.cyri.scale(15));
 
         let right_column = Container::new(
             Column::with_children(vec![v_logo.into(), version.into()]).align_items(Align::Center),
@@ -273,7 +273,7 @@ impl LanguageSelectBanner {
                     style::button::Style::new(imgs.selection)
                         .hover_image(imgs.selection_hover)
                         .press_image(imgs.selection_press)
-                        .image_color(vek::Rgba::new(color.0, color.1, color.2, 192)),
+                        .image_color(Rgba::new(color.0, color.1, color.2, 192)),
                 )
                 .min_height(56)
                 .on_press(Message::LanguageChanged(i));

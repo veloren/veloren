@@ -57,7 +57,7 @@ impl Image {
 
 impl<M, R> Widget<M, R> for Image
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { self.width }
 
@@ -113,14 +113,14 @@ pub trait Renderer: iced::Renderer {
 
 impl<'a, M, R> From<Image> for Element<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn from(image: Image) -> Element<'a, M, R> { Element::new(image) }
 }
 
 impl<R> super::background_container::Background<R> for Image
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { self.width }
 

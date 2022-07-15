@@ -113,7 +113,7 @@ pub fn update_map_markers<'a>(
 }
 
 // TODO: turn chat messages into enums
-pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupManip) {
+pub fn handle_group(server: &mut Server, entity: Entity, manip: GroupManip) {
     match manip {
         GroupManip::Leave => {
             let state = server.state_mut();
@@ -184,7 +184,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 return;
             }
 
-            let mut groups = state.ecs().write_storage::<group::Group>();
+            let mut groups = state.ecs().write_storage::<Group>();
             let mut group_manager = state.ecs().write_resource::<GroupManager>();
             let map_markers = state.ecs().read_storage::<comp::MapMarker>();
             // Make sure kicker is the group leader
@@ -267,7 +267,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     return;
                 },
             };
-            let groups = state.ecs().read_storage::<group::Group>();
+            let groups = state.ecs().read_storage::<Group>();
             let mut group_manager = state.ecs().write_resource::<GroupManager>();
             let map_markers = state.ecs().read_storage::<comp::MapMarker>();
             // Make sure assigner is the group leader

@@ -237,7 +237,7 @@ pub fn maintain_egui_inner(
     };
 
     let start_pos = Pos2 { x: 300.0, y: 0.0 };
-    egui::Window::new("Debug Control")
+    Window::new("Debug Control")
         .default_pos(start_pos)
         .default_width(200.0)
         .default_height(200.0)
@@ -310,7 +310,7 @@ pub fn maintain_egui_inner(
         let positions = client.state().ecs().read_storage::<comp::Pos>();
         let client_pos = positions.get(client.entity());
 
-        egui::Window::new("ECS Entities")
+        Window::new("ECS Entities")
             .open(&mut windows.ecs_entities)
             .default_width(500.0)
             .default_height(500.0)
@@ -348,12 +348,12 @@ pub fn maintain_egui_inner(
                             ui.end_row();
                             for (entity, body, stats, pos, _ori, vel, poise, character_state) in (
                                 &ecs.entities(),
-                                ecs.read_storage::<comp::Body>().maybe(),
+                                ecs.read_storage::<Body>().maybe(),
                                 ecs.read_storage::<comp::Stats>().maybe(),
                                 ecs.read_storage::<comp::Pos>().maybe(),
                                 ecs.read_storage::<comp::Ori>().maybe(),
                                 ecs.read_storage::<comp::Vel>().maybe(),
-                                ecs.read_storage::<comp::Poise>().maybe(),
+                                ecs.read_storage::<Poise>().maybe(),
                                 ecs.read_storage::<comp::CharacterState>().maybe(),
                             )
                                 .join()
@@ -513,12 +513,12 @@ fn selected_entity_window(
         (density, health, energy),
     ) in (
         &ecs.entities(),
-        ecs.read_storage::<comp::Body>().maybe(),
+        ecs.read_storage::<Body>().maybe(),
         ecs.read_storage::<comp::Stats>().maybe(),
         ecs.read_storage::<comp::Pos>().maybe(),
         ecs.read_storage::<comp::Ori>().maybe(),
         ecs.read_storage::<comp::Vel>().maybe(),
-        ecs.read_storage::<comp::Poise>().maybe(),
+        ecs.read_storage::<Poise>().maybe(),
         ecs.read_storage::<comp::Buffs>().maybe(),
         ecs.read_storage::<comp::Auras>().maybe(),
         ecs.read_storage::<comp::CharacterState>().maybe(),
@@ -547,7 +547,7 @@ fn selected_entity_window(
             }
         };
 
-        egui::Window::new("Selected Entity")
+        Window::new("Selected Entity")
             .default_width(300.0)
             .default_height(200.0)
             .show(&platform.context(), |ui| {

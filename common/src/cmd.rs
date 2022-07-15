@@ -804,7 +804,7 @@ impl ServerChatCommand {
     }
 
     /// Produce an iterator over all the available commands
-    pub fn iter() -> impl Iterator<Item = Self> { <Self as strum::IntoEnumIterator>::iter() }
+    pub fn iter() -> impl Iterator<Item = Self> { <Self as IntoEnumIterator>::iter() }
 
     /// A message that explains what the command does
     pub fn help_string(&self) -> String {

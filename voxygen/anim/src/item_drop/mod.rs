@@ -37,7 +37,7 @@ impl Skeleton for ItemDropSkeleton {
         Offsets {
             lantern: None,
             mount_bone: Transform {
-                position: common::comp::Body::ItemDrop(body)
+                position: comp::Body::ItemDrop(body)
                     .mount_offset()
                     .into_tuple()
                     .into(),
@@ -69,7 +69,7 @@ pub struct SkeletonAttr {
     bone0: (f32, f32, f32),
 }
 
-impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
     type Error = ();
 
     fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {

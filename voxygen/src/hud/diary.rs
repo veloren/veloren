@@ -1445,7 +1445,7 @@ impl<'a> Diary<'a> {
                 id: state.ids.skill_general_roll_0,
             },
             SkillIcon::Unlockable {
-                skill: Skill::Roll(RollSkill::Cost),
+                skill: Skill::Roll(Cost),
                 image: self.imgs.utility_cost_skill,
                 position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
                 id: state.ids.skill_general_roll_1,

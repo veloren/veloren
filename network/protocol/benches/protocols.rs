@@ -192,8 +192,8 @@ mod utils {
         cap: usize,
         metrics: Option<ProtocolMetricCache>,
     ) -> [(MpscSendProtocol<ACDrain>, MpscRecvProtocol<ACSink>); 2] {
-        let (s1, r1) = async_channel::bounded(cap);
-        let (s2, r2) = async_channel::bounded(cap);
+        let (s1, r1) = bounded(cap);
+        let (s2, r2) = bounded(cap);
         let m = metrics.unwrap_or_else(|| {
             ProtocolMetricCache::new("mpsc", Arc::new(ProtocolMetrics::new().unwrap()))
         });
@@ -222,8 +222,8 @@ mod utils {
         cap: usize,
         metrics: Option<ProtocolMetricCache>,
     ) -> [(TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>); 2] {
-        let (s1, r1) = async_channel::bounded(cap);
-        let (s2, r2) = async_channel::bounded(cap);
+        let (s1, r1) = bounded(cap);
+        let (s2, r2) = bounded(cap);
         let m = metrics.unwrap_or_else(|| {
             ProtocolMetricCache::new("tcp", Arc::new(ProtocolMetrics::new().unwrap()))
         });
@@ -252,8 +252,8 @@ mod utils {
         cap: usize,
         metrics: Option<ProtocolMetricCache>,
     ) -> [(QuicSendProtocol<QuicDrain>, QuicRecvProtocol<QuicSink>); 2] {
-        let (s1, r1) = async_channel::bounded(cap);
-        let (s2, r2) = async_channel::bounded(cap);
+        let (s1, r1) = bounded(cap);
+        let (s2, r2) = bounded(cap);
         let m = metrics.unwrap_or_else(|| {
             ProtocolMetricCache::new("quic", Arc::new(ProtocolMetrics::new().unwrap()))
         });

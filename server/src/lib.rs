@@ -333,7 +333,7 @@ impl Server {
         state.ecs_mut().register::<Presence>();
         state.ecs_mut().register::<wiring::WiringElement>();
         state.ecs_mut().register::<wiring::Circuit>();
-        state.ecs_mut().register::<comp::Anchor>();
+        state.ecs_mut().register::<Anchor>();
         state.ecs_mut().register::<comp::Pet>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
@@ -346,7 +346,7 @@ impl Server {
                 Ok(file) => match ron::de::from_reader(&file) {
                     Ok(vec) => vec,
                     Err(error) => {
-                        tracing::warn!(?error, ?file, "Couldn't deserialize banned words file");
+                        warn!(?error, ?file, "Couldn't deserialize banned words file");
                         return Err(Error::Other(format!(
                             "Couldn't read banned words file \"{}\"",
                             path.to_string_lossy()
@@ -354,7 +354,7 @@ impl Server {
                     },
                 },
                 Err(error) => {
-                    tracing::warn!(?error, ?path, "Couldn't open banned words file");
+                    warn!(?error, ?path, "Couldn't open banned words file");
                     return Err(Error::Other(format!(
                         "Couldn't open banned words file \"{}\". Error: {}",
                         path.to_string_lossy(),
@@ -365,8 +365,8 @@ impl Server {
             banned_words.append(&mut list);
         }
         let banned_words_count = banned_words.len();
-        tracing::debug!(?banned_words_count);
-        tracing::trace!(?banned_words);
+        debug!(?banned_words_count);
+        trace!(?banned_words);
         state.ecs_mut().insert(AliasValidator::new(banned_words));
 
         #[cfg(feature = "worldgen")]
@@ -759,10 +759,10 @@ impl Server {
         }
 
         // Prevent anchor entity chains which are not currently supported
-        let anchors = self.state.ecs().read_storage::<comp::Anchor>();
+        let anchors = self.state.ecs().read_storage::<Anchor>();
         let anchored_anchor_entities: Vec<Entity> = (
             &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<comp::Anchor>(),
+            &self.state.ecs().read_storage::<Anchor>(),
         )
             .join()
             .filter_map(|(_, anchor)| match anchor {
@@ -792,7 +792,7 @@ impl Server {
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
                 !&self.state.ecs().read_storage::<Presence>(),
-                self.state.ecs().read_storage::<comp::Anchor>().maybe(),
+                self.state.ecs().read_storage::<Anchor>().maybe(),
             )
                 .join()
                 .filter(|(_, pos, _, anchor)| {
@@ -847,15 +847,9 @@ impl Server {
         // 7 Persistence updates
         let before_persistence_updates = Instant::now();
 
-        let character_loader = self
-            .state
-            .ecs()
-            .read_resource::<persistence::character_loader::CharacterLoader>();
+        let character_loader = self.state.ecs().read_resource::<CharacterLoader>();
 
-        let character_updater = self
-            .state
-            .ecs()
-            .read_resource::<persistence::character_updater::CharacterUpdater>();
+        let character_updater = self.state.ecs().read_resource::<CharacterUpdater>();
 
         // Get character-related database responses and notify the requesting client
         character_loader
@@ -1005,7 +999,7 @@ impl Server {
 
         {
             // Report timing info
-            let tick_metrics = self.state.ecs().read_resource::<metrics::TickMetrics>();
+            let tick_metrics = self.state.ecs().read_resource::<TickMetrics>();
 
             let tt = &tick_metrics.tick_time;
             tt.with_label_values(&["new connections"])
@@ -1049,8 +1043,8 @@ impl Server {
 
     fn initialize_client(
         &mut self,
-        client: crate::connection_handler::IncomingClient,
-    ) -> Result<Option<specs::Entity>, Error> {
+        client: connection_handler::IncomingClient,
+    ) -> Result<Option<Entity>, Error> {
         if self.settings().max_players <= self.state.ecs().read_storage::<Client>().join().count() {
             trace!(
                 ?client.participant,
@@ -1166,7 +1160,7 @@ impl Server {
         while let Ok(sender) = self.connection_handler.info_requester_receiver.try_recv() {
             // can fail, e.g. due to timeout or network prob.
             trace!("sending info to connection_handler");
-            let _ = sender.send(crate::connection_handler::ServerInfoPacket {
+            let _ = sender.send(connection_handler::ServerInfoPacket {
                 info: self.get_server_info(),
                 time: self.state.get_time(),
             });

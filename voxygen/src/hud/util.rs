@@ -358,7 +358,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
 
 pub fn ability_description<'a>(
     ability_id: &'a str,
-    loc: &'a i18n::Localization,
+    loc: &'a Localization,
 ) -> (Cow<'a, str>, &'a str) {
     let (name, desc) = (
         format!("{}.name", ability_id),

@@ -300,18 +300,14 @@ impl CharacterState {
     pub fn behavior(&self, j: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         match &self {
             CharacterState::Idle(data) => data.behavior(j, output_events),
-            CharacterState::Talk => states::talk::Data.behavior(j, output_events),
+            CharacterState::Talk => talk::Data.behavior(j, output_events),
             CharacterState::Climb(data) => data.behavior(j, output_events),
             CharacterState::Wallrun(data) => data.behavior(j, output_events),
             CharacterState::Glide(data) => data.behavior(j, output_events),
             CharacterState::GlideWield(data) => data.behavior(j, output_events),
             CharacterState::Stunned(data) => data.behavior(j, output_events),
-            CharacterState::Sit => {
-                states::sit::Data::behavior(&states::sit::Data, j, output_events)
-            },
-            CharacterState::Dance => {
-                states::dance::Data::behavior(&states::dance::Data, j, output_events)
-            },
+            CharacterState::Sit => sit::Data::behavior(&sit::Data, j, output_events),
+            CharacterState::Dance => dance::Data::behavior(&dance::Data, j, output_events),
             CharacterState::BasicBlock(data) => data.behavior(j, output_events),
             CharacterState::Roll(data) => data.behavior(j, output_events),
             CharacterState::Wielding(data) => data.behavior(j, output_events),
@@ -347,17 +343,17 @@ impl CharacterState {
     ) -> StateUpdate {
         match &self {
             CharacterState::Idle(data) => data.handle_event(j, output_events, action),
-            CharacterState::Talk => states::talk::Data.handle_event(j, output_events, action),
+            CharacterState::Talk => talk::Data.handle_event(j, output_events, action),
             CharacterState::Climb(data) => data.handle_event(j, output_events, action),
             CharacterState::Wallrun(data) => data.handle_event(j, output_events, action),
             CharacterState::Glide(data) => data.handle_event(j, output_events, action),
             CharacterState::GlideWield(data) => data.handle_event(j, output_events, action),
             CharacterState::Stunned(data) => data.handle_event(j, output_events, action),
             CharacterState::Sit => {
-                states::sit::Data::handle_event(&states::sit::Data, j, output_events, action)
+                states::sit::Data::handle_event(&sit::Data, j, output_events, action)
             },
             CharacterState::Dance => {
-                states::dance::Data::handle_event(&states::dance::Data, j, output_events, action)
+                states::dance::Data::handle_event(&dance::Data, j, output_events, action)
             },
             CharacterState::BasicBlock(data) => data.handle_event(j, output_events, action),
             CharacterState::Roll(data) => data.handle_event(j, output_events, action),

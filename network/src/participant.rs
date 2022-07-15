@@ -474,7 +474,7 @@ impl BParticipant {
             recv_protocols.is_empty()
         };
 
-        let mut defered_orphan = DeferredTracer::new(tracing::Level::WARN);
+        let mut defered_orphan = DeferredTracer::new(Level::WARN);
 
         loop {
             let (event, addp, remp) = select!(
@@ -705,7 +705,7 @@ impl BParticipant {
                 .map(|(timeout_time, _)| *timeout_time)
                 .unwrap_or_default(),
         );
-        let timeout = tokio::select! {
+        let timeout = select! {
             _ = wait_for_manager() => false,
             _ = timeout => true,
         };
@@ -825,7 +825,7 @@ mod tests {
         watch::Receiver<f32>,
         JoinHandle<()>,
     ) {
-        let runtime = Arc::new(tokio::runtime::Runtime::new().unwrap());
+        let runtime = Arc::new(Runtime::new().unwrap());
         let runtime_clone = Arc::clone(&runtime);
 
         let (b2s_prio_statistic_s, b2s_prio_statistic_r) =

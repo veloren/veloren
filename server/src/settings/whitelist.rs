@@ -18,7 +18,7 @@ pub use self::v1::*;
 #[derive(Deserialize, Serialize)]
 pub enum WhitelistRaw {
     V0(v0::Whitelist),
-    V1(v1::Whitelist),
+    V1(Whitelist),
 }
 
 impl From<Whitelist> for WhitelistRaw {

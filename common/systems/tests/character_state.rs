@@ -27,7 +27,7 @@ mod tests {
         state
     }
 
-    fn create_entity(state: &mut State, ori: Ori) -> specs::Entity {
+    fn create_entity(state: &mut State, ori: Ori) -> Entity {
         let body = common::comp::Body::Humanoid(common::comp::humanoid::Body::random_with(
             &mut thread_rng(),
             &common::comp::humanoid::Species::Human,

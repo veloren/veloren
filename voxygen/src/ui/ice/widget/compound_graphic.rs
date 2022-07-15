@@ -132,7 +132,7 @@ impl CompoundGraphic {
     //    self
     //}
 
-    fn draw<R: self::Renderer>(&self, renderer: &mut R, layout: Layout<'_>) -> R::Output {
+    fn draw<R: Renderer>(&self, renderer: &mut R, layout: Layout<'_>) -> R::Output {
         let [pixel_w, pixel_h] = self.graphics_size;
         let bounds = layout.bounds();
         let scale = Vec2::new(
@@ -160,7 +160,7 @@ impl CompoundGraphic {
 
 impl<M, R> Widget<M, R> for CompoundGraphic
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { self.width }
 
@@ -219,7 +219,7 @@ pub trait Renderer: iced::Renderer {
 
 impl<'a, M, R> From<CompoundGraphic> for Element<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn from(compound_graphic: CompoundGraphic) -> Element<'a, M, R> {
         Element::new(compound_graphic)
@@ -228,7 +228,7 @@ where
 
 impl<R> super::background_container::Background<R> for CompoundGraphic
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { self.width }
 

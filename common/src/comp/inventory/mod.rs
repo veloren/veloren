@@ -269,7 +269,7 @@ impl Inventory {
     /// item or the same item again if that slot was not found.
     pub fn insert_at(&mut self, inv_slot_id: InvSlotId, item: Item) -> Result<Option<Item>, Item> {
         match self.slot_mut(inv_slot_id) {
-            Some(slot) => Ok(core::mem::replace(slot, Some(item))),
+            Some(slot) => Ok(mem::replace(slot, Some(item))),
             None => Err(item),
         }
     }
@@ -319,7 +319,7 @@ impl Inventory {
                             .err()
                             .and(Some(item))
                     } else {
-                        let old_item = core::mem::replace(slot_item, item);
+                        let old_item = mem::replace(slot_item, item);
                         // No need to recount--we know the count is the same.
                         Some(old_item)
                     })
@@ -808,8 +808,8 @@ impl Inventory {
     /// Used only when loading in persistence code.
     pub fn persistence_update_all_item_states(
         &mut self,
-        ability_map: &item::tool::AbilityMap,
-        msm: &item::MaterialStatManifest,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
     ) {
         self.slots_mut().for_each(|slot| {
             if let Some(item) = slot {

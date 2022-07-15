@@ -39,8 +39,8 @@ pub struct AudioFrontend {
     //pub device: String,
     //pub device_list: Vec<String>,
     //pub audio_device: Option<Device>,
-    pub stream: Option<rodio::OutputStream>,
-    audio_stream: Option<rodio::OutputStreamHandle>,
+    pub stream: Option<OutputStream>,
+    audio_stream: Option<OutputStreamHandle>,
 
     music_channels: Vec<MusicChannel>,
     ambient_channels: Vec<AmbientChannel>,
@@ -538,7 +538,7 @@ impl AudioFrontend {
 
 /// Returns the default stream
 fn get_default_stream() -> Result<(OutputStream, OutputStreamHandle), StreamError> {
-    rodio::OutputStream::try_default()
+    OutputStream::try_default()
 }
 
 // The following is for the disabled device switcher

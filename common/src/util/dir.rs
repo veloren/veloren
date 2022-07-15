@@ -165,7 +165,7 @@ impl std::ops::Neg for Dir {
 /// Additionally, it avoids unnecessary calculations if they are near identical
 /// Assumes `from` and `to` are normalized and returns a normalized vector
 #[inline(always)]
-fn slerp_normalized(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> vek::Vec3<f32> {
+fn slerp_normalized(from: Vec3<f32>, to: Vec3<f32>, factor: f32) -> Vec3<f32> {
     debug_assert!(!to.map(f32::is_nan).reduce_or());
     debug_assert!(!from.map(f32::is_nan).reduce_or());
     // Ensure from is normalized

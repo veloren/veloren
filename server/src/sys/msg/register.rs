@@ -110,7 +110,7 @@ impl<'a> System<'a> for Sys {
         for (entity, client, pending) in
             (&read_data.entities, &read_data.clients, &mut pending_logins).join()
         {
-            if let Err(e) = || -> std::result::Result<(), crate::error::Error> {
+            if let Err(e) = || -> Result<(), crate::error::Error> {
                 #[cfg(feature = "plugins")]
                 let ecs_world = EcsWorld {
                     entities: &read_data.entities,
@@ -140,7 +140,7 @@ impl<'a> System<'a> for Sys {
                                     entity,
                                     common::comp::DisconnectReason::Kicked,
                                 ));
-                                client.send(ServerRegisterAnswer::Err(e))?;
+                                client.send(Err(e))?;
                                 return Ok(());
                             },
                             Ok((username, uuid)) => (username, uuid),
@@ -183,7 +183,7 @@ impl<'a> System<'a> for Sys {
 
                 if !player.is_valid() {
                     // Invalid player
-                    client.send(ServerRegisterAnswer::Err(RegisterError::InvalidCharacter))?;
+                    client.send(Err(RegisterError::InvalidCharacter))?;
                     return Ok(());
                 }
 
@@ -201,7 +201,7 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Tell the client its request was successful.
-                    client.send(ServerRegisterAnswer::Ok(()))?;
+                    client.send(Ok(()))?;
 
                     // Send initial player list
                     client.send(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(
@@ -213,7 +213,7 @@ impl<'a> System<'a> for Sys {
                 }
                 Ok(())
             }() {
-                tracing::trace!(?e, "failed to process register")
+                trace!(?e, "failed to process register")
             };
         }
         for e in finished_pending {

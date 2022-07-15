@@ -149,7 +149,7 @@ impl TooltipManager {
 }
 
 /// A widget used to display tooltips when the content element is hovered
-pub struct Tooltip<'a, M, R: self::Renderer> {
+pub struct Tooltip<'a, M, R: Renderer> {
     content: Element<'a, M, R>,
     hover_content: Box<dyn 'a + FnMut() -> Element<'a, M, R>>,
     manager: &'a TooltipManager,
@@ -157,7 +157,7 @@ pub struct Tooltip<'a, M, R: self::Renderer> {
 
 impl<'a, M, R> Tooltip<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     pub fn new<C, H>(content: C, hover_content: H, manager: &'a TooltipManager) -> Self
     where
@@ -174,7 +174,7 @@ where
 
 impl<'a, M, R> Widget<M, R> for Tooltip<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { self.content.width() }
 
@@ -254,19 +254,19 @@ where
 
 impl<'a, M, R> From<Tooltip<'a, M, R>> for Element<'a, M, R>
 where
-    R: 'a + self::Renderer,
+    R: 'a + Renderer,
     M: 'a,
 {
     fn from(tooltip: Tooltip<'a, M, R>) -> Element<'a, M, R> { Element::new(tooltip) }
 }
 
-fn aabr_from_bounds(bounds: iced::Rectangle) -> Aabr<i32> {
+fn aabr_from_bounds(bounds: Rectangle) -> Aabr<i32> {
     let min = Vec2::new(bounds.x.trunc() as i32, bounds.y.trunc() as i32);
     let max = min + Vec2::new(bounds.width.trunc() as i32, bounds.height.trunc() as i32);
     Aabr { min, max }
 }
 
-struct Overlay<'a, M, R: self::Renderer> {
+struct Overlay<'a, M, R: Renderer> {
     content: Element<'a, M, R>,
     /// Cursor position
     cursor_position: Point,
@@ -276,7 +276,7 @@ struct Overlay<'a, M, R: self::Renderer> {
     alpha: f32,
 }
 
-impl<'a, M, R: self::Renderer> Overlay<'a, M, R> {
+impl<'a, M, R: Renderer> Overlay<'a, M, R> {
     pub fn new(
         content: Element<'a, M, R>,
         cursor_position: Point,
@@ -294,7 +294,7 @@ impl<'a, M, R: self::Renderer> Overlay<'a, M, R> {
 
 impl<'a, M, R> iced::Overlay<M, R> for Overlay<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn layout(&self, renderer: &R, bounds: Size, position: Point) -> layout::Node {
         let avoid = Rectangle {

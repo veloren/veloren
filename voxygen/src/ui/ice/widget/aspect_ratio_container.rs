@@ -25,7 +25,7 @@ impl<I: Hash> Hash for AspectRatio<I> {
 /// Thus, can be used to fix the aspect ratio of content if it is set to
 /// Length::Fill The aspect ratio may be based on that of an image, in which
 /// case the ratio is obtained from the renderer
-pub struct AspectRatioContainer<'a, M, R: self::Renderer> {
+pub struct AspectRatioContainer<'a, M, R: Renderer> {
     max_width: u32,
     max_height: u32,
     aspect_ratio: AspectRatio<R::ImageHandle>,
@@ -34,7 +34,7 @@ pub struct AspectRatioContainer<'a, M, R: self::Renderer> {
 
 impl<'a, M, R> AspectRatioContainer<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     pub fn new(content: impl Into<Element<'a, M, R>>) -> Self {
         Self {
@@ -74,7 +74,7 @@ where
 
 impl<'a, M, R> Widget<M, R> for AspectRatioContainer<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { Length::Shrink }
 
@@ -192,7 +192,7 @@ pub trait Renderer: iced::Renderer {
 // They got to live ¯\_(ツ)_/¯
 impl<'a, M, R> From<AspectRatioContainer<'a, M, R>> for Element<'a, M, R>
 where
-    R: 'a + self::Renderer,
+    R: 'a + Renderer,
     M: 'a,
 {
     fn from(widget: AspectRatioContainer<'a, M, R>) -> Element<'a, M, R> { Element::new(widget) }

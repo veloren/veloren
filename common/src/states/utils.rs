@@ -303,7 +303,7 @@ impl Body {
 
 /// set footwear in idle data and potential state change to Skate
 pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
-    if let Idle(crate::states::idle::Data {
+    if let Idle(idle::Data {
         is_sneaking,
         mut footwear,
     }) = data.character
@@ -313,19 +313,17 @@ pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
                 inv.equipped(EquipSlot::Armor(ArmorSlot::Feet))
                     .map(|armor| match armor.kind().as_ref() {
                         ItemKind::Armor(a) => a.stats(data.msm).ground_contact,
-                        _ => crate::comp::inventory::item::armor::Friction::Normal,
+                        _ => Friction::Normal,
                     })
             });
-            update.character = Idle(crate::states::idle::Data {
+            update.character = Idle(idle::Data {
                 is_sneaking: *is_sneaking,
                 footwear,
             });
         }
         if data.physics.skating_active {
-            update.character = CharacterState::Skate(crate::states::skate::Data::new(
-                data,
-                footwear.unwrap_or(Friction::Normal),
-            ));
+            update.character =
+                CharacterState::Skate(skate::Data::new(data, footwear.unwrap_or(Friction::Normal)));
         }
     }
 }
@@ -687,7 +685,7 @@ pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
 
 pub fn attempt_sneak(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
-        update.character = CharacterState::Idle(idle::Data {
+        update.character = Idle(idle::Data {
             is_sneaking: true,
             footwear: data.character.footwear(),
         });

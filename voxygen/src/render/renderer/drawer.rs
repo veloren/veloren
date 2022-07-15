@@ -63,7 +63,7 @@ struct RendererBorrow<'frame> {
     pipelines: Pipelines<'frame>,
     locals: &'frame super::locals::Locals,
     views: &'frame super::Views,
-    pipeline_modes: &'frame super::super::PipelineModes,
+    pipeline_modes: &'frame super::PipelineModes,
     quad_index_buffer_u16: &'frame Buffer<u16>,
     quad_index_buffer_u32: &'frame Buffer<u32>,
     #[cfg(feature = "egui-ui")]
@@ -134,7 +134,7 @@ impl<'frame> Drawer<'frame> {
     }
 
     /// Get the pipeline modes.
-    pub fn pipeline_modes(&self) -> &super::super::PipelineModes { self.borrow.pipeline_modes }
+    pub fn pipeline_modes(&self) -> &super::PipelineModes { self.borrow.pipeline_modes }
 
     /// Returns None if the rain occlusion renderer is not enabled at some
     /// level, the pipelines are not available yet or clouds are disabled.
@@ -1169,7 +1169,7 @@ impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
     }
 }
 
-fn set_quad_index_buffer<'a, V: super::super::Vertex>(
+fn set_quad_index_buffer<'a, V: super::Vertex>(
     pass: &mut wgpu::RenderPass<'a>,
     borrow: &RendererBorrow<'a>,
 ) {

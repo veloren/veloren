@@ -341,7 +341,7 @@ pub enum Good {
 
 impl Default for Good {
     fn default() -> Self {
-        Good::Terrain(crate::terrain::BiomeKind::Void) // Arbitrary
+        Good::Terrain(BiomeKind::Void) // Arbitrary
     }
 }
 

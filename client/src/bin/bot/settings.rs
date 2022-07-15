@@ -36,7 +36,7 @@ impl Settings {
                     let mut new_path = path.to_owned();
                     new_path.pop();
                     new_path.push("settings.invalid.ron");
-                    if let Err(e) = std::fs::rename(&path, &new_path) {
+                    if let Err(e) = fs::rename(&path, &new_path) {
                         warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
                     }
                 },

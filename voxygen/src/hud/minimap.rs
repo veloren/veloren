@@ -739,7 +739,7 @@ impl<'a> Widget for MiniMap<'a> {
 
             // Group member indicators
             let client_state = self.client.state();
-            let member_pos = client_state.ecs().read_storage::<common::comp::Pos>();
+            let member_pos = client_state.ecs().read_storage::<comp::Pos>();
             let group_members = self
                 .client
                 .group_members()

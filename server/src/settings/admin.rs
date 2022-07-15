@@ -18,7 +18,7 @@ pub use self::v1::*;
 #[derive(Deserialize, Serialize)]
 pub enum AdminsRaw {
     V0(v0::Admins),
-    V1(v1::Admins),
+    V1(Admins),
 }
 
 impl From<Admins> for AdminsRaw {

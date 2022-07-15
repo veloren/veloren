@@ -214,7 +214,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         let fuzzy_chunk = (Vec2::<f32>::from(client_pos.0))
             .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
         let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
-        let regions = common::region::regions_in_vd(
+        let regions = regions_in_vd(
             client_pos.0,
             (presence.view_distance as f32 * chunk_size) as f32
                 + (presence::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),

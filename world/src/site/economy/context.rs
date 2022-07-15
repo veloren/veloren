@@ -172,9 +172,9 @@ impl Environment {
 }
 
 fn simulate_return(index: &mut Index) -> Result<(), std::io::Error> {
-    let mut env = economy::Environment::new()?;
+    let mut env = Environment::new()?;
 
-    tracing::info!("economy simulation start");
+    info!("economy simulation start");
     for i in 0..(HISTORY_DAYS / TICK_PERIOD) as i32 {
         if (index.time / DAYS_PER_YEAR) as i32 % 50 == 0 && (index.time % DAYS_PER_YEAR) as i32 == 0
         {
@@ -186,7 +186,7 @@ fn simulate_return(index: &mut Index) -> Result<(), std::io::Error> {
             env.csv_tick(index);
         }
     }
-    tracing::info!("economy simulation end");
+    info!("economy simulation end");
     env.end(index);
     //    csv_footer(f, index);
 

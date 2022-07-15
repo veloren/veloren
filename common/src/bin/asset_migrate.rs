@@ -50,7 +50,7 @@ fn walk_tree(dir: &Path, root: &Path) -> io::Result<Vec<Walk>> {
     Ok(buff)
 }
 
-fn walk_with_migrate<OldV, NewV>(tree: Walk, from: &Path, to: &Path) -> std::io::Result<()>
+fn walk_with_migrate<OldV, NewV>(tree: Walk, from: &Path, to: &Path) -> io::Result<()>
 where
     NewV: From<OldV>,
     OldV: DeserializeOwned,

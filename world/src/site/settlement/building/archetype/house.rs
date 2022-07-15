@@ -562,7 +562,7 @@ impl Archetype for House {
                             .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
                     {
                         // NOTE: Used only for dynamic elements like chests and entities!
-                        let mut dynamic_rng = rand::thread_rng();
+                        let mut dynamic_rng = thread_rng();
                         let furniture = match self.noise.get(Vec3::new(
                             center_offset.x,
                             center_offset.y,

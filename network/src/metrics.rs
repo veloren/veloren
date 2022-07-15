@@ -175,7 +175,7 @@ impl NetworkMetrics {
         Ok(())
     }
 
-    pub(crate) fn connect_requests_cache(&self, protocol: &ListenAddr) -> prometheus::IntCounter {
+    pub(crate) fn connect_requests_cache(&self, protocol: &ListenAddr) -> IntCounter {
         self.incoming_connections_total
             .with_label_values(&[protocollisten_name(protocol)])
     }

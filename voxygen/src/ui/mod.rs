@@ -243,7 +243,7 @@ impl Ui {
         };
     }
 
-    pub fn new_font(&mut self, font: crate::ui::ice::RawFont) -> font::Id {
+    pub fn new_font(&mut self, font: ice::RawFont) -> font::Id {
         let font = text::Font::from_bytes(font.0).unwrap();
         self.ui.fonts.insert(font)
     }

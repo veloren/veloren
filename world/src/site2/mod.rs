@@ -69,7 +69,7 @@ impl Site {
             } else {
                 1
             })
-            * tile::TILE_SIZE as i32) as f32
+            * TILE_SIZE as i32) as f32
     }
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
@@ -363,7 +363,7 @@ impl Site {
         site.demarcate_obstacles(land);
         let dungeon = plot::Dungeon::generate(origin, land, &mut rng);
         site.name = dungeon.name().to_string();
-        let size = (dungeon.radius() / tile::TILE_SIZE as f32).ceil() as i32;
+        let size = (dungeon.radius() / TILE_SIZE as f32).ceil() as i32;
 
         let aabr = Aabr {
             min: Vec2::broadcast(-size),
@@ -395,7 +395,7 @@ impl Site {
         site.demarcate_obstacles(land);
         let gnarling_fortification = plot::GnarlingFortification::generate(origin, land, &mut rng);
         site.name = gnarling_fortification.name().to_string();
-        let size = gnarling_fortification.radius() / tile::TILE_SIZE as i32;
+        let size = gnarling_fortification.radius() / TILE_SIZE as i32;
         let aabr = Aabr {
             min: Vec2::broadcast(-size),
             max: Vec2::broadcast(size),
@@ -423,7 +423,7 @@ impl Site {
         site.demarcate_obstacles(land);
         let giant_tree = plot::GiantTree::generate(&site, Vec2::zero(), land, &mut rng);
         site.name = giant_tree.name().to_string();
-        let size = (giant_tree.radius() / tile::TILE_SIZE as f32).ceil() as i32;
+        let size = (giant_tree.radius() / TILE_SIZE as f32).ceil() as i32;
         let aabr = Aabr {
             min: Vec2::broadcast(-size),
             max: Vec2::broadcast(size) + 1,
@@ -795,12 +795,10 @@ impl Site {
         self.tiles.get(self.wpos_tile_pos(wpos2d))
     }
 
-    pub fn tile_wpos(&self, tile: Vec2<i32>) -> Vec2<i32> {
-        self.origin + tile * tile::TILE_SIZE as i32
-    }
+    pub fn tile_wpos(&self, tile: Vec2<i32>) -> Vec2<i32> { self.origin + tile * TILE_SIZE as i32 }
 
     pub fn tile_center_wpos(&self, tile: Vec2<i32>) -> Vec2<i32> {
-        self.origin + tile * tile::TILE_SIZE as i32 + tile::TILE_SIZE as i32 / 2
+        self.origin + tile * TILE_SIZE as i32 + TILE_SIZE as i32 / 2
     }
 
     pub fn render_tile(&self, canvas: &mut Canvas, _dynamic_rng: &mut impl Rng, tpos: Vec2<i32>) {

@@ -36,14 +36,14 @@ fn dont_fall_outside_world() -> Result<(), Box<dyn Error>> {
     assert_relative_eq!(pos.0.x, 1000.0);
     assert_relative_eq!(pos.0.y, 1000.0);
     assert_relative_eq!(pos.0.z, 265.0);
-    assert_eq!(vel.0, vek::Vec3::zero());
+    assert_eq!(vel.0, Vec3::zero());
 
     utils::tick(&mut state, DT);
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
     assert_relative_eq!(pos.0.x, 1000.0);
     assert_relative_eq!(pos.0.y, 1000.0);
     assert_relative_eq!(pos.0.z, 265.0);
-    assert_eq!(vel.0, vek::Vec3::zero());
+    assert_eq!(vel.0, Vec3::zero());
     Ok(())
 }
 
@@ -56,7 +56,7 @@ fn fall_simple() -> Result<(), Box<dyn Error>> {
     assert_relative_eq!(pos.0.x, 16.0);
     assert_relative_eq!(pos.0.y, 16.0);
     assert_relative_eq!(pos.0.z, 265.0);
-    assert_eq!(vel.0, vek::Vec3::zero());
+    assert_eq!(vel.0, Vec3::zero());
 
     utils::tick(&mut state, DT);
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
@@ -145,7 +145,7 @@ fn walk_simple() -> Result<(), Box<dyn Error>> {
     }
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
     assert_relative_eq!(pos.0.z, 257.0); // make sure it landed on ground
-    assert_eq!(vel.0, vek::Vec3::zero());
+    assert_eq!(vel.0, Vec3::zero());
 
     let mut actions = Controller::default();
     actions.inputs.move_dir = Vec2::new(1.0, 0.0);

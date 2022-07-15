@@ -55,7 +55,7 @@ impl LocalizationEntryState {
 pub(crate) fn read_file_from_path<'a>(
     repo: &'a git2::Repository,
     reference: &git2::Reference,
-    path: &std::path::Path,
+    path: &Path,
 ) -> git2::Blob<'a> {
     let tree = reference
         .peel_to_tree()

@@ -1291,7 +1291,7 @@ impl Economy {
             decimals: usize,
         ) {
             print!("{}", prefix);
-            list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Less));
+            list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Less));
             for i in list.iter() {
                 if i.1 >= threshold {
                     print!("{}={:.*} ", i.0, decimals, i.1);

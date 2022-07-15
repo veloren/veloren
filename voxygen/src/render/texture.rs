@@ -70,7 +70,7 @@ impl Texture {
                 bytes_per_row: NonZeroU32::new(image.width() * bytes_per_pixel),
                 rows_per_image: NonZeroU32::new(image.height()),
             },
-            wgpu::Extent3d {
+            Extent3d {
                 width: image.width(),
                 height: image.height(),
                 depth_or_array_layers: 1,
@@ -114,7 +114,7 @@ impl Texture {
         width: u32,
         height: u32,
     ) -> Self {
-        let size = wgpu::Extent3d {
+        let size = Extent3d {
             width,
             height,
             depth_or_array_layers: 1,
@@ -216,7 +216,7 @@ impl Texture {
                 bytes_per_row: NonZeroU32::new(size[0] * bytes_per_pixel),
                 rows_per_image: NonZeroU32::new(size[1]),
             },
-            wgpu::Extent3d {
+            Extent3d {
                 width: size[0],
                 height: size[1],
                 depth_or_array_layers: 1,

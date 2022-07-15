@@ -108,7 +108,7 @@ impl<T: AsRef<str>> LootSpec<T> {
                     warn!(?e, "error while loading item: {}", item.as_ref());
                     None
                 },
-                Option::Some,
+                Some,
             ),
             Self::ItemQuantity(item, lower, upper) => {
                 let range = *lower..=*upper;
@@ -148,7 +148,7 @@ impl<T: AsRef<str>> LootSpec<T> {
                     );
                     None
                 },
-                Option::Some,
+                Some,
             ),
             Self::ModularWeaponPrimaryComponent {
                 tool,

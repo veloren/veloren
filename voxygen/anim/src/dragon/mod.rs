@@ -75,10 +75,7 @@ impl Skeleton for DragonSkeleton {
             lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: common::comp::Body::Dragon(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
+                position: comp::Body::Dragon(body).mount_offset().into_tuple().into(),
                 ..Default::default()
             },
             primary_trail_mat: None,
@@ -102,7 +99,7 @@ pub struct SkeletonAttr {
     height: f32,
 }
 
-impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
     type Error = ();
 
     fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {

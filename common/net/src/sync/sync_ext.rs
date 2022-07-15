@@ -56,7 +56,7 @@ impl WorldSyncExt for specs::World {
     }
 
     fn create_entity_synced(&mut self) -> specs::EntityBuilder {
-        self.create_entity().marked::<super::Uid>()
+        self.create_entity().marked::<Uid>()
     }
 
     fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64) {

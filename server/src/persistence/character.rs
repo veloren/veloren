@@ -543,9 +543,7 @@ pub fn edit_character(
             .iter_mut()
             .find(|c| c.character.id == Some(character_id))
         {
-            if let (crate::comp::Body::Humanoid(new), crate::comp::Body::Humanoid(old)) =
-                (body, char.body)
-            {
+            if let (comp::Body::Humanoid(new), comp::Body::Humanoid(old)) = (body, char.body) {
                 if new.species != old.species || new.body_type != old.body_type {
                     warn!(
                         "Character edit rejected due to failed validation - Character ID: {} \
@@ -948,7 +946,7 @@ fn delete_pets(
 pub fn update(
     char_id: CharacterId,
     char_skill_set: comp::SkillSet,
-    inventory: comp::Inventory,
+    inventory: Inventory,
     pets: Vec<PetPersistenceData>,
     char_waypoint: Option<comp::Waypoint>,
     active_abilities: comp::ability::ActiveAbilities,

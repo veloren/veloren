@@ -84,7 +84,7 @@ impl ItemSpec {
         let mut rng = rand::thread_rng();
         match self {
             ItemSpec::Item(item_asset) => Item::new_from_asset(item_asset)
-                .map(std::mem::drop)
+                .map(drop)
                 .map_err(ValidationError::ItemAssetError),
             ItemSpec::Choice(choices) => {
                 // TODO: check for sanity of weigts?
@@ -100,7 +100,7 @@ impl ItemSpec {
                 material,
                 hands,
             } => item::modular::random_weapon(*tool, *material, *hands, &mut rng)
-                .map(std::mem::drop)
+                .map(drop)
                 .map_err(ValidationError::ModularWeaponCreationError),
         }
     }
@@ -1219,7 +1219,7 @@ mod tests {
     #[test]
     fn test_loadout_presets() {
         for preset in Preset::iter() {
-            std::mem::drop(LoadoutBuilder::empty().with_preset(preset));
+            drop(LoadoutBuilder::empty().with_preset(preset));
         }
     }
 

@@ -64,7 +64,7 @@ impl Fader {
     }
 
     /// Called each tick to update the volume and state
-    pub fn update(&mut self, dt: std::time::Duration) {
+    pub fn update(&mut self, dt: Duration) {
         if self.is_running {
             self.running_time += dt;
             if self.running_time >= self.length {

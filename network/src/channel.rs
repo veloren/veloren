@@ -94,7 +94,7 @@ impl Protocols {
         metrics: Arc<ProtocolMetrics>,
         s2s_stop_listening_r: oneshot::Receiver<()>,
         c2s_protocol_s: mpsc::UnboundedSender<C2sProtocol>,
-    ) -> std::io::Result<()> {
+    ) -> io::Result<()> {
         use socket2::{Domain, Socket, Type};
         let domain = Domain::for_address(addr);
         let socket2_socket = Socket::new(domain, Type::STREAM, None)?;
@@ -109,7 +109,7 @@ impl Protocols {
         socket2_socket.bind(&socket2_addr)?;
         socket2_socket.listen(1024)?;
         let std_listener: std::net::TcpListener = socket2_socket.into();
-        let listener = tokio::net::TcpListener::from_std(std_listener)?;
+        let listener = net::TcpListener::from_std(std_listener)?;
         trace!(?addr, "Tcp Listener bound");
         let mut end_receiver = s2s_stop_listening_r.fuse();
         tokio::spawn(async move {
@@ -143,7 +143,7 @@ impl Protocols {
         Ok(())
     }
 
-    pub(crate) fn new_tcp(stream: tokio::net::TcpStream, metrics: ProtocolMetricCache) -> Self {
+    pub(crate) fn new_tcp(stream: net::TcpStream, metrics: ProtocolMetricCache) -> Self {
         let (r, w) = stream.into_split();
         let sp = TcpSendProtocol::new(TcpDrain { half: w }, metrics.clone());
         let rp = TcpRecvProtocol::new(
@@ -453,14 +453,14 @@ impl network_protocol::RecvProtocol for RecvProtocols {
 
 #[derive(Debug)]
 pub enum MpscError {
-    Send(tokio::sync::mpsc::error::SendError<network_protocol::MpscMsg>),
+    Send(mpsc::error::SendError<MpscMsg>),
     Recv,
 }
 
 #[cfg(feature = "quic")]
 #[derive(Debug)]
 pub enum QuicError {
-    Send(std::io::Error),
+    Send(io::Error),
     Connection(quinn::ConnectionError),
     Write(quinn::WriteError),
     Read(quinn::ReadError),
@@ -470,8 +470,8 @@ pub enum QuicError {
 /// Error types for Protocols
 #[derive(Debug)]
 pub enum ProtocolsError {
-    Tcp(std::io::Error),
-    Udp(std::io::Error),
+    Tcp(io::Error),
+    Udp(io::Error),
     #[cfg(feature = "quic")]
     Quic(QuicError),
     Mpsc(MpscError),
@@ -527,12 +527,12 @@ impl UnreliableSink for TcpSink {
 //// MPSC
 #[derive(Debug)]
 pub struct MpscDrain {
-    sender: tokio::sync::mpsc::Sender<MpscMsg>,
+    sender: mpsc::Sender<MpscMsg>,
 }
 
 #[derive(Debug)]
 pub struct MpscSink {
-    receiver: tokio::sync::mpsc::Receiver<MpscMsg>,
+    receiver: mpsc::Receiver<MpscMsg>,
 }
 
 #[async_trait]
@@ -666,7 +666,7 @@ impl UnreliableSink for QuicSink {
         let (mut buffer, result, mut recvstream, id) = loop {
             use futures_util::FutureExt;
             // first handle all bi streams!
-            let (a, b) = tokio::select! {
+            let (a, b) = select! {
                 biased;
                 Some(n) = self.bi.next().fuse() => (Some(n), None),
                 Some(n) = self.recvstreams_r.recv().fuse() => (None, Some(n)),

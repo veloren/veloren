@@ -31,7 +31,7 @@ impl<'a> MouseDetector<'a> {
 
 impl<'a, M, R> Widget<M, R> for MouseDetector<'a>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { self.width }
 
@@ -95,7 +95,7 @@ pub trait Renderer: iced::Renderer {
 
 impl<'a, M, R> From<MouseDetector<'a>> for Element<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
     M: 'a,
 {
     fn from(mouse_detector: MouseDetector<'a>) -> Element<'a, M, R> { Element::new(mouse_detector) }

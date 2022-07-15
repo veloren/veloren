@@ -576,7 +576,7 @@ impl Camera {
         // This is horribly frame time dependent, but so is most of the game
         let delta = self.last_time.replace(time).map_or(0.0, |t| time - t);
         if (self.dist - self.tgt_dist).abs() > 0.01 {
-            self.dist = vek::Lerp::lerp(
+            self.dist = Lerp::lerp(
                 self.dist,
                 self.tgt_dist,
                 0.65 * (delta as f32) / self.interp_time(),
@@ -584,7 +584,7 @@ impl Camera {
         }
 
         if (self.fov - self.tgt_fov).abs() > 0.01 {
-            self.fov = vek::Lerp::lerp(
+            self.fov = Lerp::lerp(
                 self.fov,
                 self.tgt_fov,
                 0.65 * (delta as f32) / self.interp_time(),
@@ -592,7 +592,7 @@ impl Camera {
         }
 
         if (self.fixate - self.tgt_fixate).abs() > 0.01 {
-            self.fixate = vek::Lerp::lerp(
+            self.fixate = Lerp::lerp(
                 self.fixate,
                 self.tgt_fixate,
                 0.65 * (delta as f32) / self.interp_time(),

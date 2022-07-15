@@ -19,7 +19,7 @@ pub use self::v1::*;
 #[derive(Deserialize, Serialize)]
 pub enum ServerDescriptionRaw {
     V0(v0::ServerDescription),
-    V1(v1::ServerDescription),
+    V1(ServerDescription),
 }
 
 impl From<ServerDescription> for ServerDescriptionRaw {

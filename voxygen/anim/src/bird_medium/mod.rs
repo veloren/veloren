@@ -54,7 +54,7 @@ impl Skeleton for BirdMediumSkeleton {
             lantern: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: common::comp::Body::BirdMedium(body)
+                position: comp::Body::BirdMedium(body)
                     .mount_offset()
                     .into_tuple()
                     .into(),
@@ -75,7 +75,7 @@ pub struct SkeletonAttr {
     feed: f32,
 }
 
-impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
     type Error = ();
 
     fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {

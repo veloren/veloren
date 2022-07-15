@@ -91,7 +91,7 @@ pub trait Background<R: iced::Renderer>: Sized {
 }
 
 /// This widget is displays a background image behind it's content
-pub struct BackgroundContainer<'a, M, R: self::Renderer, B: Background<R>> {
+pub struct BackgroundContainer<'a, M, R: Renderer, B: Background<R>> {
     max_width: u32,
     max_height: u32,
     background: B,
@@ -103,7 +103,7 @@ pub struct BackgroundContainer<'a, M, R: self::Renderer, B: Background<R>> {
 
 impl<'a, M, R, B> BackgroundContainer<'a, M, R, B>
 where
-    R: self::Renderer,
+    R: Renderer,
     B: Background<R>,
 {
     pub fn new(background: B, content: impl Into<Element<'a, M, R>>) -> Self {
@@ -137,7 +137,7 @@ where
 
 impl<'a, M, R, B> Widget<M, R> for BackgroundContainer<'a, M, R, B>
 where
-    R: self::Renderer,
+    R: Renderer,
     B: Background<R>,
 {
     // Uses the width and height from the background
@@ -335,7 +335,7 @@ pub trait Renderer: iced::Renderer {
 // They got to live ¯\_(ツ)_/¯
 impl<'a, M: 'a, R: 'a, B> From<BackgroundContainer<'a, M, R, B>> for Element<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
     B: 'a + Background<R>,
 {
     fn from(background_container: BackgroundContainer<'a, M, R, B>) -> Element<'a, M, R> {

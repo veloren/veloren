@@ -247,7 +247,7 @@ pub trait ItemTooltipable {
         tooltip: &'a ItemTooltip<'a>,
     ) -> ItemTooltipped<'a, Self, I>
     where
-        Self: std::marker::Sized;
+        Self: Sized;
 }
 impl<W: Widget> ItemTooltipable for W {
     fn with_item_tooltip<'a, I>(

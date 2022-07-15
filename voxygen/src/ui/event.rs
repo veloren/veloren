@@ -15,7 +15,7 @@ impl Event {
 
         // Implement the `WinitWindow` trait for `WindowRef` to allow for generating
         // compatible conversion functions.
-        impl<'a> conrod_winit::WinitWindow for WindowRef<'a> {
+        impl<'a> WinitWindow for WindowRef<'a> {
             fn get_inner_size(&self) -> Option<(u32, u32)> {
                 Some(
                     winit::window::Window::inner_size(self.0)

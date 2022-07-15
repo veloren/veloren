@@ -223,12 +223,12 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
             PresenceKind::Character(char_id) => {
                 let waypoint = state
                     .ecs()
-                    .read_storage::<common::comp::Waypoint>()
+                    .read_storage::<comp::Waypoint>()
                     .get(entity)
                     .cloned();
                 let map_marker = state
                     .ecs()
-                    .read_storage::<common::comp::MapMarker>()
+                    .read_storage::<comp::MapMarker>()
                     .get(entity)
                     .cloned();
                 // Store last battle mode change
@@ -421,8 +421,9 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
         if let Some(player) = players.get(possessee) {
             use common_net::msg;
 
-            let add_player_msg = ServerGeneral::PlayerListUpdate(
-                msg::server::PlayerListUpdate::Add(possessee_uid, msg::server::PlayerInfo {
+            let add_player_msg = ServerGeneral::PlayerListUpdate(PlayerListUpdate::Add(
+                possessee_uid,
+                msg::server::PlayerInfo {
                     player_alias: player.alias.clone(),
                     is_online: true,
                     is_moderator: admins.contains(possessee),
@@ -432,11 +433,10 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
                         }
                     }),
                     uuid: player.uuid(),
-                }),
-            );
-            let remove_player_msg = ServerGeneral::PlayerListUpdate(
-                msg::server::PlayerListUpdate::Remove(possessor_uid),
-            );
+                },
+            ));
+            let remove_player_msg =
+                ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(possessor_uid));
 
             drop((clients, players)); // need to drop so we can use `notify_players` below
             state.notify_players(remove_player_msg);

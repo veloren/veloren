@@ -141,23 +141,23 @@ pub enum ServerGeneral {
     CharacterEdited(character::CharacterId),
     CharacterSuccess,
     //Ingame related
-    GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
+    GroupUpdate(comp::group::ChangeNotification<Uid>),
     /// Indicate to the client that they are invited to join a group
     Invite {
-        inviter: sync::Uid,
-        timeout: std::time::Duration,
+        inviter: Uid,
+        timeout: Duration,
         kind: InviteKind,
     },
     /// Indicate to the client that their sent invite was not invalid and is
     /// currently pending
-    InvitePending(sync::Uid),
+    InvitePending(Uid),
     /// Note: this could potentially include all the failure cases such as
     /// inviting yourself in which case the `InvitePending` message could be
     /// removed and the client could consider their invite pending until
     /// they receive this message Indicate to the client the result of their
     /// invite
     InviteComplete {
-        target: sync::Uid,
+        target: Uid,
         answer: InviteAnswer,
         kind: InviteKind,
     },

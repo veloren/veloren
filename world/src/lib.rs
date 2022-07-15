@@ -151,7 +151,7 @@ impl World {
                                 civ::SiteKind::Settlement | civ::SiteKind::Refactor | civ::SiteKind::CliffTown => world_msg::SiteKind::Town,
                                 civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
                                     difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
-                                        Some(site::SiteKind::Dungeon(d)) => d.dungeon_difficulty().unwrap_or(0),
+                                        Some(SiteKind::Dungeon(d)) => d.dungeon_difficulty().unwrap_or(0),
                                         _ => 0,
                                     },
                                 },

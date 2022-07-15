@@ -978,25 +978,20 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 };
                 Block::new(kind, Rgb::new(50, 120, 160))
             } else if z < water_level {
-                Block::water(SpriteKind::Empty).with_sprite(
+                Block::water(Empty).with_sprite(
                     if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.01) {
-                        *[
-                            SpriteKind::Seagrass,
-                            SpriteKind::SeaGrapes,
-                            SpriteKind::SeaweedTemperate,
-                            SpriteKind::StonyCoral,
-                        ]
-                        .choose(dynamic_rng)
-                        .unwrap()
+                        *[Seagrass, SeaGrapes, SeaweedTemperate, StonyCoral]
+                            .choose(dynamic_rng)
+                            .unwrap()
                     } else {
-                        SpriteKind::Empty
+                        Empty
                     },
                 )
             } else if z == water_level
                 && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.05, plant_factor))
                 && last_kind == BlockKind::Water
             {
-                Block::air(SpriteKind::CavernLillypadBlue)
+                Block::air(CavernLillypadBlue)
             } else if z == cavern_bottom + floor
                 && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.5, plant_factor))
                 && last_kind == BlockKind::Grass

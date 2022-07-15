@@ -41,8 +41,8 @@ impl MaterialStatManifest {
     /// needed for tests to load it without actual assets
     pub fn with_empty() -> Self {
         Self {
-            tool_stats: hashbrown::HashMap::default(),
-            armor_stats: hashbrown::HashMap::default(),
+            tool_stats: HashMap::default(),
+            armor_stats: HashMap::default(),
         }
     }
 }

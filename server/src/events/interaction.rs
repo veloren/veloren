@@ -100,7 +100,7 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
         let not_mounting_yet = state.ecs().read_storage::<Is<Mount>>().get(mount).is_none();
 
         let within_range = || {
-            let positions = state.ecs().read_storage::<comp::Pos>();
+            let positions = state.ecs().read_storage::<Pos>();
             within_mounting_range(positions.get(rider), positions.get(mount))
         };
         let healths = state.ecs().read_storage::<comp::Health>();
@@ -234,7 +234,7 @@ pub fn handle_mine_block(
                 }
                 let item_drop = state
                     .create_item_drop(Default::default(), item)
-                    .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)));
+                    .with(Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)));
                 if let Some(uid) = maybe_uid {
                     item_drop.with(LootOwner::new(LootOwnerKind::Player(uid)))
                 } else {
@@ -257,7 +257,7 @@ pub fn handle_mine_block(
 
 pub fn handle_sound(server: &mut Server, sound: &Sound) {
     let ecs = &server.state.ecs();
-    let positions = &ecs.read_storage::<comp::Pos>();
+    let positions = &ecs.read_storage::<Pos>();
     let agents = &mut ecs.write_storage::<comp::Agent>();
 
     // TODO: Reduce the complexity of this problem by using spatial partitioning

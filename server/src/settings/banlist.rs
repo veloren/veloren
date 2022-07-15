@@ -19,7 +19,7 @@ pub use self::v1::*;
 #[derive(Deserialize, Serialize)]
 pub enum BanlistRaw {
     V0(v0::Banlist),
-    V1(v1::Banlist),
+    V1(Banlist),
 }
 
 impl From<Banlist> for BanlistRaw {

@@ -67,10 +67,8 @@ impl From<GoodIndex> for Good {
     fn from(gi: GoodIndex) -> Good { enum_from_index(gi) }
 }
 
-impl std::fmt::Debug for GoodIndex {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        GoodIndex::VALUES[self.idx].fmt(f)
-    }
+impl fmt::Debug for GoodIndex {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { GoodIndex::VALUES[self.idx].fmt(f) }
 }
 
 // the "map" itself

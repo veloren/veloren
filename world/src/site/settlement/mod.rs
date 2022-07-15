@@ -1010,9 +1010,9 @@ fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rn
 
 pub fn merchant_loadout(
     loadout_builder: LoadoutBuilder,
-    economy: Option<&trade::SiteInformation>,
+    economy: Option<&SiteInformation>,
 ) -> LoadoutBuilder {
-    let rng = &mut rand::thread_rng();
+    let rng = &mut thread_rng();
 
     let mut backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
     let mut bag1 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");

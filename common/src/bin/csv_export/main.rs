@@ -46,7 +46,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         "Description",
     ])?;
 
-    for item in comp::item::Item::new_from_asset_glob("common.items.armor.*")
+    for item in Item::new_from_asset_glob("common.items.armor.*")
         .expect("Failed to iterate over item folders!")
     {
         match &*item.kind() {
@@ -118,8 +118,8 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
     // Does all items even outside weapon folder since we check if itemkind was a
     // tool anyways
-    let items: Vec<comp::Item> = comp::Item::new_from_asset_glob("common.items.*")
-        .expect("Failed to iterate over item folders!");
+    let items: Vec<Item> =
+        Item::new_from_asset_glob("common.items.*").expect("Failed to iterate over item folders!");
 
     for item in items.iter() {
         if let comp::item::ItemKind::Tool(tool) = &*item.kind() {
@@ -207,8 +207,8 @@ fn all_items() -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("items.csv")?;
     wtr.write_record(&["Path", "Name"])?;
 
-    for item in comp::item::Item::new_from_asset_glob("common.items.*")
-        .expect("Failed to iterate over item folders!")
+    for item in
+        Item::new_from_asset_glob("common.items.*").expect("Failed to iterate over item folders!")
     {
         wtr.write_record(&[
             item.item_definition_id()
@@ -305,7 +305,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
         "Quantity",
     ])?;
 
-    fn write_entity_loot<W: std::io::Write>(
+    fn write_entity_loot<W: Write>(
         wtr: &mut csv::Writer<W>,
         asset_path: &str,
     ) -> Result<(), Box<dyn Error>> {

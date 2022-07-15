@@ -366,8 +366,8 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
         CompressedData<HashMap<Vec2<u32>, (SpriteKind, u8)>>,
     );
     type Workspace = (
-        image::ImageBuffer<image::Luma<u8>, Vec<u8>>,
-        image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+        ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        ImageBuffer<image::Rgb<u8>, Vec<u8>>,
         HashMap<Vec2<u32>, (SpriteKind, u8)>,
     );
 

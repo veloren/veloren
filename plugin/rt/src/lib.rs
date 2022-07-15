@@ -55,7 +55,7 @@ pub fn read_input<T>(ptr: i64, len: i64) -> Result<T, &'static str>
 where
     T: DeserializeOwned,
 {
-    let slice = unsafe { ::std::slice::from_raw_parts(from_i64(ptr) as _, from_i64(len) as _) };
+    let slice = unsafe { std::slice::from_raw_parts(from_i64(ptr) as _, from_i64(len) as _) };
     bincode::deserialize(slice).map_err(|_| "Failed to deserialize function input")
 }
 

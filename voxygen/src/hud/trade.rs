@@ -601,7 +601,7 @@ impl<'a> Trade<'a> {
                 .graphics_for(state.ids.amount_open_btn)
                 .set(state.ids.amount_open_ovlay, ui);
         } else if let Some(key) = &mut self.show.trade_amount_input_key {
-            if !Hud::is_captured::<widget::TextEdit>(ui) && key.input_painted {
+            if !Hud::is_captured::<TextEdit>(ui) && key.input_painted {
                 // If the text edit is not captured submit the amount.
                 event = Some(HudUpdate::Submit);
             }

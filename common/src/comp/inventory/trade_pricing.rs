@@ -519,12 +519,12 @@ fn get_scaling(contents: &AssetGuard<TradingPriceFile>, good: Good) -> f32 {
 }
 
 #[cfg(test)]
-impl std::cmp::PartialOrd for ItemDefinitionIdOwned {
+impl PartialOrd for ItemDefinitionIdOwned {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
 }
 
 #[cfg(test)]
-impl std::cmp::Ord for ItemDefinitionIdOwned {
+impl Ord for ItemDefinitionIdOwned {
     fn cmp(&self, other: &Self) -> Ordering {
         match self {
             ItemDefinitionIdOwned::Simple(na) => match other {
@@ -781,7 +781,7 @@ impl TradePricing {
         for (_, recipe) in book.iter() {
             let (ref asset_path, amount) = recipe.output;
             if let ItemKind::ModularComponent(
-                crate::comp::inventory::item::modular::ModularComponent::ToolSecondaryComponent {
+                inventory::item::modular::ModularComponent::ToolSecondaryComponent {
                     toolkind,
                     stats: _,
                     hand_restriction: _,
