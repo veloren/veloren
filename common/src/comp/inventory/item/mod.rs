@@ -1234,11 +1234,11 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
 
     fn item_definition_id(&self) -> ItemDefinitionId<'_> { (*self).item_definition_id() }
 
-    fn components(&self) -> &[Item] { (*self).components() }
-
     fn tags(&self) -> Vec<ItemTag> { (*self).tags() }
 
     fn is_modular(&self) -> bool { (*self).is_modular() }
+
+    fn components(&self) -> &[Item] { (*self).components() }
 }
 
 /// Returns all item asset specifiers
