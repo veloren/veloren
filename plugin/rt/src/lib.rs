@@ -100,7 +100,7 @@ static mut BUFFERS: Vec<u8> = Vec::new();
 
 /// Allocate buffer from wasm linear memory
 /// # Safety
-/// This function should never be used only intented to by used by the host
+/// This function should never be used only intended to by used by the host
 #[no_mangle]
 pub unsafe fn wasm_prepare_buffer(size: i32) -> i64 {
     BUFFERS = vec![0u8; size as usize];

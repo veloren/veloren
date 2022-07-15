@@ -116,7 +116,7 @@ impl<'a> System<'a> for Sys {
                     if frame_time <= 0.0 {
                         return (server_events, add_hit_entities, outcomes);
                     }
-                    // Note: min() probably uneeded
+                    // Note: min() probably unneeded
                     let time_since_creation = (time - creation_time) as f32;
                     let frame_start_dist =
                         (beam_segment.speed * (time_since_creation - frame_time)).max(0.0);

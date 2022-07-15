@@ -198,7 +198,7 @@ impl<'a> Canvas<'a> {
 
     /// Blit a structure on to the canvas at the given position.
     ///
-    /// Note that this function should be called with identitical parameters by
+    /// Note that this function should be called with identical parameters by
     /// all chunks within the bounds of the structure to avoid cut-offs
     /// occurring at chunk borders. Deterministic RNG is advised!
     pub fn blit_structure(

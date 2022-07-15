@@ -31,7 +31,7 @@ impl VertexTrait for Vertex {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Locals {
-    /// pos is [f32; 4] instead of [f32; 3] so that Locals's size is a multiple
+    /// pos is [f32; 4] instead of [f32; 3] so that Locals' size is a multiple
     /// of 8 bytes (which is required by gfx), the last component is ignored
     /// by the shader
     pub pos: [f32; 4],

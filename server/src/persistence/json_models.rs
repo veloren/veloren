@@ -199,7 +199,7 @@ fn tool_kind_to_string(tool: Option<comp::item::tool::ToolKind>) -> String {
         Some(Blowgun) => "Blowgun",
         Some(Pick) => "Pick",
 
-        // Toolkinds that are not anticipated to have many active aiblities (if any at all)
+        // Toolkinds that are not anticipated to have many active abilities (if any at all)
         Some(Farming) => "Farming",
         Some(Debug) => "Debug",
         Some(Natural) => "Natural",

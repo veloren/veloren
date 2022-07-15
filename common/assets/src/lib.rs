@@ -214,7 +214,7 @@ pub fn find_root() -> Option<PathBuf> {
         if path.join(".git").exists() {
             return Some(path);
         }
-        // Search .git directory in parent directries
+        // Search .git directory in parent directories
         for ancestor in path.ancestors().take(10) {
             if ancestor.join(".git").exists() {
                 return Some(ancestor.to_path_buf());
@@ -505,7 +505,7 @@ pub mod asset_tweak {
         }
     }
 
-    /// Convinient macro to quickly tweak value.
+    /// Convenient macro to quickly tweak value.
     ///
     /// Will use [Specifier]`::Tweak` specifier and call
     /// [tweak_expect] if passed only name
@@ -556,7 +556,7 @@ pub mod asset_tweak {
         }};
     }
 
-    /// Convinient macro to quickly tweak value from some existing path.
+    /// Convenient macro to quickly tweak value from some existing path.
     ///
     /// Will use [Specifier]`::Asset` specifier and call
     /// [tweak_expect] if passed only name

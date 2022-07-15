@@ -477,7 +477,7 @@ mod v1 {
 
     impl Banlist {
         /// Attempt to perform the ban action `action` for the user with UUID
-        /// `uuid` and username `username`, starting from itme `now`
+        /// `uuid` and username `username`, starting from time `now`
         /// (the information about the banning party will
         /// be in the `action` record), with a settings file maintained at path
         /// root `data_dir`.

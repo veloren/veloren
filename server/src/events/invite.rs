@@ -113,7 +113,7 @@ pub fn handle_invite(server: &mut Server, inviter: Entity, invitee_uid: Uid, kin
     }
 
     let mut invite_sent = false;
-    // Returns true if insertion was succesful
+    // Returns true if insertion was successful
     let mut send_invite = || {
         match invites.insert(invitee, Invite { inviter, kind }) {
             Err(err) => {

@@ -23,7 +23,7 @@ use {common_base::span, egui_wgpu_backend::ScreenDescriptor, egui_winit_platform
 enum Pipelines<'frame> {
     Interface(&'frame super::InterfacePipelines),
     All(&'frame super::Pipelines),
-    // Should never be in this state for now but we need this to accound for super::State::Nothing
+    // Should never be in this state for now but we need this to account for super::State::Nothing
     None,
 }
 
@@ -53,7 +53,7 @@ impl<'frame> Pipelines<'frame> {
 }
 
 // Borrow the fields we need from the renderer so that the GpuProfiler can be
-// disjointly borrowed mutably
+// disjointedly borrowed mutably
 struct RendererBorrow<'frame> {
     queue: &'frame wgpu::Queue,
     device: &'frame wgpu::Device,
@@ -371,7 +371,7 @@ impl<'frame> Drawer<'frame> {
                 label,
                 &bloom_pipelines.upsample,
                 if index + 2 == bloom::NUM_SIZES {
-                    // Clear for the final image since that is just stuff from the pervious frame.
+                    // Clear for the final image since that is just stuff from the previous frame.
                     wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
                 } else {
                     // Add to less blurred images to get gradient of blur instead of a smudge>

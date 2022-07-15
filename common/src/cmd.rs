@@ -135,7 +135,7 @@ lazy_static! {
     pub static ref BUFF_PARSER: HashMap<String, BuffKind> = {
         let string_from_buff = |kind| match kind {
             BuffKind::Burning => "burning",
-            BuffKind::Regeneration => "regeration",
+            BuffKind::Regeneration => "regeneration",
             BuffKind::Saturation => "saturation",
             BuffKind::Bleeding => "bleeding",
             BuffKind::Cursed => "cursed",

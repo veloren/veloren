@@ -131,7 +131,7 @@ pub fn handle_create_npc(
                                 .map(|g| (g, c))
                         })
                         .map(|(g, c)| {
-                            // Might be unneccessary, but maybe pets can somehow have map
+                            // Might be unnecessary, but maybe pets can somehow have map
                             // markers in the future
                             update_map_markers(&map_markers, &uids, c, &group_change);
                             c.send_fallible(ServerGeneral::GroupUpdate(g));

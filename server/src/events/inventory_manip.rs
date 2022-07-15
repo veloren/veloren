@@ -504,7 +504,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 let mut merged_stacks = false;
 
-                // If both slots have items and we're attemping to drag from one stack
+                // If both slots have items and we're attempting to drag from one stack
                 // into another, stack the items.
                 if let (Slot::Inventory(slot_a), Slot::Inventory(slot_b)) = (a, b) {
                     merged_stacks |= inventory.merge_stack_into(slot_a, slot_b);
@@ -538,7 +538,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let ability_map = state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
 
-            // If both slots have items and we're attemping to split from one stack
+            // If both slots have items and we're attempting to split from one stack
             // into another, ensure that they are the same type of item. If they are
             // the same type do nothing, as you don't want to overwrite the existing item.
 

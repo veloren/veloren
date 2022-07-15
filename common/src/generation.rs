@@ -61,7 +61,7 @@ pub enum Meta {
 // that this field should be either Default or Unchanged
 // depending on how it is used.
 //
-// When we will use exension manifests more, it would be nicer to
+// When we will use extension manifests more, it would be nicer to
 // split EntityBase and EntityExtension to different structs.
 //
 // Fields which have Uninit enum kind
@@ -69,7 +69,7 @@ pub enum Meta {
 // and required (or renamed to Default) in EntityBase
 /// Struct for EntityInfo manifest.
 ///
-/// Intended to use with .ron files as base definion or
+/// Intended to use with .ron files as base definition or
 /// in rare cases as extension manifest.
 /// Pure data struct, doesn't do anything until evaluated with EntityInfo.
 ///

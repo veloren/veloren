@@ -86,7 +86,7 @@ fn fall_simple() -> Result<(), Box<dyn Error>> {
 
 #[test]
 /// will fall in 20 x DT and 2 x 10*DT steps. compare the end result and make
-/// log the "error" between both caluclation
+/// log the "error" between both calculations
 fn fall_dt_speed_diff() -> Result<(), Box<dyn Error>> {
     let mut sstate = utils::setup();
     let mut fstate = utils::setup();
@@ -213,7 +213,7 @@ fn walk_max() -> Result<(), Box<dyn Error>> {
 
 #[test]
 /// will run in 20 x DT and 2 x 10*DT steps. compare the end result and make
-/// log the "error" between both caluclation
+/// log the "error" between both calculations
 fn walk_dt_speed_diff() -> Result<(), Box<dyn Error>> {
     let mut sstate = utils::setup();
     let mut fstate = utils::setup();

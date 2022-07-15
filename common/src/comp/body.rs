@@ -289,7 +289,7 @@ impl Body {
             Body::FishSmall(_) => 1.0,
             Body::Golem(_) => 10_000.0,
             Body::Humanoid(humanoid) => {
-                // Understand that chaning the mass values can have effects
+                // Understand that changing the mass values can have effects
                 // on multiple systems.
                 //
                 // If you want to change that value, consult with
@@ -568,8 +568,8 @@ impl Body {
         }
     }
 
-    // How far away other entities should try to be. Will be added uppon the other
-    // entitys spacing_radius. So an entity with 2.0 and an entity with 3.0 will
+    // How far away other entities should try to be. Will be added upon the other
+    // entity's spacing_radius. So an entity with 2.0 and an entity with 3.0 will
     // lead to that both entities will try to keep 5.0 units away from each
     // other.
     pub fn spacing_radius(&self) -> f32 {

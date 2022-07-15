@@ -46,11 +46,11 @@ impl Animation for IdleAnimation {
         let breathe = if s_a.beast {
             // Controls for the beast breathing
             let intensity = 0.04;
-            let lenght = 1.5;
+            let length = 1.5;
             let chop = 0.2;
             let chop_freq = 60.0;
-            intensity * (lenght * anim_time).sin()
-                + 0.05 * chop * (anim_time * chop_freq).sin() * (anim_time * lenght).cos()
+            intensity * (length * anim_time).sin()
+                + 0.05 * chop * (anim_time * chop_freq).sin() * (anim_time * length).cos()
         } else {
             0.0
         };

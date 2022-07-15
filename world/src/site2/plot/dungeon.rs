@@ -1331,7 +1331,7 @@ impl Floor {
             sprites.push((floor_sprite, floor_sprite_fill.clone()));
         }
 
-        // Place a glowing purple septagonal star inscribed in a circle in the boss room
+        // Place a glowing purple heptagonal star inscribed in a circle in the boss room
         if let Some(boss_room_center) = boss_room_center {
             let magic_circle_bb = painter.prim(Primitive::Cylinder(Aabb {
                 min: (boss_room_center - 3 * Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z - 1),
@@ -1346,7 +1346,7 @@ impl Floor {
 
         // Place pillars and pillar lights facing the pillars
         for (pos, pillar, lights) in pillars.iter() {
-            // Avoid placing pillars that would cover the septagonal star
+            // Avoid placing pillars that would cover the heptagonal star
             if let Some(boss_room_center) = boss_room_center {
                 if pos.distance_squared(boss_room_center) < (3 * TILE_SIZE / 2).pow(2) {
                     continue;

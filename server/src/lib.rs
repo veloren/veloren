@@ -1385,7 +1385,7 @@ impl Server {
         let world_dims_chunks = self.world.sim().get_size();
         let world_dims_blocks = TerrainChunkSize::blocks(world_dims_chunks);
         // NOTE: origin is in the corner of the map
-        // TODO: extend this function to have picking a random position or specifiying a
+        // TODO: extend this function to have picking a random position or specifying a
         // position as options
         //let mut rng = rand::thread_rng();
         // // Pick a random position but not to close to the edge

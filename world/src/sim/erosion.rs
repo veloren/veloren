@@ -1119,7 +1119,7 @@ fn erode(
             },
         );
         debug!(
-            "(Done precomputation, time={:?}ms).",
+            "(Done pre-computation, time={:?}ms).",
             start_time.elapsed().as_millis()
         );
         #[rustfmt::skip]

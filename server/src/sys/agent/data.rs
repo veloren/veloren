@@ -71,7 +71,7 @@ impl AttackData {
 
 #[derive(Eq, PartialEq)]
 // When adding a new variant, first decide if it should instead fall under one
-// of the pre-exisitng tactics
+// of the pre-existing tactics
 pub enum Tactic {
     // General tactics
     SimpleMelee,

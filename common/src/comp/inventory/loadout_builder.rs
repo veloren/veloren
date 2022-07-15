@@ -87,7 +87,7 @@ impl ItemSpec {
                 .map(drop)
                 .map_err(ValidationError::ItemAssetError),
             ItemSpec::Choice(choices) => {
-                // TODO: check for sanity of weigts?
+                // TODO: check for sanity of weights?
                 for (_weight, choice) in choices {
                     if let Some(item) = choice {
                         item.validate()?;
@@ -212,7 +212,7 @@ impl Base {
 /// If you want programing API of loadout creation,
 /// use `LoadoutBuilder` instead.
 ///
-/// For examples of assets, see `assets/test/ladout/ok` folder.
+/// For examples of assets, see `assets/test/loadout/ok` folder.
 #[derive(Debug, Deserialize, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub struct LoadoutSpec {
@@ -1161,8 +1161,8 @@ mod tests {
 
     // Testing different species
     //
-    // Things that will be catched - invalid assets paths for
-    // creating default main hand tool or equipement without config
+    // Things that will be caught - invalid assets paths for
+    // creating default main hand tool or equipment without config
     #[test]
     fn test_loadout_species() {
         macro_rules! test_species {

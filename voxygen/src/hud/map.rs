@@ -384,7 +384,7 @@ impl<'a> Widget for Map<'a> {
                     }
                 }
 
-                // Handle zooming with the mousewheel
+                // Handle zooming with the mouse wheel
                 let scrolled: f64 = ui
                     .widget_input(widget)
                     .scrolls()

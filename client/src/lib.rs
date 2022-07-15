@@ -162,7 +162,7 @@ impl WeatherLerp {
         self.old = mem::replace(&mut self.new, (weather, Instant::now()));
     }
 
-    // TODO: Make impprovements to this interpolation, it's main issue is assuming
+    // TODO: Make improvements to this interpolation, it's main issue is assuming
     // that updates come at regular intervals.
     fn update(&mut self, to_update: &mut WeatherGrid) {
         prof_span!("WeatherLerp::update");

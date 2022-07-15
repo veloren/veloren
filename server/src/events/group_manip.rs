@@ -222,7 +222,7 @@ pub fn handle_group(server: &mut Server, entity: Entity, manip: GroupManip) {
                             "You were removed from the group.",
                         ));
                     }
-                    // Tell kicker that they were succesful
+                    // Tell kicker that they were successful
                     if let Some(client) = clients.get(entity) {
                         client.send_fallible(ServerGeneral::server_msg(
                             ChatType::Meta,

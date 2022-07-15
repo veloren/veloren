@@ -972,12 +972,12 @@ fn handle_time(
             // 'developer commentary' mode created by digging up the long-decayed
             // skeletons of the Veloren team, measuring various attributes of their
             // jawlines, and using them to recreate their voices. But how to go about
-            // this Herculean task? This code is jibberish! The last of the core Rust
+            // this Herculean task? This code is gibberish! The last of the core Rust
             // dev team died exactly 337,194 years ago! Rust is now a long-forgotten
             // dialect of the ancient ones, lost to the sands of time. Ashes to ashes,
             // dust to dust. When all hope is lost, one particularly intrepid
             // post-human hominid exployed by the 'Veloren Revival Corp' (no doubt we
-            // still won't have gotted rid of this blasted 'capitalism' thing by then)
+            // still won't have gotten rid of this blasted 'capitalism' thing by then)
             // might notice, after years of searching, a particularly curious
             // inscription within the code. The letters `D`, `A`, `Y`. Curious! She
             // consults the post-human hominid scholars of the old. Care to empathise
@@ -986,7 +986,7 @@ fn handle_time(
             // 'day' in the post-human hominid language, which is of course universal.
             // Imagine also her surprise when, after much further translating, she
             // finds a comment predicting her very existence and her struggle to
-            // decode this great mystery. Rejoyce! The Veloren Revival Corp. may now
+            // decode this great mystery. Rejoice! The Veloren Revival Corp. may now
             // persist with their great Ultimate Edition DLC because the day period
             // might now be changed because they have found the constant that controls
             // it! Everybody was henceforth happy until the end of time.
@@ -2778,7 +2778,7 @@ spawn_rate {:?} "#,
         server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, s));
         Ok(())
     } else {
-        Err("Not a pregenerated chunk.".into())
+        Err("Not a pre-generated chunk.".into())
     }
 }
 
@@ -3131,7 +3131,7 @@ fn handle_ban(
             .map(|duration| chrono::Duration::from_std(duration.into()))
             .transpose()
             .map_err(|err| format!("Error converting to duration: {}", err))?
-            // On overflow (someone adding some ridiculous timespan), just make the ban infinite.
+            // On overflow (someone adding some ridiculous time span), just make the ban infinite.
             .and_then(|duration| now.checked_add_signed(duration));
 
         let ban_info = BanInfo {

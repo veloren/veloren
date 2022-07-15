@@ -33,7 +33,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// How many creatures the state should summon
     pub summon_amount: u32,
-    /// Range of the summons relative to the summonner
+    /// Range of the summons relative to the summoner
     pub summon_distance: (f32, f32),
     /// Information about the summoned creature
     pub summon_info: SummonInfo,
@@ -161,7 +161,7 @@ impl CharacterBehavior for Data {
                             .cast()
                             .0;
 
-                        // If a duration is specified, create a projectile componenent for the npc
+                        // If a duration is specified, create a projectile component for the npc
                         let projectile = self.static_data.duration.map(|duration| Projectile {
                             hit_solid: Vec::new(),
                             hit_entity: Vec::new(),

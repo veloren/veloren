@@ -35,7 +35,7 @@ pub struct Art {
     #[serde(default)]
     pub modifications: String,
     /// Any additional attribution notes that may be desired and/or required by
-    /// the respactive license that can't be conveyed or would be awkward to
+    /// the respective license that can't be conveyed or would be awkward to
     /// convey with the other provided fields.
     #[serde(default)]
     pub notes: String,
@@ -45,7 +45,7 @@ pub struct Art {
 pub struct Contributor {
     pub name: String,
     /// Short note or description of the contributions
-    /// Optional, can be left empty/ommitted
+    /// Optional, can be left empty/omitted
     #[serde(default)]
     pub contributions: String,
 }

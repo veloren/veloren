@@ -22,7 +22,7 @@ pub struct StaticData {
     pub buildup_duration: Duration,
     /// How long the state charges for until it reaches max damage
     pub charge_duration: Duration,
-    /// Suration of state spent in swing
+    /// Duration of state spent in swing
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,

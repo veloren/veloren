@@ -623,7 +623,7 @@ impl UnreliableDrain for QuicDrain {
                 match self.reliables.entry(sid) {
                     Entry::Occupied(mut occupied) => occupied.get_mut().write_all(&data.data).await,
                     Entry::Vacant(vacant) => {
-                        // IF the buffer is empty this was created localy and WE are allowed to
+                        // IF the buffer is empty this was created locally and WE are allowed to
                         // open_bi(), if not, we NEED to block on sendstreams_r
                         if data.data.is_empty() {
                             let (mut sendstream, recvstream) =

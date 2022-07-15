@@ -98,7 +98,7 @@ impl ExportVol {
         // File format defined at https://github.com/ephtracy/voxel-model
 
         fn write_i32(file: &mut File, value: i32) -> Result {
-            // The spec doesn't specify endianess?!?
+            // The spec doesn't specify endianness?!?
             file.write_all(&value.to_le_bytes())
         }
 

@@ -160,7 +160,7 @@ pub struct StreamParams {
 /// via their [`ConnectAddr`], or [`listen`] passively for [`connected`]
 /// [`Participants`] via [`ListenAddr`].
 ///
-/// Too guarantee a clean shutdown, the [`Runtime`] MUST NOT be droped before
+/// Too guarantee a clean shutdown, the [`Runtime`] MUST NOT be dropped before
 /// the Network.
 ///
 /// # Examples
@@ -516,7 +516,7 @@ impl Network {
         };
         if let Ok(return_s) = return_s {
             if return_s.send(()).is_err() {
-                warn!("Network::drop stoped after a timeout and didn't wait for our shutdown");
+                warn!("Network::drop stopped after a timeout and didn't wait for our shutdown");
             };
         }
         debug!("Network has shut down");
@@ -550,7 +550,7 @@ impl Participant {
     /// # Arguments
     /// * `prio` - defines which stream is processed first when limited on
     ///   bandwidth. See [`Prio`] for documentation.
-    /// * `promises` - use a combination of you prefered [`Promises`], see the
+    /// * `promises` - use a combination of you preferred [`Promises`], see the
     ///   link for further documentation. You can combine them, e.g.
     ///   `Promises::ORDERED | Promises::CONSISTENCY` The Stream will then
     ///   guarantee that those promises are met.
@@ -1177,7 +1177,7 @@ where
                 },
                 Err(TryRecvError::Closed) => panic!("{}{}", name, CHANNEL_ERR),
                 Err(TryRecvError::Empty) => {
-                    trace!("activly sleeping");
+                    trace!("actively sleeping");
                     cnt += 1;
                     if cnt > 10 {
                         error!("Timeout waiting for shutdown, dropping");
@@ -1222,7 +1222,7 @@ impl Drop for Participant {
         debug!("Shutting down Participant");
 
         match self.a2s_disconnect_s.try_lock() {
-            Err(e) => debug!(?e, "Participant is beeing dropped by Network right now"),
+            Err(e) => debug!(?e, "Participant is being dropped by Network right now"),
             Ok(mut s) => match s.take() {
                 None => info!("Participant already has been shutdown gracefully"),
                 Some(a2s_disconnect_s) => {

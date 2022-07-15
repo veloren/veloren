@@ -83,8 +83,8 @@ pub trait EditableSetting: Clone + Default {
                     file.seek(SeekFrom::Start(0))?;
                     ron::de::from_reader(file)
                          .map(|legacy| Ok((Version::Old, Self::Legacy::into(legacy))))
-                         // When both legacy and nonlegacy have parse errors, prioritize the
-                         // nonlegacy one, since we can't tell which one is "right" and legacy
+                         // When both legacy and non-legacy have parse errors, prioritize the
+                         // non-legacy one, since we can't tell which one is "right" and legacy
                          // formats are simple, early, and uncommon enough that we expect
                          // few parse errors in those.
                          .or(Err(orig_err))
