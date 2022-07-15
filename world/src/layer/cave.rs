@@ -157,7 +157,7 @@ impl Tunnel {
         let Some(col) = info.col_or_gen(wpos.xy()) else { return Biome::default() };
 
         // Below the ground
-        let below = ((col.alt - wpos.z as f32) / 50.0).clamped(0.0, 1.0);
+        let below = ((col.alt - wpos.z as f32) / 200.0).clamped(0.0, 1.0);
         let depth = (col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32);
 
         let humidity = Lerp::lerp(
@@ -199,13 +199,13 @@ impl Tunnel {
                 * close(humidity, 1.0, 0.75)
                 * close(temp, 0.25, 1.2)
                 * close(depth, 1.0, 0.6);
-            let fire = underground * close(humidity, 0.0, 0.75) * close(temp, 2.0, 0.6);
+            let fire = underground * close(humidity, 0.0, 0.85) * close(temp, 2.0, 0.6);
             let leafy = underground
                 * close(humidity, 1.0, 0.75)
-                * close(temp, 0.1, 0.75)
-                * close(depth, 0.0, 0.6);
+                * close(temp, 0.35, 1.0)
+                * close(depth, 0.0, 0.8);
             let dusty = close(humidity, 0.0, 0.5) * close(temp, -0.3, 0.65);
-            let icy = close(temp, -1.0, 0.7);
+            let icy = close(temp, -1.0, 0.5);
 
             let biomes = [barren, mushroom, fire, leafy, dusty, icy];
             let max = biomes
@@ -235,7 +235,7 @@ fn tunnels_at<'a>(
     land: &'a Land,
 ) -> impl Iterator<Item = Tunnel> + 'a {
     let rand = RandomField::new(37 + level);
-    let col_cell = to_cell(wpos, level);
+    let col_cell = to_cell(wpos - CELL_SIZE as i32 / 2, level);
     LOCALITY
         .into_iter()
         .filter_map(move |rpos| {
@@ -774,7 +774,7 @@ fn write_column<R: Rng>(
                         [
                             (Some(SpriteKind::Copper), shallow),
                             (Some(SpriteKind::Tin), shallow),
-                            (Some(SpriteKind::Iron), shallow * 0.3),
+                            (Some(SpriteKind::Iron), shallow * 0.5),
                             (Some(SpriteKind::Coal), middle * 0.25),
                             (Some(SpriteKind::Cobalt), middle * 0.05),
                             (Some(SpriteKind::Silver), middle * 0.05),
@@ -929,19 +929,19 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Lava biome
             (
                 Some("common.entity.wild.aggressive.lavadrake"),
-                (biome.fire + 0.0) * 0.2,
-            ),
-            (
-                Some("common.entity.wild.aggressive.basilisk"),
-                (biome.fire + 0.1) * 0.05,
-            ),
-            (
-                Some("common.entity.wild.peaceful.crawler_molten"),
                 (biome.fire + 0.0) * 0.5,
             ),
             (
+                Some("common.entity.wild.aggressive.basilisk"),
+                (biome.fire + 0.1) * 0.1,
+            ),
+            (
+                Some("common.entity.wild.peaceful.crawler_molten"),
+                (biome.fire + 0.0) * 0.75,
+            ),
+            (
                 Some("common.entity.wild.aggressive.red_oni"),
-                (biome.fire + 0.0) * 0.02,
+                (biome.fire + 0.0) * 0.05,
             ),
             // With depth
             (
