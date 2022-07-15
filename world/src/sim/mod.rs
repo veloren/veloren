@@ -384,9 +384,25 @@ impl FileOpts {
                     hash::{Hash, Hasher},
                 };
 
-                // We convert opts to string, as opts isn't hasheable because
-                // of scale which is f64
-                let opts = format!("{opts:?}");
+                // Hashable wrapper around gen opts
+                #[derive(Hash)]
+                struct GenOptsWrapper {
+                    x_lg: u32,
+                    y_lg: u32,
+                    scale: ordered_float::OrderedFloat<f64>,
+                }
+
+                // NOTE: we use pattern-matching to get opts fields
+                // so that when main opts strut gains new fields,
+                // compiler will bonk you into updating wrapper struct
+                let SizeOpts { x_lg, y_lg, scale } = opts;
+
+                let opts = GenOptsWrapper {
+                    x_lg: *x_lg,
+                    y_lg: *y_lg,
+                    scale: ordered_float::OrderedFloat(*scale),
+                };
+
                 let mut hashed_opts = DefaultHasher::new();
                 opts.hash(&mut hashed_opts);
 
