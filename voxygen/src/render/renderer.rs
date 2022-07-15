@@ -817,13 +817,13 @@ impl Renderer {
                 mip_level_count: levels,
                 sample_count,
                 dimension: wgpu::TextureDimension::D2,
-                format: TextureFormat::Rgba16Float,
+                format: wgpu::TextureFormat::Rgba16Float,
                 usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
             });
 
             tex.create_view(&wgpu::TextureViewDescriptor {
                 label: None,
-                format: Some(TextureFormat::Rgba16Float),
+                format: Some(wgpu::TextureFormat::Rgba16Float),
                 dimension: Some(wgpu::TextureViewDimension::D2),
                 // TODO: why is this not Color?
                 aspect: wgpu::TextureAspect::All,
@@ -861,12 +861,12 @@ impl Renderer {
             mip_level_count: levels,
             sample_count,
             dimension: wgpu::TextureDimension::D2,
-            format: TextureFormat::Depth32Float,
+            format: wgpu::TextureFormat::Depth32Float,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
         let tgt_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
-            format: Some(TextureFormat::Depth32Float),
+            format: Some(wgpu::TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
@@ -885,13 +885,13 @@ impl Renderer {
             mip_level_count: levels,
             sample_count,
             dimension: wgpu::TextureDimension::D2,
-            format: TextureFormat::Depth32Float,
+            format: wgpu::TextureFormat::Depth32Float,
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
         });
         // TODO: Consider no depth buffer for the final draw to the window?
         let win_depth_view = win_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
-            format: Some(TextureFormat::Depth32Float),
+            format: Some(wgpu::TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
