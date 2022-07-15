@@ -349,14 +349,14 @@ impl Archetype for House {
             // Chimney
             if center_offset.map(|e| e.abs()).reduce_max() <= 1 && profile.y < chimney_top {
                 // Fireplace
-                if center_offset.product() == 0
+                return if center_offset.product() == 0
                     && profile.y > foundation_height + 1
                     && profile.y <= foundation_height + 3
                 {
-                    return internal;
+                    internal
                 } else {
-                    return foundation;
-                }
+                    foundation
+                };
             }
         }
 
@@ -372,12 +372,15 @@ impl Archetype for House {
                 }
             }
 
-            if dist < width && profile.y < foundation_height && profile.y >= foundation_height - 3 {
+            return if dist < width
+                && profile.y < foundation_height
+                && profile.y >= foundation_height - 3
+            {
                 // Basement
-                return internal;
+                internal
             } else {
-                return foundation.with_priority(1);
-            }
+                foundation.with_priority(1)
+            };
         }
 
         // Roofs and walls
@@ -406,13 +409,15 @@ impl Archetype for House {
                 if profile.y == roof_level && roof_dist <= width + 2 {
                     let is_ribbing = ((profile.y - ceil_height) % 3 == 0 && self.roof_ribbing)
                         || (bound_offset.x == bound_offset.y && self.roof_ribbing_diagonal);
-                    if (roof_profile.x == 0 && mansard == 0) || roof_dist == width + 2 || is_ribbing
+                    return if (roof_profile.x == 0 && mansard == 0)
+                        || roof_dist == width + 2
+                        || is_ribbing
                     {
                         // Eaves
-                        return log;
+                        log
                     } else {
-                        return roof;
-                    }
+                        roof
+                    };
                 }
 
                 // Wall
@@ -456,13 +461,13 @@ impl Archetype for House {
                         };
                     }
 
-                    if bound_offset.x == bound_offset.y || profile.y == ceil_height {
+                    return if bound_offset.x == bound_offset.y || profile.y == ceil_height {
                         // Support beams
-                        return log;
+                        log
                     } else if !attr.storey_fill.has_lower() && profile.y < ceil_height
                         || !attr.storey_fill.has_upper()
                     {
-                        return EMPTY;
+                        EMPTY
                     } else {
                         let (frame_bounds, frame_borders) = if profile.y >= ceil_height {
                             (
@@ -500,13 +505,13 @@ impl Archetype for House {
                         }
 
                         // Wall
-                        return if attr.central_supports && profile.x == 0 {
+                        if attr.central_supports && profile.x == 0 {
                             // Support beams
                             log.with_priority(structural_layer)
                         } else {
                             wall
-                        };
-                    }
+                        }
+                    };
                 }
 
                 if dist < width {

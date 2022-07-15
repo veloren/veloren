@@ -333,11 +333,11 @@ impl KeyMouse {
                 return format!("Mouse {}", button + 3);
             },
             ScanKey(scancode) => {
-                if let Some(layout) = key_layout {
-                    return layout.get_key_as_string(*scancode);
+                return if let Some(layout) = key_layout {
+                    layout.get_key_as_string(*scancode)
                 } else {
-                    return format!("Unknown (0x{:X})", scancode);
-                }
+                    format!("Unknown (0x{:X})", scancode)
+                };
             },
         };
 
