@@ -284,7 +284,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
                 emission * density_integrals.y * step;
 
             // Rainbow
-            #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+            #if (CLOUD_MODE >= CLOUD_MODE_ULTRA)
             #ifndef EXPERIMENTAL_NORAINBOWS
                 if (rainbow_c >= 0 && rainbow_c < 8) {
                     vec3 colors[9] = {
