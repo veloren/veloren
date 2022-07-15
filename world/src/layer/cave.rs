@@ -5,6 +5,7 @@ use crate::{
     Canvas, CanvasInfo, ColumnSample, IndexRef, Land,
 };
 use common::{
+    generation::EntityInfo,
     terrain::{
         quadratic_nearest_point, river_spline_coeffs, Block, BlockKind, SpriteKind,
         TerrainChunkSize,
@@ -587,6 +588,7 @@ fn write_column<R: Rng>(
 
     for z in bedrock..z_range.end {
         let wpos = wpos2d.with_z(z);
+        let mut try_spawn_entity = false;
         canvas.map(wpos, |block| {
             if z < z_range.start - 4 && !void_below {
                 Block::new(BlockKind::Lava, Rgb::new(255, 65, 0))
@@ -782,6 +784,7 @@ fn write_column<R: Rng>(
                         .ok()
                         .and_then(|s| s.0)
                     } else {
+                        try_spawn_entity = true;
                         None
                     }
                 })
@@ -837,5 +840,131 @@ fn write_column<R: Rng>(
                 get_mushroom(wpos, rng).unwrap_or(Block::air(SpriteKind::Empty))
             }
         });
+
+        if try_spawn_entity {
+            apply_entity_spawns(canvas, wpos, &biome, rng);
+        }
+    }
+}
+
+fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Biome, rng: &mut R) {
+    if RandomField::new(canvas.info().index().seed).chance(wpos, 0.05) {
+        if let Some(entity_asset) = [
+            // Mushroom biome
+            (
+                Some("common.entity.wild.peaceful.truffler"),
+                (biome.mushroom + 0.02) * 0.5,
+            ),
+            (
+                Some("common.entity.wild.peaceful.fungome"),
+                (biome.mushroom + 0.02) * 1.0,
+            ),
+            // Leafy biome
+            (
+                Some("common.entity.wild.peaceful.holladon"),
+                (biome.leafy + 0.05) * 0.5,
+            ),
+            (
+                Some("common.entity.wild.peaceful.turtle"),
+                (biome.leafy + 0.05) * 0.75,
+            ),
+            (
+                Some("common.entity.wild.peaceful.tortoise"),
+                (biome.leafy + 0.05) * 1.0,
+            ),
+            (
+                Some("common.entity.wild.peaceful.axolotl"),
+                (biome.leafy + 0.05) * 1.0,
+            ),
+            (
+                Some("common.entity.wild.aggressive.batfox"),
+                (biome.leafy + 0.3) * 0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.rocksnapper"),
+                (biome.leafy + 0.1) * 0.1,
+            ),
+            (
+                Some("common.entity.wild.aggressive.cave_salamander"),
+                (biome.leafy + 0.0) * 0.3,
+            ),
+            (
+                Some("common.entity.wild.aggressive.asp"),
+                (biome.leafy + 0.1) * 0.3,
+            ),
+            (
+                Some("common.entity.wild.aggressive.swamp_troll"),
+                (biome.leafy + 0.0) * 0.1,
+            ),
+            // Dusty biome
+            (
+                Some("common.entity.wild.aggressive.dodarock"),
+                (biome.dusty + 0.05) * 0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.cave_spider"),
+                (biome.dusty + 0.0) * 0.25,
+            ),
+            (
+                Some("common.entity.wild.aggressive.cave_troll"),
+                (biome.dusty + 0.1) * 0.05,
+            ),
+            (
+                Some("common.entity.wild.peaceful.rat"),
+                (biome.dusty + 0.1) * 1.0,
+            ),
+            // Icy biome
+            (
+                Some("common.entity.wild.aggressive.blue_oni"),
+                (biome.icy + 0.0) * 0.03,
+            ),
+            (
+                Some("common.entity.wild.aggressive.icedrake"),
+                (biome.icy + 0.0) * 0.1,
+            ),
+            (
+                Some("common.entity.wild.aggressive.wendigo"),
+                (biome.icy.min(biome.depth) + 0.0) * 0.02,
+            ),
+            // Lava biome
+            (
+                Some("common.entity.wild.aggressive.lavadrake"),
+                (biome.fire + 0.0) * 0.2,
+            ),
+            (
+                Some("common.entity.wild.aggressive.basilisk"),
+                (biome.fire + 0.1) * 0.05,
+            ),
+            (
+                Some("common.entity.wild.peaceful.crawler_molten"),
+                (biome.fire + 0.0) * 0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.red_oni"),
+                (biome.fire + 0.0) * 0.02,
+            ),
+            // With depth
+            (
+                Some("common.entity.wild.aggressive.black_widow"),
+                (biome.depth + 0.0) * 0.02,
+            ),
+            (
+                Some("common.entity.wild.aggressive.ogre"),
+                (biome.depth + 0.0) * 0.02,
+            ),
+            (None, 100.0),
+        ]
+        .choose_weighted(rng, |(_, w)| *w)
+        .ok()
+        .and_then(|s| s.0)
+        {
+            canvas
+                .spawn(EntityInfo::at(wpos.map(|e| e as f32)).with_asset_expect(entity_asset, rng));
+        }
+    }
+
+    // Occasionally place down a waypoint
+    if RandomField::new(canvas.info().index().seed).chance(wpos, 0.000005) {
+        canvas.spawn(EntityInfo::at(wpos.map(|e| e as f32)).into_waypoint());
     }
 }
