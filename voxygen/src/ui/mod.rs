@@ -50,7 +50,7 @@ use conrod_core::{
     widget::{self, id::Generator},
     Rect, Scalar, UiBuilder, UiCell,
 };
-use core::{convert::TryInto, f32, f64, ops::Range};
+use core::{convert::TryInto, f64, ops::Range};
 use graphic::TexId;
 use hashbrown::hash_map::Entry;
 use std::time::Duration;

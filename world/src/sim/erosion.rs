@@ -18,7 +18,7 @@ use rayon::prelude::*;
 use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
-    f32, f64, fmt, mem,
+    f32, fmt, mem,
     time::Instant,
     u32,
 };
@@ -555,8 +555,8 @@ fn get_max_slope(
     rock_strength_nz: &(impl NoiseFn<[f64; 3]> + Sync),
     height_scale: impl Fn(usize) -> Alt + Sync,
 ) -> Box<[f64]> {
-    let min_max_angle = (15.0 / 360.0 * 2.0 * f64::consts::PI).tan();
-    let max_max_angle = (60.0 / 360.0 * 2.0 * f64::consts::PI).tan();
+    let min_max_angle = (15.0 / 360.0 * 2.0 * std::f64::consts::PI).tan();
+    let max_max_angle = (60.0 / 360.0 * 2.0 * std::f64::consts::PI).tan();
     let max_angle_range = max_max_angle - min_max_angle;
     h.par_iter()
         .enumerate()
@@ -572,7 +572,7 @@ fn get_max_slope(
             // Logistic regression.  Make sure x ∈ (0, 1).
             let logit = |x: f64| x.ln() - (-x).ln_1p();
             // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-            let logistic_2_base = 3.0f64.sqrt() * f64::consts::FRAC_2_PI;
+            let logistic_2_base = 3.0f64.sqrt() * std::f64::consts::FRAC_2_PI;
             // Assumes μ = 0, σ = 1
             let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
@@ -860,7 +860,7 @@ fn erode(
 
     // max angle of slope depends on rock strength, which is computed from noise
     // function. TODO: Make more principled.
-    let mid_slope = (30.0 / 360.0 * 2.0 * f64::consts::PI).tan();
+    let mid_slope = (30.0 / 360.0 * 2.0 * std::f64::consts::PI).tan();
 
     type SimdType = f32;
     type MaskType = m32;

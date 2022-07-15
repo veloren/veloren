@@ -1,7 +1,7 @@
 use iced::{
     layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget,
 };
-use std::{hash::Hash, u32};
+use std::hash::Hash;
 
 // TODO: decouple from image/compound graphic widgets (they could still use
 // common types, but the info we want here for the background is a subset of

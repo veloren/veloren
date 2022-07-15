@@ -15,10 +15,7 @@ use common::{
 };
 use noise::NoiseFn;
 use serde::Deserialize;
-use std::{
-    f32,
-    ops::{Add, Div, Mul, Sub},
-};
+use std::ops::{Add, Div, Mul, Sub};
 use tracing::error;
 use vek::*;
 
@@ -535,7 +532,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     // 0.0 = not near river, 1.0 = in middle of river
                     let near_center = ((river_dist / (river_width * 0.5)) as f32)
                         .min(1.0)
-                        .mul(f32::consts::PI)
+                        .mul(std::f32::consts::PI)
                         .cos()
                         .add(1.0)
                         .mul(0.5);
@@ -743,7 +740,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             const MIN_DEPTH: f32 = 1.0;
                             let near_center = ((river_dist / (river_width * 0.5)) as f32)
                                 .min(1.0)
-                                .mul(f32::consts::PI)
+                                .mul(std::f32::consts::PI)
                                 .cos()
                                 .add(1.0)
                                 .mul(0.5);

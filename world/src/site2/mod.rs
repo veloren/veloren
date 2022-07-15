@@ -92,7 +92,7 @@ impl Site {
         let base_spawn_rules = SpawnRules {
             trees: max_warp == 1.0,
             max_warp,
-            paths: max_warp > std::f32::EPSILON,
+            paths: max_warp > f32::EPSILON,
             waypoints: true,
         };
         self.plots

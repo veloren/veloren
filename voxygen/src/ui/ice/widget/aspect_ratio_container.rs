@@ -1,7 +1,7 @@
 use iced::{
     layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget,
 };
-use std::{hash::Hash, u32};
+use std::hash::Hash;
 
 // Note: it might be more efficient to make this generic over the content type?
 
