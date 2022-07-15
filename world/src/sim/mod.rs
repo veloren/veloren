@@ -167,7 +167,7 @@ pub enum FileOpts {
     /// Combination of Save and Load.
     /// Load map if exists or generate the world map and save the
     /// world file as <name + opts>
-    CacheLoad(String, SizeOpts),
+    LoadOrGenerate(String, SizeOpts),
     /// If set, load the world file from this path in legacy format (errors if
     /// path not found).  This option may be removed at some point, since it
     /// only applies to maps generated before map saving was merged into
@@ -188,14 +188,15 @@ impl Default for FileOpts {
 }
 
 impl FileOpts {
-    fn content(&self) -> (Option<ModernMap>, MapSizeLg, f64) {
-        let parsed_world_file = self.try_to_map();
+    fn load_content(&self) -> (Option<ModernMap>, MapSizeLg, f64) {
+        let parsed_world_file = self.try_load_map();
 
         let map_size_lg = parsed_world_file
             .as_ref()
             .and_then(|map| match MapSizeLg::new(map.map_size_lg) {
                 Ok(map_size_lg) => Some(map_size_lg),
                 Err(e) => {
+                    // TODO: this probably just panic
                     warn!("World size of map does not satisfy invariants: {:?}", e);
                     None
                 },
@@ -214,15 +215,17 @@ impl FileOpts {
         let continent_scale_hack = if let Some(map) = &parsed_world_file {
             map.continent_scale_hack
         } else {
-            self.continent_scale_hack(default_continent_scale_hack)
+            self.continent_scale_hack()
+                .unwrap_or(default_continent_scale_hack)
         };
 
         (parsed_world_file, map_size_lg, continent_scale_hack)
     }
 
+    // TODO: this should return Option so that caller can choose fallback
     fn map_size(&self) -> MapSizeLg {
         match self {
-            Self::Generate(opts) | Self::Save(opts) | Self::CacheLoad(_, opts) => {
+            Self::Generate(opts) | Self::Save(opts) | Self::LoadOrGenerate(_, opts) => {
                 MapSizeLg::new(Vec2 {
                     x: opts.x_lg,
                     y: opts.y_lg,
@@ -236,14 +239,18 @@ impl FileOpts {
         }
     }
 
-    fn continent_scale_hack(&self, default: f64) -> f64 {
+    fn continent_scale_hack(&self) -> Option<f64> {
         match self {
-            Self::Generate(opts) | Self::Save(opts) | Self::CacheLoad(_, opts) => opts.scale,
-            _ => default,
+            Self::Generate(opts) | Self::Save(opts) | Self::LoadOrGenerate(_, opts) => {
+                Some(opts.scale)
+            },
+            _ => None,
         }
     }
 
-    fn try_to_map(&self) -> Option<ModernMap> {
+    // TODO: This should probably return a Result, so that caller can choose
+    // whether to log error
+    fn try_load_map(&self) -> Option<ModernMap> {
         let map = match self {
             Self::LoadLegacy(ref path) => {
                 let file = match File::open(path) {
@@ -308,7 +315,7 @@ impl FileOpts {
                     return None;
                 },
             },
-            Self::CacheLoad { .. } => {
+            Self::LoadOrGenerate { .. } => {
                 // FIXME:
                 // We check if map exists by comparing name and gen opts.
                 // But we also have another generation paramater that currently
@@ -318,7 +325,7 @@ impl FileOpts {
                 // moving worldgen seed to gen opts and use different sim seed from
                 // server config or grab sim seed from world file.
                 //
-                // `unwrap` is safe here, because CacheLoad has its path always defined
+                // `unwrap` is safe here, because LoadOrGenerate has its path always defined
                 let path = self.map_path().unwrap();
                 let path = std::path::Path::new("./maps/").join(path);
 
@@ -378,7 +385,7 @@ impl FileOpts {
                         .unwrap_or(0)
                 ))
             },
-            Self::CacheLoad(name, opts) => {
+            Self::LoadOrGenerate(name, opts) => {
                 use std::{
                     collections::hash_map::DefaultHasher,
                     hash::{Hash, Hasher},
@@ -661,7 +668,7 @@ impl WorldSim {
         let world_file = opts.world_file;
 
         // Parse out the contents of various map formats into the values we need.
-        let (parsed_world_file, map_size_lg, continent_scale_hack) = world_file.content();
+        let (parsed_world_file, map_size_lg, continent_scale_hack) = world_file.load_content();
 
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let continent_scale = continent_scale_hack
