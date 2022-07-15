@@ -82,7 +82,7 @@ void main() {
 
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
-    #elif (0 == 0)
+    #else
         if (medium.x == MEDIUM_AIR && rain_density > 0.001) {
             vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
 
@@ -93,7 +93,7 @@ void main() {
             vec3 rpos = vec3(0.0);
             float t = 0.0;
             const float PLANCK = 0.01;
-            while (true) {
+            for (int i = 0; i < 14 /* log2(64) * 2 + 2 */; i ++) {
                 float scale = min(pow(2, ceil(t / 2.0)), 32);
                 vec2 deltas = (step(vec2(0), dir2d) - fract(rpos.xy / scale + 100.0)) / dir2d;
                 float jump = max(min(deltas.x, deltas.y) * scale, PLANCK);
@@ -121,76 +121,6 @@ void main() {
                     float light = dot(color.rgb, vec3(1)) + 0.05 + (get_sun_brightness() + get_moon_brightness()) * 0.2;
                     color.rgb = mix(color.rgb, vec3(0.3, 0.35, 0.5) * light, alpha);
                 }
-            }
-        }
-    #else
-        vec3 old_color = color.rgb;
-
-        // normalized direction from the camera position to the fragment in world, transformed by the relative rain direction
-        vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
-
-        // stretch z values as they move away from 0
-        float z = (-1 / (abs(adjusted_dir.z) - 1) - 1) * sign(adjusted_dir.z);
-        // normalize xy to get a 2d direction
-        vec2 dir_2d = normalize(adjusted_dir.xy);
-        // sort of map cylinder around the camera to 2d grid
-        vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
-
-        // compute camera position in the world
-        vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
-
-        // Rain density is now only based on the cameras current position.
-        // This could be affected by a setting where rain_density_at is instead
-        // called each iteration of the loop. With the current implementation
-        // of rain_dir this has issues with being in a place where it doesn't rain
-        // and seeing rain.
-        float rain_density = rain_density * 1.0;
-        if (medium.x == MEDIUM_AIR && rain_density > 0.0) {
-            float rain_dist = 50.0;
-            #if (CLOUD_MODE <= CLOUD_MODE_LOW)
-                const int iterations = 2;
-            #else
-                const int iterations = 4;
-            #endif
-
-            for (int i = 0; i < iterations; i ++) {
-                float old_rain_dist = rain_dist;
-                rain_dist *= 0.3 / 4.0 * iterations;
-
-                vec2 drop_density = vec2(30, 1);
-
-                vec2 rain_pos = (view_pos * rain_dist);
-                rain_pos.y += integrated_rain_vel;
-
-                vec2 cell = floor(rain_pos * drop_density) / drop_density;
-
-                float drop_depth = mix(
-                    old_rain_dist,
-                    rain_dist,
-                    fract(hash(fract(vec4(cell, rain_dist, 0) * 0.1)))
-                );
-
-                float dist_to_rain = drop_depth / length(dir.xy);
-                vec3 rpos = dir * dist_to_rain;
-                if (dist < dist_to_rain || cam_wpos.z + rpos.z > CLOUD_AVG_ALT) {
-                    continue;
-                }
-
-                if (dot(rpos * vec3(1, 1, 0.5), rpos) < 1.0) {
-                    break;
-                }
-                float rain_density = 10.0 * rain_density * floor(rain_occlusion_at(cam_pos.xyz + rpos.xyz));
-
-                if (rain_density < 0.001 || fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
-                    continue;
-                }
-                vec2 near_drop = cell + (vec2(0.5) + (vec2(hash(vec4(cell, 0, 0)), 0.5) - 0.5) * vec2(2, 0)) / drop_density;
-
-                vec2 drop_size = vec2(0.0008, 0.03);
-                float avg_alpha = (drop_size.x * drop_size.y) * 10 / 1;
-                float alpha = sign(max(1 - length((rain_pos - near_drop) / drop_size * 0.1), 0));
-                float light = sqrt(dot(old_color, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
-                color.rgb = mix(color.rgb, vec3(0.3, 0.4, 0.5) * light, mix(avg_alpha, alpha, min(1000 / dist_to_rain, 1)) * 0.25);
             }
         }
     #endif
