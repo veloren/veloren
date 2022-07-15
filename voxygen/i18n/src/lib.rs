@@ -162,7 +162,7 @@ impl LocalizationGuard {
     ///
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
-    pub fn get_opt<'a>(&'a self, key: &str) -> Option<&'a str> {
+    pub fn get_opt(&self, key: &str) -> Option<&str> {
         self.active
             .get(key)
             .or_else(|| self.fallback.as_ref().and_then(|f| f.get(key)))

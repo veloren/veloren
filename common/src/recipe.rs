@@ -645,9 +645,9 @@ impl ComponentRecipe {
     /// a component recipe. If it does, return a vec of inventory slots that
     /// contain the ingredients needed, whose positions correspond to particular
     /// recipe are missing.
-    pub fn inventory_contains_additional_ingredients<'a>(
+    pub fn inventory_contains_additional_ingredients(
         &self,
-        inv: &'a Inventory,
+        inv: &Inventory,
     ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&RecipeInput, u32)>> {
         inventory_contains_ingredients(
             self.additional_inputs
