@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     site::namegen::NameGen,
-    site2::{self, aabr_with_z, Fill, Primitive, Structure as SiteStructure},
+    site2::{aabr_with_z, Fill, Primitive, Structure as SiteStructure},
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
     Land,
 };

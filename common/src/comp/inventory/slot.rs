@@ -1,12 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, convert::TryFrom};
 
-use crate::comp::{
-    inventory::{
-        item::{armor, armor::ArmorKind, tool, ItemKind},
-        loadout::LoadoutSlotId,
-    },
-    item,
+use crate::comp::inventory::{
+    item::{armor, armor::ArmorKind, tool, ItemKind},
+    loadout::LoadoutSlotId,
 };
 
 #[derive(Debug, PartialEq)]

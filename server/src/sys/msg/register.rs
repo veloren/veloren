@@ -12,7 +12,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{
     CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo, PlayerListUpdate, RegisterError,
-    ServerGeneral, ServerRegisterAnswer,
+    ServerGeneral,
 };
 use hashbrown::HashMap;
 use plugin_api::Health;

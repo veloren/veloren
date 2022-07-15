@@ -7,7 +7,6 @@ use crate::{
     },
     lottery::LootSpec,
     npc::{self, NPC_NAMES},
-    trade,
     trade::SiteInformation,
 };
 use serde::Deserialize;

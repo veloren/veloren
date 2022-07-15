@@ -1,6 +1,6 @@
 use crate::{
     combat::{
-        self, Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
+        Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
         CombatRequirement, Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{

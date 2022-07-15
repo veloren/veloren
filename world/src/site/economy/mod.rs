@@ -22,7 +22,6 @@ pub use map_types::Labor;
 use map_types::{GoodIndex, GoodMap, LaborIndex, LaborMap, NaturalResources};
 mod context;
 pub use context::simulate_economy;
-use context::Environment;
 
 const INTER_SITE_TRADE: bool = true;
 const DAYS_PER_MONTH: f32 = 30.0;

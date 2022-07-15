@@ -2,7 +2,7 @@ use crate::{client::Client, Server};
 use common::{
     comp::{
         self,
-        group::{self, ChangeNotification, Group, GroupManager},
+        group::{ChangeNotification, Group, GroupManager},
         invite::{InviteKind, PendingInvites},
         ChatType, GroupManip,
     },

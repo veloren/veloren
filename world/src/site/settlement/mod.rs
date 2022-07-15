@@ -27,7 +27,7 @@ use common::{
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
-    trade::{self, Good, SiteInformation},
+    trade::{Good, SiteInformation},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 

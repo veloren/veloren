@@ -1,7 +1,7 @@
 /// this contains global housekeeping info during simulation
 use crate::{
     site::{
-        economy::{self, Economy, DAYS_PER_MONTH, DAYS_PER_YEAR, INTER_SITE_TRADE},
+        economy::{Economy, DAYS_PER_MONTH, DAYS_PER_YEAR, INTER_SITE_TRADE},
         SiteKind,
     },
     Index,
