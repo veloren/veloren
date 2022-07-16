@@ -677,6 +677,9 @@ impl WorldSim {
 
         // Parse out the contents of various map formats into the values we need.
         let (parsed_world_file, map_size_lg, continent_scale_hack) = world_file.load_content();
+        // Currently only used with LoadOrGenerate to know if we need to
+        // overwrite world file
+        let fresh = parsed_world_file.is_none();
 
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let continent_scale = continent_scale_hack
@@ -1302,7 +1305,9 @@ impl WorldSim {
             alt,
             basement,
         });
-        world_file.save(&map);
+        if fresh {
+            world_file.save(&map);
+        }
 
         // Skip validation--we just performed a no-op conversion for this map, so it had
         // better be valid!
