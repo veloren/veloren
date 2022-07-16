@@ -620,8 +620,11 @@ vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_a
 //}
 //#endif
 
-vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out float f_ao, out uint f_attr) {
+vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out float f_ao, out uint f_attr, out float f_sky_exposure) {
     // TODO: Figure out how to use `texture` and modulation to avoid needing to do manual filtering
+    // TODO: Use `texture` instead
+    //vec2 light = texture(t_col_light, f_uv_pos).xy / 31;
+
     uvec4 tex_00 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 0), 0) * 255);
     uvec4 tex_10 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0) * 255);
     uvec4 tex_01 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0) * 255);
@@ -633,8 +636,6 @@ vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, v
     vec3 light_0 = mix(light_00, light_01, fract(f_uv_pos.y));
     vec3 light_1 = mix(light_10, light_11, fract(f_uv_pos.y));
     vec3 light = mix(light_0, light_1, fract(f_uv_pos.x));
-    // TODO: Use `texture` instead
-    //vec2 light = texture(t_col_light, f_uv_pos).xy / 31;
 
     vec3 f_col = vec3(
         float(((tex_00.r & 0x7u) << 1u) | (tex_00.b & 0xF0u)),
@@ -644,14 +645,26 @@ vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, v
 
     f_ao = light.z;
     f_light = light.x / 31.0;
+    f_sky_exposure = light.x / 31.0 + (1.0 - f_ao) * 0.5;
     f_glow = light.y / 31.0;
     f_attr = tex_00.g >> 3u;
     return srgb_to_linear(f_col);
 }
 
-vec3 greedy_extract_col_light_glow(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_ao, out float f_glow) {
-    uint f_attr;
-    return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_ao, f_attr);
+vec3 greedy_extract_col_light_terrain(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out float f_ao, out float f_sky_exposure) {
+    float _f_attr;
+    return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_ao, _f_attr, f_sky_exposure);
+}
+
+vec3 greedy_extract_col_light_sprite(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light) {
+    float _f_sky_exposure, _f_light, _f_glow, _f_ao;
+    uint _f_attr;
+    return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, _f_glow, _f_ao, _f_attr, _f_sky_exposure);
+}
+
+vec3 greedy_extract_col_light_figure(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out uint f_attr) {
+    float _f_sky_exposure, _f_light, _f_glow, _f_ao;
+    return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, _f_glow, _f_ao, f_attr, _f_sky_exposure);
 }
 
 #endif
