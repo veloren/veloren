@@ -420,7 +420,7 @@ impl FileOpts {
                         .unwrap_or(0)
                 ))
             },
-            Self::LoadOrGenerate { name, .. } => Some(format!("map_{}.bin", name)),
+            Self::LoadOrGenerate { name, .. } => Some(format!("{}.bin", name)),
             _ => None,
         };
 
