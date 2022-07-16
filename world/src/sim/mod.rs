@@ -166,8 +166,14 @@ pub enum FileOpts {
     Save(SizeOpts),
     /// Combination of Save and Load.
     /// Load map if exists or generate the world map and save the
-    /// world file as <name + opts>
-    LoadOrGenerate(String, SizeOpts),
+    /// world file.
+    LoadOrGenerate {
+        name: String,
+        #[serde(default)]
+        opts: SizeOpts,
+        #[serde(default)]
+        overwrite: bool,
+    },
     /// If set, load the world file from this path in legacy format (errors if
     /// path not found).  This option may be removed at some point, since it
     /// only applies to maps generated before map saving was merged into
@@ -225,7 +231,7 @@ impl FileOpts {
     // TODO: this should return Option so that caller can choose fallback
     fn map_size(&self) -> MapSizeLg {
         match self {
-            Self::Generate(opts) | Self::Save(opts) | Self::LoadOrGenerate(_, opts) => {
+            Self::Generate(opts) | Self::Save(opts) | Self::LoadOrGenerate { opts, .. } => {
                 MapSizeLg::new(Vec2 {
                     x: opts.x_lg,
                     y: opts.y_lg,
@@ -241,7 +247,7 @@ impl FileOpts {
 
     fn continent_scale_hack(&self) -> Option<f64> {
         match self {
-            Self::Generate(opts) | Self::Save(opts) | Self::LoadOrGenerate(_, opts) => {
+            Self::Generate(opts) | Self::Save(opts) | Self::LoadOrGenerate { opts, .. } => {
                 Some(opts.scale)
             },
             _ => None,
@@ -315,7 +321,9 @@ impl FileOpts {
                     return None;
                 },
             },
-            Self::LoadOrGenerate(_name, opts) => {
+            Self::LoadOrGenerate {
+                opts, overwrite, ..
+            } => {
                 // `unwrap` is safe here, because LoadOrGenerate has its path
                 // always defined
                 let path = self.map_path().unwrap();
@@ -323,11 +331,7 @@ impl FileOpts {
                 let file = match File::open(&path) {
                     Ok(file) => file,
                     Err(e) => {
-                        warn!(
-                            ?e,
-                            ?path,
-                            "Couldn't find needed map. It will be regenerated."
-                        );
+                        warn!(?e, ?path, "Couldn't find needed map. Generating...");
                         return None;
                     },
                 };
@@ -366,8 +370,20 @@ impl FileOpts {
 
                 if map.continent_scale_hack != *scale || map.map_size_lg != Vec2::new(*x_lg, *y_lg)
                 {
-                    warn!("Specified options don't correspond these in loaded map file.");
-                    warn!("Map will be regenerated and overwritten.");
+                    if *overwrite {
+                        warn!(
+                            "{}\n{}",
+                            "Specified options don't correspond to these in loaded map.",
+                            "Map will be regenerated and overwritten."
+                        );
+                    } else {
+                        panic!(
+                            "{}\n{}",
+                            "Specified options don't correspond to these in loaded map.",
+                            "Use 'ovewrite' option, if you wish to regenerate map."
+                        );
+                    }
+
                     return None;
                 }
 
@@ -404,7 +420,7 @@ impl FileOpts {
                         .unwrap_or(0)
                 ))
             },
-            Self::LoadOrGenerate(name, _opts) => Some(format!("map_{}.bin", name)),
+            Self::LoadOrGenerate { name, .. } => Some(format!("map_{}.bin", name)),
             _ => None,
         };
 
