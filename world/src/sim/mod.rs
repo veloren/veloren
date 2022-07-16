@@ -319,7 +319,6 @@ impl FileOpts {
                 // `unwrap` is safe here, because LoadOrGenerate has its path
                 // always defined
                 let path = self.map_path().unwrap();
-                let path = std::path::Path::new("./maps/").join(path);
 
                 let file = match File::open(&path) {
                     Ok(file) => file,
@@ -361,13 +360,14 @@ impl FileOpts {
                 let map = match map {
                     WorldFile::Veloren0_7_0(map) => map,
                     WorldFile::Veloren0_5_0(_) => {
-                        panic!("World file v0.5.0 isn't supported with LoadOrGenerate")
+                        panic!("World file v0.5.0 isn't supported with LoadOrGenerate.")
                     },
                 };
 
                 if map.continent_scale_hack != *scale || map.map_size_lg != Vec2::new(*x_lg, *y_lg)
                 {
-                    warn!("Specified options don't correspond these in loaded map file");
+                    warn!("Specified options don't correspond these in loaded map file.");
+                    warn!("Map will be regenerated and overwritten.");
                     return None;
                 }
 
@@ -389,9 +389,10 @@ impl FileOpts {
         }
     }
 
-    fn map_path(&self) -> Option<String> {
+    fn map_path(&self) -> Option<PathBuf> {
+        const MAP_DIR: &str = "./maps";
         // TODO: Work out a nice bincode file extension.
-        match self {
+        let file_name = match self {
             Self::Save { .. } => {
                 use std::time::SystemTime;
 
@@ -405,25 +406,27 @@ impl FileOpts {
             },
             Self::LoadOrGenerate(name, _opts) => Some(format!("map_{}.bin", name)),
             _ => None,
-        }
+        };
+
+        file_name.map(|name| std::path::Path::new(MAP_DIR).join(name))
     }
 
     fn save(&self, map: &WorldFile) {
-        let name = if let Some(name) = self.map_path() {
-            name
+        let path = if let Some(path) = self.map_path() {
+            path
         } else {
             return;
         };
 
         // Check if folder exists and create it if it does not
-        let mut path = PathBuf::from("./maps");
-        if !path.exists() {
-            if let Err(e) = std::fs::create_dir(&path) {
-                warn!(?e, ?path, "Couldn't create folder for map");
+        let map_dir = path.parent().expect("failed to get map directory");
+        if !map_dir.exists() {
+            if let Err(e) = std::fs::create_dir_all(map_dir) {
+                warn!(?e, ?map_dir, "Couldn't create folder for map");
                 return;
             }
         }
-        path.push(name);
+
         let file = match File::create(path.clone()) {
             Ok(file) => file,
             Err(e) => {
