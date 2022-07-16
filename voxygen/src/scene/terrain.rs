@@ -6,7 +6,7 @@ use crate::{
     mesh::{
         greedy::{GreedyMesh, SpriteAtlasAllocator},
         segment::generate_mesh_base_vol_sprite,
-        terrain::{generate_mesh, SUNLIGHT_INV},
+        terrain::{generate_mesh, SUNLIGHT, SUNLIGHT_INV},
     },
     render::{
         pipelines::{self, ColLights},
@@ -777,13 +777,18 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .get(&chunk_pos)
                     .into_iter()
                     .flat_map(|c| c.blocks_of_interest.lights.iter())
-                    .map(move |(lpos, level)| {
-                        (
-                            Vec3::<i32>::from(
-                                chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
-                            ) + *lpos,
-                            level,
-                        )
+                    .filter_map(move |(lpos, level)| {
+                        if (*lpos - wpos_chunk).map(|e| e.abs()).reduce_min() < SUNLIGHT as i32 + 2
+                        {
+                            Some((
+                                Vec3::<i32>::from(
+                                    chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
+                                ) + *lpos,
+                                level,
+                            ))
+                        } else {
+                            None
+                        }
                     })
             })
             .fold(
