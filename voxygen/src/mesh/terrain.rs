@@ -30,6 +30,7 @@ enum FaceKind {
 }
 
 pub const SUNLIGHT: u8 = 24;
+pub const SUNLIGHT_INV: f32 = 1.0 / SUNLIGHT as f32;
 pub const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
 
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
@@ -217,7 +218,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
             .unwrap_or(default_light);
 
         if l != OPAQUE && l != UNKNOWN {
-            l as f32 / SUNLIGHT as f32
+            l as f32 * SUNLIGHT_INV
         } else {
             0.0
         }
