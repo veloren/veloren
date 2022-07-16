@@ -114,7 +114,7 @@ void main() {
 
                 if (wpos_dist > dist) { break; }
                 if (length((fract(wall_pos.xz) - 0.5)) < 0.1 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
-                    float density = rain_density * rain_occlusion_at(wpos - vec3(0, 0, 0.5));
+                    float density = rain_density * rain_occlusion_at(wpos);
                     if (fract(hash_two(uvec2(wall_pos.xz) + 1000u)) >= density) { continue; }
 
                     float alpha = 0.5 * clamp((wpos_dist - 1.0) * 0.5, 0.0, 1.0);

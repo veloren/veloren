@@ -244,7 +244,7 @@ void main() {
             drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
             vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
 
-            if (rain_occlusion_at(f_pos.xyz) > 0.5) {
+            if (rain_occlusion_at(f_pos.xyz + vec3(0, 0, 0.25)) > 0.5) {
                 #ifdef EXPERIMENTAL_WETNESS
                     float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.03) - 0.5) * 20.0, 0.0, 1.0) * min(rain_density * 10.0, 1.0);
                 #else
