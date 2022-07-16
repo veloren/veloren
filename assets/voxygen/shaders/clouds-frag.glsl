@@ -99,7 +99,11 @@ void main() {
                 float jump = max(min(deltas.x, deltas.y) * scale, PLANCK);
                 t += jump;
 
-                if (t >= 64.0) { break; }
+                #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+                    if (t >= 64.0) { break; }
+                #else
+                    if (t >= 16.0) { break; }
+                #endif
 
                 rpos = rorigin + adjusted_dir * t;
 

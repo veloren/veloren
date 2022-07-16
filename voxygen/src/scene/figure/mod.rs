@@ -6411,6 +6411,8 @@ impl<S: Skeleton> FigureState<S> {
         // get the rider offset
         skel_body: S::Body,
     ) {
+        span!(_guard, "update", "FigureState::update");
+
         // NOTE: As long as update() always gets called after get_or_create_model(), and
         // visibility is not set again until after the model is rendered, we
         // know we don't pair the character model with invalid model state.
@@ -6475,6 +6477,11 @@ impl<S: Skeleton> FigureState<S> {
 
         let (light, glow) = terrain
             .map(|t| {
+                span!(
+                    _guard,
+                    "light_glow",
+                    "FigureState::update (fetch light/glow)"
+                );
                 // Sample the location a little above to avoid clipping into terrain
                 // TODO: Try to make this faster? It might be fine though
                 let wpos = Vec3::from(pos.into_array()) + Vec3::unit_z();
