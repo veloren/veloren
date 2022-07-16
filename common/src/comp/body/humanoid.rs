@@ -76,8 +76,8 @@ impl Body {
             (Species::Elf, BodyType::Female) => 0.76,
             (Species::Dwarf, BodyType::Male) => 0.67,
             (Species::Dwarf, BodyType::Female) => 0.62,
-            (Species::Undead, BodyType::Male) => 0.78,
-            (Species::Undead, BodyType::Female) => 0.72,
+            (Species::Draugr, BodyType::Male) => 0.78,
+            (Species::Draugr, BodyType::Female) => 0.72,
             (Species::Danari, BodyType::Male) => 0.56,
             (Species::Danari, BodyType::Female) => 0.56,
         }
@@ -98,7 +98,7 @@ make_case_elim!(
         Elf = 2,
         Human = 3,
         Orc = 4,
-        Undead = 5,
+        Draugr = 5,
     }
 );
 
@@ -112,7 +112,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub elf: SpeciesMeta,
     pub human: SpeciesMeta,
     pub orc: SpeciesMeta,
-    pub undead: SpeciesMeta,
+    pub draugr: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -126,7 +126,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Elf => &self.elf,
             Species::Human => &self.human,
             Species::Orc => &self.orc,
-            Species::Undead => &self.undead,
+            Species::Draugr => &self.draugr,
         }
     }
 }
@@ -137,7 +137,7 @@ pub const ALL_SPECIES: [Species; 6] = [
     Species::Elf,
     Species::Human,
     Species::Orc,
-    Species::Undead,
+    Species::Draugr,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
@@ -148,104 +148,139 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
 }
 
 // Skin colors
-pub const DANARI_SKIN_COLORS: [Skin; 4] = [
+pub const DANARI_SKIN_COLORS: [Skin; 7] = [
     Skin::DanariOne,
     Skin::DanariTwo,
     Skin::DanariThree,
     Skin::DanariFour,
+    Skin::DanariFive,
+    Skin::DanariSix,
+    Skin::DanariSeven,
 ];
 pub const DWARF_SKIN_COLORS: [Skin; 14] = [
-    Skin::Skin1,
-    Skin::Skin2,
-    Skin::Skin3,
-    Skin::Skin4,
-    Skin::Skin5,
-    Skin::Skin6,
-    Skin::Skin7,
-    Skin::Skin8,
-    Skin::Skin9,
-    Skin::Skin10,
-    Skin::Skin11,
-    Skin::Skin12,
-    Skin::Iron,
-    Skin::Steel,
+    Skin::DwarfOne,
+    Skin::DwarfTwo,
+    Skin::DwarfThree,
+    Skin::DwarfFour,
+    Skin::DwarfFive,
+    Skin::DwarfSix,
+    Skin::DwarfSeven,
+    Skin::DwarfEight,
+    Skin::DwarfNine,
+    Skin::DwarfTen,
+    Skin::DwarfEleven,
+    Skin::DwarfTwelve,
+    Skin::DwarfThirteen,
+    Skin::DwarfFourteen,
 ];
-pub const ELF_SKIN_COLORS: [Skin; 13] = [
-    Skin::Skin1,
-    Skin::Skin2,
-    Skin::Skin3,
-    Skin::Skin5,
-    Skin::Skin6,
-    Skin::Skin7,
-    Skin::Skin8,
-    Skin::Skin9,
-    Skin::Skin10,
-    Skin::Skin11,
-    Skin::Skin12,
+pub const ELF_SKIN_COLORS: [Skin; 18] = [
     Skin::ElfOne,
     Skin::ElfTwo,
-    //Skin::ElfThree,
+    Skin::ElfThree,
+    Skin::ElfFour,
+    Skin::ElfFive,
+    Skin::ElfSix,
+    Skin::ElfSeven,
+    Skin::ElfEight,
+    Skin::ElfNine,
+    Skin::ElfTen,
+    Skin::ElfEleven,
+    Skin::ElfTwelve,
+    Skin::ElfThirteen,
+    Skin::ElfFourteen,
+    Skin::ElfFifteen,
+    Skin::ElfSixteen,
+    Skin::ElfSeventeen,
+    Skin::ElfEighteen,
 ];
 pub const HUMAN_SKIN_COLORS: [Skin; 18] = [
-    Skin::Skin1,
-    Skin::Skin2,
-    Skin::Skin3,
-    Skin::Skin4,
-    Skin::Skin5,
-    Skin::Skin6,
-    Skin::Skin7,
-    Skin::Skin8,
-    Skin::Skin9,
-    Skin::Skin10,
-    Skin::Skin11,
-    Skin::Skin12,
-    Skin::Skin13,
-    Skin::Skin14,
-    Skin::Skin15,
-    Skin::Skin16,
-    Skin::Skin17,
-    Skin::Skin18,
+    Skin::HumanOne,
+    Skin::HumanTwo,
+    Skin::HumanThree,
+    Skin::HumanFour,
+    Skin::HumanFive,
+    Skin::HumanSix,
+    Skin::HumanSeven,
+    Skin::HumanEight,
+    Skin::HumanNine,
+    Skin::HumanTen,
+    Skin::HumanEleven,
+    Skin::HumanTwelve,
+    Skin::HumanThirteen,
+    Skin::HumanFourteen,
+    Skin::HumanFifteen,
+    Skin::HumanSixteen,
+    Skin::HumanSeventeen,
+    Skin::HumanEighteen,
 ];
-pub const ORC_SKIN_COLORS: [Skin; 4] = [Skin::OrcOne, Skin::OrcTwo, Skin::OrcThree, Skin::OrcFour];
-pub const UNDEAD_SKIN_COLORS: [Skin; 3] = [Skin::UndeadOne, Skin::UndeadTwo, Skin::UndeadThree];
+pub const ORC_SKIN_COLORS: [Skin; 8] = [
+    Skin::OrcOne,
+    Skin::OrcTwo,
+    Skin::OrcThree,
+    Skin::OrcFour,
+    Skin::OrcFive,
+    Skin::OrcSix,
+    Skin::OrcSeven,
+    Skin::OrcEight,
+];
+pub const DRAUGR_SKIN_COLORS: [Skin; 9] = [
+    Skin::DraugrOne,
+    Skin::DraugrTwo,
+    Skin::DraugrThree,
+    Skin::DraugrFour,
+    Skin::DraugrFive,
+    Skin::DraugrSix,
+    Skin::DraugrSeven,
+    Skin::DraugrEight,
+    Skin::DraugrNine,
+];
 
 // Eye colors
-pub const DANARI_EYE_COLORS: [EyeColor; 3] = [
-    EyeColor::CuriousGreen,
+pub const DANARI_EYE_COLORS: [EyeColor; 4] = [
+    EyeColor::EmeraldGreen,
     EyeColor::LoyalBrown,
+    EyeColor::RegalPurple,
     EyeColor::ViciousRed,
 ];
-pub const DWARF_EYE_COLORS: [EyeColor; 4] = [
-    EyeColor::CuriousGreen,
+pub const DWARF_EYE_COLORS: [EyeColor; 6] = [
+    EyeColor::AmberYellow,
+    EyeColor::CornflowerBlue,
     EyeColor::LoyalBrown,
     EyeColor::NobleBlue,
-    EyeColor::CornflowerBlue,
-];
-pub const ELF_EYE_COLORS: [EyeColor; 4] = [
-    EyeColor::NobleBlue,
-    EyeColor::CornflowerBlue,
-    EyeColor::CuriousGreen,
-    EyeColor::LoyalBrown,
-];
-pub const HUMAN_EYE_COLORS: [EyeColor; 4] = [
-    EyeColor::NobleBlue,
-    EyeColor::CornflowerBlue,
-    EyeColor::CuriousGreen,
-    EyeColor::LoyalBrown,
-];
-pub const ORC_EYE_COLORS: [EyeColor; 5] = [
-    EyeColor::LoyalBrown,
-    EyeColor::ExoticPurple,
-    EyeColor::AmberOrange,
     EyeColor::PineGreen,
-    EyeColor::CornflowerBlue,
+    EyeColor::RustBrown,
 ];
-pub const UNDEAD_EYE_COLORS: [EyeColor; 5] = [
-    EyeColor::ViciousRed,
-    EyeColor::PumpkinOrange,
+pub const ELF_EYE_COLORS: [EyeColor; 7] = [
+    EyeColor::AmberYellow,
+    EyeColor::BrightBrown,
+    EyeColor::EmeraldGreen,
+    EyeColor::NobleBlue,
+    EyeColor::SapphireBlue,
+    EyeColor::RegalPurple,
+    EyeColor::RubyRed,
+];
+pub const HUMAN_EYE_COLORS: [EyeColor; 5] = [
+    EyeColor::NobleBlue,
+    EyeColor::CornflowerBlue,
+    EyeColor::CuriousGreen,
+    EyeColor::LoyalBrown,
+    EyeColor::VigorousBlack,
+];
+pub const ORC_EYE_COLORS: [EyeColor; 6] = [
+    EyeColor::AmberYellow,
+    EyeColor::CornflowerBlue,
+    EyeColor::ExoticPurple,
+    EyeColor::LoyalBrown,
+    EyeColor::PineGreen,
+    EyeColor::RustBrown,
+];
+pub const DRAUGR_EYE_COLORS: [EyeColor; 6] = [
+    EyeColor::FrozenBlue,
     EyeColor::GhastlyYellow,
     EyeColor::MagicPurple,
+    EyeColor::PumpkinOrange,
     EyeColor::ToxicGreen,
+    EyeColor::ViciousRed,
 ];
 
 impl Species {
@@ -256,7 +291,7 @@ impl Species {
             Species::Elf => &ELF_SKIN_COLORS,
             Species::Human => &HUMAN_SKIN_COLORS,
             Species::Orc => &ORC_SKIN_COLORS,
-            Species::Undead => &UNDEAD_SKIN_COLORS,
+            Species::Draugr => &DRAUGR_SKIN_COLORS,
         }
     }
 
@@ -267,7 +302,7 @@ impl Species {
             Species::Elf => &ELF_EYE_COLORS,
             Species::Human => &HUMAN_EYE_COLORS,
             Species::Orc => &ORC_EYE_COLORS,
-            Species::Undead => &UNDEAD_EYE_COLORS,
+            Species::Draugr => &DRAUGR_EYE_COLORS,
         }
     }
 
@@ -278,12 +313,12 @@ impl Species {
     /// represent per-species stuff (or have some other solution for validity).
     pub fn num_hair_colors(self) -> u8 {
         match self {
-            Species::Danari => 12,
+            Species::Danari => 17,
             Species::Dwarf => 21,
             Species::Elf => 24,
             Species::Human => 22,
-            Species::Orc => 11,
-            Species::Undead => 22,
+            Species::Orc => 13,
+            Species::Draugr => 25,
         }
     }
 
@@ -291,7 +326,7 @@ impl Species {
         self.skin_colors()
             .get(val as usize)
             .copied()
-            .unwrap_or(Skin::Skin3)
+            .unwrap_or(Skin::HumanThree)
     }
 
     pub fn num_skin_colors(self) -> u8 { self.skin_colors().len() as u8 }
@@ -307,18 +342,18 @@ impl Species {
 
     pub fn num_hair_styles(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
-            (Species::Danari, BodyType::Female) => 4,
-            (Species::Danari, BodyType::Male) => 5,
-            (Species::Dwarf, BodyType::Female) => 8,
-            (Species::Dwarf, BodyType::Male) => 8,
-            (Species::Elf, BodyType::Female) => 21,
-            (Species::Elf, BodyType::Male) => 4,
-            (Species::Human, BodyType::Female) => 19,
-            (Species::Human, BodyType::Male) => 18,
-            (Species::Orc, BodyType::Female) => 7,
-            (Species::Orc, BodyType::Male) => 8,
-            (Species::Undead, BodyType::Female) => 6,
-            (Species::Undead, BodyType::Male) => 5,
+            (Species::Danari, BodyType::Female) => 15,
+            (Species::Danari, BodyType::Male) => 15,
+            (Species::Dwarf, BodyType::Female) => 15,
+            (Species::Dwarf, BodyType::Male) => 15,
+            (Species::Elf, BodyType::Female) => 22,
+            (Species::Elf, BodyType::Male) => 15,
+            (Species::Human, BodyType::Female) => 20,
+            (Species::Human, BodyType::Male) => 21,
+            (Species::Orc, BodyType::Female) => 15,
+            (Species::Orc, BodyType::Male) => 15,
+            (Species::Draugr, BodyType::Female) => 15,
+            (Species::Draugr, BodyType::Male) => 15,
         }
     }
 
@@ -328,14 +363,14 @@ impl Species {
             (Species::Danari, BodyType::Male) => 7,
             (Species::Dwarf, BodyType::Female) => 7,
             (Species::Dwarf, BodyType::Male) => 7,
-            (Species::Elf, BodyType::Female) => 2,
-            (Species::Elf, BodyType::Male) => 1,
+            (Species::Elf, BodyType::Female) => 6,
+            (Species::Elf, BodyType::Male) => 5,
             (Species::Human, BodyType::Female) => 1,
             (Species::Human, BodyType::Male) => 1,
-            (Species::Orc, BodyType::Female) => 4,
-            (Species::Orc, BodyType::Male) => 6,
-            (Species::Undead, BodyType::Female) => 2,
-            (Species::Undead, BodyType::Male) => 2,
+            (Species::Orc, BodyType::Female) => 9,
+            (Species::Orc, BodyType::Male) => 12,
+            (Species::Draugr, BodyType::Female) => 2,
+            (Species::Draugr, BodyType::Male) => 2,
         }
     }
 
@@ -348,13 +383,13 @@ impl Species {
             (Species::Dwarf, BodyType::Female) => 6,
             (Species::Dwarf, BodyType::Male) => 9,
             (Species::Elf, BodyType::Female) => 6,
-            (Species::Elf, BodyType::Male) => 7,
+            (Species::Elf, BodyType::Male) => 8,
             (Species::Human, BodyType::Female) => 6,
             (Species::Human, BodyType::Male) => 7,
             (Species::Orc, BodyType::Female) => 6,
             (Species::Orc, BodyType::Male) => 2,
-            (Species::Undead, BodyType::Female) => 3,
-            (Species::Undead, BodyType::Male) => 4,
+            (Species::Draugr, BodyType::Female) => 3,
+            (Species::Draugr, BodyType::Male) => 8,
         }
     }
 
@@ -363,15 +398,15 @@ impl Species {
             (Species::Danari, BodyType::Female) => 1,
             (Species::Danari, BodyType::Male) => 16,
             (Species::Dwarf, BodyType::Female) => 1,
-            (Species::Dwarf, BodyType::Male) => 22,
+            (Species::Dwarf, BodyType::Male) => 23,
             (Species::Elf, BodyType::Female) => 1,
-            (Species::Elf, BodyType::Male) => 1,
+            (Species::Elf, BodyType::Male) => 8,
             (Species::Human, BodyType::Female) => 1,
-            (Species::Human, BodyType::Male) => 4,
+            (Species::Human, BodyType::Male) => 10,
             (Species::Orc, BodyType::Female) => 1,
-            (Species::Orc, BodyType::Male) => 3,
-            (Species::Undead, BodyType::Female) => 1,
-            (Species::Undead, BodyType::Male) => 1,
+            (Species::Orc, BodyType::Male) => 7,
+            (Species::Draugr, BodyType::Female) => 1,
+            (Species::Draugr, BodyType::Male) => 6,
         }
     }
 }
@@ -393,20 +428,28 @@ make_case_elim!(
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize_repr, Deserialize_repr)]
     #[repr(u32)]
     pub enum EyeColor {
-        VigorousBlack = 0,
-        NobleBlue = 1,
-        CuriousGreen = 2,
-        LoyalBrown = 3,
-        ViciousRed = 4,
-        PumpkinOrange = 5,
-        GhastlyYellow = 6,
-        MagicPurple = 7,
-        ToxicGreen = 8,
-        ExoticPurple = 9,
-        SulfurYellow = 10,
-        AmberOrange = 11,
+        AmberOrange = 0,
+        AmberYellow = 1,
+        BrightBrown = 2,
+        CornflowerBlue = 3,
+        CuriousGreen = 4,
+        EmeraldGreen = 5,
+        ExoticPurple = 6,
+        FrozenBlue = 7,
+        GhastlyYellow = 8,
+        LoyalBrown = 9,
+        MagicPurple = 10,
+        NobleBlue = 11,
         PineGreen = 12,
-        CornflowerBlue = 13,
+        PumpkinOrange = 13,
+        RubyRed = 14,
+        RegalPurple = 15,
+        RustBrown = 16,
+        SapphireBlue = 17,
+        SulfurYellow = 18,
+        ToxicGreen = 19,
+        ViciousRed = 20,
+        VigorousBlack = 21,
     }
 );
 
@@ -415,39 +458,85 @@ make_case_elim!(
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize_repr, Deserialize_repr)]
     #[repr(u32)]
     pub enum Skin {
-        Skin1 = 0,
-        Skin2 = 1,
-        Skin3 = 2,
-        Skin4 = 3,
-        Skin5 = 4,
-        Skin6 = 5,
-        Iron = 6,
-        Steel = 7,
-        DanariOne = 8,
-        DanariTwo = 9,
-        DanariThree = 10,
-        DanariFour = 11,
-        ElfOne = 12,
-        ElfTwo = 13,
-        //ElfThree = 14,
-        OrcOne = 14,
-        OrcTwo = 15,
-        OrcThree = 16,
-        UndeadOne = 17,
-        UndeadTwo = 18,
-        UndeadThree = 19,
-        Skin7 = 20,
-        Skin8 = 21,
-        Skin9 = 22,
-        Skin10 = 23,
-        Skin11 = 24,
-        Skin12 = 25,
-        Skin13 = 26,
-        Skin14 = 27,
-        Skin15 = 28,
-        Skin16 = 29,
-        Skin17 = 30,
-        Skin18 = 31,
-        OrcFour = 32,
+        // Humans
+        HumanOne = 0,
+        HumanTwo = 1,
+        HumanThree = 2,
+        HumanFour = 3,
+        HumanFive = 4,
+        HumanSix = 5,
+        HumanSeven = 6,
+        HumanEight = 7,
+        HumanNine = 8,
+        HumanTen = 9,
+        HumanEleven = 10,
+        HumanTwelve = 11,
+        HumanThirteen = 12,
+        HumanFourteen = 13,
+        HumanFifteen = 14,
+        HumanSixteen = 15,
+        HumanSeventeen = 16,
+        HumanEighteen = 17,
+        // Dwarves
+        DwarfOne = 18,
+        DwarfTwo = 19,
+        DwarfThree = 20,
+        DwarfFour = 21,
+        DwarfFive = 22,
+        DwarfSix = 23,
+        DwarfSeven = 24,
+        DwarfEight = 25,
+        DwarfNine = 26,
+        DwarfTen = 27,
+        DwarfEleven = 28,
+        DwarfTwelve = 29,
+        DwarfThirteen = 30,
+        DwarfFourteen = 31,
+        // Elves
+        ElfOne = 32,
+        ElfTwo = 33,
+        ElfThree = 34,
+        ElfFour = 35,
+        ElfFive = 36,
+        ElfSix = 37,
+        ElfSeven = 38,
+        ElfEight = 39,
+        ElfNine = 40,
+        ElfTen = 41,
+        ElfEleven = 42,
+        ElfTwelve = 43,
+        ElfThirteen = 44,
+        ElfFourteen = 45,
+        ElfFifteen = 46,
+        ElfSixteen = 47,
+        ElfSeventeen = 48,
+        ElfEighteen = 49,
+        // Orcs
+        OrcOne = 50,
+        OrcTwo = 51,
+        OrcThree = 52,
+        OrcFour = 53,
+        OrcFive = 54,
+        OrcSix = 55,
+        OrcSeven = 56,
+        OrcEight = 57,
+        // Danaris
+        DanariOne = 58,
+        DanariTwo = 59,
+        DanariThree = 60,
+        DanariFour = 61,
+        DanariFive = 62,
+        DanariSix = 63,
+        DanariSeven = 64,
+        // Draugrs
+        DraugrOne = 65,
+        DraugrTwo = 66,
+        DraugrThree = 67,
+        DraugrFour = 68,
+        DraugrFive = 69,
+        DraugrSix = 70,
+        DraugrSeven = 71,
+        DraugrEight = 72,
+        DraugrNine = 73,
     }
 );
