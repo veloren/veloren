@@ -195,7 +195,7 @@ impl RainOcclusionPipeline {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
+                cull_mode: Some(wgpu::Face::Front),
                 clamp_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,

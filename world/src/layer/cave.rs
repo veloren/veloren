@@ -2,7 +2,7 @@ use super::scatter::close;
 
 use crate::{
     util::{sampler::Sampler, FastNoise, RandomField, RandomPerm, StructureGen2d, LOCALITY},
-    Canvas, CanvasInfo, ColumnSample, IndexRef, Land,
+    Canvas, CanvasInfo, ColumnSample, Land,
 };
 use common::{
     generation::EntityInfo,
@@ -18,7 +18,7 @@ use std::{
     cmp::Ordering,
     collections::HashMap,
     f64::consts::PI,
-    ops::{Add, Mul, Neg, Range, Sub},
+    ops::{Add, Mul, Range, Sub},
 };
 use vek::*;
 
@@ -51,7 +51,7 @@ fn node_at(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Node> {
             + (Vec2::new(dx.get(cell.with_z(0)), dy.get(cell.with_z(0))) % CELL_SIZE as u32 / 2)
                 .map(|e| e as i32);
         land.get_chunk_wpos(wpos).and_then(|chunk| {
-            let depth = AVG_LEVEL_DEPTH * level as i32 - 8;
+            let depth = AVG_LEVEL_DEPTH * level as i32 - 6;
 
             if level > 0
                 || (!chunk.near_cliffs()
@@ -107,11 +107,6 @@ impl Tunnel {
             let dist = closest.distance(wposf);
             let radius = 8.0..64.0;
             if dist < radius.end + 1.0 {
-                let tunnel_len = self
-                    .a
-                    .wpos
-                    .map(|e| e as f64)
-                    .distance(self.b.wpos.map(|e| e as f64));
                 let radius = Lerp::lerp(
                     radius.start,
                     radius.end,
@@ -133,9 +128,10 @@ impl Tunnel {
                         .get((wposf / 512.0).into_array())
                         * 96.0
                         * ((1.0 - (t - 0.5).abs() * 2.0) * 8.0).min(1.0);
+                    let alt_here = info.land().get_alt_approx(closest.map(|e| e as i32));
                     let base = Lerp::lerp(
-                        info.land().get_alt_approx(self.a.wpos) as f64 - self.a.depth as f64,
-                        info.land().get_alt_approx(self.b.wpos) as f64 - self.b.depth as f64,
+                        alt_here as f64 - self.a.depth as f64,
+                        alt_here as f64 - self.b.depth as f64,
                         t,
                     ) + z_offs;
                     Some((
@@ -157,7 +153,7 @@ impl Tunnel {
         let Some(col) = info.col_or_gen(wpos.xy()) else { return Biome::default() };
 
         // Below the ground
-        let below = ((col.alt - wpos.z as f32) / 200.0).clamped(0.0, 1.0);
+        let below = ((col.alt - wpos.z as f32) / 120.0).clamped(0.0, 1.0);
         let depth = (col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32);
 
         let humidity = Lerp::lerp(
@@ -178,8 +174,8 @@ impl Tunnel {
                 .sub(1.0)
                 .add(
                     ((col.alt as f64 - wpos.z as f64)
-                        / (AVG_LEVEL_DEPTH as f64 * LAYERS as f64 * 0.8))
-                        .clamped(0.0, 2.0),
+                        / (AVG_LEVEL_DEPTH as f64 * LAYERS as f64 * 0.5))
+                        .clamped(0.0, 2.5),
                 ) as f32,
             below,
         );
@@ -193,19 +189,16 @@ impl Tunnel {
 
         let underground = ((col.alt as f32 - wpos.z as f32) / 80.0 - 1.0).clamped(0.0, 1.0);
 
-        let [_, mushroom, fire, leafy, dusty, icy] = {
+        let [barren, mushroom, fire, leafy, dusty, icy] = {
             let barren = 0.01;
-            let mushroom = underground
-                * close(humidity, 1.0, 0.75)
-                * close(temp, 0.25, 1.2)
-                * close(depth, 1.0, 0.6);
-            let fire = underground * close(humidity, 0.0, 0.85) * close(temp, 2.0, 0.6);
-            let leafy = underground
-                * close(humidity, 1.0, 0.75)
-                * close(temp, 0.35, 1.0)
-                * close(depth, 0.0, 0.8);
-            let dusty = close(humidity, 0.0, 0.5) * close(temp, -0.3, 0.65);
-            let icy = close(temp, -1.0, 0.5);
+            let mushroom = underground * close(humidity, 1.0, 0.75) * close(temp, 0.0, 0.9);
+            let fire = underground
+                * close(humidity, 0.0, 0.9)
+                * close(temp, 2.0, 1.0)
+                * close(depth, 1.0, 0.65);
+            let leafy = underground * close(humidity, 1.0, 0.85) * close(temp, 0.45, 0.8);
+            let dusty = close(humidity, 0.0, 0.5) * close(temp, -0.3, 0.5);
+            let icy = close(temp, -1.0, 0.3);
 
             let biomes = [barren, mushroom, fire, leafy, dusty, icy];
             let max = biomes
@@ -217,8 +210,8 @@ impl Tunnel {
 
         Biome {
             humidity,
-            temp,
             mineral,
+            barren,
             mushroom,
             fire,
             leafy,
@@ -235,7 +228,7 @@ fn tunnels_at<'a>(
     land: &'a Land,
 ) -> impl Iterator<Item = Tunnel> + 'a {
     let rand = RandomField::new(37 + level);
-    let col_cell = to_cell(wpos - CELL_SIZE as i32 / 2, level);
+    let col_cell = to_cell(wpos - CELL_SIZE as i32 / 4, level);
     LOCALITY
         .into_iter()
         .filter_map(move |rpos| {
@@ -257,7 +250,7 @@ fn tunnels_at<'a>(
                 .filter(move |(other_cell_pos, _)| {
                     rand.chance((current_cell_pos + other_cell_pos).with_z(7), 0.3)
                 })
-                .map(move |(other_cell_pos, other_cell)| Tunnel {
+                .map(move |(_other_cell_pos, other_cell)| Tunnel {
                     a: current_cell,
                     b: other_cell,
                     curve: RandomField::new(13)
@@ -306,10 +299,8 @@ pub fn tunnel_bounds_at<'a>(
     let wposf = wpos2d.map(|e| e as f64 + 0.5);
     info.col_or_gen(wpos2d).into_iter().flat_map(move |col| {
         let col_alt = col.alt;
-        let col_water_level = col.water_level;
         let col_water_dist = col.water_dist;
         (1..LAYERS + 1).flat_map(move |level| {
-            let rand = RandomField::new(37 + level);
             tunnels_at(wpos2d, level, land)
                 .chain(tunnels_down_from(wpos2d, level - 1, land))
                 .filter_map(move |tunnel| {
@@ -324,7 +315,11 @@ pub fn tunnel_bounds_at<'a>(
                             * (1.0
                                 - ((col_alt - z_range.end as f32 - 4.0) / 8.0).clamped(0.0, 1.0)),
                     )..z_range.end;
-                    Some((level, z_range, radius, tunnel))
+                    if z_range.end - z_range.start > 0 {
+                        Some((level, z_range, radius, tunnel))
+                    } else {
+                        None
+                    }
                 })
         })
     })
@@ -334,19 +329,18 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     let info = canvas.info();
     let mut mushroom_cache = HashMap::new();
     canvas.foreach_col(|canvas, wpos2d, col| {
-        let wposf = wpos2d.map(|e| e as f64 + 0.5);
         let land = info.land();
 
         let tunnel_bounds = tunnel_bounds_at(wpos2d, &info, &land).collect::<Vec<_>>();
 
         // First, clear out tunnels
-        for (_, z_range, _, tunnel) in &tunnel_bounds {
+        for (_, z_range, _, _) in &tunnel_bounds {
             for z in z_range.start..z_range.end.min(col.alt as i32 + 1) {
                 canvas.set(wpos2d.with_z(z), Block::air(SpriteKind::Empty));
             }
         }
 
-        for (level, z_range, radius, tunnel) in tunnel_bounds {
+        for (level, z_range, _radius, tunnel) in tunnel_bounds {
             write_column(
                 canvas,
                 col,
@@ -354,7 +348,6 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 wpos2d,
                 z_range.clone(),
                 tunnel,
-                radius,
                 &mut mushroom_cache,
                 rng,
             );
@@ -365,7 +358,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
 #[derive(Default)]
 struct Biome {
     humidity: f32,
-    temp: f32,
+    barren: f32,
     mineral: f32,
     mushroom: f32,
     fire: f32,
@@ -388,7 +381,6 @@ fn write_column<R: Rng>(
     wpos2d: Vec2<i32>,
     z_range: Range<i32>,
     tunnel: Tunnel,
-    radius: f64,
     mushroom_cache: &mut HashMap<(Vec3<i32>, Vec2<i32>), Option<Mushroom>>,
     rng: &mut R,
 ) {
@@ -418,7 +410,7 @@ fn write_column<R: Rng>(
             .mul(8.0 + cavern_height * 0.4)
     };
 
-    let bassalt = if biome.fire > 0.0 {
+    let basalt = if biome.fire > 0.0 {
         let cavern_height = (z_range.end - z_range.start) as f64;
         info.index()
             .noise
@@ -449,19 +441,6 @@ fn write_column<R: Rng>(
         0.0
     };
 
-    let bridge = {
-        info.index()
-            .noise
-            .cave_nz
-            .get(wpos2d.map(|e| e as f64 / 128.0).into_array())
-            .sub(0.5)
-            .abs()
-            .sub(0.15)
-            .neg()
-            .mul(1.0 / 0.15)
-            .max(0.0)
-    };
-
     let rand = RandomField::new(37 + level);
 
     let is_ice = biome.icy + col.marble * 0.2 > 0.5 && col.marble > 0.6;
@@ -481,18 +460,12 @@ fn write_column<R: Rng>(
                     let mut rng = RandomPerm::new(seed);
                     let (z_range, radius) =
                         tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), info)?;
-                    let (cavern_bottom, cavern_top, floor, water_level) = (
-                        z_range.start,
-                        z_range.end,
-                        0, //(stalactite * 0.4) as i32,
-                        0,
-                    );
-                    let pos = wpos2d.with_z(cavern_bottom + floor);
+                    let pos = wpos2d.with_z(z_range.start);
                     if rng.gen_bool(0.5 * close(radius as f32, 64.0, 48.0) as f64)
                         && tunnel.biome_at(pos, &info).mushroom > 0.5
                         // Ensure that we're not placing the mushroom over a void
                         && !tunnel_bounds_at(pos.xy(), &info, &info.land())
-                            .any(|(_, z_range, _, _)| z_range.contains(&(cavern_bottom - 1)))
+                            .any(|(_, z_range, _, _)| z_range.contains(&(z_range.start - 1)))
                     // && pos.z as i32 > water_level - 2
                     {
                         let purp = rng.gen_range(0..50);
@@ -500,7 +473,7 @@ fn write_column<R: Rng>(
                             pos,
                             stalk: 8.0
                                 + rng.gen::<f32>().powf(2.0)
-                                    * (cavern_top - cavern_bottom - 8) as f32
+                                    * (z_range.end - z_range.start - 8) as f32
                                     * 0.75,
                             head_color: Rgb::new(
                                 40 + purp,
@@ -589,13 +562,13 @@ fn write_column<R: Rng>(
     for z in bedrock..z_range.end {
         let wpos = wpos2d.with_z(z);
         let mut try_spawn_entity = false;
-        canvas.map(wpos, |block| {
+        canvas.map(wpos, |_block| {
             if z < z_range.start - 4 && !void_below {
                 Block::new(BlockKind::Lava, Rgb::new(255, 65, 0))
-            } else if bassalt > 0.0
+            } else if basalt > 0.0
                 && z < bedrock / 6 * 6
                     + 2
-                    + bassalt as i32 / 4 * 4
+                    + basalt as i32 / 4 * 4
                     + (RandomField::new(77)
                         .get_f32(((wpos2d + Vec2::new(wpos2d.y, -wpos2d.x) / 2) / 4).with_z(0))
                         * 6.0)
@@ -677,9 +650,9 @@ fn write_column<R: Rng>(
                 }
             } else if let Some(sprite) = (z == floor && !void_below && !sky_above)
                 .then(|| {
-                    if rand.chance(wpos2d.with_z(1), biome.mushroom * 0.1) {
+                    if rand.chance(wpos2d.with_z(1), biome.mushroom * 0.05) {
                         [
-                            (SpriteKind::CaveMushroom, 0.3),
+                            (SpriteKind::CaveMushroom, 0.15),
                             (SpriteKind::Mushroom, 0.25),
                             (SpriteKind::GrassBlue, 1.0),
                             (SpriteKind::CavernGrassBlueShort, 1.0),
@@ -690,7 +663,7 @@ fn write_column<R: Rng>(
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
                         .map(|s| s.0)
-                    } else if rand.chance(wpos2d.with_z(1), biome.leafy * 0.25) {
+                    } else if rand.chance(wpos2d.with_z(15), biome.leafy * 0.05) {
                         [
                             (SpriteKind::LongGrass, 1.0),
                             (SpriteKind::MediumGrass, 2.0),
@@ -719,12 +692,21 @@ fn write_column<R: Rng>(
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
                         .map(|s| s.0)
+                    } else if rand.chance(wpos2d.with_z(14), biome.barren * 0.003) {
+                        [
+                            (SpriteKind::Welwitch, 0.5),
+                            (SpriteKind::DeadBush, 1.5),
+                            (SpriteKind::Crate, 0.005),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
                     } else if rand.chance(
                         wpos2d.with_z(3),
                         close(biome.humidity, 0.0, 0.5) * biome.mineral * 0.005,
                     ) {
                         Some(SpriteKind::CrystalLow)
-                    } else if rand.chance(wpos2d.with_z(4), biome.fire * 0.001) {
+                    } else if rand.chance(wpos2d.with_z(13), biome.fire * 0.001) {
                         [
                             (SpriteKind::Pyrebloom, 0.3),
                             (SpriteKind::Bloodstone, 0.3),
@@ -767,16 +749,18 @@ fn write_column<R: Rng>(
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
                         .and_then(|s| s.0)
-                    } else if rand.chance(wpos2d.with_z(6), 0.01) {
+                    } else if rand.chance(wpos2d.with_z(7), 0.01) {
                         let shallow = close(biome.depth, 0.0, 0.4);
                         let middle = close(biome.depth, 0.5, 0.4);
-                        let deep = close(biome.depth, 1.0, 0.4);
+                        //let deep = close(biome.depth, 1.0, 0.4); // TODO: Use this for deep only
+                        // things
                         [
+                            (Some(SpriteKind::Stones), 1.5),
                             (Some(SpriteKind::Copper), shallow),
                             (Some(SpriteKind::Tin), shallow),
                             (Some(SpriteKind::Iron), shallow * 0.5),
                             (Some(SpriteKind::Coal), middle * 0.25),
-                            (Some(SpriteKind::Cobalt), middle * 0.05),
+                            (Some(SpriteKind::Cobalt), middle * 0.1),
                             (Some(SpriteKind::Silver), middle * 0.05),
                             (None, 10.0),
                         ]
@@ -793,7 +777,7 @@ fn write_column<R: Rng>(
                 Block::air(sprite)
             } else if let Some(sprite) = (z == ceiling - 1 && !void_above)
                 .then(|| {
-                    if rand.chance(wpos2d.with_z(3), biome.mushroom * 0.02) {
+                    if rand.chance(wpos2d.with_z(3), biome.mushroom * 0.01) {
                         Some(
                             *[
                                 SpriteKind::CavernMycelBlue,
@@ -803,7 +787,7 @@ fn write_column<R: Rng>(
                             .choose(rng)
                             .unwrap(),
                         )
-                    } else if rand.chance(wpos2d.with_z(4), biome.leafy * 0.05) {
+                    } else if rand.chance(wpos2d.with_z(4), biome.leafy * 0.015) {
                         [
                             (SpriteKind::Liana, 1.0),
                             (SpriteKind::Orb, 0.35),
@@ -821,21 +805,6 @@ fn write_column<R: Rng>(
                 .flatten()
             {
                 Block::air(sprite)
-            } else if {
-                let h = 25;
-                bridge > 0.0
-                    && z >= bedrock
-                        + ((h as f64
-                            - ((75.0 - (z_range.end - z_range.start) as f64) / h as f64).powf(2.0)
-                                * h as f64
-                                * bridge) as i32)
-                            .min(h - 2)
-                    && z < bedrock + h
-                    && radius > 25.0
-                    && !sky_above
-                    && false
-            } {
-                Block::new(BlockKind::Rock, col.stone_col)
             } else {
                 get_mushroom(wpos, rng).unwrap_or(Block::air(SpriteKind::Empty))
             }
@@ -853,11 +822,11 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Mushroom biome
             (
                 Some("common.entity.wild.peaceful.truffler"),
-                (biome.mushroom + 0.02) * 0.5,
+                (biome.mushroom + 0.02) * 0.35,
             ),
             (
                 Some("common.entity.wild.peaceful.fungome"),
-                (biome.mushroom + 0.02) * 1.0,
+                (biome.mushroom + 0.02) * 0.5,
             ),
             // Leafy biome
             (
@@ -866,23 +835,27 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.peaceful.turtle"),
-                (biome.leafy + 0.05) * 0.75,
+                (biome.leafy + 0.05) * 0.5,
             ),
             (
                 Some("common.entity.wild.peaceful.tortoise"),
-                (biome.leafy + 0.05) * 1.0,
+                (biome.leafy + 0.05) * 0.35,
             ),
             (
                 Some("common.entity.wild.peaceful.axolotl"),
-                (biome.leafy + 0.05) * 1.0,
+                (biome.leafy + 0.05) * 0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.maneater"),
+                (biome.leafy + 0.05) * 0.1,
             ),
             (
                 Some("common.entity.wild.aggressive.batfox"),
-                (biome.leafy + 0.3) * 0.5,
+                (biome.leafy.max(biome.barren) + 0.3) * 0.35,
             ),
             (
                 Some("common.entity.wild.aggressive.rocksnapper"),
-                (biome.leafy + 0.1) * 0.1,
+                (biome.leafy.max(biome.barren) + 0.1) * 0.1,
             ),
             (
                 Some("common.entity.wild.aggressive.cave_salamander"),
@@ -890,7 +863,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.asp"),
-                (biome.leafy + 0.1) * 0.3,
+                (biome.leafy + 0.1) * 0.25,
             ),
             (
                 Some("common.entity.wild.aggressive.swamp_troll"),
@@ -899,19 +872,23 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Dusty biome
             (
                 Some("common.entity.wild.aggressive.dodarock"),
-                (biome.dusty + 0.05) * 0.5,
+                (biome.dusty.max(biome.barren) + 0.05) * 0.35,
             ),
             (
                 Some("common.entity.wild.aggressive.cave_spider"),
-                (biome.dusty + 0.0) * 0.25,
+                (biome.dusty + 0.0) * 0.4,
             ),
             (
                 Some("common.entity.wild.aggressive.cave_troll"),
                 (biome.dusty + 0.1) * 0.05,
             ),
             (
+                Some("common.entity.wild.aggressive.antlion"),
+                (biome.dusty.max(biome.barren) + 0.1) * 0.05,
+            ),
+            (
                 Some("common.entity.wild.peaceful.rat"),
-                (biome.dusty + 0.1) * 1.0,
+                (biome.dusty + 0.1) * 0.3,
             ),
             // Icy biome
             (

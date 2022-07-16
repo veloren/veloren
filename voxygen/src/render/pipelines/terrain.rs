@@ -93,7 +93,7 @@ impl Vertex {
             (light.min(31) << 3) | ((col.r >> 1) & 0b111),
             (glow.min(31) << 3) | ((col.b >> 1) & 0b111),
             (col.r & 0b11110000) | (col.b >> 4),
-            (col.g & 0xFE) | ao as u8, // Green is lucky, it remains unscathed
+            (col.g & 0xFE) | ao as u8,
         ]
     }
 

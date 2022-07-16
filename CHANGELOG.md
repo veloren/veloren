@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Brazilian Portuguese Translation
 - Lightning storms
 - More varied ambient birdcalls
+- Cave biomes
 
 ### Changed
 
@@ -58,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimized sprite processing decreasing the startup time of voxygen (and long freezes when trying
   to enter the world when this hasn't finished).
 - Metadata added to music files. Listen to the soundtrack more easily!
+- Overhauled caves: they're now a multi-layer network spanning the entire world
 
 ### Removed
 - Removed the options for single and cumulated damage.

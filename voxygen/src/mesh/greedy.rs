@@ -418,8 +418,6 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
     pub fn max_size(&self) -> Vec2<u16> { self.max_size }
 }
 
-
-
 fn greedy_mesh<'a, M: PartialEq, D: 'a, FA, FL, FG, FO, FS, FP, FT, Allocator: AtlasAllocator>(
     atlas: &mut Allocator,
     col_lights_size: &mut Vec2<u16>,
