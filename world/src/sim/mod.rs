@@ -196,7 +196,7 @@ impl FileOpts {
             .and_then(|map| match MapSizeLg::new(map.map_size_lg) {
                 Ok(map_size_lg) => Some(map_size_lg),
                 Err(e) => {
-                    // TODO: this probably just panic
+                    // TODO: this probably should just panic
                     warn!("World size of map does not satisfy invariants: {:?}", e);
                     None
                 },
@@ -315,17 +315,9 @@ impl FileOpts {
                     return None;
                 },
             },
-            Self::LoadOrGenerate { .. } => {
-                // FIXME:
-                // We check if map exists by comparing name and gen opts.
-                // But we also have another generation paramater that currently
-                // passed outside and used for both worldsim and worldgen.
-                //
-                // Ideally, we need to figure out how we want to use seed, i. e.
-                // moving worldgen seed to gen opts and use different sim seed from
-                // server config or grab sim seed from world file.
-                //
-                // `unwrap` is safe here, because LoadOrGenerate has its path always defined
+            Self::LoadOrGenerate(_name, opts) => {
+                // `unwrap` is safe here, because LoadOrGenerate has its path
+                // always defined
                 let path = self.map_path().unwrap();
                 let path = std::path::Path::new("./maps/").join(path);
 
@@ -352,6 +344,32 @@ impl FileOpts {
                         return None;
                     },
                 };
+
+                // FIXME:
+                // We check if we need to generate new map by comparing gen opts.
+                // But we also have another generation paramater that currently
+                // passed outside and used for both worldsim and worldgen.
+                //
+                // Ideally, we need to figure out how we want to use seed, i. e.
+                // moving worldgen seed to gen opts and use different sim seed from
+                // server config or grab sim seed from world file.
+                //
+                // NOTE: we intentionally use pattern-matching here to get
+                // options, so that when gen opts get another field, compiler
+                // will force you to update following logic
+                let SizeOpts { x_lg, y_lg, scale } = opts;
+                let map = match map {
+                    WorldFile::Veloren0_7_0(map) => map,
+                    WorldFile::Veloren0_5_0(_) => {
+                        panic!("World file v0.5.0 isn't supported with LoadOrGenerate")
+                    },
+                };
+
+                if map.continent_scale_hack != *scale || map.map_size_lg != Vec2::new(*x_lg, *y_lg)
+                {
+                    warn!("Specified options don't correspond these in loaded map file");
+                    return None;
+                }
 
                 map.into_modern()
             },
@@ -385,36 +403,7 @@ impl FileOpts {
                         .unwrap_or(0)
                 ))
             },
-            Self::LoadOrGenerate(name, opts) => {
-                use std::{
-                    collections::hash_map::DefaultHasher,
-                    hash::{Hash, Hasher},
-                };
-
-                // Hashable wrapper around gen opts
-                #[derive(Hash)]
-                struct GenOptsWrapper {
-                    x_lg: u32,
-                    y_lg: u32,
-                    scale: ordered_float::OrderedFloat<f64>,
-                }
-
-                // NOTE: we use pattern-matching to get opts fields
-                // so that when main opts strut gains new fields,
-                // compiler will bonk you into updating wrapper struct
-                let SizeOpts { x_lg, y_lg, scale } = opts;
-
-                let opts = GenOptsWrapper {
-                    x_lg: *x_lg,
-                    y_lg: *y_lg,
-                    scale: ordered_float::OrderedFloat(*scale),
-                };
-
-                let mut hashed_opts = DefaultHasher::new();
-                opts.hash(&mut hashed_opts);
-
-                Some(format!("map_{}{:x}.bin", name, hashed_opts.finish()))
-            },
+            Self::LoadOrGenerate(name, _opts) => Some(format!("map_{}.bin", name)),
             _ => None,
         }
     }
