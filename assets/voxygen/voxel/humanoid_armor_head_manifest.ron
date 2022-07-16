@@ -20,7 +20,7 @@
             vox_spec: ("armor.misc.head.exclamation", (-11.0, -12.0, 18.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.exclamation"): (
+        (Draugr, Male, "common.items.armor.misc.head.exclamation"): (
             vox_spec: ("armor.misc.head.exclamation", (-14.0, -11.0, 18.0)),
             color: None
         ),//fix
@@ -61,11 +61,11 @@
             vox_spec: ("armor.witch.hat", (-2.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.witch.hat"): (
+        (Draugr, Male, "common.items.armor.witch.hat"): (
             vox_spec: ("armor.witch.hat", (-6.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.witch.hat"): (
+        (Draugr, Female, "common.items.armor.witch.hat"): (
             vox_spec: ("armor.witch.hat", (-6.0, -5.0, 6.0)),
             color: None
         ),
@@ -110,11 +110,11 @@
             vox_spec: ("armor.misc.head.hog_hood", (-2.0, -5, -6)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.hog_hood"): (
+        (Draugr, Male, "common.items.armor.misc.head.hog_hood"): (
             vox_spec: ("armor.misc.head.hog_hood", (-6.0, -5.0, -7.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.hog_hood"): (
+        (Draugr, Female, "common.items.armor.misc.head.hog_hood"): (
             vox_spec: ("armor.misc.head.hog_hood", (-6.0, -5.0, -8.0)),
             color: None
         ),
@@ -151,11 +151,11 @@
             vox_spec: ("armor.misc.head.bamboo_twig", (-1.0, 3.0, -4.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.bamboo_twig"): (
+        (Draugr, Male, "common.items.armor.misc.head.bamboo_twig"): (
             vox_spec: ("armor.misc.head.bamboo_twig", (-3.0, 1.0, -2.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.bamboo_twig"): (
+        (Draugr, Female, "common.items.armor.misc.head.bamboo_twig"): (
             vox_spec: ("armor.misc.head.bamboo_twig", (-3.0, 1.0, -3.0)),
             color: None
         ),
@@ -208,11 +208,11 @@
             vox_spec: ("armor.misc.head.wanderers_hat", (-2, -6.0, 6.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.wanderers_hat"): (
+        (Draugr, Male, "common.items.armor.misc.head.wanderers_hat"): (
             vox_spec: ("armor.misc.head.wanderers_hat", (-6, -6.0, 5.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.wanderers_hat"): (
+        (Draugr, Female, "common.items.armor.misc.head.wanderers_hat"): (
             vox_spec: ("armor.misc.head.wanderers_hat", (-6, -6.0, 5.0)),
             color: None
         ),
@@ -258,11 +258,11 @@
             vox_spec: ("armor.pirate.hat", (-2.0, -4.0, 7.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.pirate.hat"): (
+        (Draugr, Male, "common.items.armor.pirate.hat"): (
             vox_spec: ("armor.pirate.hat", (-6.0, -4.0, 7.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.pirate.hat"): (
+        (Draugr, Female, "common.items.armor.pirate.hat"): (
             vox_spec: ("armor.pirate.hat", (-6.0, -4.0, 6.0)),
             color: None
         ),
@@ -307,11 +307,11 @@
             vox_spec: ("armor.blacksmith.hat", (-2.0, 1.0, -1.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.blacksmith.hat"): (
+        (Draugr, Male, "common.items.armor.blacksmith.hat"): (
             vox_spec: ("armor.blacksmith.hat", (-6.0, 0.0, -1.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.blacksmith.hat"): (
+        (Draugr, Female, "common.items.armor.blacksmith.hat"): (
             vox_spec: ("armor.blacksmith.hat", (-6.0, 0.0, -2.0)),
             color: None
         ),
@@ -356,11 +356,11 @@
             vox_spec: ("armor.alchemist.hat", (-2.0, 1.0, 3.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.alchemist.hat"): (
+        (Draugr, Male, "common.items.armor.alchemist.hat"): (
             vox_spec: ("armor.alchemist.hat", (-6.0, 0.0, 3.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.alchemist.hat"): (
+        (Draugr, Female, "common.items.armor.alchemist.hat"): (
             vox_spec: ("armor.alchemist.hat", (-6.0, 0.0, 2.0)),
             color: None
         ),
@@ -405,11 +405,11 @@
             vox_spec: ("armor.chef.hat", (-2.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.chef.hat"): (
+        (Draugr, Male, "common.items.armor.chef.hat"): (
             vox_spec: ("armor.chef.hat", (-6.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.chef.hat"): (
+        (Draugr, Female, "common.items.armor.chef.hat"): (
             vox_spec: ("armor.chef.hat", (-6.0, -5.0, 6.0)),
             color: None
         ),
@@ -454,11 +454,11 @@
             vox_spec: ("armor.misc.head.straw", (-2.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.straw"): (
+        (Draugr, Male, "common.items.armor.misc.head.straw"): (
             vox_spec: ("armor.misc.head.straw", (-6.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.straw"): (
+        (Draugr, Female, "common.items.armor.misc.head.straw"): (
             vox_spec: ("armor.misc.head.straw", (-6.0, -5.0, 6.0)),
             color: None
         ),
@@ -503,11 +503,11 @@
             vox_spec: ("armor.misc.head.crown", (-2.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.crown"): (
+        (Draugr, Male, "common.items.armor.misc.head.crown"): (
             vox_spec: ("armor.misc.head.crown", (-6.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.crown"): (
+        (Draugr, Female, "common.items.armor.misc.head.crown"): (
             vox_spec: ("armor.misc.head.crown", (-6.0, -5.0, 6.0)),
             color: None
         ),
@@ -552,11 +552,11 @@
             vox_spec: ("armor.misc.head.mitre", (-2.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.mitre"): (
+        (Draugr, Male, "common.items.armor.misc.head.mitre"): (
             vox_spec: ("armor.misc.head.mitre", (-6.0, -5.0, 7.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.mitre"): (
+        (Draugr, Female, "common.items.armor.misc.head.mitre"): (
             vox_spec: ("armor.misc.head.mitre", (-6.0, -5.0, 6.0)),
             color: None
         ),
@@ -601,12 +601,12 @@
             vox_spec: ("armor.misc.head.headband.orc_f", (3.0, 1.0, 5.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.headband"): (
-            vox_spec: ("armor.misc.head.headband.undead_m", (0.0, 2.0, 7.0)),
+        (Draugr, Male, "common.items.armor.misc.head.headband"): (
+            vox_spec: ("armor.misc.head.headband.draugr_m", (0.0, 2.0, 7.0)),
             color: Some((44, 74, 109))
         ),
-        (Undead, Female, "common.items.armor.misc.head.headband"): (
-            vox_spec: ("armor.misc.head.headband.undead_f", (0.0, 2.0, 6.0)),
+        (Draugr, Female, "common.items.armor.misc.head.headband"): (
+            vox_spec: ("armor.misc.head.headband.draugr_f", (0.0, 2.0, 6.0)),
             color: None
         ),
         (Elf, Male, "common.items.armor.misc.head.headband"): (
@@ -650,11 +650,11 @@
             vox_spec: ("armor.misc.head.helmet", (-3.0, -3.0, -1.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.helmet"): (
+        (Draugr, Female, "common.items.armor.misc.head.helmet"): (
             vox_spec: ("armor.misc.head.helmet", (-6.0, -5.0, -1.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.helmet"): (
+        (Draugr, Male, "common.items.armor.misc.head.helmet"): (
             vox_spec: ("armor.misc.head.helmet", (-6.0, -5.0, 1.0)),
             color: None
         ),
@@ -691,11 +691,11 @@
             vox_spec: ("armor.misc.head.bandana.red", (-4.0, -2.0, -10.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.bandana.red"): (
+        (Draugr, Male, "common.items.armor.misc.head.bandana.red"): (
             vox_spec: ("armor.misc.head.bandana.red", (-6.0, -2.0, -8.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.bandana.red"): (
+        (Draugr, Female, "common.items.armor.misc.head.bandana.red"): (
             vox_spec: ("armor.misc.head.bandana.red", (-6.0, -2.0, -9.0)),
             color: None
         ),
@@ -740,11 +740,11 @@
             vox_spec: ("armor.misc.head.bandana.thief", (-4.0, -2.0, -10.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.bandana.thief"): (
+        (Draugr, Male, "common.items.armor.misc.head.bandana.thief"): (
             vox_spec: ("armor.misc.head.bandana.thief", (-6.0, -2.0, -8.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.bandana.thief"): (
+        (Draugr, Female, "common.items.armor.misc.head.bandana.thief"): (
             vox_spec: ("armor.misc.head.bandana.thief", (-6.0, -2.0, -9.0)),
             color: None
         ),
@@ -789,11 +789,11 @@
             vox_spec: ("armor.cultist.bandana", (-4.0, 0.0, -10.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.cultist.bandana"): (
+        (Draugr, Male, "common.items.armor.cultist.bandana"): (
             vox_spec: ("armor.cultist.bandana", (-6.0, -1.0, -8.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.cultist.bandana"): (
+        (Draugr, Female, "common.items.armor.cultist.bandana"): (
             vox_spec: ("armor.cultist.bandana", (-6.0, -1.0, -9.0)),
             color: None
         ),
@@ -846,11 +846,11 @@
             vox_spec: ("armor.misc.head.hood", (-2.0, -6.0, -2.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.hood"): (
+        (Draugr, Male, "common.items.armor.misc.head.hood"): (
             vox_spec: ("armor.misc.head.hood", (-6.0, -6.0, -2.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.hood"): (
+        (Draugr, Female, "common.items.armor.misc.head.hood"): (
             vox_spec: ("armor.misc.head.hood", (-6.0, -6.0, -3.0)),
             color: None
         ),
@@ -895,11 +895,11 @@
             vox_spec: ("armor.misc.head.hood_dark", (-2.0, -7.0, -3.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.hood_dark"): (
+        (Draugr, Male, "common.items.armor.misc.head.hood_dark"): (
             vox_spec: ("armor.misc.head.hood_dark", (-6.0, -7.0, -3.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.hood_dark"): (
+        (Draugr, Female, "common.items.armor.misc.head.hood_dark"): (
             vox_spec: ("armor.misc.head.hood_dark", (-6.0, -7.0, -4.0)),
             color: None
         ),
@@ -944,11 +944,11 @@
             vox_spec: ("armor.misc.head.spikeguard", (-2.0, -4.0, 9.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.spikeguard"): (
+        (Draugr, Male, "common.items.armor.misc.head.spikeguard"): (
             vox_spec: ("armor.misc.head.spikeguard", (-6.0, -4.0, 7.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.spikeguard"): (
+        (Draugr, Female, "common.items.armor.misc.head.spikeguard"): (
             vox_spec: ("armor.misc.head.spikeguard", (-6.0, -4.0, 7.0)),
             color: None
         ),
@@ -993,11 +993,11 @@
             vox_spec: ("armor.merchant.turban", (-2.0, -7.0, -4.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.merchant.turban"): (
+        (Draugr, Male, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-6.0, -7.0, -4.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.merchant.turban"): (
+        (Draugr, Female, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-6.0, -7.0, -5.0)),
             color: None
         ),
@@ -1042,11 +1042,11 @@
             vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -3.0, 0.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.winged_coronet"): (
+        (Draugr, Male, "common.items.armor.misc.head.winged_coronet"): (
             vox_spec: ("armor.misc.head.winged_coronet", (-6.0, -5.0, 0.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.winged_coronet"): (
+        (Draugr, Female, "common.items.armor.misc.head.winged_coronet"): (
             vox_spec: ("armor.misc.head.winged_coronet", (-6.0, -5.0, -1.0)),
             color: None
         ),
@@ -1091,11 +1091,11 @@
             vox_spec: ("armor.misc.head.boreal_warhelm", (-2.0, -6.0, -2.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.misc.head.boreal_warhelm"): (
+        (Draugr, Male, "common.items.armor.misc.head.boreal_warhelm"): (
             vox_spec: ("armor.misc.head.boreal_warhelm", (-6.0, -6.0, -3.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.misc.head.boreal_warhelm"): (
+        (Draugr, Female, "common.items.armor.misc.head.boreal_warhelm"): (
             vox_spec: ("armor.misc.head.boreal_warhelm", (-6.0, -6.0, -3.0)),
             color: None
         ),
@@ -1140,11 +1140,11 @@
             vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -7.0, -2.0)),
             color: None
         ),
-        (Undead, Male, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
+        (Draugr, Male, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
             vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -7.0, -3.0)),
             color: None
         ),
-        (Undead, Female, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
+        (Draugr, Female, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
             vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -7.0, -4.0)),
             color: None
         ),
