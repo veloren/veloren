@@ -620,35 +620,38 @@ vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_a
 //}
 //#endif
 
-vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out uint f_attr) {
-    uvec4 f_col_light = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos), 0) * 255);
-    vec3 f_col = vec3(
-        float(((f_col_light.r & 0x7u) << 1u) | (f_col_light.b & 0xF0u)),
-        float(f_col_light.a),
-        float(((f_col_light.g & 0x7u) << 1u) | ((f_col_light.b & 0x0Fu) << 4u))
-    ) / 255.0;
-
+vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out float f_ao, out uint f_attr) {
     // TODO: Figure out how to use `texture` and modulation to avoid needing to do manual filtering
-    vec2 light_00 = vec2(uvec2(f_col_light.rg) >> 3u);
-    vec2 light_10 = vec2(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0).rg * 255.0) >> 3u);
-    vec2 light_01 = vec2(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0).rg * 255.0) >> 3u);
-    vec2 light_11 = vec2(uvec2(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 1), 0).rg * 255.0) >> 3u);
-    vec2 light_0 = mix(light_00, light_01, fract(f_uv_pos.y));
-    vec2 light_1 = mix(light_10, light_11, fract(f_uv_pos.y));
-    vec2 light = mix(light_0, light_1, fract(f_uv_pos.x));
+    uvec4 tex_00 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 0), 0) * 255);
+    uvec4 tex_10 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0) * 255);
+    uvec4 tex_01 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0) * 255);
+    uvec4 tex_11 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 1), 0) * 255);
+    vec3 light_00 = vec3(tex_00.rg >> 3u, tex_00.a & 1u);
+    vec3 light_10 = vec3(tex_10.rg >> 3u, tex_10.a & 1u);
+    vec3 light_01 = vec3(tex_01.rg >> 3u, tex_01.a & 1u);
+    vec3 light_11 = vec3(tex_11.rg >> 3u, tex_11.a & 1u);
+    vec3 light_0 = mix(light_00, light_01, fract(f_uv_pos.y));
+    vec3 light_1 = mix(light_10, light_11, fract(f_uv_pos.y));
+    vec3 light = mix(light_0, light_1, fract(f_uv_pos.x));
     // TODO: Use `texture` instead
     //vec2 light = texture(t_col_light, f_uv_pos).xy / 31;
 
+    vec3 f_col = vec3(
+        float(((tex_00.r & 0x7u) << 1u) | (tex_00.b & 0xF0u)),
+        float(tex_00.a & 0xFE),
+        float(((tex_00.g & 0x7u) << 1u) | ((tex_00.b & 0x0Fu) << 4u))
+    ) / 255.0;
 
+    f_ao = light.z;
     f_light = light.x / 31.0;
     f_glow = light.y / 31.0;
-    f_attr = f_col_light.g >> 3u;
+    f_attr = tex_00.g >> 3u;
     return srgb_to_linear(f_col);
 }
 
-vec3 greedy_extract_col_light_glow(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow) {
+vec3 greedy_extract_col_light_glow(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_ao, out float f_glow) {
     uint f_attr;
-    return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_attr);
+    return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_ao, f_attr);
 }
 
 #endif

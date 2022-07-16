@@ -5,7 +5,7 @@ use rand::prelude::*;
 use std::f32;
 use vek::*;
 
-fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
+pub fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
 }
 

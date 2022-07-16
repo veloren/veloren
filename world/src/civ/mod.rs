@@ -94,8 +94,8 @@ impl Civs {
         let initial_civ_count = initial_civ_count(sim.map_size_lg());
         let mut ctx = GenCtx { sim, rng };
 
-        info!("starting cave generation");
-        this.generate_caves(&mut ctx);
+        // info!("starting cave generation");
+        // this.generate_caves(&mut ctx);
 
         info!("starting civilisation creation");
         let mut start_locations: Vec<Vec2<i32>> = Vec::new();
@@ -438,7 +438,7 @@ impl Civs {
                 && chunk.alt < cave_max_alt
                 && cave_min_alt < chunk.water_alt
                 && chunk.river.near_water()
-                // Only do this for caves at the sea level for now. 
+                // Only do this for caves at the sea level for now.
                 // The reason being that floodfilling from a water alt to an alt lower than the water alt causes problems.
                 && chunk.water_alt <= CONFIG.sea_level;
             if submerged {

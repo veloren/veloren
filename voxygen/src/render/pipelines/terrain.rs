@@ -67,6 +67,7 @@ impl Vertex {
         // 0 to 31
         glow: u8,
         col: Rgb<u8>,
+        ao: bool,
     ) -> [u8; 4] {
         //[col.r, col.g, col.b, light]
         // It would be nice for this to be cleaner, but we want to squeeze 5 fields into
@@ -92,7 +93,7 @@ impl Vertex {
             (light.min(31) << 3) | ((col.r >> 1) & 0b111),
             (glow.min(31) << 3) | ((col.b >> 1) & 0b111),
             (col.r & 0b11110000) | (col.b >> 4),
-            col.g, // Green is lucky, it remains unscathed
+            (col.g & 0xFE) | ao as u8,
         ]
     }
 

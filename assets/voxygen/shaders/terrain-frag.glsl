@@ -84,8 +84,8 @@ void main() {
     vec2 f_uv_pos = f_uv_pos + atlas_offs.xy;
     // vec4 f_col_light = textureProj(t_col_light, vec3(f_uv_pos + 0.5, textureSize(t_col_light, 0)));//(f_uv_pos/* + 0.5*/) / texSize);
     // float f_light = textureProj(t_col_light, vec3(f_uv_pos + 0.5, textureSize(t_col_light, 0))).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
-    float f_light, f_glow;
-    vec3 f_col = greedy_extract_col_light_glow(t_col_light, s_col_light, f_uv_pos, f_light, f_glow);
+    float f_light, f_glow, f_ao;
+    vec3 f_col = greedy_extract_col_light_glow(t_col_light, s_col_light, f_uv_pos, f_light, f_ao, f_glow);
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_light), 1);
@@ -382,11 +382,16 @@ void main() {
     reflected_light *= f_light;
     max_light *= f_light;
 
+    // TODO: Hack to add a small amount of underground ambient light to the scene
+    reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
+
     // TODO: Apply AO after this
     vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2) * pow(max(dot(face_norm, f_norm), 0), 2);
     reflected_light += glow * cam_attenuation;
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+
+    reflected_light *= 0.4 + f_ao * 0.6;
 
     #ifndef EXPERIMENTAL_NOCAUSTICS
         #if (FLUID_MODE == FLUID_MODE_SHINY)
