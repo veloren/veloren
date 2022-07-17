@@ -726,7 +726,7 @@ impl Show {
         if !self.esc_menu {
             self.bag = open;
             self.map = false;
-            self.want_grab = !open;
+            self.want_grab = !self.any_window_requires_cursor();
             self.crafting_fields.salvage = false;
 
             if !open {
@@ -740,7 +740,7 @@ impl Show {
             self.bag = open;
             self.trade = open;
             self.map = false;
-            self.want_grab = !open;
+            self.want_grab = !self.any_window_requires_cursor();
         }
     }
 
@@ -752,7 +752,7 @@ impl Show {
             self.crafting_fields.salvage = false;
             self.social = false;
             self.diary = false;
-            self.want_grab = !open;
+            self.want_grab = !self.any_window_requires_cursor();
         }
     }
 
@@ -764,7 +764,7 @@ impl Show {
             }
             self.social = open;
             self.diary = false;
-            self.want_grab = !open;
+            self.want_grab = !self.any_window_requires_cursor();
         }
     }
 
@@ -779,7 +779,7 @@ impl Show {
             self.crafting_fields.recipe_inputs = HashMap::new();
             self.bag = open;
             self.map = false;
-            self.want_grab = !open;
+            self.want_grab = !self.any_window_requires_cursor();
         }
     }
 
@@ -806,7 +806,7 @@ impl Show {
             self.map = false;
             self.diary_fields = diary::DiaryShow::default();
             self.diary = open;
-            self.want_grab = !open;
+            self.want_grab = !self.any_window_requires_cursor();
         }
     }
 
@@ -822,7 +822,7 @@ impl Show {
             self.crafting = false;
             self.crafting_fields.salvage = false;
             self.diary = false;
-            self.want_grab = !open;
+            self.want_grab = !self.any_window_requires_cursor();
         }
     }
 
@@ -860,8 +860,8 @@ impl Show {
     // TODO: Add self updating key-bindings element
     //fn toggle_help(&mut self) { self.help = !self.help }
 
-    fn toggle_windows(&mut self, global_state: &mut GlobalState) {
-        if self.bag
+    fn any_window_requires_cursor(&self) -> bool {
+        self.bag
             || self.trade
             || self.esc_menu
             || self.map
@@ -871,7 +871,10 @@ impl Show {
             || self.help
             || self.intro
             || !matches!(self.open_windows, Windows::None)
-        {
+    }
+
+    fn toggle_windows(&mut self, global_state: &mut GlobalState) {
+        if self.any_window_requires_cursor() {
             self.bag = false;
             self.trade = false;
             self.esc_menu = false;
