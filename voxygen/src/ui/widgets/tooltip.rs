@@ -208,7 +208,7 @@ pub trait Tooltipable {
         title_col: Color,
     ) -> Tooltipped<'a, Self>
     where
-        Self: std::marker::Sized;
+        Self: Sized;
 }
 impl<W: Widget> Tooltipable for W {
     fn with_tooltip<'a>(

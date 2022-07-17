@@ -158,7 +158,7 @@ enum Mode {
     CreateOrEdit {
         name: String,
         body: humanoid::Body,
-        inventory: Box<comp::inventory::Inventory>,
+        inventory: Box<Inventory>,
         mainhand: Option<&'static str>,
         offhand: Option<&'static str>,
 
@@ -372,12 +372,12 @@ impl Controls {
             padding: 10,
         };
 
-        let version = iced::Text::new(&self.version)
+        let version = Text::new(&self.version)
             .size(self.fonts.cyri.scale(15))
             .width(Length::Fill)
             .horizontal_alignment(HorizontalAlignment::Right);
 
-        let alpha = iced::Text::new(&self.alpha)
+        let alpha = Text::new(&self.alpha)
             .size(self.fonts.cyri.scale(12))
             .width(Length::Fill)
             .horizontal_alignment(HorizontalAlignment::Center);
@@ -1352,7 +1352,7 @@ impl Controls {
         // TODO: There is probably a better way to conditionally add in the warning box
         // here
         if let Some(mismatched_version) = &self.server_mismatched_version {
-            let warning = iced::Text::<IcedRenderer>::new(format!(
+            let warning = Text::<IcedRenderer>::new(format!(
                 "{}\n{}: {} {}: {}",
                 i18n.get("char_selection.version_mismatch"),
                 i18n.get("main.login.server_version"),
@@ -1605,7 +1605,7 @@ impl Controls {
     pub fn display_body_inventory<'a>(
         &'a self,
         characters: &'a [CharacterItem],
-    ) -> Option<(comp::Body, &'a comp::inventory::Inventory)> {
+    ) -> Option<(comp::Body, &'a Inventory)> {
         match &self.mode {
             Mode::Select { .. } => self
                 .selected
@@ -1676,7 +1676,7 @@ impl CharSelectionUi {
     pub fn display_body_inventory<'a>(
         &'a self,
         characters: &'a [CharacterItem],
-    ) -> Option<(comp::Body, &'a comp::inventory::Inventory)> {
+    ) -> Option<(comp::Body, &'a Inventory)> {
         self.controls.display_body_inventory(characters)
     }
 

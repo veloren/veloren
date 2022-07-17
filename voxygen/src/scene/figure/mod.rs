@@ -520,7 +520,7 @@ impl FigureMgr {
         let ecs = scene_data.state.ecs();
         for (entity, body, light_emitter) in (
             &ecs.entities(),
-            ecs.read_storage::<common::comp::Body>().maybe(),
+            ecs.read_storage::<Body>().maybe(),
             &ecs.read_storage::<LightEmitter>(),
         )
             .join()
@@ -543,7 +543,7 @@ impl FigureMgr {
         for (entity, light_emitter_opt, interpolated, pos, body, mut light_anim) in (
             &ecs.entities(),
             ecs.read_storage::<LightEmitter>().maybe(),
-            ecs.read_storage::<crate::ecs::comp::Interpolated>().maybe(),
+            ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Body>().maybe(),
             &mut ecs.write_storage::<LightAnimation>(),
@@ -563,7 +563,7 @@ impl FigureMgr {
                         emitter.animated,
                     )
                 } else {
-                    (vek::Rgb::zero(), 0.0, 0.0, true)
+                    (Rgb::zero(), 0.0, 0.0, true)
                 };
             if let Some(lantern_offset) = body
                 .and_then(|body| self.states.get_mut(body, &entity))
@@ -714,7 +714,7 @@ impl FigureMgr {
             max: player_pos + 2.0,
         };
         let camera_mode = camera.get_mode();
-        let character_state_storage = state.read_storage::<common::comp::CharacterState>();
+        let character_state_storage = state.read_storage::<CharacterState>();
         let slow_jobs = state.slow_job_pool();
         let character_state = character_state_storage.get(scene_data.player_entity);
 
@@ -876,17 +876,17 @@ impl FigureMgr {
                 .map(|h| {
                     let time = scene_data.state.ecs().read_resource::<Time>();
                     let time_since_health_change = time.0 - h.last_change.time.0;
-                    vek::Rgba::broadcast(1.0)
-                        + vek::Rgba::new(10.0, 10.0, 10.0, 0.0).map(|c| {
+                    Rgba::broadcast(1.0)
+                        + Rgba::new(10.0, 10.0, 10.0, 0.0).map(|c| {
                             (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time_since_health_change)) as f32
                         })
                 })
-                .unwrap_or_else(|| vek::Rgba::broadcast(1.0))
+                .unwrap_or_else(|| Rgba::broadcast(1.0))
             // Highlight targeted collectible entities
             * if item.is_some() && scene_data.target_entity.map_or(false, |e| e == entity) {
-                vek::Rgba::new(1.5, 1.5, 1.5, 1.0)
+                Rgba::new(1.5, 1.5, 1.5, 1.0)
             } else {
-                vek::Rgba::one()
+                Rgba::one()
             };
 
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
@@ -1836,7 +1836,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -2036,7 +2036,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -2353,7 +2353,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -2711,7 +2711,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -2815,7 +2815,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -2898,7 +2898,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -3425,7 +3425,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -3512,7 +3512,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -3691,7 +3691,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -3983,7 +3983,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -4306,7 +4306,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -4389,7 +4389,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -5011,7 +5011,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -5252,7 +5252,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -5284,7 +5284,7 @@ impl FigureMgr {
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
 
-                    let idlestate = CharacterState::Idle(common::states::idle::Data::default());
+                    let idlestate = CharacterState::Idle(idle::Data::default());
                     let last = Last(idlestate.clone());
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -5373,7 +5373,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -5410,7 +5410,7 @@ impl FigureMgr {
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
 
-                    let idle_state = CharacterState::Idle(common::states::idle::Data::default());
+                    let idle_state = CharacterState::Idle(idle::Data::default());
                     let last = Last(idle_state.clone());
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -5429,7 +5429,7 @@ impl FigureMgr {
                         skeleton_attr,
                     );
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -5503,7 +5503,7 @@ impl FigureMgr {
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
 
-                    let idlestate = CharacterState::Idle(common::states::idle::Data::default());
+                    let idlestate = CharacterState::Idle(idle::Data::default());
                     let last = Last(idlestate.clone());
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -5551,7 +5551,7 @@ impl FigureMgr {
                     };
 
                     let target_bones = target_base;
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
@@ -5662,7 +5662,7 @@ impl FigureMgr {
         span!(_guard, "render", "FigureManager::render");
         let ecs = state.ecs();
 
-        let character_state_storage = state.read_storage::<common::comp::CharacterState>();
+        let character_state_storage = state.read_storage::<CharacterState>();
         let character_state = character_state_storage.get(player_entity);
         let items = ecs.read_storage::<Item>();
         for (entity, pos, body, _, inventory, scale, collider) in (
@@ -5717,7 +5717,7 @@ impl FigureMgr {
         span!(_guard, "render_player", "FigureManager::render_player");
         let ecs = state.ecs();
 
-        let character_state_storage = state.read_storage::<common::comp::CharacterState>();
+        let character_state_storage = state.read_storage::<CharacterState>();
         let character_state = character_state_storage.get(player_entity);
         let items = ecs.read_storage::<Item>();
 
@@ -5775,7 +5775,7 @@ impl FigureMgr {
         body: &Body,
         inventory: Option<&Inventory>,
         is_player: bool,
-        pos: vek::Vec3<f32>,
+        pos: Vec3<f32>,
         figure_lod_render_distance: f32,
         mut_count: usize,
         filter_state: impl Fn(&FigureStateMeta) -> bool,
@@ -6339,7 +6339,7 @@ pub struct FigureUpdateCommonParameters<'a> {
     pub mount_transform_pos: Option<(anim::vek::Transform<f32, f32, f32>, anim::vek::Vec3<f32>)>,
     pub body: Option<Body>,
     pub tools: (Option<ToolKind>, Option<ToolKind>),
-    pub col: vek::Rgba<f32>,
+    pub col: Rgba<f32>,
     pub dt: f32,
     // TODO: evaluate unused variable
     pub _lpindex: u8,
@@ -6439,7 +6439,7 @@ impl<S: Skeleton> FigureState<S> {
         /* let radius = vek::Extent3::<f32>::from(model.bounds.half_size()).reduce_partial_max();
         let _bounds = BoundingSphere::new(pos.into_array(), scale * 0.8 * radius); */
 
-        self.last_ori = vek::Lerp::lerp(self.last_ori, *ori, 15.0 * dt).normalized();
+        self.last_ori = Lerp::lerp(self.last_ori, *ori, 15.0 * dt).normalized();
 
         self.state_time += dt * state_animation_rate;
 
@@ -6518,9 +6518,9 @@ impl<S: Skeleton> FigureState<S> {
         // Fade between light and glow levels
         // TODO: Making this temporal rather than spatial is a bit dumb but it's a very
         // subtle difference
-        self.last_light = vek::Lerp::lerp(self.last_light, light, 16.0 * dt);
-        self.last_glow.0 = vek::Lerp::lerp(self.last_glow.0, glow.0, 16.0 * dt);
-        self.last_glow.1 = vek::Lerp::lerp(self.last_glow.1, glow.1, 16.0 * dt);
+        self.last_light = Lerp::lerp(self.last_light, light, 16.0 * dt);
+        self.last_glow.0 = Lerp::lerp(self.last_glow.0, glow.0, 16.0 * dt);
+        self.last_glow.1 = Lerp::lerp(self.last_glow.1, glow.1, 16.0 * dt);
 
         let pos_with_mount_offset = mount_transform_pos.map_or(*pos, |(_, pos)| pos);
 
@@ -6528,7 +6528,7 @@ impl<S: Skeleton> FigureState<S> {
             mat,
             col.rgb(),
             pos_with_mount_offset,
-            vek::Vec2::new(atlas_offs.x, atlas_offs.y),
+            Vec2::new(atlas_offs.x, atlas_offs.y),
             *is_player,
             self.last_light,
             self.last_glow,

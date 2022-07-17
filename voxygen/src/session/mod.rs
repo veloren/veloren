@@ -733,14 +733,14 @@ impl PlayState for SessionState {
                                 } else {
                                     let player_pos = client
                                         .state()
-                                        .read_storage::<comp::Pos>()
+                                        .read_storage::<Pos>()
                                         .get(client.entity())
                                         .copied();
                                     if let Some(player_pos) = player_pos {
                                         // Find closest mountable entity
                                         let closest_mountable_entity = (
                                             &client.state().ecs().entities(),
-                                            &client.state().ecs().read_storage::<comp::Pos>(),
+                                            &client.state().ecs().read_storage::<Pos>(),
                                             // TODO: More cleverly filter by things that can actually be mounted
                                             !&client.state().ecs().read_storage::<Is<Mount>>(),
                                             client.state().ecs().read_storage::<comp::Alignment>().maybe(),
@@ -917,12 +917,10 @@ impl PlayState for SessionState {
                             );
                         },
                     },
-                    Event::ScreenshotMessage(screenshot_message) => {
-                        self.hud.new_message(comp::ChatMsg {
-                            chat_type: comp::ChatType::CommandInfo,
-                            message: screenshot_message,
-                        })
-                    },
+                    Event::ScreenshotMessage(screenshot_message) => self.hud.new_message(ChatMsg {
+                        chat_type: ChatType::CommandInfo,
+                        message: screenshot_message,
+                    }),
 
                     // Pass all other events to the scene
                     event => {
@@ -943,7 +941,7 @@ impl PlayState for SessionState {
                         .read_storage::<comp::PhysicsState>()
                         .get(entity)?
                         .in_fluid?;
-                    ecs.read_storage::<comp::Vel>()
+                    ecs.read_storage::<Vel>()
                         .get(entity)
                         .map(|vel| fluid.relative_flow(vel).0)
                         .map(|rel_flow| {
@@ -1014,7 +1012,7 @@ impl PlayState for SessionState {
             }
 
             match self.scene.camera().get_mode() {
-                camera::CameraMode::FirstPerson | camera::CameraMode::ThirdPerson => {
+                CameraMode::FirstPerson | CameraMode::ThirdPerson => {
                     // Move the player character based on their walking direction.
                     // This could be different from the camera direction if free look is enabled.
                     self.inputs.move_dir =
@@ -1022,7 +1020,7 @@ impl PlayState for SessionState {
                     self.freefly_vel = Vec3::zero();
                 },
 
-                camera::CameraMode::Freefly => {
+                CameraMode::Freefly => {
                     // Move the camera freely in 3d space. Apply acceleration so that
                     // the movement feels more natural and controlled.
                     const FREEFLY_ACCEL: f32 = 120.0;
@@ -1238,7 +1236,7 @@ impl PlayState for SessionState {
                                 .get(self.client.borrow().entity())
                             {
                                 match slot {
-                                    comp::slot::Slot::Inventory(inv_slot) => {
+                                    Slot::Inventory(inv_slot) => {
                                         let slot_deficit = inventory.free_after_equip(inv_slot);
                                         if slot_deficit < 0 {
                                             self.hud.set_prompt_dialog(PromptDialogSettings::new(
@@ -1258,7 +1256,7 @@ impl PlayState for SessionState {
                                             move_allowed = false;
                                         }
                                     },
-                                    comp::slot::Slot::Equip(equip_slot) => {
+                                    Slot::Equip(equip_slot) => {
                                         // Ensure there is a free slot that is not provided by the
                                         // item being unequipped
                                         let free_slots =
@@ -1406,14 +1404,14 @@ impl PlayState for SessionState {
                     HudEvent::DropSlot(x) => {
                         let mut client = self.client.borrow_mut();
                         client.drop_slot(x);
-                        if let comp::slot::Slot::Equip(comp::slot::EquipSlot::Lantern) = x {
+                        if let Slot::Equip(EquipSlot::Lantern) = x {
                             client.disable_lantern();
                         }
                     },
                     HudEvent::SplitDropSlot(x) => {
                         let mut client = self.client.borrow_mut();
                         client.split_drop_slot(x);
-                        if let comp::slot::Slot::Equip(comp::slot::EquipSlot::Lantern) = x {
+                        if let Slot::Equip(EquipSlot::Lantern) = x {
                             client.disable_lantern();
                         }
                     },

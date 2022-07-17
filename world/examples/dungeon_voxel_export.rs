@@ -98,7 +98,7 @@ impl ExportVol {
         // File format defined at https://github.com/ephtracy/voxel-model
 
         fn write_i32(file: &mut File, value: i32) -> Result {
-            // The spec doesn't specify endianess?!?
+            // The spec doesn't specify endianness?!?
             file.write_all(&value.to_le_bytes())
         }
 
@@ -225,7 +225,7 @@ impl RectSizedVol for ExportVol {
 }
 
 impl ReadVol for ExportVol {
-    fn get(&self, _: vek::Vec3<i32>) -> std::result::Result<&Self::Vox, Self::Error> {
+    fn get(&self, _: Vec3<i32>) -> std::result::Result<&Self::Vox, Self::Error> {
         Ok(&self.default_block)
     }
 }
@@ -233,7 +233,7 @@ impl ReadVol for ExportVol {
 impl WriteVol for ExportVol {
     fn set(
         &mut self,
-        pos: vek::Vec3<i32>,
+        pos: Vec3<i32>,
         vox: Self::Vox,
     ) -> std::result::Result<Self::Vox, Self::Error> {
         // Because the dungeon may need to be split into multiple models, we can't

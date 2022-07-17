@@ -8,7 +8,7 @@ We include instructions for Nix without flakes enabled, but using flakes is the 
 
 See the [NixOS wiki](https://nixos.wiki/wiki/Flakes) for information on how to enable and use flakes.
 
-It is recommended to first setup the [Cachix](https://cachix.org) cache to save time with builds:
+It is recommended to first set up the [Cachix](https://cachix.org) cache to save time with builds:
 ```shell
 nix shell nixpkgs#cachix -c cachix use veloren-nix
 # or if you don't have flakes:
@@ -16,7 +16,7 @@ nix-shell -p cachix --run "cachix use veloren-nix"
 ```
 
 As this repository uses `git-lfs`, please make sure `git-lfs` is in your path.
-If you have a locally cloned repo, you can make sure it is setup with:
+If you have a locally cloned repo, you can make sure it is set up with:
 ```shell
 git lfs install --local && git lfs fetch && git lfs checkout
 ```

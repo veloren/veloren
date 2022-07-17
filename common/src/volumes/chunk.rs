@@ -277,9 +277,9 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
     {
         if vox != self.default {
             let idx = self.force_idx_unchecked(pos);
-            core::mem::replace(&mut self.vox[idx], vox)
+            mem::replace(&mut self.vox[idx], vox)
         } else if let Some(idx) = self.idx_unchecked(pos) {
-            core::mem::replace(&mut self.vox[idx], vox)
+            mem::replace(&mut self.vox[idx], vox)
         } else {
             self.default.clone()
         }

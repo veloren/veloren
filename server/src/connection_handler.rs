@@ -68,7 +68,8 @@ impl ConnectionHandler {
                 Some(Err(e)) => {
                     error!(
                         ?e,
-                        "Stopping Conection Handler, no new connections can be made to server now!"
+                        "Stopping Connection Handler, no new connections can be made to server \
+                         now!"
                     );
                     break;
                 },

@@ -107,7 +107,7 @@ pub struct Stream {
 #[derive(Debug)]
 pub enum NetworkError {
     NetworkClosed,
-    ListenFailed(std::io::Error),
+    ListenFailed(io::Error),
     ConnectFailed(NetworkConnectError),
 }
 
@@ -117,7 +117,7 @@ pub enum NetworkConnectError {
     /// Either a Pid UUID clash or you are trying to hijack a connection
     InvalidSecret,
     Handshake(InitProtocolError<ProtocolsError>),
-    Io(std::io::Error),
+    Io(io::Error),
 }
 
 /// Error type thrown by [`Participants`](Participant) methods
@@ -160,7 +160,7 @@ pub struct StreamParams {
 /// via their [`ConnectAddr`], or [`listen`] passively for [`connected`]
 /// [`Participants`] via [`ListenAddr`].
 ///
-/// Too guarantee a clean shutdown, the [`Runtime`] MUST NOT be droped before
+/// Too guarantee a clean shutdown, the [`Runtime`] MUST NOT be dropped before
 /// the Network.
 ///
 /// # Examples
@@ -168,7 +168,7 @@ pub struct StreamParams {
 /// use tokio::runtime::Runtime;
 /// use veloren_network::{Network, ConnectAddr, ListenAddr, Pid};
 ///
-/// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
 /// let runtime = Runtime::new().unwrap();
 /// let network = Network::new(Pid::new(), &runtime);
@@ -272,7 +272,7 @@ impl Network {
         #[cfg(feature = "metrics")] registry: Option<&Registry>,
     ) -> Self {
         let p = participant_id;
-        let span = tracing::info_span!("network", ?p);
+        let span = info_span!("network", ?p);
         span.in_scope(|| trace!("Starting Network"));
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
             Scheduler::new(
@@ -295,7 +295,7 @@ impl Network {
                 scheduler.run().await;
                 trace!("Stopping scheduler and his own thread");
             }
-            .instrument(tracing::info_span!("network", ?p)),
+            .instrument(info_span!("network", ?p)),
         );
         Self {
             local_pid: participant_id,
@@ -340,7 +340,7 @@ impl Network {
     /// [`ListenAddr`]: crate::api::ListenAddr
     #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn listen(&self, address: ListenAddr) -> Result<(), NetworkError> {
-        let (s2a_result_s, s2a_result_r) = oneshot::channel::<tokio::io::Result<()>>();
+        let (s2a_result_s, s2a_result_r) = oneshot::channel::<io::Result<()>>();
         debug!(?address, "listening on address");
         self.listen_sender
             .lock()
@@ -428,7 +428,7 @@ impl Network {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{ConnectAddr, ListenAddr, Network, Pid};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -516,7 +516,7 @@ impl Network {
         };
         if let Ok(return_s) = return_s {
             if return_s.send(()).is_err() {
-                warn!("Network::drop stoped after a timeout and didn't wait for our shutdown");
+                warn!("Network::drop stopped after a timeout and didn't wait for our shutdown");
             };
         }
         debug!("Network has shut down");
@@ -550,7 +550,7 @@ impl Participant {
     /// # Arguments
     /// * `prio` - defines which stream is processed first when limited on
     ///   bandwidth. See [`Prio`] for documentation.
-    /// * `promises` - use a combination of you prefered [`Promises`], see the
+    /// * `promises` - use a combination of you preferred [`Promises`], see the
     ///   link for further documentation. You can combine them, e.g.
     ///   `Promises::ORDERED | Promises::CONSISTENCY` The Stream will then
     ///   guarantee that those promises are met.
@@ -567,7 +567,7 @@ impl Participant {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -634,7 +634,7 @@ impl Participant {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr, Promises};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
     /// // Note: It's quite unusual to actively connect, but then wait on a stream to be connected, usually the Application taking initiative want's to also create the first Stream.
     /// let runtime = Runtime::new().unwrap();
@@ -691,7 +691,7 @@ impl Participant {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -775,7 +775,7 @@ impl Participant {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr, Promises, ParticipantEvent};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2040 and wait for the other side to open a stream
     /// // Note: It's quite unusual to actively connect, but then wait on a stream to be connected, usually the Application taking initiative want's to also create the first Stream.
     /// let runtime = Runtime::new().unwrap();
@@ -889,7 +889,7 @@ impl Stream {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -931,7 +931,7 @@ impl Stream {
     /// use bincode;
     /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid, Message};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
     /// # let remote1 = Network::new(Pid::new(), &runtime);
@@ -999,7 +999,7 @@ impl Stream {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -1033,7 +1033,7 @@ impl Stream {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2230` and wait for a Stream to be opened, then listen on it
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -1089,7 +1089,7 @@ impl Stream {
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2240` and wait for a Stream to be opened, then listen on it
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -1141,7 +1141,7 @@ impl Stream {
     }
 }
 
-impl core::cmp::PartialEq for Participant {
+impl PartialEq for Participant {
     fn eq(&self, other: &Self) -> bool {
         //don't check local_pid, 2 Participant from different network should match if
         // they are the "same"
@@ -1177,7 +1177,7 @@ where
                 },
                 Err(TryRecvError::Closed) => panic!("{}{}", name, CHANNEL_ERR),
                 Err(TryRecvError::Empty) => {
-                    trace!("activly sleeping");
+                    trace!("actively sleeping");
                     cnt += 1;
                     if cnt > 10 {
                         error!("Timeout waiting for shutdown, dropping");
@@ -1222,7 +1222,7 @@ impl Drop for Participant {
         debug!("Shutting down Participant");
 
         match self.a2s_disconnect_s.try_lock() {
-            Err(e) => debug!(?e, "Participant is beeing dropped by Network right now"),
+            Err(e) => debug!(?e, "Participant is being dropped by Network right now"),
             Ok(mut s) => match s.take() {
                 None => info!("Participant already has been shutdown gracefully"),
                 Some(a2s_disconnect_s) => {
@@ -1293,8 +1293,8 @@ impl From<oneshot::error::RecvError> for NetworkError {
     fn from(_err: oneshot::error::RecvError) -> Self { NetworkError::NetworkClosed }
 }
 
-impl From<std::io::Error> for NetworkError {
-    fn from(_err: std::io::Error) -> Self { NetworkError::NetworkClosed }
+impl From<io::Error> for NetworkError {
+    fn from(_err: io::Error) -> Self { NetworkError::NetworkClosed }
 }
 
 impl From<Box<bincode::ErrorKind>> for StreamError {
@@ -1346,7 +1346,7 @@ impl core::fmt::Display for NetworkConnectError {
 }
 
 /// implementing PartialEq as it's super convenient in tests
-impl core::cmp::PartialEq for StreamError {
+impl PartialEq for StreamError {
     fn eq(&self, other: &Self) -> bool {
         match self {
             StreamError::StreamClosed => match other {

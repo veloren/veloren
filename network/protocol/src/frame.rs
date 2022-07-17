@@ -461,7 +461,7 @@ mod tests {
     }
 
     #[test]
-    fn initframe_rubish() {
+    fn initframe_rubbish() {
         let mut buffer = BytesMut::from(&b"dtrgwcser"[..]);
         assert_eq!(
             InitFrame::read_frame(&mut buffer),

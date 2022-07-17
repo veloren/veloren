@@ -29,7 +29,7 @@ use common::{
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
 use common_base::{prof_span, span};
-use core::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
+use core::{f32, fmt::Debug, marker::PhantomData, time::Duration};
 use crossbeam_channel as channel;
 use enum_iterator::IntoEnumIterator;
 use guillotiere::AtlasAllocator;

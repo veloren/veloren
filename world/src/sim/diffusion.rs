@@ -421,7 +421,7 @@ pub fn tridag(a: &[f64], b: &[f64], c: &[f64], r: &[f64], u: &mut [f64], n: usiz
 
     gam = vec![Default::default(); n];
 
-    assert!(b[0] != 0.0);
+    assert_ne!(b[0], 0.0);
     /*
 
     ! first pass
@@ -443,7 +443,7 @@ pub fn tridag(a: &[f64], b: &[f64], c: &[f64], r: &[f64], u: &mut [f64], n: usiz
     for j in 1..n {
         gam[j] = c[j - 1] / bet;
         bet = b[j] - a[j] * gam[j];
-        assert!(bet != 0.0);
+        assert_ne!(bet, 0.0);
         // Round 0: u[0] = r[0] / b[0]
         //               = r'[0] / b'[0]
         // Round j: u[j] = (r[j] - a[j] * u'[j - 1]) / b'[j]

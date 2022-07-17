@@ -87,7 +87,7 @@ impl MusicChannel {
         S: Source + Send + 'static,
         S::Item: Sample,
         S::Item: Send,
-        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+        <S as Iterator>::Item: std::fmt::Debug,
     {
         self.tag = tag;
         self.sink.append(source);
@@ -206,7 +206,7 @@ impl AmbientChannel {
         S: Source + Send + 'static,
         S::Item: Sample,
         S::Item: Send,
-        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+        <S as Iterator>::Item: std::fmt::Debug,
     {
         self.sink.append(source);
     }
@@ -246,7 +246,7 @@ impl SfxChannel {
         S: Source + Send + 'static,
         S::Item: Sample,
         S::Item: Send,
-        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+        <S as Iterator>::Item: std::fmt::Debug,
     {
         self.sink.append(source);
     }
@@ -298,7 +298,7 @@ impl UiChannel {
         S: Source + Send + 'static,
         S::Item: Sample,
         S::Item: Send,
-        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+        <S as Iterator>::Item: std::fmt::Debug,
     {
         self.sink.append(source);
     }

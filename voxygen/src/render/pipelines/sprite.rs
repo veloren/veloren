@@ -185,9 +185,7 @@ impl SpriteLayout {
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage { read_only: true },
                     has_dynamic_offset: false,
-                    min_binding_size: core::num::NonZeroU64::new(
-                        core::mem::size_of::<Vertex>() as u64
-                    ),
+                    min_binding_size: core::num::NonZeroU64::new(mem::size_of::<Vertex>() as u64),
                 },
                 count: None,
             },

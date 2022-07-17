@@ -179,7 +179,7 @@ pub struct DotVoxAsset(pub DotVoxData);
 
 pub struct DotVoxLoader;
 impl Loader<DotVoxAsset> for DotVoxLoader {
-    fn load(content: std::borrow::Cow<[u8]>, _: &str) -> Result<DotVoxAsset, BoxedError> {
+    fn load(content: Cow<[u8]>, _: &str) -> Result<DotVoxAsset, BoxedError> {
         let data = dot_vox::load_bytes(&content).map_err(|err| err.to_owned())?;
         Ok(DotVoxAsset(data))
     }
@@ -201,7 +201,7 @@ impl Asset for ObjAsset {
 
 pub struct ObjAssetLoader;
 impl Loader<ObjAsset> for ObjAssetLoader {
-    fn load(content: std::borrow::Cow<[u8]>, _: &str) -> Result<ObjAsset, BoxedError> {
+    fn load(content: Cow<[u8]>, _: &str) -> Result<ObjAsset, BoxedError> {
         let data = wavefront::Obj::from_reader(&*content)?;
         Ok(ObjAsset(data))
     }
@@ -214,7 +214,7 @@ pub fn find_root() -> Option<PathBuf> {
         if path.join(".git").exists() {
             return Some(path);
         }
-        // Search .git directory in parent directries
+        // Search .git directory in parent directories
         for ancestor in path.ancestors().take(10) {
             if ancestor.join(".git").exists() {
                 return Some(ancestor.to_path_buf());
@@ -407,7 +407,7 @@ pub mod asset_tweak {
     /// assert_eq!(y1, 10);
     ///
     /// // you may want to remove this file later
-    /// std::fs::remove_file(tweak_path);
+    /// fs::remove_file(tweak_path);
     /// ```
     pub fn tweak_expect<T>(specifier: Specifier) -> T
     where
@@ -505,7 +505,7 @@ pub mod asset_tweak {
         }
     }
 
-    /// Convinient macro to quickly tweak value.
+    /// Convenient macro to quickly tweak value.
     ///
     /// Will use [Specifier]`::Tweak` specifier and call
     /// [tweak_expect] if passed only name
@@ -556,7 +556,7 @@ pub mod asset_tweak {
         }};
     }
 
-    /// Convinient macro to quickly tweak value from some existing path.
+    /// Convenient macro to quickly tweak value from some existing path.
     ///
     /// Will use [Specifier]`::Asset` specifier and call
     /// [tweak_expect] if passed only name

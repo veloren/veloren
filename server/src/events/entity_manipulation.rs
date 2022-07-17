@@ -172,7 +172,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
     // one, we probably don't care about emitting death outcome)
     if state
         .ecs()
-        .read_storage::<comp::CharacterState>()
+        .read_storage::<CharacterState>()
         .get(entity)
         .is_some()
     {
@@ -225,7 +225,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         let inventories = state.ecs().read_storage::<Inventory>();
         let players = state.ecs().read_storage::<Player>();
         let bodies = state.ecs().read_storage::<Body>();
-        let poises = state.ecs().read_storage::<comp::Poise>();
+        let poises = state.ecs().read_storage::<Poise>();
         let positions = state.ecs().read_storage::<Pos>();
         let groups = state.ecs().read_storage::<Group>();
 
@@ -307,7 +307,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         let alignments = state.ecs().read_storage::<Alignment>();
         let uids = state.ecs().read_storage::<Uid>();
         let mut outcomes = state.ecs().write_resource::<EventBus<Outcome>>();
-        let inventories = state.ecs().read_storage::<comp::Inventory>();
+        let inventories = state.ecs().read_storage::<Inventory>();
 
         let destroyed_group = groups.get(entity);
 
@@ -416,7 +416,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             .map(|e| error!(?e, ?entity, "Failed to insert ForceUpdate on dead client"));
         state
             .ecs()
-            .write_storage::<comp::Energy>()
+            .write_storage::<Energy>()
             .get_mut(entity)
             .map(|mut energy| {
                 let energy = &mut *energy;
@@ -424,11 +424,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             });
         let _ = state
             .ecs()
-            .write_storage::<comp::CharacterState>()
-            .insert(entity, comp::CharacterState::default());
+            .write_storage::<CharacterState>()
+            .insert(entity, CharacterState::default());
 
         false
-    } else if state.ecs().read_storage::<comp::Agent>().contains(entity)
+    } else if state.ecs().read_storage::<Agent>().contains(entity)
         && !matches!(
             state.ecs().read_storage::<comp::Alignment>().get(entity),
             Some(comp::Alignment::Owned(_))
@@ -445,7 +445,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         };
 
         if let Some(item) = item {
-            let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
+            let pos = state.ecs().read_storage::<Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
                 // Remove entries where zero exp was awarded - this happens because some
@@ -471,7 +471,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     } else {
                         let uid = state
                             .ecs()
-                            .read_storage::<comp::Body>()
+                            .read_storage::<Body>()
                             .get(winner)
                             .and_then(|body| {
                                 // Only humanoids are awarded loot ownership - if the winner
@@ -490,7 +490,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                 };
 
                 let item_drop_entity = state
-                    .create_item_drop(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), item)
+                    .create_item_drop(Pos(pos.0 + Vec3::unit_z() * 0.25), item)
                     .maybe_with(vel)
                     .build();
 
@@ -502,7 +502,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
                     state
                         .ecs()
-                        .write_storage::<comp::LootOwner>()
+                        .write_storage::<LootOwner>()
                         .insert(item_drop_entity, LootOwner::new(uid))
                         .unwrap();
                 }
@@ -633,7 +633,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 
         state
             .ecs()
-            .write_storage::<comp::Health>()
+            .write_storage::<Health>()
             .get_mut(entity)
             .map(|mut health| health.revive());
         state
@@ -643,7 +643,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
             .map(|mut combo| combo.reset());
         state
             .ecs()
-            .write_storage::<comp::Pos>()
+            .write_storage::<Pos>()
             .get_mut(entity)
             .map(|pos| pos.0 = respawn_point);
         state
@@ -692,7 +692,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             .any(|e| matches!(e, RadiusEffect::Attack(_))),
         reagent: explosion.reagent,
     });
-    let groups = ecs.read_storage::<comp::Group>();
+    let groups = ecs.read_storage::<Group>();
 
     // Used to get strength of explosion effects as they falloff over distance
     fn cylinder_sphere_strength(
@@ -859,12 +859,12 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 }
             },
             RadiusEffect::Attack(attack) => {
-                let energies = &ecs.read_storage::<comp::Energy>();
+                let energies = &ecs.read_storage::<Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
-                let inventories = &ecs.read_storage::<comp::Inventory>();
+                let inventories = &ecs.read_storage::<Inventory>();
                 let alignments = &ecs.read_storage::<Alignment>();
                 let uid_allocator = &ecs.read_resource::<UidAllocator>();
-                let players = &ecs.read_storage::<comp::Player>();
+                let players = &ecs.read_storage::<Player>();
                 for (
                     entity_b,
                     pos_b,
@@ -872,13 +872,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                     (body_b_maybe, stats_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
                 ) in (
                     &ecs.entities(),
-                    &ecs.read_storage::<comp::Pos>(),
-                    &ecs.read_storage::<comp::Health>(),
+                    &ecs.read_storage::<Pos>(),
+                    &ecs.read_storage::<Health>(),
                     (
-                        ecs.read_storage::<comp::Body>().maybe(),
-                        ecs.read_storage::<comp::Stats>().maybe(),
+                        ecs.read_storage::<Body>().maybe(),
+                        ecs.read_storage::<Stats>().maybe(),
                         ecs.read_storage::<comp::Ori>().maybe(),
-                        ecs.read_storage::<comp::CharacterState>().maybe(),
+                        ecs.read_storage::<CharacterState>().maybe(),
                         &ecs.read_storage::<Uid>(),
                     ),
                 )
@@ -975,11 +975,11 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             RadiusEffect::Entity(mut effect) => {
                 let alignments = &ecs.read_storage::<Alignment>();
                 let uid_allocator = &ecs.read_resource::<UidAllocator>();
-                let players = &ecs.read_storage::<comp::Player>();
+                let players = &ecs.read_storage::<Player>();
                 for (entity_b, pos_b, body_b_maybe) in (
                     &ecs.entities(),
-                    &ecs.read_storage::<comp::Pos>(),
-                    ecs.read_storage::<comp::Body>().maybe(),
+                    &ecs.read_storage::<Pos>(),
+                    ecs.read_storage::<Body>().maybe(),
                 )
                     .join()
                 {
@@ -1011,7 +1011,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                     };
                     if strength > 0.0 {
                         let is_alive = ecs
-                            .read_storage::<comp::Health>()
+                            .read_storage::<Health>()
                             .get(entity_b)
                             .map_or(true, |h| !h.is_dead);
 
@@ -1056,7 +1056,7 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
                             Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
                             _ => comp::object::Body::Pouch,
                         })
-                        .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
+                        .with(Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
                         .with(item)
                         .maybe_with(match block.get_sprite() {
                             Some(SpriteKind::Bomb) => Some(comp::Object::Bomb { owner }),
@@ -1071,7 +1071,7 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
 
 pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::AuraChange) {
     let ecs = &server.state.ecs();
-    let mut auras_all = ecs.write_storage::<comp::Auras>();
+    let mut auras_all = ecs.write_storage::<Auras>();
     if let Some(mut auras) = auras_all.get_mut(entity) {
         use aura::AuraChange;
         match aura_change {
@@ -1090,7 +1090,7 @@ pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::Au
 pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::BuffChange) {
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
-    let bodies = ecs.read_storage::<comp::Body>();
+    let bodies = ecs.read_storage::<Body>();
     if let Some(mut buffs) = buffs_all.get_mut(entity) {
         use buff::BuffChange;
         match buff_change {
@@ -1238,7 +1238,7 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
 
 pub fn handle_parry(server: &Server, entity: EcsEntity, energy_cost: f32) {
     let ecs = &server.state.ecs();
-    if let Some(mut character) = ecs.write_storage::<comp::CharacterState>().get_mut(entity) {
+    if let Some(mut character) = ecs.write_storage::<CharacterState>().get_mut(entity) {
         *character =
             CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
     };
@@ -1316,11 +1316,11 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
     // Remove potion/saturation buff if attacked
     server_eventbus.emit_now(ServerEvent::Buff {
         entity,
-        buff_change: buff::BuffChange::RemoveByKind(buff::BuffKind::Potion),
+        buff_change: buff::BuffChange::RemoveByKind(BuffKind::Potion),
     });
     server_eventbus.emit_now(ServerEvent::Buff {
         entity,
-        buff_change: buff::BuffChange::RemoveByKind(buff::BuffKind::Saturation),
+        buff_change: buff::BuffChange::RemoveByKind(BuffKind::Saturation),
     });
 }
 
@@ -1332,8 +1332,8 @@ pub fn handle_change_ability(
     new_ability: ability::AuxiliaryAbility,
 ) {
     let ecs = &server.state.ecs();
-    let inventories = ecs.read_storage::<comp::Inventory>();
-    let skill_sets = ecs.read_storage::<comp::SkillSet>();
+    let inventories = ecs.read_storage::<Inventory>();
+    let skill_sets = ecs.read_storage::<SkillSet>();
 
     if let Some(mut active_abilities) = ecs.write_storage::<comp::ActiveAbilities>().get_mut(entity)
     {

@@ -23,7 +23,7 @@ use {common_base::span, egui_wgpu_backend::ScreenDescriptor, egui_winit_platform
 enum Pipelines<'frame> {
     Interface(&'frame super::InterfacePipelines),
     All(&'frame super::Pipelines),
-    // Should never be in this state for now but we need this to accound for super::State::Nothing
+    // Should never be in this state for now but we need this to account for super::State::Nothing
     None,
 }
 
@@ -53,7 +53,7 @@ impl<'frame> Pipelines<'frame> {
 }
 
 // Borrow the fields we need from the renderer so that the GpuProfiler can be
-// disjointly borrowed mutably
+// disjointedly borrowed mutably
 struct RendererBorrow<'frame> {
     queue: &'frame wgpu::Queue,
     device: &'frame wgpu::Device,
@@ -63,7 +63,7 @@ struct RendererBorrow<'frame> {
     pipelines: Pipelines<'frame>,
     locals: &'frame super::locals::Locals,
     views: &'frame super::Views,
-    pipeline_modes: &'frame super::super::PipelineModes,
+    pipeline_modes: &'frame super::PipelineModes,
     quad_index_buffer_u16: &'frame Buffer<u16>,
     quad_index_buffer_u32: &'frame Buffer<u32>,
     #[cfg(feature = "egui-ui")]
@@ -134,7 +134,7 @@ impl<'frame> Drawer<'frame> {
     }
 
     /// Get the pipeline modes.
-    pub fn pipeline_modes(&self) -> &super::super::PipelineModes { self.borrow.pipeline_modes }
+    pub fn pipeline_modes(&self) -> &super::PipelineModes { self.borrow.pipeline_modes }
 
     /// Returns None if the rain occlusion renderer is not enabled at some
     /// level, the pipelines are not available yet or clouds are disabled.
@@ -371,7 +371,7 @@ impl<'frame> Drawer<'frame> {
                 label,
                 &bloom_pipelines.upsample,
                 if index + 2 == bloom::NUM_SIZES {
-                    // Clear for the final image since that is just stuff from the pervious frame.
+                    // Clear for the final image since that is just stuff from the previous frame.
                     wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
                 } else {
                     // Add to less blurred images to get gradient of blur instead of a smudge>
@@ -1169,7 +1169,7 @@ impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
     }
 }
 
-fn set_quad_index_buffer<'a, V: super::super::Vertex>(
+fn set_quad_index_buffer<'a, V: super::Vertex>(
     pass: &mut wgpu::RenderPass<'a>,
     borrow: &RendererBorrow<'a>,
 ) {

@@ -12,7 +12,7 @@ impl<T: Copy + Pod> Consts<T> {
     /// Create a new `Const<T>`.
     pub fn new(device: &wgpu::Device, len: usize) -> Self {
         Self {
-            // TODO: examine if all our consts need to be updateable
+            // TODO: examine if all our consts need to be updatable
             buf: DynamicBuffer::new(device, len, wgpu::BufferUsage::UNIFORM),
         }
     }

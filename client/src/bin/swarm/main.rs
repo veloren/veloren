@@ -217,8 +217,8 @@ fn run_client(
         let entity = client.entity();
         // Move or stay still depending on specified options
         // TODO: make sure server cheat protections aren't triggering
-        let pos = common::comp::Pos(position(index, opt) + world_center);
-        let vel = common::comp::Vel(Default::default());
+        let pos = comp::Pos(position(index, opt) + world_center);
+        let vel = comp::Vel(Default::default());
         client
             .state_mut()
             .write_component_ignore_entity_dead(entity, pos);

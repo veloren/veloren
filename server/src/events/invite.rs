@@ -26,12 +26,7 @@ const INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(31);
 /// Reduced duration shown to the client to help alleviate latency issues
 const PRESENTED_INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(30);
 
-pub fn handle_invite(
-    server: &mut Server,
-    inviter: specs::Entity,
-    invitee_uid: Uid,
-    kind: InviteKind,
-) {
+pub fn handle_invite(server: &mut Server, inviter: Entity, invitee_uid: Uid, kind: InviteKind) {
     let max_group_size = server.settings().max_player_group_size;
     let state = server.state_mut();
     let clients = state.ecs().read_storage::<Client>();
@@ -61,12 +56,12 @@ pub fn handle_invite(
     }
 
     let mut pending_invites = state.ecs().write_storage::<PendingInvites>();
-    let mut agents = state.ecs().write_storage::<comp::Agent>();
+    let mut agents = state.ecs().write_storage::<Agent>();
     let mut invites = state.ecs().write_storage::<Invite>();
 
     if let InviteKind::Trade = kind {
         // Check whether the inviter is in range of the invitee
-        let positions = state.ecs().read_storage::<comp::Pos>();
+        let positions = state.ecs().read_storage::<Pos>();
         if !within_trading_range(positions.get(inviter), positions.get(invitee)) {
             return;
         }
@@ -118,7 +113,7 @@ pub fn handle_invite(
     }
 
     let mut invite_sent = false;
-    // Returns true if insertion was succesful
+    // Returns true if insertion was successful
     let mut send_invite = || {
         match invites.insert(invitee, Invite { inviter, kind }) {
             Err(err) => {
@@ -180,18 +175,14 @@ pub fn handle_invite(
         }
     }
 }
-pub fn handle_invite_response(
-    server: &mut Server,
-    entity: specs::Entity,
-    response: InviteResponse,
-) {
+pub fn handle_invite_response(server: &mut Server, entity: Entity, response: InviteResponse) {
     match response {
         InviteResponse::Accept => handle_invite_accept(server, entity),
         InviteResponse::Decline => handle_invite_decline(server, entity),
     }
 }
 
-pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
+pub fn handle_invite_accept(server: &mut Server, entity: Entity) {
     let index = server.index.clone();
     let state = server.state_mut();
     if let Some((inviter, kind)) = get_inviter_and_kind(entity, state) {
@@ -324,7 +315,7 @@ fn handle_invite_answer(
                             client
                                 .send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
                         }
-                        if let Some(agent) = state.ecs().write_storage::<comp::Agent>().get_mut(e) {
+                        if let Some(agent) = state.ecs().write_storage::<Agent>().get_mut(e) {
                             agent
                                 .inbox
                                 .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
@@ -342,7 +333,7 @@ fn handle_invite_answer(
     }
 }
 
-pub fn handle_invite_decline(server: &mut Server, entity: specs::Entity) {
+pub fn handle_invite_decline(server: &mut Server, entity: Entity) {
     let state = server.state_mut();
     if let Some((inviter, kind)) = get_inviter_and_kind(entity, state) {
         // Inform inviter of rejection

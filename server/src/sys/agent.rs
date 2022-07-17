@@ -157,7 +157,7 @@ impl<'a> System<'a> for Sys {
                         // Default to looking in orientation direction
                         // (can be overridden below)
                         //
-                        // This definetly breaks LeapMelee and
+                        // This definitely breaks LeapMelee and
                         // probably not only that, do we really need this at all?
                         controller.reset();
                         controller.inputs.look_dir = ori.look_dir();
@@ -1104,7 +1104,7 @@ impl<'a> AgentData<'a> {
                                             self.chat_npc(msg, event_emitter);
                                         }
                                     } else {
-                                        let mut rng = rand::thread_rng();
+                                        let mut rng = thread_rng();
                                         if let Some(extreme_trait) =
                                             self.rtsim_entity.and_then(|e| {
                                                 e.brain.personality.random_chat_trait(&mut rng)
@@ -1359,7 +1359,7 @@ impl<'a> AgentData<'a> {
                     let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
                     if balance0 >= balance1 {
                         // If the trade is favourable to us, only send an accept message if we're
-                        // not already accepting (since otherwise, spamclicking the accept button
+                        // not already accepting (since otherwise, spam-clicking the accept button
                         // results in lagging and moving to the review phase of an unfavorable trade
                         // (although since the phase is included in the message, this shouldn't
                         // result in fully accepting an unfavourable trade))
@@ -1614,8 +1614,8 @@ impl<'a> AgentData<'a> {
         };
         let is_valid_target = |entity: EcsEntity| match read_data.bodies.get(entity) {
             Some(Body::ItemDrop(item)) => {
-                //If the agent is humanoid, it will pick up all kinds of itemdrops. If the
-                // agent isn't humanoid, it will pick up only consumable itemdrops.
+                //If the agent is humanoid, it will pick up all kinds of item drops. If the
+                // agent isn't humanoid, it will pick up only consumable item drops.
                 let wants_pickup = matches!(self.body, Some(Body::Humanoid(_)))
                     || matches!(item, item_drop::Body::Consumable);
 
@@ -2174,7 +2174,7 @@ impl<'a> AgentData<'a> {
             let sound_pos = Pos(sound.pos);
             let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
             // NOTE: There is an implicit distance requirement given that sound volume
-            // disipates as it travels, but we will not want to flee if a sound is super
+            // dissipates as it travels, but we will not want to flee if a sound is super
             // loud but heard from a great distance, regardless of how loud it was.
             // `is_close` is this limiter.
             let is_close = dist_sqrd < 35.0_f32.powi(2);

@@ -1125,7 +1125,7 @@ impl<'a> Widget for Interface<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.experience_numbers_title, ui);
 
-        // Acuumulate Experience Gained
+        // Accumulate Experience Gained
         let accum_experience = ToggleButton::new(
             self.global_state.settings.interface.accum_experience,
             self.imgs.checkbox,

@@ -167,7 +167,7 @@ mod tests {
     fn test_all_skillset_assets() {
         let skillsets = assets::read_expect_dir::<SkillSetTree>("common.skillset", true);
         for skillset in skillsets {
-            std::mem::drop({
+            drop({
                 let mut skillset_builder = SkillSetBuilder::default();
                 let nodes = &*skillset.0;
                 let tree = skills_from_nodes(nodes);

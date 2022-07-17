@@ -72,7 +72,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
             .expect("Failed to iterate over item folders!")
         {
             match &*item.kind() {
-                comp::item::ItemKind::Armor(armor) => {
+                ItemKind::Armor(armor) => {
                     if let ArmorKind::Bag = armor.kind {
                         continue;
                     }
@@ -190,20 +190,20 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             let quality = if let Some(quality_raw) = record.get(headers["Quality"])
                             {
                                 match quality_raw {
-                                    "Low" => comp::item::Quality::Low,
-                                    "Common" => comp::item::Quality::Common,
-                                    "Moderate" => comp::item::Quality::Moderate,
-                                    "High" => comp::item::Quality::High,
-                                    "Epic" => comp::item::Quality::Epic,
-                                    "Legendary" => comp::item::Quality::Legendary,
-                                    "Artifact" => comp::item::Quality::Artifact,
-                                    "Debug" => comp::item::Quality::Debug,
+                                    "Low" => Quality::Low,
+                                    "Common" => Quality::Common,
+                                    "Moderate" => Quality::Moderate,
+                                    "High" => Quality::High,
+                                    "Epic" => Quality::Epic,
+                                    "Legendary" => Quality::Legendary,
+                                    "Artifact" => Quality::Artifact,
+                                    "Debug" => Quality::Debug,
                                     _ => {
                                         eprintln!(
                                             "Unknown quality variant for {:?}",
                                             item.item_definition_id()
                                         );
-                                        comp::item::Quality::Debug
+                                        Quality::Debug
                                     },
                                 }
                             } else {
@@ -211,7 +211,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                     "Could not unwrap quality for {:?}",
                                     item.item_definition_id()
                                 );
-                                comp::item::Quality::Debug
+                                Quality::Debug
                             };
 
                             let description = record
@@ -284,7 +284,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             .expect("Failed to iterate over item folders!");
 
         for item in items.iter() {
-            if let comp::item::ItemKind::Tool(tool) = &*item.kind() {
+            if let ItemKind::Tool(tool) = &*item.kind() {
                 if let Ok(ref record) = record {
                     if item.item_definition_id()
                         == ItemDefinitionId::Simple(
@@ -328,19 +328,19 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
                         let hands = if let Some(hands_raw) = record.get(headers["Hands"]) {
                             match hands_raw {
-                                "One" | "1" | "1h" => comp::item::tool::Hands::One,
-                                "Two" | "2" | "2h" => comp::item::tool::Hands::Two,
+                                "One" | "1" | "1h" => Hands::One,
+                                "Two" | "2" | "2h" => Hands::Two,
                                 _ => {
                                     eprintln!(
                                         "Unknown hand variant for {:?}",
                                         item.item_definition_id()
                                     );
-                                    comp::item::tool::Hands::Two
+                                    Hands::Two
                                 },
                             }
                         } else {
                             eprintln!("Could not unwrap hand for {:?}", item.item_definition_id());
-                            comp::item::tool::Hands::Two
+                            Hands::Two
                         };
 
                         let crit_chance: f32 = record
@@ -392,20 +392,20 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
                         let quality = if let Some(quality_raw) = record.get(headers["Quality"]) {
                             match quality_raw {
-                                "Low" => comp::item::Quality::Low,
-                                "Common" => comp::item::Quality::Common,
-                                "Moderate" => comp::item::Quality::Moderate,
-                                "High" => comp::item::Quality::High,
-                                "Epic" => comp::item::Quality::Epic,
-                                "Legendary" => comp::item::Quality::Legendary,
-                                "Artifact" => comp::item::Quality::Artifact,
-                                "Debug" => comp::item::Quality::Debug,
+                                "Low" => Quality::Low,
+                                "Common" => Quality::Common,
+                                "Moderate" => Quality::Moderate,
+                                "High" => Quality::High,
+                                "Epic" => Quality::Epic,
+                                "Legendary" => Quality::Legendary,
+                                "Artifact" => Quality::Artifact,
+                                "Debug" => Quality::Debug,
                                 _ => {
                                     eprintln!(
                                         "Unknown quality variant for {:?}",
                                         item.item_definition_id()
                                     );
-                                    comp::item::Quality::Debug
+                                    Quality::Debug
                                 },
                             }
                         } else {
@@ -413,7 +413,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 "Could not unwrap quality for {:?}",
                                 item.item_definition_id()
                             );
-                            comp::item::Quality::Debug
+                            Quality::Debug
                         };
 
                         let description = record.get(headers["Description"]).expect(&format!(

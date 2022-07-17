@@ -63,7 +63,7 @@ use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{
-    f32, f64,
+    f32,
     fs::File,
     io::{BufReader, BufWriter},
     ops::{Add, Div, Mul, Neg, Sub},
@@ -652,7 +652,7 @@ impl WorldSim {
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f64| x.ln() - (-x).ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-        let logistic_2_base = 3.0f64.sqrt() * f64::consts::FRAC_2_PI;
+        let logistic_2_base = 3.0f64.sqrt() * std::f64::consts::FRAC_2_PI;
         // Assumes μ = 0, σ = 1
         let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
@@ -2281,7 +2281,7 @@ impl SimChunk {
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f64| x.ln() - x.neg().ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-        let logistic_2_base = 3.0f64.sqrt().mul(f64::consts::FRAC_2_PI);
+        let logistic_2_base = 3.0f64.sqrt().mul(std::f64::consts::FRAC_2_PI);
         // Assumes μ = 0, σ = 1
         let logistic_cdf = |x: f64| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
 

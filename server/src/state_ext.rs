@@ -50,8 +50,8 @@ pub trait StateExt {
         stats: comp::Stats,
         skill_set: comp::SkillSet,
         health: Option<comp::Health>,
-        poise: comp::Poise,
-        inventory: comp::Inventory,
+        poise: Poise,
+        inventory: Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder;
     /// Build a static object entity
@@ -139,7 +139,7 @@ impl StateExt for State {
             Effect::Damage(damage) => {
                 let inventories = self.ecs().read_storage::<Inventory>();
                 let stats = self.ecs().read_storage::<comp::Stats>();
-                let groups = self.ecs().read_storage::<comp::Group>();
+                let groups = self.ecs().read_storage::<Group>();
 
                 let damage_contributor = source.and_then(|uid| {
                     self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
@@ -159,7 +159,7 @@ impl StateExt for State {
                     0.0,
                     1.0,
                     *time,
-                    rand::random(),
+                    random(),
                 );
                 self.ecs()
                     .write_storage::<comp::Health>()
@@ -176,7 +176,7 @@ impl StateExt for State {
                     .get(entity)
                 {
                     if !character_state.is_stunned() {
-                        let groups = self.ecs().read_storage::<comp::Group>();
+                        let groups = self.ecs().read_storage::<Group>();
                         let damage_contributor = source.and_then(|uid| {
                             self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
                                 DamageContributor::new(uid, groups.get(attacker_entity).cloned())
@@ -191,7 +191,7 @@ impl StateExt for State {
                             time: *time,
                         };
                         self.ecs()
-                            .write_storage::<comp::Poise>()
+                            .write_storage::<Poise>()
                             .get_mut(entity)
                             .map(|mut poise| poise.change(poise_change));
                     }
@@ -219,8 +219,8 @@ impl StateExt for State {
         stats: comp::Stats,
         skill_set: comp::SkillSet,
         health: Option<comp::Health>,
-        poise: comp::Poise,
-        inventory: comp::Inventory,
+        poise: Poise,
+        inventory: Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder {
         self.ecs_mut()
@@ -310,7 +310,7 @@ impl StateExt for State {
             .with(body)
             .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
             .with(comp::Controller::default())
-            .with(comp::inventory::Inventory::with_empty())
+            .with(Inventory::with_empty())
             .with(comp::CharacterState::default())
             // TODO: some of these are required in order for the character_behavior system to
             // recognize a possesed airship; that system should be refactored to use `.maybe()`
@@ -561,7 +561,7 @@ impl StateExt for State {
             );
             self.write_component_ignore_entity_dead(entity, comp::Health::new(body, health_level));
             self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, energy_level));
-            self.write_component_ignore_entity_dead(entity, comp::Poise::new(body));
+            self.write_component_ignore_entity_dead(entity, Poise::new(body));
             self.write_component_ignore_entity_dead(entity, stats);
             self.write_component_ignore_entity_dead(entity, active_abilities);
             self.write_component_ignore_entity_dead(entity, skill_set);
@@ -952,13 +952,8 @@ impl StateExt for State {
     }
 }
 
-fn send_to_group(g: &comp::Group, ecs: &specs::World, msg: &comp::ChatMsg) {
-    for (client, group) in (
-        &ecs.read_storage::<Client>(),
-        &ecs.read_storage::<comp::Group>(),
-    )
-        .join()
-    {
+fn send_to_group(g: &Group, ecs: &specs::World, msg: &comp::ChatMsg) {
+    for (client, group) in (&ecs.read_storage::<Client>(), &ecs.read_storage::<Group>()).join() {
         if g == group {
             client.send_fallible(ServerGeneral::ChatMsg(msg.clone()));
         }

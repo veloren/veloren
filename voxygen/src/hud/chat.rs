@@ -883,7 +883,7 @@ mod tests {
             Ok(("say".to_string(), vec!["Hello World".to_string()]));
         assert_eq!(parse_cmd(r#"say "Hello World""#), expected);
 
-        // Note: \n in the exptected gets expanded by rust to a newline character, thats
+        // Note: \n in the expected gets expanded by rust to a newline character, that's
         // why we must not use a raw string in the expected
         let expected: Result<(String, Vec<String>), String> =
             Ok(("say".to_string(), vec!["Hello\nWorld".to_string()]));

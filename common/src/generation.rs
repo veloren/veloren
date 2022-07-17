@@ -7,7 +7,6 @@ use crate::{
     },
     lottery::LootSpec,
     npc::{self, NPC_NAMES},
-    trade,
     trade::SiteInformation,
 };
 use serde::Deserialize;
@@ -62,7 +61,7 @@ pub enum Meta {
 // that this field should be either Default or Unchanged
 // depending on how it is used.
 //
-// When we will use exension manifests more, it would be nicer to
+// When we will use extension manifests more, it would be nicer to
 // split EntityBase and EntityExtension to different structs.
 //
 // Fields which have Uninit enum kind
@@ -70,7 +69,7 @@ pub enum Meta {
 // and required (or renamed to Default) in EntityBase
 /// Struct for EntityInfo manifest.
 ///
-/// Intended to use with .ron files as base definion or
+/// Intended to use with .ron files as base definition or
 /// in rare cases as extension manifest.
 /// Pure data struct, doesn't do anything until evaluated with EntityInfo.
 ///
@@ -167,7 +166,7 @@ pub struct EntityInfo {
     // Loadout
     pub inventory: Vec<(u32, Item)>,
     pub loadout: LoadoutBuilder,
-    pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
+    pub make_loadout: Option<fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder>,
     // Skills
     pub skillset_asset: Option<String>,
 
@@ -176,7 +175,7 @@ pub struct EntityInfo {
 
     // Economy
     // we can't use DHashMap, do we want to move that into common?
-    pub trading_information: Option<trade::SiteInformation>,
+    pub trading_information: Option<SiteInformation>,
     //Option<hashbrown::HashMap<crate::trade::Good, (f32, f32)>>, /* price and available amount */
 }
 
@@ -394,7 +393,7 @@ impl EntityInfo {
     #[must_use]
     pub fn with_lazy_loadout(
         mut self,
-        creator: fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder,
+        creator: fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder,
     ) -> Self {
         self.make_loadout = Some(creator);
         self
@@ -576,7 +575,7 @@ mod tests {
 
             match field {
                 Meta::SkillSetAsset(asset) => {
-                    std::mem::drop(SkillSetBuilder::from_asset_expect(&asset));
+                    drop(SkillSetBuilder::from_asset_expect(&asset));
                 },
             }
         }

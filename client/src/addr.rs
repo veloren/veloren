@@ -55,7 +55,7 @@ pub(crate) async fn try_connect<F>(
     f: F,
 ) -> Result<network::Participant, crate::error::Error>
 where
-    F: Fn(std::net::SocketAddr) -> network::ConnectAddr,
+    F: Fn(SocketAddr) -> network::ConnectAddr,
 {
     use crate::error::Error;
     let mut participant = None;
@@ -77,7 +77,7 @@ where
 fn sort_ipv6(s: impl Iterator<Item = SocketAddr>, prefer_ipv6: bool) -> Vec<SocketAddr> {
     let (mut first_addrs, mut second_addrs) =
         s.partition::<Vec<_>, _>(|a| a.is_ipv6() == prefer_ipv6);
-    std::iter::Iterator::chain(first_addrs.drain(..), second_addrs.drain(..)).collect::<Vec<_>>()
+    Iterator::chain(first_addrs.drain(..), second_addrs.drain(..)).collect::<Vec<_>>()
 }
 
 #[cfg(test)]

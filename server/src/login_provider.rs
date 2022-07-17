@@ -164,13 +164,13 @@ impl LoginProvider {
                 info!(?username, "New User");
                 Some(Ok((username, uuid)))
             },
-            Err(tokio::sync::oneshot::error::TryRecvError::Closed) => {
+            Err(oneshot::error::TryRecvError::Closed) => {
                 error!("channel got closed to early, this shouldn't happen");
                 Some(Err(RegisterError::AuthError(
                     "Internal Error verifying".to_string(),
                 )))
             },
-            Err(tokio::sync::oneshot::error::TryRecvError::Empty) => None,
+            Err(oneshot::error::TryRecvError::Empty) => None,
         }
     }
 
@@ -186,7 +186,7 @@ impl LoginProvider {
         match async {
             let uuid = srv.validate(token).await?;
             let username = srv.uuid_to_username(uuid).await?;
-            let r: Result<_, authc::AuthClientError> = Ok((username, uuid));
+            let r: Result<_, AuthClientError> = Ok((username, uuid));
             r
         }
         .await

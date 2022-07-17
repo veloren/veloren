@@ -18,7 +18,7 @@ use rayon::prelude::*;
 use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
-    f32, f64, fmt, mem,
+    f32, fmt, mem,
     time::Instant,
     u32,
 };
@@ -555,8 +555,8 @@ fn get_max_slope(
     rock_strength_nz: &(impl NoiseFn<[f64; 3]> + Sync),
     height_scale: impl Fn(usize) -> Alt + Sync,
 ) -> Box<[f64]> {
-    let min_max_angle = (15.0 / 360.0 * 2.0 * f64::consts::PI).tan();
-    let max_max_angle = (60.0 / 360.0 * 2.0 * f64::consts::PI).tan();
+    let min_max_angle = (15.0 / 360.0 * 2.0 * std::f64::consts::PI).tan();
+    let max_max_angle = (60.0 / 360.0 * 2.0 * std::f64::consts::PI).tan();
     let max_angle_range = max_max_angle - min_max_angle;
     h.par_iter()
         .enumerate()
@@ -572,7 +572,7 @@ fn get_max_slope(
             // Logistic regression.  Make sure x ∈ (0, 1).
             let logit = |x: f64| x.ln() - (-x).ln_1p();
             // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-            let logistic_2_base = 3.0f64.sqrt() * f64::consts::FRAC_2_PI;
+            let logistic_2_base = 3.0f64.sqrt() * std::f64::consts::FRAC_2_PI;
             // Assumes μ = 0, σ = 1
             let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
@@ -860,7 +860,7 @@ fn erode(
 
     // max angle of slope depends on rock strength, which is computed from noise
     // function. TODO: Make more principled.
-    let mid_slope = (30.0 / 360.0 * 2.0 * f64::consts::PI).tan();
+    let mid_slope = (30.0 / 360.0 * 2.0 * std::f64::consts::PI).tan();
 
     type SimdType = f32;
     type MaskType = m32;
@@ -1063,9 +1063,9 @@ fn erode(
     let mut h_stack = vec![Zero::zero(); dh.len()];
     let mut b_stack = vec![Zero::zero(); dh.len()];
     let mut area_stack = vec![Zero::zero(); dh.len()];
-    assert!(mstack.len() == dh.len());
-    assert!(b.len() == dh.len());
-    assert!(h_t.len() == dh.len());
+    assert_eq!(mstack.len(), dh.len());
+    assert_eq!(b.len(), dh.len());
+    assert_eq!(h_t.len(), dh.len());
     let mstack_inv = &mut *mstack_inv;
     mstack.iter().enumerate().for_each(|(stacki, &posi)| {
         let posi = posi as usize;
@@ -1119,7 +1119,7 @@ fn erode(
             },
         );
         debug!(
-            "(Done precomputation, time={:?}ms).",
+            "(Done pre-computation, time={:?}ms).",
             start_time.elapsed().as_millis()
         );
         #[rustfmt::skip]
@@ -1237,7 +1237,7 @@ fn erode(
         // TODO: Consider taking advantage of multi-receiver flow here.
         // Iterate in ascending height order.
         let mut sum_err: Compute = 0.0_f64;
-        itertools::izip!(&*mstack, &*elev, &*b_stack, &*h_t_stack, &*dh_stack, &*h_p)
+        izip!(&*mstack, &*elev, &*b_stack, &*h_t_stack, &*dh_stack, &*h_p)
             .enumerate()
             .rev()
             .for_each(|(stacki, (&posi, &elev_i, &b_i, &h_t_i, &dh_i, &h_p_i))| {
@@ -1472,7 +1472,7 @@ fn erode(
         .into_par_iter()
         .enumerate()
         .for_each(|(posi, (&stacki, h))| {
-            assert!(posi == mstack[stacki] as usize);
+            assert_eq!(posi, mstack[stacki] as usize);
             *h = h_stack[stacki];
         });
 
@@ -2270,7 +2270,7 @@ pub fn get_lakes<F: Float>(
                                 _ => {},
                             }
                         });
-                        assert!(rcv != -1);
+                        assert_ne!(rcv, -1);
                         downhill[node] = rcv;
                         tag[node] = Tag::WithRcv;
                     }

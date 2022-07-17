@@ -352,7 +352,7 @@ impl Attack {
                             }
                         },
                         CombatEffect::Lifesteal(l) => {
-                            // Not modified by strength_modifer as damage already is
+                            // Not modified by strength_modifier as damage already is
                             if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                                 let change = HealthChange {
                                     amount: applied_damage * l,
@@ -499,7 +499,7 @@ impl Attack {
                         }
                     },
                     CombatEffect::Lifesteal(l) => {
-                        // Not modified by strength_modifer as damage already is
+                        // Not modified by strength_modifier as damage already is
                         if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                             let change = HealthChange {
                                 amount: accumulated_damage * l,
@@ -1162,7 +1162,7 @@ pub fn compute_crit_mult(inventory: Option<&Inventory>, msm: &MaterialStatManife
     })
 }
 
-/// Computes the energy reward modifer from worn armor
+/// Computes the energy reward modifier from worn armor
 #[cfg(not(target_arch = "wasm32"))]
 pub fn compute_energy_reward_mod(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
     // Starts with a value of 1.0 when summing the stats from each armor piece, and

@@ -118,7 +118,7 @@ fn stream_simple_udp_3msg() {
 
 #[test]
 #[ignore]
-fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Error>> {
+fn tcp_and_udp_2_connections() -> Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
     let r = Arc::new(Runtime::new().unwrap());
     let network = Network::new(Pid::new(), &r);
@@ -145,7 +145,7 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
 
 #[test]
 #[ignore]
-fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::Error>> {
+fn failed_listen_on_used_ports() -> Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
     let r = Arc::new(Runtime::new().unwrap());
     let network = Network::new(Pid::new(), &r);
@@ -176,7 +176,7 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
 /// So i rather put the same test into a unit test, these are now duplicate to
 /// the api, but are left here, just to be save!
 #[test]
-fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+fn api_stream_send_main() -> Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
     // Create a Network, listen on Port `1200` and wait for a Stream to be opened,
     // then answer `Hello World`
@@ -205,7 +205,7 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
 }
 
 #[test]
-fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+fn api_stream_recv_main() -> Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
     // Create a Network, listen on Port `1220` and wait for a Stream to be opened,
     // then listen on it

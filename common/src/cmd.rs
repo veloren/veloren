@@ -135,7 +135,7 @@ lazy_static! {
     pub static ref BUFF_PARSER: HashMap<String, BuffKind> = {
         let string_from_buff = |kind| match kind {
             BuffKind::Burning => "burning",
-            BuffKind::Regeneration => "regeration",
+            BuffKind::Regeneration => "regeneration",
             BuffKind::Saturation => "saturation",
             BuffKind::Bleeding => "bleeding",
             BuffKind::Cursed => "cursed",
@@ -804,7 +804,7 @@ impl ServerChatCommand {
     }
 
     /// Produce an iterator over all the available commands
-    pub fn iter() -> impl Iterator<Item = Self> { <Self as strum::IntoEnumIterator>::iter() }
+    pub fn iter() -> impl Iterator<Item = Self> { <Self as IntoEnumIterator>::iter() }
 
     /// A message that explains what the command does
     pub fn help_string(&self) -> String {

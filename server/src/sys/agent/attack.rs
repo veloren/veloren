@@ -924,7 +924,7 @@ impl<'a> AgentData<'a> {
                     _ =>
                     // if some illegal value slipped in, get zero vector
                     {
-                        vek::Vec2::zero()
+                        Vec2::zero()
                     },
                 };
                 let obstacle = read_data
@@ -1411,7 +1411,7 @@ impl<'a> AgentData<'a> {
         const MINION_SUMMON_THRESHOLD: f32 = 0.20;
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // Sets counter at start of combat, using `condition` to keep track of whether
-        // it was already intitialized
+        // it was already initialized
         if !agent.action_state.condition {
             agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
             agent.action_state.condition = true;
@@ -1742,7 +1742,7 @@ impl<'a> AgentData<'a> {
             && attack_data.angle < 90.0
             && attack_data.in_min_range()
         {
-            // Triplestrike
+            // Triple strike
             controller.push_basic_input(InputKind::Secondary);
             agent.action_state.timer += read_data.dt.0;
         } else {
@@ -2152,7 +2152,7 @@ impl<'a> AgentData<'a> {
         };
 
         // Sets counter at start of combat, using `condition` to keep track of whether
-        // it was already intitialized
+        // it was already initialized
         if !agent.action_state.condition {
             agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
             agent.action_state.condition = true;

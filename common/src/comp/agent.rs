@@ -217,7 +217,7 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_small::Species::Goat => 0.5,
                     quadruped_small::Species::Porcupine => 0.7,
                     quadruped_small::Species::Turtle => 0.7,
-                    // FIXME: This is to balance for enemy rats in dunegeons
+                    // FIXME: This is to balance for enemy rats in dungeons
                     // Normal rats should probably always flee.
                     quadruped_small::Species::Rat => 0.0,
                     quadruped_small::Species::Beaver => 0.7,
@@ -546,7 +546,7 @@ impl Agent {
         self
     }
 
-    /// Makes agent aggresive without warning
+    /// Makes agent aggressive without warning
     #[must_use]
     pub fn with_aggro_no_warn(mut self) -> Self {
         self.psyche.aggro_dist = None;

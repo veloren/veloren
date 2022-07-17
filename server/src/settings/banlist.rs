@@ -19,7 +19,7 @@ pub use self::v1::*;
 #[derive(Deserialize, Serialize)]
 pub enum BanlistRaw {
     V0(v0::Banlist),
-    V1(v1::Banlist),
+    V1(Banlist),
 }
 
 impl From<Banlist> for BanlistRaw {
@@ -477,7 +477,7 @@ mod v1 {
 
     impl Banlist {
         /// Attempt to perform the ban action `action` for the user with UUID
-        /// `uuid` and username `username`, starting from itme `now`
+        /// `uuid` and username `username`, starting from time `now`
         /// (the information about the banning party will
         /// be in the `action` record), with a settings file maintained at path
         /// root `data_dir`.

@@ -121,7 +121,7 @@ pub mod event {
     /// #[event_handler]
     /// pub fn on_command_testplugin(command: ChatCommandEvent) -> Result<Vec<String>, String> {
     ///     Ok(vec![format!(
-    ///         "Player of id {:?} named {} with {:?} sended command with args {:?}",
+    ///         "Player of id {:?} named {} with {:?} sent command with args {:?}",
     ///         command.player.id,
     ///         command
     ///             .player

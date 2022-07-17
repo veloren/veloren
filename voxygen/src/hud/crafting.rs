@@ -274,14 +274,14 @@ pub struct State {
 enum SearchFilter {
     None,
     Input,
-    Nonexistant,
+    Nonexistent,
 }
 
 impl SearchFilter {
     fn parse_from_str(string: &str) -> Self {
         match string {
             "input" => Self::Input,
-            _ => Self::Nonexistant,
+            _ => Self::Nonexistent,
         }
     }
 }
@@ -581,7 +581,7 @@ impl<'a> Widget for Crafting<'a> {
                         },
                     }
                 }),
-                SearchFilter::Nonexistant => false,
+                SearchFilter::Nonexistent => false,
             })
             .map(|(name, recipe)| {
                 let has_materials = self.client.available_recipes().get(name.as_str()).is_some();
@@ -612,7 +612,7 @@ impl<'a> Widget for Crafting<'a> {
                                     // TODO: Get input filtering to work here, probably requires
                                     // checking component recipe book?
                                     SearchFilter::Input => false,
-                                    SearchFilter::Nonexistant => false,
+                                    SearchFilter::Nonexistent => false,
                                 }
                             })
                             .map(|(recipe_name, (recipe, _))| {

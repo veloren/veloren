@@ -68,7 +68,7 @@ impl State {
         if let Some(active_abilities) = client
             .state()
             .ecs()
-            .read_storage::<common::comp::ActiveAbilities>()
+            .read_storage::<comp::ActiveAbilities>()
             .get(client.entity())
         {
             use common::comp::ability::AuxiliaryAbility;

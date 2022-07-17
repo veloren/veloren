@@ -60,7 +60,7 @@ impl ParticleMgr {
     pub fn handle_outcome(&mut self, outcome: &Outcome, scene_data: &SceneData) {
         span!(_guard, "handle_outcome", "ParticleMgr::handle_outcome");
         let time = scene_data.state.get_time();
-        let mut rng = rand::thread_rng();
+        let mut rng = thread_rng();
 
         match outcome {
             Outcome::Lightning { pos } => {
@@ -1068,13 +1068,13 @@ impl ParticleMgr {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
-        let mut rng = rand::thread_rng();
+        let mut rng = thread_rng();
 
         for (interp, pos, buffs, body) in (
             ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<comp::Buffs>(),
-            &ecs.read_storage::<comp::Body>(),
+            &ecs.read_storage::<Body>(),
         )
             .join()
         {

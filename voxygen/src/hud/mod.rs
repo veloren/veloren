@@ -444,8 +444,8 @@ impl<W: Positionable> Position for W {
 
 #[derive(Clone, Copy)]
 pub struct BuffInfo {
-    kind: comp::BuffKind,
-    data: comp::BuffData,
+    kind: BuffKind,
+    data: BuffData,
     is_buff: bool,
     dur: Option<Duration>,
 }
@@ -499,7 +499,7 @@ pub struct HudInfo {
     pub is_aiming: bool,
     pub is_first_person: bool,
     pub target_entity: Option<specs::Entity>,
-    pub selected_entity: Option<(specs::Entity, std::time::Instant)>,
+    pub selected_entity: Option<(specs::Entity, Instant)>,
 }
 
 #[derive(Clone)]
@@ -1259,15 +1259,15 @@ impl Hud {
             let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
             let skill_sets = ecs.read_storage::<comp::SkillSet>();
-            let healths = ecs.read_storage::<comp::Health>();
+            let healths = ecs.read_storage::<Health>();
             let buffs = ecs.read_storage::<comp::Buffs>();
             let energy = ecs.read_storage::<comp::Energy>();
-            let mut hp_floater_lists = ecs.write_storage::<vcomp::HpFloaterList>();
+            let mut hp_floater_lists = ecs.write_storage::<HpFloaterList>();
             let uids = ecs.read_storage::<Uid>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
-            let items = ecs.read_storage::<comp::Item>();
+            let items = ecs.read_storage::<Item>();
             let inventories = ecs.read_storage::<comp::Inventory>();
             let players = ecs.read_storage::<comp::Player>();
             let msm = ecs.read_resource::<MaterialStatManifest>();
@@ -1797,7 +1797,7 @@ impl Hud {
             for (entity, pos, item, distance) in (&entities, &pos, &items)
                 .join()
                 .map(|(entity, pos, item)| (entity, pos, item, pos.0.distance_squared(player_pos)))
-                .filter(|(_, _, _, distance)| distance < &common::consts::MAX_PICKUP_RANGE.powi(2))
+                .filter(|(_, _, _, distance)| distance < &MAX_PICKUP_RANGE.powi(2))
             {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
@@ -2685,7 +2685,7 @@ impl Hud {
         // Get player stats
         let ecs = client.state().ecs();
         let entity = client.entity();
-        let healths = ecs.read_storage::<comp::Health>();
+        let healths = ecs.read_storage::<Health>();
         let inventories = ecs.read_storage::<comp::Inventory>();
         let energies = ecs.read_storage::<comp::Energy>();
         let skillsets = ecs.read_storage::<comp::SkillSet>();
@@ -2852,7 +2852,7 @@ impl Hud {
         // Buffs
         let ecs = client.state().ecs();
         let entity = client.entity();
-        let health = ecs.read_storage::<comp::Health>();
+        let health = ecs.read_storage::<Health>();
         let energy = ecs.read_storage::<comp::Energy>();
         if let (Some(player_buffs), Some(health), Some(energy)) = (
             buffs.get(client.entity()),
@@ -3583,7 +3583,7 @@ impl Hud {
                                         events.push(Event::SwapEquippedWeapons);
                                     } else if let Some(slot) = inv.get_slot_from_hash(i) {
                                         events.push(Event::UseSlot {
-                                            slot: comp::slot::Slot::Inventory(slot),
+                                            slot: Slot::Inventory(slot),
                                             bypass_dialog: false,
                                         });
                                     }
@@ -3604,7 +3604,7 @@ impl Hud {
                 } => {
                     if let Some((_, trade, prices)) = client.pending_trade() {
                         let ecs = client.state().ecs();
-                        let inventories = ecs.read_component::<common::comp::Inventory>();
+                        let inventories = ecs.read_component::<comp::Inventory>();
                         let get_inventory = |uid: Uid| {
                             if let Some(entity) = ecs.entity_from_uid(uid.0) {
                                 inventories.get(entity)
@@ -3629,7 +3629,7 @@ impl Hud {
                             None => continue 'slot_events,
                         };
                         let do_auto_quantity =
-                            |inventory: &common::comp::Inventory,
+                            |inventory: &comp::Inventory,
                              slot,
                              ours,
                              remove,
@@ -4399,7 +4399,7 @@ impl Hud {
             },
             Outcome::HealthChange { info, .. } => {
                 let ecs = client.state().ecs();
-                let mut hp_floater_lists = ecs.write_storage::<vcomp::HpFloaterList>();
+                let mut hp_floater_lists = ecs.write_storage::<HpFloaterList>();
                 let uids = ecs.read_storage::<Uid>();
                 let me = client.entity();
                 let my_uid = uids.get(me);

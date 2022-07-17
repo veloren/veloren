@@ -111,8 +111,8 @@ impl DebugShape {
                 // stretch to radius
                 let a = a * *radius;
                 // rotate to 90 degrees to get needed shift
-                let ortoghonal = Quaternion::rotation_z(PI / 2.0);
-                let shift = ortoghonal * a;
+                let orthogonal = Quaternion::rotation_z(PI / 2.0);
+                let shift = orthogonal * a;
 
                 // bottom points
                 let a0 = p0 + shift;

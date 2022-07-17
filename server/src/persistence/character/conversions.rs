@@ -28,7 +28,7 @@ use tracing::{trace, warn};
 
 #[derive(Debug)]
 pub struct ItemModelPair {
-    pub comp: Arc<common::comp::item::ItemId>,
+    pub comp: Arc<item::ItemId>,
     pub model: Item,
 }
 
@@ -193,23 +193,23 @@ pub fn convert_body_to_database_json(
     comp_body: &CompBody,
 ) -> Result<(&str, String), PersistenceError> {
     Ok(match comp_body {
-        common::comp::Body::Humanoid(body) => (
+        Body::Humanoid(body) => (
             "humanoid",
             serde_json::to_string(&HumanoidBody::from(body))?,
         ),
-        common::comp::Body::QuadrupedLow(body) => (
+        Body::QuadrupedLow(body) => (
             "quadruped_low",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
-        common::comp::Body::QuadrupedMedium(body) => (
+        Body::QuadrupedMedium(body) => (
             "quadruped_medium",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
-        common::comp::Body::QuadrupedSmall(body) => (
+        Body::QuadrupedSmall(body) => (
             "quadruped_small",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
-        common::comp::Body::BirdMedium(body) => (
+        Body::BirdMedium(body) => (
             "bird_medium",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
@@ -544,8 +544,8 @@ pub fn convert_body_from_database(
         // extra fields on its body struct
         "humanoid" => {
             let json_model = serde_json::de::from_str::<HumanoidBody>(body_data)?;
-            CompBody::Humanoid(common::comp::humanoid::Body {
-                species: common::comp::humanoid::ALL_SPECIES
+            CompBody::Humanoid(humanoid::Body {
+                species: humanoid::ALL_SPECIES
                     .get(json_model.species as usize)
                     .ok_or_else(|| {
                         PersistenceError::ConversionError(format!(
@@ -554,7 +554,7 @@ pub fn convert_body_from_database(
                         ))
                     })?
                     .to_owned(),
-                body_type: common::comp::humanoid::ALL_BODY_TYPES
+                body_type: humanoid::ALL_BODY_TYPES
                     .get(json_model.body_type as usize)
                     .ok_or_else(|| {
                         PersistenceError::ConversionError(format!(
@@ -600,16 +600,16 @@ pub fn convert_character_from_database(character: &Character) -> common::charact
     }
 }
 
-pub fn convert_stats_from_database(alias: String) -> common::comp::Stats {
-    let mut new_stats = common::comp::Stats::empty();
+pub fn convert_stats_from_database(alias: String) -> Stats {
+    let mut new_stats = Stats::empty();
     new_stats.name = alias;
     new_stats
 }
 
-pub fn convert_skill_set_from_database(skill_groups: &[SkillGroup]) -> common::comp::SkillSet {
+pub fn convert_skill_set_from_database(skill_groups: &[SkillGroup]) -> SkillSet {
     let (skillless_skill_groups, deserialized_skills) =
         convert_skill_groups_from_database(skill_groups);
-    common::comp::SkillSet::load_from_database(skillless_skill_groups, deserialized_skills)
+    SkillSet::load_from_database(skillless_skill_groups, deserialized_skills)
 }
 
 #[allow(clippy::type_complexity)]
@@ -618,9 +618,9 @@ fn convert_skill_groups_from_database(
 ) -> (
     // Skill groups in the vec do not contain skills, those are added later. The skill group only
     // contains fields related to experience and skill points
-    HashMap<skillset::SkillGroupKind, skillset::SkillGroup>,
+    HashMap<SkillGroupKind, skillset::SkillGroup>,
     //
-    HashMap<skillset::SkillGroupKind, Result<Vec<skills::Skill>, skillset::SkillsPersistenceError>>,
+    HashMap<SkillGroupKind, Result<Vec<Skill>, skillset::SkillsPersistenceError>>,
 ) {
     let mut new_skill_groups = HashMap::new();
     let mut deserialized_skills = HashMap::new();
@@ -657,7 +657,7 @@ fn convert_skill_groups_from_database(
             Err(SkillsPersistenceError::HashMismatch)
         } else {
             // Else attempt to deserialize skills from a json string
-            match serde_json::from_str::<Vec<skills::Skill>>(&skill_group.skills) {
+            match serde_json::from_str::<Vec<Skill>>(&skill_group.skills) {
                 // If it correctly deserializes, return the persisted skills
                 Ok(skills) => Ok(skills),
                 // Else if doesn't deserialize correctly, force a respec
@@ -702,7 +702,7 @@ pub fn convert_skill_groups_to_database<'a, I: Iterator<Item = &'a skillset::Ski
 
 pub fn convert_active_abilities_to_database(
     entity_id: CharacterId,
-    active_abilities: &ability::ActiveAbilities,
+    active_abilities: &ActiveAbilities,
 ) -> AbilitySets {
     let ability_sets = json_models::active_abilities_to_db_model(active_abilities);
     AbilitySets {
@@ -711,9 +711,7 @@ pub fn convert_active_abilities_to_database(
     }
 }
 
-pub fn convert_active_abilities_from_database(
-    ability_sets: &AbilitySets,
-) -> ability::ActiveAbilities {
+pub fn convert_active_abilities_from_database(ability_sets: &AbilitySets) -> ActiveAbilities {
     let ability_sets = serde_json::from_str::<Vec<DatabaseAbilitySet>>(&ability_sets.ability_sets)
         .unwrap_or_else(|err| {
             common_base::dev_panic!(format!(

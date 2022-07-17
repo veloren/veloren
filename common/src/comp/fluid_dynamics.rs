@@ -138,7 +138,7 @@ impl Body {
     ) -> Vec3<f32> {
         let v_sq = rel_flow.0.magnitude_squared();
         if v_sq < 0.25 {
-            // don't bother with miniscule forces
+            // don't bother with minuscule forces
             Vec3::zero()
         } else {
             let rel_flow_dir = Dir::new(rel_flow.0 / v_sq.sqrt());

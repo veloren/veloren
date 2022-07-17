@@ -28,9 +28,7 @@ pub struct Is<R: Role> {
 }
 
 impl<R: Role> Is<R> {
-    pub fn delete(&self, data: <R::Link as Link>::DeleteData<'_>) {
-        R::Link::delete(&self.link, data)
-    }
+    pub fn delete(&self, data: <R::Link as Link>::DeleteData<'_>) { Link::delete(&self.link, data) }
 }
 
 impl<R: Role> Clone for Is<R> {

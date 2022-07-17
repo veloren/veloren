@@ -1,6 +1,6 @@
 use crate::{
     combat::{
-        self, Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
+        Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
         CombatRequirement, Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
@@ -405,9 +405,7 @@ impl MeleeConstructor {
         if let Some(ref mut scaled) = &mut self.scaled {
             *scaled = scaled.adjusted_by_stats(stats, regen);
         }
-        if let Some(CombatEffect::Buff(combat::CombatBuff { strength, .. })) =
-            &mut self.damage_effect
-        {
+        if let Some(CombatEffect::Buff(CombatBuff { strength, .. })) = &mut self.damage_effect {
             *strength *= stats.buff_strength;
         }
         self

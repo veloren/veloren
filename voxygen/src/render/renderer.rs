@@ -447,26 +447,26 @@ impl Renderer {
         let create_sampler = |filter| {
             device.create_sampler(&wgpu::SamplerDescriptor {
                 label: None,
-                address_mode_u: wgpu::AddressMode::ClampToEdge,
-                address_mode_v: wgpu::AddressMode::ClampToEdge,
-                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                address_mode_u: AddressMode::ClampToEdge,
+                address_mode_v: AddressMode::ClampToEdge,
+                address_mode_w: AddressMode::ClampToEdge,
                 mag_filter: filter,
                 min_filter: filter,
-                mipmap_filter: wgpu::FilterMode::Nearest,
+                mipmap_filter: FilterMode::Nearest,
                 compare: None,
                 ..Default::default()
             })
         };
 
-        let sampler = create_sampler(wgpu::FilterMode::Linear);
-        let depth_sampler = create_sampler(wgpu::FilterMode::Nearest);
+        let sampler = create_sampler(FilterMode::Linear);
+        let depth_sampler = create_sampler(FilterMode::Nearest);
 
         let noise_tex = Texture::new(
             &device,
             &queue,
             &assets::Image::load_expect("voxygen.texture.noise").read().0,
-            Some(wgpu::FilterMode::Linear),
-            Some(wgpu::AddressMode::Repeat),
+            Some(FilterMode::Linear),
+            Some(AddressMode::Repeat),
         )?;
 
         let clouds_locals =

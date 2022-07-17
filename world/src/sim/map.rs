@@ -10,7 +10,7 @@ use common::{
     },
     vol::RectVolSize,
 };
-use std::{f32, f64};
+use std::f64;
 use vek::*;
 
 /// A sample function that grabs the connections at a chunk.

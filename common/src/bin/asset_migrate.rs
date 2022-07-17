@@ -7,7 +7,7 @@ use std::{
 
 // If you want to migrate assets.
 // 1) Copy-paste old asset type to own module
-// 2) Copy-pase new asset type to own module
+// 2) Copy-paste new asset type to own module
 // (don't forget to add serde derive-s, import if needed)
 // 3) impl From<old asset> for new asset.
 // 4) Reference old and new assets in old and new modules
@@ -50,7 +50,7 @@ fn walk_tree(dir: &Path, root: &Path) -> io::Result<Vec<Walk>> {
     Ok(buff)
 }
 
-fn walk_with_migrate<OldV, NewV>(tree: Walk, from: &Path, to: &Path) -> std::io::Result<()>
+fn walk_with_migrate<OldV, NewV>(tree: Walk, from: &Path, to: &Path) -> io::Result<()>
 where
     NewV: From<OldV>,
     OldV: DeserializeOwned,

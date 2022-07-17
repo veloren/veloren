@@ -76,7 +76,7 @@ pub trait PackingFormula: Copy {
 /// A wide, short image. Shares the advantage of not wasting space with
 /// TallPacking (which is strictly worse, and was moved to benchmark code in
 /// `world`), but faster to compress and smaller since PNG compresses each
-/// row indepedently, so a wide image has fewer calls to the compressor. FLIP_X
+/// row independently, so a wide image has fewer calls to the compressor. FLIP_X
 /// has the same spatial locality preserving behavior as with TallPacking.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct WidePacking<const FLIP_X: bool>();

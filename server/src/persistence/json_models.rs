@@ -118,7 +118,7 @@ pub struct DatabaseAbilitySet {
     abilities: Vec<String>,
 }
 
-fn aux_ability_to_string(ability: common::comp::ability::AuxiliaryAbility) -> String {
+fn aux_ability_to_string(ability: comp::ability::AuxiliaryAbility) -> String {
     use common::comp::ability::AuxiliaryAbility;
     match ability {
         AuxiliaryAbility::MainWeapon(index) => format!("Main Weapon:index:{}", index),
@@ -127,7 +127,7 @@ fn aux_ability_to_string(ability: common::comp::ability::AuxiliaryAbility) -> St
     }
 }
 
-fn aux_ability_from_string(ability: &str) -> common::comp::ability::AuxiliaryAbility {
+fn aux_ability_from_string(ability: &str) -> comp::ability::AuxiliaryAbility {
     use common::comp::ability::AuxiliaryAbility;
     let mut parts = ability.split(":index:");
     match parts.next() {
@@ -184,7 +184,7 @@ fn aux_ability_from_string(ability: &str) -> common::comp::ability::AuxiliaryAbi
     }
 }
 
-fn tool_kind_to_string(tool: Option<common::comp::item::tool::ToolKind>) -> String {
+fn tool_kind_to_string(tool: Option<comp::item::tool::ToolKind>) -> String {
     use common::comp::item::tool::ToolKind::*;
     String::from(match tool {
         Some(Sword) => "Sword",
@@ -199,7 +199,7 @@ fn tool_kind_to_string(tool: Option<common::comp::item::tool::ToolKind>) -> Stri
         Some(Blowgun) => "Blowgun",
         Some(Pick) => "Pick",
 
-        // Toolkinds that are not anticipated to have many active aiblities (if any at all)
+        // Toolkinds that are not anticipated to have many active abilities (if any at all)
         Some(Farming) => "Farming",
         Some(Debug) => "Debug",
         Some(Natural) => "Natural",
@@ -208,7 +208,7 @@ fn tool_kind_to_string(tool: Option<common::comp::item::tool::ToolKind>) -> Stri
     })
 }
 
-fn tool_kind_from_string(tool: String) -> Option<common::comp::item::tool::ToolKind> {
+fn tool_kind_from_string(tool: String) -> Option<comp::item::tool::ToolKind> {
     use common::comp::item::tool::ToolKind::*;
     match tool.as_str() {
         "Sword" => Some(Sword),

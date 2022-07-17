@@ -131,7 +131,7 @@ pub fn handle_create_npc(
                                 .map(|g| (g, c))
                         })
                         .map(|(g, c)| {
-                            // Might be unneccessary, but maybe pets can somehow have map
+                            // Might be unnecessary, but maybe pets can somehow have map
                             // markers in the future
                             update_map_markers(&map_markers, &uids, c, &group_change);
                             c.send_fallible(ServerGeneral::GroupUpdate(g));
@@ -140,10 +140,10 @@ pub fn handle_create_npc(
             );
         }
     } else if let Some(group) = match alignment {
-        comp::Alignment::Wild => None,
-        comp::Alignment::Passive => None,
-        comp::Alignment::Enemy => Some(comp::group::ENEMY),
-        comp::Alignment::Npc | comp::Alignment::Tame => Some(comp::group::NPC),
+        Alignment::Wild => None,
+        Alignment::Passive => None,
+        Alignment::Enemy => Some(comp::group::ENEMY),
+        Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
         comp::Alignment::Owned(_) => unreachable!(),
     } {
         let _ = server.state.ecs().write_storage().insert(new_entity, group);
@@ -152,7 +152,7 @@ pub fn handle_create_npc(
 
 pub fn handle_create_ship(
     server: &mut Server,
-    pos: comp::Pos,
+    pos: Pos,
     ship: comp::ship::Body,
     mountable: bool,
     agent: Option<Agent>,

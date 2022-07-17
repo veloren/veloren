@@ -219,7 +219,7 @@ impl<'a> Widget for Group<'a> {
         // broken
         if self.show.group_menu || open_invite.is_some() {
             // Frame
-            Rectangle::fill_with([220.0, 140.0], color::Color::Rgba(0.0, 0.0, 0.0, 0.8))
+            Rectangle::fill_with([220.0, 140.0], Color::Rgba(0.0, 0.0, 0.0, 0.8))
                 .bottom_left_with_margins_on(ui.window, 108.0, 490.0)
                 .crop_kids()
                 .set(state.ids.bg, ui);
@@ -346,7 +346,7 @@ impl<'a> Widget for Group<'a> {
                 })
             };
             let client_state = self.client.state();
-            let stats = client_state.ecs().read_storage::<common::comp::Stats>();
+            let stats = client_state.ecs().read_storage::<Stats>();
             let skill_sets = client_state.ecs().read_storage::<common::comp::SkillSet>();
             let healths = client_state.ecs().read_storage::<common::comp::Health>();
             let energy = client_state.ecs().read_storage::<common::comp::Energy>();

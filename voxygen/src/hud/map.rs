@@ -384,7 +384,7 @@ impl<'a> Widget for Map<'a> {
                     }
                 }
 
-                // Handle zooming with the mousewheel
+                // Handle zooming with the mouse wheel
                 let scrolled: f64 = ui
                     .widget_input(widget)
                     .scrolls()
@@ -1148,8 +1148,8 @@ impl<'a> Widget for Map<'a> {
         }
         // Group member indicators
         let client_state = self.client.state();
-        let stats = client_state.ecs().read_storage::<common::comp::Stats>();
-        let member_pos = client_state.ecs().read_storage::<common::comp::Pos>();
+        let stats = client_state.ecs().read_storage::<comp::Stats>();
+        let member_pos = client_state.ecs().read_storage::<comp::Pos>();
         let group_members = self
             .client
             .group_members()
@@ -1381,7 +1381,7 @@ impl<'a> Widget for Map<'a> {
                 self.imgs.button
             })
             .label(i18n.get("hud.map.recenter"))
-            .label_y(conrod_core::position::Relative::Scalar(1.0))
+            .label_y(position::Relative::Scalar(1.0))
             .label_color(if recenter {
                 TEXT_COLOR
             } else {

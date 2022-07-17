@@ -392,10 +392,8 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
         |atlas_pos, pos, norm, meta| TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta);
     let create_transparent = |_atlas_pos, pos, norm| FluidVertex::new(pos + mesh_delta, norm);
 
-    let mut greedy = GreedyMesh::<guillotiere::SimpleAtlasAllocator>::new(
-        max_size,
-        crate::mesh::greedy::general_config(),
-    );
+    let mut greedy =
+        GreedyMesh::<guillotiere::SimpleAtlasAllocator>::new(max_size, greedy::general_config());
     let mut opaque_mesh = Mesh::new();
     let mut fluid_mesh = Mesh::new();
     greedy.push(GreedyConfig {

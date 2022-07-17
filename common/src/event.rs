@@ -126,7 +126,7 @@ pub enum ServerEvent {
     },
     // TODO: to avoid breakage when adding new fields, perhaps have an `NpcBuilder` type?
     CreateNpc {
-        pos: comp::Pos,
+        pos: Pos,
         stats: comp::Stats,
         skill_set: comp::SkillSet,
         health: Option<comp::Health>,
@@ -142,7 +142,7 @@ pub enum ServerEvent {
         projectile: Option<comp::Projectile>,
     },
     CreateShip {
-        pos: comp::Pos,
+        pos: Pos,
         ship: comp::ship::Body,
         mountable: bool,
         agent: Option<comp::Agent>,

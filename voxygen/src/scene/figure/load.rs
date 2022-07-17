@@ -346,7 +346,7 @@ impl HumHeadSpec {
 #[derive(Deserialize)]
 struct ArmorVoxSpecMap<K, S>
 where
-    K: std::hash::Hash + std::cmp::Eq,
+    K: Hash + Eq,
 {
     default: S,
     map: HashMap<K, S>,

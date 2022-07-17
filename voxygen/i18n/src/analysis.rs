@@ -53,12 +53,12 @@ fn compare_lang_with_reference(
     i18n_references: &RawLanguage<LocalizationEntryState>,
     repo: &git2::Repository,
 ) {
-    // git graph decendent of is slow, so we cache it
-    let mut graph_decendent_of_cache = HashMap::new();
+    // git graph descendant of is slow, so we cache it
+    let mut graph_descendant_of_cache = HashMap::new();
 
     let mut cached_graph_descendant_of = |commit, ancestor| -> bool {
         let key = (commit, ancestor);
-        match graph_decendent_of_cache.entry(key) {
+        match graph_descendant_of_cache.entry(key) {
             Entry::Occupied(entry) => {
                 return *entry.get();
             },

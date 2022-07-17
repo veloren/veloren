@@ -466,7 +466,7 @@ mod tests {
     fn test_load_entries() {
         let scatter = spawn_manifest();
         for (entry, _) in scatter.into_iter() {
-            std::mem::drop(SpawnEntry::from(entry));
+            drop(SpawnEntry::from(entry));
         }
     }
 
@@ -495,9 +495,9 @@ mod tests {
                     println!("{}:", entry);
                     let (_, (_, _, asset)) = group;
                     let dummy_pos = Vec3::new(0.0, 0.0, 0.0);
-                    let mut dummy_rng = rand::thread_rng();
+                    let mut dummy_rng = thread_rng();
                     let entity = EntityInfo::at(dummy_pos).with_asset_expect(asset, &mut dummy_rng);
-                    std::mem::drop(entity);
+                    drop(entity);
                 }
             }
         }
@@ -511,7 +511,7 @@ mod tests {
             let SpawnEntry { rules, .. } = SpawnEntry::from(entry);
             for pack in rules {
                 let Pack { groups, .. } = pack;
-                let dynamic_rng = &mut rand::thread_rng();
+                let dynamic_rng = &mut thread_rng();
                 let _ = groups
                     .choose_weighted(dynamic_rng, |(p, _group)| *p)
                     .unwrap_or_else(|err| {

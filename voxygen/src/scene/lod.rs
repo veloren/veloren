@@ -152,7 +152,7 @@ impl Lod {
         self.zone_objects
             .retain(|p, _| client.lod_zones().contains_key(p));
 
-        // Determine visiblity of zones based on view frustum
+        // Determine visibility of zones based on view frustum
         let camera::Dependents {
             view_mat,
             proj_mat_treeculler,

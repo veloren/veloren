@@ -31,7 +31,7 @@ pub enum ClientMsg {
 pub enum ClientType {
     /// Regular Client like Voxygen who plays the game
     Game,
-    /// A Chatonly client, which doesn't want to connect via its character
+    /// A Chat-only client, which doesn't want to connect via its character
     ChatOnly,
     /// A unprivileged bot, e.g. to request world information
     /// Or a privileged bot, e.g. to run admin commands used by server-cli

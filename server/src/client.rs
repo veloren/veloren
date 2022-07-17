@@ -101,7 +101,7 @@ impl Client {
                     | ServerGeneral::CharacterSuccess => {
                         self.character_screen_stream.lock().unwrap().send(g)
                     },
-                    //Ingame related
+                    //In-game related
                     ServerGeneral::GroupUpdate(_)
                     | ServerGeneral::Invite { .. }
                     | ServerGeneral::InvitePending(_)
@@ -175,7 +175,7 @@ impl Client {
                     | ServerGeneral::CharacterSuccess => {
                         PreparedMsg::new(1, &g, &self.character_screen_stream_params)
                     },
-                    //Ingame related
+                    //In-game related
                     ServerGeneral::GroupUpdate(_)
                     | ServerGeneral::Invite { .. }
                     | ServerGeneral::InvitePending(_)
@@ -192,7 +192,7 @@ impl Client {
                     | ServerGeneral::WeatherUpdate(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },
-                    //Ingame related, terrain
+                    //In-game related, terrain
                     ServerGeneral::TerrainChunkUpdate { .. }
                     | ServerGeneral::LodZoneUpdate { .. }
                     | ServerGeneral::TerrainBlockUpdates(_) => {

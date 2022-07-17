@@ -273,7 +273,7 @@ fn uuid(server: &Server, entity: EcsEntity, descriptor: &str) -> CmdResult<Uuid>
         .ok_or_else(|| format!("Cannot get player information for {:?}", descriptor))
 }
 
-fn real_role(server: &Server, uuid: Uuid, descriptor: &str) -> CmdResult<comp::AdminRole> {
+fn real_role(server: &Server, uuid: Uuid, descriptor: &str) -> CmdResult<AdminRole> {
     server
         .editable_settings()
         .admins
@@ -294,7 +294,7 @@ fn uid(server: &Server, target: EcsEntity, descriptor: &str) -> CmdResult<Uid> {
         .ok_or_else(|| format!("Cannot get uid for {:?}", descriptor))
 }
 
-fn area(server: &mut Server, area_name: &str) -> CmdResult<depot::Id<vek::Aabb<i32>>> {
+fn area(server: &mut Server, area_name: &str) -> CmdResult<depot::Id<Aabb<i32>>> {
     server
         .state
         .mut_resource::<BuildAreas>()
@@ -458,13 +458,13 @@ fn handle_drop_all(
     if let Some(mut inventory) = server
         .state
         .ecs()
-        .write_storage::<comp::Inventory>()
+        .write_storage::<Inventory>()
         .get_mut(target)
     {
         items = inventory.drain().collect();
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = thread_rng();
 
     let item_to_place = items
         .into_iter()
@@ -512,7 +512,7 @@ fn handle_give_item(
                 server
                     .state
                     .ecs()
-                    .write_storage::<comp::Inventory>()
+                    .write_storage::<Inventory>()
                     .get_mut(target)
                     .map(|mut inv| {
                         // NOTE: Deliberately ignores items that couldn't be pushed.
@@ -530,7 +530,7 @@ fn handle_give_item(
                 server
                     .state
                     .ecs()
-                    .write_storage::<comp::Inventory>()
+                    .write_storage::<Inventory>()
                     .get_mut(target)
                     .map(|mut inv| {
                         for i in 0..give_amount {
@@ -618,7 +618,7 @@ fn handle_make_npc(
         Err(_err) => return Err(format!("Failed to load entity config: {}", entity_config)),
     };
 
-    let mut loadout_rng = rand::thread_rng();
+    let mut loadout_rng = thread_rng();
     for _ in 0..number {
         let comp::Pos(pos) = position(server, target, "target")?;
         let entity_info = EntityInfo::at(pos).with_entity_config(
@@ -861,7 +861,7 @@ fn handle_home(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let home_pos = server.state.mut_resource::<SpawnPoint>().0;
-    let time = *server.state.mut_resource::<common::resources::Time>();
+    let time = *server.state.mut_resource::<Time>();
 
     position_mut(server, target, "target", |current_pos| {
         current_pos.0 = home_pos
@@ -972,12 +972,12 @@ fn handle_time(
             // 'developer commentary' mode created by digging up the long-decayed
             // skeletons of the Veloren team, measuring various attributes of their
             // jawlines, and using them to recreate their voices. But how to go about
-            // this Herculean task? This code is jibberish! The last of the core Rust
+            // this Herculean task? This code is gibberish! The last of the core Rust
             // dev team died exactly 337,194 years ago! Rust is now a long-forgotten
             // dialect of the ancient ones, lost to the sands of time. Ashes to ashes,
             // dust to dust. When all hope is lost, one particularly intrepid
             // post-human hominid exployed by the 'Veloren Revival Corp' (no doubt we
-            // still won't have gotted rid of this blasted 'capitalism' thing by then)
+            // still won't have gotten rid of this blasted 'capitalism' thing by then)
             // might notice, after years of searching, a particularly curious
             // inscription within the code. The letters `D`, `A`, `Y`. Curious! She
             // consults the post-human hominid scholars of the old. Care to empathise
@@ -986,7 +986,7 @@ fn handle_time(
             // 'day' in the post-human hominid language, which is of course universal.
             // Imagine also her surprise when, after much further translating, she
             // finds a comment predicting her very existence and her struggle to
-            // decode this great mystery. Rejoyce! The Veloren Revival Corp. may now
+            // decode this great mystery. Rejoice! The Veloren Revival Corp. may now
             // persist with their great Ultimate Edition DLC because the day period
             // might now be changed because they have found the constant that controls
             // it! Everybody was henceforth happy until the end of time.
@@ -1170,8 +1170,8 @@ fn handle_spawn(
 
             for _ in 0..amount {
                 let vel = Vec3::new(
-                    rand::thread_rng().gen_range(-2.0..3.0),
-                    rand::thread_rng().gen_range(-2.0..3.0),
+                    thread_rng().gen_range(-2.0..3.0),
+                    thread_rng().gen_range(-2.0..3.0),
                     10.0,
                 );
 
@@ -1208,10 +1208,10 @@ fn handle_spawn(
                         pet_entity: new_entity,
                     });
                 } else if let Some(group) = match alignment {
-                    comp::Alignment::Wild => None,
-                    comp::Alignment::Passive => None,
-                    comp::Alignment::Enemy => Some(comp::group::ENEMY),
-                    comp::Alignment::Npc | comp::Alignment::Tame => Some(comp::group::NPC),
+                    Alignment::Wild => None,
+                    Alignment::Passive => None,
+                    Alignment::Enemy => Some(comp::group::ENEMY),
+                    Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
                     comp::Alignment::Owned(_) => unreachable!(),
                 } {
                     insert_or_replace_component(server, new_entity, group, "new entity")?;
@@ -1249,8 +1249,8 @@ fn handle_spawn_training_dummy(
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
     let vel = Vec3::new(
-        rand::thread_rng().gen_range(-2.0..3.0),
-        rand::thread_rng().gen_range(-2.0..3.0),
+        thread_rng().gen_range(-2.0..3.0),
+        thread_rng().gen_range(-2.0..3.0),
         10.0,
     );
 
@@ -1302,7 +1302,7 @@ fn handle_spawn_airship(
                 200.0,
             )
     });
-    let mut rng = rand::thread_rng();
+    let mut rng = thread_rng();
     let ship = comp::ship::Body::random_airship_with(&mut rng);
     let mut builder = server
         .state
@@ -1350,7 +1350,7 @@ fn handle_spawn_ship(
                 200.0,
             )
     });
-    let mut rng = rand::thread_rng();
+    let mut rng = thread_rng();
     let ship = comp::ship::Body::random_ship_with(&mut rng);
     let mut builder = server
         .state
@@ -1782,11 +1782,11 @@ fn handle_help(
     Ok(())
 }
 
-fn parse_alignment(owner: Uid, alignment: &str) -> CmdResult<comp::Alignment> {
+fn parse_alignment(owner: Uid, alignment: &str) -> CmdResult<Alignment> {
     match alignment {
-        "wild" => Ok(comp::Alignment::Wild),
-        "enemy" => Ok(comp::Alignment::Enemy),
-        "npc" => Ok(comp::Alignment::Npc),
+        "wild" => Ok(Alignment::Wild),
+        "enemy" => Ok(Alignment::Enemy),
+        "npc" => Ok(Alignment::Npc),
         "pet" => Ok(comp::Alignment::Owned(owner)),
         _ => Err(format!("Invalid alignment: {:?}", alignment)),
     }
@@ -1808,7 +1808,7 @@ fn handle_kill_npcs(
     let ecs = server.state.ecs();
     let mut healths = ecs.write_storage::<comp::Health>();
     let players = ecs.read_storage::<comp::Player>();
-    let alignments = ecs.read_storage::<comp::Alignment>();
+    let alignments = ecs.read_storage::<Alignment>();
     let mut count = 0;
 
     for (mut health, (), alignment) in (&mut healths, !&players, alignments.maybe()).join() {
@@ -1907,7 +1907,7 @@ where
         server
             .state()
             .ecs()
-            .write_storage::<comp::Inventory>()
+            .write_storage::<Inventory>()
             .get_mut(target),
         server.state.ecs().write_storage::<comp::InventoryUpdate>(),
     ) {
@@ -1918,7 +1918,7 @@ where
         let mut rng = thread_rng();
         for (item_id, quantity) in kit {
             let mut item = match &item_id {
-                KitSpec::Item(item_id) => comp::Item::new_from_asset(item_id)
+                KitSpec::Item(item_id) => Item::new_from_asset(item_id)
                     .map_err(|_| format!("Unknown item: {:#?}", item_id))?,
                 KitSpec::ModularWeapon { tool, material } => {
                     comp::item::modular::random_weapon(*tool, *material, None, &mut rng)
@@ -2029,7 +2029,7 @@ fn handle_light(
     let (opt_r, opt_g, opt_b, opt_x, opt_y, opt_z, opt_s) =
         parse_cmd_args!(args, f32, f32, f32, f32, f32, f32, f32);
 
-    let mut light_emitter = comp::LightEmitter::default();
+    let mut light_emitter = LightEmitter::default();
     let mut light_offset_opt = None;
 
     if let (Some(r), Some(g), Some(b)) = (opt_r, opt_g, opt_b) {
@@ -2083,7 +2083,7 @@ fn handle_lantern(
         if let Some(mut light) = server
             .state
             .ecs()
-            .write_storage::<comp::LightEmitter>()
+            .write_storage::<LightEmitter>()
             .get_mut(target)
         {
             light.strength = s.max(0.1).min(10.0);
@@ -2181,7 +2181,7 @@ fn handle_waypoint(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
-    let time = *server.state.mut_resource::<common::resources::Time>();
+    let time = *server.state.mut_resource::<Time>();
     insert_or_replace_component(
         server,
         target,
@@ -2778,7 +2778,7 @@ spawn_rate {:?} "#,
         server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, s));
         Ok(())
     } else {
-        Err("Not a pregenerated chunk.".into())
+        Err("Not a pre-generated chunk.".into())
     }
 }
 
@@ -2897,8 +2897,8 @@ fn handle_remove_lights(
     for (entity, pos, _, _, _) in (
         &ecs.entities(),
         &ecs.read_storage::<comp::Pos>(),
-        &ecs.read_storage::<comp::LightEmitter>(),
-        !&ecs.read_storage::<comp::WaypointArea>(),
+        &ecs.read_storage::<LightEmitter>(),
+        !&ecs.read_storage::<WaypointArea>(),
         !&ecs.read_storage::<comp::Player>(),
     )
         .join()
@@ -3072,7 +3072,7 @@ fn kick_player(
         .mut_resource::<EventBus<ServerEvent>>()
         .emit_now(ServerEvent::ClientDisconnect(
             target_player,
-            common::comp::DisconnectReason::Kicked,
+            comp::DisconnectReason::Kicked,
         ));
     Ok(())
 }
@@ -3131,7 +3131,7 @@ fn handle_ban(
             .map(|duration| chrono::Duration::from_std(duration.into()))
             .transpose()
             .map_err(|err| format!("Error converting to duration: {}", err))?
-            // On overflow (someone adding some ridiculous timespan), just make the ban infinite.
+            // On overflow (someone adding some ridiculous time span), just make the ban infinite.
             .and_then(|duration| now.checked_add_signed(duration));
 
         let ban_info = BanInfo {

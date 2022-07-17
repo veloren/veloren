@@ -33,7 +33,7 @@ where
 
     pub fn removed(&self) -> &BitSet { &self.removed }
 
-    pub fn record_changes<'a>(&mut self, storage: &specs::ReadStorage<'a, C>) {
+    pub fn record_changes<'a>(&mut self, storage: &ReadStorage<'a, C>) {
         self.inserted.clear();
         self.modified.clear();
         self.removed.clear();
@@ -86,8 +86,8 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
 
     pub fn get_updates_for<'a, P>(
         &self,
-        uids: &specs::ReadStorage<'a, Uid>,
-        storage: &specs::ReadStorage<'a, C>,
+        uids: &ReadStorage<'a, Uid>,
+        storage: &ReadStorage<'a, C>,
         entity_filter: impl Join + Copy,
         buf: &mut Vec<(u64, CompUpdateKind<P>)>,
     ) where
@@ -127,7 +127,7 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
     /// entity.
     pub fn get_update<'a, P>(
         &self,
-        storage: &specs::ReadStorage<'a, C>,
+        storage: &ReadStorage<'a, C>,
         entity: Entity,
     ) -> Option<CompUpdateKind<P>>
     where

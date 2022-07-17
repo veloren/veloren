@@ -46,7 +46,7 @@ fn main() {
         5284,
         WorldOpts {
             seed_elements: false,
-            world_file: sim::FileOpts::LoadAsset(veloren_world::sim::DEFAULT_WORLD_MAP.into()),
+            world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
             // world_file: sim::FileOpts::Load(_map_file),
             // world_file: sim::FileOpts::Save(sim::SizeOpts::default()),
             // world_file: sim::FileOpts::Save(sim::SizeOpts::new(12, 12, 4.0)),

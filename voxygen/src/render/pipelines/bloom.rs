@@ -214,7 +214,7 @@ impl BloomPipelines {
                     dst_factor: wgpu::BlendFactor::One,
                     operation: wgpu::BlendOperation::Add,
                 },
-                // We don't reaaly use this but we need something here..
+                // We don't really use this but we need something here..
                 alpha: wgpu::BlendComponent::REPLACE,
             }),
         );

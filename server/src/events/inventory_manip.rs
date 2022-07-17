@@ -33,7 +33,7 @@ use common::{
 use common_net::msg::ServerGeneral;
 
 pub fn swap_lantern(
-    storage: &mut WriteStorage<comp::LightEmitter>,
+    storage: &mut WriteStorage<LightEmitter>,
     entity: EcsEntity,
     (lantern_color, lantern_strength): (Rgb<f32>, f32),
 ) {
@@ -43,7 +43,7 @@ pub fn swap_lantern(
     }
 }
 
-pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: EcsEntity) {
+pub fn snuff_lantern(storage: &mut WriteStorage<LightEmitter>, entity: EcsEntity) {
     storage.remove(entity);
 }
 
@@ -212,9 +212,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     );
                     drop(item_storage);
                     drop(inventories);
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::EntityCollectFailed {
+                    comp::InventoryUpdate::new(InventoryUpdateEvent::EntityCollectFailed {
                         entity: pickup_uid,
-                        reason: comp::CollectFailedReason::InventoryFull,
+                        reason: CollectFailedReason::InventoryFull,
                     })
                 },
                 Ok(_) => {
@@ -227,10 +227,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                          component.",
                     );
                     let ecs = state.ecs();
-                    if let Some(group_id) = ecs.read_storage::<comp::Group>().get(entity) {
+                    if let Some(group_id) = ecs.read_storage::<Group>().get(entity) {
                         announce_loot_to_group(group_id, ecs, entity, &item_msg.name());
                     }
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(item_msg))
+                    comp::InventoryUpdate::new(InventoryUpdateEvent::Collected(item_msg))
                 },
             };
 
@@ -255,12 +255,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         let event = match inventory.push(item) {
                             Ok(_) => {
                                 let ecs = state.ecs();
-                                if let Some(group_id) =
-                                    ecs.read_storage::<comp::Group>().get(entity)
-                                {
+                                if let Some(group_id) = ecs.read_storage::<Group>().get(entity) {
                                     announce_loot_to_group(group_id, ecs, entity, &item_msg.name());
                                 }
-                                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(
+                                comp::InventoryUpdate::new(InventoryUpdateEvent::Collected(
                                     item_msg,
                                 ))
                             },
@@ -269,9 +267,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             Err(_) => {
                                 drop_item = Some(item_msg);
                                 comp::InventoryUpdate::new(
-                                    comp::InventoryUpdateEvent::BlockCollectFailed {
+                                    InventoryUpdateEvent::BlockCollectFailed {
                                         pos,
-                                        reason: comp::CollectFailedReason::InventoryFull,
+                                        reason: CollectFailedReason::InventoryFull,
                                     },
                                 )
                             },
@@ -343,18 +341,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 )
                             }));
                         }
-                        Some(comp::InventoryUpdateEvent::Used)
+                        Some(InventoryUpdateEvent::Used)
                     } else if let Some(item) = inventory.take(
                         slot,
                         &state.ecs().read_resource::<AbilityMap>(),
-                        &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                        &state.ecs().read_resource::<MaterialStatManifest>(),
                     ) {
                         match &*item.kind() {
                             ItemKind::Consumable { effects, .. } => {
                                 maybe_effect = Some(effects.clone());
-                                Some(comp::InventoryUpdateEvent::Consumed(
-                                    item.name().into_owned(),
-                                ))
+                                Some(InventoryUpdateEvent::Consumed(item.name().into_owned()))
                             },
                             ItemKind::Throwable { kind, .. } => {
                                 if let Some(pos) =
@@ -374,10 +370,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                         *kind,
                                     ));
                                 }
-                                Some(comp::InventoryUpdateEvent::Used)
+                                Some(InventoryUpdateEvent::Used)
                             },
                             ItemKind::Utility {
-                                kind: comp::item::Utility::Collar,
+                                kind: item::Utility::Collar,
                                 ..
                             } => {
                                 const MAX_PETS: usize = 3;
@@ -385,7 +381,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     state.read_storage::<comp::Pos>().get(entity)
                                 {
                                     if (
-                                        &state.read_storage::<comp::Alignment>(),
+                                        &state.read_storage::<Alignment>(),
                                         &state.read_storage::<comp::Agent>(),
                                     )
                                         .join()
@@ -399,17 +395,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     } else if let Some(tameable_entity) = {
                                         let nearest_tameable = (
                                             &state.ecs().entities(),
-                                            &state.ecs().read_storage::<comp::Body>(),
+                                            &state.ecs().read_storage::<Body>(),
                                             &state.ecs().read_storage::<comp::Pos>(),
-                                            &state.ecs().read_storage::<comp::Alignment>(),
+                                            &state.ecs().read_storage::<Alignment>(),
                                         )
                                             .join()
                                             .filter(|(_, _, wild_pos, _)| {
                                                 wild_pos.0.distance_squared(pos.0) < 5.0f32.powi(2)
                                             })
                                             .filter(|(_, body, _, alignment)| {
-                                                alignment == &&comp::Alignment::Wild
-                                                    && is_tameable(body)
+                                                alignment == &&Alignment::Wild && is_tameable(body)
                                             })
                                             .min_by_key(|(_, _, wild_pos, _)| {
                                                 (wild_pos.0.distance_squared(pos.0) * 100.0) as i32
@@ -435,7 +430,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     let _ = inventory.insert_or_stack_at(slot, item);
                                 }
 
-                                Some(comp::InventoryUpdateEvent::Used)
+                                Some(InventoryUpdateEvent::Used)
                             },
                             _ => {
                                 inventory.insert_or_stack_at(slot, item).expect(
@@ -468,7 +463,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             }));
                         }
                     }
-                    Some(comp::InventoryUpdateEvent::Used)
+                    Some(InventoryUpdateEvent::Used)
                 },
             };
 
@@ -509,7 +504,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 let mut merged_stacks = false;
 
-                // If both slots have items and we're attemping to drag from one stack
+                // If both slots have items and we're attempting to drag from one stack
                 // into another, stack the items.
                 if let (Slot::Inventory(slot_a), Slot::Inventory(slot_b)) = (a, b) {
                     merged_stacks |= inventory.merge_stack_into(slot_a, slot_b);
@@ -535,7 +530,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .write_storage()
                 .insert(
                     entity,
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
+                    comp::InventoryUpdate::new(InventoryUpdateEvent::Swapped),
                 )
                 .expect("We know entity exists since we got its inventory.");
         },
@@ -543,7 +538,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let ability_map = state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
 
-            // If both slots have items and we're attemping to split from one stack
+            // If both slots have items and we're attempting to split from one stack
             // into another, ensure that they are the same type of item. If they are
             // the same type do nothing, as you don't want to overwrite the existing item.
 
@@ -576,7 +571,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .write_storage()
                 .insert(
                     entity,
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
+                    comp::InventoryUpdate::new(InventoryUpdateEvent::Swapped),
                 )
                 .expect("We know entity exists since we got its inventory.");
             drop(inventories);
@@ -605,7 +600,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .write_storage()
                 .insert(
                     entity,
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
+                    comp::InventoryUpdate::new(InventoryUpdateEvent::Dropped),
                 )
                 .expect("We know entity exists since we got its inventory.");
             drop(inventories);
@@ -637,7 +632,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .write_storage()
                 .insert(
                     entity,
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
+                    comp::InventoryUpdate::new(InventoryUpdateEvent::Dropped),
                 )
                 .expect("We know entity exists since we got its inventory.");
             drop(inventories);
@@ -692,7 +687,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             &mut inventory,
                             slots,
                             &state.ecs().read_resource::<AbilityMap>(),
-                            &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                            &state.ecs().read_resource::<MaterialStatManifest>(),
                         )
                         .ok()
                     }),
@@ -757,7 +752,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     modifier,
                                     slots,
                                     &state.ecs().read_resource::<AbilityMap>(),
-                                    &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                                    &state.ecs().read_resource::<MaterialStatManifest>(),
                                 )
                                 .ok()
                             })
@@ -794,7 +789,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             if items_were_crafted {
                 let _ = state.ecs().write_storage().insert(
                     entity,
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Craft),
+                    comp::InventoryUpdate::new(InventoryUpdateEvent::Craft),
                 );
             }
         },
@@ -934,7 +929,7 @@ mod tests {
     use super::*;
 
     // Helper function
-    fn test_cylinder(pos: comp::Pos) -> Option<Cylinder> {
+    fn test_cylinder(pos: Pos) -> Option<Cylinder> {
         Some(Cylinder::from_components(pos.0, None, None, None))
     }
 

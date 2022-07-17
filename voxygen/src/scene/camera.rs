@@ -242,11 +242,11 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 /// though the logic for why it should be okay to pass them directly is probably
 /// sound (they are both valid z values in the range, so gl_FragCoord.w will be
 /// assigned to this, meaning if they are imprecise enough then the whole
-/// calculation will be similarly imprecies).
+/// calculation will be similarly imprecise).
 ///
 /// TODO: Since it's a bit confusing that n and f are not always near and far,
 /// and a negative near plane can (probably) be emulated with simple actions on
-/// the perspective matrix, consider removing this functionailty and replacing
+/// the perspective matrix, consider removing this functionality and replacing
 /// our assertion with a single condition: `(1/far) * (1/near) < (1/near)²`.
 pub fn perspective_lh_zo_general<T>(
     fov_y_radians: T,
@@ -381,8 +381,8 @@ impl Camera {
             Vec3::new(0.0, 0.0, -1.0),
             Vec3::new(0.0, 0.0, 1.0),
         ];
-        // Calculate new frustom location as there may have been lerp towards tgt_dist
-        // Without this, there will be camera jumpig back and forth in some scenarios
+        // Calculate new frustum location as there may have been lerp towards tgt_dist
+        // Without this, there will be camera jumping back and forth in some scenarios
         // TODO: Optimize and fix clipping still happening if self.dist << self.tgt_dist
 
         // Use tgt_dist, as otherwise we end up in loop due to dist depending on frustum
@@ -576,7 +576,7 @@ impl Camera {
         // This is horribly frame time dependent, but so is most of the game
         let delta = self.last_time.replace(time).map_or(0.0, |t| time - t);
         if (self.dist - self.tgt_dist).abs() > 0.01 {
-            self.dist = vek::Lerp::lerp(
+            self.dist = Lerp::lerp(
                 self.dist,
                 self.tgt_dist,
                 0.65 * (delta as f32) / self.interp_time(),
@@ -584,7 +584,7 @@ impl Camera {
         }
 
         if (self.fov - self.tgt_fov).abs() > 0.01 {
-            self.fov = vek::Lerp::lerp(
+            self.fov = Lerp::lerp(
                 self.fov,
                 self.tgt_fov,
                 0.65 * (delta as f32) / self.interp_time(),
@@ -592,7 +592,7 @@ impl Camera {
         }
 
         if (self.fixate - self.tgt_fixate).abs() > 0.01 {
-            self.fixate = vek::Lerp::lerp(
+            self.fixate = Lerp::lerp(
                 self.fixate,
                 self.tgt_fixate,
                 0.65 * (delta as f32) / self.interp_time(),
@@ -703,7 +703,7 @@ impl Camera {
 
     /// Get the mode of the camera
     pub fn get_mode(&self) -> CameraMode {
-        // Perfom a bit of a trick... don't report first-person until the camera has
+        // Perform a bit of a trick... don't report first-person until the camera has
         // lerped close enough to the player.
         match self.mode {
             CameraMode::FirstPerson if self.dist < 0.5 => CameraMode::FirstPerson,

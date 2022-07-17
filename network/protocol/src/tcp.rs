@@ -360,8 +360,8 @@ mod test_utils {
         cap: usize,
         metrics: Option<ProtocolMetricCache>,
     ) -> [(TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>); 2] {
-        let (s1, r1) = async_channel::bounded(cap);
-        let (s2, r2) = async_channel::bounded(cap);
+        let (s1, r1) = bounded(cap);
+        let (s2, r2) = bounded(cap);
         let m = metrics.unwrap_or_else(|| {
             ProtocolMetricCache::new("tcp", Arc::new(ProtocolMetrics::new().unwrap()))
         });
@@ -603,8 +603,7 @@ mod tests {
         let sid = Sid::new(1);
         let (s, r) = async_channel::bounded(10);
         let m = ProtocolMetricCache::new("tcp", Arc::new(ProtocolMetrics::new().unwrap()));
-        let mut r =
-            super::TcpRecvProtocol::new(super::test_utils::TcpSink { receiver: r }, m.clone());
+        let mut r = super::TcpRecvProtocol::new(TcpSink { receiver: r }, m.clone());
 
         const DATA1: &[u8; 69] =
             b"We need to make sure that its okay to send OPEN_STREAM and DATA_HEAD ";
@@ -653,8 +652,7 @@ mod tests {
         let sid = Sid::new(1);
         let (s, r) = async_channel::bounded(10);
         let m = ProtocolMetricCache::new("tcp", Arc::new(ProtocolMetrics::new().unwrap()));
-        let mut r =
-            super::TcpRecvProtocol::new(super::test_utils::TcpSink { receiver: r }, m.clone());
+        let mut r = super::TcpRecvProtocol::new(TcpSink { receiver: r }, m.clone());
 
         let mut bytes = BytesMut::with_capacity(1500);
         OTFrame::OpenStream {

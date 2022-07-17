@@ -94,7 +94,7 @@ pub struct SkeletonAttr {
     feed: f32,
     lateral: f32,
 }
-impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
     type Error = ();
 
     fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {

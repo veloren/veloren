@@ -88,10 +88,7 @@ impl TerrainPersistence {
             File::open(&path)
                 .ok()
                 .map(|f| {
-                    let bytes = match std::io::BufReader::new(f)
-                        .bytes()
-                        .collect::<Result<Vec<_>, _>>()
-                    {
+                    let bytes = match io::BufReader::new(f).bytes().collect::<Result<Vec<_>, _>>() {
                         Ok(bytes) => bytes,
                         Err(err) => {
                             error!(
@@ -101,7 +98,7 @@ impl TerrainPersistence {
                             return Chunk::default();
                         },
                     };
-                    match Chunk::deserialize_from(std::io::Cursor::new(bytes)) {
+                    match Chunk::deserialize_from(io::Cursor::new(bytes)) {
                         Some(chunk) => chunk,
                         None => {
                             // Find an untaken name for a backup

@@ -173,7 +173,7 @@ impl CharacterBehavior for Data {
             .get(self.stage as usize - 1)
             .map_or(0, |_| self.stage as usize - 1);
 
-        let speed_modifer = 1.0
+        let speed_modifier = 1.0
             + self.static_data.max_speed_increase
                 * (1.0 - self.static_data.speed_increase.powi(combo_counter as i32));
 
@@ -190,7 +190,7 @@ impl CharacterBehavior for Data {
                     // Build up
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifer)),
+                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifier)),
                         ..*self
                     });
                 } else {
@@ -315,7 +315,7 @@ impl CharacterBehavior for Data {
                     // Swings
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifer)),
+                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifier)),
                         ..*self
                     });
                 } else {
@@ -339,7 +339,7 @@ impl CharacterBehavior for Data {
                     // Recovers
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifer)),
+                        timer: tick_attack_or_default(data, self.timer, Some(speed_modifier)),
                         ..*self
                     });
                 } else {

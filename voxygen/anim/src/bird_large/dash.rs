@@ -59,7 +59,7 @@ impl Animation for DashAnimation {
         let speedmult = 0.8;
         let lab: f32 = 0.6; //6
 
-        // acc_vel and anim_time mix to make sure phase lenght isn't starting at
+        // acc_vel and anim_time mix to make sure phase length isn't starting at
         // +infinite
         let mixed_vel = acc_vel + anim_time * 5.0; //sets run frequency using speed, with anim_time setting a floor
 
@@ -75,7 +75,7 @@ impl Animation for DashAnimation {
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
-        let tilt = if ::vek::Vec2::new(ori, last_ori)
+        let tilt = if vek::Vec2::new(ori, last_ori)
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()

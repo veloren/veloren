@@ -183,7 +183,7 @@ impl BotClient {
     }
 
     fn create_default_body() -> Body {
-        comp::body::humanoid::Body {
+        Body {
             species: comp::body::humanoid::Species::Human,
             body_type: comp::body::humanoid::BodyType::Male,
             hair_style: 0,
@@ -208,14 +208,14 @@ impl BotClient {
             let client = match self.bot_clients.get_mut(&cred.username) {
                 Some(c) => c,
                 None => {
-                    tracing::trace!(?cred.username, "skip not logged in client");
+                    trace!(?cred.username, "skip not logged in client");
                     continue;
                 },
             };
 
             let list = client.character_list();
             if list.loading || list.characters.is_empty() {
-                tracing::trace!(?cred.username, "skip client as it has no character");
+                trace!(?cred.username, "skip client as it has no character");
                 continue;
             }
 

@@ -55,7 +55,7 @@ pub fn read_input<T>(ptr: i64, len: i64) -> Result<T, &'static str>
 where
     T: DeserializeOwned,
 {
-    let slice = unsafe { ::std::slice::from_raw_parts(from_i64(ptr) as _, from_i64(len) as _) };
+    let slice = unsafe { std::slice::from_raw_parts(from_i64(ptr) as _, from_i64(len) as _) };
     bincode::deserialize(slice).map_err(|_| "Failed to deserialize function input")
 }
 
@@ -100,7 +100,7 @@ static mut BUFFERS: Vec<u8> = Vec::new();
 
 /// Allocate buffer from wasm linear memory
 /// # Safety
-/// This function should never be used only intented to by used by the host
+/// This function should never be used only intended to by used by the host
 #[no_mangle]
 pub unsafe fn wasm_prepare_buffer(size: i32) -> i64 {
     BUFFERS = vec![0u8; size as usize];

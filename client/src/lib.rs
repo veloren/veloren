@@ -162,7 +162,7 @@ impl WeatherLerp {
         self.old = mem::replace(&mut self.new, (weather, Instant::now()));
     }
 
-    // TODO: Make impprovements to this interpolation, it's main issue is assuming
+    // TODO: Make improvements to this interpolation, it's main issue is assuming
     // that updates come at regular intervals.
     fn update(&mut self, to_update: &mut WeatherGrid) {
         prof_span!("WeatherLerp::update");
@@ -321,7 +321,7 @@ impl Client {
         ping_stream.send(PingMsg::Ping)?;
 
         // Wait for initial sync
-        let mut ping_interval = tokio::time::interval(core::time::Duration::from_secs(1));
+        let mut ping_interval = tokio::time::interval(Duration::from_secs(1));
         let (
             state,
             lod_base,
@@ -601,7 +601,7 @@ impl Client {
                     let mut raw = vec![0u8; 4 * world_map_rgba.len()];
                     LittleEndian::write_u32_into(rgb, &mut raw);
                     Ok(Arc::new(
-                        image::DynamicImage::ImageRgba8({
+                        DynamicImage::ImageRgba8({
                             // Should not fail if the dimensions are correct.
                             let map =
                                 image::ImageBuffer::from_raw(u32::from(map_size.x), u32::from(map_size.y), raw);
@@ -991,7 +991,7 @@ impl Client {
             .map_or(false, |cs| matches!(cs, CharacterState::Glide(_)))
     }
 
-    pub fn split_swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
+    pub fn split_swap_slots(&mut self, a: Slot, b: Slot) {
         match (a, b) {
             (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => self.control_action(
                 ControlAction::InventoryAction(InventoryAction::Swap(equip, slot)),
@@ -1004,7 +1004,7 @@ impl Client {
         }
     }
 
-    pub fn split_drop_slot(&mut self, slot: comp::slot::Slot) {
+    pub fn split_drop_slot(&mut self, slot: Slot) {
         match slot {
             Slot::Equip(equip) => {
                 self.control_action(ControlAction::InventoryAction(InventoryAction::Drop(equip)))
@@ -1238,9 +1238,7 @@ impl Client {
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
 
-    pub fn invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)> {
-        self.invite
-    }
+    pub fn invite(&self) -> Option<(Uid, Instant, Duration, InviteKind)> { self.invite }
 
     pub fn group_info(&self) -> Option<(String, Uid)> {
         self.group_leader.map(|l| ("Group".into(), l)) // TODO
@@ -1529,7 +1527,7 @@ impl Client {
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
             Ok(()) => self.send_msg(ClientGeneral::ChatMsg(message)),
-            Err(ChatMsgValidationError::TooLong) => tracing::warn!(
+            Err(ChatMsgValidationError::TooLong) => warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
             ),
@@ -1568,7 +1566,7 @@ impl Client {
             .map_or((None, None), |inv| {
                 let tool_kind = |slot| {
                     inv.equipped(slot).and_then(|item| match &*item.kind() {
-                        comp::item::ItemKind::Tool(tool) => Some(tool.kind),
+                        ItemKind::Tool(tool) => Some(tool.kind),
                         _ => None,
                     })
                 };
@@ -2013,7 +2011,7 @@ impl Client {
             },
             ServerGeneral::SetPlayerEntity(uid) => {
                 if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
-                    let old_player_entity = core::mem::replace(
+                    let old_player_entity = mem::replace(
                         &mut *self.state.ecs_mut().write_resource(),
                         PlayerEntity(Some(entity)),
                     );
@@ -2161,7 +2159,7 @@ impl Client {
                 timeout,
                 kind,
             } => {
-                self.invite = Some((inviter, std::time::Instant::now(), timeout, kind));
+                self.invite = Some((inviter, Instant::now(), timeout, kind));
             },
             ServerGeneral::InvitePending(uid) => {
                 if !self.pending_invites.insert(uid) {
@@ -2236,7 +2234,7 @@ impl Client {
                     });
             },
             ServerGeneral::UpdatePendingTrade(id, trade, pricing) => {
-                tracing::trace!("UpdatePendingTrade {:?} {:?}", id, trade);
+                trace!("UpdatePendingTrade {:?} {:?}", id, trade);
                 self.pending_trade = Some((id, trade, pricing));
             },
             ServerGeneral::FinishedTrade(result) => {
@@ -2871,7 +2869,7 @@ mod tests {
 
             //tick
             let events_result: Result<Vec<Event>, Error> =
-                client.tick(comp::ControllerInputs::default(), clock.dt(), |_| {});
+                client.tick(ControllerInputs::default(), clock.dt(), |_| {});
 
             //chat functionality
             client.send_chat("foobar".to_string());
@@ -2886,11 +2884,11 @@ mod tests {
                         },
                         Event::Disconnect => {},
                         Event::DisconnectionNotification(_) => {
-                            tracing::debug!("Will be disconnected soon! :/")
+                            debug!("Will be disconnected soon! :/")
                         },
                         Event::Notification(notification) => {
                             let notification: Notification = notification;
-                            tracing::debug!("Notification: {:?}", notification);
+                            debug!("Notification: {:?}", notification);
                         },
                         _ => {},
                     }

@@ -1,12 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, convert::TryFrom};
 
-use crate::comp::{
-    inventory::{
-        item::{armor, armor::ArmorKind, tool, ItemKind},
-        loadout::LoadoutSlotId,
-    },
-    item,
+use crate::comp::inventory::{
+    item::{armor, armor::ArmorKind, tool, ItemKind},
+    loadout::LoadoutSlotId,
 };
 
 #[derive(Debug, PartialEq)]
@@ -110,7 +107,7 @@ pub enum ArmorSlot {
 }
 
 impl Slot {
-    pub fn can_hold(self, item_kind: &item::ItemKind) -> bool {
+    pub fn can_hold(self, item_kind: &ItemKind) -> bool {
         match (self, item_kind) {
             (Self::Inventory(_), _) => true,
             (Self::Equip(slot), item_kind) => slot.can_hold(item_kind),
@@ -119,7 +116,7 @@ impl Slot {
 }
 
 impl EquipSlot {
-    pub fn can_hold(self, item_kind: &item::ItemKind) -> bool {
+    pub fn can_hold(self, item_kind: &ItemKind) -> bool {
         match (self, item_kind) {
             (Self::Armor(slot), ItemKind::Armor(armor::Armor { kind, .. })) => slot.can_hold(kind),
             (Self::ActiveMainhand, ItemKind::Tool(_)) => true,
@@ -134,7 +131,7 @@ impl EquipSlot {
 }
 
 impl ArmorSlot {
-    fn can_hold(self, armor: &item::armor::ArmorKind) -> bool {
+    fn can_hold(self, armor: &ArmorKind) -> bool {
         matches!(
             (self, armor),
             (Self::Head, ArmorKind::Head)

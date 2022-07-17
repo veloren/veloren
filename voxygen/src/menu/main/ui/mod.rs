@@ -490,16 +490,16 @@ impl Controls {
         if let Screen::Login { screen, .. } = &mut self.screen {
             // TODO: add select all function in iced
             if screen.banner.username.is_focused() {
-                screen.banner.username = iced::text_input::State::new();
-                screen.banner.password = iced::text_input::State::focused();
+                screen.banner.username = text_input::State::new();
+                screen.banner.password = text_input::State::focused();
                 screen.banner.password.move_cursor_to_end();
             } else if screen.banner.password.is_focused() {
-                screen.banner.password = iced::text_input::State::new();
-                screen.banner.server = iced::text_input::State::focused();
+                screen.banner.password = text_input::State::new();
+                screen.banner.server = text_input::State::focused();
                 screen.banner.server.move_cursor_to_end();
             } else if screen.banner.server.is_focused() {
-                screen.banner.server = iced::text_input::State::new();
-                screen.banner.username = iced::text_input::State::focused();
+                screen.banner.server = text_input::State::new();
+                screen.banner.username = text_input::State::focused();
                 screen.banner.username.move_cursor_to_end();
             }
         }

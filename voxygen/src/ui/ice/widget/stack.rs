@@ -9,14 +9,14 @@ pub struct Stack<'a, M, R> {
 
 impl<'a, M, R> Stack<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     pub fn with_children(children: Vec<Element<'a, M, R>>) -> Self { Self { children } }
 }
 
 impl<'a, M, R> Widget<M, R> for Stack<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { Length::Fill }
 
@@ -86,7 +86,7 @@ pub trait Renderer: iced::Renderer {
 
 impl<'a, M, R> From<Stack<'a, M, R>> for Element<'a, M, R>
 where
-    R: 'a + self::Renderer,
+    R: 'a + Renderer,
     M: 'a,
 {
     fn from(stack: Stack<'a, M, R>) -> Element<'a, M, R> { Element::new(stack) }

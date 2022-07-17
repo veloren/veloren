@@ -29,6 +29,17 @@ impl anim::Skeleton for VolumeKey {
     #[cfg(feature = "hot-anim")]
     const COMPUTE_FN: &'static [u8] = b"I AM NOT USED\0";
 
+    // Override compute_matrices so that hotloading is not done for this (since it
+    // will fail as this isn't part of the hotloaded anim crate)
+    fn compute_matrices(
+        &self,
+        base_mat: anim::vek::Mat4<f32>,
+        buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
+        body: Self::Body,
+    ) -> anim::Offsets {
+        self.compute_matrices_inner(base_mat, buf, body)
+    }
+
     fn compute_matrices_inner(
         &self,
         base_mat: anim::vek::Mat4<f32>,
@@ -52,17 +63,6 @@ impl anim::Skeleton for VolumeKey {
             primary_trail_mat: None,
             secondary_trail_mat: None,
         }
-    }
-
-    // Override compute_matrices so that hotloading is not done for this (since it
-    // will fail as this isn't part of the hotloaded anim crate)
-    fn compute_matrices(
-        &self,
-        base_mat: anim::vek::Mat4<f32>,
-        buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
-        body: Self::Body,
-    ) -> anim::Offsets {
-        self.compute_matrices_inner(base_mat, buf, body)
     }
 }
 

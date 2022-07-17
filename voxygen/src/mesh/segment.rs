@@ -118,7 +118,7 @@ where
 pub fn generate_mesh_base_vol_sprite<'a: 'b, 'b, V: 'a>(
     vol: V,
     (greedy, opaque_mesh, vertical_stripes): (
-        &'b mut GreedyMesh<'a, crate::mesh::greedy::SpriteAtlasAllocator>,
+        &'b mut GreedyMesh<'a, greedy::SpriteAtlasAllocator>,
         &'b mut Mesh<SpriteVertex>,
         bool,
     ),

@@ -30,7 +30,7 @@ impl Animation for SwimAnimation {
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
-        let tilt = if ::vek::Vec2::new(ori, last_ori)
+        let tilt = if vek::Vec2::new(ori, last_ori)
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()

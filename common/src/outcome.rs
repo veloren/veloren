@@ -54,7 +54,7 @@ pub enum Outcome {
     },
     SkillPointGain {
         uid: Uid,
-        skill_tree: comp::skillset::SkillGroupKind,
+        skill_tree: SkillGroupKind,
         total_points: u16,
     },
     ComboChange {

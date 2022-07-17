@@ -22,7 +22,7 @@ pub enum BuildAreaError {
 const RESERVED_BUILD_AREA_NAMES: &[&str] = &["world"];
 
 impl BuildAreas {
-    pub fn areas(&self) -> &Depot<geom::Aabb<i32>> { &self.areas }
+    pub fn areas(&self) -> &Depot<Aabb<i32>> { &self.areas }
 
     pub fn area_names(&self) -> &HashMap<String, Id<Aabb<i32>>> { &self.area_names }
 

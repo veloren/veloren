@@ -86,7 +86,7 @@ impl BlockKind {
     #[inline]
     pub const fn is_filled(&self) -> bool { !self.is_fluid() }
 
-    /// Determine whether the block has an RGB color storaged in the attribute
+    /// Determine whether the block has an RGB color stored in the attribute
     /// fields.
     #[inline]
     pub const fn has_color(&self) -> bool { self.is_filled() }

@@ -318,7 +318,7 @@ impl Scene {
             );
             let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
             *figure_state.skeleton_mut() =
-                anim::vek::Lerp::lerp(&*figure_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
+                Lerp::lerp(&*figure_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
 
             let model = self
                 .figure_model_cache

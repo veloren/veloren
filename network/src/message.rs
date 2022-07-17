@@ -75,7 +75,7 @@ impl Message {
     /// # use tokio::runtime::Runtime;
     /// # use std::sync::Arc;
     ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2300` and wait for a Stream to be opened, then listen on it
     /// # let runtime = Runtime::new().unwrap();
     /// # let network = Network::new(Pid::new(), &runtime);

@@ -9,7 +9,7 @@ use std::hash::Hash;
 /// Manages filtering out mouse input for the back widget if the mouse is over
 /// the front widget
 /// Alignment and padding is used for the front widget
-pub struct Overlay<'a, M, R: self::Renderer> {
+pub struct Overlay<'a, M, R: Renderer> {
     padding: Padding,
     width: Length,
     height: Length,
@@ -24,7 +24,7 @@ pub struct Overlay<'a, M, R: self::Renderer> {
 
 impl<'a, M, R> Overlay<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     pub fn new<O, U>(over: O, under: U) -> Self
     where
@@ -101,7 +101,7 @@ where
 
 impl<'a, M, R> Widget<M, R> for Overlay<'a, M, R>
 where
-    R: self::Renderer,
+    R: Renderer,
 {
     fn width(&self) -> Length { self.width }
 
@@ -240,7 +240,7 @@ pub trait Renderer: iced::Renderer {
 
 impl<'a, M, R> From<Overlay<'a, M, R>> for Element<'a, M, R>
 where
-    R: 'a + self::Renderer,
+    R: 'a + Renderer,
     M: 'a,
 {
     fn from(overlay: Overlay<'a, M, R>) -> Element<'a, M, R> { Element::new(overlay) }

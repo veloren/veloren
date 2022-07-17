@@ -44,7 +44,7 @@
 //! use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
 //!
 //! // Client
-//! async fn client(runtime: &Runtime) -> std::result::Result<(), Box<dyn std::error::Error>> {
+//! async fn client(runtime: &Runtime) -> Result<(), Box<dyn std::error::Error>> {
 //!     sleep(std::time::Duration::from_secs(1)).await; // `connect` MUST be after `listen`
 //!     let client_network = Network::new(Pid::new(), runtime);
 //!     let server = client_network
@@ -58,7 +58,7 @@
 //! }
 //!
 //! // Server
-//! async fn server(runtime: &Runtime) -> std::result::Result<(), Box<dyn std::error::Error>> {
+//! async fn server(runtime: &Runtime) -> Result<(), Box<dyn std::error::Error>> {
 //!     let server_network = Network::new(Pid::new(), runtime);
 //!     server_network
 //!         .listen(ListenAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
@@ -71,7 +71,7 @@
 //!     Ok(())
 //! }
 //!
-//! fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let runtime = Runtime::new().unwrap();
 //!     runtime.block_on(async {
 //!         let (result_c, result_s) = join!(client(&runtime), server(&runtime),);
