@@ -1,0 +1,79 @@
+(
+recipes: {
+    // Weapons
+    ItemDefId("common.items.weapons.sword.starter"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.axe.starter_axe"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.hammer.starter_hammer"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.bow.starter"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.staff.starter_staff"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.sceptre.starter_sceptre"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.sword_1h.starter"): ( inputs: [], ),
+    ModularWeapon(material: "common.items.mineral.ingot.bronze"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.iron"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.steel"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.cobalt"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.bloodsteel"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.orichalcum"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.wood"): (
+        inputs: [
+            (Item("common.items.log.wood"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.bamboo"): (
+        inputs: [
+            (Item("common.items.log.bamboo"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.hardwood"): (
+        inputs: [
+            (Item("common.items.log.hardwood"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.ironwood"): (
+        inputs: [
+            (Item("common.items.log.ironwood"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.frostwood"): (
+        inputs: [
+            (Item("common.items.log.frostwood"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.eldwood"): (
+        inputs: [
+            (Item("common.items.log.eldwood"), 1),
+        ],
+    ),
+    // Armor
+
+},
+fallback: (
+    inputs: [
+        (Item("common.items.utility.coins"), 1000),
+    ],
+),
+)

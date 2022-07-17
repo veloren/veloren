@@ -12,7 +12,9 @@ use common::{
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
-    recipe::{self, default_component_recipe_book, default_recipe_book},
+    recipe::{
+        self, default_component_recipe_book, default_recipe_book, default_repair_recipe_book,
+    },
     terrain::{Block, SpriteKind},
     trade::Trades,
     uid::Uid,
@@ -856,10 +858,17 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         None
                     }
                 },
-                CraftEvent::Repair(slot) => {
+                CraftEvent::Repair { item, slots } => {
+                    let repair_recipes = default_repair_recipe_book().read();
                     let sprite = get_craft_sprite(state, craft_sprite);
                     if matches!(sprite, Some(SpriteKind::RepairBench)) {
-                        inventory.repair_item_at_slot(slot);
+                        let _ = repair_recipes.repair_item(
+                            &mut inventory,
+                            item,
+                            slots,
+                            &state.ecs().read_resource::<AbilityMap>(),
+                            &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                        );
                     }
                     None
                 },

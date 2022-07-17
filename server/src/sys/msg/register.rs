@@ -8,7 +8,7 @@ use crate::{
 use common::{
     comp::{self, Admin, Player, Stats},
     event::{EventBus, ServerEvent},
-    recipe::{default_component_recipe_book, default_recipe_book},
+    recipe::{default_component_recipe_book, default_recipe_book, default_repair_recipe_book},
     resources::TimeOfDay,
     shared_server_config::ServerConstants,
     uid::{Uid, UidAllocator},
@@ -348,6 +348,7 @@ impl<'a> System<'a> for Sys {
                             world_map: (*read_data.map).clone(),
                             recipe_book: default_recipe_book().cloned(),
                             component_recipe_book: default_component_recipe_book().cloned(),
+                            repair_recipe_book: default_repair_recipe_book().cloned(),
                             material_stats: (*read_data.material_stats).clone(),
                             ability_map: (*read_data.ability_map).clone(),
                             server_constants: ServerConstants {

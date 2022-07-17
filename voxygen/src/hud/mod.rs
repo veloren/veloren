@@ -726,7 +726,7 @@ pub enum Event {
         craft_sprite: Option<Vec3<i32>>,
     },
     RepairItem {
-        slot: Slot,
+        item: Slot,
         sprite_pos: Vec3<i32>,
     },
     InviteMember(Uid),
@@ -3944,7 +3944,7 @@ impl Hud {
                                 self.show.crafting_fields.craft_sprite
                             {
                                 events.push(Event::RepairItem {
-                                    slot: from,
+                                    item: from,
                                     sprite_pos,
                                 })
                             }
