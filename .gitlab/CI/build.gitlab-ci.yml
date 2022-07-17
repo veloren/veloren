@@ -59,6 +59,7 @@ coverage:
   extends: .release
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/tarpaulin:${CACHE_IMAGE_TAG}
+  coverage: '/^\d+.\d+% coverage/'
   tags: ["veloren/veloren", "check"]
   script:
     - ln -s /dockercache/target target
