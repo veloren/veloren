@@ -1,6 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Lokalizacja na Polskie tłumaczenie
+/// Localization for Polish
 (
     string_map: {
         "esc_menu.logout": "Wyloguj",

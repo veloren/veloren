@@ -1,6 +1,7 @@
-/// Localization for Polish 
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Tłumaczenia dla języka polskiego
+/// Localization for Polish
+// TODO: Check this whole file
 (
     string_map: {
     },

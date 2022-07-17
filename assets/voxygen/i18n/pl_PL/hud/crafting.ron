@@ -1,6 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Lokalizacja na Polskie tłumaczenie
+/// Localization for Polish
 (
     string_map: {
         "hud.crafting": "Tworzenie",
@@ -23,7 +23,7 @@
         // Tabs
         "hud.crafting.tabs.all": "Wszystko",
         "hud.crafting.tabs.armor": "Pancerz",
-	"hud.crafting.tabs.dismantle": "Zdemontuj",
+        "hud.crafting.tabs.dismantle": "Zdemontuj",
         "hud.crafting.tabs.food": "Żywność",
         "hud.crafting.tabs.glider": "Lotnie",
         "hud.crafting.tabs.potion": "Mikstury",
@@ -34,6 +34,17 @@
         "hud.crafting.tabs.processed_material": "Materiały",
         "hud.crafting.dismantle_title": "Demontowanie",
         "hud.crafting.dismantle_explanation" : "Najedź na przedmioty w pleacaku aby\nzobaczyć co możesz odzyskać.\n\nKliknij podwójnie aby rozmontować.",
+        "hud.crafting.modular_desc": "Przeciągnij części przedmiotu aby stworzyć broń",
+        "hud.crafting.mod_weap_prim_slot_title": "Główna część broni",
+        "hud.crafting.mod_weap_prim_slot_desc": "Połóż tutaj główną część broni (np. ostrze miecza, siekiery, lub kończyny łuku).",
+        "hud.crafting.mod_weap_sec_slot_title": "Poboczna część broni",
+        "hud.crafting.mod_weap_sec_slot_desc": "Połóż tutaj poboczną część bronii (np. rękojeść miecza, uchwyt łuku, lub rdzeń różdżki).", // TODO: prawdopodobnie kostur zamiast różdżki
+        "hud.crafting.mod_comp_metal_prim_slot_title": "Sztabka metalu",
+        "hud.crafting.mod_comp_metal_prim_slot_desc": "Połóż tutaj sztabkę metalu, tylko niektóre metale mogą być użyte do tworzenia broni.",
+        "hud.crafting.mod_comp_wood_prim_slot_title": "Drewno",
+        "hud.crafting.mod_comp_wood_prim_slot_desc": "Połóż tutaj drewno, tylko niektóre rodzaje drewna mogą być użyte do tworzenia broni.",
+        "hud.crafting.mod_comp_sec_slot_title": "Materiał zwierzęcy",
+        "hud.crafting.mod_comp_sec_slot_desc": "Opcjonalnie połóż tutaj zwierzęcy materiał do tworzenia przedmiotów, tylko niektóre materiały zwierzęce mogą zostać użyte do ulepszenia broni.",
     },
 
 

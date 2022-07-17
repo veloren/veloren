@@ -1,32 +1,35 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Lokalizacja na Polskie tłumaczenie
+/// Localization for Polish
 (
     string_map: {
         "hud.do_not_show_on_startup": "Nie pokazuj tego podczas startu",
         "hud.show_tips": "Pokaż porady",
         "hud.quests": "Zadania",
-        "hud.you_died": "Zginąłeś",
-        "hud.waypoint_saved": "Punkt orientacyjny zachowany",
-        "hud.sp_arrow_txt": "PR", /// punkty rozwoju
+        "hud.you_died": "Zginąłeś", // forma
+        "hud.waypoint_saved": "Punkt orientacyjny zapisany",
+        "hud.sp_arrow_txt": "PR", // punkty rozwoju
         "hud.inventory_full": "Ekwipunek pełen",
+        "hud.someone_else": "kogoś innego", // TODO: forma (ktoś inny)
+        "hud.another_group": "inną grupę", // TODO: forma (inna grupa)
+        "hud.owned_by_for_secs": "Posiadane przez {name} przez {secs} sekund",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] przypisania klawiszy",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] latarnia",
         "hud.press_key_to_show_debug_info_fmt": "Naciśnij {key} by zobaczyć debug",
         "hud.press_key_to_toggle_keybindings_fmt": "Naciśnij {key} by przełączyć przypisania klawiszy",
         "hud.press_key_to_toggle_debug_info_fmt": "Naciśnij {key} by przełączyć debugowanie",
-        
-	// Respawn message
+
+        // Respawn message
         "hud.press_key_to_respawn": r#"Naciśnij {key} by odrodzić się przy ostatnio odwiedzonym ognisku."#,
-        
-	// Tutorial Button
+
+        // Tutorial Button
         "hud.tutorial_btn": r#"Samouczek"#,
         "hud.tutorial_click_here": r#"Naciśnij [ {key} ] by przełączyć tryb przechwytywania myszy i naciśnij ten przycisk!"#,
         "hud.tutorial_elements": r#"Tworzenie"#,
 
-	"hud.temp_quest_headline": r#"Witaj Przybyszu!"#,
-	"hud.temp_quest_text": r#"By zacząć swoją podróż zacznij od rozglądnięcia się i zebrania zapasów.
+        "hud.temp_quest_headline": r#"Witaj Przybyszu!"#,
+        "hud.temp_quest_text": r#"By zacząć swoją podróż zacznij od rozglądnięcia się i zebrania zapasów.
 
 Śmiało bierz cokolwiek będzie Ci potrzebne podczas Twojej wyprawy!
 
@@ -46,7 +49,7 @@ Kiedy poczujesz się gotów, spróbuj zdobyć lepszy ekwipunek z wielu wyzwań r
         "hud.free_look_indicator": "Tryb rozglądania aktywny. Naciśnij {key} by wyłączyć.",
         "hud.camera_clamp_indicator": "Pionowa blokada kamery aktywna. Naciśnij {key} by wyłączyć.",
         "hud.auto_walk_indicator": "Automatyczne chodzenie/pływanie aktywne",
-        "hud.collect": "Zbierz",
+        "hud.collect": "Zbieraj",
         "hud.pick_up": "Podnieś",
         "hud.open": "Otwórz",
         "hud.use": "Użyj",
