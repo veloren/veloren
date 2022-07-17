@@ -197,17 +197,12 @@ impl FileOpts {
     fn load_content(&self) -> (Option<ModernMap>, MapSizeLg, f64) {
         let parsed_world_file = self.try_load_map();
 
-        let map_size_lg = parsed_world_file
-            .as_ref()
-            .and_then(|map| match MapSizeLg::new(map.map_size_lg) {
-                Ok(map_size_lg) => Some(map_size_lg),
-                Err(e) => {
-                    // TODO: this probably should just panic
-                    warn!("World size of map does not satisfy invariants: {:?}", e);
-                    None
-                },
-            })
-            .unwrap_or_else(|| self.map_size());
+        let map_size_lg = if let Some(map) = &parsed_world_file {
+            MapSizeLg::new(map.map_size_lg)
+                .expect("World size of loaded map does not satisfy invariants.")
+        } else {
+            self.map_size()
+        };
 
         // NOTE: Change 1.0 to 4.0 for a 4x
         // improvement in world detail.  We also use this to automatically adjust
