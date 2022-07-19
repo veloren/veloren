@@ -3788,6 +3788,17 @@ CookingPot: Some((
     ],
     wind_sway: 0.0,
 )),
+// Repair Bench
+RepairBench: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.repair_bench.repair_bench-0",
+            offset: (-7.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Ensnaring Vines
 EnsnaringVines: Some((
     variations: [

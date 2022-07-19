@@ -285,3 +285,20 @@ pub fn active_abilities_from_db_model(
         .collect::<HashMap<_, _>>();
     comp::ability::ActiveAbilities::new(ability_sets)
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct DatabaseItemProperties {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    durability: Option<u32>,
+}
+
+pub fn item_properties_to_db_model(item: &comp::Item) -> DatabaseItemProperties {
+    DatabaseItemProperties {
+        durability: item.durability(),
+    }
+}
+
+pub fn apply_db_item_properties(item: &mut comp::Item, properties: &DatabaseItemProperties) {
+    let DatabaseItemProperties { durability } = properties;
+    item.persistence_set_durability(*durability);
+}

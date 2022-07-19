@@ -71,14 +71,14 @@ pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, Persi
             item_definition_id,
             stack_size,
             position,
-            durability
+            properties
         ) AS (
             SELECT  item_id,
                     parent_container_item_id,
                     item_definition_id,
                     stack_size,
                     position,
-                    durability
+                    properties
             FROM item
             WHERE parent_container_item_id = ?1
             UNION ALL
@@ -87,7 +87,7 @@ pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, Persi
                     item.item_definition_id,
                     item.stack_size,
                     item.position,
-                    item.durability
+                    item.properties
             FROM item, items_tree
             WHERE item.parent_container_item_id = items_tree.item_id
         )
@@ -103,7 +103,7 @@ pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, Persi
                 item_definition_id: row.get(2)?,
                 stack_size: row.get(3)?,
                 position: row.get(4)?,
-                durability: row.get(5)?,
+                properties: row.get(5)?,
             })
         })?
         .filter_map(Result::ok)
@@ -394,7 +394,7 @@ pub fn create_character(
             parent_container_item_id: WORLD_PSEUDO_CONTAINER_ID,
             item_definition_id: CHARACTER_PSEUDO_CONTAINER_DEF_ID.to_owned(),
             position: character_id.to_string(),
-            durability: None,
+            properties: String::new(),
         },
         Item {
             stack_size: 1,
@@ -402,7 +402,7 @@ pub fn create_character(
             parent_container_item_id: character_id,
             item_definition_id: INVENTORY_PSEUDO_CONTAINER_DEF_ID.to_owned(),
             position: INVENTORY_PSEUDO_CONTAINER_POSITION.to_owned(),
-            durability: None,
+            properties: String::new(),
         },
         Item {
             stack_size: 1,
@@ -410,7 +410,7 @@ pub fn create_character(
             parent_container_item_id: character_id,
             item_definition_id: LOADOUT_PSEUDO_CONTAINER_DEF_ID.to_owned(),
             position: LOADOUT_PSEUDO_CONTAINER_POSITION.to_owned(),
-            durability: None,
+            properties: String::new(),
         },
     ];
 
@@ -421,7 +421,7 @@ pub fn create_character(
                           item_definition_id,
                           stack_size,
                           position,
-                          durability)
+                          properties)
         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
     )?;
 
@@ -432,7 +432,7 @@ pub fn create_character(
             &pseudo_container.item_definition_id,
             &pseudo_container.stack_size,
             &pseudo_container.position,
-            &pseudo_container.durability,
+            &pseudo_container.properties,
         ])?;
     }
     drop(stmt);
@@ -531,7 +531,7 @@ pub fn create_character(
                           item_definition_id,
                           stack_size,
                           position,
-                          durability)
+                          properties)
         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
     )?;
 
@@ -542,7 +542,7 @@ pub fn create_character(
             &item.model.item_definition_id,
             &item.model.stack_size,
             &item.model.position,
-            &item.model.durability,
+            &item.model.properties,
         ])?;
     }
     drop(stmt);
@@ -1060,7 +1060,7 @@ pub fn update(
                           item_definition_id,
                           stack_size,
                           position,
-                          durability)
+                          properties)
             VALUES  (?1, ?2, ?3, ?4, ?5, ?6)",
         )?;
 
@@ -1071,7 +1071,7 @@ pub fn update(
                 &item.item_definition_id,
                 &item.stack_size,
                 &item.position,
-                &item.durability,
+                &item.properties,
             ])?;
         }
     }

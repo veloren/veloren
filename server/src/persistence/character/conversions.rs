@@ -5,7 +5,10 @@ use crate::persistence::{
 
 use crate::persistence::{
     error::PersistenceError,
-    json_models::{self, CharacterPosition, DatabaseAbilitySet, GenericBody, HumanoidBody},
+    json_models::{
+        self, CharacterPosition, DatabaseAbilitySet, DatabaseItemProperties, GenericBody,
+        HumanoidBody,
+    },
 };
 use common::{
     character::CharacterId,
@@ -165,6 +168,8 @@ pub fn convert_items_to_database_items(
                 bfs_queue.push_back((format!("component_{}", i), Some(component), item_id));
             }
 
+            let item_properties = json_models::item_properties_to_db_model(item);
+
             let upsert = ItemModelPair {
                 model: Item {
                     item_definition_id: String::from(item.persistence_item_id()),
@@ -176,7 +181,8 @@ pub fn convert_items_to_database_items(
                     } else {
                         1
                     },
-                    durability: item.persistence_durability(),
+                    properties: serde_json::to_string(&item_properties)
+                        .expect("We probably want to crash if this gets triggered?"),
                 },
                 // Continue to remember the atomic, in case we detect an error later and want
                 // to roll back to preserve liveness.
@@ -360,7 +366,10 @@ pub fn convert_inventory_from_database_items(
         item_indices.insert(db_item.item_id, i);
 
         let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
-        item.persistence_set_durability(db_item.durability);
+        let item_properties =
+            serde_json::de::from_str::<DatabaseItemProperties>(&db_item.properties)
+                .expect("We probably want to crash if this gets triggered?");
+        json_models::apply_db_item_properties(&mut item, &item_properties);
 
         // NOTE: Since this is freshly loaded, the atomic is *unique.*
         let comp = item.get_item_id_for_database();
@@ -462,7 +471,10 @@ pub fn convert_loadout_from_database_items(
         item_indices.insert(db_item.item_id, i);
 
         let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
-        item.persistence_set_durability(db_item.durability);
+        let item_properties =
+            serde_json::de::from_str::<DatabaseItemProperties>(&db_item.properties)
+                .expect("We probably want to crash if this gets triggered?");
+        json_models::apply_db_item_properties(&mut item, &item_properties);
 
         // NOTE: item id is currently *unique*, so we can store the ID safely.
         let comp = item.get_item_id_for_database();

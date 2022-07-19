@@ -1,1 +1,1 @@
-ALTER TABLE item ADD durability INTEGER;
+ALTER TABLE item ADD properties TEXT NOT NULL DEFAULT '{}';

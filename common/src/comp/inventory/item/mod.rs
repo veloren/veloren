@@ -1228,11 +1228,7 @@ impl Item {
         }
     }
 
-    pub fn persistence_durability(&self) -> Option<i32> {
-        self.durability.map(|x| x.min(i32::MAX as u32) as i32)
-    }
-
-    pub fn persistence_set_durability(&mut self, value: Option<i32>) {
+    pub fn persistence_set_durability(&mut self, value: Option<u32>) {
         // If changes have been made so that item no longer needs to track durability,
         // set to None
         if !self.has_durability() {
@@ -1240,7 +1236,7 @@ impl Item {
         } else {
             // Set durability to persisted value, and if item previously had no durability,
             // set to Some(0) so that durability will be tracked
-            self.durability = Some(value.map_or(0, |x| x.max(0) as u32));
+            self.durability = Some(value.unwrap_or(0));
         }
     }
 
