@@ -25,7 +25,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "velorite_frag": (
-        output: ("common.items.mineral.ore.veloritefrag", 2),
+        output: ("common.items.mineral.ore.veloritefrag", 3),
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
