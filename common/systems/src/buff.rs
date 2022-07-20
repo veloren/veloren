@@ -66,18 +66,24 @@ impl<'a> System<'a> for Sys {
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         stats.set_event_emission(false);
+
         // Put out underwater campfires. Logically belongs here since this system also
         // removes burning, but campfires don't have healths/stats/energies/buffs, so
         // this needs a separate loop.
         job.cpu_stats.measure(ParMode::Rayon);
-        let to_put_out_campfires = (&read_data.entities, &bodies, &read_data.physics_states)
+        let to_put_out_campfires = (
+            &read_data.entities,
+            &bodies,
+            &read_data.physics_states,
+            &light_emitters, //to improve iteration speed
+        )
             .par_join()
             .map_init(
                 || {
                     prof_span!(guard, "buff campfire deactivate");
                     guard
                 },
-                |_guard, (entity, body, physics_state)| {
+                |_guard, (entity, body, physics_state, _)| {
                     if matches!(*body, Body::Object(object::Body::CampfireLit))
                         && matches!(
                             physics_state.in_fluid,
