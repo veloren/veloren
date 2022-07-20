@@ -1228,7 +1228,11 @@ impl Item {
         }
     }
 
-    pub fn persistence_set_durability(&mut self, value: Option<u32>) {
+    pub fn persistence_durability(&self) -> Option<NonZeroU32> {
+        self.durability.and_then(NonZeroU32::new)
+    }
+
+    pub fn persistence_set_durability(&mut self, value: Option<NonZeroU32>) {
         // If changes have been made so that item no longer needs to track durability,
         // set to None
         if !self.has_durability() {
@@ -1236,7 +1240,7 @@ impl Item {
         } else {
             // Set durability to persisted value, and if item previously had no durability,
             // set to Some(0) so that durability will be tracked
-            self.durability = Some(value.unwrap_or(0));
+            self.durability = Some(value.map_or(0, NonZeroU32::get));
         }
     }
 

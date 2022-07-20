@@ -1022,16 +1022,17 @@ impl TradePricing {
 
     #[cfg(test)]
     fn print_sorted(&self) {
-        use crate::comp::item::armor; //, ItemKind, MaterialStatManifest};
+        use crate::comp::item::{armor, DurabilityMultiplier}; //, ItemKind, MaterialStatManifest};
 
         println!("Item, ForSale, Amount, Good, Quality, Deal, Unit,");
 
         fn more_information(i: &Item, p: f32) -> (String, &'static str) {
             let msm = &MaterialStatManifest::load().read();
+            let durability_multiplier = DurabilityMultiplier(1.0);
 
             if let ItemKind::Armor(a) = &*i.kind() {
                 (
-                    match a.stats(msm).protection {
+                    match a.stats(msm, durability_multiplier).protection {
                         Some(armor::Protection::Invincible) => "Invincible".into(),
                         Some(armor::Protection::Normal(x)) => format!("{:.4}", x * p),
                         None => "0.0".into(),
@@ -1039,10 +1040,8 @@ impl TradePricing {
                     "prot/val",
                 )
             } else if let ItemKind::Tool(t) = &*i.kind() {
-                (
-                    format!("{:.4}", t.stats.power * t.stats.speed * p),
-                    "dps/val",
-                )
+                let stats = t.stats(durability_multiplier);
+                (format!("{:.4}", stats.power * stats.speed * p), "dps/val")
             } else if let ItemKind::Consumable { kind: _, effects } = &*i.kind() {
                 (
                     effects
