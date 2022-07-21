@@ -282,6 +282,11 @@ impl SfxChannel {
     }
 }
 
+/// An UiChannel uses a non-spatial audio sink, and is designed for short-lived
+/// audio which is not spatially controlled, but does not need control over
+/// playback or fading/transitions
+///
+/// See also: [`Rodio::Sink`](https://docs.rs/rodio/0.11.0/rodio/struct.Sink.html)
 pub struct UiChannel {
     sink: Sink,
 }

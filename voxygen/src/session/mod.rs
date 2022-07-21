@@ -1206,7 +1206,7 @@ impl PlayState for SessionState {
                         // Stop all sounds
                         // TODO: Abstract this behavior to all instances of PlayStateResult::Pop
                         // somehow
-                        global_state.audio.stop_ambient_sounds();
+                        global_state.audio.stop_all_ambience();
                         global_state.audio.stop_all_sfx();
                         return PlayStateResult::Pop;
                     },

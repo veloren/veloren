@@ -435,13 +435,13 @@ impl SfxMgr {
                 );
             },
             Outcome::Lightning { pos } => {
-                let power = (1.0 - pos.distance(audio.listener.pos) / 6_000.0)
-                    .clamped(0.0, 1.0)
-                    .powf(0.75);
+                let power = (1.0 - pos.distance(audio.listener.pos) / 5_000.0)
+                    .max(0.0)
+                    .powi(7);
                 if power > 0.0 {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Lightning);
                     // TODO: Don't use UI sfx, add a way to control position falloff
-                    audio.emit_ui_sfx(sfx_trigger_item, Some(power * 3.0));
+                    audio.emit_ui_sfx(sfx_trigger_item, Some((power * 3.0).min(2.9)));
                 }
             },
             Outcome::GroundSlam { pos, .. } => {

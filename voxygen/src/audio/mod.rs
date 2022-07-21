@@ -21,6 +21,11 @@ use common::assets::{AssetExt, AssetHandle};
 use rodio::{source::Source, OutputStream, OutputStreamHandle, StreamError};
 use vek::*;
 
+/// Prevents sounds that are too low in volume from playing. This may marginally
+/// improve performance in certain situations since less audio channels will be
+/// used on average.
+const MIN_HEARABLE_VOLUME: f32 = 0.003;
+
 #[derive(Default, Clone)]
 pub struct Listener {
     pos: Vec3<f32>,
@@ -216,20 +221,14 @@ impl AudioFrontend {
         self.music_channels.last_mut()
     }
 
-    /// Play an sfx file given the position, SfxEvent, and whether it is
-    /// underwater or not
-    pub fn emit_sfx(
-        &mut self,
-        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
-        position: Vec3<f32>,
-        volume: Option<f32>,
-        underwater: bool,
-    ) {
-        if let Some((event, item)) = trigger_item {
-            // Find sound based on given trigger_item
-            // Randomizes if multiple sounds are found
-            // Errors if no sounds are found
-            let sfx_file = match item.files.len() {
+    /// Find sound based on given trigger_item
+    /// Randomizes if multiple sounds are found
+    /// Errors if no sounds are found
+    fn get_sfx_file<'a>(
+        trigger_item: Option<(&'a SfxEvent, &'a SfxTriggerItem)>,
+    ) -> Option<&'a str> {
+        trigger_item.map(|(event, item)| {
+            match item.files.len() {
                 0 => {
                     debug!("Sfx event {:?} is missing audio file.", event);
                     "voxygen.audio.sfx.placeholder"
@@ -243,9 +242,22 @@ impl AudioFrontend {
                     let rand_step = rand::random::<usize>() % item.files.len();
                     &item.files[rand_step]
                 },
-            };
+            }
+        })
+    }
+
+    /// Play an sfx file given the position, SfxEvent, and whether it is
+    /// underwater or not
+    pub fn emit_sfx(
+        &mut self,
+        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
+        position: Vec3<f32>,
+        volume: Option<f32>,
+        underwater: bool,
+    ) {
+        if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
             // Play sound in empty channel at given position
-            if self.audio_stream.is_some() {
+            if self.audio_stream.is_some() && volume.map_or(true, |v| v > MIN_HEARABLE_VOLUME) {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
 
                 let listener = self.listener.clone();
@@ -275,27 +287,9 @@ impl AudioFrontend {
         trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
         volume: Option<f32>,
     ) {
-        // Find sound based on given trigger_item
-        // Randomizes if multiple sounds are found
-        // Errors if no sounds are found
-        if let Some((event, item)) = trigger_item {
-            let sfx_file = match item.files.len() {
-                0 => {
-                    debug!("Sfx event {:?} is missing audio file.", event);
-                    "voxygen.audio.sfx.placeholder"
-                },
-                1 => item
-                    .files
-                    .last()
-                    .expect("Failed to determine sound file for this trigger item."),
-                _ => {
-                    // If more than one file is listed, choose one at random
-                    let rand_step = rand::random::<usize>() % item.files.len();
-                    &item.files[rand_step]
-                },
-            };
+        if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
             // Play sound in empty channel
-            if self.audio_stream.is_some() {
+            if self.audio_stream.is_some() && volume.map_or(true, |v| v > MIN_HEARABLE_VOLUME) {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
 
                 if let Some(channel) = self.get_ui_channel() {
@@ -308,10 +302,10 @@ impl AudioFrontend {
     }
 
     /// Plays a file at a given volume in the channel with a given tag
-    fn play_ambient(&mut self, channel_tag: AmbientChannelTag, sound: &str, volume: f32) {
+    fn play_ambient(&mut self, channel_tag: AmbientChannelTag, sound: &str, volume: Option<f32>) {
         if self.audio_stream.is_some() {
             if let Some(channel) = self.get_ambient_channel(channel_tag) {
-                channel.set_volume(volume);
+                channel.set_volume(volume.unwrap_or(1.0));
                 channel.play(load_ogg(sound));
             }
         }
@@ -503,19 +497,18 @@ impl AudioFrontend {
         }
     }
 
-    pub fn stop_ambient_sounds(&mut self) {
-        for channel in self.ambient_channels.iter_mut() {
-            channel.stop()
-        }
-    }
+    pub fn stop_all_ambience(&mut self) { self.ambient_channels.retain(|x| Some(x).is_none()) }
 
+    // Sfx channels do not repopulate themselves yet
     pub fn stop_all_sfx(&mut self) {
-        for channel in self.sfx_channels.iter_mut() {
-            channel.stop()
-        }
-        for channel in self.ui_channels.iter_mut() {
-            channel.stop()
-        }
+        if let Some(audio_stream) = &self.audio_stream {
+            for channel in &mut self.sfx_channels {
+                *channel = SfxChannel::new(audio_stream);
+            }
+            for channel in &mut self.ui_channels {
+                *channel = UiChannel::new(audio_stream);
+            }
+        };
     }
 
     // The following is for the disabled device switcher
