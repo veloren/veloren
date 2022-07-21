@@ -2,22 +2,22 @@
     tracks: [
         (
             path: "voxygen.audio.ambience.wind",
-            length: 14.17,
+            length: 14.2,
             tag: Wind,
         ),     
         (
             path: "voxygen.audio.ambience.rain",
-            length: 16.97,
+            length: 17.0,
             tag: Rain,
         ), 
         (
             path:"voxygen.audio.ambience.thunder",
-            length: 31.97,
+            length: 32.0,
             tag: Thunder,
         ),
         (
             path:"voxygen.audio.ambience.leaves",
-            length: 25.97,
+            length: 26.0,
             tag: Leaves,
         ),
     ]
