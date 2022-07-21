@@ -110,7 +110,8 @@ pub(crate) fn print_translation_stats(
     let real_entry_count = stats.get_real_entry_count() as f32;
     let uptodate_percent = (stats.uptodate_entries as f32 / real_entry_count) * 100_f32;
     let outdated_percent = (stats.outdated_entries as f32 / real_entry_count) * 100_f32;
-    let untranslated_percent = ((stats.errors + stats.errors) as f32 / real_entry_count) * 100_f32;
+    let untranslated_percent =
+        ((stats.notfound_entries + stats.errors) as f32 / real_entry_count) * 100_f32;
 
     // Display
     if be_verbose {
