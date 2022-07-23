@@ -6390,7 +6390,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-client"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "async-channel",
  "authc",
@@ -6654,7 +6654,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "atomicwrites",
  "authc",
@@ -6704,7 +6704,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server-cli"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "ansi-parser",
  "clap 3.1.10",
@@ -6728,7 +6728,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-voxygen"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "assets_manager",
  "backtrace",
