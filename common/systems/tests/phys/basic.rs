@@ -330,7 +330,8 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
         let air_density = 1.225_f64;
         let c = air_friction_co * air_friction_area * 0.5 * air_density * mass;
 
-        let acc = 9.2_f64 * move_dir; // btw: cant accelerate faster than gravity on foot
+        const MAX_ACC: f64 = 9.2;
+        let acc = MAX_ACC * move_dir; // btw: cant accelerate faster than gravity on foot
         let old_vel = vel;
 
         // controller
@@ -338,23 +339,19 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
         // basically an integral of the air resistance formula which scales with v^2
         // transformed with an ODE.
 
-        // The function besically takes its last result calculates the inverse* of it,
-        // adds the newly get speed to it and then run tanh again *inverse of
-        // the tanh and the factors before.
-        let past_fak = (c / (mass * acc.abs())).sqrt() * old_vel;
-        // the original algorithm isn't able to keep a speed over the terminal velocity
-        // based on acc. however that is necessary, e.g. for pushbacks, falling,
-        // external factors and stopping (because of we stop acc would be 0 and the
-        // terminal vel would be 0 too) here we decide to reduce that factor by
-        // c each second.
-        let over_vel_keep = (past_fak * c.powf(dt)).max(1.0) * past_fak.signum(); //TODO signum needed
-        let vel = (((mass * acc.abs()) / c).sqrt() * over_vel_keep)
-            * ((past_fak.clamp(-1.0, 1.0)).atanh()
-                + acc.signum() * (c * acc.abs() / mass).sqrt() * dt)
-                .tanh();
-        //let vel =  ((mass * acc.abs() + old_acc ) / c).sqrt() * ( ( ( (c / (mass *
-        // acc.abs() ) ).sqrt() * old_vel).clamp(-1.0, 1.0) ).atanh() + acc.signum() *
-        // (c * acc.abs() / mass).sqrt() * dt ).tanh();
+        // terminal velocity equals the maximum velocity that can be reached by acc
+        // alone
+        let vel_t = (mass * acc.abs() / c).sqrt();
+        let _vel_tm = (mass * MAX_ACC / c).sqrt();
+
+        // if our old_vel is bigger than vel_t we can use `coth(x) = 1/tanh(x)` and
+        // `acoth(x) = atanh(1/x)`
+        let revert_fak = old_vel / vel_t;
+        let vel = if revert_fak.abs() >= 1.0 {
+            vel_t / ((1.0 / revert_fak).atanh() + acc.signum() * (c * acc.abs()).sqrt() * dt).tanh()
+        } else {
+            vel_t * ((revert_fak).atanh() + acc.signum() * (c * acc.abs()).sqrt() * dt).tanh()
+        };
 
         //physics
         let distance_last = mass / c * (((old_vel * (c / acc / mass).sqrt()).atanh()).cosh()).ln();
@@ -368,12 +365,12 @@ fn physics_theory() -> Result<(), Box<dyn Error>> {
 
         let ending = ((i + 1) as f64 * dt * 10.0).round() as i64;
         let line = format!(
-            "[{:0>2.1}]:    move_dir: {:0>1.1},    over_vel_keep: {:0>4.4},    acc: {:0>4.4},    \
+            "[{:0>2.1}]:    move_dir: {:0>1.1},    acc: {:0>4.4},    revert_fak: {:0>4.4},    \
              vel: {:0>4.4},    dist: {:0>7.4},    dist: {:0>7.4},    pos: {:0>7.4},    c: {:0>4.4}",
             (i + 1) as f64 * dt,
             move_dir,
-            over_vel_keep,
             acc,
+            revert_fak,
             vel,
             distance_last,
             distance,
