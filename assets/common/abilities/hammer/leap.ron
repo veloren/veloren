@@ -1,7 +1,7 @@
 LeapMelee(
-    energy_cost: 50.0,
+    energy_cost: 35.0,
     buildup_duration: 0.1,
-    movement_duration: 0.8,
+    movement_duration: 0.6,
     swing_duration: 0.15,
     recover_duration: 0.2,
     melee_constructor: (

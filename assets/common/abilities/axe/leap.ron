@@ -1,12 +1,12 @@
 LeapMelee(
-    energy_cost: 45.0,
-    buildup_duration: 0.2,
-    movement_duration: 0.2,
+    energy_cost: 30.0,
+    buildup_duration: 0.3,
+    movement_duration: 0.25,
     swing_duration: 0.2,
     recover_duration: 0.2,
     melee_constructor: (
         kind: Slash(
-            damage: 30.0,
+            damage: 25.0,
             poise: 0.0,
             knockback: 12.0,
             energy_regen: 0.0,

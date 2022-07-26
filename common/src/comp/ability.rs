@@ -1302,7 +1302,7 @@ impl CharacterAbility {
                 *movement_behavior = if skillset.has_skill(Axe(SHelicopter)) {
                     spin_melee::MovementBehavior::AxeHover
                 } else {
-                    spin_melee::MovementBehavior::ForwardGround
+                    spin_melee::MovementBehavior::Walking
                 };
                 if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
                     if let Ok(level) = skillset.skill_level(Axe(SDamage)) {

@@ -89,8 +89,8 @@ impl CharacterBehavior for Data {
                                     category: _,
                                     source: _,
                                 } => {
-                                    data.strength *= 1.0
-                                        + (self.static_data.combo_at_cast.max(1) as f32).log(2.0);
+                                    data.strength *=
+                                        (self.static_data.combo_at_cast.max(1) as f32).sqrt();
                                 },
                             }
                             output_events.emit_server(ServerEvent::ComboChange {
