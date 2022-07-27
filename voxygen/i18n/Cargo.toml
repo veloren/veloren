@@ -1,30 +1,32 @@
 [package]
-authors = ["juliancoffee <lightdarkdaughter@gmail.com>", "Rémy Phelipot"]
+authors = ["juliancoffee <lightdarkdaughter@gmail.com>"]
 edition = "2021"
 name = "veloren-voxygen-i18n"
 description = "Crate for internalization and diagnostic of existing localizations."
-version = "0.10.0"
-
-[[bin]]
-name = "i18n-check"
-required-features = ["bin"]
+version = "0.13.0"
 
 [dependencies]
 # Assets
-hashbrown = { version = "0.12", features = ["serde", "nightly"] }
 common-assets = {package = "veloren-common-assets", path = "../../common/assets"}
-deunicode = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-tracing = "0.1"
-# Diagnostic
 ron = "0.7"
-git2 = { version = "0.14", default-features = false, optional = true }
+serde = { version = "1.0", features = ["derive"] }
+# Localization
+unic-langid = { version = "0.9"}
+intl-memoizer = { git = "https://github.com/juliancoffee/fluent-rs.git"}
+fluent = { git = "https://github.com/juliancoffee/fluent-rs.git"}
+fluent-bundle = { git = "https://github.com/juliancoffee/fluent-rs.git"}
+# Utility
+hashbrown = { version = "0.12", features = ["serde", "nightly"] }
+deunicode = "1.0"
+tracing = "0.1"
+# Bin
+serde-tuple-vec-map = "1.0"
 
-# Binary
-clap = { version = "3.1.8", features = ["suggestions", "std"], default-features = false, optional = true }
-
-[dev-dependencies]
-git2 = { version = "0.14", default-features = false }
+# FIXME: remove before merge
+[[bin]]
+name = "i18n-migrate"
+required-features = ["i18n-migrate"]
+path = "src/bin/migrate.rs"
 
 [features]
-bin = ["git2", "clap"]
+i18n-migrate = []
