@@ -1,4 +1,5 @@
 pub mod attack;
+pub mod behavior;
 pub mod consts;
 pub mod data;
 pub mod util;
@@ -6,6 +7,7 @@ pub mod util;
 use crate::{
     rtsim::{entity::PersonalityTrait, RtSim},
     sys::agent::{
+        behavior::BehaviorTree,
         consts::{
             AVG_FOLLOW_DIST, DAMAGE_MEMORY_DURATION, DEFAULT_ATTACK_RANGE, FLEE_DURATION,
             HEALING_ITEM_THRESHOLD, IDLE_HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST, MAX_FOLLOW_DIST,
@@ -259,137 +261,120 @@ impl<'a> System<'a> for Sys {
 
                     // Falling damage starts from 30.0 as of time of writing
                     // But keep in mind our 25 m/s gravity
-                    let is_falling_dangerous = data.vel.0.z < -20.0;
 
-                    let is_on_fire = read_data
-                        .buffs
-                        .get(entity)
-                        .map_or(false, |b| b.kinds.contains_key(&BuffKind::Burning));
+                    BehaviorTree::root().run(
+                        agent,
+                        data,
+                        &read_data,
+                        &mut event_emitter,
+                        controller,
+                    );
 
-                    // If falling velocity is critical, throw everything
-                    // and save yourself!
+                    // let is_falling_dangerous = data.vel.0.z < -20.0;
+
+                    // let is_on_fire = read_data
+                    //     .buffs
+                    //     .get(entity)
+                    //     .map_or(false, |b| b.kinds.contains_key(&BuffKind::Burning));
+
+                    // // If falling velocity is critical, throw everything
+                    // // and save yourself!
+                    // //
+                    // // If can fly - fly.
+                    // // If have glider - glide.
+                    // // Else, rest in peace.
+                    // if is_falling_dangerous && data.traversal_config.can_fly {
+                    //     data.fly_upward(controller)
+                    // } else if is_falling_dangerous && data.glider_equipped {
+                    //     data.glider_fall(controller);
+                    // // If on fire and able, stop, drop, and roll
+                    // } else if is_on_fire
+                    //     && data.body.map_or(false, |b| b.is_humanoid())
+                    //     && data.physics_state.on_ground.is_some()
+                    //     && rng.gen_bool((2.0 * read_data.dt.0).clamp(0.0, 1.0) as f64)
+                    // {
+                    //     controller.inputs.move_dir = ori
+                    //         .look_vec()
+                    //         .xy()
+                    //         .try_normalized()
+                    //         .unwrap_or_else(Vec2::zero);
+                    //     controller.push_basic_input(InputKind::Roll);
+                    // } else {
+                    //     // Target an entity that's attacking us if the attack was recent and we
+                    // have     // a health component
+                    //     match health {
+                    //         Some(health)
+                    //             if read_data.time.0 - health.last_change.time.0
+                    //                 < DAMAGE_MEMORY_DURATION =>
+                    //         {
+                    //             if let Some(by) = health.last_change.damage_by() {
+                    //                 if let Some(attacker) =
                     //
-                    // If can fly - fly.
-                    // If have glider - glide.
-                    // Else, rest in peace.
-                    if is_falling_dangerous && data.traversal_config.can_fly {
-                        data.fly_upward(controller)
-                    } else if is_falling_dangerous && data.glider_equipped {
-                        data.glider_fall(controller);
-                    // If on fire and able, stop, drop, and roll
-                    } else if is_on_fire
-                        && data.body.map_or(false, |b| b.is_humanoid())
-                        && data.physics_state.on_ground.is_some()
-                        && rng.gen_bool((2.0 * read_data.dt.0).clamp(0.0, 1.0) as f64)
-                    {
-                        controller.inputs.move_dir = ori
-                            .look_vec()
-                            .xy()
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::zero);
-                        controller.push_basic_input(InputKind::Roll);
-                    } else {
-                        // Target an entity that's attacking us if the attack was recent and we have
-                        // a health component
-                        match health {
-                            Some(health)
-                                if read_data.time.0 - health.last_change.time.0
-                                    < DAMAGE_MEMORY_DURATION =>
-                            {
-                                if let Some(by) = health.last_change.damage_by() {
-                                    if let Some(attacker) =
-                                        read_data.uid_allocator.retrieve_entity_internal(by.uid().0)
-                                    {
-                                        // If target is dead or invulnerable (for now, this only
-                                        // means safezone), untarget them and idle.
-                                        if is_dead_or_invulnerable(attacker, &read_data) {
-                                            agent.target = None;
-                                        } else {
-                                            if agent.target.is_none() {
-                                                controller.push_event(ControlEvent::Utterance(
-                                                    UtteranceKind::Angry,
-                                                ));
-                                            }
+                    // read_data.uid_allocator.retrieve_entity_internal(by.uid().0)
+                    //                 {
+                    //                     // If target is dead or invulnerable (for now, this only
+                    //                     // means safezone), untarget them and idle.
+                    //                     if is_dead_or_invulnerable(attacker, &read_data) {
+                    //                         agent.target = None;
+                    //                     } else {
+                    //                         if agent.target.is_none() {
+                    //                             controller.push_event(ControlEvent::Utterance(
+                    //                                 UtteranceKind::Angry,
+                    //                             ));
+                    //                         }
 
-                                            // Determine whether the new target should be a priority
-                                            // over the old one (i.e: because it's either close or
-                                            // because they attacked us).
-                                            if agent.target.map_or(true, |target| {
-                                                data.is_more_dangerous_than_target(
-                                                    attacker, target, &read_data,
-                                                )
-                                            }) {
-                                                agent.target = Some(Target {
-                                                    target: attacker,
-                                                    hostile: true,
-                                                    selected_at: read_data.time.0,
-                                                    aggro_on: true,
-                                                });
-                                            }
+                    //                         // Determine whether the new target should be a
+                    // priority                         // over the old one
+                    // (i.e: because it's either close or
+                    // // because they attacked us).                         if
+                    // agent.target.map_or(true, |target| {
+                    // data.is_more_dangerous_than_target(
+                    // attacker, target, &read_data,
+                    // )                         }) {
+                    //                             agent.target = Some(Target {
+                    //                                 target: attacker,
+                    //                                 hostile: true,
+                    //                                 selected_at: read_data.time.0,
+                    //                                 aggro_on: true,
+                    //                             });
+                    //                         }
 
-                                            // Remember this attack if we're an RtSim entity
-                                            if let Some(attacker_stats) =
-                                                data.rtsim_entity.and(read_data.stats.get(attacker))
-                                            {
-                                                agent.add_fight_to_memory(
-                                                    &attacker_stats.name,
-                                                    read_data.time.0,
-                                                );
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            _ => {},
-                        }
+                    //                         // Remember this attack if we're an RtSim entity
+                    //                         if let Some(attacker_stats) =
+                    //
+                    // data.rtsim_entity.and(read_data.stats.get(attacker))
+                    //                         {
+                    //                             agent.add_fight_to_memory(
+                    //                                 &attacker_stats.name,
+                    //                                 read_data.time.0,
+                    //                             );
+                    //                         }
+                    //                     }
+                    //                 }
+                    //             }
+                    //         },
+                    //         _ => {},
+                    //     }
 
-                        if let Some(target_info) = agent.target {
-                            data.react_to_target(
-                                agent,
-                                controller,
-                                &read_data,
-                                &mut event_emitter,
-                                target_info,
-                                &mut rng,
-                            );
-                        } else {
-                            data.idle_tree(agent, controller, &read_data, &mut rng);
-                        }
-                        if agent.allowed_to_speak()
-                            && data.recv_interaction(
-                                agent,
-                                controller,
-                                &read_data,
-                                &mut event_emitter,
-                            )
-                        {
-                            agent.timer.start(read_data.time.0, TimerAction::Interact);
-                        }
-                        // Interact if incoming messages
-                        if !agent.inbox.is_empty() {
-                            if matches!(
-                                agent.inbox.front(),
-                                Some(AgentEvent::ServerSound(_)) | Some(AgentEvent::Hurt)
-                            ) {
-                                let sound = agent.inbox.pop_front();
-                                match sound {
-                                    Some(AgentEvent::ServerSound(sound)) => {
-                                        agent.sounds_heard.push(sound);
-                                    },
-                                    Some(AgentEvent::Hurt) => {
-                                        // Hurt utterances at random upon receiving damage
-                                        if rng.gen::<f32>() < 0.4 {
-                                            controller.push_utterance(UtteranceKind::Hurt);
-                                        }
-                                    },
-                                    //Note: this should be unreachable
-                                    Some(_) | None => return,
-                                }
-                            } else {
-                                agent.action_state.timer = 0.1;
-                            }
-                        }
-                    }
+                    //     if let Some(target_info) = agent.target {
+                    //         data.react_to_target(
+                    //             agent,
+                    //             controller,
+                    //             &read_data,
+                    //             &mut event_emitter,
+                    //             target_info,
+                    //             &mut rng,
+                    //         );
+                    //     } else {
+                    //         data.idle_tree(
+                    //             agent,
+                    //             controller,
+                    //             &read_data,
+                    //             &mut event_emitter,
+                    //             &mut rng,
+                    //         );
+                    //     }
+                    // }
 
                     debug_assert!(controller.inputs.move_dir.map(|e| !e.is_nan()).reduce_and());
                     debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
