@@ -26,7 +26,7 @@
         "hud.skill.unlck_sceptre_title": "Цілющий скіпетр",
         "hud.skill.unlck_sceptre": "Відкриває дерево навичок володіння цілющим скіпетром{SP}",
         "hud.skill.dodge_title": "Ухил",
-        "hud.skill.dodge": "Станьте невразливим до ближніх атак під час перекиду{SP}",
+        "hud.skill.dodge": "Станьте невразливим до ближніх атак під час перекиду",
         "hud.skill.roll_energy_title": "Енергоспоживання перекиду",
         "hud.skill.roll_energy": "Перекид споживає на {boost}% менше енергії{SP}",
         "hud.skill.roll_speed_title": "Швидкість перекиду",
@@ -205,7 +205,6 @@
         "hud.skill.hmr_single_strike_damage" : "Збільшує приріст ушкодження від ударів підряд{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "Відкидання",
         "hud.skill.hmr_single_strike_knockback" : "Збільшує відстань відкидання ворогів на {boost}%{SP}",
-        "hud.skill." : "",
         // Sword
         "hud.skill.sw_trip_str": "Бог любить трійцю",
         "hud.skill.sw_trip_str_title": "Потрійний Удар",

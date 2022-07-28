@@ -18,7 +18,7 @@
         "hud.chat.offline_msg": "[{name}] ออกจากเกม",
 
         "hud.chat.default_death_msg": "[{name}] เสียชีวิต",
-        "hud.chat.environmental_kill_msg": "name}] เสียชีวิตในสภาพแวดล้อม {environment}",
+        "hud.chat.environmental_kill_msg": "[{name}] เสียชีวิตในสภาพแวดล้อม {environment}",
         "hud.chat.fall_kill_msg": "[{name}] เสียชีวิต เพราะตกพื้นแรงไปหน่อย",
         "hud.chat.suicide_msg": "[{name}] เสียชีวิต เพราะทำร้ายตัวเอง (???)",
 

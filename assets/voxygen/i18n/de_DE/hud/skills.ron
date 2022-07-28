@@ -171,7 +171,6 @@
         "hud.skill.hmr_single_strike_damage" : "Erhöht den Schaden mit jedem Treffer{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "Rückstoß: Einfacher Schlag",
         "hud.skill.hmr_single_strike_knockback" : "Erhöht die Rückstoßkraft um {boost}%{SP}",
-        "hud.skill." : "",
         // Sword
         "hud.skill.sw_trip_str_title": "Dreifachschlag",
         "hud.skill.sw_trip_str": "Eine Dreifach-Kombi Attacke",
@@ -217,7 +216,7 @@
         "hud.skill.axe_double_strike_damage_title": "Schaden: Doppelschlag",
         "hud.skill.axe_double_strike_damage": "Erhöht den Schaden, den jeder aufeinanderfolgende Treffer verursacht{SP}",
         "hud.skill.axe_double_strike_speed_title": "Double Strike Speed",
-        "hud.skill.axe_double_strike_speed": "Erhöht die Angriffsgeschw. mit jedem aufeinanderfolgenden Treffer{{SP}",
+        "hud.skill.axe_double_strike_speed": "Erhöht die Angriffsgeschw. mit jedem aufeinanderfolgenden Treffer{SP}",
         "hud.skill.axe_double_strike_regen_title": "Double Strike Regen",
         "hud.skill.axe_double_strike_regen": "Erhöht Ausdauerregeneration mit jedem aufeinanderfolgenden Treffer{SP}",
         "hud.skill.axe_spin_title": "Axtrundschlag",

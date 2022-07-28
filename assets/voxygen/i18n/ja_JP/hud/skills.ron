@@ -169,7 +169,6 @@
         "hud.skill.hmr_single_strike_damage" : "Increases the damage with each successive strike{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "シングルストライク ノックバック",
         "hud.skill.hmr_single_strike_knockback" : "スイングして投げる能力を{boost}%増加 {SP}",
-        "hud.skill." : "",
         // Sword
         "hud.skill.sw_trip_str_title": "トリプルストライク",
         "hud.skill.sw_trip_str": "最大{boost}回までの連続攻撃",

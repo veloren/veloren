@@ -169,7 +169,6 @@
         "hud.skill.hmr_single_strike_damage" : "Augmente les dégâts à chaque frappe successive{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "Projection de la Frappe Simple",
         "hud.skill.hmr_single_strike_knockback" : "Augmente de {boost}% la force de projection{SP}",
-        "hud.skill." : "",
         // Sword
         "hud.skill.sw_trip_str_title": "Triple-Frappe",
         "hud.skill.sw_trip_str": "Frappez, jusqu'à trois fois",

@@ -170,7 +170,6 @@
         "hud.skill.hmr_single_strike_damage" : "随着连击数增加,每次击中敌人造成的伤害提升{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "冲击强化",
         "hud.skill.hmr_single_strike_knockback" : "锤击击退的效果提高{boost}%{SP}",
-        "hud.skill." : "",
         // Sword
         "hud.skill.sw_trip_str_title": "三连击",
         "hud.skill.sw_trip_str": "三连击,劈,砍,刺",

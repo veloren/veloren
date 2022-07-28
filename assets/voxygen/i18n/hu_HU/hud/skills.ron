@@ -167,7 +167,6 @@
         "hud.skill.hmr_single_strike_damage" : "Megnöveli a sebzést minden egyes sikeres csapással{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "Egyszeri csapás visszalökése",
         "hud.skill.hmr_single_strike_knockback" : "Megnöveli a csapások ellökési sebességét {boost}%-kal{SP}",
-        "hud.skill." : "",
         // Sword
         "hud.skill.sw_trip_str_title": "Hármas csapás",
         "hud.skill.sw_trip_str": "Csapj oda, legfeljebb háromszor",
