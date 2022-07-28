@@ -7,13 +7,10 @@ use crate::hud::{
 };
 use client::Client;
 use common::{
-    combat,
     comp::{
         item::{
-            armor::{ArmorKind, Protection},
-            item_key::ItemKey,
-            modular::ModularComponent,
-            Item, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
+            armor::Protection, item_key::ItemKey, modular::ModularComponent, Item, ItemDesc,
+            ItemKind, ItemTag, MaterialStatManifest, Quality,
         },
         Energy,
     },
@@ -317,10 +314,7 @@ widget_ids! {
         prices_buy,
         prices_sell,
         tooltip_hints,
-        main_stat,
-        main_stat_text,
         stats[],
-        diff_main_stat,
         diffs[],
         item_frame,
         item_render,
@@ -586,27 +580,6 @@ impl<'a> Widget for ItemTooltip<'a> {
         match &*item.kind() {
             ItemKind::Tool(tool) => {
                 let stats = tool.stats;
-                let combat_rating = combat::weapon_rating(&item, self.msm) * 10.0;
-
-                // Combat Rating
-                widget::Text::new(&format!("{:.1}", combat_rating))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .font_size(34)
-                    .align_middle_y_of(state.ids.item_frame)
-                    .right_from(state.ids.item_frame, H_PAD)
-                    .set(state.ids.main_stat, ui);
-
-                widget::Text::new(i18n.get("common.stats.combat_rating"))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .align_bottom_of(state.ids.main_stat)
-                    .right_from(state.ids.main_stat, H_PAD)
-                    .set(state.ids.main_stat_text, ui);
 
                 // Power
                 widget::Text::new(&format!(
@@ -622,85 +595,77 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .down_from(state.ids.item_frame, V_PAD)
                 .set(state.ids.stats[0], ui);
 
+                let mut stat_text = |text: String, i: usize| {
+                    widget::Text::new(&text)
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[i - 1], V_PAD_STATS)
+                        .set(state.ids.stats[i], ui);
+                };
+
                 // Speed
-                widget::Text::new(&format!(
-                    "{} : {:+.0}%",
-                    i18n.get("common.stats.speed"),
-                    (stats.speed - 1.0) * 100.0
-                ))
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .down_from(state.ids.stats[0], V_PAD_STATS)
-                .set(state.ids.stats[1], ui);
+                stat_text(
+                    format!(
+                        "{} : {:+.0}%",
+                        i18n.get("common.stats.speed"),
+                        (stats.speed - 1.0) * 100.0
+                    ),
+                    1,
+                );
 
                 // Effect Power
                 // TODO: Allow effect power to have different terminology based on what it is
                 // affecting.
-                widget::Text::new(&format!(
-                    "{} : {:+.0}%",
-                    i18n.get("common.stats.poise"),
-                    (stats.effect_power - 1.0) * 100.0
-                ))
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .down_from(state.ids.stats[1], V_PAD_STATS)
-                .set(state.ids.stats[2], ui);
+                stat_text(
+                    format!(
+                        "{} : {:+.0}%",
+                        i18n.get("common.stats.poise"),
+                        (stats.effect_power - 1.0) * 100.0
+                    ),
+                    2,
+                );
 
                 // Crit chance
-                widget::Text::new(&format!(
-                    "{} : {:.1}%",
-                    i18n.get("common.stats.crit_chance"),
-                    stats.crit_chance * 100.0
-                ))
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .down_from(state.ids.stats[2], V_PAD_STATS)
-                .set(state.ids.stats[3], ui);
+                stat_text(
+                    format!(
+                        "{} : {:.1}%",
+                        i18n.get("common.stats.crit_chance"),
+                        stats.crit_chance * 100.0
+                    ),
+                    3,
+                );
 
                 // Range
-                widget::Text::new(&format!(
-                    "{} : {:+.0}%",
-                    i18n.get("common.stats.range"),
-                    (stats.range - 1.0) * 100.0
-                ))
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .down_from(state.ids.stats[3], V_PAD_STATS)
-                .set(state.ids.stats[4], ui);
+                stat_text(
+                    format!(
+                        "{} : {:+.0}%",
+                        i18n.get("common.stats.range"),
+                        (stats.range - 1.0) * 100.0
+                    ),
+                    4,
+                );
 
                 // Energy Efficiency
-                widget::Text::new(&format!(
-                    "{} : {:+.0}%",
-                    i18n.get("common.stats.energy_efficiency"),
-                    (stats.energy_efficiency - 1.0) * 100.0
-                ))
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .down_from(state.ids.stats[4], V_PAD_STATS)
-                .set(state.ids.stats[5], ui);
+                stat_text(
+                    format!(
+                        "{} : {:+.0}%",
+                        i18n.get("common.stats.energy_efficiency"),
+                        (stats.energy_efficiency - 1.0) * 100.0
+                    ),
+                    5,
+                );
 
                 // Buff Strength
-                widget::Text::new(&format!(
-                    "{} : {:+.0}%",
-                    i18n.get("common.stats.buff_strength"),
-                    (stats.buff_strength - 1.0) * 100.0
-                ))
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .down_from(state.ids.stats[5], V_PAD_STATS)
-                .set(state.ids.stats[6], ui);
+                stat_text(
+                    format!(
+                        "{} : {:+.0}%",
+                        i18n.get("common.stats.buff_strength"),
+                        (stats.buff_strength - 1.0) * 100.0
+                    ),
+                    6,
+                );
 
                 if let Some(equipped_item) = equipped_item {
                     if let ItemKind::Tool(equipped_tool) = &*equipped_item.kind() {
@@ -729,20 +694,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                             tool_stats.buff_strength,
                             equipped_tool_stats.buff_strength,
                         );
-                        let equipped_combat_rating =
-                            combat::weapon_rating(&equipped_item, self.msm) * 10.0;
-                        let diff_main_stat =
-                            util::comparison(combat_rating, equipped_combat_rating);
-
-                        if (equipped_combat_rating - combat_rating).abs() > f32::EPSILON {
-                            widget::Text::new(diff_main_stat.0)
-                                .right_from(state.ids.main_stat_text, H_PAD)
-                                .graphics_for(id)
-                                .parent(id)
-                                .with_style(self.style.desc)
-                                .color(diff_main_stat.1)
-                                .set(state.ids.diff_main_stat, ui);
-                        }
 
                         let mut diff_text = |text: String, color, id_index| {
                             widget::Text::new(&*text)
@@ -803,287 +754,147 @@ impl<'a> Widget for ItemTooltip<'a> {
                 }
             },
             ItemKind::Armor(armor) => {
-                match armor.kind {
-                    ArmorKind::Bag => {
-                        // Bags
-                        widget::Text::new(&format!(
-                            "{} {}",
-                            item.num_slots(),
-                            i18n.get("common.stats.slots")
-                        ))
+                let armor_stats = armor.stats(self.msm);
+
+                let mut stat_text = |text: String, i: usize| {
+                    widget::Text::new(&text)
                         .graphics_for(id)
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .font_size(34)
-                        .align_middle_y_of(state.ids.item_frame)
-                        .right_from(state.ids.item_frame, H_PAD)
-                        .set(state.ids.main_stat, ui);
-                    },
-                    _ => {
-                        // Armour
-                        let protection = armor
-                            .stats(self.msm)
-                            .protection
-                            .unwrap_or(Protection::Normal(0.0));
-                        let poise_res = armor
-                            .stats(self.msm)
-                            .poise_resilience
-                            .unwrap_or(Protection::Normal(0.0));
-                        let energy_max = armor.stats(self.msm).energy_max.unwrap_or(0.0);
-                        let energy_reward = armor
-                            .stats(self.msm)
-                            .energy_reward
-                            .map(|x| x * 100.0)
-                            .unwrap_or(0.0);
-                        let crit_power = armor.stats(self.msm).crit_power.unwrap_or(0.0);
-                        let stealth = armor.stats(self.msm).stealth.unwrap_or(0.0);
+                        .and(|t| {
+                            if i == 0 {
+                                t.x_align_to(
+                                    state.ids.item_frame,
+                                    conrod_core::position::Align::Start,
+                                )
+                                .down_from(state.ids.item_frame, V_PAD)
+                            } else {
+                                t.down_from(state.ids.stats[i - 1], V_PAD_STATS)
+                            }
+                        })
+                        .set(state.ids.stats[i], ui);
+                };
 
-                        widget::Text::new(&util::protec2string(protection))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .font_size(34)
-                            .align_middle_y_of(state.ids.item_frame)
-                            .right_from(state.ids.item_frame, H_PAD)
-                            .set(state.ids.main_stat, ui);
+                let mut index = 0;
 
-                        widget::Text::new(i18n.get("common.stats.armor"))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .align_bottom_of(state.ids.main_stat)
-                            .right_from(state.ids.main_stat, H_PAD)
-                            .set(state.ids.main_stat_text, ui);
+                if armor_stats.protection.is_some() {
+                    stat_text(
+                        format!(
+                            "{} : {}",
+                            i18n.get("common.stats.armor"),
+                            util::protec2string(
+                                armor_stats.protection.unwrap_or(Protection::Normal(0.0))
+                            )
+                        ),
+                        index,
+                    );
+                    index += 1;
+                }
 
-                        // Poise res
-                        if armor.stats(self.msm).poise_resilience.is_some() {
-                            widget::Text::new(&format!(
-                                "{} : {}",
-                                i18n.get("common.stats.poise_res"),
-                                util::protec2string(poise_res)
-                            ))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                            .down_from(state.ids.item_frame, V_PAD)
-                            .set(state.ids.stats[0], ui);
-                        }
+                // Poise res
+                if armor_stats.poise_resilience.is_some() {
+                    stat_text(
+                        format!(
+                            "{} : {}",
+                            i18n.get("common.stats.poise_res"),
+                            util::protec2string(
+                                armor_stats
+                                    .poise_resilience
+                                    .unwrap_or(Protection::Normal(0.0))
+                            )
+                        ),
+                        index,
+                    );
+                    index += 1;
+                }
 
-                        // Max Energy
-                        if armor.stats(self.msm).energy_max.is_some() {
-                            widget::Text::new(&format!(
-                                "{} : {:.1}",
-                                i18n.get("common.stats.energy_max"),
-                                energy_max
-                            ))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .and(|t| {
-                                if armor.stats(self.msm).poise_resilience.is_some() {
-                                    t.down_from(state.ids.stats[0], V_PAD_STATS)
-                                } else {
-                                    t.x_align_to(
-                                        state.ids.item_frame,
-                                        conrod_core::position::Align::Start,
-                                    )
-                                    .down_from(state.ids.item_frame, V_PAD)
-                                }
-                            })
-                            .set(
-                                state.ids.stats
-                                    [armor.stats(self.msm).poise_resilience.is_some() as usize],
-                                ui,
-                            );
-                        }
+                // Max Energy
+                if armor_stats.energy_max.is_some() {
+                    stat_text(
+                        format!(
+                            "{} : {:.1}",
+                            i18n.get("common.stats.energy_max"),
+                            armor_stats.energy_max.unwrap_or(0.0)
+                        ),
+                        index,
+                    );
+                    index += 1;
+                }
 
-                        // Energy Recovery
-                        if armor.stats(self.msm).energy_reward.is_some() {
-                            widget::Text::new(&format!(
-                                "{} : {:.1}%",
-                                i18n.get("common.stats.energy_reward"),
-                                energy_reward
-                            ))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .and(|t| {
-                                match armor.stats(self.msm).poise_resilience.is_some() as usize
-                                    + armor.stats(self.msm).energy_max.is_some() as usize
-                                {
-                                    0 => t
-                                        .x_align_to(
-                                            state.ids.item_frame,
-                                            conrod_core::position::Align::Start,
-                                        )
-                                        .down_from(state.ids.item_frame, V_PAD),
-                                    x => t.down_from(state.ids.stats[x - 1], V_PAD_STATS),
-                                }
-                            })
-                            .set(
-                                state.ids.stats[armor.stats(self.msm).poise_resilience.is_some()
-                                    as usize
-                                    + armor.stats(self.msm).energy_max.is_some() as usize],
-                                ui,
-                            );
-                        }
+                // Energy Recovery
+                if armor_stats.energy_reward.is_some() {
+                    stat_text(
+                        format!(
+                            "{} : {:.1}%",
+                            i18n.get("common.stats.energy_reward"),
+                            armor_stats.energy_reward.map_or(0.0, |x| x * 100.0)
+                        ),
+                        index,
+                    );
+                    index += 1;
+                }
 
-                        // Crit Power
-                        if armor.stats(self.msm).crit_power.is_some() {
-                            widget::Text::new(&format!(
-                                "{} : {:.3}",
-                                i18n.get("common.stats.crit_power"),
-                                crit_power
-                            ))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .and(|t| {
-                                match armor.stats(self.msm).poise_resilience.is_some() as usize
-                                    + armor.stats(self.msm).energy_max.is_some() as usize
-                                    + armor.stats(self.msm).energy_reward.is_some() as usize
-                                {
-                                    0 => t
-                                        .x_align_to(
-                                            state.ids.item_frame,
-                                            conrod_core::position::Align::Start,
-                                        )
-                                        .down_from(state.ids.item_frame, V_PAD),
-                                    x => t.down_from(state.ids.stats[x - 1], V_PAD_STATS),
-                                }
-                            })
-                            .set(
-                                state.ids.stats[armor.stats(self.msm).poise_resilience.is_some()
-                                    as usize
-                                    + armor.stats(self.msm).energy_max.is_some() as usize
-                                    + armor.stats(self.msm).energy_reward.is_some() as usize],
-                                ui,
-                            );
-                        }
+                // Crit Power
+                if armor_stats.crit_power.is_some() {
+                    stat_text(
+                        format!(
+                            "{} : {:.3}",
+                            i18n.get("common.stats.crit_power"),
+                            armor_stats.crit_power.unwrap_or(0.0)
+                        ),
+                        index,
+                    );
+                    index += 1;
+                }
 
-                        // Stealth
-                        if armor.stats(self.msm).stealth.is_some() {
-                            widget::Text::new(&format!(
-                                "{} : {:.3}",
-                                i18n.get("common.stats.stealth"),
-                                stealth
-                            ))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .and(|t| {
-                                match armor.stats(self.msm).poise_resilience.is_some() as usize
-                                    + armor.stats(self.msm).energy_max.is_some() as usize
-                                    + armor.stats(self.msm).energy_reward.is_some() as usize
-                                    + armor.stats(self.msm).crit_power.is_some() as usize
-                                {
-                                    0 => t
-                                        .x_align_to(
-                                            state.ids.item_frame,
-                                            conrod_core::position::Align::Start,
-                                        )
-                                        .down_from(state.ids.item_frame, V_PAD),
-                                    x => t.down_from(state.ids.stats[x - 1], V_PAD_STATS),
-                                }
-                            })
-                            .set(
-                                state.ids.stats[armor.stats(self.msm).poise_resilience.is_some()
-                                    as usize
-                                    + armor.stats(self.msm).energy_max.is_some() as usize
-                                    + armor.stats(self.msm).energy_reward.is_some() as usize
-                                    + armor.stats(self.msm).crit_power.is_some() as usize],
-                                ui,
-                            );
-                        }
+                // Stealth
+                if armor_stats.stealth.is_some() {
+                    stat_text(
+                        format!(
+                            "{} : {:.3}",
+                            i18n.get("common.stats.stealth"),
+                            armor_stats.stealth.unwrap_or(0.0)
+                        ),
+                        index,
+                    );
+                    index += 1;
+                }
 
-                        // Slots
-                        if item.num_slots() > 0 {
-                            widget::Text::new(&format!(
-                                "{} : {}",
-                                i18n.get("common.stats.slots"),
-                                item.num_slots()
-                            ))
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .and(|t| {
-                                match armor.stats(self.msm).poise_resilience.is_some() as usize
-                                    + armor.stats(self.msm).energy_max.is_some() as usize
-                                    + armor.stats(self.msm).energy_reward.is_some() as usize
-                                    + armor.stats(self.msm).crit_power.is_some() as usize
-                                    + armor.stats(self.msm).stealth.is_some() as usize
-                                {
-                                    0 => t
-                                        .x_align_to(
-                                            state.ids.item_frame,
-                                            conrod_core::position::Align::Start,
-                                        )
-                                        .down_from(state.ids.item_frame, V_PAD),
-                                    x => t.down_from(state.ids.stats[x - 1], V_PAD_STATS),
-                                }
-                            })
-                            .set(
-                                state.ids.stats[armor.stats(self.msm).poise_resilience.is_some()
-                                    as usize
-                                    + armor.stats(self.msm).energy_max.is_some() as usize
-                                    + armor.stats(self.msm).energy_reward.is_some() as usize
-                                    + armor.stats(self.msm).crit_power.is_some() as usize
-                                    + armor.stats(self.msm).stealth.is_some() as usize],
-                                ui,
-                            );
-                        }
-                    },
+                // Slots
+                if item.num_slots() > 0 {
+                    stat_text(
+                        format!("{} : {}", i18n.get("common.stats.slots"), item.num_slots()),
+                        index,
+                    );
                 }
 
                 if let Some(equipped_item) = equipped_item {
                     if let ItemKind::Armor(equipped_armor) = &*equipped_item.kind() {
-                        let diff = armor.stats(self.msm) - equipped_armor.stats(self.msm);
+                        let equipped_stats = equipped_armor.stats(self.msm);
+                        let diff = armor_stats - equipped_stats;
                         let protection_diff = util::option_comparison(
-                            &armor.stats(self.msm).protection,
-                            &equipped_armor.stats(self.msm).protection,
+                            &armor_stats.protection,
+                            &equipped_stats.protection,
                         );
                         let poise_res_diff = util::option_comparison(
-                            &armor.stats(self.msm).poise_resilience,
-                            &equipped_armor.stats(self.msm).poise_resilience,
+                            &armor_stats.poise_resilience,
+                            &equipped_stats.poise_resilience,
                         );
                         let energy_max_diff = util::option_comparison(
-                            &armor.stats(self.msm).energy_max,
-                            &equipped_armor.stats(self.msm).energy_max,
+                            &armor_stats.energy_max,
+                            &equipped_stats.energy_max,
                         );
                         let energy_reward_diff = util::option_comparison(
-                            &armor.stats(self.msm).energy_reward,
-                            &equipped_armor.stats(self.msm).energy_reward,
+                            &armor_stats.energy_reward,
+                            &equipped_stats.energy_reward,
                         );
                         let crit_power_diff = util::option_comparison(
-                            &armor.stats(self.msm).crit_power,
-                            &equipped_armor.stats(self.msm).crit_power,
+                            &armor_stats.crit_power,
+                            &equipped_stats.crit_power,
                         );
-                        let stealth_diff = util::option_comparison(
-                            &armor.stats(self.msm).stealth,
-                            &equipped_armor.stats(self.msm).stealth,
-                        );
-
-                        if let Some(p_diff) = diff.protection {
-                            if p_diff != Protection::Normal(0.0) {
-                                widget::Text::new(protection_diff.0)
-                                    .right_from(state.ids.main_stat_text, H_PAD)
-                                    .graphics_for(id)
-                                    .parent(id)
-                                    .with_style(self.style.desc)
-                                    .color(protection_diff.1)
-                                    .set(state.ids.diff_main_stat, ui);
-                            }
-                        }
+                        let stealth_diff =
+                            util::option_comparison(&armor_stats.stealth, &equipped_stats.stealth);
 
                         let mut diff_text = |text: String, color, id_index| {
                             widget::Text::new(&*text)
@@ -1096,6 +907,20 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .set(state.ids.diffs[id_index], ui)
                         };
 
+                        let mut index = 0;
+
+                        if let Some(p_diff) = diff.protection {
+                            if p_diff != Protection::Normal(0.0) {
+                                let text = format!(
+                                    "{} {}",
+                                    &protection_diff.0,
+                                    util::protec2string(p_diff)
+                                );
+                                diff_text(text, protection_diff.1, index);
+                                index += armor_stats.protection.is_some() as usize;
+                            }
+                        }
+
                         if let Some(p_r_diff) = diff.poise_resilience {
                             if p_r_diff != Protection::Normal(0.0) {
                                 let text = format!(
@@ -1103,18 +928,16 @@ impl<'a> Widget for ItemTooltip<'a> {
                                     &poise_res_diff.0,
                                     util::protec2string(p_r_diff)
                                 );
-                                diff_text(text, poise_res_diff.1, 0)
+                                diff_text(text, poise_res_diff.1, index);
+                                index += armor_stats.poise_resilience.is_some() as usize;
                             }
                         }
 
                         if let Some(e_m_diff) = diff.energy_max {
                             if e_m_diff.abs() > Energy::ENERGY_EPSILON {
                                 let text = format!("{} {:.1}", &energy_max_diff.0, e_m_diff);
-                                diff_text(
-                                    text,
-                                    energy_max_diff.1,
-                                    armor.stats(self.msm).poise_resilience.is_some() as usize,
-                                )
+                                diff_text(text, energy_max_diff.1, index);
+                                index += armor_stats.energy_max.is_some() as usize;
                             }
                         }
 
@@ -1122,39 +945,23 @@ impl<'a> Widget for ItemTooltip<'a> {
                             if e_r_diff.abs() > Energy::ENERGY_EPSILON {
                                 let text =
                                     format!("{} {:.1}", &energy_reward_diff.0, e_r_diff * 100.0);
-                                diff_text(
-                                    text,
-                                    energy_reward_diff.1,
-                                    armor.stats(self.msm).poise_resilience.is_some() as usize
-                                        + armor.stats(self.msm).energy_max.is_some() as usize,
-                                )
+                                diff_text(text, energy_reward_diff.1, index);
+                                index += armor_stats.energy_reward.is_some() as usize;
                             }
                         }
 
                         if let Some(c_p_diff) = diff.crit_power {
                             if c_p_diff != 0.0_f32 {
                                 let text = format!("{} {:.3}", &crit_power_diff.0, c_p_diff);
-                                diff_text(
-                                    text,
-                                    crit_power_diff.1,
-                                    armor.stats(self.msm).poise_resilience.is_some() as usize
-                                        + armor.stats(self.msm).energy_max.is_some() as usize
-                                        + armor.stats(self.msm).energy_reward.is_some() as usize,
-                                )
+                                diff_text(text, crit_power_diff.1, index);
+                                index += armor_stats.crit_power.is_some() as usize;
                             }
                         }
 
                         if let Some(s_diff) = diff.stealth {
                             if s_diff != 0.0_f32 {
                                 let text = format!("{} {:.3}", &stealth_diff.0, s_diff);
-                                diff_text(
-                                    text,
-                                    stealth_diff.1,
-                                    armor.stats(self.msm).poise_resilience.is_some() as usize
-                                        + armor.stats(self.msm).energy_max.is_some() as usize
-                                        + armor.stats(self.msm).energy_reward.is_some() as usize
-                                        + armor.stats(self.msm).crit_power.is_some() as usize,
-                                )
+                                diff_text(text, stealth_diff.1, index);
                             }
                         }
                     }
