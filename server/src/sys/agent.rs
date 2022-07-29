@@ -50,9 +50,7 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
-use specs::{
-    saveload::Marker, Entity as EcsEntity, Join, ParJoin, Read, WriteExpect, WriteStorage,
-};
+use specs::{Entity as EcsEntity, Join, ParJoin, Read, WriteExpect, WriteStorage};
 use vek::*;
 
 /// This system will allow NPCs to modify their controller
