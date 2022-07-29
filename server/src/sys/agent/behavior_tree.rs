@@ -9,7 +9,6 @@ use common::{
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
 };
-use common_base::prof_span;
 use rand::{prelude::ThreadRng, thread_rng, Rng};
 use specs::saveload::{Marker, MarkerAllocator};
 use vek::Vec2;
@@ -116,7 +115,6 @@ impl BehaviorTree {
     }
 
     fn run_with_behavior_data(&self, bdata: &mut BehaviorData) -> bool {
-        prof_span!(guard, "Behavior Tree");
         for behavior_fn in self.tree.iter() {
             if behavior_fn(bdata) {
                 return true;
@@ -133,7 +131,6 @@ impl BehaviorTree {
 /// If have glider - glide.
 /// Else, rest in peace.
 fn react_on_dangerous_fall(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT react_on_dangerous_fall");
     // Falling damage starts from 30.0 as of time of writing
     // But keep in mind our 25 m/s gravity
     let is_falling_dangerous = bdata.agent_data.vel.0.z < -20.0;
@@ -150,8 +147,6 @@ fn react_on_dangerous_fall(bdata: &mut BehaviorData) -> bool {
 
 /// If on fire and able, stop, drop, and roll
 fn react_if_on_fire(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT react_if_on_fire");
-
     let is_on_fire = bdata
         .read_data
         .buffs
@@ -181,7 +176,6 @@ fn react_if_on_fire(bdata: &mut BehaviorData) -> bool {
 /// Target an entity that's attacking us if the attack was recent and we have
 /// a health component
 fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT target_if_attacked");
     match bdata.agent_data.health {
         Some(health)
             if bdata.read_data.time.0 - health.last_change.time.0 < DAMAGE_MEMORY_DURATION =>
@@ -241,7 +235,6 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
 }
 
 fn do_target_tree_if_target(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT do_target_tree_if_target");
     if bdata.agent.target.is_some() {
         BehaviorTree::target().run_with_behavior_data(bdata);
         return true;
@@ -256,7 +249,6 @@ fn do_idle_tree(bdata: &mut BehaviorData) -> bool {
 
 /// If target is dead, forget them
 fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT untarget_if_dead");
     if let Some(Target { target, .. }) = bdata.agent.target {
         if let Some(tgt_health) = bdata.read_data.healths.get(target) {
             // If target is dead, forget them
@@ -278,7 +270,6 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
 
 /// If target is hostile, hostile tree
 fn do_hostile_tree_if_hostile(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT do_hostile_tree_if_hostile");
     if let Some(Target { hostile, .. }) = bdata.agent.target {
         if hostile {
             BehaviorTree::hostile().run_with_behavior_data(bdata);
@@ -290,7 +281,6 @@ fn do_hostile_tree_if_hostile(bdata: &mut BehaviorData) -> bool {
 
 /// if owned, act as pet to them
 fn do_pet_tree_if_owned(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT do_pet_tree_if_owned");
     if let (Some(Target { target, .. }), Some(Alignment::Owned(uid))) =
         (bdata.agent.target, bdata.agent_data.alignment)
     {
@@ -306,7 +296,6 @@ fn do_pet_tree_if_owned(bdata: &mut BehaviorData) -> bool {
 }
 
 fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT do_pickup_loot");
     if let Some(Target { target, .. }) = bdata.agent.target {
         if matches!(bdata.read_data.bodies.get(target), Some(Body::ItemDrop(_))) {
             if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
@@ -341,14 +330,12 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
 }
 
 fn untarget(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT untarget");
     bdata.agent.target = None;
     false
 }
 
 // If too far away, then follow
 fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT follow_if_far_away");
     if let Some(Target { target, .. }) = bdata.agent.target {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
             let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
@@ -370,7 +357,6 @@ fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
 /// Attack target's attacker (if there is one)
 /// Target is the owner in this case
 fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT attack_if_owner_hurt");
     if let Some(Target { target, .. }) = bdata.agent.target {
         if bdata.read_data.positions.get(target).is_some() {
             let owner_recently_attacked =
@@ -397,7 +383,6 @@ fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
 
 /// Set owner if no target
 fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT set_owner_if_no_target");
     let small_chance = bdata.rng.gen_bool(0.1);
 
     if bdata.agent.target.is_none() && small_chance {
@@ -412,7 +397,6 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
 
 /// Interact if incoming messages
 fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT process_inbox_sound_and_hurt");
     if !bdata.agent.inbox.is_empty() {
         if matches!(
             bdata.agent.inbox.front(),
@@ -441,7 +425,6 @@ fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
 
 /// If we receive a new interaction, start the interaction timer
 fn process_inbox_interaction(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT process_inbox_interaction");
     if bdata.agent.allowed_to_speak()
         && bdata.agent_data.recv_interaction(
             bdata.agent,
@@ -459,7 +442,6 @@ fn process_inbox_interaction(bdata: &mut BehaviorData) -> bool {
 }
 
 fn handle_timer(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT handle_timer");
     let timeout = if bdata.agent.behavior.is(BehaviorState::TRADING) {
         TRADE_INTERACTION_TIME
     } else {
@@ -504,7 +486,6 @@ fn handle_timer(bdata: &mut BehaviorData) -> bool {
 }
 
 fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT heal_self_if_hurt");
     if bdata.agent_data.damage < HEALING_ITEM_THRESHOLD
         && bdata
             .agent_data
@@ -517,7 +498,6 @@ fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
 }
 
 fn hurt_utterance(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT hurt_utterance");
     if let Some(AgentEvent::Hurt) = bdata.agent.inbox.pop_front() {
         // Hurt utterances at random upon receiving damage
         if bdata.rng.gen::<f32>() < 0.4 {
@@ -528,7 +508,6 @@ fn hurt_utterance(bdata: &mut BehaviorData) -> bool {
 }
 
 fn do_combat(bdata: &mut BehaviorData) -> bool {
-    prof_span!(guard, "BT do_combat");
     let BehaviorData {
         agent,
         agent_data,

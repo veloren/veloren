@@ -1,5 +1,5 @@
 pub mod attack;
-pub mod behavior;
+pub mod behavior_tree;
 pub mod consts;
 pub mod data;
 pub mod util;
@@ -7,7 +7,7 @@ pub mod util;
 use crate::{
     rtsim::{entity::PersonalityTrait, RtSim},
     sys::agent::{
-        behavior::BehaviorTree,
+        behavior_tree::BehaviorTree,
         consts::{
             AVG_FOLLOW_DIST, DAMAGE_MEMORY_DURATION, DEFAULT_ATTACK_RANGE, FLEE_DURATION,
             HEALING_ITEM_THRESHOLD, IDLE_HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST, MAX_FOLLOW_DIST,
