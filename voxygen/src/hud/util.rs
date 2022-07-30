@@ -110,32 +110,22 @@ pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> &'
 }
 
 pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
-    let mut count = match &*item.kind() {
+    match &*item.kind() {
         ItemKind::Armor(armor) => {
-            if matches!(armor.kind, ArmorKind::Bag) {
-                0
-            } else {
-                armor.stats(msm).energy_reward.is_some() as usize
-                    + armor.stats(msm).energy_max.is_some() as usize
-                    + armor.stats(msm).stealth.is_some() as usize
-                    + armor.stats(msm).crit_power.is_some() as usize
-                    + armor.stats(msm).poise_resilience.is_some() as usize
-            }
+            let armor_stats = armor.stats(msm);
+            armor_stats.energy_reward.is_some() as usize
+                + armor_stats.energy_max.is_some() as usize
+                + armor_stats.stealth.is_some() as usize
+                + armor_stats.crit_power.is_some() as usize
+                + armor_stats.poise_resilience.is_some() as usize
+                + armor_stats.protection.is_some() as usize
+                + (item.num_slots() > 0) as usize
         },
         ItemKind::Tool(_) => 7,
         ItemKind::Consumable { effects, .. } => effects.len(),
         ItemKind::ModularComponent { .. } => 7,
         _ => 0,
-    };
-
-    let is_bag = match &*item.kind() {
-        ItemKind::Armor(armor) => matches!(armor.kind, ArmorKind::Bag),
-        _ => false,
-    };
-    if item.num_slots() != 0 && !is_bag {
-        count += 1
     }
-    count as usize
 }
 
 /// Takes N `effects` and returns N effect descriptions

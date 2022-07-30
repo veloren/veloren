@@ -1012,7 +1012,7 @@ pub fn get_weapon_kinds(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>)
 
 #[cfg(not(target_arch = "wasm32"))]
 // TODO: Either remove msm or use it as argument in fn kind
-pub fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
+fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
     const POWER_WEIGHT: f32 = 2.0;
     const SPEED_WEIGHT: f32 = 3.0;
     const CRIT_CHANCE_WEIGHT: f32 = 1.5;
