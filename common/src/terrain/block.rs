@@ -302,7 +302,7 @@ impl Block {
             BlockKind::GlowingMushroom => Some(20),
             _ => match self.get_sprite()? {
                 SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
-                SpriteKind::Ember => Some(20),
+                SpriteKind::Ember | SpriteKind::FireBlock => Some(20),
                 SpriteKind::WallLamp
                 | SpriteKind::WallLampSmall
                 | SpriteKind::WallSconce
@@ -381,7 +381,10 @@ impl Block {
             BlockKind::Lava => None,
             _ => self.get_sprite().and_then(|sprite| match sprite {
                 sprite if sprite.is_container() => None,
-                SpriteKind::Keyhole | SpriteKind::KeyDoor => None,
+                SpriteKind::Keyhole
+                | SpriteKind::KeyDoor
+                | SpriteKind::BoneKeyhole
+                | SpriteKind::BoneKeyDoor => None,
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron
                 | SpriteKind::CookingPot
@@ -405,7 +408,8 @@ impl Block {
                 | SpriteKind::SeaDecorWindowHor
                 | SpriteKind::SeaDecorWindowVer
                 | SpriteKind::Rope
-                | SpriteKind::GlassBarrier => None,
+                | SpriteKind::GlassBarrier
+                | SpriteKind::FireBlock => None,
                 SpriteKind::EnsnaringVines
                 | SpriteKind::EnsnaringWeb
                 | SpriteKind::SeaUrchin

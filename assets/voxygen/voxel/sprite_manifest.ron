@@ -1455,6 +1455,17 @@ Ember: Some((
     ],
     wind_sway: 0.0,
 )),
+// FireBlock
+FireBlock: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.misc.fireblock",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Smoke dummy
 SmokeDummy: Some((
     variations: [
@@ -3822,6 +3833,26 @@ KeyDoor: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.door_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+BoneKeyhole: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bone_keyhole_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+BoneKeyDoor: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bone_door_block",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.5, 0.5, 0.5),
         ),

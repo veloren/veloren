@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     assets::AssetHandle,
     site2::{gen::PrimitiveTransform, util::Dir},
-    util::{attempt, sampler::Sampler, FastNoise, RandomField},
+    util::{attempt, sampler::Sampler, FastNoise, RandomField, NEIGHBORS, NEIGHBORS3},
     IndexRef, Land,
 };
 use common::{
@@ -12,23 +12,16 @@ use common::{
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use std::{
-    collections::HashMap,
     f32::consts::{PI, TAU},
-    ops::{Add, Div, Mul, Sub},
+    sync::Arc,
 };
-use vek::*;
-
-const ANGLE_SAMPLES: usize = 128;
-const WALL_DELTA: f32 = 4.0;
+use vek::{num_integer::Roots, *};
 
 pub struct AdletStronghold {
     name: String,
     seed: u32,
     entrance: Vec2<i32>,
-    wall_center: Vec2<i32>,
-    wall_radius: i32,
-    wall_alt: f32,
-    wall_alt_samples: [f32; ANGLE_SAMPLES],
+    surface_radius: i32,
     // Structure indicates the kind of structure it is, vec2 is relative position of structure
     // compared to wall_center, dir tells which way structure should face
     outer_structures: Vec<(AdletStructure, Vec2<i32>, Dir)>,
@@ -43,40 +36,44 @@ pub struct AdletStronghold {
 
 #[derive(Copy, Clone)]
 enum AdletStructure {
-    Igloo(u8),
+    Igloo,
     TunnelEntrance,
     SpeleothemCluster,
-    CentralBonfire,
+    Bonfire,
     YetiPit,
     Tannery,
     AnimalPen,
     CookFire,
     RockHut,
     BoneHut,
+    BossBoneHut,
 }
 
 impl AdletStructure {
     fn required_separation(&self, other: &Self) -> i32 {
         let radius = |structure: &Self| match structure {
-            Self::Igloo(radius) => *radius as i32 + 3,
-            Self::TunnelEntrance => 16,
-            Self::SpeleothemCluster => 8,
-            Self::CentralBonfire => 10,
-            Self::YetiPit => 20,
-            Self::Tannery => 10,
-            Self::AnimalPen => 16,
+            Self::Igloo => 20,
+            Self::TunnelEntrance => 32,
+            Self::SpeleothemCluster => 4,
+            Self::YetiPit => 32,
+            Self::Tannery => 6,
+            Self::AnimalPen => 8,
             Self::CookFire => 3,
-            Self::RockHut => 6,
-            Self::BoneHut => 8,
+            Self::RockHut => 4,
+            Self::BoneHut => 11,
+            Self::BossBoneHut => 13,
+            Self::Bonfire => 10,
         };
 
         let additional_padding = match (self, other) {
-            (Self::Igloo(_), Self::Igloo(_)) => 3,
-            (Self::CookFire, a) | (a, Self::CookFire) => match a {
-                Self::TunnelEntrance => 50,
-                Self::RockHut | Self::BoneHut => 0,
-                _ => 30,
-            },
+            (Self::Igloo, Self::Igloo) => 3,
+            (Self::BoneHut, Self::BoneHut) => 3,
+            (Self::Tannery, Self::Tannery) => 5,
+            (Self::CookFire, Self::CookFire) => 20,
+            (Self::AnimalPen, Self::AnimalPen) => 8,
+            // Keep these last
+            (Self::SpeleothemCluster, Self::SpeleothemCluster) => 0,
+            (Self::SpeleothemCluster, _) | (_, Self::SpeleothemCluster) => 5,
             _ => 0,
         };
 
@@ -85,48 +82,17 @@ impl AdletStructure {
 }
 
 impl AdletStronghold {
-    pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng, index: IndexRef) -> Self {
+    pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng, _index: IndexRef) -> Self {
         let name = NameGen::location(rng).generate_adlet();
         let seed = rng.gen();
         let entrance = wpos;
 
-        let wall_radius = {
-            let unit_size = rng.gen_range(8..11);
-            let num_units = rng.gen_range(6..9);
-            let variation = rng.gen_range(0..10);
+        let surface_radius: i32 = {
+            let unit_size = rng.gen_range(10..12);
+            let num_units = rng.gen_range(4..8);
+            let variation = rng.gen_range(20..30);
             unit_size * num_units + variation
         };
-        let wall_center = entrance.map(|x| x + rng.gen_range(-wall_radius / 4..wall_radius / 4));
-        let wall_alt = land.get_alt_approx(wall_center) + 10.0;
-
-        let mut wall_alt_sample_positions = [Vec2::zero(); ANGLE_SAMPLES];
-        for i in 0..ANGLE_SAMPLES {
-            let theta = i as f32 / ANGLE_SAMPLES as f32 * TAU;
-            let sample_rpos = Vec2::new(
-                theta.cos() * wall_radius as f32,
-                theta.sin() * wall_radius as f32,
-            );
-            wall_alt_sample_positions[i] = sample_rpos.as_() + wall_center;
-        }
-        let mut wall_alt_samples = wall_alt_sample_positions.map(|pos| {
-            land.column_sample(pos, index)
-                .map_or(land.get_alt_approx(pos), |col| col.alt)
-                .min(wall_alt)
-        });
-        loop {
-            let mut changed = false;
-            for i in 0..wall_alt_samples.len() {
-                let tmp = (wall_alt_samples[(i + 1) % ANGLE_SAMPLES] - WALL_DELTA)
-                    .max(wall_alt_samples[(i + ANGLE_SAMPLES - 1) % ANGLE_SAMPLES] - WALL_DELTA);
-                if tmp > wall_alt_samples[i] {
-                    wall_alt_samples[i] = tmp;
-                    changed = true;
-                }
-            }
-            if !changed {
-                break;
-            }
-        }
 
         // Find direction that allows for deep enough site
         let angle_samples = (0..64).into_iter().map(|x| x as f32 / 64.0 * TAU);
@@ -150,8 +116,8 @@ impl AdletStronghold {
 
         let cavern_radius: i32 = {
             let unit_size = rng.gen_range(10..15);
-            let num_units = rng.gen_range(4..8);
-            let variation = rng.gen_range(0..30);
+            let num_units = rng.gen_range(5..8);
+            let variation = rng.gen_range(20..40);
             unit_size * num_units + variation
         };
 
@@ -166,39 +132,45 @@ impl AdletStronghold {
 
         let mut outer_structures = Vec::<(AdletStructure, Vec2<i32>, Dir)>::new();
 
-        outer_structures.push((
-            AdletStructure::TunnelEntrance,
-            entrance - wall_center,
-            Dir::from_vector(entrance - cavern_center),
-        ));
+        let entrance_dir = Dir::from_vector(entrance - cavern_center);
+        outer_structures.push((AdletStructure::TunnelEntrance, Vec2::zero(), entrance_dir));
 
-        let desired_structures = wall_radius.pow(2) / 100;
+        let desired_structures = surface_radius.pow(2) / 100;
         for _ in 0..desired_structures {
             if let Some((rpos, kind)) = attempt(50, || {
                 // Choose structure kind
                 let structure_kind = match rng.gen_range(0..10) {
                     // TODO: Add more variants
-                    _ => AdletStructure::Igloo(rng.gen_range(6..12)),
+                    _ => AdletStructure::Igloo,
                 };
 
                 // Choose relative position
                 let structure_center = {
                     let theta = rng.gen::<f32>() * TAU;
                     // 0.8 to keep structures not directly against wall
-                    let radius = wall_radius as f32 * rng.gen::<f32>().sqrt() * 0.8;
+                    let radius = surface_radius as f32 * rng.gen::<f32>().sqrt() * 0.8;
                     let x = radius * theta.sin();
                     let y = radius * theta.cos();
                     Vec2::new(x, y).as_()
                 };
 
+                let tunnel_line = LineSegment2 {
+                    start: entrance,
+                    end: entrance - entrance_dir.to_vec2() * 100,
+                };
+
                 // Check that structure not in the water or too close to another structure
                 if land
-                    .get_chunk_wpos(structure_center.as_() + wall_center)
+                    .get_chunk_wpos(structure_center.as_() + entrance)
                     .map_or(false, |c| c.is_underwater())
                     || outer_structures.iter().any(|(kind, rpos, _dir)| {
                         structure_center.distance_squared(*rpos)
                             < structure_kind.required_separation(kind).pow(2)
                     })
+                    || tunnel_line
+                        .as_::<f32>()
+                        .distance_to_point((structure_center + entrance).as_::<f32>())
+                        < 25.0
                 {
                     None
                 } else {
@@ -231,7 +203,7 @@ impl AdletStronghold {
         }
 
         // Add speleothem clusters (stalagmites/stalactites)
-        let desired_speleothem_clusters = cavern_radius.pow(2) / 1500;
+        let desired_speleothem_clusters = cavern_radius.pow(2) / 2500;
         for _ in 0..desired_speleothem_clusters {
             if let Some(mut rpos) = attempt(25, || {
                 let rpos = {
@@ -245,12 +217,12 @@ impl AdletStronghold {
             }) {
                 // Dir doesn't matter since these are directionless
                 cavern_structures.push((AdletStructure::SpeleothemCluster, rpos, Dir::X));
-                let desired_adjacent_clusters = rng.gen_range(1..8);
+                let desired_adjacent_clusters = rng.gen_range(1..5);
                 for _ in 0..desired_adjacent_clusters {
                     // Choose a relative position adjacent to initial speleothem cluster
                     let adj_rpos = {
                         let theta = rng.gen_range(0.0..TAU);
-                        let radius = rng.gen_range(15.0..25.0);
+                        let radius = rng.gen_range(1.0..5.0);
                         let rrpos = Vec2::new(theta.cos() * radius, theta.sin() * radius).as_();
                         rpos + rrpos
                     };
@@ -275,14 +247,14 @@ impl AdletStronghold {
             }
         }
 
-        // Attempt to place central bonfire
+        // Attempt to place central boss bone hut
         if let Some(rpos) = attempt(50, || {
             let rpos = {
                 let theta = rng.gen_range(0.0..TAU);
                 let radius = rng.gen::<f32>() * cavern_radius as f32 * 0.5;
                 Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
             };
-            valid_cavern_struct_pos(&cavern_structures, AdletStructure::CentralBonfire, rpos)
+            valid_cavern_struct_pos(&cavern_structures, AdletStructure::BossBoneHut, rpos)
                 .then_some(rpos)
         })
         .or_else(|| {
@@ -294,83 +266,86 @@ impl AdletStronghold {
                     let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32;
                     Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
                 };
-                valid_cavern_struct_pos(&cavern_structures, AdletStructure::CentralBonfire, rpos)
+                valid_cavern_struct_pos(&cavern_structures, AdletStructure::BossBoneHut, rpos)
                     .then_some(rpos)
             })
         }) {
-            // Direction doesn't matter for central bonfire
-            cavern_structures.push((AdletStructure::CentralBonfire, rpos, Dir::X));
+            // Direction doesn't matter for boss bonehut
+            cavern_structures.push((AdletStructure::BossBoneHut, rpos, Dir::X));
         }
 
-        // Attempt to place yeti pit
+        // Attempt to place yetipit near the cavern edge
         if let Some(rpos) = attempt(50, || {
             let rpos = {
-                // Place yeti pet somewhat opposite of entrance
-                let theta = {
-                    let angle_range = PI / 2.0;
-                    let angle_offset = rng.gen_range(-angle_range..angle_range);
-                    angle + angle_offset
-                };
-                let radius = (rng.gen::<f32>() + 3.0) / 4.0 * cavern_radius as f32;
+                let theta = rng.gen_range(0.0..TAU);
+                let radius = (cavern_radius - 5) as f32;
                 Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
             };
             valid_cavern_struct_pos(&cavern_structures, AdletStructure::YetiPit, rpos)
                 .then_some(rpos)
+        })
+        .or_else(|| {
+            attempt(100, || {
+                let rpos = {
+                    let theta = rng.gen_range(0.0..TAU);
+                    // If selecting a spot near the cavern edge failed, find a spot anywhere in the
+                    // cavern
+                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32;
+                    Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
+                };
+                valid_cavern_struct_pos(&cavern_structures, AdletStructure::YetiPit, rpos)
+                    .then_some(rpos)
+            })
         }) {
-            // Direction doesn't matter for yeti pit
+            // Direction doesn't matter for yetipit
             cavern_structures.push((AdletStructure::YetiPit, rpos, Dir::X));
         }
 
-        // Attempt to place some groupings of huts around a cookfire near the outer edge
-        let desired_hut_clusters = cavern_radius.pow(2) / 800;
-        for _ in 0..desired_hut_clusters {
+        // Attempt to place big bonfire
+        if let Some(rpos) = attempt(50, || {
+            let rpos = {
+                let theta = rng.gen_range(0.0..TAU);
+                let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32 * 0.9;
+                Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
+            };
+            valid_cavern_struct_pos(&cavern_structures, AdletStructure::Bonfire, rpos)
+                .then_some(rpos)
+        }) {
+            // Direction doesn't matter for central bonfire
+            cavern_structures.push((AdletStructure::Bonfire, rpos, Dir::X));
+        }
+
+        // Attempt to place some rock huts around the outer edge
+        let desired_rock_huts = cavern_radius / 5;
+        for _ in 0..desired_rock_huts {
             if let Some(rpos) = attempt(25, || {
                 let rpos = {
                     let theta = rng.gen_range(0.0..TAU);
-                    // sqrt biases radius away from center, leading to even distribution in circle
-                    let radius = (rng.gen::<f32>().sqrt() * 0.3 + 0.65) * cavern_radius as f32;
+                    let radius = cavern_radius as f32 - 1.0;
                     Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
                 };
-                valid_cavern_struct_pos(&cavern_structures, AdletStructure::CookFire, rpos)
+                valid_cavern_struct_pos(&cavern_structures, AdletStructure::RockHut, rpos)
                     .then_some(rpos)
             }) {
-                // Cokfire needs no direction
-                cavern_structures.push((AdletStructure::CookFire, rpos, Dir::X));
-                let desired_huts = rng.gen_range(8..16);
-                for _ in 0..desired_huts {
-                    if let Some((rpos, hut, dir)) = attempt(10, || {
-                        let theta = rng.gen_range(0.0..TAU);
-                        let radius = rng.gen_range(10.0..20.0);
-                        let rrpos = Vec2::new(theta.cos() * radius, theta.sin() * radius).as_();
-                        let rpos = rrpos + rpos;
-                        let hut = if rpos.magnitude_squared() >= cavern_radius.pow(2) {
-                            AdletStructure::RockHut
-                        } else {
-                            AdletStructure::BoneHut
-                        };
-                        // Direction should be vector from hut to cookfire
-                        let dir = Dir::from_vector(rrpos).opposite();
-                        valid_cavern_struct_pos(&cavern_structures, hut, rpos)
-                            .then_some((rpos, hut, dir))
-                    }) {
-                        cavern_structures.push((hut, rpos, dir));
-                    }
-                }
+                // Rock huts need no direction
+                cavern_structures.push((AdletStructure::RockHut, rpos, Dir::X));
             }
         }
 
-        // Attempt to place some general structures somewhat near the center
-        let desired_structures = cavern_radius.pow(2) / 500;
+        // Attempt to place some general structures
+        let desired_structures = cavern_radius.pow(2) / 200;
         for _ in 0..desired_structures {
-            if let Some((structure, rpos)) = attempt(25, || {
+            if let Some((structure, rpos)) = attempt(45, || {
                 let rpos = {
                     let theta = rng.gen_range(0.0..TAU);
                     // sqrt biases radius away from center, leading to even distribution in circle
-                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32 * 0.6;
+                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32 * 0.9;
                     Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
                 };
-                let structure = match rng.gen_range(0..2) {
-                    0 => AdletStructure::Tannery,
+                let structure = match rng.gen_range(0..7) {
+                    0..=2 => AdletStructure::BoneHut,
+                    3..=4 => AdletStructure::CookFire,
+                    5 => AdletStructure::Tannery,
                     _ => AdletStructure::AnimalPen,
                 };
 
@@ -387,10 +362,7 @@ impl AdletStronghold {
             name,
             seed,
             entrance,
-            wall_center,
-            wall_radius,
-            wall_alt,
-            wall_alt_samples,
+            surface_radius,
             outer_structures,
             tunnel_length,
             cavern_center,
@@ -414,34 +386,34 @@ impl AdletStronghold {
             min: Vec2::broadcast(-size) + offset,
             max: Vec2::broadcast(size) + offset,
         };
-        // Wall
-        let size = (self.wall_radius * 5 / 4) / tile::TILE_SIZE as i32;
-        let offset = (self.wall_center - origin) / tile::TILE_SIZE as i32;
-        let wall_aabr = Aabr {
+        // Surface
+        let size = (self.surface_radius * 5 / 4) / tile::TILE_SIZE as i32;
+        let offset = (self.entrance - origin) / tile::TILE_SIZE as i32;
+        let surface_aabr = Aabr {
             min: Vec2::broadcast(-size) + offset,
             max: Vec2::broadcast(size) + offset,
         };
-        (cavern_aabr, wall_aabr)
+        (cavern_aabr, surface_aabr)
     }
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
-            trees: wpos.distance_squared(self.entrance) > (self.wall_radius * 5 / 4).pow(2),
+            trees: wpos.distance_squared(self.entrance) > (self.surface_radius * 5 / 4).pow(2),
             ..SpawnRules::default()
         }
     }
 
     // TODO: Find a better way of spawning entities in site2
-    pub fn apply_supplement<'a>(
-        &'a self,
+    pub fn apply_supplement(
+        &self,
         // NOTE: Used only for dynamic elements like chests and entities!
-        dynamic_rng: &mut impl Rng,
+        _dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
-        supplement: &mut ChunkSupplement,
+        _supplement: &mut ChunkSupplement,
     ) {
         let rpos = wpos2d - self.cavern_center;
-        let area = Aabr {
+        let _area = Aabr {
             min: rpos,
             max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
         };
@@ -454,50 +426,39 @@ impl Structure for AdletStronghold {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_adletstronghold")]
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
-        let wall_mat = Fill::Brick(BlockKind::Snow, Rgb::new(175, 175, 175), 25);
-        // Wall
-        painter
-            .cylinder_with_radius(
-                self.wall_center
-                    .with_z(self.wall_alt as i32 - self.wall_radius * 2),
-                self.wall_radius as f32 + 3.0,
-                self.wall_radius as f32 * 2.5,
-            )
-            .without(
-                painter.cylinder_with_radius(
-                    self.wall_center
-                        .with_z(self.wall_alt as i32 - self.wall_radius * 2),
-                    self.wall_radius as f32,
-                    self.wall_radius as f32 * 2.5,
-                ),
-            )
-            .sample_with_column({
-                let wall_alt_samples = self.wall_alt_samples;
-                let wall_center = self.wall_center;
-                let theta = move |pos: Vec2<i32>| {
-                    let rpos: Vec2<f32> = (pos - wall_center).as_();
-                    let theta = rpos.y.atan2(rpos.x);
-                    if theta > 0.0 { theta } else { theta + TAU }
-                };
-                move |pos, col| {
-                    let index = (theta(pos.xy()) * ANGLE_SAMPLES as f32 / TAU)
-                        .floor()
-                        .max(0.0) as usize
-                        % ANGLE_SAMPLES;
-                    (col.alt.sub(10.0)
-                        ..wall_alt_samples[index]
-                            .add(12.0)
-                            .div(WALL_DELTA)
-                            .floor()
-                            .mul(WALL_DELTA))
-                        .contains(&(pos.z as f32))
-                }
+        //  let wall_mat = Fill::Brick(BlockKind::Snow, Rgb::new(175, 175, 175), 25);
+        let snow_ice_fill = Fill::Sampling(Arc::new(|wpos| {
+            Some(match (RandomField::new(0).get(wpos)) % 80 {
+                0..=3 => Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)),
+                _ => Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
             })
-            .fill(wall_mat);
+        }));
+        let bone_fill = Fill::Brick(BlockKind::Misc, Rgb::new(200, 160, 140), 1);
+        let snow_fill = Fill::Block(Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)));
+        let ice_fill = Fill::Block(Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)));
+        let dirt_fill = Fill::Brick(BlockKind::Earth, Rgb::new(55, 25, 8), 24);
+        let grass_fill = Fill::Sampling(Arc::new(|wpos| {
+            Some(match (RandomField::new(0).get(wpos)) % 5 {
+                1 => Block::air(SpriteKind::ShortGrass),
+                _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+            })
+        }));
+        let rock_fill = Fill::Sampling(Arc::new(|wpos| {
+            Some(match (RandomField::new(0).get(wpos)) % 4 {
+                0 => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+                _ => Block::new(BlockKind::Rock, Rgb::new(90, 110, 150)),
+            })
+        }));
+        let bone_shrub = Fill::Sampling(Arc::new(|wpos| {
+            Some(match (RandomField::new(0).get(wpos)) % 40 {
+                0 => Block::new(BlockKind::Misc, Rgb::new(200, 160, 140)),
+                _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+            })
+        }));
+        let mut rng = thread_rng();
 
         // Tunnel
         let dist: f32 = self.cavern_center.as_().distance(self.entrance.as_());
-        let tunnel_radius = 10.0;
         let dir = Dir::from_vector(self.entrance - self.cavern_center);
         let tunnel_start: Vec3<f32> = match dir {
             Dir::X => Vec2::new(self.entrance.x + 7, self.entrance.y),
@@ -508,30 +469,39 @@ impl Structure for AdletStronghold {
         .as_()
         .with_z(self.cavern_alt - 1.0);
         // Adds cavern radius to ensure that tunnel fully bores into cavern
-        let tunnel_end =
+        let raw_tunnel_end =
             ((self.cavern_center.as_() - self.entrance.as_()) * self.tunnel_length as f32 / dist)
                 .with_z(self.cavern_alt - 1.0)
                 + self.entrance.as_();
 
+        let offset = 15.0;
         let tunnel_end = match dir {
-            Dir::X => Vec3::new(tunnel_end.x - 7.0, tunnel_start.y, tunnel_end.z),
-            Dir::Y => Vec3::new(tunnel_start.x, tunnel_end.y - 7.0, tunnel_end.z),
-            Dir::NegX => Vec3::new(tunnel_end.x + 7.0, tunnel_start.y, tunnel_end.z),
-            Dir::NegY => Vec3::new(tunnel_start.x, tunnel_end.y + 7.0, tunnel_end.z),
+            Dir::X => Vec3::new(raw_tunnel_end.x - offset, tunnel_start.y, raw_tunnel_end.z),
+            Dir::Y => Vec3::new(tunnel_start.x, raw_tunnel_end.y - offset, raw_tunnel_end.z),
+            Dir::NegX => Vec3::new(raw_tunnel_end.x + offset, tunnel_start.y, raw_tunnel_end.z),
+            Dir::NegY => Vec3::new(tunnel_start.x, raw_tunnel_end.y + offset, raw_tunnel_end.z),
         };
-
-        let stone_fill = Fill::Brick(BlockKind::Rock, Rgb::new(90, 110, 150), 21);
         // Platform
         painter
-            .aabb(Aabb {
-                min: (self.entrance - 20).with_z(self.cavern_alt as i32 - 30),
-                max: (self.entrance + 20).with_z(self.cavern_alt as i32 + 1),
+            .sphere(Aabb {
+                min: (self.entrance - 15).with_z(self.cavern_alt as i32 - 15),
+                max: (self.entrance + 15).with_z(self.cavern_alt as i32 + 15),
             })
             .without(painter.aabb(Aabb {
-                min: (self.entrance - 19).with_z(self.cavern_alt as i32),
-                max: (self.entrance + 19).with_z(self.cavern_alt as i32 + 2),
+                min: (self.entrance - 15).with_z(self.cavern_alt as i32),
+                max: (self.entrance + 15).with_z(self.cavern_alt as i32 + 20),
             }))
-            .fill(stone_fill.clone());
+            .without(painter.cylinder(Aabb {
+                min: (self.entrance - 14).with_z(self.cavern_alt as i32 - 1),
+                max: (self.entrance + 14).with_z(self.cavern_alt as i32),
+            }))
+            .fill(snow_ice_fill.clone());
+        painter
+            .cylinder(Aabb {
+                min: (self.entrance - 12).with_z(self.cavern_alt as i32 - 40),
+                max: (self.entrance + 12).with_z(self.cavern_alt as i32 - 10),
+            })
+            .fill(snow_ice_fill.clone());
 
         let valid_entrance = painter.segment_prism(tunnel_start, tunnel_end, 20.0, 30.0);
         painter
@@ -584,9 +554,18 @@ impl Structure for AdletStronghold {
             )
             .intersect(valid_entrance)
             .clear();
+        // Ensure there is a path to the cave if the above is weird (e.g. when it is at
+        // or near a 45 degrees angle)
+        painter
+            .line(
+                tunnel_end.with_z(tunnel_end.z + 4.0),
+                raw_tunnel_end.with_z(raw_tunnel_end.z + 4.0),
+                4.0,
+            )
+            .clear();
 
         // Cavern
-        painter
+        let cavern = painter
             .sphere_with_radius(
                 self.cavern_center.with_z(self.cavern_alt as i32),
                 self.cavern_radius as f32,
@@ -619,28 +598,30 @@ impl Structure for AdletStronghold {
 
                     pos.z < alt as i32
                 }
+            });
+        let alt = self.cavern_alt;
+        // keep entrance clear
+        cavern.clear();
+
+        // snow cylinder for cavern ground and to carve out yetipit
+        painter
+            .cylinder(Aabb {
+                min: (self.cavern_center - self.cavern_radius).with_z(alt as i32 - 200),
+                max: (self.cavern_center + self.cavern_radius).with_z(alt as i32),
             })
-            .clear();
+            .fill(snow_ice_fill.clone());
 
         for (structure, wpos, alt, dir) in self
             .outer_structures
             .iter()
             .map(|(structure, rpos, dir)| {
-                let wpos = rpos + self.wall_center;
+                let wpos = rpos + self.entrance;
                 (structure, wpos, land.get_alt_approx(wpos), dir)
             })
             .chain(self.cavern_structures.iter().map(|(structure, rpos, dir)| {
-                (
-                    structure,
-                    rpos + self.cavern_center,
-                    self.cavern_alt as f32,
-                    dir,
-                )
+                (structure, rpos + self.cavern_center, self.cavern_alt, dir)
             }))
         {
-            let bone_fill = Fill::Brick(BlockKind::Misc, Rgb::new(200, 160, 140), 1);
-            let snow_fill = Fill::Block(Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)));
-            let stone_fill = Fill::Block(Block::new(BlockKind::Rock, Rgb::new(100, 100, 100)));
             match structure {
                 AdletStructure::TunnelEntrance => {
                     let rib_width_curve = |i: f32| 0.5 * (0.4 * i + 1.0).log2() + 5.5;
@@ -684,93 +665,1080 @@ impl Structure for AdletStronghold {
                         bone.fill(bone_fill.clone());
                     }
                 },
-                AdletStructure::Igloo(radius) => {
-                    let center_pos = wpos.with_z(alt as i32 - *radius as i32);
+                AdletStructure::Igloo => {
+                    let igloo_pos = wpos;
+                    let igloo_size = 8.0;
+                    let height_handle = 0;
                     painter
-                        .sphere_with_radius(center_pos, *radius as f32)
-                        .fill(snow_fill);
-                    let room_radius = *radius as i32 * 2 / 5;
-                    let room_center = |dir: Dir| center_pos + dir.to_vec2() * room_radius;
-                    painter
-                        .sphere_with_radius(room_center(dir.rotated_cw()), room_radius as f32)
-                        .union(
-                            painter.sphere_with_radius(
-                                room_center(dir.opposite()),
-                                room_radius as f32,
-                            ),
-                        )
-                        .union(
-                            painter.sphere_with_radius(
-                                room_center(dir.rotated_ccw()),
-                                room_radius as f32,
-                            ),
+                        .cylinder_with_radius(
+                            (igloo_pos).with_z(alt as i32 - 5 + height_handle),
+                            11.0,
+                            45.0,
                         )
                         .clear();
-
-                    let mid_pos =
-                        (center_pos + dir.to_vec2().with_z(1).mul(*radius as i32)).as_::<f32>();
+                    // Foundation
                     painter
-                        .line(center_pos.as_::<f32>(), mid_pos, 2.0)
-                        .union(painter.line(
-                            mid_pos,
-                            center_pos + Vec3::unit_z().mul(2 * *radius as i32),
-                            2.0,
-                        ))
+                        .sphere(Aabb {
+                            min: (igloo_pos - 15).with_z(alt as i32 - 45 + height_handle),
+                            max: (igloo_pos + 15).with_z(alt as i32 - 15 + height_handle),
+                        })
+                        .union(painter.sphere(Aabb {
+                            min: (igloo_pos - 10).with_z(alt as i32 - 20 + height_handle),
+                            max: (igloo_pos + 10).with_z(alt as i32 - 5 + height_handle),
+                        }))
+                        .without(cavern)
+                        .fill(snow_ice_fill.clone());
+                    // Platform
+                    painter
+                        .sphere(Aabb {
+                            min: (igloo_pos - 13).with_z(alt as i32 - 11 + height_handle),
+                            max: (igloo_pos + 13).with_z(alt as i32 + 11 + height_handle),
+                        })
+                        .without(painter.aabb(Aabb {
+                            min: (igloo_pos - 13).with_z(alt as i32 - 4 + height_handle),
+                            max: (igloo_pos + 13).with_z(alt as i32 + 16 + height_handle),
+                        }))
+                        .fill(snow_ice_fill.clone());
+                    // igloo snow
+                    painter
+                        .sphere_with_radius(igloo_pos.with_z(alt as i32 - 1), igloo_size)
+                        .fill(snow_fill.clone());
+                    // 4 hide pieces
+                    for dir in CARDINALS {
+                        let hide_size =
+                            5 + (RandomField::new(0).get((igloo_pos + dir).with_z(alt as i32)) % 4);
+                        let hide_color =
+                            match RandomField::new(0).get((igloo_pos + dir).with_z(alt as i32)) % 4
+                            {
+                                0 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(73, 29, 0))),
+                                1 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(78, 67, 43))),
+                                2 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(83, 74, 41))),
+                                _ => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(14, 36, 34))),
+                            };
+                        painter
+                            .sphere_with_radius(
+                                (igloo_pos + (2 * dir)).with_z((alt as i32) + 1 + height_handle),
+                                hide_size as f32,
+                            )
+                            .fill(hide_color.clone());
+                    }
+                    // clear room
+                    painter
+                        .sphere_with_radius(
+                            igloo_pos.with_z(alt as i32 - 1 + height_handle),
+                            (igloo_size as i32 - 2) as f32,
+                        )
                         .clear();
-                },
-                AdletStructure::SpeleothemCluster => {
-                    painter
-                        .cylinder_with_radius(wpos.with_z(alt as i32), 6.0, 20.0)
-                        .fill(stone_fill.clone());
-                },
-                AdletStructure::CentralBonfire => {
-                    painter
-                        .cylinder_with_radius(wpos.with_z(alt as i32), 3.0, 2.0)
-                        .fill(stone_fill.clone());
-                    painter.sprite(wpos.with_z(alt as i32 + 2), SpriteKind::FireBowlGround);
-                },
-                AdletStructure::YetiPit => {
+                    // clear entries
                     painter
                         .aabb(Aabb {
-                            min: wpos.with_z(alt as i32).map(|x| x - 5),
-                            max: wpos.map(|x| x + 5).with_z(alt as i32),
+                            min: Vec2::new(igloo_pos.x - 1, igloo_pos.y - igloo_size as i32 - 2)
+                                .with_z(alt as i32 - 4 + height_handle),
+                            max: Vec2::new(igloo_pos.x + 1, igloo_pos.y + igloo_size as i32 + 2)
+                                .with_z(alt as i32 - 2 + height_handle),
                         })
+                        .clear();
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(igloo_pos.x - igloo_size as i32 - 2, igloo_pos.y - 1)
+                                .with_z(alt as i32 - 4 + height_handle),
+                            max: Vec2::new(igloo_pos.x + igloo_size as i32 + 2, igloo_pos.y + 1)
+                                .with_z(alt as i32 - 2 + height_handle),
+                        })
+                        .clear();
+                    // igloo floor
+                    painter
+                        .cylinder_with_radius(
+                            (igloo_pos).with_z(alt as i32 - 7 + height_handle),
+                            (igloo_size as i32 - 4) as f32,
+                            2.0,
+                        )
+                        .fill(snow_fill.clone());
+                    // bones
+                    let bones_size = igloo_size as i32;
+                    for h in 0..(bones_size + 4) {
+                        painter
+                            .line(
+                                (igloo_pos - bones_size)
+                                    .with_z((alt as i32) - 5 + h + height_handle),
+                                (igloo_pos + bones_size)
+                                    .with_z((alt as i32) - 5 + h + height_handle),
+                                0.5,
+                            )
+                            .intersect(
+                                painter
+                                    .sphere_with_radius(
+                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                        9.0,
+                                    )
+                                    .without(painter.sphere_with_radius(
+                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                        5.0,
+                                    )),
+                            )
+                            .fill(bone_fill.clone());
+
+                        painter
+                            .line(
+                                Vec2::new(igloo_pos.x - bones_size, igloo_pos.y + bones_size)
+                                    .with_z((alt as i32) - 4 + h + height_handle),
+                                Vec2::new(igloo_pos.x + bones_size, igloo_pos.y - bones_size)
+                                    .with_z((alt as i32) - 4 + h + height_handle),
+                                0.5,
+                            )
+                            .intersect(
+                                painter
+                                    .sphere_with_radius(
+                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                        9.0,
+                                    )
+                                    .without(painter.sphere_with_radius(
+                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                        5.0,
+                                    )),
+                            )
+                            .fill(bone_fill.clone());
+                    }
+                    // top decor bone with some hide
+                    painter
+                        .aabb(Aabb {
+                            min: igloo_pos.with_z((alt as i32) + bones_size + height_handle),
+                            max: (igloo_pos + 1)
+                                .with_z((alt as i32) + bones_size + 3 + height_handle),
+                        })
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(igloo_pos.x, igloo_pos.y - 1)
+                                .with_z((alt as i32) + bones_size + 3 + height_handle),
+                            max: Vec2::new(igloo_pos.x + 1, igloo_pos.y + 2)
+                                .with_z((alt as i32) + bones_size + 4 + height_handle),
+                        })
+                        .without(
+                            painter.aabb(Aabb {
+                                min: igloo_pos
+                                    .with_z((alt as i32) + bones_size + 3 + height_handle),
+                                max: (igloo_pos + 1)
+                                    .with_z((alt as i32) + bones_size + 4 + height_handle),
+                            }),
+                        )
+                        .fill(bone_fill.clone());
+
+                    let top_color = Fill::Sampling(Arc::new(|igloo_pos| {
+                        Some(match (RandomField::new(0).get(igloo_pos)) % 10 {
+                            0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
+                            1 => Block::new(BlockKind::Wood, Rgb::new(78, 67, 43)),
+                            2 => Block::new(BlockKind::Wood, Rgb::new(83, 74, 41)),
+                            3 => Block::new(BlockKind::Wood, Rgb::new(14, 36, 34)),
+                            _ => Block::new(BlockKind::Rock, Rgb::new(200, 160, 140)),
+                        })
+                    }));
+                    painter
+                        .aabb(Aabb {
+                            min: (igloo_pos - 1).with_z((alt as i32) + bones_size + height_handle),
+                            max: (igloo_pos + 2)
+                                .with_z((alt as i32) + bones_size + 1 + height_handle),
+                        })
+                        .fill(top_color.clone());
+                    // WallSconce
+                    painter.rotated_sprite(
+                        Vec2::new(igloo_pos.x - bones_size + 4, igloo_pos.y + bones_size - 5)
+                            .with_z((alt as i32) - 1 + height_handle),
+                        SpriteKind::WallSconce,
+                        0_u8,
+                    );
+                    // FireBowl
+                    painter.sprite(
+                        igloo_pos.with_z(alt as i32 - 5 + height_handle),
+                        SpriteKind::FireBowlGround,
+                    );
+                    let igloo_mobs = 2
+                        + (RandomField::new(0)
+                            .get((igloo_pos - 1).with_z(alt as i32 - 5 + height_handle))
+                            % 2) as i32;
+                    for _ in 0..igloo_mobs {
+                        let igloo_mob_spawn =
+                            (igloo_pos - 1).with_z(alt as i32 - 5 + height_handle);
+                        painter.spawn(random_adlet(igloo_mob_spawn.as_(), &mut rng));
+                    }
+                },
+                AdletStructure::SpeleothemCluster => {
+                    let layer_color = Fill::Sampling(Arc::new(|wpos| {
+                        Some(
+                            match (RandomField::new(0).get(Vec3::new(wpos.z, 0, 0))) % 6 {
+                                0 => Block::new(BlockKind::Rock, Rgb::new(100, 128, 179)),
+                                1 => Block::new(BlockKind::Rock, Rgb::new(95, 127, 178)),
+                                2 => Block::new(BlockKind::Rock, Rgb::new(101, 121, 169)),
+                                3 => Block::new(BlockKind::Rock, Rgb::new(61, 109, 145)),
+                                4 => Block::new(BlockKind::Rock, Rgb::new(74, 128, 168)),
+                                _ => Block::new(BlockKind::Rock, Rgb::new(69, 123, 162)),
+                            },
+                        )
+                    }));
+                    for dir in NEIGHBORS {
+                        let cone_radius = 3
+                            + (RandomField::new(0).get((wpos + dir).with_z(alt as i32)) % 3) as i32;
+                        let cone_offset = 3
+                            + (RandomField::new(0).get((wpos + 1 + dir).with_z(alt as i32)) % 4)
+                                as i32;
+                        let cone_height = 15
+                            + (RandomField::new(0).get((wpos + 2 + dir).with_z(alt as i32)) % 50)
+                                as i32;
+                        // cones
+                        painter
+                            .cone_with_radius(
+                                (wpos + (dir * cone_offset)).with_z(alt as i32 - (cone_height / 8)),
+                                cone_radius as f32,
+                                cone_height as f32,
+                            )
+                            .fill(layer_color.clone());
+                        // small cone tops
+                        let top_pos = (RandomField::new(0).get((wpos + 3 + dir).with_z(alt as i32))
+                            % 2) as i32;
+                        painter
+                            .aabb(Aabb {
+                                min: (wpos + (dir * cone_offset) - top_pos).with_z(alt as i32),
+                                max: (wpos + (dir * cone_offset) + 1 - top_pos)
+                                    .with_z((alt as i32) + cone_height - (cone_height / 6)),
+                            })
+                            .fill(layer_color.clone());
+                    }
+                },
+                AdletStructure::Bonfire => {
+                    let bonfire_pos = wpos;
+                    let fire_fill = Fill::Sampling(Arc::new(|bonfire_pos| {
+                        Some(match (RandomField::new(0).get(bonfire_pos)) % 24 {
+                            0 => Block::air(SpriteKind::Ember),
+                            _ => Block::air(SpriteKind::FireBlock),
+                        })
+                    }));
+                    let fire_pos = bonfire_pos.with_z(alt as i32 + 2);
+                    lazy_static! {
+                        pub static ref FIRE: AssetHandle<StructuresGroup> =
+                            PrefabStructure::load_group("site_structures.adlet.bonfire");
+                    }
+                    let fire_rng = RandomField::new(0).get(fire_pos) % 10;
+                    let fire = FIRE.read();
+                    let fire = fire[fire_rng as usize % fire.len()].clone();
+                    painter
+                        .prim(Primitive::Prefab(Box::new(fire.clone())))
+                        .translate(fire_pos)
+                        .fill(Fill::Prefab(Box::new(fire), fire_pos, fire_rng));
+                    painter
+                        .sphere_with_radius((bonfire_pos).with_z(alt as i32 + 5), 4.0)
+                        .fill(fire_fill.clone());
+                    painter
+                        .cylinder_with_radius((bonfire_pos).with_z(alt as i32 + 2), 6.5, 1.0)
+                        .fill(fire_fill);
+                },
+                AdletStructure::YetiPit => {
+                    let yetipit_center = self.cavern_center;
+                    let yetipit_entrance_pos = wpos;
+
+                    let storeys = (3 + RandomField::new(0).get((yetipit_center).with_z(alt as i32))
+                        % 2) as i32;
+                    for s in 0..storeys {
+                        let down = 10_i32;
+                        let level = (alt as i32) - 50 - (s * (3 * down));
+                        let room_size = (25
+                            + RandomField::new(0).get((yetipit_center * s).with_z(level)) % 5)
+                            as i32;
+                        if s == (storeys - 1) {
+                            // yeti room
+                            painter
+                                .cylinder_with_radius(
+                                    yetipit_center.with_z(level - (3 * down) - 5),
+                                    room_size as f32,
+                                    ((room_size / 3) + 5) as f32,
+                                )
+                                .clear();
+                            painter
+                                .cone_with_radius(
+                                    yetipit_center.with_z(level - (3 * down) + (room_size / 3) - 2),
+                                    room_size as f32,
+                                    (room_size / 3) as f32,
+                                )
+                                .clear();
+                            // snow covered speleothem cluster
+                            for dir in NEIGHBORS {
+                                let cluster_pos = yetipit_center + dir * room_size - 3;
+                                for dir in NEIGHBORS3 {
+                                    let cone_radius = 3
+                                        + (RandomField::new(0)
+                                            .get((cluster_pos + dir).with_z(alt as i32))
+                                            % 3) as i32;
+                                    let cone_offset = 3
+                                        + (RandomField::new(0)
+                                            .get((cluster_pos + 1 + dir).with_z(alt as i32))
+                                            % 4) as i32;
+                                    let cone_height = 15
+                                        + (RandomField::new(0)
+                                            .get((cluster_pos + 2 + dir).with_z(alt as i32))
+                                            % 10) as i32;
+                                    // cones
+                                    painter
+                                        .cone_with_radius(
+                                            (cluster_pos + (dir * cone_offset))
+                                                .with_z(level - (3 * down) - 4 - (cone_height / 8)),
+                                            cone_radius as f32,
+                                            cone_height as f32,
+                                        )
+                                        .fill(snow_ice_fill.clone());
+                                    // small cone tops
+                                    let top_pos = (RandomField::new(0)
+                                        .get((cluster_pos + 3 + dir).with_z(level))
+                                        % 2)
+                                        as i32;
+                                    painter
+                                        .aabb(Aabb {
+                                            min: (cluster_pos + (dir * cone_offset) - top_pos)
+                                                .with_z(level - (3 * down) - 3),
+                                            max: (cluster_pos + (dir * cone_offset) + 1 - top_pos)
+                                                .with_z(
+                                                    (level - (3 * down) - 2) + cone_height
+                                                        - (cone_height / 6)
+                                                        + 3,
+                                                ),
+                                        })
+                                        .fill(snow_ice_fill.clone());
+                                }
+                            }
+                            // ceiling snow covered speleothem cluster
+                            for dir in NEIGHBORS {
+                                for c in 0..8 {
+                                    let cluster_pos = yetipit_center + dir * (c * (room_size / 5));
+                                    for dir in NEIGHBORS3 {
+                                        let cone_radius = 3
+                                            + (RandomField::new(0)
+                                                .get((cluster_pos + dir).with_z(alt as i32))
+                                                % 3)
+                                                as i32;
+                                        let cone_offset = 3
+                                            + (RandomField::new(0)
+                                                .get((cluster_pos + 1 + dir).with_z(alt as i32))
+                                                % 4)
+                                                as i32;
+                                        let cone_height = 15
+                                            + (RandomField::new(0)
+                                                .get((cluster_pos + 2 + dir).with_z(alt as i32))
+                                                % 10)
+                                                as i32;
+                                        // cones
+                                        painter
+                                            .cone_with_radius(
+                                                (cluster_pos + (dir * cone_offset)).with_z(
+                                                    level - (3 * down) - 4 - (cone_height / 8),
+                                                ),
+                                                cone_radius as f32,
+                                                cone_height as f32,
+                                            )
+                                            .rotate_about(
+                                                Mat3::rotation_x(PI).as_(),
+                                                yetipit_center.with_z(level - (2 * down)),
+                                            )
+                                            .fill(snow_ice_fill.clone());
+                                        // small cone tops
+                                        let top_pos = (RandomField::new(0)
+                                            .get((cluster_pos + 3 + dir).with_z(level))
+                                            % 2)
+                                            as i32;
+                                        painter
+                                            .aabb(Aabb {
+                                                min: (cluster_pos + (dir * cone_offset) - top_pos)
+                                                    .with_z(level - (3 * down) - 3),
+                                                max: (cluster_pos + (dir * cone_offset) + 1
+                                                    - top_pos)
+                                                    .with_z(
+                                                        (level - (3 * down) - 2) + cone_height
+                                                            - (cone_height / 6)
+                                                            - 2,
+                                                    ),
+                                            })
+                                            .rotate_about(
+                                                Mat3::rotation_x(PI).as_(),
+                                                yetipit_center.with_z(level - (2 * down)),
+                                            )
+                                            .fill(snow_ice_fill.clone());
+                                    }
+                                }
+                            }
+                            // frozen ponds
+                            for dir in NEIGHBORS3 {
+                                let pond_radius = (RandomField::new(0)
+                                    .get((yetipit_center + dir).with_z(alt as i32))
+                                    % 8) as i32;
+                                let pond_pos =
+                                    yetipit_center + (dir * ((room_size / 4) + (pond_radius)));
+                                painter
+                                    .cylinder_with_radius(
+                                        pond_pos.with_z(level - (3 * down) - 6),
+                                        pond_radius as f32,
+                                        1.0,
+                                    )
+                                    .fill(ice_fill.clone());
+                            }
+                            // yeti
+                            let yeti_spawn = yetipit_center.with_z(level - (3 * down) - 4);
+                            painter.spawn(yeti(yeti_spawn.as_(), &mut rng));
+                        } else {
+                            // mob rooms
+                            painter
+                                .cylinder_with_radius(
+                                    yetipit_center.with_z(level - (3 * down) - 5),
+                                    (room_size / 2) as f32,
+                                    ((room_size / 3) + 5) as f32,
+                                )
+                                .clear();
+                            let yetipit_mobs = 2
+                                + (RandomField::new(0)
+                                    .get(yetipit_center.with_z(level - (3 * down) - 3))
+                                    % 2) as i32;
+                            for _ in 0..yetipit_mobs {
+                                let yetipit_mob_spawn =
+                                    yetipit_center.with_z(level - (3 * down) - 3);
+                                painter.spawn(random_adlet(yetipit_mob_spawn.as_(), &mut rng));
+                            }
+                            painter
+                                .cone_with_radius(
+                                    yetipit_center.with_z(level - (3 * down) + (room_size / 3) - 2),
+                                    (room_size / 2) as f32,
+                                    (room_size / 3) as f32,
+                                )
+                                .clear();
+                            // snow covered speleothem cluster
+                            for dir in NEIGHBORS {
+                                let cluster_pos = yetipit_center + dir * (room_size / 2);
+                                for dir in NEIGHBORS {
+                                    let cone_radius = 3
+                                        + (RandomField::new(0)
+                                            .get((cluster_pos + dir).with_z(alt as i32))
+                                            % 3) as i32;
+                                    let cone_offset = 3
+                                        + (RandomField::new(0)
+                                            .get((cluster_pos + 1 + dir).with_z(alt as i32))
+                                            % 4) as i32;
+                                    let cone_height = 15
+                                        + (RandomField::new(0)
+                                            .get((cluster_pos + 2 + dir).with_z(alt as i32))
+                                            % 10) as i32;
+                                    // cones
+                                    painter
+                                        .cone_with_radius(
+                                            (cluster_pos + (dir * cone_offset))
+                                                .with_z(level - (3 * down) - 4 - (cone_height / 8)),
+                                            cone_radius as f32,
+                                            cone_height as f32,
+                                        )
+                                        .fill(snow_ice_fill.clone());
+                                    // small cone tops
+                                    let top_pos = (RandomField::new(0)
+                                        .get((cluster_pos + 3 + dir).with_z(level))
+                                        % 2)
+                                        as i32;
+                                    painter
+                                        .aabb(Aabb {
+                                            min: (cluster_pos + (dir * cone_offset) - top_pos)
+                                                .with_z(level - (3 * down) - 3),
+                                            max: (cluster_pos + (dir * cone_offset) + 1 - top_pos)
+                                                .with_z(
+                                                    (level - (3 * down) - 2) + cone_height
+                                                        - (cone_height / 6)
+                                                        + 3,
+                                                ),
+                                        })
+                                        .fill(snow_ice_fill.clone());
+                                }
+                            }
+                            // frozen pond
+                            painter
+                                .cylinder_with_radius(
+                                    yetipit_center.with_z(level - (3 * down) - 4),
+                                    (room_size / 8) as f32,
+                                    1.0,
+                                )
+                                .fill(ice_fill.clone());
+                        }
+                        let tunnels = (2 + RandomField::new(0)
+                            .get((yetipit_center + s).with_z(level))
+                            % 2) as i32;
+                        for t in 1..tunnels {
+                            let away1 = (50
+                                + RandomField::new(0).get((yetipit_center * (s + t)).with_z(level))
+                                    % 20) as i32;
+                            let away2 = (50
+                                + RandomField::new(0)
+                                    .get((yetipit_center * (s + (2 * t))).with_z(level))
+                                    % 20) as i32;
+                            let away3 = (50
+                                + RandomField::new(0)
+                                    .get((yetipit_center * (s + (3 * t))).with_z(level))
+                                    % 20) as i32;
+                            let away4 = (50
+                                + RandomField::new(0)
+                                    .get((yetipit_center * (s + (4 * t))).with_z(level))
+                                    % 20) as i32;
+
+                            let dir1 = 1 - 2
+                                * (RandomField::new(0).get((yetipit_center).with_z(t * level)) % 2)
+                                    as i32;
+                            let dir2 = 1 - 2
+                                * (RandomField::new(0)
+                                    .get((yetipit_center).with_z((2 * t) * level))
+                                    % 2) as i32;
+                            // caves
+                            painter
+                                .cubic_bezier(
+                                    yetipit_center.with_z(level - 3),
+                                    Vec2::new(
+                                        yetipit_center.x + ((away1 + (s * (down / 4))) * dir1),
+                                        yetipit_center.y + ((away2 + (s * (down / 4))) * dir2),
+                                    )
+                                    .with_z(level - down),
+                                    Vec2::new(
+                                        yetipit_center.x + ((away3 + (s * (down / 4))) * dir1),
+                                        yetipit_center.y + ((away4 + (s * (down / 4))) * dir2),
+                                    )
+                                    .with_z(level - (2 * down)),
+                                    yetipit_center.with_z(level - (3 * down)),
+                                    6.0,
+                                )
+                                .clear();
+                        }
+                    }
+                    // yetipit entrance
+                    // dome
+                    painter
+                        .sphere(Aabb {
+                            min: (yetipit_entrance_pos - 20).with_z(alt as i32 - 25),
+                            max: (yetipit_entrance_pos + 20).with_z(alt as i32 + 15),
+                        })
+                        .fill(snow_ice_fill.clone());
+                    // tunnel
+                    let door_dist = self.cavern_center - yetipit_entrance_pos;
+                    let door_dir = door_dist
+                        / Vec2::new((door_dist.x).pow(2).sqrt(), (door_dist.y).pow(2).sqrt());
+                    painter
+                        .cubic_bezier(
+                            (yetipit_entrance_pos + door_dir * 20).with_z(alt as i32 + 2),
+                            (yetipit_entrance_pos - door_dir * 20).with_z(alt as i32 - 10),
+                            (yetipit_entrance_pos + door_dir * 30).with_z((alt as i32) - 30),
+                            self.cavern_center.with_z((alt as i32) - 50),
+                            4.0,
+                        )
+                        .clear();
+                    let door_pos = yetipit_entrance_pos + door_dir * 8;
+                    painter
+                        .line(
+                            (door_pos + door_dir * 1).with_z(alt as i32),
+                            (door_pos + door_dir * 2).with_z(alt as i32 - 3),
+                            4.0,
+                        )
+                        .fill(Fill::Block(Block::air(SpriteKind::BoneKeyDoor)));
+                    painter
+                        .line(
+                            (door_pos + door_dir * 3).with_z(alt as i32 - 1),
+                            (door_pos + door_dir * 4).with_z(alt as i32 - 4),
+                            0.5,
+                        )
+                        .fill(Fill::Block(Block::air(SpriteKind::BoneKeyhole)));
+                    painter
+                        .line(
+                            door_pos.with_z(alt as i32),
+                            (door_pos + door_dir * 1).with_z(alt as i32 - 3),
+                            4.0,
+                        )
                         .clear();
                 },
                 AdletStructure::Tannery => {
+                    // shattered bone pieces
+                    painter
+                        .cylinder_with_radius(wpos.with_z(alt as i32), 7.0, 1.0)
+                        .fill(bone_shrub.clone());
+                    // bones upright
                     painter
                         .aabb(Aabb {
-                            min: wpos.map(|x| x - 5).with_z(alt as i32),
-                            max: wpos.with_z(alt as i32).map(|x| x + 5),
-                        })
-                        .fill(bone_fill.clone());
-                },
-                AdletStructure::AnimalPen => {
-                    painter
-                        .aabb(Aabb {
-                            min: wpos.map(|x| x - 5).with_z(alt as i32),
-                            max: wpos.with_z(alt as i32).map(|x| x + 5),
+                            min: Vec2::new(wpos.x - 6, wpos.y).with_z(alt as i32),
+                            max: Vec2::new(wpos.x + 6, wpos.y + 1).with_z((alt as i32) + 8),
                         })
                         .fill(bone_fill.clone());
                     painter
                         .aabb(Aabb {
-                            min: wpos.map(|x| x - 4).with_z(alt as i32),
-                            max: wpos.with_z(alt as i32 + 1).map(|x| x + 4),
+                            min: Vec2::new(wpos.x - 5, wpos.y).with_z(alt as i32),
+                            max: Vec2::new(wpos.x + 5, wpos.y + 1).with_z((alt as i32) + 8),
                         })
                         .clear();
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 6, wpos.y - 1).with_z(alt as i32 + 8),
+                            max: Vec2::new(wpos.x + 6, wpos.y + 2).with_z((alt as i32) + 9),
+                        })
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 5, wpos.y - 1).with_z(alt as i32 + 8),
+                            max: Vec2::new(wpos.x + 5, wpos.y + 2).with_z((alt as i32) + 9),
+                        })
+                        .clear();
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 6, wpos.y).with_z(alt as i32 + 8),
+                            max: Vec2::new(wpos.x + 6, wpos.y + 1).with_z((alt as i32) + 9),
+                        })
+                        .clear();
+                    // bones lying
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 6, wpos.y + 3).with_z(alt as i32),
+                            max: Vec2::new(wpos.x + 6, wpos.y + 4).with_z((alt as i32) + 2),
+                        })
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 5, wpos.y + 3).with_z(alt as i32),
+                            max: Vec2::new(wpos.x - 3, wpos.y + 4).with_z((alt as i32) + 1),
+                        })
+                        .clear();
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x + 3, wpos.y + 3).with_z(alt as i32),
+                            max: Vec2::new(wpos.x + 5, wpos.y + 4).with_z((alt as i32) + 1),
+                        })
+                        .clear();
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 2, wpos.y + 3).with_z(alt as i32),
+                            max: Vec2::new(wpos.x + 2, wpos.y + 4).with_z((alt as i32) + 1),
+                        })
+                        .clear();
+                    // hide
+                    for n in 0..10 {
+                        let hide_color =
+                            match RandomField::new(0).get((wpos + n).with_z(alt as i32)) % 4 {
+                                0 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(73, 29, 0))),
+                                1 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(78, 67, 43))),
+                                2 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(83, 74, 41))),
+                                _ => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(14, 36, 34))),
+                            };
+                        let rand_length =
+                            (RandomField::new(0).get((wpos - n).with_z(alt as i32)) % 7) as i32;
+                        painter
+                            .aabb(Aabb {
+                                min: Vec2::new(wpos.x - 5, wpos.y).with_z(alt as i32 + rand_length),
+                                max: Vec2::new(wpos.x - 4 + n, wpos.y + 1).with_z((alt as i32) + 8),
+                            })
+                            .fill(hide_color.clone());
+                    }
+                    let tannery_mobs =
+                        2 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                    for _ in 0..tannery_mobs {
+                        let tannery_mob_spawn = wpos.with_z(alt as i32);
+                        painter.spawn(random_adlet(tannery_mob_spawn.as_(), &mut rng));
+                    }
+                },
+                AdletStructure::AnimalPen => {
+                    let pen_size = 8.0;
+                    painter
+                        .sphere_with_radius(
+                            wpos.with_z(alt as i32 + (pen_size as i32 / 4) - 1),
+                            pen_size as f32,
+                        )
+                        .fill(bone_fill.clone());
+                    painter
+                        .sphere_with_radius(
+                            wpos.with_z(alt as i32 + (pen_size as i32 / 2) - 1),
+                            pen_size as f32,
+                        )
+                        .clear();
+                    painter
+                        .cylinder(Aabb {
+                            min: (wpos - (pen_size as i32)).with_z(alt as i32 - (pen_size as i32)),
+                            max: (wpos + (pen_size as i32)).with_z(alt as i32),
+                        })
+                        .fill(dirt_fill.clone());
+                    painter
+                        .cylinder(Aabb {
+                            min: (wpos - (pen_size as i32) + 1).with_z(alt as i32),
+                            max: (wpos + (pen_size as i32) - 1).with_z(alt as i32 + 1),
+                        })
+                        .fill(grass_fill.clone());
+                    let animalpen_mobs =
+                        4 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                    for _ in 0..animalpen_mobs {
+                        let animalpen_mob_spawn = wpos.with_z(alt as i32);
+                        painter.spawn(rat(animalpen_mob_spawn.as_(), &mut rng));
+                    }
                 },
                 AdletStructure::CookFire => {
-                    painter.sprite(wpos.with_z(alt as i32), SpriteKind::FireBowlGround);
-                },
-                AdletStructure::BoneHut => {
                     painter
-                        .sphere_with_radius(wpos.with_z(alt as i32), 5.0)
+                        .cylinder(Aabb {
+                            min: (wpos - 3).with_z(alt as i32),
+                            max: (wpos + 4).with_z(alt as i32 + 1),
+                        })
                         .fill(bone_fill.clone());
+                    let cook_sprites = Fill::Sampling(Arc::new(|wpos| {
+                        Some(match (RandomField::new(0).get(wpos)) % 20 {
+                            0 => Block::air(SpriteKind::Pot),
+                            1 => Block::air(SpriteKind::Bowl),
+                            2 => Block::air(SpriteKind::Pot),
+                            3 => Block::air(SpriteKind::VialEmpty),
+                            4 => Block::air(SpriteKind::Lantern),
+                            _ => Block::air(SpriteKind::Empty),
+                        })
+                    }));
+                    painter
+                        .cylinder(Aabb {
+                            min: (wpos - 3).with_z(alt as i32 + 1),
+                            max: (wpos + 4).with_z(alt as i32 + 2),
+                        })
+                        .fill(cook_sprites);
+                    painter
+                        .cylinder(Aabb {
+                            min: (wpos - 2).with_z(alt as i32),
+                            max: (wpos + 3).with_z(alt as i32 + 2),
+                        })
+                        .clear();
+                    painter
+                        .aabb(Aabb {
+                            min: (wpos).with_z(alt as i32),
+                            max: (wpos + 1).with_z(alt as i32 + 1),
+                        })
+                        .fill(bone_fill.clone());
+                    painter.sprite(wpos.with_z(alt as i32 + 1), SpriteKind::FireBowlGround);
+                    let cookfire_mobs =
+                        2 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                    for _ in 0..cookfire_mobs {
+                        let cookfire_mob_spawn = wpos.with_z(alt as i32);
+                        painter.spawn(random_adlet(cookfire_mob_spawn.as_(), &mut rng));
+                    }
                 },
                 AdletStructure::RockHut => {
                     painter
                         .sphere_with_radius(wpos.with_z(alt as i32), 5.0)
+                        .fill(rock_fill.clone());
+                    painter
+                        .sphere_with_radius(wpos.with_z(alt as i32), 4.0)
                         .clear();
+                    // clear entries
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 6, wpos.y - 1).with_z(alt as i32),
+                            max: Vec2::new(wpos.x + 6, wpos.y + 1).with_z(alt as i32 + 2),
+                        })
+                        .clear();
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 1, wpos.y - 6).with_z(alt as i32),
+                            max: Vec2::new(wpos.x + 1, wpos.y + 6).with_z(alt as i32 + 2),
+                        })
+                        .clear();
+                    // fill with dirt
+                    painter
+                        .cylinder(Aabb {
+                            min: (wpos - 5).with_z((alt as i32) - 5),
+                            max: (wpos + 5).with_z(alt as i32 - 1),
+                        })
+                        .fill(dirt_fill.clone());
+                    painter.sprite(wpos.with_z(alt as i32) - 1, SpriteKind::FireBowlGround);
+                    let rockhut_mobs =
+                        2 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                    for _ in 0..rockhut_mobs {
+                        let rockhut_mob_spawn = wpos.with_z(alt as i32);
+                        painter.spawn(random_adlet(rockhut_mob_spawn.as_(), &mut rng));
+                    }
+                },
+                AdletStructure::BoneHut => {
+                    let hut_radius = 5;
+                    // 4 hide pieces
+                    for dir in CARDINALS {
+                        let hide_size =
+                            6 + (RandomField::new(0).get((wpos + dir).with_z(alt as i32)) % 4);
+                        let hide_color =
+                            match RandomField::new(0).get((wpos + dir).with_z(alt as i32)) % 4 {
+                                0 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(73, 29, 0))),
+                                1 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(78, 67, 43))),
+                                2 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(83, 74, 41))),
+                                _ => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(14, 36, 34))),
+                            };
+                        painter
+                            .sphere_with_radius(
+                                (wpos + (2 * dir)).with_z((alt as i32) + 2),
+                                hide_size as f32,
+                            )
+                            .fill(hide_color.clone());
+                    }
+                    // clear room
+                    painter
+                        .sphere_with_radius(wpos.with_z((alt as i32) + 2), 6.0)
+                        .without(painter.aabb(Aabb {
+                            min: (wpos - (2 * hut_radius)).with_z(alt as i32 - hut_radius),
+                            max: (wpos + (2 * hut_radius)).with_z(alt as i32),
+                        }))
+                        .clear();
+                    //clear entries
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x - 1, wpos.y - hut_radius - 6).with_z(alt as i32),
+                            max: Vec2::new(wpos.x + 1, wpos.y + hut_radius + 6)
+                                .with_z((alt as i32) + 3),
+                        })
+                        .clear();
+
+                    // bones
+                    for h in 0..(hut_radius + 4) {
+                        painter
+                            .line(
+                                (wpos - hut_radius).with_z((alt as i32) + h),
+                                (wpos + hut_radius).with_z((alt as i32) + h),
+                                0.5,
+                            )
+                            .intersect(
+                                painter
+                                    .sphere_with_radius(wpos.with_z((alt as i32) + 2), 9.0)
+                                    .without(
+                                        painter
+                                            .sphere_with_radius(wpos.with_z((alt as i32) + 2), 5.0),
+                                    ),
+                            )
+                            .fill(bone_fill.clone());
+
+                        painter
+                            .line(
+                                Vec2::new(wpos.x - hut_radius, wpos.y + hut_radius)
+                                    .with_z((alt as i32) + h),
+                                Vec2::new(wpos.x + hut_radius, wpos.y - hut_radius)
+                                    .with_z((alt as i32) + h),
+                                0.5,
+                            )
+                            .intersect(
+                                painter
+                                    .sphere_with_radius(wpos.with_z((alt as i32) + 2), 9.0)
+                                    .without(
+                                        painter
+                                            .sphere_with_radius(wpos.with_z((alt as i32) + 2), 5.0),
+                                    ),
+                            )
+                            .fill(bone_fill.clone());
+                    }
+                    // top decor bone with some hide
+                    painter
+                        .aabb(Aabb {
+                            min: wpos.with_z((alt as i32) + hut_radius + 4),
+                            max: (wpos + 1).with_z((alt as i32) + hut_radius + 7),
+                        })
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x, wpos.y - 1)
+                                .with_z((alt as i32) + hut_radius + 7),
+                            max: Vec2::new(wpos.x + 1, wpos.y + 2)
+                                .with_z((alt as i32) + hut_radius + 8),
+                        })
+                        .without(painter.aabb(Aabb {
+                            min: wpos.with_z((alt as i32) + hut_radius + 7),
+                            max: (wpos + 1).with_z((alt as i32) + hut_radius + 8),
+                        }))
+                        .fill(bone_fill.clone());
+
+                    let top_color = Fill::Sampling(Arc::new(|wpos| {
+                        Some(match (RandomField::new(0).get(wpos)) % 10 {
+                            0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
+                            1 => Block::new(BlockKind::Wood, Rgb::new(78, 67, 43)),
+                            2 => Block::new(BlockKind::Wood, Rgb::new(83, 74, 41)),
+                            3 => Block::new(BlockKind::Wood, Rgb::new(14, 36, 34)),
+                            _ => Block::new(BlockKind::Rock, Rgb::new(200, 160, 140)),
+                        })
+                    }));
+                    painter
+                        .aabb(Aabb {
+                            min: (wpos - 1).with_z((alt as i32) + hut_radius + 4),
+                            max: (wpos + 2).with_z((alt as i32) + hut_radius + 5),
+                        })
+                        .fill(top_color.clone());
+                    // WallSconce
+                    painter.rotated_sprite(
+                        Vec2::new(wpos.x - hut_radius + 1, wpos.y + hut_radius - 2)
+                            .with_z((alt as i32) + 3),
+                        SpriteKind::WallSconce,
+                        0_u8,
+                    );
+                    // FireBowl
+                    painter.sprite(wpos.with_z(alt as i32), SpriteKind::FireBowlGround);
+                    let bonehut_mobs =
+                        2 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                    for _ in 0..bonehut_mobs {
+                        let bonehut_mob_spawn = wpos.with_z(alt as i32);
+                        painter.spawn(random_adlet(bonehut_mob_spawn.as_(), &mut rng));
+                    }
+                },
+                AdletStructure::BossBoneHut => {
+                    let bosshut_pos = wpos;
+                    let hut_radius = 10;
+                    // 4 hide pieces
+                    for dir in CARDINALS {
+                        let hide_size = 10
+                            + (RandomField::new(0).get((bosshut_pos + dir).with_z(alt as i32)) % 4);
+                        let hide_color = match RandomField::new(0)
+                            .get((bosshut_pos + dir).with_z(alt as i32))
+                            % 4
+                        {
+                            0 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(73, 29, 0))),
+                            1 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(78, 67, 43))),
+                            2 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(83, 74, 41))),
+                            _ => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(14, 36, 34))),
+                        };
+                        painter
+                            .sphere_with_radius(
+                                (bosshut_pos + (3 * dir)).with_z((alt as i32) + 2),
+                                hide_size as f32,
+                            )
+                            .without(painter.sphere_with_radius(
+                                (bosshut_pos + (3 * dir)).with_z((alt as i32) + 2),
+                                (hide_size - 1) as f32,
+                            ))
+                            .without(
+                                painter
+                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 9.0),
+                            )
+                            .without(painter.aabb(Aabb {
+                                min: (bosshut_pos - (2 * hut_radius)).with_z((alt as i32) - 10),
+                                max: (bosshut_pos + (2 * hut_radius)).with_z(alt as i32),
+                            }))
+                            .fill(hide_color.clone());
+                    }
+                    // large entries
+                    for n in 0..2 {
+                        painter
+                            .sphere_with_radius(
+                                (Vec2::new(
+                                    bosshut_pos.x,
+                                    bosshut_pos.y - hut_radius + (2 * (hut_radius * n)),
+                                ))
+                                .with_z((alt as i32) + 2),
+                                9.0,
+                            )
+                            .without(painter.aabb(Aabb {
+                                min: (bosshut_pos - (2 * hut_radius)).with_z((alt as i32) - 10),
+                                max: (bosshut_pos + (2 * hut_radius)).with_z(alt as i32),
+                            }))
+                            .intersect(
+                                painter
+                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0)
+                                    .without(painter.sphere_with_radius(
+                                        bosshut_pos.with_z((alt as i32) + 2),
+                                        13.0,
+                                    )),
+                            )
+                            .fill(bone_fill.clone());
+
+                        painter
+                            .sphere_with_radius(
+                                (Vec2::new(
+                                    bosshut_pos.x,
+                                    bosshut_pos.y - hut_radius + (2 * (hut_radius * n)),
+                                ))
+                                .with_z((alt as i32) + 2),
+                                7.0,
+                            )
+                            .without(painter.aabb(Aabb {
+                                min: (bosshut_pos - (2 * hut_radius)).with_z((alt as i32) - 10),
+                                max: (bosshut_pos + (2 * hut_radius)).with_z(alt as i32),
+                            }))
+                            .clear();
+                    }
+                    // bones
+                    for h in 0..(hut_radius + 4) {
+                        painter
+                            .line(
+                                (bosshut_pos - hut_radius + 1).with_z((alt as i32) + h),
+                                (bosshut_pos + hut_radius - 1).with_z((alt as i32) + h),
+                                1.5,
+                            )
+                            .intersect(
+                                painter
+                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0)
+                                    .without(painter.sphere_with_radius(
+                                        bosshut_pos.with_z((alt as i32) + 2),
+                                        9.0,
+                                    )),
+                            )
+                            .fill(bone_fill.clone());
+
+                        painter
+                            .line(
+                                Vec2::new(
+                                    bosshut_pos.x - hut_radius + 1,
+                                    bosshut_pos.y + hut_radius - 2,
+                                )
+                                .with_z((alt as i32) + h),
+                                Vec2::new(
+                                    bosshut_pos.x + hut_radius - 1,
+                                    bosshut_pos.y - hut_radius + 2,
+                                )
+                                .with_z((alt as i32) + h),
+                                1.5,
+                            )
+                            .intersect(
+                                painter
+                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0)
+                                    .without(painter.sphere_with_radius(
+                                        bosshut_pos.with_z((alt as i32) + 2),
+                                        9.0,
+                                    )),
+                            )
+                            .fill(bone_fill.clone());
+                    }
+                    // top decor bone with some hide
+                    painter
+                        .aabb(Aabb {
+                            min: bosshut_pos.with_z((alt as i32) + hut_radius + 5),
+                            max: (bosshut_pos + 1).with_z((alt as i32) + hut_radius + 8),
+                        })
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(bosshut_pos.x, bosshut_pos.y - 1)
+                                .with_z((alt as i32) + hut_radius + 8),
+                            max: Vec2::new(bosshut_pos.x + 1, bosshut_pos.y + 2)
+                                .with_z((alt as i32) + hut_radius + 9),
+                        })
+                        .without(painter.aabb(Aabb {
+                            min: bosshut_pos.with_z((alt as i32) + hut_radius + 8),
+                            max: (bosshut_pos + 1).with_z((alt as i32) + hut_radius + 9),
+                        }))
+                        .fill(bone_fill.clone());
+
+                    let top_color = Fill::Sampling(Arc::new(|bosshut_pos| {
+                        Some(match (RandomField::new(0).get(bosshut_pos)) % 10 {
+                            0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
+                            1 => Block::new(BlockKind::Wood, Rgb::new(78, 67, 43)),
+                            2 => Block::new(BlockKind::Wood, Rgb::new(83, 74, 41)),
+                            3 => Block::new(BlockKind::Wood, Rgb::new(14, 36, 34)),
+                            _ => Block::new(BlockKind::Rock, Rgb::new(200, 160, 140)),
+                        })
+                    }));
+                    painter
+                        .aabb(Aabb {
+                            min: (bosshut_pos - 1).with_z((alt as i32) + hut_radius + 5),
+                            max: (bosshut_pos + 2).with_z((alt as i32) + hut_radius + 6),
+                        })
+                        .fill(top_color);
+                    // WallSconces
+                    for dir in SQUARE_4 {
+                        let corner_pos = Vec2::new(
+                            bosshut_pos.x - (hut_radius / 2) - 1,
+                            bosshut_pos.y - (hut_radius / 2) - 2,
+                        );
+                        let sprite_pos = Vec2::new(
+                            corner_pos.x + dir.x * (hut_radius + 1),
+                            corner_pos.y + dir.y * (hut_radius + 3),
+                        )
+                        .with_z(alt as i32 + 3);
+                        painter.rotated_sprite(
+                            sprite_pos,
+                            SpriteKind::WallSconce,
+                            (2 + (4 * dir.x)) as u8,
+                        );
+                    }
                 },
             }
         }
@@ -890,11 +1858,7 @@ impl RibCageGenerator {
             *spine_radius,
         );
 
-        let rotation_origin = Vec3::new(
-            spine_start.x as f32,
-            spine_start.y as f32 + 0.5,
-            spine_start.z as f32,
-        );
+        let rotation_origin = Vec3::new(spine_start.x, spine_start.y + 0.5, spine_start.z);
         let rotate = |prim: PrimitiveRef<'a>, dir: &Dir| -> PrimitiveRef<'a> {
             match dir {
                 Dir::X => prim,
@@ -974,22 +1938,89 @@ impl RibCageGenerator {
     }
 }
 
+fn adlet_hunter<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.adlet.hunter", rng)
+}
+
+fn adlet_icepicker<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.adlet.icepicker", rng)
+}
+
+fn adlet_tracker<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.adlet.tracker", rng)
+}
+
+fn random_adlet<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    match rng.gen_range(0..3) {
+        0 => adlet_hunter(pos, rng),
+        1 => adlet_icepicker(pos, rng),
+        _ => adlet_tracker(pos, rng),
+    }
+}
+
+// TODO: Whatever the adlet boss/chieftain thing is
+// fn adlet_<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+//     EntityInfo::at(pos.map(|x| x as f32))
+//         .with_asset_expect("common.entity.dungeon.adlet.", rng)
+// }
+
+fn rat<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect("common.entity.wild.peaceful.rat", rng)
+}
+
+fn wolf<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.wild.aggressive.wolf", rng)
+}
+
+fn bear<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.wild.aggressive.bear", rng)
+}
+
+fn frostfang<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.wild.aggressive.frostfang", rng)
+}
+
+fn roshwalr<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.wild.aggressive.roshwalr", rng)
+}
+
+fn icedrake<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.wild.aggressive.icedrake", rng)
+}
+
+fn tursus<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.wild.aggressive.tursus", rng)
+}
+
+fn yeti<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect("common.entity.dungeon.adlet.yeti", rng)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_creating_entities() {
-        // let pos = Vec3::zero();
-        // let mut rng = thread_rng();
+        let pos = Vec3::zero();
+        let mut rng = thread_rng();
 
-        // gnarling_mugger(pos, &mut rng);
-        // gnarling_stalker(pos, &mut rng);
-        // gnarling_logger(pos, &mut rng);
-        // gnarling_chieftain(pos, &mut rng);
-        // deadwood(pos, &mut rng);
-        // mandragora(pos, &mut rng);
-        // wood_golem(pos, &mut rng);
-        // harvester_boss(pos, &mut rng);
+        gnarling_mugger(pos, &mut rng);
+        gnarling_stalker(pos, &mut rng);
+        gnarling_logger(pos, &mut rng);
+        gnarling_chieftain(pos, &mut rng);
+        deadwood(pos, &mut rng);
+        mandragora(pos, &mut rng);
+        wood_golem(pos, &mut rng);
+        harvester_boss(pos, &mut rng);
     }
 }

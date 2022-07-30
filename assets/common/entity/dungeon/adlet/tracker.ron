@@ -1,13 +1,13 @@
 #![enable(implicit_some)]
 (
-    name: Name("Adlet Hunter"),
+    name: Name("Adlet Tracker"),
     body: RandomWith("adlet"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.tier-1.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.dungeon.tier-1.hunter"),
-            active_hands: InHands((Item("common.items.npc_weapons.biped_small.adlet.hunter"), None)),
+            inherit: Asset("common.loadout.dungeon.adlet.tracker"),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.adlet.tracker"), None)),
         )),
     ),
     meta: [

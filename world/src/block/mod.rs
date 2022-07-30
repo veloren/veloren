@@ -348,6 +348,16 @@ pub fn block_from_structure(
                 }),
             ));
         },
+        StructureBlock::BoneKeyhole(consumes) => {
+            return Some((
+                Block::air(SpriteKind::BoneKeyhole),
+                Some(SpriteCfg {
+                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                        consumes.clone(),
+                    ))),
+                }),
+            ));
+        },
     };
 
     Some((block?, None))

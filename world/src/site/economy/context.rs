@@ -132,7 +132,6 @@ impl Environment {
                     SiteKind::Adlet(_) => {},
                     SiteKind::ChapelSite(_) => {},
                     SiteKind::Bridge(_) => {},
-                    SiteKind::Adlet(_) => {},
                 }
             }
             if towns.valid() {
