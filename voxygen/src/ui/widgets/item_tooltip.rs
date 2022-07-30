@@ -534,24 +534,12 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .set(state.ids.image, ui);
         }
 
-        // Title
-        widget::Text::new(&title)
-            .w(text_w)
-            .graphics_for(id)
-            .parent(id)
-            .with_style(self.style.title)
-            .top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
-            .center_justify()
-            .color(quality)
-            .set(state.ids.title, ui);
-
         // Item frame
         widget::Image::new(quality_col_img)
             .wh(ICON_SIZE)
             .graphics_for(id)
             .parent(id)
             .top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
-            .down_from(state.ids.title, V_PAD)
             .set(state.ids.item_frame, ui);
 
         // Item render
@@ -566,14 +554,27 @@ impl<'a> Widget for ItemTooltip<'a> {
         .middle_of(state.ids.item_frame)
         .set(state.ids.item_render, ui);
 
+        let title_w = (text_w - H_PAD * 3.0 - ICON_SIZE[0]).max(0.0);
+
+        // Title
+        widget::Text::new(&title)
+            .w(title_w)
+            .graphics_for(id)
+            .parent(id)
+            .with_style(self.style.title)
+            .top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
+            .right_from(state.ids.item_frame, H_PAD)
+            .color(quality)
+            .set(state.ids.title, ui);
+
         // Subtitle
         widget::Text::new(&subtitle)
-            .w(text_w)
+            .w(title_w)
             .graphics_for(id)
             .parent(id)
             .with_style(self.style.desc)
             .color(conrod_core::color::GREY)
-            .right_from(state.ids.item_frame, H_PAD)
+            .down_from(state.ids.title, V_PAD)
             .set(state.ids.subtitle, ui);
 
         // Stats
@@ -1220,17 +1221,9 @@ impl<'a> Widget for ItemTooltip<'a> {
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
         let item = &self.item;
 
-        let (title, desc) = (item.name().to_string(), item.description().to_string());
+        let desc = item.description().to_string();
 
         let (text_w, _image_w) = self.text_image_width(260.0);
-
-        // Title
-        let title_h = widget::Text::new(&title)
-            .w(text_w)
-            .with_style(self.style.title)
-            .get_h(ui)
-            .unwrap_or(0.0)
-            + V_PAD;
 
         // Item frame
         let frame_h = ICON_SIZE[1] + V_PAD;
@@ -1282,7 +1275,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             0.0
         };
 
-        let height = title_h + frame_h + stat_h + desc_h + price_h + V_PAD + 5.0; // extra padding to fit frame top padding
+        let height = frame_h + stat_h + desc_h + price_h + V_PAD + 5.0; // extra padding to fit frame top padding
         Dimension::Absolute(height)
     }
 }
