@@ -65,8 +65,8 @@ impl CharacterBehavior for Data {
                 let new_vel_z = update.vel.0.z + GRAVITY * data.dt.0 * 0.5;
                 update.vel.0 = Vec3::new(0.0, 0.0, new_vel_z) + data.inputs.move_dir * 5.0;
             },
-            MovementBehavior::GolemHover => {
-                update.vel.0 = Vec3::new(0.0, 0.0, 20.0) + *data.inputs.look_dir * 25.0;
+            MovementBehavior::Walking => {
+                handle_move(data, &mut update, 0.2);
             },
         }
 
@@ -180,7 +180,7 @@ pub enum MovementBehavior {
     Stationary,
     ForwardGround,
     AxeHover,
-    GolemHover,
+    Walking,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]

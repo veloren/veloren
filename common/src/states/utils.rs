@@ -409,7 +409,7 @@ pub fn handle_forced_movement(
             }) {
                 update.vel.0 += Vec2::broadcast(data.dt.0)
                     * accel
-                    * (data.inputs.move_dir + Vec2::from(update.ori))
+                    * (data.inputs.move_dir * 0.5 + Vec2::from(update.ori) * 1.5)
                     * strength;
             }
         },

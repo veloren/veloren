@@ -2,7 +2,7 @@ ComboMelee(
     stage_data: [
         (
             stage: 1,
-            base_damage: 11.0,
+            base_damage: 12.0,
             damage_increase: 1.0,
             base_poise_damage: 0,
             poise_damage_increase: 0,
@@ -24,7 +24,7 @@ ComboMelee(
         ),
         (
             stage: 2,
-            base_damage: 13.0,
+            base_damage: 15.0,
             damage_increase: 1.5,
             base_poise_damage: 0,
             poise_damage_increase: 0,
@@ -46,8 +46,8 @@ ComboMelee(
         ),
     ],
     initial_energy_gain: 2.5,
-    max_energy_gain: 17.5,
-    energy_increase: 3.0,
+    max_energy_gain: 12.5,
+    energy_increase: 2.5,
     speed_increase: 0.1,
     max_speed_increase: 0.6,
     scales_from_combo: 2,
