@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More varied ambient birdcalls
 - Cave biomes
 - Updated the Polish translation
+- Setting for disabling flashing lights
 
 ### Changed
 

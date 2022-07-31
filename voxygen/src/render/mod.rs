@@ -352,6 +352,8 @@ pub struct RenderMode {
     /// 0.0..1.0
     pub point_glow: f32,
 
+    pub flashing_lights_enabled: bool,
+
     pub experimental_shaders: HashSet<ExperimentalShader>,
 
     pub upscale_mode: UpscaleMode,
@@ -370,6 +372,7 @@ impl Default for RenderMode {
             rain_occlusion: ShadowMapMode::default(),
             bloom: BloomMode::default(),
             point_glow: 0.35,
+            flashing_lights_enabled: true,
             experimental_shaders: HashSet::default(),
             upscale_mode: UpscaleMode::default(),
             present_mode: PresentMode::default(),
@@ -390,6 +393,7 @@ impl RenderMode {
                 rain_occlusion: self.rain_occlusion,
                 bloom: self.bloom,
                 point_glow: self.point_glow,
+                flashing_lights_enabled: self.flashing_lights_enabled,
                 experimental_shaders: self.experimental_shaders,
             },
             OtherModes {
@@ -413,6 +417,7 @@ pub struct PipelineModes {
     pub rain_occlusion: ShadowMapMode,
     bloom: BloomMode,
     point_glow: f32,
+    flashing_lights_enabled: bool,
     experimental_shaders: HashSet<ExperimentalShader>,
 }
 

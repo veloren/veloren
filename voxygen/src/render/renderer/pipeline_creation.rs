@@ -211,6 +211,10 @@ impl ShaderModules {
             );
         }
 
+        if pipeline_modes.flashing_lights_enabled {
+            constants += "#define FLASHING_LIGHTS_ENABLED";
+        }
+
         for shader in pipeline_modes.experimental_shaders.iter() {
             constants += &format!(
                 "#define EXPERIMENTAL_{}\n",

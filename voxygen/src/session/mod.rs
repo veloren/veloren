@@ -1593,6 +1593,11 @@ impl PlayState for SessionState {
                         as f32,
                     particles_enabled: global_state.settings.graphics.particles_enabled,
                     weapon_trails_enabled: global_state.settings.graphics.weapon_trails_enabled,
+                    flashing_lights_enabled: global_state
+                        .settings
+                        .graphics
+                        .render_mode
+                        .flashing_lights_enabled,
                     figure_lod_render_distance: global_state
                         .settings
                         .graphics
@@ -1671,6 +1676,7 @@ impl PlayState for SessionState {
             figure_lod_render_distance: settings.graphics.figure_lod_render_distance as f32,
             particles_enabled: settings.graphics.particles_enabled,
             weapon_trails_enabled: settings.graphics.weapon_trails_enabled,
+            flashing_lights_enabled: settings.graphics.render_mode.flashing_lights_enabled,
             is_aiming: self.is_aiming,
         };
 

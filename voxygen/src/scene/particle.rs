@@ -787,11 +787,13 @@ impl ParticleMgr {
                     let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     // Emit a light when using flames
-                    lights.push(Light::new(
-                        pos,
-                        Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
-                        2.0,
-                    ));
+                    if scene_data.flashing_lights_enabled {
+                        lights.push(Light::new(
+                            pos,
+                            Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
+                            2.0,
+                        ));
+                    }
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 2,
                         || {
@@ -818,11 +820,13 @@ impl ParticleMgr {
                     let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     // Emit a light when using flames
-                    lights.push(Light::new(
-                        pos,
-                        Rgb::new(1.0, 0.0, 1.0).map(|e| e * rng.gen_range(0.5..1.0)),
-                        2.0,
-                    ));
+                    if scene_data.flashing_lights_enabled {
+                        lights.push(Light::new(
+                            pos,
+                            Rgb::new(1.0, 0.0, 1.0).map(|e| e * rng.gen_range(0.5..1.0)),
+                            2.0,
+                        ));
+                    }
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 2,
                         || {
@@ -846,7 +850,9 @@ impl ParticleMgr {
                 },
                 beam::FrontendSpecifier::LifestealBeam => {
                     // Emit a light when using lifesteal beam
-                    lights.push(Light::new(pos, Rgb::new(0.8, 1.0, 0.5), 1.0));
+                    if scene_data.flashing_lights_enabled {
+                        lights.push(Light::new(pos, Rgb::new(0.8, 1.0, 0.5), 1.0));
+                    }
                     self.particles.reserve(beam_tick_count as usize);
                     for i in 0..beam_tick_count {
                         self.particles.push(Particle::new_directed(
