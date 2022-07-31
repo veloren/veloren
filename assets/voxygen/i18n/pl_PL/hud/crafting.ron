@@ -23,7 +23,7 @@
         // Tabs
         "hud.crafting.tabs.all": "Wszystko",
         "hud.crafting.tabs.armor": "Pancerz",
-        "hud.crafting.tabs.dismantle": "Zdemontuj",
+        "hud.crafting.tabs.dismantle": "Rozmontuj",
         "hud.crafting.tabs.food": "Żywność",
         "hud.crafting.tabs.glider": "Lotnie",
         "hud.crafting.tabs.potion": "Mikstury",
@@ -32,7 +32,7 @@
         "hud.crafting.tabs.weapon": "Bronie",
         "hud.crafting.tabs.bag": "Torby",
         "hud.crafting.tabs.processed_material": "Materiały",
-        "hud.crafting.dismantle_title": "Demontowanie",
+        "hud.crafting.dismantle_title": "Rozmontowywanie",
         "hud.crafting.dismantle_explanation" : "Najedź na przedmioty w pleacaku aby\nzobaczyć co możesz odzyskać.\n\nKliknij podwójnie aby rozmontować.",
         "hud.crafting.modular_desc": "Przeciągnij części przedmiotu aby stworzyć broń",
         "hud.crafting.mod_weap_prim_slot_title": "Główna część broni",
