@@ -459,13 +459,19 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
         }
     #endif
 
+    #ifdef FLASHING_LIGHTS_ENABLED
+        vec3 lightning = lightning_at(wpos);
+    #else
+        vec3 lightning = vec3(0);
+    #endif
+
     reflected_light = R_t_r * (
         (1.0 - SUN_AMBIANCE) * sun_chroma * sun_shadow * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting) /*+
                       light_reflection_factor(norm, dir, normalize(sun_dir + vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha) +
                       light_reflection_factor(norm, dir, normalize(sun_dir - vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha)*/) +
         (1.0 - MOON_AMBIANCE) * moon_chroma * moon_shadow * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting) +
         emission
-    ) + lightning_at(wpos);
+    ) + lightning;
 
     /* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
     diffuse_light =

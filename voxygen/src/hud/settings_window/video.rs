@@ -106,6 +106,9 @@ widget_ids! {
         lossy_terrain_compression_label,
         weapon_trails_button,
         weapon_trails_label,
+        flashing_lights_button,
+        flashing_lights_label,
+        flashing_lights_info_label,
         //
         fullscreen_button,
         fullscreen_label,
@@ -1270,6 +1273,53 @@ impl<'a> Widget for Video<'a> {
             ));
         }
 
+        // Disable flashing lights
+        Text::new(self.localized_strings.get("hud.settings.flashing_lights"))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.particles_label, 25.0)
+            .color(TEXT_COLOR)
+            .set(state.ids.flashing_lights_label, ui);
+
+        let flashing_lights_enabled = ToggleButton::new(
+            self.global_state
+                .settings
+                .graphics
+                .render_mode
+                .flashing_lights_enabled,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .right_from(state.ids.flashing_lights_label, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.flashing_lights_button, ui);
+
+        Text::new(
+            self.localized_strings
+                .get("hud.settings.flashing_lights_info"),
+        )
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .right_from(state.ids.flashing_lights_label, 32.0)
+        .color(TEXT_COLOR)
+        .set(state.ids.flashing_lights_info_label, ui);
+
+        if self
+            .global_state
+            .settings
+            .graphics
+            .render_mode
+            .flashing_lights_enabled
+            != flashing_lights_enabled
+        {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
+                flashing_lights_enabled,
+                ..render_mode.clone()
+            })));
+        }
+
         // Resolution
         let resolutions: Vec<[u16; 2]> = state
             .video_modes
@@ -1283,7 +1333,7 @@ impl<'a> Widget for Video<'a> {
         Text::new(self.localized_strings.get("hud.settings.resolution"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .down_from(state.ids.particles_label, 8.0)
+            .down_from(state.ids.flashing_lights_label, 25.0)
             .color(TEXT_COLOR)
             .set(state.ids.resolution_label, ui);
 
@@ -1342,7 +1392,7 @@ impl<'a> Widget for Video<'a> {
         Text::new(self.localized_strings.get("hud.settings.bit_depth"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .down_from(state.ids.particles_label, 8.0)
+            .down_from(state.ids.flashing_lights_label, 25.0)
             .right_from(state.ids.resolution, 8.0)
             .color(TEXT_COLOR)
             .set(state.ids.bit_depth_label, ui);
@@ -1396,7 +1446,7 @@ impl<'a> Widget for Video<'a> {
         Text::new(self.localized_strings.get("hud.settings.refresh_rate"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .down_from(state.ids.particles_label, 8.0)
+            .down_from(state.ids.flashing_lights_label, 25.0)
             .right_from(state.ids.bit_depth, 8.0)
             .color(TEXT_COLOR)
             .set(state.ids.refresh_rate_label, ui);
