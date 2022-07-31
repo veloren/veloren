@@ -14,7 +14,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, sync::Arc};
+use std::{borrow::Cow, ops::Mul, sync::Arc};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum RecipeInput {
@@ -973,13 +973,18 @@ impl RepairRecipe {
     /// are missing.
     pub fn inventory_contains_ingredients(
         &self,
+        item: &Item,
         inv: &Inventory,
     ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&RecipeInput, u32)>> {
-        inventory_contains_ingredients(self.inputs(), inv, 1)
+        inventory_contains_ingredients(self.inputs(item), inv, 1)
     }
 
-    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
-        self.inputs.iter().map(|(input, amount)| (input, *amount))
+    pub fn inputs(&self, item: &Item) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
+        let item_durability = item.durability().unwrap_or(0);
+        self.inputs.iter().map(move |(input, amount)| {
+            let amount = amount.mul(item_durability).div_ceil(Item::MAX_DURABILITY);
+            (input, amount)
+        })
     }
 }
 
@@ -1014,8 +1019,7 @@ impl RepairRecipeBook {
         } {
             if let Some(repair_recipe) = self.repair_recipe(item) {
                 repair_recipe
-                    .inputs
-                    .iter()
+                    .inputs(item)
                     .enumerate()
                     .for_each(|(i, (input, amount))| {
                         // Gets all slots provided for this input by the frontend
@@ -1025,7 +1029,7 @@ impl RepairRecipeBook {
                             .copied();
                         // Checks if requirement is met, and if not marks it as unsatisfied
                         input.handle_requirement(
-                            *amount,
+                            amount,
                             &mut slot_claims,
                             &mut unsatisfied_requirements,
                             inv,

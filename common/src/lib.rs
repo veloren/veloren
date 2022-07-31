@@ -11,7 +11,8 @@
     trait_alias,
     type_alias_impl_trait,
     extend_one,
-    arbitrary_self_types
+    arbitrary_self_types,
+    int_roundings
 )]
 #![feature(hash_drain_filter)]
 

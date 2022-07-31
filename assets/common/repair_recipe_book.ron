@@ -186,7 +186,7 @@ recipes: {
     // ARMOR/HIDE/CARAPACE
     ItemDefId("common.items.armor.hide.carapace.back"): (
         inputs: [
-            (Item("common.items.crafting_ing.lhide.carapace"), 1),
+            (Item("common.items.crafting_ing.hide.carapace"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 2),
         ],
     ),
@@ -832,20 +832,20 @@ recipes: {
     ItemDefId("common.items.armor.misc.head.crown"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.linen_red"), 3),
-            (item("common.items.mineral.ingot.gold"), 1),
+            (Item("common.items.mineral.ingot.gold"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
     ItemDefId("common.items.armor.pirate.hat"): (
         inputs: [
-            (Item("common.items.crafting_ing.hide.rigid_leather"), 1),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
     ItemDefId("common.items.armor.witch.hat"): (
         inputs: [
-            (Item("common.items.crafting_ing.hide.rigid_leather"), 1),
-            (Item("common.items.crafting_ing.animal_misc.grim_eyeball"), 1)
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.crafting_ing.animal_misc.grim_eyeball"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
@@ -859,7 +859,7 @@ recipes: {
 },
 fallback: (
     inputs: [
-        (Item("common.items.utility.coins"), 1000),
+        (Item("common.items.mineral.ore.veloritefrag"), 25),
     ],
 ),
 )

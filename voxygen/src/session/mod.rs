@@ -1788,7 +1788,9 @@ impl PlayState for SessionState {
                                     }?;
                                     let repair_recipe =
                                         client.repair_recipe_book().repair_recipe(item)?;
-                                    repair_recipe.inventory_contains_ingredients(inventory).ok()
+                                    repair_recipe
+                                        .inventory_contains_ingredients(item, inventory)
+                                        .ok()
                                 } else {
                                     None
                                 }
