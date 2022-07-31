@@ -510,7 +510,7 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Combo::default());
 
             // Make sure physics components are updated
-            self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
+            self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());
 
             const INITIAL_VD: u32 = 5; //will be changed after login
             self.write_component_ignore_entity_dead(
@@ -536,7 +536,7 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Pos(spawn_point));
 
             // Make sure physics components are updated
-            self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
+            self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());
 
             const INITIAL_VD: u32 = 5; //will be changed after login
             self.write_component_ignore_entity_dead(
@@ -604,7 +604,7 @@ impl StateExt for State {
                 self.write_component_ignore_entity_dead(entity, waypoint);
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
-                self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
+                self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());
             }
 
             if let Some(map_marker) = map_marker {

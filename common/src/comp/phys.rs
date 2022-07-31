@@ -213,9 +213,32 @@ impl Component for PhysicsState {
 
 /// Used to forcefully update the position, velocity, and orientation of the
 /// client
-#[derive(Copy, Clone, Debug, Default)]
-pub struct ForceUpdate;
+#[derive(Copy, Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct ForceUpdate {
+    flag: bool,
+    counter: u64,
+}
+
+impl ForceUpdate {
+    pub fn forced() -> Self {
+        Self {
+            flag: true,
+            counter: 0,
+        }
+    }
+
+    pub fn update(&mut self) {
+        self.flag = true;
+        self.counter = self.counter.wrapping_add(1);
+    }
+
+    pub fn clear(&mut self) { self.flag = false; }
+
+    pub fn is_forced(&self) -> bool { self.flag }
+
+    pub fn counter(&self) -> u64 { self.counter }
+}
 
 impl Component for ForceUpdate {
-    type Storage = NullStorage<Self>;
+    type Storage = VecStorage<Self>;
 }

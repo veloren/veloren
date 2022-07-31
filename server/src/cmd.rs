@@ -257,11 +257,12 @@ fn position_mut<T>(
         {
             server.notify_client(entity, ServerGeneral::SpectatePosition(pos));
         } else {
-            let _ = server
+            server
                 .state
                 .ecs()
                 .write_storage::<comp::ForceUpdate>()
-                .insert(entity, comp::ForceUpdate);
+                .get_mut(entity)
+                .map(|force_update| force_update.update());
         }
     }
     res
@@ -2077,7 +2078,7 @@ fn handle_light(
         .ecs_mut()
         .create_entity_synced()
         .with(pos)
-        .with(comp::ForceUpdate)
+        .with(comp::ForceUpdate::forced())
         .with(light_emitter);
     if let Some(light_offset) = light_offset_opt {
         builder.with(light_offset).build();

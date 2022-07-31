@@ -111,7 +111,7 @@ impl Sys {
                     }
                 }
             },
-            ClientGeneral::PlayerPhysics { pos, vel, ori } => {
+            ClientGeneral::PlayerPhysics { pos, vel, ori, force_counter } => {
                 let player_physics_setting = maybe_player.map(|p| {
                     player_physics_settings
                         .settings
@@ -120,7 +120,7 @@ impl Sys {
                 });
 
                 if presence.kind.controlling_char()
-                    && force_updates.get(entity).is_none()
+                    && force_updates.get(entity).map_or(true, |force_update| force_update.counter() == force_counter)
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && is_rider.get(entity).is_none()
                     && player_physics_setting

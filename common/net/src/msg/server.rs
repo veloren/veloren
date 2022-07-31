@@ -188,7 +188,7 @@ pub enum ServerGeneral {
     SetPlayerEntity(Uid),
     TimeOfDay(TimeOfDay, Calendar),
     EntitySync(sync::EntitySyncPackage),
-    CompSync(sync::CompSyncPackage<EcsCompPacket>),
+    CompSync(sync::CompSyncPackage<EcsCompPacket>, u64),
     CreateEntity(sync::EntityPackage<EcsCompPacket>),
     DeleteEntity(Uid),
     Disconnect(DisconnectReason),
@@ -327,7 +327,7 @@ impl ServerMsg {
                         | ServerGeneral::SetPlayerEntity(_)
                         | ServerGeneral::TimeOfDay(_, _)
                         | ServerGeneral::EntitySync(_)
-                        | ServerGeneral::CompSync(_)
+                        | ServerGeneral::CompSync(_, _)
                         | ServerGeneral::CreateEntity(_)
                         | ServerGeneral::DeleteEntity(_)
                         | ServerGeneral::Disconnect(_)

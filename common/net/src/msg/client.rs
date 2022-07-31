@@ -74,6 +74,7 @@ pub enum ClientGeneral {
         pos: comp::Pos,
         vel: comp::Vel,
         ori: comp::Ori,
+        force_counter: u64,
     },
     UnlockSkill(Skill),
     UnlockSkillGroup(SkillGroupKind),

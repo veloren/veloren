@@ -217,6 +217,7 @@ pub struct Client {
     available_recipes: HashMap<String, Option<SpriteKind>>,
     lod_zones: HashMap<Vec2<i32>, lod::Zone>,
     lod_last_requested: Option<Instant>,
+    force_update_counter: u64,
 
     max_group_size: u32,
     // Client has received an invite (inviter uid, time out instant)
@@ -678,6 +679,8 @@ impl Client {
 
             lod_zones: HashMap::new(),
             lod_last_requested: None,
+
+            force_update_counter: 0,
 
             max_group_size,
             invite: None,
@@ -1754,8 +1757,12 @@ impl Client {
                 self.state.read_storage().get(self.entity()).cloned(),
                 self.state.read_storage().get(self.entity()).cloned(),
             ) {
-                self.in_game_stream
-                    .send(ClientGeneral::PlayerPhysics { pos, vel, ori })?;
+                self.in_game_stream.send(ClientGeneral::PlayerPhysics {
+                    pos,
+                    vel,
+                    ori,
+                    force_counter: self.force_update_counter,
+                })?;
             }
         }
 
@@ -2071,7 +2078,8 @@ impl Client {
                     .ecs_mut()
                     .apply_entity_sync_package(entity_sync_package);
             },
-            ServerGeneral::CompSync(comp_sync_package) => {
+            ServerGeneral::CompSync(comp_sync_package, force_counter) => {
+                self.force_update_counter = force_counter;
                 self.state
                     .ecs_mut()
                     .apply_comp_sync_package(comp_sync_package);

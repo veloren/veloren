@@ -206,7 +206,7 @@ impl Client {
                     | ServerGeneral::SetPlayerEntity(_)
                     | ServerGeneral::TimeOfDay(_, _)
                     | ServerGeneral::EntitySync(_)
-                    | ServerGeneral::CompSync(_)
+                    | ServerGeneral::CompSync(_, _)
                     | ServerGeneral::CreateEntity(_)
                     | ServerGeneral::DeleteEntity(_)
                     | ServerGeneral::Disconnect(_)
