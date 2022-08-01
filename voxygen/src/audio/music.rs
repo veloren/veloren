@@ -93,6 +93,8 @@ pub struct SoundtrackItem {
     /// transitions)
     #[serde(default)]
     activity_override: Option<MusicActivity>,
+    /// Song artist
+    artist: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -105,6 +107,7 @@ enum RawSoundtrackItem {
         biomes: Vec<(BiomeKind, u8)>,
         site: Option<SitesKind>,
         segments: Vec<(String, f32, MusicState, Option<MusicActivity>)>,
+        artist: String,
     },
 }
 
@@ -159,6 +162,10 @@ pub struct MusicMgr {
     last_interrupt: Instant,
     /// The previous track's activity kind, for transitions
     last_activity: MusicState,
+    // For debug menu
+    pub current_track: String,
+    pub current_artist: String,
+    track_length: f32,
 }
 
 #[derive(Deserialize)]
@@ -206,6 +213,9 @@ impl Default for MusicMgr {
             last_track: String::from("None"),
             last_interrupt: Instant::now(),
             last_activity: MusicState::Activity(MusicActivity::Explore),
+            current_track: String::from("None"),
+            current_artist: String::from("None"),
+            track_length: 0.0,
         }
     }
 }
@@ -294,6 +304,12 @@ impl MusicMgr {
         let interrupt = matches!(music_state, MusicState::Transition(_, _))
             && self.last_interrupt.elapsed().as_secs_f32() > mtm.interrupt_delay;
 
+        // When the current track ends, clear the debug values
+        if self.began_playing.elapsed().as_secs_f32() > self.track_length {
+            self.current_track = String::from("None");
+            self.current_artist = String::from("None");
+        }
+
         if audio.music_enabled()
             && !self.soundtrack.read().tracks.is_empty()
             && (self.began_playing.elapsed().as_secs_f32() > self.next_track_change || interrupt)
@@ -325,20 +341,29 @@ impl MusicMgr {
         // a town, or exploring.
         // TODO: make this something that is decided when a song ends, instead of when
         // it begins
+        let frequency_multipler = audio.music_frequency;
         let silence_between_tracks_seconds: f32 =
             if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
                 && matches!(client.current_site(), SitesKind::Settlement)
             {
-                rng.gen_range(100.0..130.0)
+                rng.gen_range(120.0 * frequency_multipler..180.0 * frequency_multipler)
+            } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
+                && matches!(client.current_site(), SitesKind::Dungeon)
+            {
+                rng.gen_range(10.0 * frequency_multipler..20.0 * frequency_multipler)
+            } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
+                && matches!(client.current_site(), SitesKind::Cave)
+            {
+                rng.gen_range(20.0 * frequency_multipler..40.0 * frequency_multipler)
             } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
-                rng.gen_range(90.0..180.0)
+                rng.gen_range(120.0 * frequency_multipler..240.0 * frequency_multipler)
             } else if matches!(
                 music_state,
                 MusicState::Activity(MusicActivity::Combat(_)) | MusicState::Transition(_, _)
             ) {
                 0.0
             } else {
-                rng.gen_range(30.0..60.0)
+                rng.gen_range(30.0 * frequency_multipler..60.0 * frequency_multipler)
             };
 
         let is_dark = (state.get_day_period().is_dark()) as bool;
@@ -427,7 +452,15 @@ impl MusicMgr {
             // println!("Now playing {:?}", track.title);
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
+            self.track_length = track.length;
             self.next_track_change = track.length + silence_between_tracks_seconds;
+            if audio.music_enabled() {
+                self.current_track = String::from(&track.title);
+                self.current_artist = String::from(&track.artist);
+            } else {
+                self.current_track = String::from("None");
+                self.current_artist = String::from("None");
+            }
 
             let tag = if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
                 MusicChannelTag::Exploration
@@ -481,6 +514,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                         biomes,
                         site,
                         segments,
+                        artist,
                     } => {
                         for (path, length, music_state, activity_override) in segments.into_iter() {
                             soundtracks.tracks.push(SoundtrackItem {
@@ -493,6 +527,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                                 site,
                                 music_state,
                                 activity_override,
+                                artist: artist.clone(),
                             });
                         }
                     },

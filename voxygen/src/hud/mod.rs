@@ -265,6 +265,7 @@ widget_ids! {
         graphics_backend,
         gpu_timings[],
         weather,
+        song_info,
 
         // Game Version
         version,
@@ -493,6 +494,8 @@ pub struct DebugInfo {
     pub num_figures_visible: u32,
     pub num_particles: u32,
     pub num_particles_visible: u32,
+    pub current_track: String,
+    pub current_artist: String,
 }
 
 pub struct HudInfo {
@@ -2443,10 +2446,21 @@ impl Hud {
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.current_site, ui_widgets);
 
+            // Current song info
+            Text::new(&format!(
+                "Currently playing: {} [{}]",
+                debug_info.current_track, debug_info.current_artist,
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.current_site, V_PAD)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .set(self.ids.song_info, ui_widgets);
+
             // Number of lights
             Text::new(&format!("Lights: {}", debug_info.num_lights,))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.current_site, V_PAD)
+                .down_from(self.ids.song_info, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.num_lights, ui_widgets);
@@ -2525,7 +2539,7 @@ impl Hud {
             // Set debug box dimensions, only timings height is dynamic
             // TODO: Make the background box size fully dynamic
 
-            let debug_bg_size = [320.0, 385.0 + timings_height];
+            let debug_bg_size = [375.0, 405.0 + timings_height];
 
             Rectangle::fill(debug_bg_size)
                 .rgba(0.0, 0.0, 0.0, global_state.settings.chat.chat_opacity)

@@ -23,6 +23,7 @@ pub enum Audio {
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     AdjustAmbienceVolume(f32),
+    AdjustMusicFrequency(f32),
     //ChangeAudioDevice(String),
     ResetAudioSettings,
 }
@@ -207,6 +208,11 @@ impl SettingsChange {
                         global_state.audio.set_ambience_volume(ambience_volume);
 
                         settings.audio.ambience_volume = ambience_volume;
+                    },
+                    Audio::AdjustMusicFrequency(multiplier) => {
+                        global_state.audio.set_music_frequency(multiplier);
+
+                        settings.audio.music_frequency = multiplier;
                     },
                     //Audio::ChangeAudioDevice(name) => {
                     //    global_state.audio.set_device(name.clone());

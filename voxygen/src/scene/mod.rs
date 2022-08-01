@@ -104,7 +104,7 @@ pub struct Scene {
     trail_mgr: TrailMgr,
     figure_mgr: FigureMgr,
     pub sfx_mgr: SfxMgr,
-    music_mgr: MusicMgr,
+    pub music_mgr: MusicMgr,
     ambient_mgr: AmbientMgr,
 
     integrated_rain_vel: f32,
@@ -351,6 +351,8 @@ impl Scene {
 
     /// Get a reference to the scene's figure manager.
     pub fn figure_mgr(&self) -> &FigureMgr { &self.figure_mgr }
+
+    pub fn music_mgr(&self) -> &MusicMgr { &self.music_mgr }
 
     /// Get a mutable reference to the scene's camera.
     pub fn camera_mut(&mut self) -> &mut Camera { &mut self.camera }
