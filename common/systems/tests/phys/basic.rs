@@ -296,13 +296,44 @@ fn cant_run_during_fall() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn mass_c() -> (f64, f64) {
-    let mass = 1.0;
-    let air_friction_co = 0.9_f64;
-    let air_friction_area = 0.75_f64;
-    let air_density = 1.225_f64;
-    let c = air_friction_co * air_friction_area * 0.5 * air_density * mass;
-    (mass, c)
+#[derive(Clone, Copy)]
+struct FricParams {
+    friction_co: f64,
+    projected_area: f64,
+    density: f64,
+    mass: f64,
+}
+impl Default for FricParams {
+    fn default() -> Self {
+        Self {
+            friction_co: 0.9_f64,
+            projected_area: 0.75_f64,
+            density: 1.225_f64,
+            mass: 1.0_f64,
+        }
+    }
+}
+impl FricParams {
+    const MAX_ACC: f64 = 9.2;
+
+    // https://en.wikipedia.org/wiki/Drag_(physics)
+    // Todo: old impl was (mass * acc.abs() / (friction_co * projected_area * 0.5 *
+    // density * mass )).sqrt();
+    fn v_term(&self, acc: f64) -> f64 {
+        ((2.0 * self.mass * acc.abs()) / (self.density * self.projected_area * self.friction_co))
+            .sqrt()
+    }
+}
+trait MathHelp {
+    fn coth(&self) -> Self;
+    fn acoth(&self) -> Self;
+}
+impl MathHelp for f64 {
+    // coth(x) = 1/tanh(x)`
+    fn coth(&self) -> Self { 1.0 / self.tanh() }
+
+    // `acoth(x) = atanh(1/x)`
+    fn acoth(&self) -> Self { (1.0 / self).atanh() }
 }
 
 fn test_run_helper(
@@ -312,16 +343,20 @@ fn test_run_helper(
     test_series: Vec<(/* acc */ f64, /* duration */ f64)>,
 ) -> (f64, f64) {
     let dt = 1.0 / tps as f64;
-    let (mass, c) = mass_c();
+    let params = FricParams::default();
+    let v_term = params.v_term(FricParams::MAX_ACC);
     println!("");
-    println!("dt: {:0>4.4} - mass: {:0>4.4} - c: {:0>4.4}", dt, mass, c);
+    println!(
+        "dt: {:0>4.4} - mass: {:0>4.4} - v_term: {:0>4.4}",
+        dt, params.mass, v_term
+    );
     let (mut vel, mut pos) = (start_vel, start_pos);
     let mut i = 0;
     for (move_dir, duration) in test_series {
         let count = (duration / dt).round() as usize;
         println!("move_dir: {:0>4.4}", move_dir);
         for _ in 0..count {
-            (vel, pos) = acc_with_frict_tick(i, move_dir, vel, pos, dt);
+            (vel, pos) = acc_with_frict_tick(i, move_dir, vel, pos, dt, params);
             i += 1;
         }
     }
@@ -353,12 +388,15 @@ macro_rules! veriy_diffs {
 /// https://www.energie-lexikon.info/reibung.html
 /// https://sciencing.com/calculate-force-friction-6454395.html
 /// https://www.leifiphysik.de/mechanik/reibung-und-fortbewegung
-fn acc_with_frict_tick(i: usize, move_dir: f64, vel: f64, pos: f64, dt: f64) -> (f64, f64) {
-    let (mass, c) = mass_c();
-
-    const MAX_ACC: f64 = 9.2;
-    let acc = MAX_ACC * move_dir; // btw: cant accelerate faster than gravity on foot
-    let old_vel = vel;
+fn acc_with_frict_tick(
+    i: usize,
+    move_dir: f64,
+    vel: f64,
+    pos: f64,
+    dt: f64,
+    params: FricParams,
+) -> (f64, f64) {
+    let acc = FricParams::MAX_ACC * move_dir; // btw: cant accelerate faster than gravity on foot
 
     // controller
     // I know what you think, wtf, yep: https://math.stackexchange.com/questions/1929436/line-integral-of-force-of-air-resistanc
@@ -367,41 +405,74 @@ fn acc_with_frict_tick(i: usize, move_dir: f64, vel: f64, pos: f64, dt: f64) -> 
 
     // terminal velocity equals the maximum velocity that can be reached by acc
     // alone
-    let vel_t = (mass * acc.abs() / c).sqrt();
-    let _vel_tm = (mass * MAX_ACC / c).sqrt();
+    let vel_t = acc.signum() * params.v_term(acc);
 
-    // if our old_vel is bigger than vel_t we can use `coth(x) = 1/tanh(x)` and
-    // `acoth(x) = atanh(1/x)`
-    let revert_fak = if vel_t != 0.0 {
-        old_vel / vel_t
+    // thanks to kilpkonn for figuring this out
+    // https://en.wikipedia.org/wiki/Drag_(physics)
+    //
+    // upper and lower are upper and lower bound for integral
+    let revert_fak = vel / vel_t;
+    let (vel, pos) = if acc.abs() < f64::EPSILON {
+        // https://www.wolframalpha.com/input?i=m%2F%28Cx+%2B+m%2FV%29+dx+integrate
+        let c = params.density * params.projected_area * params.friction_co;
+        let lower = params.mass * params.mass.ln() / c;
+        let upper = params.mass * (c * vel * dt + params.mass).ln() / c;
+        let pos = pos + (upper - lower);
+        let vel = params.mass
+            / (params.density * params.projected_area * params.friction_co * dt
+                + params.mass / vel);
+        (vel, pos)
+    } else if revert_fak <= 0.0 {
+        // Handle passing through 0 differently as the function changes
+        // https://www.wolframalpha.com/input?i=V*tan%28x*g%2FV+%2B+atan%28v%2FV%29%29+%3D+0+solve+for+x
+        let dt_to_zero = vel_t * (vel / vel_t).atan() / acc.abs();
+        if dt_to_zero < dt {
+            // Step with only part of dt that is left after reaching 0 vel
+            let lower = vel_t.powi(2) * (vel / vel_t).atan().cos().ln() / acc;
+            let upper =
+                -vel_t.powi(2) * (acc * dt_to_zero / vel_t + (vel / vel_t).atan()).cos().ln() / acc;
+            let pos = pos + (upper - lower);
+            let dt = dt - dt_to_zero;
+            // https://www.wolframalpha.com/input?i=V+*+tanh%28xg%2FV%29+dx+integrate
+            // lower bound is 0
+            let pos = pos + vel_t.powi(2) * (acc * dt / vel_t).cosh().ln() / acc;
+            let vel = vel_t * (dt * acc / vel_t).tanh();
+            (vel, pos)
+        } else {
+            // https://www.wolframalpha.com/input?i=V+*+tan%28xg%2FV+%2B+atan%28v%2FV%29%29+dx+integrate
+            let lower = -vel_t.powi(2) * (vel / vel_t).atan().cos().ln() / acc;
+            let upper = -vel_t.powi(2) * (acc * dt / vel_t + (vel / vel_t).atan()).cos().ln() / acc;
+            let pos = pos + (upper - lower);
+            let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).atan()).tan();
+            (vel, pos)
+        }
+    } else if revert_fak >= 1.0 {
+        // https://www.wolframalpha.com/input?i=V+*+coth%28xg%2FV+%2B+acoth%28v%2FV%29%29+dx+integrate
+        let lower = (vel_t.powi(2) * (vel / vel_t).acoth().cosh().ln()
+            + (vel / vel_t).acoth().tanh().ln())
+            / acc;
+        let upper = (vel_t.powi(2) * (acc * dt / vel_t + (vel / vel_t).acoth()).cosh().ln()
+            + (acc * dt / vel_t + (vel / vel_t).acoth()).tanh().ln())
+            / acc;
+        let pos = pos + (upper - lower);
+        let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).acoth()).coth();
+        (vel, pos)
     } else {
-        1337.0
+        // https://www.wolframalpha.com/input?i=V+*+tanh%28xg%2FV+%2B+atanh%28v%2FV%29%29+dx+integrate
+        let lower = vel_t.powi(2) * ((vel / vel_t).atanh()).cosh().ln() / acc;
+        let upper = vel_t.powi(2) * (acc * dt / vel_t + (vel / vel_t).atanh()).cosh().ln() / acc;
+        let pos = pos + (upper - lower);
+        let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).atanh()).tanh();
+        (vel, pos)
     };
-    let vel = if revert_fak.abs() >= 1.0 {
-        vel_t / ((1.0 / revert_fak).atanh() + acc.signum() * (c * acc.abs()).sqrt() * dt).tanh()
-    } else {
-        vel_t * ((revert_fak).atanh() + acc.signum() * (c * acc.abs()).sqrt() * dt).tanh()
-    };
-
-    //physics
-    let distance_last = mass / c * (((old_vel * (c / acc / mass).sqrt()).atanh()).cosh()).ln();
-    let distance = mass / c
-        * (((old_vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
-            .ln();
-    let diff = distance - distance_last;
-    let diff = if !diff.is_finite() { 0.0 } else { diff };
-
-    let pos = pos + diff;
 
     let ending = ((i + 1) as f64 * dt * 100.0).round() as i64;
     let line = format!(
-        "[{:0>2.2}]:    acc: {:0>5.4},    revert_fak: {:0>4.4},    vel: {:0>4.4},    dist: \
-         {:0>7.4},    pos: {:0>7.4}",
+        "[{:0>2.2}]:    acc: {:0>5.4},    revert_fak: {:0>4.4},    vel: {:0>4.4},    pos: {:0>7.4}",
         (i + 1) as f64 * dt,
         acc,
         revert_fak,
         vel,
-        distance,
         pos
     );
     if ending % 10 != 0 {
