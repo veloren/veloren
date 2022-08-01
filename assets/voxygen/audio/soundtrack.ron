@@ -13,6 +13,31 @@
         // Overworld exploration tracks
 
         Individual((
+            title: "The Undergrowth",
+            path: "voxygen.audio.soundtrack.overworld.the_undergrowth",
+            length: 165.0,
+            timing: None,
+            biomes: [
+                (Jungle, 1),
+            ],
+            site: Some(Void),
+            music_state: Activity(Explore),
+            artist: "Oolnokk",
+        )),
+        Individual((
+            title: "Moonlit Canopy",
+            path: "voxygen.audio.soundtrack.overworld.moonlit_canopy",
+            length: 170.0,
+            timing: Some(Night),
+            biomes: [
+                (Forest, 2),
+                (Taiga, 1),
+            ],
+            site: Some(Void),
+            music_state: Activity(Explore),
+            artist: "GeekyGami",
+        )),
+        Individual((
             title: "Adventurous Soul",
             path: "voxygen.audio.soundtrack.overworld.adventurous_soul",
             length: 184.0,
@@ -129,7 +154,7 @@
             title: "Jungle Ambient",
             path: "voxygen.audio.soundtrack.overworld.jungle_ambient",
             length: 218.0,
-            timing: Some(Day),
+            timing: None,
             weather: None,
             biomes: [
                 (Jungle, 1),
@@ -283,8 +308,6 @@
             weather: None,
             biomes: [
                 (Forest, 2),
-                (Jungle, 1),
-                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -649,28 +672,29 @@
 
         Segmented(
             title: "Barred Paths",
-            author: "DaforLynx",
             timing: None,
             weather: None,
             biomes: [],
             site: Some(Dungeon),
             segments: [
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 55.97, Transition(Explore, Combat(High)), Some(Combat(High))),
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 53.97, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 56.0, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.0, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
             ],
+            artist: "DaforLynx",
         ),
         Segmented(
             title: "Reversal",
-            author: "DaforLynx",
             timing: None,
+            weather: None,
             biomes: [],
             site: Some(Dungeon),
             segments: [
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 59.97, Transition(Explore, Combat(High)), Some(Combat(High))),
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 59.97, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 60.0, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 60.0, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 4.0, Transition(Combat(High), Explore), None),
             ],
+            artist: "DaforLynx",
         ),
     ]
 )

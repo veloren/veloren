@@ -55,6 +55,7 @@ pub struct AudioFrontend {
     ambience_volume: f32,
     music_volume: f32,
     master_volume: f32,
+    music_frequency: f32,
     listener: Listener,
 
     mtm: AssetHandle<MusicTransitionManifest>,
@@ -107,6 +108,7 @@ impl AudioFrontend {
             ambience_volume: 1.0,
             music_volume: 1.0,
             master_volume: 1.0,
+            music_frequency: 1.0,
             listener: Listener::default(),
             mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
         }
@@ -138,6 +140,7 @@ impl AudioFrontend {
             ambience_volume: 1.0,
             music_volume: 1.0,
             master_volume: 1.0,
+            music_frequency: 1.0,
             listener: Listener::default(),
             mtm,
         }
@@ -177,6 +180,14 @@ impl AudioFrontend {
         }
 
         None
+    }
+
+    fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
+        if self.music_enabled() {
+            if let Some(channel) = self.get_music_channel(channel_tag) {
+                channel.play(load_ogg(sound), channel_tag);
+            }
+        }
     }
 
     /// Retrieve a music channel from the channel list. This inspects the
@@ -373,14 +384,6 @@ impl AudioFrontend {
     //     }
     // }
 
-    fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
-        if self.music_enabled() {
-            if let Some(channel) = self.get_music_channel(channel_tag) {
-                channel.play(load_ogg(sound), channel_tag);
-            }
-        }
-    }
-
     /* These functions are saved for if we want music playback control at some
      * point. They are not used currently but may be useful for later work.
      *
@@ -475,6 +478,8 @@ impl AudioFrontend {
             channel.set_volume(music_volume);
         }
     }
+
+    pub fn set_music_frequency(&mut self, multiplier: f32) { self.music_frequency = multiplier }
 
     /// Updates master volume in all channels
     pub fn set_master_volume(&mut self, master_volume: f32) {

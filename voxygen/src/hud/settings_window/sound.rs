@@ -34,6 +34,9 @@ widget_ids! {
         ambience_volume_text,
         ambience_volume_slider,
         ambience_volume_number,
+        music_frequency_text,
+        music_frequency_slider,
+        music_frequency_number,
         //audio_device_list,
         //audio_device_text,
         reset_sound_button,
@@ -284,6 +287,41 @@ impl<'a> Widget for Sound<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.ambience_volume_number, ui);
 
+        // Music frequency (actually gap between songs)
+        Text::new(self.localized_strings.get("hud.settings.music_frequency"))
+            .down_from(state.ids.ambience_volume_slider, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.music_frequency_text, ui);
+        // Music frequency Slider
+        if let Some(new_val) = ImageSlider::continuous(
+            self.global_state.settings.audio.music_frequency,
+            0.0,
+            2.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.music_frequency_text, 10.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.music_frequency_slider, ui)
+        {
+            events.push(AdjustMusicFrequency(new_val));
+        }
+        // Music frequency Number
+        Text::new(&format!(
+            "{:1.2}x",
+            self.global_state.settings.audio.music_frequency
+        ))
+        .right_from(state.ids.music_frequency_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.music_frequency_number, ui);
+
         // Audio Device Selector
         // --------------------------------------------
         // let device = &self.global_state.audio.device;
@@ -316,7 +354,7 @@ impl<'a> Widget for Sound<'a> {
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.ambience_volume_slider, 12.0)
+            .down_from(state.ids.music_frequency_slider, 12.0)
             .label(self.localized_strings.get("hud.settings.reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
