@@ -296,136 +296,225 @@ fn cant_run_during_fall() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// The problem with old_vec is that we cant start with 0.0 0.0 0.0 as it will
-// make the first tick different on all examples
+fn mass_c() -> (f64, f64) {
+    let mass = 1.0;
+    let air_friction_co = 0.9_f64;
+    let air_friction_area = 0.75_f64;
+    let air_density = 1.225_f64;
+    let c = air_friction_co * air_friction_area * 0.5 * air_density * mass;
+    (mass, c)
+}
+
+fn test_run_helper(
+    tps: u32,
+    start_vel: f64,
+    start_pos: f64,
+    test_series: Vec<(/* acc */ f64, /* duration */ f64)>,
+) -> (f64, f64) {
+    let dt = 1.0 / tps as f64;
+    let (mass, c) = mass_c();
+    println!("");
+    println!("dt: {:0>4.4} - mass: {:0>4.4} - c: {:0>4.4}", dt, mass, c);
+    let (mut vel, mut pos) = (start_vel, start_pos);
+    let mut i = 0;
+    for (move_dir, duration) in test_series {
+        let count = (duration / dt).round() as usize;
+        println!("move_dir: {:0>4.4}", move_dir);
+        for _ in 0..count {
+            (vel, pos) = acc_with_frict_tick(i, move_dir, vel, pos, dt);
+            i += 1;
+        }
+    }
+    (vel, pos)
+}
+
+macro_rules! veriy_diffs {
+    ($vel1:expr, $pos1:expr, $vel2:expr, $pos2:expr) => {
+        let vel_diff = ($vel2 - $vel1).abs();
+        let pos_diff = ($pos2 - $pos1).abs();
+        println!("vel_diff: {:4.4},   pos_diff: {:4.4}", vel_diff, pos_diff);
+        assert_relative_eq!(vel_diff, 0.0, epsilon = EPSILON as f64);
+        assert_relative_eq!(pos_diff, 0.0, epsilon = EPSILON as f64);
+    };
+}
+
+/// ROLLING_FRICTION_FORCE + AIR_FRICTION_FORCE + TILT_FRICT_FORCE + ACCEL_FORCE
+/// = TOTAL_FORCE
+///
+/// TILT_FRICT_FORCE = 0.0
+/// TOTAL_FORCE = depends on char = const
+/// ACCEL_FORCE = TOTAL_FORCE - ROLLING_FRICTION_FORCE - AIR_FRICTION_FORCE
+/// ACCEL = ACCEL_FORCE / MASS
+///
+/// ROLLING_FRICTION_FORCE => Indepent of vel
+/// AIR_FRICTION_FORCE => propotional to vel²
+///
+/// https://www.energie-lexikon.info/fahrwiderstand.html
+/// https://www.energie-lexikon.info/reibung.html
+/// https://sciencing.com/calculate-force-friction-6454395.html
+/// https://www.leifiphysik.de/mechanik/reibung-und-fortbewegung
+fn acc_with_frict_tick(i: usize, move_dir: f64, vel: f64, pos: f64, dt: f64) -> (f64, f64) {
+    let (mass, c) = mass_c();
+
+    const MAX_ACC: f64 = 9.2;
+    let acc = MAX_ACC * move_dir; // btw: cant accelerate faster than gravity on foot
+    let old_vel = vel;
+
+    // controller
+    // I know what you think, wtf, yep: https://math.stackexchange.com/questions/1929436/line-integral-of-force-of-air-resistanc
+    // basically an integral of the air resistance formula which scales with v^2
+    // transformed with an ODE.
+
+    // terminal velocity equals the maximum velocity that can be reached by acc
+    // alone
+    let vel_t = (mass * acc.abs() / c).sqrt();
+    let _vel_tm = (mass * MAX_ACC / c).sqrt();
+
+    // if our old_vel is bigger than vel_t we can use `coth(x) = 1/tanh(x)` and
+    // `acoth(x) = atanh(1/x)`
+    let revert_fak = if vel_t != 0.0 {
+        old_vel / vel_t
+    } else {
+        1337.0
+    };
+    let vel = if revert_fak.abs() >= 1.0 {
+        vel_t / ((1.0 / revert_fak).atanh() + acc.signum() * (c * acc.abs()).sqrt() * dt).tanh()
+    } else {
+        vel_t * ((revert_fak).atanh() + acc.signum() * (c * acc.abs()).sqrt() * dt).tanh()
+    };
+
+    //physics
+    let distance_last = mass / c * (((old_vel * (c / acc / mass).sqrt()).atanh()).cosh()).ln();
+    let distance = mass / c
+        * (((old_vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
+            .ln();
+    let diff = distance - distance_last;
+    let diff = if !diff.is_finite() { 0.0 } else { diff };
+
+    let pos = pos + diff;
+
+    let ending = ((i + 1) as f64 * dt * 100.0).round() as i64;
+    let line = format!(
+        "[{:0>2.2}]:    acc: {:0>5.4},    revert_fak: {:0>4.4},    vel: {:0>4.4},    dist: \
+         {:0>7.4},    pos: {:0>7.4}",
+        (i + 1) as f64 * dt,
+        acc,
+        revert_fak,
+        vel,
+        distance,
+        pos
+    );
+    if ending % 10 != 0 {
+        println!("\x1b[94m{}\x1b[0m", line)
+    } else {
+        println!("{}", line)
+    }
+
+    (vel, pos)
+}
 
 #[test]
-fn physics_theory() -> Result<(), Box<dyn Error>> {
-    let tick = |i: usize, move_dir: f64, acc: f64, vel: f64, pos: f64, dt: f64| {
-        /*
-           ROLLING_FRICTION_FORCE + AIR_FRICTION_FORCE + TILT_FRICT_FORCE + ACCEL_FORCE = TOTAL_FORCE
+fn physics_constant_walk() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 0.5)]);
 
-           TILT_FRICT_FORCE = 0.0
-           TOTAL_FORCE = depends on char = const
-           ACCEL_FORCE = TOTAL_FORCE - ROLLING_FRICTION_FORCE - AIR_FRICTION_FORCE
-           ACCEL = ACCEL_FORCE / MASS
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-           ROLLING_FRICTION_FORCE => Indepent of vel
-           AIR_FRICTION_FORCE => propotional to vel²
-           https://www.energie-lexikon.info/fahrwiderstand.html
+#[test]
+fn physics_constant_stay() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.0, 1.0)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.0, 1.0)]);
 
-           https://www.energie-lexikon.info/reibung.html
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+    assert_relative_eq!(vel_05, 0.0, epsilon = EPSILON as f64);
+    assert_relative_eq!(pos_05, 0.0, epsilon = EPSILON as f64);
+}
 
-           https://sciencing.com/calculate-force-friction-6454395.html
+#[test]
+fn physics_walk_run_b() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 2.0), (1.0, 2.0)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 2.0), (1.0, 2.0)]);
 
-           https://www.leifiphysik.de/mechanik/reibung-und-fortbewegung
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
+#[test]
+fn physics_walk_run_walk() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 2.0), (1.0, 3.0), (0.5, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 2.0), (1.0, 3.0), (0.5, 0.5)]);
 
-        */
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-        let mass = 1.0;
+#[test]
+fn physics_run_walk_b() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(1.0, 0.5), (0.5, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(1.0, 0.5), (0.5, 0.5)]);
 
-        let air_friction_co = 0.9_f64;
-        let air_friction_area = 0.75_f64;
-        let air_density = 1.225_f64;
-        let c = air_friction_co * air_friction_area * 0.5 * air_density * mass;
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-        const MAX_ACC: f64 = 9.2;
-        let acc = MAX_ACC * move_dir; // btw: cant accelerate faster than gravity on foot
-        let old_vel = vel;
+#[test]
+fn physics_runlong_walk_b() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(1.0, 3.0), (0.5, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(1.0, 3.0), (0.5, 0.5)]);
 
-        // controller
-        // I know what you think, wtf, yep: https://math.stackexchange.com/questions/1929436/line-integral-of-force-of-air-resistanc
-        // basically an integral of the air resistance formula which scales with v^2
-        // transformed with an ODE.
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-        // terminal velocity equals the maximum velocity that can be reached by acc
-        // alone
-        let vel_t = (mass * acc.abs() / c).sqrt();
-        let _vel_tm = (mass * MAX_ACC / c).sqrt();
+#[test]
+fn physics_walk_stop() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 0.5), (0.0, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 0.5), (0.0, 0.5)]);
 
-        // if our old_vel is bigger than vel_t we can use `coth(x) = 1/tanh(x)` and
-        // `acoth(x) = atanh(1/x)`
-        let revert_fak = old_vel / vel_t;
-        let vel = if revert_fak.abs() >= 1.0 {
-            vel_t / ((1.0 / revert_fak).atanh() + acc.signum() * (c * acc.abs()).sqrt() * dt).tanh()
-        } else {
-            vel_t * ((revert_fak).atanh() + acc.signum() * (c * acc.abs()).sqrt() * dt).tanh()
-        };
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-        //physics
-        let distance_last = mass / c * (((old_vel * (c / acc / mass).sqrt()).atanh()).cosh()).ln();
-        let distance = mass / c
-            * (((old_vel * (c / acc / mass).sqrt()).atanh() + dt * (c * acc / mass).sqrt()).cosh())
-                .ln();
-        let diff = distance - distance_last;
-        let diff = if !diff.is_finite() { 0.0 } else { diff };
+#[test]
+fn physics_runlong_stop() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(1.0, 3.0), (0.0, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(1.0, 3.0), (0.0, 0.5)]);
 
-        let pos = pos + diff;
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-        let ending = ((i + 1) as f64 * dt * 10.0).round() as i64;
-        let line = format!(
-            "[{:0>2.1}]:    move_dir: {:0>1.1},    acc: {:0>4.4},    revert_fak: {:0>4.4},    \
-             vel: {:0>4.4},    dist: {:0>7.4},    dist: {:0>7.4},    pos: {:0>7.4},    c: {:0>4.4}",
-            (i + 1) as f64 * dt,
-            move_dir,
-            acc,
-            revert_fak,
-            vel,
-            distance_last,
-            distance,
-            pos,
-            c
-        );
-        if ending % 10 == 0 {
-            println!("\x1b[91m{}\x1b[0m", line)
-        } else if ending % 2 != 0 {
-            println!("\x1b[94m{}\x1b[0m", line)
-        } else {
-            println!("{}", line)
-        }
+#[test]
+fn physics_stop_walk() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.0, 0.5), (0.5, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.0, 0.5), (0.5, 0.5)]);
 
-        (acc, vel, pos)
-    };
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-    let test_run = |tps: u32| {
-        let dt = 1.0 / tps as f64;
-        println!("");
-        println!("dt: {}", dt);
-        let (mut acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
-        let mut i = 0;
-        for _ in 0..tps * 2 {
-            (acc, vel, pos) = tick(i, 1.0, acc, vel, pos, dt);
-            i += 1;
-        }
-        for _ in 0..tps * 2 {
-            (acc, vel, pos) = tick(i, 0.1, acc, vel, pos, dt);
-            i += 1;
-        }
-        for _ in 0..tps {
-            (acc, vel, pos) = tick(i, 1.0, acc, vel, pos, dt);
-            i += 1;
-        }
-        (vel, pos)
-    };
+#[test]
+fn physics_run_walkback() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 0.5), (-0.5, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 0.5), (-0.5, 0.5)]);
 
-    let (vel_final_01, pos_final_01) = test_run(10);
-    let (vel_final_02, pos_final_02) = test_run(5);
-    let (vel_final_10, pos_final_10) = test_run(1);
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-    let vel_diff = (vel_final_02 - vel_final_01).abs();
-    let pos_diff = (pos_final_02 - pos_final_01).abs();
-    println!(
-        "[ #1 ] vel_diff: {:4.4},   pos_diff: {:4.4}",
-        vel_diff, pos_diff
-    );
+#[test]
+fn physics_runlong_walkback_stop() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(1.0, 3.0), (-0.5, 0.5), (0.0, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(1.0, 3.0), (-0.5, 0.5), (0.0, 0.5)]);
 
-    let vel_diff = (vel_final_10 - vel_final_01).abs();
-    let pos_diff = (pos_final_10 - pos_final_01).abs();
-    println!(
-        "[ #2 ] vel_diff: {:4.4},   pos_diff: {:4.4}",
-        vel_diff, pos_diff
-    );
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
 
-    Ok(())
+#[test]
+fn physics_walkback_stop() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(-0.5, 0.5), (0.0, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(-0.5, 0.5), (0.0, 0.5)]);
+
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
+}
+
+#[test]
+fn physics_walkback_run() {
+    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(-0.5, 5.0), (1.0, 0.5)]);
+    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(-0.5, 5.0), (1.0, 0.5)]);
+
+    veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
