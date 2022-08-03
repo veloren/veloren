@@ -9,7 +9,7 @@ use common::{
     comp::{
         ability::{Ability, AbilityInput, AuxiliaryAbility},
         item::tool::{AbilityContext, ToolKind},
-        slot::InvSlotId,
+        slot::{InvSlotId, Slot},
         ActiveAbilities, Body, CharacterState, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
         Stance,
     },
@@ -276,9 +276,19 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
 #[derive(Clone, Copy)]
 pub struct CraftSlot {
     pub index: u32,
-    pub invslot: Option<InvSlotId>,
+    pub slot: Option<Slot>,
     pub requirement: fn(&Item, &ComponentRecipeBook, Option<CraftSlotInfo>) -> bool,
     pub info: Option<CraftSlotInfo>,
+}
+
+impl CraftSlot {
+    pub fn item<'a>(&'a self, inv: &'a Inventory) -> Option<&'a Item> {
+        match self.slot {
+            Some(Slot::Inventory(slot)) => inv.get(slot),
+            Some(Slot::Equip(slot)) => inv.equipped(slot),
+            None => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -287,16 +297,14 @@ pub enum CraftSlotInfo {
 }
 
 impl PartialEq for CraftSlot {
-    fn eq(&self, other: &Self) -> bool {
-        (self.index, self.invslot) == (other.index, other.invslot)
-    }
+    fn eq(&self, other: &Self) -> bool { (self.index, self.slot) == (other.index, other.slot) }
 }
 
 impl Debug for CraftSlot {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         f.debug_struct("CraftSlot")
             .field("index", &self.index)
-            .field("invslot", &self.invslot)
+            .field("slot", &self.slot)
             .field("requirement", &"fn ptr")
             .finish()
     }
@@ -306,14 +314,11 @@ impl SlotKey<Inventory, ItemImgs> for CraftSlot {
     type ImageKey = ItemKey;
 
     fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
-        self.invslot
-            .and_then(|invslot| source.get(invslot))
-            .map(|i| (i.into(), None))
+        self.item(source).map(|i| (i.into(), None))
     }
 
     fn amount(&self, source: &Inventory) -> Option<u32> {
-        self.invslot
-            .and_then(|invslot| source.get(invslot))
+        self.item(source)
             .map(|item| item.amount())
             .filter(|amount| *amount > 1)
     }

@@ -14,6 +14,7 @@ hud-crafting-loom = Loom
 hud-crafting-spinning_wheel = Spinning Wheel
 hud-crafting-tanning_rack = Tanning Rack
 hud-crafting-salvaging_station = Salvaging Bench
+hud-crafting-repair_bench = Repair Bench
 hud-crafting-campfire = Campfire
 hud-crafting-tabs-all = All
 hud-crafting-tabs-armor = Armor
@@ -34,11 +35,8 @@ hud-crafting-dismantle_explanation =
 
     Double-Click them to start dismantling.
 hud-crafting-repair_title = Repair Items
-hud-crafting-repair_explanation =
-    Repair your damaged and
-    broken equipment here.
-
-    Double-Click the item to repair it.
+hud-crafting-repair_slot_title = Damaged Item
+hud-crafting-repair_slot_desc = Place a damaged item here to repair it.
 hud-crafting-modular_desc = Drag Item-Parts here to craft a weapon
 hud-crafting-mod_weap_prim_slot_title = Primary Weapon Component
 hud-crafting-mod_weap_prim_slot_desc = Place a primary weapon component here (e.g. a sword blade, axe head, or bow limbs).

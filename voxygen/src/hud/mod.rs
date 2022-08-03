@@ -3271,6 +3271,19 @@ impl Hud {
                         crafting::Event::ClearRecipeInputs => {
                             self.show.crafting_fields.recipe_inputs.clear();
                         },
+                        crafting::Event::RepairItem { slot } => {
+                            if let Some(sprite_pos) = self
+                                .show
+                                .crafting_fields
+                                .craft_sprite
+                                .map(|(pos, _sprite)| pos)
+                            {
+                                events.push(Event::RepairItem {
+                                    item: slot,
+                                    sprite_pos,
+                                });
+                            }
+                        },
                     }
                 }
             }
@@ -3805,7 +3818,21 @@ impl Hud {
                             self.show
                                 .crafting_fields
                                 .recipe_inputs
-                                .insert(c.index, i.slot);
+                                .insert(c.index, Slot::Inventory(i.slot));
+                        }
+                    } else if let (Equip(e), Crafting(c)) = (a, b) {
+                        // Add item to crafting input
+                        if inventories
+                            .get(client.entity())
+                            .and_then(|inv| inv.equipped(e))
+                            .map_or(false, |item| {
+                                (c.requirement)(item, client.component_recipe_book(), c.info)
+                            })
+                        {
+                            self.show
+                                .crafting_fields
+                                .recipe_inputs
+                                .insert(c.index, Slot::Equip(e));
                         }
                     } else if let (Crafting(c), Inventory(_)) = (a, b) {
                         // Remove item from crafting input
@@ -3936,17 +3963,6 @@ impl Hud {
                                 (from, self.show.crafting_fields.craft_sprite)
                             {
                                 events.push(Event::SalvageItem { slot, salvage_pos })
-                            }
-                        } else if self.show.crafting_fields.repair
-                            && matches!(self.show.crafting_fields.crafting_tab, CraftingTab::Repair)
-                        {
-                            if let Some((sprite_pos, _sprite_kind)) =
-                                self.show.crafting_fields.craft_sprite
-                            {
-                                events.push(Event::RepairItem {
-                                    item: from,
-                                    sprite_pos,
-                                })
                             }
                         } else {
                             events.push(Event::UseSlot {
