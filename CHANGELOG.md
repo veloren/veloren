@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom spots can be added without recompilation (only ron and vox files)
 - Setting in userdata/server/server_config/settings.ron that controls the length of each day/night cycle.
 - Starting site can now be chosen during character creation
+- Durability loss of equipped items on death
 
 ### Changed
 - Bats move slower and use a simple proportional controller to maintain altitude
