@@ -1048,7 +1048,7 @@ impl RepairRecipeBook {
                 }
             }
 
-            inv.repair_item_at_slot(item);
+            inv.repair_item_at_slot(item, ability_map, msm);
 
             Ok(())
         } else {

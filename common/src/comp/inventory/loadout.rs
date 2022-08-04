@@ -311,6 +311,12 @@ impl Loadout {
         self.slots.iter().filter_map(|x| x.slot.as_ref())
     }
 
+    pub(super) fn items_with_slot(&self) -> impl Iterator<Item = (EquipSlot, &Item)> {
+        self.slots
+            .iter()
+            .filter_map(|x| x.slot.as_ref().map(|i| (x.equip_slot, i)))
+    }
+
     /// Checks that a slot can hold a given item
     pub(super) fn slot_can_hold(
         &self,
@@ -428,23 +434,25 @@ impl Loadout {
             .filter(|slot| slot.slot.as_ref().map_or(false, |i| i.has_durability()))
             .for_each(|slot| {
                 if let Some(item) = &mut slot.slot {
-                    item.apply_durability();
-                    // Update item state after applying durability because stats have potential to
-                    // change from different durability
-                    item.update_item_state(ability_map, msm);
+                    item.apply_durability(ability_map, msm);
                 }
             })
     }
 
     /// Resets durability of item in specified slot
-    pub(super) fn repair_item_at_slot(&mut self, equip_slot: EquipSlot) {
+    pub(super) fn repair_item_at_slot(
+        &mut self,
+        equip_slot: EquipSlot,
+        ability_map: &item::tool::AbilityMap,
+        msm: &item::MaterialStatManifest,
+    ) {
         if let Some(item) = self
             .slots
             .iter_mut()
             .find(|slot| slot.equip_slot == equip_slot)
             .and_then(|slot| slot.slot.as_mut())
         {
-            item.reset_durability();
+            item.reset_durability(ability_map, msm);
         }
     }
 }

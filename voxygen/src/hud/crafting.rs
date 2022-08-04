@@ -86,6 +86,7 @@ widget_ids! {
         dismantle_title,
         dismantle_img,
         dismantle_txt,
+        repair_buttons[],
         craft_slots[],
         modular_art,
         modular_desc_txt,
@@ -124,7 +125,7 @@ pub struct CraftingShow {
     pub crafting_search_key: Option<String>,
     pub craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     pub salvage: bool,
-    pub repair: bool,
+    pub initialize_repair: bool,
     // TODO: Maybe try to do something that doesn't need to allocate?
     pub recipe_inputs: HashMap<u32, Slot>,
 }
@@ -136,7 +137,7 @@ impl Default for CraftingShow {
             crafting_search_key: None,
             craft_sprite: None,
             salvage: false,
-            repair: false,
+            initialize_repair: false,
             recipe_inputs: HashMap::new(),
         }
     }
@@ -212,7 +213,6 @@ pub enum CraftingTab {
     Utility,
     Glider,
     Dismantle,
-    Repair,
 }
 
 impl CraftingTab {
@@ -229,7 +229,6 @@ impl CraftingTab {
             CraftingTab::Bag => "hud-crafting-tabs-bag",
             CraftingTab::ProcessedMaterial => "hud-crafting-tabs-processed_material",
             CraftingTab::Dismantle => "hud-crafting-tabs-dismantle",
-            CraftingTab::Repair => "hud-crafting-tabs-repair",
         }
     }
 
@@ -247,14 +246,13 @@ impl CraftingTab {
             CraftingTab::ProcessedMaterial => imgs.icon_processed_material,
             // These tabs are never shown, so using not found is fine
             CraftingTab::Dismantle => imgs.not_found,
-            CraftingTab::Repair => imgs.not_found,
         }
     }
 
     fn satisfies(self, recipe: &Recipe) -> bool {
         let (item, _count) = &recipe.output;
         match self {
-            CraftingTab::All | CraftingTab::Dismantle | CraftingTab::Repair => true,
+            CraftingTab::All | CraftingTab::Dismantle => true,
             CraftingTab::Food => item.tags().contains(&ItemTag::Food),
             CraftingTab::Armor => match &*item.kind() {
                 ItemKind::Armor(_) => !item.tags().contains(&ItemTag::Bag),
@@ -324,6 +322,16 @@ impl<'a> Widget for Crafting<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         let mut events = Vec::new();
+
+        // Handle any initialization
+        // TODO: Replace with struct instead of making assorted booleans once there is
+        // more than 1 field.
+        if self.show.crafting_fields.initialize_repair {
+            state.update(|s| {
+                s.selected_recipe = Some(String::from("veloren.core.pseudo_recipe.repair"))
+            });
+        }
+        self.show.crafting_fields.initialize_repair = false;
 
         // Tooltips
         let item_tooltip = ItemTooltip::new(
@@ -570,7 +578,7 @@ impl<'a> Widget for Crafting<'a> {
             );
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.repair"),
-                (&repair_recipe, "Repair Equipment", CraftingTab::Repair),
+                (&repair_recipe, "Repair Equipment", CraftingTab::All),
             );
             pseudo_entries
         };
@@ -1356,6 +1364,13 @@ impl<'a> Widget for Crafting<'a> {
                             s.ids.craft_slots.resize(1, &mut ui.widget_id_generator());
                         });
                     }
+                    if state.ids.repair_buttons.len() < 2 {
+                        state.update(|s| {
+                            s.ids
+                                .repair_buttons
+                                .resize(2, &mut ui.widget_id_generator());
+                        });
+                    }
 
                     // Slot for item to be repaired
                     let repair_slot = CraftSlot {
@@ -1367,7 +1382,7 @@ impl<'a> Widget for Crafting<'a> {
 
                     let repair_slot_widget = slot_maker
                         .fabricate(repair_slot, [40.0; 2])
-                        .mid_top_with_margin_on(state.ids.align_ing, 20.0)
+                        .top_left_with_margins_on(state.ids.align_ing, 20.0, 40.0)
                         .parent(state.ids.align_ing);
 
                     if let Some(item) = repair_slot.item(self.inventory) {
@@ -1395,16 +1410,85 @@ impl<'a> Widget for Crafting<'a> {
                             .set(state.ids.craft_slots[0], ui);
                     }
 
-                    let can_perform = repair_slot.item(self.inventory).map_or(false, |item| {
-                        self.client.repair_recipe_book().repair_recipe(item).map_or(
-                            false,
-                            |recipe| {
-                                recipe
-                                    .inventory_contains_ingredients(item, self.inventory)
-                                    .is_ok()
-                            },
+                    let can_repair = |item: &Item| {
+                        // Check that item needs to be repaired, and that inventory has sufficient
+                        // materials to repair
+                        item.durability().map_or(false, |d| d > 0)
+                            && self.client.repair_recipe_book().repair_recipe(item).map_or(
+                                false,
+                                |recipe| {
+                                    recipe
+                                        .inventory_contains_ingredients(item, self.inventory)
+                                        .is_ok()
+                                },
+                            )
+                    };
+
+                    // Repair equipped button
+                    if Button::image(self.imgs.button)
+                        .w_h(105.0, 25.0)
+                        .hover_image(self.imgs.button_hover)
+                        .press_image(self.imgs.button_press)
+                        .label(
+                            &self
+                                .localized_strings
+                                .get_msg("hud-crafting-repair_equipped"),
                         )
-                    });
+                        .label_y(conrod_core::position::Relative::Scalar(1.0))
+                        .label_color(TEXT_COLOR)
+                        .label_font_size(self.fonts.cyri.scale(12))
+                        .label_font_id(self.fonts.cyri.conrod_id)
+                        .image_color(TEXT_COLOR)
+                        .top_right_with_margins_on(state.ids.align_ing, 20.0, 20.0)
+                        .set(state.ids.repair_buttons[0], ui)
+                        .was_clicked()
+                    {
+                        self.inventory
+                            .equipped_items_with_slot()
+                            .filter(|(_, item)| can_repair(item))
+                            .for_each(|(slot, _)| {
+                                events.push(Event::RepairItem {
+                                    slot: Slot::Equip(slot),
+                                });
+                            })
+                    }
+
+                    // Repair all button
+                    if Button::image(self.imgs.button)
+                        .w_h(105.0, 25.0)
+                        .hover_image(self.imgs.button_hover)
+                        .press_image(self.imgs.button_press)
+                        .label(&self.localized_strings.get_msg("hud-crafting-repair_all"))
+                        .label_y(conrod_core::position::Relative::Scalar(1.0))
+                        .label_color(TEXT_COLOR)
+                        .label_font_size(self.fonts.cyri.scale(12))
+                        .label_font_id(self.fonts.cyri.conrod_id)
+                        .image_color(TEXT_COLOR)
+                        .mid_bottom_with_margin_on(state.ids.repair_buttons[0], -45.0)
+                        .set(state.ids.repair_buttons[1], ui)
+                        .was_clicked()
+                    {
+                        self.inventory
+                            .equipped_items_with_slot()
+                            .filter(|(_, item)| can_repair(item))
+                            .for_each(|(slot, _)| {
+                                events.push(Event::RepairItem {
+                                    slot: Slot::Equip(slot),
+                                });
+                            });
+                        self.inventory
+                            .slots_with_id()
+                            .filter(|(_, item)| item.as_ref().map_or(false, |i| can_repair(i)))
+                            .for_each(|(slot, _)| {
+                                events.push(Event::RepairItem {
+                                    slot: Slot::Inventory(slot),
+                                });
+                            });
+                    }
+
+                    let can_perform = repair_slot
+                        .item(self.inventory)
+                        .map_or(false, |item| can_repair(item));
 
                     (repair_slot.slot, None, can_perform)
                 },
@@ -1413,17 +1497,20 @@ impl<'a> Widget for Crafting<'a> {
             // Craft button
             if Button::image(self.imgs.button)
                 .w_h(105.0, 25.0)
-                .hover_image(if can_perform {
-                    self.imgs.button_hover
-                } else {
-                    self.imgs.button
+                .hover_image(
+                    can_perform
+                        .then_some(self.imgs.button_hover)
+                        .unwrap_or(self.imgs.button),
+                )
+                .press_image(
+                    can_perform
+                        .then_some(self.imgs.button_press)
+                        .unwrap_or(self.imgs.button),
+                )
+                .label(&match recipe_kind {
+                    RecipeKind::Repair => self.localized_strings.get_msg("hud-crafting-repair"),
+                    _ => self.localized_strings.get_msg("hud-crafting-craft"),
                 })
-                .press_image(if can_perform {
-                    self.imgs.button_press
-                } else {
-                    self.imgs.button
-                })
-                .label(&self.localized_strings.get_msg("hud-crafting-craft"))
                 .label_y(conrod_core::position::Relative::Scalar(1.0))
                 .label_color(if can_perform {
                     TEXT_COLOR

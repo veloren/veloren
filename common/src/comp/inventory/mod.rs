@@ -605,6 +605,10 @@ impl Inventory {
 
     pub fn equipped_items(&self) -> impl Iterator<Item = &Item> { self.loadout.items() }
 
+    pub fn equipped_items_with_slot(&self) -> impl Iterator<Item = (EquipSlot, &Item)> {
+        self.loadout.items_with_slot()
+    }
+
     /// Replaces the loadout item (if any) in the given EquipSlot with the
     /// provided item, returning the item that was previously in the slot.
     pub fn replace_loadout_item(
@@ -889,15 +893,21 @@ impl Inventory {
     }
 
     /// Resets durability of item in specified slot
-    pub fn repair_item_at_slot(&mut self, slot: Slot) {
+    pub fn repair_item_at_slot(
+        &mut self,
+        slot: Slot,
+        ability_map: &item::tool::AbilityMap,
+        msm: &item::MaterialStatManifest,
+    ) {
         match slot {
             Slot::Inventory(invslot) => {
                 if let Some(Some(item)) = self.slot_mut(invslot).map(Option::as_mut) {
-                    item.reset_durability();
+                    item.reset_durability(ability_map, msm);
                 }
             },
             Slot::Equip(equip_slot) => {
-                self.loadout.repair_item_at_slot(equip_slot);
+                self.loadout
+                    .repair_item_at_slot(equip_slot, ability_map, msm);
             },
         }
     }

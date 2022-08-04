@@ -922,7 +922,6 @@ impl Show {
             self.bag = open;
             self.map = false;
             self.crafting_fields.salvage = false;
-            self.crafting_fields.repair = false;
 
             if !open {
                 self.crafting = false;
@@ -947,7 +946,6 @@ impl Show {
             self.bag = false;
             self.crafting = false;
             self.crafting_fields.salvage = false;
-            self.crafting_fields.repair = false;
             self.social = false;
             self.quest = false;
             self.diary = false;
@@ -984,7 +982,6 @@ impl Show {
             }
             self.crafting = open;
             self.crafting_fields.salvage = false;
-            self.crafting_fields.repair = false;
             self.crafting_fields.recipe_inputs = HashMap::new();
             self.bag = open;
             self.map = false;
@@ -1004,10 +1001,10 @@ impl Show {
             self.crafting_fields.craft_sprite,
             Some((_, SpriteKind::DismantlingBench))
         ) && matches!(tab, CraftingTab::Dismantle);
-        self.crafting_fields.repair = matches!(
+        self.crafting_fields.initialize_repair = matches!(
             self.crafting_fields.craft_sprite,
             Some((_, SpriteKind::RepairBench))
-        ) && matches!(tab, CraftingTab::Repair);
+        );
     }
 
     fn diary(&mut self, open: bool) {
@@ -1016,7 +1013,6 @@ impl Show {
             self.quest = false;
             self.crafting = false;
             self.crafting_fields.salvage = false;
-            self.crafting_fields.repair = false;
             self.bag = false;
             self.map = false;
             self.diary_fields = diary::DiaryShow::default();
@@ -1037,7 +1033,6 @@ impl Show {
             self.quest = false;
             self.crafting = false;
             self.crafting_fields.salvage = false;
-            self.crafting_fields.repair = false;
             self.diary = false;
             self.want_grab = !self.any_window_requires_cursor();
         }

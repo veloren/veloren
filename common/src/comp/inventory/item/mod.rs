@@ -1222,10 +1222,13 @@ impl Item {
         }
     }
 
-    pub fn apply_durability(&mut self) {
+    pub fn apply_durability(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
         if let Some(durability) = &mut self.durability {
             *durability += 1;
         }
+        // Update item state after applying durability because stats have potential to
+        // change from different durability
+        self.update_item_state(ability_map, msm);
     }
 
     pub fn persistence_durability(&self) -> Option<NonZeroU32> {
@@ -1244,7 +1247,12 @@ impl Item {
         }
     }
 
-    pub fn reset_durability(&mut self) { self.durability = self.durability.map(|_| 0); }
+    pub fn reset_durability(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
+        self.durability = self.durability.map(|_| 0);
+        // Update item state after applying durability because stats have potential to
+        // change from different durability
+        self.update_item_state(ability_map, msm);
+    }
 
     #[cfg(test)]
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
