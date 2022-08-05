@@ -30,16 +30,12 @@ hud-crafting-tabs-utility = Utility
 hud-crafting-tabs-weapon = Weapons
 hud-crafting-tabs-bag = Bags
 hud-crafting-tabs-processed_material = Materials
-hud-crafting-tabs-repair = Repair
 hud-crafting-dismantle_title = Dismantling
 hud-crafting-dismantle_explanation =
     Hover items in your bag to see what
     you can salvage.
 
     Double-Click them to start dismantling.
-hud-crafting-repair_title = Repair Items
-hud-crafting-repair_slot_title = Damaged Item
-hud-crafting-repair_slot_desc = Place a damaged item here to repair it.
 hud-crafting-modular_desc = Drag Item-Parts here to craft a weapon
 hud-crafting-mod_weap_prim_slot_title = Primary Weapon Component
 hud-crafting-mod_weap_prim_slot_desc = Place a primary weapon component here (e.g. a sword blade, axe head, or bow limbs).

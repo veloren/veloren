@@ -5,7 +5,8 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            Effects, ItemDefinitionId, ItemDesc, ItemKind, MaterialKind, MaterialStatManifest,
+            Effects, Item, ItemDefinitionId, ItemDesc, ItemKind, MaterialKind,
+            MaterialStatManifest,
         },
         BuffKind,
     },
@@ -353,6 +354,14 @@ pub fn protec2string(stat: Protection) -> String {
         Protection::Normal(a) => format!("{:.1}", a),
         Protection::Invincible => "Inf".to_string(),
     }
+}
+
+/// Gets the durability of an item in a format more intuitive for UI
+pub fn item_durability(item: &dyn ItemDesc) -> Option<u32> {
+    let durability = item
+        .durability()
+        .or_else(|| item.has_durability().then_some(0));
+    durability.map(|d| Item::MAX_DURABILITY - d)
 }
 
 pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {

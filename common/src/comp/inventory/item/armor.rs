@@ -38,7 +38,7 @@ impl ArmorKind {
             Back => true,
             Ring => false,
             Neck => false,
-            Head => false,
+            Head => true,
             Tabard => false,
             Bag => false,
         }

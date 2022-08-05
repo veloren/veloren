@@ -218,11 +218,12 @@ impl Mul<DurabilityMultiplier> for Stats {
 
     fn mul(self, value: DurabilityMultiplier) -> Self {
         let DurabilityMultiplier(value) = value;
+        let less_scaled = value * 0.5 + 0.5;
         Self {
-            equip_time_secs: self.equip_time_secs / value.max(0.01),
+            equip_time_secs: self.equip_time_secs / less_scaled.max(0.01),
             power: self.power * value,
             effect_power: self.effect_power * value,
-            speed: self.speed * value,
+            speed: self.speed * less_scaled,
             crit_chance: self.crit_chance * value,
             range: self.range * value,
             energy_efficiency: self.energy_efficiency * value,

@@ -711,6 +711,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                             equipped_tool_stats.buff_strength,
                         );
 
+                        let tool_durability =
+                            util::item_durability(item).unwrap_or(Item::MAX_DURABILITY);
+                        let equipped_durability =
+                            util::item_durability(equipped_item).unwrap_or(Item::MAX_DURABILITY);
+                        let durability_diff =
+                            util::comparison(tool_durability, equipped_durability);
+
                         let mut diff_text = |text: String, color, id_index| {
                             widget::Text::new(&text)
                                 .align_middle_y_of(state.ids.stats[id_index])
@@ -765,6 +772,14 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 &diff.buff_strength * 100.0
                             );
                             diff_text(text, buff_strength_diff.1, 6)
+                        }
+                        if tool_durability != equipped_durability {
+                            let text = format!(
+                                "{} {}",
+                                &durability_diff.0,
+                                tool_durability as i32 - equipped_durability as i32
+                            );
+                            diff_text(text, durability_diff.1, 7)
                         }
                     }
                 }
@@ -890,8 +905,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     index += 1;
                 }
 
-                if item.has_durability() {
-                    let durability = Item::MAX_DURABILITY - item.durability().unwrap_or(0);
+                if let Some(durability) = util::item_durability(item) {
                     stat_text(
                         format!(
                             "{} : {}/{}",
@@ -930,6 +944,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                         );
                         let stealth_diff =
                             util::option_comparison(&armor_stats.stealth, &equipped_stats.stealth);
+
+                        let armor_durability = util::item_durability(item);
+                        let equipped_durability = util::item_durability(equipped_item);
+                        let durability_diff =
+                            util::option_comparison(&armor_durability, &equipped_durability);
 
                         let mut diff_text = |text: String, color, id_index| {
                             widget::Text::new(&text)
@@ -998,6 +1017,14 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 let text = format!("{} {:.3}", &stealth_diff.0, s_diff);
                                 diff_text(text, stealth_diff.1, index);
                             }
+                        }
+                        index += armor_stats.stealth.is_some() as usize;
+
+                        if armor_durability != equipped_durability {
+                            let diff = armor_durability.unwrap_or(Item::MAX_DURABILITY) as i32
+                                - equipped_durability.unwrap_or(Item::MAX_DURABILITY) as i32;
+                            let text = format!("{} {}", &durability_diff.0, diff);
+                            diff_text(text, durability_diff.1, index);
                         }
                     }
                 }
