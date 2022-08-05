@@ -21,21 +21,25 @@ recipes: {
     ModularWeapon(material: "common.items.mineral.ingot.steel"): (
         inputs: [
             (Item("common.items.mineral.ingot.steel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
         ],
     ),
     ModularWeapon(material: "common.items.mineral.ingot.cobalt"): (
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
         ],
     ),
     ModularWeapon(material: "common.items.mineral.ingot.bloodsteel"): (
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
     ModularWeapon(material: "common.items.mineral.ingot.orichalcum"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ModularWeapon(material: "common.items.log.wood"): (
@@ -51,23 +55,100 @@ recipes: {
     ModularWeapon(material: "common.items.log.hardwood"): (
         inputs: [
             (Item("common.items.log.hardwood"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
         ],
     ),
     ModularWeapon(material: "common.items.log.ironwood"): (
         inputs: [
             (Item("common.items.log.ironwood"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
         ],
     ),
     ModularWeapon(material: "common.items.log.frostwood"): (
         inputs: [
             (Item("common.items.log.frostwood"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
     ModularWeapon(material: "common.items.log.eldwood"): (
         inputs: [
             (Item("common.items.log.eldwood"), 1),
+            (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
+    // UNCRAFTABLE WEAPONS
+    ItemDefId("common.items.weapons.sword.cultist"): (
+        inputs: [
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.axe.malachite"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.weapons.hammer.cultist_purp_2h-0"): (
+        inputs: [
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.bow.velorite"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.weapons.staff.cultist_staff"): (
+        inputs: [
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.scepter.root_evil"): (
+        inputs: [
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.scepter.sceptre_velorite_0"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.weapons.sword.caladbolg"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+        ],
+    ),
+    ItemDefId("common.items.weapons.axe.parashu"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+        ],
+    ),
+    ItemDefId("common.items.weapons.hammer.mjolnir"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+        ],
+    ),
+    ItemDefId("common.items.weapons.bow.sagitta"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+        ],
+    ),
+    ItemDefId("common.items.weapons.staff.laevateinn"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+        ],
+    ),
+    ItemDefId("common.items.weapons.scepter.caduceus"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+        ],
+    ),
+    // ARMOR
+    ItemDefId("common.items.armor.misc.chest.worker_purple_0"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.pants.worker_brown"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.foot.sandals"): ( inputs: [], ),
     // ARMOR/HIDE/RAWHIDE
     ItemDefId("common.items.armor.hide.rawhide.back"): (
         inputs: [
@@ -288,7 +369,7 @@ recipes: {
             (Item("common.items.mineral.ore.velorite"), 3),
         ],
     ),
-    ItemDefId("common.items.armorhide.dragonscale.foot"): (
+    ItemDefId("common.items.armor.hide.dragonscale.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
             (Item("common.items.mineral.ore.velorite"), 2),
@@ -800,7 +881,63 @@ recipes: {
             (Item("common.items.mineral.ore.velorite"), 3),
         ],
     ),
+    // ARMOR/CULTIST
+    ItemDefId("common.items.armor.cultist.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.chest"): (
+        inputs: [
+            (Item("common.items.food.spore_corruption"), 1),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 4),
+            (Item("common.items.mineral.ore.veloritefrag"), 7),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.pants"): (
+        inputs: [
+            (Item("common.items.food.spore_corruption"), 1),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 5),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.shoulder"): (
+        inputs: [
+            (Item("common.items.food.spore_corruption"), 1),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 5),
+        ],
+    ),
     // MISC/HEAD
+    ItemDefId("common.items.armor.misc.head.bandana.red"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen_red"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.bandana.thief"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 2),
+        ],
+    ),
     ItemDefId("common.items.armor.misc.head.hood"): (
         inputs: [
             (Item("common.items.crafting_ing.leather.thick_leather"), 1),
