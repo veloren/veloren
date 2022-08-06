@@ -56,6 +56,7 @@ pub fn process_inbox_interaction(bdata: &mut BehaviorData) -> bool {
     false
 }
 
+/// Increment agent's action_state timer
 pub fn increment_timer_deltatime(bdata: &mut BehaviorData) -> bool {
     bdata.agent.action_state.timer += bdata.read_data.dt.0;
     false
@@ -344,6 +345,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
     true
 }
 
+/// Handles TradeInvite event if the front of the agent's inbox contains one
 pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
         agent,
@@ -391,6 +393,7 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
     true
 }
 
+/// Handles TradeAccepted event if the front of the agent's inbox contains one
 pub fn handle_inbox_trade_accepted(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
         agent, read_data, ..
@@ -412,6 +415,7 @@ pub fn handle_inbox_trade_accepted(bdata: &mut BehaviorData) -> bool {
     true
 }
 
+/// Handles TradeFinished event if the front of the agent's inbox contains one
 pub fn handle_inbox_finished_trade(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
         agent,
@@ -440,6 +444,8 @@ pub fn handle_inbox_finished_trade(bdata: &mut BehaviorData) -> bool {
     true
 }
 
+/// Handles UpdatePendingTrade event if the front of the agent's inbox contains
+/// one
 pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
         agent,
@@ -519,6 +525,12 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
     true
 }
 
+/// Deny any received interaction:
+/// - `AgentEvent::Talk` and `AgentEvent::TradeAccepted` are cut short by an
+///   "I'm busy" message
+/// - `AgentEvent::TradeInvite` are denied
+/// - `AgentEvent::FinishedTrade` are still handled
+/// - `AgentEvent::UpdatePendingTrade` will immediately close the trade
 pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
         agent,

@@ -53,6 +53,9 @@ pub struct BehaviorTree {
 }
 
 impl BehaviorTree {
+    /// Base BehaviorTree
+    ///
+    /// React to immediate dangers (fire, fall & attacks) then call subtrees
     pub fn root() -> Self {
         Self {
             tree: vec![
@@ -66,6 +69,10 @@ impl BehaviorTree {
         }
     }
 
+    /// Target BehaviorTree
+    ///
+    /// React to the agent's target.
+    /// Either redirect to hostile or pet tree
     pub fn target() -> Self {
         Self {
             tree: vec![
@@ -79,12 +86,20 @@ impl BehaviorTree {
         }
     }
 
+    /// Pet BehaviorTree
+    ///
+    /// Follow the owner and attack ennemies
     pub fn pet() -> Self {
         Self {
             tree: vec![follow_if_far_away, attack_if_owner_hurt, do_idle_tree],
         }
     }
 
+    /// Interaction BehaviorTree
+    ///
+    /// Either process the inbox for talk and trade events if the agent can
+    /// talk. If not, or if we are in combat, deny all talk and trade
+    /// events.
     pub fn interaction(agent: &Agent) -> Self {
         let is_in_combat = if let Some(Target { hostile, .. }) = agent.target {
             hostile
@@ -109,15 +124,19 @@ impl BehaviorTree {
         }
     }
 
+    /// Hostile BehaviorTree
+    ///
+    /// Attack the target, and heal self if applicable
     pub fn hostile() -> Self {
         Self {
             tree: vec![heal_self_if_hurt, hurt_utterance, do_combat],
         }
     }
 
+    /// Idle BehaviorTree
     pub fn idle() -> Self {
         Self {
-            tree: vec![set_owner_if_no_target, handle_timer],
+            tree: vec![set_owner_if_no_target, handle_timed_events],
         }
     }
 
@@ -263,7 +282,8 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
 }
 
 /// If the agent has a target, do the target tree, else do the idle tree
-/// This function won't stop the behavior tree
+///
+/// This function will never stop the BehaviorTree
 fn do_target_tree_if_target_else_do_idle_tree(bdata: &mut BehaviorData) -> bool {
     if bdata.agent.target.is_some() {
         BehaviorTree::target().run_with_behavior_data(bdata);
@@ -273,9 +293,11 @@ fn do_target_tree_if_target_else_do_idle_tree(bdata: &mut BehaviorData) -> bool 
     false
 }
 
+/// Run the Idle BehaviorTree
+///
+/// This function can stop the BehaviorTree
 fn do_idle_tree(bdata: &mut BehaviorData) -> bool {
-    BehaviorTree::idle().run_with_behavior_data(bdata);
-    true
+    BehaviorTree::idle().run_with_behavior_data(bdata)
 }
 
 /// If target is dead, forget them
@@ -299,7 +321,7 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-/// If target is hostile, hostile tree
+/// If target is hostile, do the hostile tree and stop the current BehaviorTree
 fn do_hostile_tree_if_hostile(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { hostile, .. }) = bdata.agent.target {
         if hostile {
@@ -310,7 +332,7 @@ fn do_hostile_tree_if_hostile(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-/// if owned, act as pet to them
+/// if owned, do the pet tree and stop the current BehaviorTree
 fn do_pet_tree_if_owned(bdata: &mut BehaviorData) -> bool {
     if let (Some(Target { target, .. }), Some(Alignment::Owned(uid))) =
         (bdata.agent.target, bdata.agent_data.alignment)
@@ -326,6 +348,7 @@ fn do_pet_tree_if_owned(bdata: &mut BehaviorData) -> bool {
     false
 }
 
+/// If the target is an ItemDrop, go pick it up
 fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
         if matches!(bdata.read_data.bodies.get(target), Some(Body::ItemDrop(_))) {
@@ -360,12 +383,15 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
     false
 }
 
+/// Reset the agent's target
+///
+/// This function will never stop the BehaviorTree
 fn untarget(bdata: &mut BehaviorData) -> bool {
     bdata.agent.target = None;
     false
 }
 
-// If too far away, then follow
+// If too far away, then follow the target
 fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
@@ -426,7 +452,8 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-fn handle_timer(bdata: &mut BehaviorData) -> bool {
+/// Handle timed events, like looking at the player we are talking to
+fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
     let timeout = if bdata.agent.behavior.is(BehaviorState::TRADING) {
         TRADE_INTERACTION_TIME
     } else {
@@ -470,6 +497,7 @@ fn handle_timer(bdata: &mut BehaviorData) -> bool {
     false
 }
 
+/// Try to heal self if our damage went below a certain threshold
 fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
     if bdata.agent_data.damage < HEALING_ITEM_THRESHOLD
         && bdata
@@ -482,9 +510,9 @@ fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
     false
 }
 
+/// Hurt utterances at random upon receiving damage
 fn hurt_utterance(bdata: &mut BehaviorData) -> bool {
     if matches!(bdata.agent.inbox.front(), Some(AgentEvent::Hurt)) {
-        // Hurt utterances at random upon receiving damage
         if bdata.rng.gen::<f32>() < 0.4 {
             bdata.controller.push_utterance(UtteranceKind::Hurt);
         }
