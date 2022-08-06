@@ -3,22 +3,21 @@ use common::{
         agent::{
             AgentEvent, Target, TimerAction, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME,
         },
-        compass::{Direction, Distance},
-        dialogue::{MoodContext, MoodState, Subject},
-        invite::{InviteKind, InviteResponse},
-        Agent, Alignment, BehaviorState, Body, BuffKind, ControlAction, ControlEvent, Controller,
-        InputKind, InventoryEvent, UnresolvedChatMsg, UtteranceKind,
+        Agent, Alignment, Behavior, BehaviorCapability, BehaviorState, Body, BuffKind,
+        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, UtteranceKind,
     },
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
-    rtsim::{Memory, MemoryItem, RtSimEvent},
-    trade::{TradeAction, TradePhase, TradeResult},
 };
 use rand::{prelude::ThreadRng, thread_rng, Rng};
 use specs::saveload::{Marker, MarkerAllocator};
 use vek::Vec2;
 
-use crate::rtsim::entity::PersonalityTrait;
+use self::interaction::{
+    handle_inbox_cancel_interactions, handle_inbox_finished_trade, handle_inbox_talk,
+    handle_inbox_trade_accepted, handle_inbox_trade_invite, handle_inbox_update_pending_trade,
+    increment_timer_deltatime, process_inbox_interaction, process_inbox_sound_and_hurt,
+};
 
 use super::{
     consts::{
@@ -29,8 +28,10 @@ use super::{
     util::{get_entity_by_id, is_dead, is_dead_or_invulnerable, is_invulnerable, stop_pursuing},
 };
 
+mod interaction;
+
 /// Struct containing essential data for running a behavior tree
-struct BehaviorData<'a, 'b, 'c> {
+pub struct BehaviorData<'a, 'b, 'c> {
     agent: &'a mut Agent,
     agent_data: AgentData<'a>,
     read_data: &'a ReadData<'a>,
@@ -58,8 +59,8 @@ impl BehaviorTree {
                 react_on_dangerous_fall,
                 react_if_on_fire,
                 target_if_attacked,
-                do_target_tree_if_target,
-                do_idle_tree,
+                do_target_tree_if_target_else_do_idle_tree,
+                process_inbox_interaction,
             ],
         }
     }
@@ -83,22 +84,33 @@ impl BehaviorTree {
         }
     }
 
-    pub fn interaction() -> Self {
-        Self {
-            tree: vec![
-                increment_timer_deltatime,
-                handle_inbox_talk,
-                handle_inbox_trade_invite,
-                handle_inbox_trade_accepted,
-                handle_inbox_finished_trade,
-                handle_inbox_update_pending_trade,
-            ],
+    pub fn interaction(behavior: Behavior) -> Self {
+        if behavior.can(BehaviorCapability::SPEAK) {
+            Self {
+                tree: vec![
+                    increment_timer_deltatime,
+                    handle_inbox_talk,
+                    handle_inbox_trade_invite,
+                    handle_inbox_trade_accepted,
+                    handle_inbox_finished_trade,
+                    handle_inbox_update_pending_trade,
+                ],
+            }
+        } else {
+            Self {
+                tree: vec![handle_inbox_cancel_interactions],
+            }
         }
     }
 
     pub fn hostile() -> Self {
         Self {
-            tree: vec![heal_self_if_hurt, hurt_utterance, do_combat],
+            tree: vec![
+                handle_inbox_cancel_interactions,
+                heal_self_if_hurt,
+                hurt_utterance,
+                do_combat,
+            ],
         }
     }
 
@@ -107,7 +119,6 @@ impl BehaviorTree {
             tree: vec![
                 set_owner_if_no_target,
                 process_inbox_sound_and_hurt,
-                process_inbox_interaction,
                 handle_timer,
             ],
         }
@@ -254,10 +265,13 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-fn do_target_tree_if_target(bdata: &mut BehaviorData) -> bool {
+/// If the agent has a target, do the target tree, else do the idle tree
+/// This function won't stop the behavior tree
+fn do_target_tree_if_target_else_do_idle_tree(bdata: &mut BehaviorData) -> bool {
     if bdata.agent.target.is_some() {
         BehaviorTree::target().run_with_behavior_data(bdata);
-        return true;
+    } else {
+        BehaviorTree::idle().run_with_behavior_data(bdata);
     }
     false
 }
@@ -411,45 +425,6 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
                 bdata.agent.target = Some(Target::new(owner, false, bdata.read_data.time.0, false));
             }
         }
-    }
-    false
-}
-
-/// Interact if incoming messages
-fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
-    if !bdata.agent.inbox.is_empty() {
-        if matches!(
-            bdata.agent.inbox.front(),
-            Some(AgentEvent::ServerSound(_)) | Some(AgentEvent::Hurt)
-        ) {
-            let sound = bdata.agent.inbox.pop_front();
-            match sound {
-                Some(AgentEvent::ServerSound(sound)) => {
-                    bdata.agent.sounds_heard.push(sound);
-                },
-                Some(AgentEvent::Hurt) => {
-                    // Hurt utterances at random upon receiving damage
-                    if bdata.rng.gen::<f32>() < 0.4 {
-                        bdata.controller.push_utterance(UtteranceKind::Hurt);
-                    }
-                },
-                //Note: this should be unreachable
-                Some(_) | None => {},
-            }
-        } else {
-            bdata.agent.action_state.timer = 0.1;
-        }
-    }
-    false
-}
-
-/// If we receive a new interaction, start the interaction timer
-fn process_inbox_interaction(bdata: &mut BehaviorData) -> bool {
-    if bdata.agent.allowed_to_speak() && BehaviorTree::interaction().run_with_behavior_data(bdata) {
-        bdata
-            .agent
-            .timer
-            .start(bdata.read_data.time.0, TimerAction::Interact);
     }
     false
 }
@@ -622,467 +597,4 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
         }
     }
     false
-}
-
-fn increment_timer_deltatime(bdata: &mut BehaviorData) -> bool {
-    bdata.agent.action_state.timer += bdata.read_data.dt.0;
-    false
-}
-
-/// Handles Talk event if the front of the agent's inbox contains one
-fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
-    let BehaviorData {
-        agent,
-        agent_data,
-        read_data,
-        event_emitter,
-        controller,
-        ..
-    } = bdata;
-
-    if !matches!(agent.inbox.front(), Some(AgentEvent::Talk(_, _))) {
-        return false;
-    }
-
-    if let Some(AgentEvent::Talk(by, subject)) = agent.inbox.pop_front() {
-        if agent.allowed_to_speak() {
-            if let Some(target) = get_entity_by_id(by.id(), read_data) {
-                agent.target = Some(Target::new(target, false, read_data.time.0, false));
-
-                if agent_data.look_toward(controller, read_data, target) {
-                    controller.push_action(ControlAction::Stand);
-                    controller.push_action(ControlAction::Talk);
-                    controller.push_utterance(UtteranceKind::Greeting);
-
-                    match subject {
-                        Subject::Regular => {
-                            if let (Some((_travel_to, destination_name)), Some(rtsim_entity)) =
-                                (&agent.rtsim_controller.travel_to, &agent_data.rtsim_entity)
-                            {
-                                let personality = &rtsim_entity.brain.personality;
-                                let standard_response_msg = || -> String {
-                                    if personality
-                                        .personality_traits
-                                        .contains(PersonalityTrait::Extroverted)
-                                    {
-                                        format!(
-                                            "I'm heading to {}! Want to come along?",
-                                            destination_name
-                                        )
-                                    } else if personality
-                                        .personality_traits
-                                        .contains(PersonalityTrait::Disagreeable)
-                                    {
-                                        "Hrm.".to_string()
-                                    } else {
-                                        "Hello!".to_string()
-                                    }
-                                };
-                                let msg = if let Some(tgt_stats) = read_data.stats.get(target) {
-                                    agent.rtsim_controller.events.push(RtSimEvent::AddMemory(
-                                        Memory {
-                                            item: MemoryItem::CharacterInteraction {
-                                                name: tgt_stats.name.clone(),
-                                            },
-                                            time_to_forget: read_data.time.0 + 600.0,
-                                        },
-                                    ));
-                                    if rtsim_entity.brain.remembers_character(&tgt_stats.name) {
-                                        if personality
-                                            .personality_traits
-                                            .contains(PersonalityTrait::Extroverted)
-                                        {
-                                            format!(
-                                                "Greetings fair {}! It has been far too long \
-                                                 since last I saw you. I'm going to {} right now.",
-                                                &tgt_stats.name, destination_name
-                                            )
-                                        } else if personality
-                                            .personality_traits
-                                            .contains(PersonalityTrait::Disagreeable)
-                                        {
-                                            "Oh. It's you again.".to_string()
-                                        } else {
-                                            format!(
-                                                "Hi again {}! Unfortunately I'm in a hurry right \
-                                                 now. See you!",
-                                                &tgt_stats.name
-                                            )
-                                        }
-                                    } else {
-                                        standard_response_msg()
-                                    }
-                                } else {
-                                    standard_response_msg()
-                                };
-                                agent_data.chat_npc(msg, event_emitter);
-                            } else if agent.behavior.can_trade() {
-                                if !agent.behavior.is(BehaviorState::TRADING) {
-                                    controller.push_initiate_invite(by, InviteKind::Trade);
-                                    agent_data.chat_npc(
-                                        "npc.speech.merchant_advertisement",
-                                        event_emitter,
-                                    );
-                                } else {
-                                    let default_msg = "npc.speech.merchant_busy";
-                                    let msg = agent_data.rtsim_entity.map_or(default_msg, |e| {
-                                        if e.brain
-                                            .personality
-                                            .personality_traits
-                                            .contains(PersonalityTrait::Disagreeable)
-                                        {
-                                            "npc.speech.merchant_busy_rude"
-                                        } else {
-                                            default_msg
-                                        }
-                                    });
-                                    agent_data.chat_npc(msg, event_emitter);
-                                }
-                            } else {
-                                let mut rng = thread_rng();
-                                if let Some(extreme_trait) = agent_data
-                                    .rtsim_entity
-                                    .and_then(|e| e.brain.personality.random_chat_trait(&mut rng))
-                                {
-                                    let msg = match extreme_trait {
-                                        PersonalityTrait::Open => "npc.speech.villager_open",
-                                        PersonalityTrait::Adventurous => {
-                                            "npc.speech.villager_adventurous"
-                                        },
-                                        PersonalityTrait::Closed => "npc.speech.villager_closed",
-                                        PersonalityTrait::Conscientious => {
-                                            "npc.speech.villager_conscientious"
-                                        },
-                                        PersonalityTrait::Busybody => {
-                                            "npc.speech.villager_busybody"
-                                        },
-                                        PersonalityTrait::Unconscientious => {
-                                            "npc.speech.villager_unconscientious"
-                                        },
-                                        PersonalityTrait::Extroverted => {
-                                            "npc.speech.villager_extroverted"
-                                        },
-                                        PersonalityTrait::Introverted => {
-                                            "npc.speech.villager_introverted"
-                                        },
-                                        PersonalityTrait::Agreeable => {
-                                            "npc.speech.villager_agreeable"
-                                        },
-                                        PersonalityTrait::Sociable => {
-                                            "npc.speech.villager_sociable"
-                                        },
-                                        PersonalityTrait::Disagreeable => {
-                                            "npc.speech.villager_disagreeable"
-                                        },
-                                        PersonalityTrait::Neurotic => {
-                                            "npc.speech.villager_neurotic"
-                                        },
-                                        PersonalityTrait::Seeker => "npc.speech.villager_seeker",
-                                        PersonalityTrait::SadLoner => {
-                                            "npc.speech.villager_sad_loner"
-                                        },
-                                        PersonalityTrait::Worried => "npc.speech.villager_worried",
-                                        PersonalityTrait::Stable => "npc.speech.villager_stable",
-                                    };
-                                    agent_data.chat_npc(msg, event_emitter);
-                                } else {
-                                    agent_data.chat_npc("npc.speech.villager", event_emitter);
-                                }
-                            }
-                        },
-                        Subject::Trade => {
-                            if agent.behavior.can_trade() {
-                                if !agent.behavior.is(BehaviorState::TRADING) {
-                                    controller.push_initiate_invite(by, InviteKind::Trade);
-                                    agent_data.chat_npc(
-                                        "npc.speech.merchant_advertisement",
-                                        event_emitter,
-                                    );
-                                } else {
-                                    agent_data.chat_npc("npc.speech.merchant_busy", event_emitter);
-                                }
-                            } else {
-                                // TODO: maybe make some travellers willing to trade with
-                                // simpler goods like potions
-                                agent_data
-                                    .chat_npc("npc.speech.villager_decline_trade", event_emitter);
-                            }
-                        },
-                        Subject::Mood => {
-                            if let Some(rtsim_entity) = agent_data.rtsim_entity {
-                                if !rtsim_entity.brain.remembers_mood() {
-                                    // TODO: the following code will need a rework to
-                                    // implement more mood contexts
-                                    // This require that town NPCs becomes rtsim_entities to
-                                    // work fully.
-                                    match rand::random::<u32>() % 3 {
-                                        0 => agent.rtsim_controller.events.push(
-                                            RtSimEvent::SetMood(Memory {
-                                                item: MemoryItem::Mood {
-                                                    state: MoodState::Good(
-                                                        MoodContext::GoodWeather,
-                                                    ),
-                                                },
-                                                time_to_forget: read_data.time.0 + 21200.0,
-                                            }),
-                                        ),
-                                        1 => agent.rtsim_controller.events.push(
-                                            RtSimEvent::SetMood(Memory {
-                                                item: MemoryItem::Mood {
-                                                    state: MoodState::Neutral(
-                                                        MoodContext::EverydayLife,
-                                                    ),
-                                                },
-                                                time_to_forget: read_data.time.0 + 21200.0,
-                                            }),
-                                        ),
-                                        2 => agent.rtsim_controller.events.push(
-                                            RtSimEvent::SetMood(Memory {
-                                                item: MemoryItem::Mood {
-                                                    state: MoodState::Bad(MoodContext::GoodWeather),
-                                                },
-                                                time_to_forget: read_data.time.0 + 86400.0,
-                                            }),
-                                        ),
-                                        _ => {}, // will never happen
-                                    }
-                                }
-                                if let Some(memory) = rtsim_entity.brain.get_mood() {
-                                    let msg = match &memory.item {
-                                        MemoryItem::Mood { state } => state.describe(),
-                                        _ => "".to_string(),
-                                    };
-                                    agent_data.chat_npc(msg, event_emitter);
-                                }
-                            }
-                        },
-                        Subject::Location(location) => {
-                            if let Some(tgt_pos) = read_data.positions.get(target) {
-                                let raw_dir = location.origin.as_::<f32>() - tgt_pos.0.xy();
-                                let dist = Distance::from_dir(raw_dir).name();
-                                let dir = Direction::from_dir(raw_dir).name();
-
-                                let msg = format!(
-                                    "{} ? I think it's {} {} from here!",
-                                    location.name, dist, dir
-                                );
-                                agent_data.chat_npc(msg, event_emitter);
-                            }
-                        },
-                        Subject::Person(person) => {
-                            if let Some(src_pos) = read_data.positions.get(target) {
-                                let msg = if let Some(person_pos) = person.origin {
-                                    let distance =
-                                        Distance::from_dir(person_pos.xy() - src_pos.0.xy());
-                                    match distance {
-                                        Distance::NextTo | Distance::Near => {
-                                            format!(
-                                                "{} ? I think he's {} {} from here!",
-                                                person.name(),
-                                                distance.name(),
-                                                Direction::from_dir(
-                                                    person_pos.xy() - src_pos.0.xy(),
-                                                )
-                                                .name()
-                                            )
-                                        },
-                                        _ => {
-                                            format!(
-                                                "{} ? I think he's gone visiting another town. \
-                                                 Come back later!",
-                                                person.name()
-                                            )
-                                        },
-                                    }
-                                } else {
-                                    format!(
-                                        "{} ? Sorry, I don't know where you can find him.",
-                                        person.name()
-                                    )
-                                };
-                                agent_data.chat_npc(msg, event_emitter);
-                            }
-                        },
-                        Subject::Work => {},
-                    }
-                }
-            }
-        }
-    }
-    true
-}
-
-fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
-    let BehaviorData {
-        agent,
-        agent_data,
-        read_data,
-        event_emitter,
-        controller,
-        ..
-    } = bdata;
-
-    if !matches!(agent.inbox.front(), Some(AgentEvent::TradeInvite(_))) {
-        return false;
-    }
-
-    if let Some(AgentEvent::TradeInvite(with)) = agent.inbox.pop_front() {
-        if agent.behavior.can_trade() {
-            if !agent.behavior.is(BehaviorState::TRADING) {
-                // stand still and looking towards the trading player
-                controller.push_action(ControlAction::Stand);
-                controller.push_action(ControlAction::Talk);
-                if let Some(target) = get_entity_by_id(with.id(), read_data) {
-                    agent.target = Some(Target::new(target, false, read_data.time.0, false));
-                }
-                controller.push_invite_response(InviteResponse::Accept);
-                agent.behavior.unset(BehaviorState::TRADING_ISSUER);
-                agent.behavior.set(BehaviorState::TRADING);
-            } else {
-                controller.push_invite_response(InviteResponse::Decline);
-                agent_data.chat_npc_if_allowed_to_speak(
-                    "npc.speech.merchant_busy",
-                    agent,
-                    event_emitter,
-                );
-            }
-        } else {
-            // TODO: Provide a hint where to find the closest merchant?
-            controller.push_invite_response(InviteResponse::Decline);
-            agent_data.chat_npc_if_allowed_to_speak(
-                "npc.speech.villager_decline_trade",
-                agent,
-                event_emitter,
-            );
-        }
-    }
-    true
-}
-
-fn handle_inbox_trade_accepted(bdata: &mut BehaviorData) -> bool {
-    let BehaviorData {
-        agent, read_data, ..
-    } = bdata;
-
-    if !matches!(agent.inbox.front(), Some(AgentEvent::TradeAccepted(_))) {
-        return false;
-    }
-
-    if let Some(AgentEvent::TradeAccepted(with)) = agent.inbox.pop_front() {
-        if !agent.behavior.is(BehaviorState::TRADING) {
-            if let Some(target) = get_entity_by_id(with.id(), read_data) {
-                agent.target = Some(Target::new(target, false, read_data.time.0, false));
-            }
-            agent.behavior.set(BehaviorState::TRADING);
-            agent.behavior.set(BehaviorState::TRADING_ISSUER);
-        }
-    }
-    true
-}
-
-fn handle_inbox_finished_trade(bdata: &mut BehaviorData) -> bool {
-    let BehaviorData {
-        agent,
-        agent_data,
-        event_emitter,
-        ..
-    } = bdata;
-
-    if !matches!(agent.inbox.front(), Some(AgentEvent::FinishedTrade(_))) {
-        return false;
-    }
-
-    if let Some(AgentEvent::FinishedTrade(result)) = agent.inbox.pop_front() {
-        if agent.behavior.is(BehaviorState::TRADING) {
-            match result {
-                TradeResult::Completed => {
-                    agent_data.chat_npc("npc.speech.merchant_trade_successful", event_emitter);
-                },
-                _ => {
-                    agent_data.chat_npc("npc.speech.merchant_trade_declined", event_emitter);
-                },
-            }
-            agent.behavior.unset(BehaviorState::TRADING);
-        }
-    }
-    true
-}
-
-fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
-    let BehaviorData {
-        agent,
-        agent_data,
-        read_data,
-        event_emitter,
-        ..
-    } = bdata;
-
-    if !matches!(agent.inbox.front(), Some(AgentEvent::UpdatePendingTrade(_))) {
-        return false;
-    }
-
-    if let Some(AgentEvent::UpdatePendingTrade(boxval)) = agent.inbox.pop_front() {
-        let (tradeid, pending, prices, inventories) = *boxval;
-        if agent.behavior.is(BehaviorState::TRADING) {
-            let who: usize = if agent.behavior.is(BehaviorState::TRADING_ISSUER) {
-                0
-            } else {
-                1
-            };
-            let balance0: f32 = prices.balance(&pending.offers, &inventories, 1 - who, true);
-            let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
-            if balance0 >= balance1 {
-                // If the trade is favourable to us, only send an accept message if we're
-                // not already accepting (since otherwise, spam-clicking the accept button
-                // results in lagging and moving to the review phase of an unfavorable trade
-                // (although since the phase is included in the message, this shouldn't
-                // result in fully accepting an unfavourable trade))
-                if !pending.accept_flags[who] && !pending.is_empty_trade() {
-                    event_emitter.emit(ServerEvent::ProcessTradeAction(
-                        *agent_data.entity,
-                        tradeid,
-                        TradeAction::Accept(pending.phase),
-                    ));
-                    tracing::trace!(?tradeid, ?balance0, ?balance1, "Accept Pending Trade");
-                }
-            } else {
-                if balance1 > 0.0 {
-                    let msg = format!(
-                        "That only covers {:.0}% of my costs!",
-                        (balance0 / balance1 * 100.0).floor()
-                    );
-                    if let Some(tgt_data) = &agent.target {
-                        // If talking with someone in particular, "tell" it only to them
-                        if let Some(with) = read_data.uids.get(tgt_data.target) {
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_tell(
-                                *agent_data.uid,
-                                *with,
-                                msg,
-                            )));
-                        } else {
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
-                                *agent_data.uid,
-                                msg,
-                            )));
-                        }
-                    } else {
-                        event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
-                            *agent_data.uid,
-                            msg,
-                        )));
-                    }
-                }
-                if pending.phase != TradePhase::Mutate {
-                    // we got into the review phase but without balanced goods, decline
-                    agent.behavior.unset(BehaviorState::TRADING);
-                    event_emitter.emit(ServerEvent::ProcessTradeAction(
-                        *agent_data.entity,
-                        tradeid,
-                        TradeAction::Decline,
-                    ));
-                }
-            }
-        }
-    }
-    true
 }
