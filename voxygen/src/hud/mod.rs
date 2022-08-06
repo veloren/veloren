@@ -2448,7 +2448,7 @@ impl Hud {
 
             // Current song info
             Text::new(&format!(
-                "Currently playing: {} [{}]",
+                "Now playing: {} [{}]",
                 debug_info.current_track, debug_info.current_artist,
             ))
             .color(TEXT_COLOR)

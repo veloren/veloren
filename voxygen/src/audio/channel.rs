@@ -253,12 +253,12 @@ impl SfxChannel {
 
     /// Same as SfxChannel::play but with the source passed through
     /// a low pass filter at 300 Hz
-    pub fn play_with_low_pass_filter<S>(&mut self, source: S)
+    pub fn play_with_low_pass_filter<S>(&mut self, source: S, freq: u32)
     where
         S: Sized + Send + 'static,
         S: Source<Item = f32>,
     {
-        let source = source.low_pass(300);
+        let source = source.low_pass(freq);
         self.sink.append(source);
     }
 

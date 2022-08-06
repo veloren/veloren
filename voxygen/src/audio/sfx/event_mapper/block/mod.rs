@@ -101,14 +101,14 @@ impl EventMapper for BlockEventMapper {
                 blocks: |boi| &boi.slow_river,
                 range: 1,
                 sfx: SfxEvent::RunningWaterSlow,
-                volume: 1.5,
+                volume: 1.2,
                 cond: |_| true,
             },
             BlockSounds {
                 blocks: |boi| &boi.fast_river,
                 range: 1,
                 sfx: SfxEvent::RunningWaterFast,
-                volume: 2.5,
+                volume: 1.5,
                 cond: |_| true,
             },
             //BlockSounds {
@@ -238,12 +238,22 @@ impl EventMapper for BlockEventMapper {
                                     .unwrap_or(false);
 
                                 let sfx_trigger_item = triggers.get_key_value(&sounds.sfx);
-                                audio.emit_sfx(
-                                    sfx_trigger_item,
-                                    block_pos,
-                                    Some(sounds.volume),
-                                    underwater,
-                                );
+                                if sounds.sfx == SfxEvent::RunningWaterFast {
+                                    audio.emit_filtered_sfx(
+                                        sfx_trigger_item,
+                                        block_pos,
+                                        Some(sounds.volume),
+                                        Some(8000),
+                                        underwater,
+                                    );
+                                } else {
+                                    audio.emit_sfx(
+                                        sfx_trigger_item,
+                                        block_pos,
+                                        Some(sounds.volume),
+                                        underwater,
+                                    );
+                                }
                             }
                             internal_state.time = Instant::now();
                             internal_state.event = sounds.sfx.clone();

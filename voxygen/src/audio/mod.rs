@@ -276,10 +276,47 @@ impl AudioFrontend {
                     channel.set_pos(position);
                     channel.update(&listener);
                     if underwater {
-                        channel.play_with_low_pass_filter(sound.convert_samples());
+                        channel.play_with_low_pass_filter(sound.convert_samples(), 300);
                     } else {
                         channel.play(sound);
                     }
+                }
+            }
+        } else {
+            debug!(
+                "Missing sfx trigger config for sfx event at position: {:?}",
+                position
+            );
+        }
+    }
+
+    /// Play a sfx file given its position, SfxEvent, and volume with a low-pass
+    /// filter at the given frequency
+    pub fn emit_filtered_sfx(
+        &mut self,
+        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
+        position: Vec3<f32>,
+        volume: Option<f32>,
+        freq: Option<u32>,
+        underwater: bool,
+    ) {
+        if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
+            // Play sound in empty channel at given position
+            if self.audio_stream.is_some() && volume.map_or(true, |v| v > MIN_HEARABLE_VOLUME) {
+                let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
+
+                let listener = self.listener.clone();
+                if let Some(channel) = self.get_sfx_channel() {
+                    channel.set_pos(position);
+                    channel.update(&listener);
+                    if !underwater {
+                        channel.play_with_low_pass_filter(
+                            sound.convert_samples(),
+                            freq.unwrap_or(20000),
+                        )
+                    } else {
+                        channel.play_with_low_pass_filter(sound.convert_samples(), 300)
+                    };
                 }
             }
         } else {
