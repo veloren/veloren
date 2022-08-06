@@ -76,7 +76,7 @@
         )),
         Individual((
             title: "A Hero's Sorrow",
-            path: "voxygen.audio.soundtrack.overworld.a_heroes_sorrow",
+            path: "voxygen.audio.soundtrack.overworld.a_heros_sorrow",
             length: 251.0,
             timing: None,
             weather: Some(Rain),
