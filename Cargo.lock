@@ -1905,7 +1905,7 @@ dependencies = [
 [[package]]
 name = "fluent"
 version = "0.16.0"
-source = "git+https://github.com/juliancoffee/fluent-rs.git#cfaf910cd5dd915619d7def671140fd5311383b6"
+source = "git+https://github.com/juliancoffee/fluent-rs.git#c91d9f48b5a8734bd9183145320f5108526b2d1e"
 dependencies = [
  "fluent-bundle",
  "unic-langid",
@@ -1914,7 +1914,7 @@ dependencies = [
 [[package]]
 name = "fluent-bundle"
 version = "0.15.2"
-source = "git+https://github.com/juliancoffee/fluent-rs.git#cfaf910cd5dd915619d7def671140fd5311383b6"
+source = "git+https://github.com/juliancoffee/fluent-rs.git#c91d9f48b5a8734bd9183145320f5108526b2d1e"
 dependencies = [
  "fluent-langneg",
  "fluent-syntax",
@@ -1938,7 +1938,7 @@ dependencies = [
 [[package]]
 name = "fluent-syntax"
 version = "0.11.0"
-source = "git+https://github.com/juliancoffee/fluent-rs.git#cfaf910cd5dd915619d7def671140fd5311383b6"
+source = "git+https://github.com/juliancoffee/fluent-rs.git#c91d9f48b5a8734bd9183145320f5108526b2d1e"
 dependencies = [
  "thiserror",
 ]
@@ -2843,7 +2843,7 @@ dependencies = [
 [[package]]
 name = "intl-memoizer"
 version = "0.5.1"
-source = "git+https://github.com/juliancoffee/fluent-rs.git#cfaf910cd5dd915619d7def671140fd5311383b6"
+source = "git+https://github.com/juliancoffee/fluent-rs.git#c91d9f48b5a8734bd9183145320f5108526b2d1e"
 dependencies = [
  "type-map",
  "unic-langid",
