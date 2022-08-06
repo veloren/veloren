@@ -115,35 +115,51 @@ impl PlayState for MainMenuState {
                         self.main_menu_ui.cancel_connection();
                         let server_err = match e {
                             server::Error::NetworkErr(e) => localized_strings
-                                .get("main.servers.network_error")
-                                .to_owned()
-                                .replace("{raw_error}", e.to_string().as_str()),
+                                .get_msg_ctx("main-servers-network_error", &i18n::fluent_args! {
+                                    "raw_error" => e.to_string()
+                                })
+                                .into_owned(),
                             server::Error::ParticipantErr(e) => localized_strings
-                                .get("main.servers.participant_error")
-                                .to_owned()
-                                .replace("{raw_error}", e.to_string().as_str()),
+                                .get_msg_ctx(
+                                    "main-servers-participant_error",
+                                    &i18n::fluent_args! {
+                                        "raw_error" => e.to_string()
+                                    },
+                                )
+                                .into_owned(),
                             server::Error::StreamErr(e) => localized_strings
-                                .get("main.servers.stream_error")
-                                .to_owned()
-                                .replace("{raw_error}", e.to_string().as_str()),
+                                .get_msg_ctx("main-servers-stream_error", &i18n::fluent_args! {
+                                    "raw_error" => e.to_string()
+                                })
+                                .into_owned(),
                             server::Error::DatabaseErr(e) => localized_strings
-                                .get("main.servers.database_error")
-                                .to_owned()
-                                .replace("{raw_error}", e.to_string().as_str()),
+                                .get_msg_ctx("main-servers-database_error", &i18n::fluent_args! {
+                                    "raw_error" => e.to_string()
+                                })
+                                .into_owned(),
                             server::Error::PersistenceErr(e) => localized_strings
-                                .get("main.servers.persistence_error")
-                                .to_owned()
-                                .replace("{raw_error}", e.to_string().as_str()),
+                                .get_msg_ctx(
+                                    "main-servers-persistence_error",
+                                    &i18n::fluent_args! {
+                                        "raw_error" => e.to_string()
+                                    },
+                                )
+                                .into_owned(),
                             server::Error::Other(e) => localized_strings
-                                .get("main.servers.other_error")
-                                .to_owned()
-                                .replace("{raw_error}", e.as_str()),
+                                .get_msg_ctx("main-servers-other_error", &i18n::fluent_args! {
+                                    "raw_error" => e,
+                                })
+                                .into_owned(),
                         };
                         global_state.info_message = Some(
                             localized_strings
-                                .get("main.servers.singleplayer_error")
-                                .to_owned()
-                                .replace("{sp_error}", server_err.as_str()),
+                                .get_msg_ctx(
+                                    "main-servers-singleplayer_error",
+                                    &i18n::fluent_args! {
+                                        "sp_error" => server_err
+                                    },
+                                )
+                                .into_owned(),
                         );
                     },
                     Err(_) => (),
@@ -179,9 +195,10 @@ impl PlayState for MainMenuState {
                 error!(?e, "Client Init failed");
                 global_state.info_message = Some(
                     localized_strings
-                        .get("main.login.client_init_failed")
-                        .to_owned()
-                        .replace("{init_fail_reason}", e.as_str()),
+                        .get_msg_ctx("main-login-client_init_failed", &i18n::fluent_args! {
+                            "init_fail_reason" => e
+                        })
+                        .into_owned(),
                 );
             },
             Some(InitMsg::IsAuthTrusted(auth_server)) => {
@@ -221,7 +238,7 @@ impl PlayState for MainMenuState {
                                 global_state.info_message = Some(
                                     localized_strings
                                         .get("main.login.server_shut_down")
-                                        .to_owned(),
+                                        .into_owned(),
                                 );
                                 self.init = InitState::None;
                             },
@@ -231,7 +248,7 @@ impl PlayState for MainMenuState {
                 },
                 Err(err) => {
                     global_state.info_message =
-                        Some(localized_strings.get("common.connection_lost").to_owned());
+                        Some(localized_strings.get("common.connection_lost").into_owned());
                     error!(?err, "[main menu] Failed to tick the client");
                     self.init = InitState::None;
                 },
@@ -320,7 +337,6 @@ impl PlayState for MainMenuState {
                     global_state.i18n = LocalizationHandle::load_expect(
                         &global_state.settings.language.selected_language,
                     );
-                    global_state.i18n.read().log_missing_entries();
                     global_state
                         .i18n
                         .set_english_fallback(global_state.settings.language.use_english_fallback);
@@ -449,7 +465,7 @@ fn get_client_msg_error(
             ))) => net_error(
                 localization
                     .get("main.login.network_wrong_version")
-                    .to_owned(),
+                    .into_owned(),
                 mismatched_server_info,
             ),
             Error::NetworkErr(e) => net_error(e.to_string(), mismatched_server_info),
@@ -507,15 +523,16 @@ fn attempt_login(
                 *info_message = Some(
                     localization
                         .get("main.login.username_bad_characters")
-                        .to_owned(),
+                        .into_owned(),
                 );
             },
             comp::AliasError::TooLong => {
                 *info_message = Some(
                     localization
-                        .get("main.login.username_too_long")
-                        .to_owned()
-                        .replace("{max_len}", comp::MAX_ALIAS_LEN.to_string().as_str()),
+                        .get_msg_ctx("main-login-username_too_long", &i18n::fluent_args! {
+                            "max_len" => comp::MAX_ALIAS_LEN
+                        })
+                        .into_owned(),
                 );
             },
         }

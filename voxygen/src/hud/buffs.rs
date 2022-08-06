@@ -238,7 +238,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         .middle_of(*id)
                         .with_tooltip(
                             self.tooltip_manager,
-                            title,
+                            &title,
                             &desc,
                             &buffs_tooltip,
                             BUFF_COLOR,
@@ -308,7 +308,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         .middle_of(*id)
                         .with_tooltip(
                             self.tooltip_manager,
-                            title,
+                            &title,
                             &desc,
                             &buffs_tooltip,
                             DEBUFF_COLOR,
@@ -400,7 +400,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         .middle_of(*id)
                         .with_tooltip(
                             self.tooltip_manager,
-                            title,
+                            &title,
                             &desc,
                             &buffs_tooltip,
                             if buff.is_buff {

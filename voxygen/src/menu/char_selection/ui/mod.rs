@@ -553,7 +553,9 @@ impl Controls {
                                                     .size(fonts.cyri.scale(26))
                                                     .into(),
                                                 Text::new(
-                                                    i18n.get("char_selection.uncanny_valley"), // TODO: Add actual location here
+                                                    // TODO: Add actual location here
+                                                    i18n.get("char_selection.uncanny_valley")
+                                                        .into_owned(),
                                                 )
                                                 .into(),
                                             ]),
@@ -599,7 +601,7 @@ impl Controls {
                             let button = Button::new(
                                 new_character_button,
                                 Container::new(Text::new(
-                                    i18n.get("char_selection.create_new_character"),
+                                    i18n.get("char_selection.create_new_character").to_owned(),
                                 ))
                                 .width(Length::Fill)
                                 .height(Length::Fill)
@@ -678,7 +680,7 @@ impl Controls {
 
                 let logout = neat_button(
                     logout_button,
-                    i18n.get("char_selection.logout"),
+                    i18n.get("char_selection.logout").into_owned(),
                     FILL_FRAC_ONE,
                     button_style,
                     Some(Message::Logout),
@@ -686,7 +688,7 @@ impl Controls {
 
                 let enter_world = neat_button(
                     enter_world_button,
-                    i18n.get("char_selection.enter_world"),
+                    i18n.get("char_selection.enter_world").into_owned(),
                     FILL_FRAC_TWO,
                     button_style,
                     selected.map(|_| Message::EnterWorld),
@@ -715,20 +717,20 @@ impl Controls {
                 if let Some(info_content) = info_content {
                     let over_content: Element<_> = match &info_content {
                         InfoContent::Deletion(_) => Column::with_children(vec![
-                            Text::new(i18n.get("char_selection.delete_permanently"))
+                            Text::new(i18n.get("char_selection.delete_permanently").into_owned())
                                 .size(fonts.cyri.scale(24))
                                 .into(),
                             Row::with_children(vec![
                                 neat_button(
                                     no_button,
-                                    i18n.get("common.no"),
+                                    i18n.get("common.no").into_owned(),
                                     FILL_FRAC_ONE,
                                     button_style,
                                     Some(Message::CancelDeletion),
                                 ),
                                 neat_button(
                                     yes_button,
-                                    i18n.get("common.yes"),
+                                    i18n.get("common.yes").into_owned(),
                                     FILL_FRAC_ONE,
                                     button_style,
                                     Some(Message::ConfirmDeletion),
@@ -742,22 +744,22 @@ impl Controls {
                         .spacing(10)
                         .into(),
                         InfoContent::LoadingCharacters => {
-                            Text::new(i18n.get("char_selection.loading_characters"))
+                            Text::new(i18n.get("char_selection.loading_characters").into_owned())
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
                         InfoContent::CreatingCharacter => {
-                            Text::new(i18n.get("char_selection.creating_character"))
+                            Text::new(i18n.get("char_selection.creating_character").into_owned())
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
                         InfoContent::EditingCharacter => {
-                            Text::new(i18n.get("char_selection.editing_character"))
+                            Text::new(i18n.get("char_selection.editing_character").into_owned())
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
                         InfoContent::DeletingCharacter => {
-                            Text::new(i18n.get("char_selection.deleting_character"))
+                            Text::new(i18n.get("char_selection.deleting_character").into_owned())
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
@@ -765,7 +767,7 @@ impl Controls {
                             Text::new(error).size(fonts.cyri.scale(24)).into(),
                             Row::with_children(vec![neat_button(
                                 no_button,
-                                i18n.get("common.close"),
+                                i18n.get("common.close").into_owned(),
                                 FILL_FRAC_ONE,
                                 button_style,
                                 Some(Message::ClearCharacterListError),
@@ -846,10 +848,13 @@ impl Controls {
                     .style(style::container::Style::image(img))
                 };
                 let icon_button_tooltip = |button, selected, msg, img, tooltip_i18n_key| {
-                    icon_button(button, selected, msg, img)
-                        .with_tooltip(tooltip_manager, move || {
-                            tooltip::text(i18n.get(tooltip_i18n_key), tooltip_style)
-                        })
+                    icon_button(button, selected, msg, img).with_tooltip(
+                        tooltip_manager,
+                        move || {
+                            let tooltip_text = i18n.get(tooltip_i18n_key);
+                            tooltip::text(&tooltip_text, tooltip_style)
+                        },
+                    )
                 };
 
                 // TODO: tooltips
@@ -1112,7 +1117,7 @@ impl Controls {
 
                 let slider_options = Column::with_children(vec![
                     char_slider(
-                        i18n.get("char_selection.hair_style"),
+                        &i18n.get("char_selection.hair_style"),
                         &mut sliders.hair_style,
                         body.species.num_hair_styles(body.body_type) - 1,
                         body.hair_style,
@@ -1120,7 +1125,7 @@ impl Controls {
                         (fonts, imgs),
                     ),
                     char_slider(
-                        i18n.get("char_selection.hair_color"),
+                        &i18n.get("char_selection.hair_color"),
                         &mut sliders.hair_color,
                         body.species.num_hair_colors() - 1,
                         body.hair_color,
@@ -1128,7 +1133,7 @@ impl Controls {
                         (fonts, imgs),
                     ),
                     char_slider(
-                        i18n.get("char_selection.skin"),
+                        &i18n.get("char_selection.skin"),
                         &mut sliders.skin,
                         body.species.num_skin_colors() - 1,
                         body.skin,
@@ -1136,7 +1141,7 @@ impl Controls {
                         (fonts, imgs),
                     ),
                     char_slider(
-                        i18n.get("char_selection.eyeshape"),
+                        &i18n.get("char_selection.eyeshape"),
                         &mut sliders.eyes,
                         body.species.num_eyes(body.body_type) - 1,
                         body.eyes,
@@ -1144,7 +1149,7 @@ impl Controls {
                         (fonts, imgs),
                     ),
                     char_slider(
-                        i18n.get("char_selection.eye_color"),
+                        &i18n.get("char_selection.eye_color"),
                         &mut sliders.eye_color,
                         body.species.num_eye_colors() - 1,
                         body.eye_color,
@@ -1153,7 +1158,7 @@ impl Controls {
                     ),
                     char_slider_greyable(
                         body.species.num_accessories(body.body_type) > 1,
-                        i18n.get("char_selection.accessories"),
+                        &i18n.get("char_selection.accessories"),
                         &mut sliders.accessory,
                         body.species.num_accessories(body.body_type) - 1,
                         body.accessory,
@@ -1162,7 +1167,7 @@ impl Controls {
                     ),
                     char_slider_greyable(
                         body.species.num_beards(body.body_type) > 1,
-                        i18n.get("char_selection.beard"),
+                        &i18n.get("char_selection.beard"),
                         &mut sliders.beard,
                         body.species.num_beards(body.body_type) - 1,
                         body.beard,
@@ -1185,7 +1190,8 @@ impl Controls {
                 )
                 .on_press(Message::RandomizeCharacter)
                 .with_tooltip(tooltip_manager, move || {
-                    tooltip::text(i18n.get("common.rand_appearance"), tooltip_style)
+                    let tooltip_text = i18n.get("common.rand_appearance");
+                    tooltip::text(&tooltip_text, tooltip_style)
                 });
 
                 let column_content = vec![
@@ -1244,7 +1250,7 @@ impl Controls {
 
                 let back = neat_button(
                     back_button,
-                    i18n.get("common.back"),
+                    i18n.get("common.back").into_owned(),
                     FILL_FRAC_ONE,
                     button_style,
                     Some(Message::Back),
@@ -1262,7 +1268,8 @@ impl Controls {
                 )
                 .on_press(Message::RandomizeName)
                 .with_tooltip(tooltip_manager, move || {
-                    tooltip::text(i18n.get("common.rand_name"), tooltip_style)
+                    let tooltip_text = i18n.get("common.rand_name");
+                    tooltip::text(&tooltip_text, tooltip_style)
                 });
 
                 let confirm_msg = if let Some(character_id) = character_id {
@@ -1277,7 +1284,7 @@ impl Controls {
                         .fix_aspect_ratio(),
                     TextInput::new(
                         name_input,
-                        i18n.get("character_window.character_name"),
+                        &i18n.get("character_window.character_name"),
                         name,
                         Message::Name,
                     )
@@ -1314,10 +1321,8 @@ impl Controls {
                 let create: Element<Message> = if name.is_empty() {
                     create
                         .with_tooltip(tooltip_manager, move || {
-                            tooltip::text(
-                                i18n.get("char_selection.create_info_name"),
-                                tooltip_style,
-                            )
+                            let tooltip_text = i18n.get("char_selection.create_info_name");
+                            tooltip::text(&tooltip_text, tooltip_style)
                         })
                         .into()
                 } else {

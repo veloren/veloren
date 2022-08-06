@@ -249,7 +249,6 @@ fn main() {
             settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
             LocalizationHandle::load_expect(&settings.language.selected_language)
         });
-    i18n.read().log_missing_entries();
     i18n.set_english_fallback(settings.language.use_english_fallback);
 
     // Create window

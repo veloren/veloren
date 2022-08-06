@@ -428,7 +428,7 @@ impl<'a> Widget for Group<'a> {
                     }
                     if health.is_dead {
                         // Death Text
-                        Text::new(self.localized_strings.get("hud.group.dead"))
+                        Text::new(&self.localized_strings.get("hud.group.dead"))
                             .mid_top_with_margin_on(state.ids.member_panels_bg[i], 1.0)
                             .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
@@ -575,7 +575,7 @@ impl<'a> Widget for Group<'a> {
                                 .middle_of(id)
                                 .with_tooltip(
                                     self.tooltip_manager,
-                                    title,
+                                    &title,
                                     &desc,
                                     &buffs_tooltip,
                                     if buff.is_buff {
@@ -611,7 +611,7 @@ impl<'a> Widget for Group<'a> {
                             .color(Some(UI_HIGHLIGHT_0))
                             .set(state.ids.member_panels_frame[i], ui);
                         // Panel Text
-                        Text::new(self.localized_strings.get("hud.group.out_of_range"))
+                        Text::new(&self.localized_strings.get("hud.group.out_of_range"))
                             .mid_top_with_margin_on(state.ids.member_panels_bg[i], 3.0)
                             .font_size(16)
                             .font_id(self.fonts.cyri.conrod_id)
@@ -630,7 +630,7 @@ impl<'a> Widget for Group<'a> {
                     .press_image(self.imgs.button)
                     .label_color(TEXT_COLOR_GREY)
                     .image_color(TEXT_COLOR_GREY)
-                    .label(self.localized_strings.get("hud.group.add_friend"))
+                    .label(&self.localized_strings.get("hud.group.add_friend"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_font_size(self.fonts.cyri.scale(10))
                     .set(state.ids.btn_friend, ui)
@@ -641,7 +641,7 @@ impl<'a> Widget for Group<'a> {
                     .bottom_right_with_margins_on(state.ids.bg, 5.0, 5.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(self.localized_strings.get("hud.group.leave"))
+                    .label(&self.localized_strings.get("hud.group.leave"))
                     .label_color(TEXT_COLOR)
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_font_size(self.fonts.cyri.scale(10))
@@ -659,7 +659,7 @@ impl<'a> Widget for Group<'a> {
                         .mid_bottom_with_margin_on(state.ids.btn_friend, -27.0)
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
-                        .label(self.localized_strings.get("hud.group.assign_leader"))
+                        .label(&self.localized_strings.get("hud.group.assign_leader"))
                         .label_color(if state.selected_member.is_some() {
                             TEXT_COLOR
                         } else {
@@ -682,7 +682,7 @@ impl<'a> Widget for Group<'a> {
                         .mid_bottom_with_margin_on(state.ids.btn_leader, -27.0)
                         .hover_image(self.imgs.button)
                         .press_image(self.imgs.button)
-                        .label(self.localized_strings.get("hud.group.link_group"))
+                        .label(&self.localized_strings.get("hud.group.link_group"))
                         .hover_image(self.imgs.button)
                         .press_image(self.imgs.button)
                         .label_color(TEXT_COLOR_GREY)
@@ -698,7 +698,7 @@ impl<'a> Widget for Group<'a> {
                         .down_from(state.ids.btn_link, 5.0)
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
-                        .label(self.localized_strings.get("hud.group.kick"))
+                        .label(&self.localized_strings.get("hud.group.kick"))
                         .label_color(if state.selected_member.is_some() {
                             TEXT_COLOR
                         } else {
@@ -792,14 +792,18 @@ impl<'a> Widget for Group<'a> {
 
             let name = uid_to_name_text(invite_uid, self.client);
             let invite_text = match kind {
-                InviteKind::Group => self
-                    .localized_strings
-                    .get("hud.group.invite_to_join")
-                    .replace("{name}", &name),
-                InviteKind::Trade => self
-                    .localized_strings
-                    .get("hud.group.invite_to_trade")
-                    .replace("{name}", &name),
+                InviteKind::Group => self.localized_strings.get_msg_ctx(
+                    "hud-group-invite_to_join",
+                    &i18n::fluent_args! {
+                        "name" => name,
+                    },
+                ),
+                InviteKind::Trade => self.localized_strings.get_msg_ctx(
+                    "hud-group-invite_to_trade",
+                    &i18n::fluent_args! {
+                        "name" => &name,
+                    },
+                ),
             };
             Text::new(&invite_text)
                 .mid_top_with_margin_on(state.ids.bg, 5.0)

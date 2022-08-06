@@ -102,38 +102,33 @@ impl Screen {
         let children = match connection_state {
             ConnectionState::InProgress => {
                 let tip = if show_tip {
-                    let tip = &i18n.get_variation("loading.tips", self.tip_number);
-                    let mut new_tip = String::with_capacity(tip.len());
-                    let mut last_index = 0;
-
-                    // This could be done with regex instead, but adding new dependencies is
-                    // scary...
-                    tip.match_indices("{gameinput.").for_each(|(start, s)| {
-                        if let Some(end) = tip[start + s.len()..].find('}') {
-                            let end = start + s.len() + end;
-                            if let Ok(game_input) = GameInput::from_str(&tip[start + 1..end]) {
-                                new_tip.push_str(&tip[last_index..start]);
-                                new_tip.push_str(
-                                    match controls.keybindings.get(&game_input) {
-                                        Some(Some(key_mouse)) => {
-                                            key_mouse.display_string(key_layout)
-                                        },
-                                        Some(None) => i18n.get("main.unbound_key_tip").to_string(),
-                                        None => ControlSettings::default_binding(game_input)
-                                            .display_string(key_layout),
-                                    }
-                                    .as_str(),
-                                );
-                                last_index = end + 1;
+                    let key = |code| {
+                        if let Ok(game_input) = GameInput::from_str(code) {
+                            match controls.keybindings.get(&game_input) {
+                                Some(Some(key_mouse)) => key_mouse.display_string(key_layout),
+                                Some(None) => i18n.get("main.unbound_key_tip").into_owned(),
+                                None => ControlSettings::default_binding(game_input)
+                                    .display_string(key_layout),
                             }
+                        } else {
+                            "code".to_owned()
                         }
-                    });
-                    // If there is any text left over append it
-                    if last_index < tip.len() {
-                        new_tip.push_str(&tip[last_index..]);
-                    }
+                    };
+                    let keys = i18n::fluent_args! {
+                        "gameinput-togglelantern" => key("gameinput.togglelantern"),
+                        "gameinput-help" => key("gameinput.help"),
+                        "gameinput-settings" => key("gameinput.settings"),
+                        "gameinput-social" => key("gameinput.social"),
+                        "gameinput-dance" => key("gameinput.dance"),
+                        "gameinput-glide" => key("gameinput.glide"),
+                        "gameinput-sit" => key("gameinput.sit"),
+                        "gameinput-crafting" => key("gameinput.crafting"),
+                        "gameinput-roll" => key("gameinput.roll"),
+                        "gameinput-screenshot" => key("gameinput.screenshot"),
+                    };
+                    let tip = &i18n.get_variation_ctx("loading-tips", self.tip_number, &keys);
+                    let tip = format!("{} {}", i18n.get("main.tip"), tip);
 
-                    let tip = format!("{} {}", i18n.get("main.tip"), new_tip.as_str());
                     Container::new(Text::new(tip).size(fonts.cyri.scale(25)))
                         .width(Length::Fill)
                         .height(Length::Fill)

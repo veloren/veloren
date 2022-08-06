@@ -165,9 +165,9 @@ impl<'a> Widget for Buttons<'a> {
         .w_h(420.0 / 10.0, 480.0 / 10.0)
         .with_tooltip(
             self.tooltip_manager,
-            &localized_strings
-                .get("hud.bag.inventory")
-                .replace("{playername}", &self.stats.name),
+            &localized_strings.get_msg_ctx("hud-bag-inventory", &i18n::fluent_args! {
+                "playername" => &self.stats.name
+            }),
             "",
             &button_tooltip,
             TEXT_COLOR,
@@ -228,7 +228,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.settings_press)
             .with_tooltip(
                 self.tooltip_manager,
-                localized_strings.get("common.settings"),
+                &localized_strings.get("common.settings"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,
@@ -261,7 +261,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.social_press)
             .with_tooltip(
                 self.tooltip_manager,
-                localized_strings.get("hud.social"),
+                &localized_strings.get("hud.social"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,
@@ -293,7 +293,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.map_press)
             .with_tooltip(
                 self.tooltip_manager,
-                localized_strings.get("hud.map.map_title"),
+                &localized_strings.get("hud.map.map_title"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,
@@ -330,7 +330,7 @@ impl<'a> Widget for Buttons<'a> {
         .press_image(self.imgs.spellbook_press)
         .with_tooltip(
             self.tooltip_manager,
-            localized_strings.get("hud.diary"),
+            &localized_strings.get("hud.diary"),
             "",
             &button_tooltip,
             TEXT_COLOR,
@@ -363,14 +363,14 @@ impl<'a> Widget for Buttons<'a> {
                 .mid_top_with_margin_on(state.ids.spellbook_button, -12.0 + arrow_ani as f64)
                 .color(Some(QUALITY_LEGENDARY))
                 .set(state.ids.sp_arrow, ui);
-            Text::new(localized_strings.get("hud.sp_arrow_txt"))
+            Text::new(&localized_strings.get("hud.sp_arrow_txt"))
                 .mid_top_with_margin_on(state.ids.sp_arrow, -18.0)
                 .graphics_for(state.ids.spellbook_button)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .color(BLACK)
                 .set(state.ids.sp_arrow_txt_bg, ui);
-            Text::new(localized_strings.get("hud.sp_arrow_txt"))
+            Text::new(&localized_strings.get("hud.sp_arrow_txt"))
                 .graphics_for(state.ids.spellbook_button)
                 .bottom_right_with_margins_on(state.ids.sp_arrow_txt_bg, 1.0, 1.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -386,7 +386,7 @@ impl<'a> Widget for Buttons<'a> {
             .press_image(self.imgs.crafting_icon_press)
             .with_tooltip(
                 self.tooltip_manager,
-                localized_strings.get("hud.crafting"),
+                &localized_strings.get("hud.crafting"),
                 "",
                 &button_tooltip,
                 TEXT_COLOR,

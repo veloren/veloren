@@ -600,7 +600,6 @@ impl SettingsChange {
                     settings.language.selected_language = new_language.language_identifier;
                     global_state.i18n =
                         LocalizationHandle::load_expect(&settings.language.selected_language);
-                    global_state.i18n.read().log_missing_entries();
                     global_state
                         .i18n
                         .set_english_fallback(settings.language.use_english_fallback);

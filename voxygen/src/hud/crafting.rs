@@ -36,7 +36,7 @@ use conrod_core::{
 };
 use hashbrown::HashMap;
 use i18n::Localization;
-use std::{collections::BTreeMap, sync::Arc};
+use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 use strum::{EnumIter, IntoEnumIterator};
 use tracing::warn;
 use vek::*;
@@ -383,7 +383,7 @@ impl<'a> Widget for Crafting<'a> {
         }
 
         // Title
-        Text::new(self.localized_strings.get("hud.crafting"))
+        Text::new(&self.localized_strings.get("hud.crafting"))
             .mid_top_with_margin_on(state.ids.window_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
@@ -459,7 +459,7 @@ impl<'a> Widget for Crafting<'a> {
                 })
                 .with_tooltip(
                     self.tooltip_manager,
-                    self.localized_strings.get(crafting_tab.name_key()),
+                    &self.localized_strings.get(crafting_tab.name_key()),
                     "",
                     &tabs_tooltip,
                     TEXT_COLOR,
@@ -973,13 +973,15 @@ impl<'a> Widget for Crafting<'a> {
                                 self.localized_strings
                                     .get("hud.crafting.mod_comp_wood_prim_slot_desc"),
                             ),
-                            RecipeKind::Component(_) | RecipeKind::Simple => ("", ""),
+                            RecipeKind::Component(_) | RecipeKind::Simple => {
+                                (Cow::Borrowed(""), Cow::Borrowed(""))
+                            },
                         };
                         primary_slot_widget
                             .with_tooltip(
                                 self.tooltip_manager,
-                                tooltip_title,
-                                tooltip_desc,
+                                &tooltip_title,
+                                &tooltip_desc,
                                 &tabs_tooltip,
                                 TEXT_COLOR,
                             )
@@ -1050,13 +1052,13 @@ impl<'a> Widget for Crafting<'a> {
                                 self.localized_strings
                                     .get("hud.crafting.mod_comp_sec_slot_desc"),
                             ),
-                            RecipeKind::Simple => ("", ""),
+                            RecipeKind::Simple => (Cow::Borrowed(""), Cow::Borrowed("")),
                         };
                         secondary_slot_widget
                             .with_tooltip(
                                 self.tooltip_manager,
-                                tooltip_title,
-                                tooltip_desc,
+                                &tooltip_title,
+                                &tooltip_desc,
                                 &tabs_tooltip,
                                 TEXT_COLOR,
                             )
@@ -1211,7 +1213,7 @@ impl<'a> Widget for Crafting<'a> {
                                 == recipe.craft_sprite,
                         )
                     } else {
-                        Text::new(self.localized_strings.get("hud.crafting.modular_desc"))
+                        Text::new(&self.localized_strings.get("hud.crafting.modular_desc"))
                             .mid_top_with_margin_on(state.ids.modular_art, -18.0)
                             .font_id(self.fonts.cyri.conrod_id)
                             .font_size(self.fonts.cyri.scale(13))
@@ -1306,7 +1308,7 @@ impl<'a> Widget for Crafting<'a> {
                             };
                             icon.with_tooltip(
                                 self.tooltip_manager,
-                                self.localized_strings.get(crafting_tab.name_key()),
+                                &self.localized_strings.get(crafting_tab.name_key()),
                                 "",
                                 &tabs_tooltip,
                                 TEXT_COLOR,
@@ -1343,7 +1345,7 @@ impl<'a> Widget for Crafting<'a> {
                         .then_some(self.imgs.button_press)
                         .unwrap_or(self.imgs.button),
                 )
-                .label(self.localized_strings.get("hud.crafting.craft"))
+                .label(&self.localized_strings.get("hud.crafting.craft"))
                 .label_y(conrod_core::position::Relative::Scalar(1.0))
                 .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
                 .label_font_size(self.fonts.cyri.scale(12))
@@ -1382,7 +1384,8 @@ impl<'a> Widget for Crafting<'a> {
             // Crafting Station Info
             if recipe.craft_sprite.is_some() {
                 Text::new(
-                    self.localized_strings
+                    &self
+                        .localized_strings
                         .get("hud.crafting.req_crafting_station"),
                 )
                 .font_id(self.fonts.cyri.conrod_id)
@@ -1433,7 +1436,7 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::DismantlingBench) => "hud.crafting.salvaging_station",
                     _ => "",
                 };
-                Text::new(self.localized_strings.get(station_name))
+                Text::new(&self.localized_strings.get(station_name))
                     .right_from(state.ids.req_station_img, 10.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(14))
@@ -1495,7 +1498,7 @@ impl<'a> Widget for Crafting<'a> {
 
             let num_ingredients = ingredients.len();
             if num_ingredients > 0 {
-                Text::new(self.localized_strings.get("hud.crafting.ingredients"))
+                Text::new(&self.localized_strings.get("hud.crafting.ingredients"))
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(18))
                     .color(TEXT_COLOR)
@@ -1691,7 +1694,7 @@ impl<'a> Widget for Crafting<'a> {
                         } else {
                             state.ids.ingredient_frame[i - 1]
                         };
-                        Text::new(self.localized_strings.get("hud.crafting.tool_cata"))
+                        Text::new(&self.localized_strings.get("hud.crafting.tool_cata"))
                             .down_from(ref_widget, 20.0)
                             .font_id(self.fonts.cyri.conrod_id)
                             .font_size(self.fonts.cyri.scale(14))
@@ -1741,7 +1744,7 @@ impl<'a> Widget for Crafting<'a> {
             }
         } else if *sel_crafting_tab == CraftingTab::Dismantle {
             // Title
-            Text::new(self.localized_strings.get("hud.crafting.dismantle_title"))
+            Text::new(&self.localized_strings.get("hud.crafting.dismantle_title"))
                 .mid_top_with_margin_on(state.ids.align_ing, 0.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(24))
@@ -1765,7 +1768,8 @@ impl<'a> Widget for Crafting<'a> {
             // Explanation
 
             Text::new(
-                self.localized_strings
+                &self
+                    .localized_strings
                     .get("hud.crafting.dismantle_explanation"),
             )
             .mid_bottom_with_margin_on(state.ids.dismantle_img, -60.0)
@@ -1807,7 +1811,7 @@ impl<'a> Widget for Crafting<'a> {
                 events.push(Event::SearchRecipe(Some(string)));
             }
         } else {
-            Text::new(self.localized_strings.get("hud.crafting.recipes"))
+            Text::new(&self.localized_strings.get("hud.crafting.recipes"))
                 .mid_top_with_margin_on(state.ids.align_rec, -22.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))

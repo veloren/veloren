@@ -321,8 +321,10 @@ impl SessionState {
                     let message = match time {
                         0 => String::from(i18n.get("hud.chat.goodbye")),
                         _ => i18n
-                            .get("hud.chat.connection_lost")
-                            .replace("{time}", time.to_string().as_str()),
+                            .get_msg_ctx("hud-chat-connection_lost", &i18n::fluent_args! {
+                                "time" => time
+                            })
+                            .into_owned(),
                     };
 
                     self.hud.new_message(ChatMsg {
@@ -835,8 +837,13 @@ impl PlayState for SessionState {
                                                     let msg = global_state
                                                         .i18n
                                                         .read()
-                                                        .get("hud.trade.invite_sent")
-                                                        .replace("{playername}", &name);
+                                                        .get_msg_ctx(
+                                                            "hud-trade-invite_sent",
+                                                            &i18n::fluent_args! {
+                                                                "playername" => &name
+                                                            },
+                                                        )
+                                                        .into_owned();
                                                     self.hud
                                                         .new_message(ChatType::Meta.chat_msg(msg));
                                                     client.send_invite(uid, InviteKind::Trade)
@@ -1079,7 +1086,7 @@ impl PlayState for SessionState {
                                 .i18n
                                 .read()
                                 .get("common.connection_lost")
-                                .to_owned(),
+                                .into_owned(),
                         );
                         error!("[session] Failed to tick the scene: {:?}", err);
 

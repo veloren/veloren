@@ -149,7 +149,7 @@ impl<'a> Widget for Language<'a> {
             events.push(ToggleEnglishFallback(show_english_fallback));
         }
 
-        Text::new(self.localized_strings.get("hud.settings.english_fallback"))
+        Text::new(&self.localized_strings.get("hud.settings.english_fallback"))
             .right_from(state.ids.english_fallback_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)

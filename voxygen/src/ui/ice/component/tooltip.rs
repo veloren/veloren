@@ -15,7 +15,7 @@ pub struct Style {
 }
 
 /// Tooltip that is just text
-pub fn text<'a, M: 'a>(text: &'a str, style: Style) -> Element<'a, M, ui::IcedRenderer> {
+pub fn text<'a, M: 'a>(text: &str, style: Style) -> Element<'a, M, ui::IcedRenderer> {
     Container::new(
         Text::new(text)
             .color(style.text_color)
