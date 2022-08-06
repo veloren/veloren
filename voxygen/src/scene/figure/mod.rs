@@ -1164,6 +1164,28 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::FinisherMelee(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Action => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::character::FinisherMeleeAnimation::update_skeleton(
+                                &target_base,
+                                (ability_id, Some(s.stage_section)),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::ChargedRanged(s) => {
                             let stage_time = s.timer.as_secs_f32();
 
@@ -1248,8 +1270,7 @@ impl FigureMgr {
                                 &target_base,
                                 (
                                     hands,
-                                    rel_vel,
-                                    time,
+                                    ability_id,
                                     Some(s.stage_section),
                                     Some(s.static_data.ability_info),
                                 ),
@@ -1974,7 +1995,7 @@ impl FigureMgr {
                                         (
                                             hands,
                                             Some(s.stage_section),
-                                            (Some(s.static_data.ability_info), active_tool_spec),
+                                            Some(s.static_data.ability_info),
                                         ),
                                         stage_progress,
                                         &mut state_animation_rate,
