@@ -353,13 +353,41 @@ impl<'a> System<'a> for Sys {
                                 &mut rng,
                             );
                         } else {
-                            data.idle_tree(
+                            data.idle_tree(agent, controller, &read_data, &mut rng);
+                        }
+                        if agent.allowed_to_speak()
+                            && data.recv_interaction(
                                 agent,
                                 controller,
                                 &read_data,
                                 &mut event_emitter,
-                                &mut rng,
-                            );
+                            )
+                        {
+                            agent.timer.start(read_data.time.0, TimerAction::Interact);
+                        }
+                        // Interact if incoming messages
+                        if !agent.inbox.is_empty() {
+                            if matches!(
+                                agent.inbox.front(),
+                                Some(AgentEvent::ServerSound(_)) | Some(AgentEvent::Hurt)
+                            ) {
+                                let sound = agent.inbox.pop_front();
+                                match sound {
+                                    Some(AgentEvent::ServerSound(sound)) => {
+                                        agent.sounds_heard.push(sound);
+                                    },
+                                    Some(AgentEvent::Hurt) => {
+                                        // Hurt utterances at random upon receiving damage
+                                        if rng.gen::<f32>() < 0.4 {
+                                            controller.push_utterance(UtteranceKind::Hurt);
+                                        }
+                                    },
+                                    //Note: this should be unreachable
+                                    Some(_) | None => return,
+                                }
+                            } else {
+                                agent.action_state.timer = 0.1;
+                            }
                         }
                     }
 
@@ -404,6 +432,7 @@ impl<'a> AgentData<'a> {
         let Target {
             target, hostile, ..
         } = target_info;
+
         if let Some(tgt_health) = read_data.healths.get(target) {
             // If target is dead, forget them
             if tgt_health.is_dead {
@@ -413,17 +442,18 @@ impl<'a> AgentData<'a> {
                 agent.target = None;
             // Else, if target is hostile, hostile tree
             } else if hostile {
+                self.cancel_interaction(agent, controller, event_emitter);
                 self.hostile_tree(agent, controller, read_data, event_emitter, rng);
             // Else, if owned, act as pet to them
             } else if let Some(Alignment::Owned(uid)) = self.alignment {
                 if read_data.uids.get(target) == Some(uid) {
-                    self.react_as_pet(agent, controller, read_data, event_emitter, target, rng);
+                    self.react_as_pet(agent, controller, read_data, target, rng);
                 } else {
                     agent.target = None;
-                    self.idle_tree(agent, controller, read_data, event_emitter, rng);
+                    self.idle_tree(agent, controller, read_data, rng);
                 };
             } else {
-                self.idle_tree(agent, controller, read_data, event_emitter, rng);
+                self.idle_tree(agent, controller, read_data, rng);
             }
         } else if matches!(read_data.bodies.get(target), Some(Body::ItemDrop(_))) {
             if let Some(tgt_pos) = read_data.positions.get(target) {
@@ -452,7 +482,7 @@ impl<'a> AgentData<'a> {
             }
         } else {
             agent.target = None;
-            self.idle_tree(agent, controller, read_data, event_emitter, rng);
+            self.idle_tree(agent, controller, read_data, rng);
         }
     }
 
@@ -461,7 +491,6 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        event_emitter: &mut Emitter<'_, ServerEvent>,
         target: EcsEntity,
         rng: &mut impl Rng,
     ) {
@@ -485,7 +514,7 @@ impl<'a> AgentData<'a> {
                 self.attack_target_attacker(agent, read_data, controller, rng);
             // Otherwise, just idle
             } else {
-                self.idle_tree(agent, controller, read_data, event_emitter, rng);
+                self.idle_tree(agent, controller, read_data, rng);
             }
         }
     }
@@ -495,7 +524,6 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        event_emitter: &mut Emitter<'_, ServerEvent>,
         rng: &mut impl Rng,
     ) {
         // TODO: Awareness currently doesn't influence anything.
@@ -509,37 +537,6 @@ impl<'a> AgentData<'a> {
                     agent.target = Some(Target::new(owner, false, read_data.time.0, false));
                 }
             }
-        }
-        // Interact if incoming messages
-        if !agent.inbox.is_empty() {
-            if matches!(
-                agent.inbox.front(),
-                Some(AgentEvent::ServerSound(_)) | Some(AgentEvent::Hurt)
-            ) {
-                let sound = agent.inbox.pop_front();
-                match sound {
-                    Some(AgentEvent::ServerSound(sound)) => {
-                        agent.sounds_heard.push(sound);
-                    },
-                    Some(AgentEvent::Hurt) => {
-                        // Hurt utterances at random upon receiving damage
-                        if rng.gen::<f32>() < 0.4 {
-                            controller.push_utterance(UtteranceKind::Hurt);
-                        }
-                    },
-                    //Note: this should be unreachable
-                    Some(_) | None => return,
-                }
-            } else {
-                agent.action_state.timer = 0.1;
-            }
-        }
-
-        // If we receive a new interaction, start the interaction timer
-        if agent.allowed_to_speak()
-            && self.recv_interaction(agent, controller, read_data, event_emitter)
-        {
-            agent.timer.start(read_data.time.0, TimerAction::Interact);
         }
 
         let timeout = if agent.behavior.is(BehaviorState::TRADING) {
@@ -587,11 +584,12 @@ impl<'a> AgentData<'a> {
             return;
         }
 
-        if let Some(AgentEvent::Hurt) = agent.inbox.pop_front() {
+        if matches!(agent.inbox.front(), Some(AgentEvent::Hurt)) {
             // Hurt utterances at random upon receiving damage
             if rng.gen::<f32>() < 0.4 {
                 controller.push_utterance(UtteranceKind::Hurt);
             }
+            agent.inbox.pop_front();
         }
 
         if let Some(Target {
@@ -979,6 +977,81 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    /// deny any interaction whenever possible
+    fn cancel_interaction(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        event_emitter: &mut Emitter<'_, ServerEvent>,
+    ) -> bool {
+        if let Some(msg) = agent.inbox.front() {
+            let used = match msg {
+                AgentEvent::Talk(..) | AgentEvent::TradeAccepted(_) => {
+                    self.chat_npc_if_allowed_to_speak(
+                        "npc.speech.villager_busy",
+                        agent,
+                        event_emitter,
+                    );
+                    true
+                },
+                AgentEvent::TradeInvite(_) => {
+                    controller.push_invite_response(InviteResponse::Decline);
+                    if agent.behavior.can_trade() {
+                        self.chat_npc_if_allowed_to_speak(
+                            "npc.speech.merchant_busy",
+                            agent,
+                            event_emitter,
+                        );
+                    } else {
+                        self.chat_npc_if_allowed_to_speak(
+                            "npc.speech.villager_busy",
+                            agent,
+                            event_emitter,
+                        );
+                    }
+                    true
+                },
+                AgentEvent::FinishedTrade(result) => {
+                    // copy pasted from recv_interaction
+                    // because the trade is not cancellable in this state
+                    if agent.behavior.is(BehaviorState::TRADING) {
+                        match result {
+                            TradeResult::Completed => {
+                                self.chat_npc(
+                                    "npc.speech.merchant_trade_successful",
+                                    event_emitter,
+                                );
+                            },
+                            _ => {
+                                self.chat_npc("npc.speech.merchant_trade_declined", event_emitter);
+                            },
+                        }
+                        agent.behavior.unset(BehaviorState::TRADING);
+                    }
+                    true
+                },
+                AgentEvent::UpdatePendingTrade(boxval) => {
+                    // immediately cancel the trade
+                    let (tradeid, _pending, _prices, _inventories) = &**boxval;
+                    agent.behavior.unset(BehaviorState::TRADING);
+                    event_emitter.emit(ServerEvent::ProcessTradeAction(
+                        *self.entity,
+                        *tradeid,
+                        TradeAction::Decline,
+                    ));
+                    self.chat_npc("npc.speech.merchant_trade_cancelled_hostile", event_emitter);
+                    true
+                },
+                AgentEvent::ServerSound(_) | AgentEvent::Hurt => false,
+            };
+            if used {
+                agent.inbox.pop_front();
+            }
+            return used;
+        }
+        false
+    }
+
     fn recv_interaction(
         &self,
         agent: &mut Agent,
@@ -1000,8 +1073,8 @@ impl<'a> AgentData<'a> {
         // }
         agent.action_state.timer += read_data.dt.0;
 
-        let msg = agent.inbox.pop_front();
-        match msg {
+        let msg = agent.inbox.front();
+        let used = match msg {
             Some(AgentEvent::Talk(by, subject)) => {
                 if agent.allowed_to_speak() {
                     if let Some(target) = get_entity_by_id(by.id(), read_data) {
@@ -1083,7 +1156,7 @@ impl<'a> AgentData<'a> {
                                         self.chat_npc(msg, event_emitter);
                                     } else if agent.behavior.can_trade() {
                                         if !agent.behavior.is(BehaviorState::TRADING) {
-                                            controller.push_initiate_invite(by, InviteKind::Trade);
+                                            controller.push_initiate_invite(*by, InviteKind::Trade);
                                             self.chat_npc(
                                                 "npc.speech.merchant_advertisement",
                                                 event_emitter,
@@ -1169,7 +1242,7 @@ impl<'a> AgentData<'a> {
                                 Subject::Trade => {
                                     if agent.behavior.can_trade() {
                                         if !agent.behavior.is(BehaviorState::TRADING) {
-                                            controller.push_initiate_invite(by, InviteKind::Trade);
+                                            controller.push_initiate_invite(*by, InviteKind::Trade);
                                             self.chat_npc(
                                                 "npc.speech.merchant_advertisement",
                                                 event_emitter,
@@ -1292,6 +1365,7 @@ impl<'a> AgentData<'a> {
                         }
                     }
                 }
+                true
             },
             Some(AgentEvent::TradeInvite(with)) => {
                 if agent.behavior.can_trade() {
@@ -1323,6 +1397,7 @@ impl<'a> AgentData<'a> {
                         event_emitter,
                     );
                 }
+                true
             },
             Some(AgentEvent::TradeAccepted(with)) => {
                 if !agent.behavior.is(BehaviorState::TRADING) {
@@ -1332,6 +1407,7 @@ impl<'a> AgentData<'a> {
                     agent.behavior.set(BehaviorState::TRADING);
                     agent.behavior.set(BehaviorState::TRADING_ISSUER);
                 }
+                true
             },
             Some(AgentEvent::FinishedTrade(result)) => {
                 if agent.behavior.is(BehaviorState::TRADING) {
@@ -1345,18 +1421,18 @@ impl<'a> AgentData<'a> {
                     }
                     agent.behavior.unset(BehaviorState::TRADING);
                 }
+                true
             },
             Some(AgentEvent::UpdatePendingTrade(boxval)) => {
-                let (tradeid, pending, prices, inventories) = *boxval;
+                let (tradeid, pending, prices, inventories) = &**boxval;
                 if agent.behavior.is(BehaviorState::TRADING) {
                     let who: usize = if agent.behavior.is(BehaviorState::TRADING_ISSUER) {
                         0
                     } else {
                         1
                     };
-                    let balance0: f32 =
-                        prices.balance(&pending.offers, &inventories, 1 - who, true);
-                    let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
+                    let balance0: f32 = prices.balance(&pending.offers, inventories, 1 - who, true);
+                    let balance1: f32 = prices.balance(&pending.offers, inventories, who, false);
                     if balance0 >= balance1 {
                         // If the trade is favourable to us, only send an accept message if we're
                         // not already accepting (since otherwise, spam-clicking the accept button
@@ -1366,7 +1442,7 @@ impl<'a> AgentData<'a> {
                         if !pending.accept_flags[who] && !pending.is_empty_trade() {
                             event_emitter.emit(ServerEvent::ProcessTradeAction(
                                 *self.entity,
-                                tradeid,
+                                *tradeid,
                                 TradeAction::Accept(pending.phase),
                             ));
                             tracing::trace!(?tradeid, ?balance0, ?balance1, "Accept Pending Trade");
@@ -1399,18 +1475,22 @@ impl<'a> AgentData<'a> {
                             agent.behavior.unset(BehaviorState::TRADING);
                             event_emitter.emit(ServerEvent::ProcessTradeAction(
                                 *self.entity,
-                                tradeid,
+                                *tradeid,
                                 TradeAction::Decline,
                             ));
                         }
                     }
                 }
+                true
             },
-            Some(AgentEvent::ServerSound(_)) => {},
-            Some(AgentEvent::Hurt) => {},
-            None => return false,
+            Some(AgentEvent::ServerSound(_)) => false,
+            Some(AgentEvent::Hurt) => false,
+            None => false,
+        };
+        if used {
+            agent.inbox.pop_front();
         }
-        true
+        used
     }
 
     fn look_toward(
