@@ -47,7 +47,7 @@ pub fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
 
 /// If we receive a new interaction, start the interaction timer
 pub fn process_inbox_interaction(bdata: &mut BehaviorData) -> bool {
-    if BehaviorTree::interaction(bdata.agent.behavior).run_with_behavior_data(bdata) {
+    if BehaviorTree::interaction(bdata.agent).run_with_behavior_data(bdata) {
         bdata
             .agent
             .timer
@@ -605,7 +605,6 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
         if used {
             agent.inbox.pop_front();
         }
-        return used;
     }
     false
 }

@@ -3,8 +3,8 @@ use common::{
         agent::{
             AgentEvent, Target, TimerAction, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME,
         },
-        Agent, Alignment, Behavior, BehaviorCapability, BehaviorState, Body, BuffKind,
-        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, UtteranceKind,
+        Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, ControlAction,
+        ControlEvent, Controller, InputKind, InventoryEvent, UtteranceKind,
     },
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
@@ -59,8 +59,9 @@ impl BehaviorTree {
                 react_on_dangerous_fall,
                 react_if_on_fire,
                 target_if_attacked,
-                do_target_tree_if_target_else_do_idle_tree,
+                process_inbox_sound_and_hurt,
                 process_inbox_interaction,
+                do_target_tree_if_target_else_do_idle_tree,
             ],
         }
     }
@@ -84,8 +85,13 @@ impl BehaviorTree {
         }
     }
 
-    pub fn interaction(behavior: Behavior) -> Self {
-        if behavior.can(BehaviorCapability::SPEAK) {
+    pub fn interaction(agent: &Agent) -> Self {
+        let is_in_combat = if let Some(Target { hostile, .. }) = agent.target {
+            hostile
+        } else {
+            false
+        };
+        if !is_in_combat && agent.behavior.can(BehaviorCapability::SPEAK) {
             Self {
                 tree: vec![
                     increment_timer_deltatime,
@@ -105,22 +111,13 @@ impl BehaviorTree {
 
     pub fn hostile() -> Self {
         Self {
-            tree: vec![
-                handle_inbox_cancel_interactions,
-                heal_self_if_hurt,
-                hurt_utterance,
-                do_combat,
-            ],
+            tree: vec![heal_self_if_hurt, hurt_utterance, do_combat],
         }
     }
 
     pub fn idle() -> Self {
         Self {
-            tree: vec![
-                set_owner_if_no_target,
-                process_inbox_sound_and_hurt,
-                handle_timer,
-            ],
+            tree: vec![set_owner_if_no_target, handle_timer],
         }
     }
 
@@ -486,11 +483,12 @@ fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
 }
 
 fn hurt_utterance(bdata: &mut BehaviorData) -> bool {
-    if let Some(AgentEvent::Hurt) = bdata.agent.inbox.pop_front() {
+    if matches!(bdata.agent.inbox.front(), Some(AgentEvent::Hurt)) {
         // Hurt utterances at random upon receiving damage
         if bdata.rng.gen::<f32>() < 0.4 {
             bdata.controller.push_utterance(UtteranceKind::Hurt);
         }
+        bdata.agent.inbox.pop_front();
     }
     false
 }
