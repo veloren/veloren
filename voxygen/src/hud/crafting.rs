@@ -1497,16 +1497,16 @@ impl<'a> Widget for Crafting<'a> {
             // Craft button
             if Button::image(self.imgs.button)
                 .w_h(105.0, 25.0)
-                .hover_image(
-                    can_perform
-                        .then_some(self.imgs.button_hover)
-                        .unwrap_or(self.imgs.button),
-                )
-                .press_image(
-                    can_perform
-                        .then_some(self.imgs.button_press)
-                        .unwrap_or(self.imgs.button),
-                )
+                .hover_image(if can_perform {
+                    self.imgs.button_hover
+                } else {
+                    self.imgs.button
+                })
+                .press_image(if can_perform {
+                    self.imgs.button_press
+                } else {
+                    self.imgs.button
+                })
                 .label(&match recipe_kind {
                     RecipeKind::Repair => self.localized_strings.get_msg("hud-crafting-repair"),
                     _ => self.localized_strings.get_msg("hud-crafting-craft"),
