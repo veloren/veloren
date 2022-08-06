@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Combat music now loops and ends properly
 - Modular weapons now have a selling price
 - Closing a subwindow now only regrabs the cursor if no other subwindow requires it.
+- Fixed npc not handling interactions while fighting (especially merchants in trade)
 
 ## [0.12.0] - 2022-02-19
 

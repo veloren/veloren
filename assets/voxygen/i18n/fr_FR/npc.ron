@@ -94,6 +94,10 @@
             "Échanger? Comme-si j'avais quoi que ce soit qui pourrait t'intéresser.",
             "Ma maison est à moi, je ne l'échangerai pour rien au monde.",
         ],
+        "npc.speech.villager_busy": [
+            "Désolé, je ne peux pas vous parler pour le moment.",
+            "On verra ça plus tard, je suis occupé."
+        ],
         "npc.speech.merchant_advertisement": [
             "Puis-je t'intéresser par un échange ?",
             "Veux-tu échanger avec moi?",
@@ -116,6 +120,10 @@
         "npc.speech.merchant_trade_declined": [
             "Peut-être une autre fois, bonne journée!",
             "Mince, peut-être une autre fois alors!"
+        ],
+        "npc.speech.merchant_trade_cancelled_hostile": [
+            "On va devoir arrêter là pour l'instant, on a un problème à régler !",
+            "On finira cet échange une prochaine fois, il y a une urgence par ici !"
         ],
         "npc.speech.villager_cultist_alarm": [
             "Regarde! Il y a un cultiste errant!",

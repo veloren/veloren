@@ -94,6 +94,10 @@
             "Trade? Like I got anything that may interest you.",
             "My house is mine, I won't trade it for anything.",
         ],
+        "npc.speech.villager_busy": [
+            "Sorry, I can't speak with you right now.",
+            "We'll talk later, I'm busy."
+        ],
         "npc.speech.merchant_advertisement": [
             "Can I interest you in a trade?",
             "Do you want to trade with me?",
@@ -116,6 +120,10 @@
         "npc.speech.merchant_trade_declined": [
             "Maybe another time, have a good day!",
             "Too bad, maybe next time, then!"
+        ],
+        "npc.speech.merchant_trade_cancelled_hostile": [
+            "Sorry to cut it short, we have a problem to solve here!",
+            "We'll trade later, I need to take care of this first!"
         ],
         "npc.speech.villager_cultist_alarm": [
             "Lookout! There is a cultist on the loose!",
