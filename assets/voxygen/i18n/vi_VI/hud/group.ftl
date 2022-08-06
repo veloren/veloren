@@ -1,0 +1,13 @@
+hud-group = Nhóm
+hud-group-invite_to_join = [{ $name }] đã mời bạn vào nhóm!
+hud-group-invite_to_trade = [{ $name }] muốn giao dịch với bạn.
+hud-group-invite = Mời
+hud-group-kick = Đuổi
+hud-group-assign_leader = Trưởng Nhóm
+hud-group-leave = Rời Nhóm
+hud-group-dead = Đã Chết
+hud-group-out_of_range = Ngoài Phạm Vi
+hud-group-add_friend = Thêm Bạn
+hud-group-link_group = Các Nhóm Liên Kết
+hud-group-in_menu = Trong Menu
+hud-group-members = Thành Viên

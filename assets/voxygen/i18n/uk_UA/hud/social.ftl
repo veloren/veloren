@@ -1,0 +1,10 @@
+hud-social = Інші гравці
+hud-social-online = В мережі:
+hud-social-friends = Друзі
+hud-social-not_yet_available = Ще не доступно
+hud-social-faction = Фракція
+hud-social-play_online_fmt = { $nb_player } гравців в мережі
+hud-social-name = Ім'я
+hud-social-level = Рівень
+hud-social-zone = Зона
+hud-social-account = Обліковий запис

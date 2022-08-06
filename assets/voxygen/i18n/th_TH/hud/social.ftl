@@ -1,0 +1,10 @@
+hud-social = ผู้เล่นอื่น
+hud-social-online = กำลังออนไลน์:
+hud-social-friends = เพื่อน
+hud-social-not_yet_available = ยังไม่สามารถใช้การได้
+hud-social-faction = ฝ่าย
+hud-social-play_online_fmt = ผู้เล่น { $nb_player } คน กำลังออนไลน์
+hud-social-name = ชื่อ
+hud-social-level = เลเวล
+hud-social-zone = เขตพื้นที่
+hud-social-account = บัญชี

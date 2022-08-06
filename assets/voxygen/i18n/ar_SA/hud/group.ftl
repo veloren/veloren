@@ -1,0 +1,9 @@
+hud-group = مجموعة
+hud-group-invite_to_join = دعاك [{ $name }] إلى مجموعته!
+hud-group-invite_to_trade = يرغب [{ $name }] في التجارة معك.
+hud-group-invite = دعوة
+hud-group-kick = اطرد
+hud-group-assign_leader = تعيين القائد
+hud-group-leave = غادر المجموعة
+hud-group-dead = ميت
+hud-group-members = أعضاء المجموعة

@@ -1,0 +1,12 @@
+hud-group = Grup
+hud-group-invite_to_join = [{ $name }] seni grubuna davet etti!
+hud-group-invite = Davet Et
+hud-group-kick = Gruptan At
+hud-group-assign_leader = Lider Seç
+hud-group-leave = Gruptan Ayrıl
+hud-group-dead = Ölü
+hud-group-out_of_range = Erişim dışı
+hud-group-add_friend = Arkadaşlara Ekle
+hud-group-link_group = Grupları Bağla
+hud-group-in_menu = Menüde
+hud-group-members = Grup Üyeleri

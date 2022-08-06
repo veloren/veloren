@@ -1,0 +1,11 @@
+buff-remove = Klikk for å fjerne
+buff-title-missing = Mangler tittel
+buff-desc-missing = Mangler beskrivelse
+buff-title-heal = Helbred
+buff-desc-heal = Helbred over tid.
+buff-title-potion = Trylledrikk
+buff-desc-potion = Drikker...
+buff-title-saturation = Metning
+buff-desc-saturation = Helbred over tid fra forbruksvarer.
+buff-title-bleed = Blør
+buff-desc-bleed = Påfører regelmessig skade.

@@ -1,0 +1,10 @@
+hud-social = Altres Jugadors
+hud-social-online = Connectats:
+hud-social-friends = Amics
+hud-social-not_yet_available = Encara no disponible
+hud-social-faction = Facció
+hud-social-play_online_fmt = { $nb_player } jugador(s) connectats
+hud-social-name = Nom
+hud-social-level = Nivell
+hud-social-zone = Zona
+hud-social-account = Compte

@@ -1,0 +1,13 @@
+hud-group = 队伍
+hud-group-invite_to_join = [{ $name }]邀请你加入它们的队伍!
+hud-group-invite_to_trade = [{ $name }]希望与你进行交易.
+hud-group-invite = 邀请
+hud-group-kick = 踢出
+hud-group-assign_leader = 指定队长
+hud-group-leave = 离开队伍
+hud-group-dead = 死亡
+hud-group-out_of_range = 超出范围
+hud-group-add_friend = 添加好友
+hud-group-link_group = 连接队伍
+hud-group-in_menu = 菜单中
+hud-group-members = 队伍成员

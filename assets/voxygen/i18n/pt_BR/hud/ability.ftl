@@ -1,0 +1,16 @@
+common-abilities-debug-possess-name = Flecha Marionete
+common-abilities-debug-possess-desc = Atira uma flecha venenosa que deixa você controlar seu alvo.
+common-abilities-sword-spin-name = Redemoinho
+common-abilities-sword-spin-desc = Movimento frontal girando com sua espada.
+common-abilities-axe-leap-name = Machadada Pulante
+common-abilities-axe-leap-desc = Um pulo cortante na direção do cursor do mouse.
+common-abilities-hammer-leap-name = Golpe da Ruína
+common-abilities-hammer-leap-desc = Um Ataque em Área que inflige Empurrão. Salta na direção do cursor do mouse.
+common-abilities-bow-shotgun-name = Estrondo
+common-abilities-bow-shotgun-desc = Atira uma sequência de flechas
+common-abilities-staff-fireshockwave-name = Anel de Fogo
+common-abilities-staff-fireshockwave-desc = Incendeia o chão com uma onda de chamas.
+common-abilities-sceptre-wardingaura-name = Aura Protetora
+common-abilities-sceptre-wardingaura-desc = Protege seus aliados contra ataques inimigos.
+common-abilities-unknown-name = Habilidade sem título
+common-abilities-unknown-desc = Habilidade sem descrição

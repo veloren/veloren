@@ -1,0 +1,15 @@
+hud-crafting = 制作
+hud-crafting-recipes = 食谱
+hud-crafting-ingredients = 配方:
+hud-crafting-craft = 制作
+hud-crafting-tool_cata = 需要:
+hud-crafting-tabs-all = 全部
+hud-crafting-tabs-armor = 防具
+hud-crafting-tabs-dismantle = 分解
+hud-crafting-tabs-food = 食物
+hud-crafting-tabs-glider = 滑翔伞
+hud-crafting-tabs-potion = 药水
+hud-crafting-tabs-tool = 工具
+hud-crafting-tabs-utility = 道具
+hud-crafting-tabs-weapon = 武器
+hud-crafting-tabs-bag = 背包

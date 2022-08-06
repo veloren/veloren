@@ -1,0 +1,10 @@
+hud-social = Inni gracze
+hud-social-online = Zalogowani:
+hud-social-friends = Przyjaciele
+hud-social-not_yet_available = Jeszcze niedostępne
+hud-social-faction = Frakcja
+hud-social-play_online_fmt = { $nb_player } gracz(y) online
+hud-social-name = Imię
+hud-social-level = Poziom
+hud-social-zone = Strefa
+hud-social-account = Konto

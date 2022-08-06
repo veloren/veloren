@@ -1,0 +1,41 @@
+common-username = nome de utilizador
+common-singleplayer = Um jogador
+common-multiplayer = Multijogador
+common-servers = Servidores
+common-quit = Sair
+common-settings = Definições
+common-languages = Linguagens
+common-interface = Interface
+common-gameplay = Jogabilidade
+common-controls = Controlos
+common-video = Video
+common-sound = Som
+common-resume = Resumir
+common-characters = Personagens
+common-close = Fechar
+common-yes = Sim
+common-no = Não
+common-back = Voltar
+common-create = Criar
+common-okay = Okay
+common-accept = Aceitar
+common-disclaimer = Aviso
+common-cancel = Cancelar
+common-none = Nenhum
+common-error = Erro
+common-fatal_error = Erro fatal
+common-connection_lost =
+    Conexâo perdida!
+    Será que o server reiniciou?
+    O cliente está atualizado?
+common-species-orc = Ogre
+common-species-human = Humano
+common-species-dwarf = Anão
+common-species-elf = Elfo
+common-species-draugr = Morto-vivo
+common-species-danari = Danari
+common-weapons-axe = Machado
+common-weapons-sword = Espada
+common-weapons-staff = Cajado
+common-weapons-bow = Arco
+common-weapons-hammer = Martelo
