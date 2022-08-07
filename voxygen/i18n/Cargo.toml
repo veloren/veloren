@@ -12,9 +12,9 @@ ron = "0.7"
 serde = { version = "1.0", features = ["derive"] }
 # Localization
 unic-langid = { version = "0.9"}
-intl-memoizer = { git = "https://github.com/juliancoffee/fluent-rs.git"}
-fluent = { git = "https://github.com/juliancoffee/fluent-rs.git"}
-fluent-bundle = { git = "https://github.com/juliancoffee/fluent-rs.git"}
+intl-memoizer = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
+fluent = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
+fluent-bundle = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
 # Utility
 hashbrown = { version = "0.12", features = ["serde", "nightly"] }
 deunicode = "1.0"

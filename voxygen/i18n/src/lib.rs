@@ -78,32 +78,10 @@ impl Language {
         let mut errs = Vec::new();
         let msg = bundle.format_pattern(msg.value()?, args, &mut errs);
         for err in errs {
-            eprintln!("err: {err} for {key}");
+            tracing::error!("err: {err} for {key}");
         }
 
         Some(msg)
-    }
-
-    fn try_collect_attrs<'a>(
-        &'a self,
-        key: &str,
-        args: Option<&'a FluentArgs>,
-    ) -> Option<Vec<Cow<str>>> {
-        let bundle = &self.bundle;
-        let msg = bundle.get_message(key)?;
-
-        let mut errs = Vec::new();
-        let mut attrs = Vec::new();
-
-        for attr in msg.attributes() {
-            let msg = bundle.format_pattern(attr.value(), args, &mut errs);
-            attrs.push(msg);
-        }
-        for err in errs {
-            eprintln!("err: {err} for {key}");
-        }
-
-        Some(attrs)
     }
 
     fn try_variation<'a>(
@@ -112,13 +90,37 @@ impl Language {
         seed: u16,
         args: Option<&'a FluentArgs>,
     ) -> Option<Cow<'a, str>> {
-        let mut attrs = self.try_collect_attrs(key, args)?;
+        let bundle = &self.bundle;
+        let msg = bundle.get_message(key)?;
+        let mut attrs = msg.attributes();
 
-        if attrs.is_empty() {
-            None
+        if attrs.len() != 0 {
+            let idx = usize::from(seed) % attrs.len();
+            // unwrap is ok here, because idx is bound to attrs.len()
+            // by using modulo operator.
+            //
+            // For example:
+            // (I)
+            // * attributes = [.x = 5, .y = 7, z. = 4]
+            // * len = 3
+            // * seed can be 12, 50, 1
+            // 12 % 3 = 0, attrs.skip(0) => first element
+            // 50 % 3 = 2, attrs.skip(2) => third element
+            // 1 % 3 = 1, attrs.skip(1) => second element
+            // (II)
+            // * attributes = []
+            // * len = 0
+            // * no matter what seed is, we return None in code above
+            let variation = attrs.nth(idx).unwrap();
+            let mut errs = Vec::new();
+            let msg = bundle.format_pattern(variation.value(), args, &mut errs);
+            for err in errs {
+                tracing::error!("err: {err} for {key}");
+            }
+
+            Some(msg)
         } else {
-            let variation = attrs.swap_remove(usize::from(seed) % attrs.len());
-            Some(variation)
+            None
         }
     }
 }
