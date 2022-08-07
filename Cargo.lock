@@ -5322,15 +5322,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde-tuple-vec-map"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a04d0ebe0de77d7d445bb729a895dcb0a288854b267ca85f030ce51cdc578c82"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "serde_bytes"
 version = "0.11.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6936,7 +6927,6 @@ dependencies = [
  "intl-memoizer",
  "ron 0.7.0",
  "serde",
- "serde-tuple-vec-map",
  "tracing",
  "unic-langid",
  "veloren-common-assets",

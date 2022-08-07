@@ -19,14 +19,3 @@ fluent-bundle = { git = "https://github.com/juliancoffee/fluent-rs.git", branch 
 hashbrown = { version = "0.12", features = ["serde", "nightly"] }
 deunicode = "1.0"
 tracing = "0.1"
-# Bin
-serde-tuple-vec-map = "1.0"
-
-# FIXME: remove before merge
-[[bin]]
-name = "i18n-migrate"
-required-features = ["i18n-migrate"]
-path = "src/bin/migrate.rs"
-
-[features]
-i18n-migrate = []
