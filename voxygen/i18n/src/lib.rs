@@ -251,7 +251,8 @@ pub struct LocalizationHandle {
 // arbitrary choice to minimize changing all of veloren
 pub type Localization = LocalizationGuard;
 
-/// RAII guard returned from [LocalizationHandle::read()](LocalizationHandle::read),
+/// RAII guard returned from
+/// [LocalizationHandle::read()](LocalizationHandle::read),
 /// resembles [AssetGuard](AssetGuard)
 pub struct LocalizationGuard {
     active: AssetGuard<Language>,
