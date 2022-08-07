@@ -356,7 +356,7 @@ impl<'a> Widget for Sound<'a> {
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.ambience_volume_slider, 12.0)
+            .down_from(state.ids.music_frequency_slider, 12.0)
             .label(&self.localized_strings.get("hud.settings.reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
