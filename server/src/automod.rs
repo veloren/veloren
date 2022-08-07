@@ -3,7 +3,10 @@ use authc::Uuid;
 use censor::Censor;
 use common::comp::AdminRole;
 use hashbrown::HashMap;
-use std::time::{Duration, Instant};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use tracing::info;
 
 pub const MAX_BYTES_CHAT_MSG: usize = 256;
@@ -20,12 +23,12 @@ pub enum ActionErr {
 
 pub struct AutoMod {
     settings: ModerationSettings,
-    censor: Censor,
+    censor: Arc<Censor>,
     players: HashMap<Uuid, PlayerState>,
 }
 
 impl AutoMod {
-    pub fn new(settings: &ModerationSettings, banned_words: Vec<String>) -> Self {
+    pub fn new(settings: &ModerationSettings, censor: Arc<Censor>) -> Self {
         if settings.automod {
             info!(
                 "Automod enabled, players{} will be subject to automated spam/content filters",
@@ -41,7 +44,7 @@ impl AutoMod {
 
         Self {
             settings: settings.clone(),
-            censor: Censor::Custom(banned_words.into_iter().collect()),
+            censor,
             players: HashMap::default(),
         }
     }

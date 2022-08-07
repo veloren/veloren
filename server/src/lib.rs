@@ -14,7 +14,6 @@
 )]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
-pub mod alias_validator;
 pub mod automod;
 mod character_creator;
 pub mod chunk_generator;
@@ -55,7 +54,6 @@ pub use crate::{
 #[cfg(feature = "persistent_world")]
 use crate::terrain_persistence::TerrainPersistence;
 use crate::{
-    alias_validator::AliasValidator,
     automod::AutoMod,
     chunk_generator::ChunkGenerator,
     client::Client,
@@ -70,6 +68,7 @@ use crate::{
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedStorages},
 };
+use censor::Censor;
 #[cfg(not(feature = "worldgen"))]
 use common::grid::Grid;
 use common::{
@@ -340,17 +339,15 @@ impl Server {
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
 
+        // Load banned words list
         let banned_words = settings.moderation.load_banned_words(data_dir);
-
-        //Alias validator
-        state
-            .ecs_mut()
-            .insert(AliasValidator::new(banned_words.clone()));
+        let censor = Arc::new(Censor::Custom(banned_words.into_iter().collect()));
+        state.ecs_mut().insert(Arc::clone(&censor));
 
         // Init automod
         state
             .ecs_mut()
-            .insert(AutoMod::new(&settings.moderation, banned_words));
+            .insert(AutoMod::new(&settings.moderation, censor));
 
         #[cfg(feature = "worldgen")]
         let (world, index) = World::generate(
