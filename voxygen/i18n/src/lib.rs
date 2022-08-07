@@ -247,13 +247,12 @@ pub struct LocalizationHandle {
     pub use_english_fallback: bool,
 }
 
-/// Read [LocalizationGuard](LocalizationGuard)
+/// Read [LocalizationGuard]
 // arbitrary choice to minimize changing all of veloren
 pub type Localization = LocalizationGuard;
 
-/// RAII guard returned from
-/// [LocalizationHandle::read()](LocalizationHandle::read),
-/// resembles [AssetGuard](AssetGuard)
+/// RAII guard returned from [LocalizationHandle::read()], resembles
+/// [AssetGuard]
 pub struct LocalizationGuard {
     active: AssetGuard<Language>,
     fallback: Option<AssetGuard<Language>>,
@@ -302,7 +301,7 @@ impl LocalizationGuard {
         // NOTE: we clone the key if translation was missing
         // We could use borrowed version, but it would mean that
         // `key`, `self`, and result should have the same lifetime.
-        // Which would make it way more awkard to use with runtime generated keys.
+        // Which would make it way more awkward to use with runtime generated keys.
         self.try_msg(key)
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
     }
@@ -407,7 +406,7 @@ impl LocalizationHandle {
     }
 
     /// # Errors
-    /// Returns error if active language can't be loaded
+    /// Returns error if active of fallback language can't be loaded
     pub fn load(specifier: &str) -> Result<Self, assets::Error> {
         let default_key = ["voxygen.i18n.", REFERENCE_LANG].concat();
         let language_key = ["voxygen.i18n.", specifier].concat();
