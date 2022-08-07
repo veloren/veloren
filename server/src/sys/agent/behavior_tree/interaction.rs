@@ -182,7 +182,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                         PersonalityTrait::Adventurous => {
                                             "npc-speech-villager_adventurous"
                                         },
-                                        PersonalityTrait::Closed => "npc.speech.villager_closed",
+                                        PersonalityTrait::Closed => "npc-speech-villager_closed",
                                         PersonalityTrait::Conscientious => {
                                             "npc-speech-villager_conscientious"
                                         },
