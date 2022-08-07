@@ -9,7 +9,6 @@ use common::comp::{
     group::Role,
     BuffKind, ChatMode, ChatMsg, ChatType,
 };
-use common_net::msg::validate_chat_msg;
 use conrod_core::{
     color,
     input::Key,
@@ -120,9 +119,7 @@ impl<'a> Chat<'a> {
     }
 
     pub fn input(mut self, input: String) -> Self {
-        if let Ok(()) = validate_chat_msg(&input) {
-            self.force_input = Some(input);
-        }
+        self.force_input = Some(input);
         self
     }
 
@@ -388,9 +385,7 @@ impl<'a> Widget for Chat<'a> {
                 .set(state.ids.chat_input, ui)
             {
                 input.retain(|c| c != '\n');
-                if let Ok(()) = validate_chat_msg(&input) {
-                    state.update(|s| s.input.message = input);
-                }
+                state.update(|s| s.input.message = input);
             }
         }
 

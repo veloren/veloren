@@ -1,5 +1,6 @@
 use crate::{
     alias_validator::AliasValidator,
+    automod::AutoMod,
     character_creator,
     client::Client,
     persistence::{character_loader::CharacterLoader, character_updater::CharacterUpdater},
@@ -30,6 +31,7 @@ impl Sys {
         presences: &ReadStorage<'_, Presence>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
+        automod: &AutoMod,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         let mut send_join_messages = || -> Result<(), crate::error::Error> {
@@ -38,6 +40,14 @@ impl Sys {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
                     &*editable_settings.server_description,
+                ))?;
+            }
+
+            // Warn them about automod
+            if automod.enabled() {
+                client.send(ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    "Automatic moderation is enabled: play nice and have fun!",
                 ))?;
             }
 
@@ -211,6 +221,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Presence>,
         ReadExpect<'a, EditableSettings>,
         ReadExpect<'a, AliasValidator>,
+        ReadExpect<'a, AutoMod>,
     );
 
     const NAME: &'static str = "msg::character_screen";
@@ -231,6 +242,7 @@ impl<'a> System<'a> for Sys {
             presences,
             editable_settings,
             alias_validator,
+            automod,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
@@ -249,6 +261,7 @@ impl<'a> System<'a> for Sys {
                     &presences,
                     &editable_settings,
                     &alias_validator,
+                    &automod,
                     msg,
                 )
             });

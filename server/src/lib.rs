@@ -15,6 +15,7 @@
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
 pub mod alias_validator;
+pub mod automod;
 mod character_creator;
 pub mod chunk_generator;
 mod chunk_serialize;
@@ -55,6 +56,7 @@ pub use crate::{
 use crate::terrain_persistence::TerrainPersistence;
 use crate::{
     alias_validator::AliasValidator,
+    automod::AutoMod,
     chunk_generator::ChunkGenerator,
     client::Client,
     cmd::ChatCommandExt,
@@ -339,7 +341,7 @@ impl Server {
         state.ecs_mut().register::<RepositionOnChunkLoad>();
 
         //Alias validator
-        let banned_words_paths = &settings.banned_words_files;
+        let banned_words_paths = &settings.moderation.banned_words_files;
         let mut banned_words = Vec::new();
         for path in banned_words_paths {
             let mut list = match std::fs::File::open(&path) {
@@ -367,7 +369,14 @@ impl Server {
         let banned_words_count = banned_words.len();
         debug!(?banned_words_count);
         trace!(?banned_words);
-        state.ecs_mut().insert(AliasValidator::new(banned_words));
+        state
+            .ecs_mut()
+            .insert(AliasValidator::new(banned_words.clone()));
+
+        // Init automod
+        state
+            .ecs_mut()
+            .insert(AutoMod::new(&settings.moderation, banned_words));
 
         #[cfg(feature = "worldgen")]
         let (world, index) = World::generate(

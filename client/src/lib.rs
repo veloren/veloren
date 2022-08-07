@@ -54,12 +54,11 @@ use common::{
 use common_base::{prof_span, span};
 use common_net::{
     msg::{
-        self, validate_chat_msg,
+        self,
         world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
-        ChatMsgValidationError, ClientGeneral, ClientMsg, ClientRegister, ClientType,
-        DisconnectReason, InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate,
-        PresenceKind, RegisterError, ServerGeneral, ServerInit, ServerRegisterAnswer,
-        MAX_BYTES_CHAT_MSG,
+        ClientGeneral, ClientMsg, ClientRegister, ClientType, DisconnectReason, InviteAnswer,
+        Notification, PingMsg, PlayerInfo, PlayerListUpdate, PresenceKind, RegisterError,
+        ServerGeneral, ServerInit, ServerRegisterAnswer,
     },
     sync::WorldSyncExt,
 };
@@ -1551,15 +1550,7 @@ impl Client {
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
 
     /// Send a chat message to the server.
-    pub fn send_chat(&mut self, message: String) {
-        match validate_chat_msg(&message) {
-            Ok(()) => self.send_msg(ClientGeneral::ChatMsg(message)),
-            Err(ChatMsgValidationError::TooLong) => warn!(
-                "Attempted to send a message that's too long (Over {} bytes)",
-                MAX_BYTES_CHAT_MSG
-            ),
-        }
-    }
+    pub fn send_chat(&mut self, message: String) { self.send_msg(ClientGeneral::ChatMsg(message)); }
 
     /// Send a command to the server.
     pub fn send_command(&mut self, name: String, args: Vec<String>) {
