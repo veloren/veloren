@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::{ConnectionState, Imgs, Message};
 
 use crate::{
@@ -102,29 +100,22 @@ impl Screen {
         let children = match connection_state {
             ConnectionState::InProgress => {
                 let tip = if show_tip {
-                    let key = |code| {
-                        if let Ok(game_input) = GameInput::from_str(code) {
-                            match controls.keybindings.get(&game_input) {
-                                Some(Some(key_mouse)) => key_mouse.display_string(key_layout),
-                                Some(None) => i18n.get("main.unbound_key_tip").into_owned(),
-                                None => ControlSettings::default_binding(game_input)
-                                    .display_string(key_layout),
-                            }
-                        } else {
-                            "code".to_owned()
-                        }
+                    let key = |code| match controls.keybindings.get(&code) {
+                        Some(Some(key_mouse)) => key_mouse.display_string(key_layout),
+                        Some(None) => i18n.get("main.unbound_key_tip").into_owned(),
+                        None => ControlSettings::default_binding(code).display_string(key_layout),
                     };
                     let keys = i18n::fluent_args! {
-                        "gameinput-togglelantern" => key("gameinput.togglelantern"),
-                        "gameinput-help" => key("gameinput.help"),
-                        "gameinput-settings" => key("gameinput.settings"),
-                        "gameinput-social" => key("gameinput.social"),
-                        "gameinput-dance" => key("gameinput.dance"),
-                        "gameinput-glide" => key("gameinput.glide"),
-                        "gameinput-sit" => key("gameinput.sit"),
-                        "gameinput-crafting" => key("gameinput.crafting"),
-                        "gameinput-roll" => key("gameinput.roll"),
-                        "gameinput-screenshot" => key("gameinput.screenshot"),
+                        "gameinput-togglelantern" => key(GameInput::ToggleLantern),
+                        "gameinput-help" => key(GameInput::Help),
+                        "gameinput-settings" => key(GameInput::Settings),
+                        "gameinput-social" => key(GameInput::Social),
+                        "gameinput-dance" => key(GameInput::Dance),
+                        "gameinput-glide" => key(GameInput::Glide),
+                        "gameinput-sit" => key(GameInput::Sit),
+                        "gameinput-crafting" => key(GameInput::Crafting),
+                        "gameinput-roll" => key(GameInput::Roll),
+                        "gameinput-screenshot" => key(GameInput::Screenshot),
                     };
                     let tip = &i18n.get_variation_ctx("loading-tips", self.tip_number, &keys);
                     let tip = format!("{} {}", i18n.get("main.tip"), tip);
