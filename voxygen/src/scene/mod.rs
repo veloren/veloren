@@ -44,7 +44,8 @@ use num::traits::{Float, FloatConst};
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 
-const ZOOM_CAP: f32 = 10000.0;
+const ZOOM_CAP_PLAYER: f32 = 1000.0;
+const ZOOM_CAP_ADMIN: f32 = 100000.0;
 
 // TODO: Don't hard-code this.
 const CURSOR_PAN_SCALE: f32 = 0.005;
@@ -380,10 +381,14 @@ impl Scene {
             },
             // Zoom the camera when a zoom event occurs
             Event::Zoom(delta) => {
+                let cap = if client.is_moderator() {
+                    ZOOM_CAP_ADMIN
+                } else {
+                    ZOOM_CAP_PLAYER
+                };
                 // when zooming in the distance the camera travelles should be based on the
                 // final distance. This is to make sure the camera travelles the
                 // same distance when zooming in and out
-                let cap = (!client.is_moderator()).then_some(ZOOM_CAP);
                 if delta < 0.0 {
                     self.camera.zoom_switch(
                         // Thank you Imbris for doing the math
