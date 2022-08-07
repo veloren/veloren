@@ -153,18 +153,18 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                 if !agent.behavior.is(BehaviorState::TRADING) {
                                     controller.push_initiate_invite(by, InviteKind::Trade);
                                     agent_data.chat_npc(
-                                        "npc.speech.merchant_advertisement",
+                                        "npc-speech-merchant_advertisement",
                                         event_emitter,
                                     );
                                 } else {
-                                    let default_msg = "npc.speech.merchant_busy";
+                                    let default_msg = "npc-speech-merchant_busy";
                                     let msg = agent_data.rtsim_entity.map_or(default_msg, |e| {
                                         if e.brain
                                             .personality
                                             .personality_traits
                                             .contains(PersonalityTrait::Disagreeable)
                                         {
-                                            "npc.speech.merchant_busy_rude"
+                                            "npc-speech-merchant_busy_rude"
                                         } else {
                                             default_msg
                                         }
@@ -178,48 +178,48 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                     .and_then(|e| e.brain.personality.random_chat_trait(&mut rng))
                                 {
                                     let msg = match extreme_trait {
-                                        PersonalityTrait::Open => "npc.speech.villager_open",
+                                        PersonalityTrait::Open => "npc-speech-villager_open",
                                         PersonalityTrait::Adventurous => {
-                                            "npc.speech.villager_adventurous"
+                                            "npc-speech-villager_adventurous"
                                         },
                                         PersonalityTrait::Closed => "npc.speech.villager_closed",
                                         PersonalityTrait::Conscientious => {
-                                            "npc.speech.villager_conscientious"
+                                            "npc-speech-villager_conscientious"
                                         },
                                         PersonalityTrait::Busybody => {
-                                            "npc.speech.villager_busybody"
+                                            "npc-speech-villager_busybody"
                                         },
                                         PersonalityTrait::Unconscientious => {
-                                            "npc.speech.villager_unconscientious"
+                                            "npc-speech-villager_unconscientious"
                                         },
                                         PersonalityTrait::Extroverted => {
-                                            "npc.speech.villager_extroverted"
+                                            "npc-speech-villager_extroverted"
                                         },
                                         PersonalityTrait::Introverted => {
-                                            "npc.speech.villager_introverted"
+                                            "npc-speech-villager_introverted"
                                         },
                                         PersonalityTrait::Agreeable => {
-                                            "npc.speech.villager_agreeable"
+                                            "npc-speech-villager_agreeable"
                                         },
                                         PersonalityTrait::Sociable => {
-                                            "npc.speech.villager_sociable"
+                                            "npc-speech-villager_sociable"
                                         },
                                         PersonalityTrait::Disagreeable => {
-                                            "npc.speech.villager_disagreeable"
+                                            "npc-speech-villager_disagreeable"
                                         },
                                         PersonalityTrait::Neurotic => {
-                                            "npc.speech.villager_neurotic"
+                                            "npc-speech-villager_neurotic"
                                         },
-                                        PersonalityTrait::Seeker => "npc.speech.villager_seeker",
+                                        PersonalityTrait::Seeker => "npc-speech-villager_seeker",
                                         PersonalityTrait::SadLoner => {
-                                            "npc.speech.villager_sad_loner"
+                                            "npc-speech-villager_sad_loner"
                                         },
-                                        PersonalityTrait::Worried => "npc.speech.villager_worried",
-                                        PersonalityTrait::Stable => "npc.speech.villager_stable",
+                                        PersonalityTrait::Worried => "npc-speech-villager_worried",
+                                        PersonalityTrait::Stable => "npc-speech-villager_stable",
                                     };
                                     agent_data.chat_npc(msg, event_emitter);
                                 } else {
-                                    agent_data.chat_npc("npc.speech.villager", event_emitter);
+                                    agent_data.chat_npc("npc-speech-villager", event_emitter);
                                 }
                             }
                         },
@@ -228,17 +228,17 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                 if !agent.behavior.is(BehaviorState::TRADING) {
                                     controller.push_initiate_invite(by, InviteKind::Trade);
                                     agent_data.chat_npc(
-                                        "npc.speech.merchant_advertisement",
+                                        "npc-speech-merchant_advertisement",
                                         event_emitter,
                                     );
                                 } else {
-                                    agent_data.chat_npc("npc.speech.merchant_busy", event_emitter);
+                                    agent_data.chat_npc("npc-speech-merchant_busy", event_emitter);
                                 }
                             } else {
                                 // TODO: maybe make some travellers willing to trade with
                                 // simpler goods like potions
                                 agent_data
-                                    .chat_npc("npc.speech.villager_decline_trade", event_emitter);
+                                    .chat_npc("npc-speech-villager_decline_trade", event_emitter);
                             }
                         },
                         Subject::Mood => {
@@ -375,7 +375,7 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
             } else {
                 controller.push_invite_response(InviteResponse::Decline);
                 agent_data.chat_npc_if_allowed_to_speak(
-                    "npc.speech.merchant_busy",
+                    "npc-speech-merchant_busy",
                     agent,
                     event_emitter,
                 );
@@ -384,7 +384,7 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
             // TODO: Provide a hint where to find the closest merchant?
             controller.push_invite_response(InviteResponse::Decline);
             agent_data.chat_npc_if_allowed_to_speak(
-                "npc.speech.villager_decline_trade",
+                "npc-speech-villager_decline_trade",
                 agent,
                 event_emitter,
             );
@@ -432,10 +432,10 @@ pub fn handle_inbox_finished_trade(bdata: &mut BehaviorData) -> bool {
         if agent.behavior.is(BehaviorState::TRADING) {
             match result {
                 TradeResult::Completed => {
-                    agent_data.chat_npc("npc.speech.merchant_trade_successful", event_emitter);
+                    agent_data.chat_npc("npc-speech-merchant_trade_successful", event_emitter);
                 },
                 _ => {
-                    agent_data.chat_npc("npc.speech.merchant_trade_declined", event_emitter);
+                    agent_data.chat_npc("npc-speech-merchant_trade_declined", event_emitter);
                 },
             }
             agent.behavior.unset(BehaviorState::TRADING);
@@ -549,7 +549,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                     // in combat, speak to players that aren't the current target
                     if !target.hostile || target.target != speaker {
                         agent_data.chat_npc_if_allowed_to_speak(
-                            "npc.speech.villager_busy",
+                            "npc-speech-villager_busy",
                             agent,
                             event_emitter,
                         );
@@ -567,13 +567,13 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                     if !target.hostile || target.target != speaker {
                         if agent.behavior.can_trade() {
                             agent_data.chat_npc_if_allowed_to_speak(
-                                "npc.speech.merchant_busy",
+                                "npc-speech-merchant_busy",
                                 agent,
                                 event_emitter,
                             );
                         } else {
                             agent_data.chat_npc_if_allowed_to_speak(
-                                "npc.speech.villager_busy",
+                                "npc-speech-villager_busy",
                                 agent,
                                 event_emitter,
                             );
@@ -589,11 +589,11 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                     match result {
                         TradeResult::Completed => {
                             agent_data
-                                .chat_npc("npc.speech.merchant_trade_successful", event_emitter);
+                                .chat_npc("npc-speech-merchant_trade_successful", event_emitter);
                         },
                         _ => {
                             agent_data
-                                .chat_npc("npc.speech.merchant_trade_declined", event_emitter);
+                                .chat_npc("npc-speech-merchant_trade_declined", event_emitter);
                         },
                     }
                     agent.behavior.unset(BehaviorState::TRADING);
@@ -609,7 +609,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                     *tradeid,
                     TradeAction::Decline,
                 ));
-                agent_data.chat_npc("npc.speech.merchant_trade_cancelled_hostile", event_emitter);
+                agent_data.chat_npc("npc-speech-merchant_trade_cancelled_hostile", event_emitter);
                 true
             },
             AgentEvent::ServerSound(_) | AgentEvent::Hurt => false,
