@@ -124,6 +124,28 @@ impl<G> ChatType<G> {
             message: msg.into(),
         }
     }
+
+    pub fn uid(&self) -> Option<Uid> {
+        match self {
+            ChatType::Online(_) => None,
+            ChatType::Offline(_) => None,
+            ChatType::CommandInfo => None,
+            ChatType::CommandError => None,
+            ChatType::FactionMeta(_) => None,
+            ChatType::GroupMeta(_) => None,
+            ChatType::Kill(_, _) => None,
+            ChatType::Tell(u, _t) => Some(*u),
+            ChatType::Say(u) => Some(*u),
+            ChatType::Group(u, _s) => Some(*u),
+            ChatType::Faction(u, _s) => Some(*u),
+            ChatType::Region(u) => Some(*u),
+            ChatType::World(u) => Some(*u),
+            ChatType::Npc(u, _r) => Some(*u),
+            ChatType::NpcSay(u, _r) => Some(*u),
+            ChatType::NpcTell(u, _t, _r) => Some(*u),
+            ChatType::Meta => None,
+        }
+    }
 }
 
 // Stores chat text, type
@@ -226,27 +248,7 @@ impl<G> GenericChatMsg<G> {
         }
     }
 
-    pub fn uid(&self) -> Option<Uid> {
-        match &self.chat_type {
-            ChatType::Online(_) => None,
-            ChatType::Offline(_) => None,
-            ChatType::CommandInfo => None,
-            ChatType::CommandError => None,
-            ChatType::FactionMeta(_) => None,
-            ChatType::GroupMeta(_) => None,
-            ChatType::Kill(_, _) => None,
-            ChatType::Tell(u, _t) => Some(*u),
-            ChatType::Say(u) => Some(*u),
-            ChatType::Group(u, _s) => Some(*u),
-            ChatType::Faction(u, _s) => Some(*u),
-            ChatType::Region(u) => Some(*u),
-            ChatType::World(u) => Some(*u),
-            ChatType::Npc(u, _r) => Some(*u),
-            ChatType::NpcSay(u, _r) => Some(*u),
-            ChatType::NpcTell(u, _t, _r) => Some(*u),
-            ChatType::Meta => None,
-        }
-    }
+    pub fn uid(&self) -> Option<Uid> { self.chat_type.uid() }
 }
 
 /// Player factions are used to coordinate pvp vs hostile factions or segment

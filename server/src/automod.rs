@@ -4,6 +4,7 @@ use censor::Censor;
 use common::comp::AdminRole;
 use hashbrown::HashMap;
 use std::{
+    fmt,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -15,10 +16,44 @@ pub enum ActionNote {
     SpamWarn,
 }
 
+impl fmt::Display for ActionNote {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ActionNote::SpamWarn => write!(
+                f,
+                "You've sent a lot of messages recently. Make sure to reduce the rate of messages \
+                 or you will be automatically muted."
+            ),
+        }
+    }
+}
+
 pub enum ActionErr {
     BannedWord,
     TooLong,
     SpamMuted(Duration),
+}
+
+impl fmt::Display for ActionErr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ActionErr::BannedWord => write!(
+                f,
+                "Your message contained a banned word. If you think this is a mistake, please let \
+                 a moderator know."
+            ),
+            ActionErr::TooLong => write!(
+                f,
+                "Your message was too long, no more than {} characters are permitted.",
+                MAX_BYTES_CHAT_MSG
+            ),
+            ActionErr::SpamMuted(dur) => write!(
+                f,
+                "You have sent too many messages and are muted for {} seconds.",
+                dur.as_secs_f32() as u64
+            ),
+        }
+    }
 }
 
 pub struct AutoMod {

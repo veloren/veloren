@@ -1,4 +1,5 @@
 use crate::{
+    automod::AutoMod,
     client::Client,
     events::update_map_markers,
     persistence::PersistedComponents,
@@ -17,7 +18,7 @@ use common::{
         self,
         item::MaterialStatManifest,
         skills::{GeneralSkill, Skill},
-        Group, Inventory, Item, Poise,
+        ChatType, Group, Inventory, Item, Player, Poise,
     },
     effect::Effect,
     link::{Link, LinkHandle},
@@ -36,7 +37,7 @@ use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
     Join, WorldExt,
 };
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tracing::{trace, warn};
 use vek::*;
 
@@ -113,6 +114,7 @@ pub trait StateExt {
     /// Performed after loading component data from the database
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
     /// Iterates over registered clients and send each `ServerMsg`
+    fn validate_chat_msg(&self, player: EcsEntity, msg: &str) -> bool;
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
     fn notify_players(&self, msg: ServerGeneral);
     fn notify_in_game_clients(&self, msg: ServerGeneral);
@@ -674,6 +676,39 @@ impl StateExt for State {
         }
     }
 
+    fn validate_chat_msg(&self, entity: EcsEntity, msg: &str) -> bool {
+        let mut automod = self.ecs().write_resource::<AutoMod>();
+        let Some(client) = self.ecs().read_storage::<Client>().get(entity) else { return true };
+        let Some(player) = self.ecs().read_storage::<Player>().get(entity) else { return true };
+
+        match automod.validate_chat_msg(
+            player.uuid(),
+            self.ecs()
+                .read_storage::<comp::Admin>()
+                .get(entity)
+                .map(|a| a.0),
+            Instant::now(),
+            msg,
+        ) {
+            Ok(note) => {
+                if let Some(note) = note {
+                    let _ = client.send(ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("{}", note),
+                    ));
+                }
+                true
+            },
+            Err(err) => {
+                let _ = client.send(ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("{}", err),
+                ));
+                false
+            },
+        }
+    }
+
     /// Send the chat message to the proper players. Say and region are limited
     /// by location. Faction and group are limited by component.
     fn send_chat(&self, msg: comp::UnresolvedChatMsg) {
@@ -689,165 +724,183 @@ impl StateExt for State {
             .clone()
             .map_group(|_| group_info.map_or_else(|| "???".to_string(), |i| i.name.clone()));
 
-        match &msg.chat_type {
-            comp::ChatType::Offline(_)
-            | comp::ChatType::CommandInfo
-            | comp::ChatType::CommandError
-            | comp::ChatType::Meta
-            | comp::ChatType::World(_) => self.notify_players(ServerGeneral::ChatMsg(resolved_msg)),
-            comp::ChatType::Online(u) => {
-                for (client, uid) in
-                    (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
-                {
-                    if uid != u {
-                        client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+        if msg.chat_type.uid().map_or(true, |sender| {
+            (*ecs.read_resource::<UidAllocator>())
+                .retrieve_entity_internal(sender.0)
+                .map_or(false, |e| self.validate_chat_msg(e, &msg.message))
+        }) {
+            match &msg.chat_type {
+                comp::ChatType::Offline(_)
+                | comp::ChatType::CommandInfo
+                | comp::ChatType::CommandError
+                | comp::ChatType::Meta
+                | comp::ChatType::World(_) => {
+                    self.notify_players(ServerGeneral::ChatMsg(resolved_msg))
+                },
+                comp::ChatType::Online(u) => {
+                    for (client, uid) in
+                        (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
+                    {
+                        if uid != u {
+                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        }
                     }
-                }
-            },
-            comp::ChatType::Tell(u, t) => {
-                for (client, uid) in
-                    (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
-                {
-                    if uid == u || uid == t {
-                        client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                },
+                comp::ChatType::Tell(from, to) => {
+                    for (client, uid) in
+                        (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
+                    {
+                        if uid == from || uid == to {
+                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        }
                     }
-                }
-            },
-            comp::ChatType::Kill(kill_source, uid) => {
-                let comp::chat::GenericChatMsg { message, .. } = msg;
-                let clients = ecs.read_storage::<Client>();
-                let clients_count = clients.count();
-                // Avoid chat spam, send kill message only to group or nearby players if a
-                // certain amount of clients are online
-                if clients_count
-                    > ecs
-                        .fetch::<Settings>()
-                        .max_player_for_kill_broadcast
-                        .unwrap_or_default()
-                {
-                    // Send kill message to the dead player's group
-                    let killed_entity =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
-                    let groups = ecs.read_storage::<Group>();
-                    let killed_group = killed_entity.and_then(|e| groups.get(e));
-                    if let Some(g) = &killed_group {
-                        send_to_group(g, ecs, &resolved_msg);
-                    }
+                },
+                comp::ChatType::Kill(kill_source, uid) => {
+                    let comp::chat::GenericChatMsg { message, .. } = msg;
+                    let clients = ecs.read_storage::<Client>();
+                    let clients_count = clients.count();
+                    // Avoid chat spam, send kill message only to group or nearby players if a
+                    // certain amount of clients are online
+                    if clients_count
+                        > ecs
+                            .fetch::<Settings>()
+                            .max_player_for_kill_broadcast
+                            .unwrap_or_default()
+                    {
+                        // Send kill message to the dead player's group
+                        let killed_entity =
+                            (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                        let groups = ecs.read_storage::<Group>();
+                        let killed_group = killed_entity.and_then(|e| groups.get(e));
+                        if let Some(g) = &killed_group {
+                            send_to_group(g, ecs, &resolved_msg);
+                        }
 
-                    // Send kill message to nearby players that aren't part of the deceased's group
-                    let positions = ecs.read_storage::<comp::Pos>();
-                    if let Some(died_player_pos) = killed_entity.and_then(|e| positions.get(e)) {
-                        for (ent, client, pos) in (&*ecs.entities(), &clients, &positions).join() {
-                            let client_group = groups.get(ent);
-                            let is_different_group =
-                                !(killed_group == client_group && client_group.is_some());
-                            if is_within(comp::ChatMsg::SAY_DISTANCE, pos, died_player_pos)
-                                && is_different_group
+                        // Send kill message to nearby players that aren't part of the deceased's
+                        // group
+                        let positions = ecs.read_storage::<comp::Pos>();
+                        if let Some(died_player_pos) = killed_entity.and_then(|e| positions.get(e))
+                        {
+                            for (ent, client, pos) in
+                                (&*ecs.entities(), &clients, &positions).join()
                             {
+                                let client_group = groups.get(ent);
+                                let is_different_group =
+                                    !(killed_group == client_group && client_group.is_some());
+                                if is_within(comp::ChatMsg::SAY_DISTANCE, pos, died_player_pos)
+                                    && is_different_group
+                                {
+                                    client.send_fallible(ServerGeneral::ChatMsg(
+                                        resolved_msg.clone(),
+                                    ));
+                                }
+                            }
+                        }
+                    } else {
+                        self.notify_players(ServerGeneral::server_msg(
+                            comp::ChatType::Kill(kill_source.clone(), *uid),
+                            message,
+                        ))
+                    }
+                },
+                comp::ChatType::Say(uid) => {
+                    let entity_opt =
+                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+
+                    let positions = ecs.read_storage::<comp::Pos>();
+                    if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
+                        for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
+                            if is_within(comp::ChatMsg::SAY_DISTANCE, pos, speaker_pos) {
                                 client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                             }
                         }
                     }
-                } else {
-                    self.notify_players(ServerGeneral::server_msg(
-                        comp::ChatType::Kill(kill_source.clone(), *uid),
-                        message,
-                    ))
-                }
-            },
-            comp::ChatType::Say(uid) => {
-                let entity_opt =
-                    (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
-                let positions = ecs.read_storage::<comp::Pos>();
-                if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
-                    for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
-                        if is_within(comp::ChatMsg::SAY_DISTANCE, pos, speaker_pos) {
-                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
-                        }
-                    }
-                }
-            },
-            comp::ChatType::Region(uid) => {
-                let entity_opt =
-                    (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
-                let positions = ecs.read_storage::<comp::Pos>();
-                if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
-                    for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
-                        if is_within(comp::ChatMsg::REGION_DISTANCE, pos, speaker_pos) {
-                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
-                        }
-                    }
-                }
-            },
-            comp::ChatType::Npc(uid, _r) => {
-                let entity_opt =
-                    (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
-                let positions = ecs.read_storage::<comp::Pos>();
-                if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
-                    for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
-                        if is_within(comp::ChatMsg::NPC_DISTANCE, pos, speaker_pos) {
-                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
-                        }
-                    }
-                }
-            },
-            comp::ChatType::NpcSay(uid, _r) => {
-                let entity_opt =
-                    (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
-                let positions = ecs.read_storage::<comp::Pos>();
-                if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
-                    for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
-                        if is_within(comp::ChatMsg::NPC_SAY_DISTANCE, pos, speaker_pos) {
-                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
-                        }
-                    }
-                }
-            },
-            comp::ChatType::NpcTell(from, to, _r) => {
-                for (client, uid) in
-                    (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
-                {
-                    if uid == from || uid == to {
-                        client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
-                    }
-                }
-            },
-            comp::ChatType::FactionMeta(s) | comp::ChatType::Faction(_, s) => {
-                for (client, faction) in (
-                    &ecs.read_storage::<Client>(),
-                    &ecs.read_storage::<comp::Faction>(),
-                )
-                    .join()
-                {
-                    if s == &faction.0 {
-                        client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
-                    }
-                }
-            },
-            comp::ChatType::Group(from, g) => {
-                if group_info.is_none() {
-                    // group not found, reply with command error
-                    let reply = comp::ChatMsg {
-                        chat_type: comp::ChatType::CommandError,
-                        message: "You are using group chat but do not belong to a group. Use \
-                                  /world or /region to change chat."
-                            .into(),
-                    };
+                },
+                comp::ChatType::Region(uid) => {
+                    let entity_opt =
+                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
 
-                    if let Some((client, _)) =
-                        (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>())
-                            .join()
-                            .find(|(_, uid)| *uid == from)
-                    {
-                        client.send_fallible(ServerGeneral::ChatMsg(reply));
+                    let positions = ecs.read_storage::<comp::Pos>();
+                    if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
+                        for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
+                            if is_within(comp::ChatMsg::REGION_DISTANCE, pos, speaker_pos) {
+                                client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                            }
+                        }
                     }
-                    return;
-                }
-                send_to_group(g, ecs, &resolved_msg);
-            },
-            comp::ChatType::GroupMeta(g) => {
-                send_to_group(g, ecs, &resolved_msg);
-            },
+                },
+                comp::ChatType::Npc(uid, _r) => {
+                    let entity_opt =
+                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+
+                    let positions = ecs.read_storage::<comp::Pos>();
+                    if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
+                        for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
+                            if is_within(comp::ChatMsg::NPC_DISTANCE, pos, speaker_pos) {
+                                client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                            }
+                        }
+                    }
+                },
+                comp::ChatType::NpcSay(uid, _r) => {
+                    let entity_opt =
+                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+
+                    let positions = ecs.read_storage::<comp::Pos>();
+                    if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
+                        for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
+                            if is_within(comp::ChatMsg::NPC_SAY_DISTANCE, pos, speaker_pos) {
+                                client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                            }
+                        }
+                    }
+                },
+                comp::ChatType::NpcTell(from, to, _r) => {
+                    for (client, uid) in
+                        (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
+                    {
+                        if uid == from || uid == to {
+                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        }
+                    }
+                },
+                comp::ChatType::FactionMeta(s) | comp::ChatType::Faction(_, s) => {
+                    for (client, faction) in (
+                        &ecs.read_storage::<Client>(),
+                        &ecs.read_storage::<comp::Faction>(),
+                    )
+                        .join()
+                    {
+                        if s == &faction.0 {
+                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        }
+                    }
+                },
+                comp::ChatType::Group(from, g) => {
+                    if group_info.is_none() {
+                        // group not found, reply with command error
+                        let reply = comp::ChatMsg {
+                            chat_type: comp::ChatType::CommandError,
+                            message: "You are using group chat but do not belong to a group. Use \
+                                      /world or /region to change chat."
+                                .into(),
+                        };
+
+                        if let Some((client, _)) =
+                            (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>())
+                                .join()
+                                .find(|(_, uid)| *uid == from)
+                        {
+                            client.send_fallible(ServerGeneral::ChatMsg(reply));
+                        }
+                        return;
+                    }
+                    send_to_group(g, ecs, &resolved_msg);
+                },
+                comp::ChatType::GroupMeta(g) => {
+                    send_to_group(g, ecs, &resolved_msg);
+                },
+            }
         }
     }
 
