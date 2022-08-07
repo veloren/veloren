@@ -1,0 +1,10 @@
+hud-social = Andere Spieler
+hud-social-online = Online:
+hud-social-friends = Freunde
+hud-social-not_yet_available = Noch nicht verfügbar
+hud-social-faction = Fraktion
+hud-social-play_online_fmt = { $nb_player } Spieler online
+hud-social-name = Name
+hud-social-level = Level
+hud-social-zone = Zone
+hud-social-account = Account

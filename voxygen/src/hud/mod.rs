@@ -1555,10 +1555,11 @@ impl Hud {
 
                     if floater.exp_change > 0 {
                         let xp_pool = &floater.xp_pools;
-                        // Don't show 0 Exp
-                        let exp_string = &i18n
-                            .get("hud.sct.experience")
-                            .replace("{amount}", &floater.exp_change.max(1).to_string());
+                        let exp_string =
+                            &i18n.get_msg_ctx("hud-sct-experience", &i18n::fluent_args! {
+                                // Don't show 0 Exp
+                                "amount" => &floater.exp_change.max(1),
+                            });
                         Text::new(exp_string)
                             .font_size(font_size_xp)
                             .font_id(self.fonts.cyri.conrod_id)
@@ -1636,13 +1637,13 @@ impl Hud {
                         .mid_top_with_margin_on(self.ids.player_rank_up, fontsize.1)
                         .set(self.ids.player_rank_up_txt_number, ui_widgets);
                     // Static "New Rank!" text
-                    Text::new(i18n.get("hud.rank_up"))
+                    Text::new(&i18n.get("hud.rank_up"))
                         .font_size(40)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                         .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
                         .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
-                    Text::new(i18n.get("hud.rank_up"))
+                    Text::new(&i18n.get("hud.rank_up"))
                         .font_size(40)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade))
@@ -1658,15 +1659,15 @@ impl Hud {
                         Weapon(ToolKind::Bow) => i18n.get("common.weapons.bow"),
                         Weapon(ToolKind::Staff) => i18n.get("common.weapons.staff"),
                         Weapon(ToolKind::Pick) => i18n.get("common.tool.mining"),
-                        _ => "Unknown",
+                        _ => Cow::Borrowed("Unknown"),
                     };
-                    Text::new(skill)
+                    Text::new(&skill)
                         .font_size(20)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                         .mid_top_with_margin_on(self.ids.player_rank_up, 45.0)
                         .set(self.ids.player_rank_up_txt_1_bg, ui_widgets);
-                    Text::new(skill)
+                    Text::new(&skill)
                         .font_size(20)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade))
@@ -1716,7 +1717,7 @@ impl Hud {
                         1.0
                     };
 
-                    Text::new(i18n.get("hud.sct.block"))
+                    Text::new(&i18n.get("hud.sct.block"))
                         .font_size(font_size)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(0.0, 0.0, 0.0, fade))
@@ -1725,7 +1726,7 @@ impl Hud {
                             ui_widgets.win_h * (-0.3) + y - 3.0,
                         )
                         .set(player_sct_bg_id, ui_widgets);
-                    Text::new(i18n.get("hud.sct.block"))
+                    Text::new(&i18n.get("hud.sct.block"))
                         .font_size(font_size)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(0.69, 0.82, 0.88, fade))
@@ -1924,7 +1925,7 @@ impl Hud {
                     let over_pos = pos + Vec3::unit_z() * 1.5;
 
                     overitem::Overitem::new(
-                        i18n.get("hud.crafting.campfire").into(),
+                        i18n.get("hud.crafting.campfire"),
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
@@ -2550,11 +2551,12 @@ impl Hud {
         if global_state.settings.interface.toggle_hotkey_hints {
             // Help Window
             if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
-                Text::new(
-                    &i18n
-                        .get("hud.press_key_to_show_keybindings_fmt")
-                        .replace("{key}", help_key.display_string(key_layout).as_str()),
-                )
+                Text::new(&i18n.get_msg_ctx(
+                    "hud-press_key_to_show_keybindings_fmt",
+                    &i18n::fluent_args! {
+                        "key" => help_key.display_string(key_layout),
+                    },
+                ))
                 .color(TEXT_COLOR)
                 .bottom_left_with_margins_on(ui_widgets.window, 210.0, 10.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -2567,9 +2569,11 @@ impl Hud {
                 .controls
                 .get_binding(GameInput::ToggleLantern)
             {
-                Text::new(&i18n.get("hud.press_key_to_toggle_lantern_fmt").replace(
-                    "{key}",
-                    toggle_lantern_key.display_string(key_layout).as_str(),
+                Text::new(&i18n.get_msg_ctx(
+                    "hud-press_key_to_toggle_lantern_fmt",
+                    &i18n::fluent_args! {
+                        "key" => toggle_lantern_key.display_string(key_layout),
+                    },
                 ))
                 .color(TEXT_COLOR)
                 .up_from(self.ids.help_info, 2.0)
@@ -3289,9 +3293,9 @@ impl Hud {
             .get_binding(GameInput::FreeLook)
         {
             if self.show.free_look {
-                let msg = i18n
-                    .get("hud.free_look_indicator")
-                    .replace("{key}", freelook_key.display_string(key_layout).as_str());
+                let msg = i18n.get_msg_ctx("hud-free_look_indicator", &i18n::fluent_args! {
+                    "key" => freelook_key.display_string(key_layout),
+                });
                 Text::new(&msg)
                     .color(TEXT_BG)
                     .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
@@ -3310,14 +3314,14 @@ impl Hud {
 
         // Auto walk indicator
         if self.show.auto_walk {
-            Text::new(i18n.get("hud.auto_walk_indicator"))
+            Text::new(&i18n.get("hud.auto_walk_indicator"))
                 .color(TEXT_BG)
                 .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.auto_walk_bg, ui_widgets);
             indicator_offset += 30.0;
-            Text::new(i18n.get("hud.auto_walk_indicator"))
+            Text::new(&i18n.get("hud.auto_walk_indicator"))
                 .color(KILL_COLOR)
                 .top_left_with_margins_on(self.ids.auto_walk_bg, -1.0, -1.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -3332,9 +3336,9 @@ impl Hud {
             .get_binding(GameInput::CameraClamp)
         {
             if self.show.camera_clamp {
-                let msg = i18n
-                    .get("hud.camera_clamp_indicator")
-                    .replace("{key}", cameraclamp_key.display_string(key_layout).as_str());
+                let msg = i18n.get_msg_ctx("hud-camera_clamp_indicator", &i18n::fluent_args! {
+                    "key" => cameraclamp_key.display_string(key_layout),
+                });
                 Text::new(&msg)
                     .color(TEXT_BG)
                     .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
@@ -3767,7 +3771,7 @@ impl Hud {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .bottom_left_with_margins_on(ui_widgets.window, 350.0, 150.0)
-                        .label(i18n.get("hud.tutorial_btn"))
+                        .label(&i18n.get("hud.tutorial_btn"))
                         .label_font_id(self.fonts.cyri.conrod_id)
                         .label_font_size(self.fonts.cyri.scale(18))
                         .label_color(TEXT_COLOR)
@@ -3824,27 +3828,27 @@ impl Hud {
                             .middle_of(ui_widgets.window)
                             .set(self.ids.quest_bg, ui_widgets);
 
-                        Text::new(quest_headline)
+                        Text::new(&quest_headline)
                             .mid_top_with_margin_on(self.ids.quest_bg, 310.0)
                             .font_size(self.fonts.cyri.scale(30))
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(TEXT_BG)
                             .set(self.ids.q_headline_bg, ui_widgets);
-                        Text::new(quest_headline)
+                        Text::new(&quest_headline)
                             .bottom_left_with_margins_on(self.ids.q_headline_bg, 1.0, 1.0)
                             .font_size(self.fonts.cyri.scale(30))
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(TEXT_COLOR)
                             .set(self.ids.q_headline, ui_widgets);
 
-                        Text::new(quest_text)
+                        Text::new(&quest_text)
                             .mid_top_with_margin_on(self.ids.quest_bg, 360.0)
                             .w(350.0)
                             .font_size(self.fonts.cyri.scale(17))
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(TEXT_BG)
                             .set(self.ids.q_text_bg, ui_widgets);
-                        Text::new(quest_text)
+                        Text::new(&quest_text)
                             .bottom_left_with_margins_on(self.ids.q_text_bg, 1.0, 1.0)
                             .w(350.0)
                             .font_size(self.fonts.cyri.scale(17))
@@ -3857,7 +3861,7 @@ impl Hud {
                             .hover_image(self.imgs.button_hover)
                             .press_image(self.imgs.button_press)
                             .mid_bottom_with_margin_on(self.ids.q_text_bg, -80.0)
-                            .label(i18n.get("common.close"))
+                            .label(&i18n.get("common.close"))
                             .label_font_id(self.fonts.cyri.conrod_id)
                             .label_font_size(self.fonts.cyri.scale(22))
                             .label_color(TEXT_COLOR)
@@ -3881,14 +3885,14 @@ impl Hud {
                                 )
                                 .color(Some(QUALITY_LEGENDARY))
                                 .set(self.ids.tut_arrow, ui_widgets);
-                            Text::new(i18n.get("hud.tutorial_elements"))
+                            Text::new(&i18n.get("hud.tutorial_elements"))
                                 .mid_top_with_margin_on(self.ids.tut_arrow, -50.0)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .font_size(self.fonts.cyri.scale(40))
                                 .color(BLACK)
                                 .floating(true)
                                 .set(self.ids.tut_arrow_txt_bg, ui_widgets);
-                            Text::new(i18n.get("hud.tutorial_elements"))
+                            Text::new(&i18n.get("hud.tutorial_elements"))
                                 .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .font_size(self.fonts.cyri.scale(40))
@@ -4587,7 +4591,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
     }
 }
 
-pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str {
+pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<str> {
     match buff {
         // Buffs
         BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
@@ -4615,37 +4619,29 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
 pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localization) -> Cow<str> {
     match buff {
         // Buffs
-        BuffKind::Regeneration { .. } => Cow::Borrowed(localized_strings.get("buff.desc.heal")),
-        BuffKind::Saturation { .. } => Cow::Borrowed(localized_strings.get("buff.desc.saturation")),
-        BuffKind::Potion { .. } => Cow::Borrowed(localized_strings.get("buff.desc.potion")),
-        BuffKind::CampfireHeal { .. } => Cow::Owned(
-            localized_strings
-                .get("buff.desc.campfire_heal")
-                .replace("{rate}", &format!("{:.0}", data.strength * 100.0)),
-        ),
-        BuffKind::IncreaseMaxHealth { .. } => {
-            Cow::Borrowed(localized_strings.get("buff.desc.IncreaseMaxHealth"))
+        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
+        BuffKind::Saturation { .. } => localized_strings.get("buff.desc.saturation"),
+        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
+        BuffKind::CampfireHeal { .. } => {
+            localized_strings.get_msg_ctx("buff-desc-campfire_heal", &i18n::fluent_args! {
+                "rate" => data.strength * 100.0
+            })
         },
-        BuffKind::IncreaseMaxEnergy { .. } => {
-            Cow::Borrowed(localized_strings.get("buff.desc.IncreaseMaxEnergy"))
-        },
-        BuffKind::Invulnerability => {
-            Cow::Borrowed(localized_strings.get("buff.desc.invulnerability"))
-        },
-        BuffKind::ProtectingWard => {
-            Cow::Borrowed(localized_strings.get("buff.desc.protectingward"))
-        },
-        BuffKind::Frenzied => Cow::Borrowed(localized_strings.get("buff.desc.frenzied")),
-        BuffKind::Hastened => Cow::Borrowed(localized_strings.get("buff.desc.hastened")),
+        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.desc.IncreaseMaxHealth"),
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.desc.IncreaseMaxEnergy"),
+        BuffKind::Invulnerability => localized_strings.get("buff.desc.invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get("buff.desc.protectingward"),
+        BuffKind::Frenzied => localized_strings.get("buff.desc.frenzied"),
+        BuffKind::Hastened => localized_strings.get("buff.desc.hastened"),
         // Debuffs
-        BuffKind::Bleeding { .. } => Cow::Borrowed(localized_strings.get("buff.desc.bleed")),
-        BuffKind::Cursed { .. } => Cow::Borrowed(localized_strings.get("buff.desc.cursed")),
-        BuffKind::Burning { .. } => Cow::Borrowed(localized_strings.get("buff.desc.burn")),
-        BuffKind::Crippled { .. } => Cow::Borrowed(localized_strings.get("buff.desc.crippled")),
-        BuffKind::Frozen { .. } => Cow::Borrowed(localized_strings.get("buff.desc.frozen")),
-        BuffKind::Wet { .. } => Cow::Borrowed(localized_strings.get("buff.desc.wet")),
-        BuffKind::Ensnared { .. } => Cow::Borrowed(localized_strings.get("buff.desc.ensnared")),
-        BuffKind::Poisoned { .. } => Cow::Borrowed(localized_strings.get("buff.desc.poisoned")),
+        BuffKind::Bleeding { .. } => localized_strings.get("buff.desc.bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get("buff.desc.cursed"),
+        BuffKind::Burning { .. } => localized_strings.get("buff.desc.burn"),
+        BuffKind::Crippled { .. } => localized_strings.get("buff.desc.crippled"),
+        BuffKind::Frozen { .. } => localized_strings.get("buff.desc.frozen"),
+        BuffKind::Wet { .. } => localized_strings.get("buff.desc.wet"),
+        BuffKind::Ensnared { .. } => localized_strings.get("buff.desc.ensnared"),
+        BuffKind::Poisoned { .. } => localized_strings.get("buff.desc.poisoned"),
     }
 }
 
@@ -4671,7 +4667,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::DungeonChest5 => "common.sprite.chest",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
-    Some(Cow::Borrowed(localized_strings.get(i18n_key)))
+    Some(localized_strings.get(i18n_key))
 }
 
 pub fn get_buff_time(buff: BuffInfo) -> String {

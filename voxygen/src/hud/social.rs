@@ -159,7 +159,7 @@ impl<'a> Widget for Social<'a> {
         Rectangle::fill_with([212.0, 42.0], color::TRANSPARENT)
             .top_left_with_margins_on(state.ids.frame, 2.0, 44.0)
             .set(state.ids.title_align, ui);
-        Text::new(self.localized_strings.get("hud.social"))
+        Text::new(&self.localized_strings.get("hud.social"))
             .middle_of(state.ids.title_align)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
@@ -184,7 +184,7 @@ impl<'a> Widget for Social<'a> {
             .set(state.ids.scrollbar, ui);
 
         // Online Text
-        Text::new(self.localized_strings.get("hud.social.online"))
+        Text::new(&self.localized_strings.get("hud.social.online"))
             .bottom_left_with_margins_on(state.ids.frame, 18.0, 10.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
@@ -347,6 +347,7 @@ impl<'a> Widget for Social<'a> {
             })
             .flatten();
 
+        let invite_text = self.localized_strings.get("hud.group.invite");
         let invite_button = Button::image(self.imgs.button)
             .w_h(106.0, 26.0)
             .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
@@ -360,7 +361,7 @@ impl<'a> Widget for Social<'a> {
             } else {
                 self.imgs.button
             })
-            .label(self.localized_strings.get("hud.group.invite"))
+            .label(&invite_text)
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(if selected_to_invite.is_some() {
                 TEXT_COLOR

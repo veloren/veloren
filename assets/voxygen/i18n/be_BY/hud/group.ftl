@@ -1,0 +1,13 @@
+hud-group = Група
+hud-group-invite_to_join = [{ $name }] запрасіў вас у сваю групу!
+hud-group-invite_to_trade = [{ $name }] жадае пагандляваць з вамі.
+hud-group-invite = Запрасіць
+hud-group-kick = Выштурхнуць
+hud-group-assign_leader = Прызначыць лідара
+hud-group-leave = Пакінуць групу
+hud-group-dead = Памерлы
+hud-group-out_of_range = Недасягальны
+hud-group-add_friend = Дадаць да сяброў
+hud-group-link_group = Звязаць групы
+hud-group-in_menu = У меню
+hud-group-members = Чальцы групы

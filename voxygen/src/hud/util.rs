@@ -72,7 +72,7 @@ pub fn price_desc(
 
 pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
     match kind {
-        ItemKind::Armor(armor) => Cow::Borrowed(armor_kind(armor, i18n)),
+        ItemKind::Armor(armor) => armor_kind(armor, i18n),
         ItemKind::Tool(tool) => Cow::Owned(format!(
             "{} ({})",
             tool_kind(tool, i18n),
@@ -86,20 +86,20 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
                     i18n.get("common.kind.modular_component_partial")
                 ))
             } else {
-                Cow::Borrowed(i18n.get("common.kind.modular_component"))
+                i18n.get("common.kind.modular_component")
             }
         },
-        ItemKind::Glider => Cow::Borrowed(i18n.get("common.kind.glider")),
-        ItemKind::Consumable { .. } => Cow::Borrowed(i18n.get("common.kind.consumable")),
-        ItemKind::Throwable { .. } => Cow::Borrowed(i18n.get("common.kind.throwable")),
-        ItemKind::Utility { .. } => Cow::Borrowed(i18n.get("common.kind.utility")),
-        ItemKind::Ingredient { .. } => Cow::Borrowed(i18n.get("common.kind.ingredient")),
-        ItemKind::Lantern { .. } => Cow::Borrowed(i18n.get("common.kind.lantern")),
+        ItemKind::Glider => i18n.get("common.kind.glider"),
+        ItemKind::Consumable { .. } => i18n.get("common.kind.consumable"),
+        ItemKind::Throwable { .. } => i18n.get("common.kind.throwable"),
+        ItemKind::Utility { .. } => i18n.get("common.kind.utility"),
+        ItemKind::Ingredient { .. } => i18n.get("common.kind.ingredient"),
+        ItemKind::Lantern { .. } => i18n.get("common.kind.lantern"),
         ItemKind::TagExamples { .. } => Cow::Borrowed(""),
     }
 }
 
-pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> &'a str {
+pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> Cow<'a, str> {
     match kind {
         MaterialKind::Metal { .. } => i18n.get("common.material.metal"),
         MaterialKind::Wood { .. } => i18n.get("common.material.wood"),
@@ -148,15 +148,20 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
 
             let buff_desc = match buff.kind {
                 BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => i18n
-                    .get("buff.stat.health")
-                    .replace("{str_total}", &format_float(str_total)),
-                BuffKind::IncreaseMaxEnergy => i18n
-                    .get("buff.stat.increase_max_energy")
-                    .replace("{strength}", &format_float(strength)),
-                BuffKind::IncreaseMaxHealth => i18n
-                    .get("buff.stat.increase_max_health")
-                    .replace("{strength}", &format_float(strength)),
-                BuffKind::Invulnerability => i18n.get("buff.stat.invulnerability").to_string(),
+                    .get_msg_ctx("buff-stat-health", &i18n::fluent_args! {
+                        "str_total" => format_float(str_total),
+                    }),
+                BuffKind::IncreaseMaxEnergy => {
+                    i18n.get_msg_ctx("buff-stat-increase_max_energy", &i18n::fluent_args! {
+                        "strength" => format_float(strength),
+                    })
+                },
+                BuffKind::IncreaseMaxHealth => {
+                    i18n.get_msg_ctx("buff-stat-increase_max_health", &i18n::fluent_args! {
+                        "strength" => format_float(strength),
+                    })
+                },
+                BuffKind::Invulnerability => i18n.get("buff.stat.invulnerability"),
                 BuffKind::Bleeding
                 | BuffKind::Burning
                 | BuffKind::CampfireHeal
@@ -168,21 +173,25 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                 | BuffKind::Wet
                 | BuffKind::Ensnared
                 | BuffKind::Poisoned
-                | BuffKind::Hastened => "".to_owned(),
+                | BuffKind::Hastened => Cow::Borrowed(""),
             };
 
             write!(&mut description, "{}", buff_desc).unwrap();
 
             let dur_desc = if let Some(dur_secs) = dur_secs {
                 match buff.kind {
-                    BuffKind::Saturation | BuffKind::Regeneration => i18n
-                        .get("buff.text.over_seconds")
-                        .replace("{dur_secs}", &format_float(dur_secs)),
+                    BuffKind::Saturation | BuffKind::Regeneration => {
+                        i18n.get_msg_ctx("buff-text-over_seconds", &i18n::fluent_args! {
+                            "dur_secs" => dur_secs
+                        })
+                    },
                     BuffKind::IncreaseMaxEnergy
                     | BuffKind::IncreaseMaxHealth
-                    | BuffKind::Invulnerability => i18n
-                        .get("buff.text.for_seconds")
-                        .replace("{dur_secs}", &format_float(dur_secs)),
+                    | BuffKind::Invulnerability => {
+                        i18n.get_msg_ctx("buff-text-for_seconds", &i18n::fluent_args! {
+                            "dur_secs" => dur_secs
+                        })
+                    },
                     BuffKind::Bleeding
                     | BuffKind::Burning
                     | BuffKind::Potion
@@ -195,12 +204,12 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                     | BuffKind::Wet
                     | BuffKind::Ensnared
                     | BuffKind::Poisoned
-                    | BuffKind::Hastened => "".to_owned(),
+                    | BuffKind::Hastened => Cow::Borrowed(""),
                 }
             } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
-                i18n.get("buff.text.every_second").to_string()
+                i18n.get("buff.text.every_second")
             } else {
-                "".to_owned()
+                Cow::Borrowed("")
             };
 
             write!(&mut description, " {}", dur_desc).unwrap();
@@ -212,7 +221,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
 }
 
 // Armor
-fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> &'a str {
+fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> Cow<'a, str> {
     let kind = match armor.kind {
         ArmorKind::Shoulder => i18n.get("hud.bag.shoulders"),
         ArmorKind::Chest => i18n.get("hud.bag.chest"),
@@ -231,7 +240,7 @@ fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> &'a str {
 }
 
 // Tool
-fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
+fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
     let kind = match tool.kind {
         ToolKind::Sword => i18n.get("common.weapons.sword"),
         ToolKind::Axe => i18n.get("common.weapons.axe"),
@@ -253,7 +262,7 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
 }
 
 /// Output the number of hands needed to hold a tool
-pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
+pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
     let hands = match tool.hands {
         Hands::One => i18n.get("common.hands.one"),
         Hands::Two => i18n.get("common.hands.two"),
@@ -347,19 +356,25 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
 }
 
 pub fn ability_description<'a>(
-    ability_id: &'a str,
+    ability_id: &str,
     loc: &'a Localization,
-) -> (Cow<'a, str>, &'a str) {
+) -> (Cow<'a, str>, Cow<'a, str>) {
+    // TODO: Use fluent attribute mechanic
     let (name, desc) = (
-        format!("{}.name", ability_id),
-        format!("{}.desc", ability_id),
+        format!("{}.name", ability_id).replace('.', "-"),
+        format!("{}.desc", ability_id).replace('.', "-"),
     );
+
+    // 1) Try localize ability
+    // 2) If not, say that ability is unknown
+    // 3) If unknown key is missed, just return id
+    // TODO: better algorithm?
     (
-        Cow::Borrowed(
-            loc.get_or(&name, "common.abilities.unknown.name")
-                .unwrap_or(ability_id),
-        ),
-        loc.get_or(&desc, "common.abilities.unknown.desc")
-            .unwrap_or(ability_id),
+        loc.try_msg(&name)
+            .or_else(|| loc.try_msg("common-abilities-unknown-name"))
+            .unwrap_or(Cow::Owned(name)),
+        loc.try_msg(&desc)
+            .or_else(|| loc.try_msg("common-abilities-unknown-desc"))
+            .unwrap_or(Cow::Owned(desc)),
     )
 }

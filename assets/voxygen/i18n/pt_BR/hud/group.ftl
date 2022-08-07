@@ -1,0 +1,13 @@
+hud-group = Grupo
+hud-group-invite_to_join = { $name } convidou você para o grupo!
+hud-group-invite_to_trade = { $name } convidou você para trocar itens!
+hud-group-invite = Convidar
+hud-group-kick = Expulsar
+hud-group-assign_leader = Atribuír Líder
+hud-group-leave = Sair do Grupo
+hud-group-dead = Morto
+hud-group-out_of_range = Fora de alcance
+hud-group-add_friend = Adicionar aos Amigos
+hud-group-link_group = Unir Grupos
+hud-group-in_menu = No Menu
+hud-group-members = Membros do Grupo

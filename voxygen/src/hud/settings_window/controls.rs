@@ -126,7 +126,7 @@ impl<'a> Widget for Controls<'a> {
                     (
                         self.localized_strings
                             .get("hud.settings.awaitingkey")
-                            .to_owned(),
+                            .into_owned(),
                         TEXT_COLOR,
                     )
                 } else if let Some(key) = controls.get_binding(game_input) {
@@ -147,14 +147,14 @@ impl<'a> Widget for Controls<'a> {
                     (
                         self.localized_strings
                             .get("hud.settings.unbound")
-                            .to_owned(),
+                            .into_owned(),
                         ERROR_COLOR,
                     )
                 };
             let loc_key = self
                 .localized_strings
                 .get(game_input.get_localization_key());
-            let text_widget = Text::new(loc_key)
+            let text_widget = Text::new(&loc_key)
                 .color(TEXT_COLOR)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(18));
@@ -196,7 +196,7 @@ impl<'a> Widget for Controls<'a> {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .down_from(prev_id, 20.0)
-                .label(self.localized_strings.get("hud.settings.reset_keybinds"))
+                .label(&self.localized_strings.get("hud.settings.reset_keybinds"))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_color(TEXT_COLOR)
                 .label_font_id(self.fonts.cyri.conrod_id)

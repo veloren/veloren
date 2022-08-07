@@ -1,0 +1,16 @@
+common-abilities-debug-possess-name = Strzała Opętania
+common-abilities-debug-possess-desc = Pozwala przejąć kontrolę nad twoim celem.
+common-abilities-sword-spin-name = Cyklon
+common-abilities-sword-spin-desc = Poruszasz się do przodu kręcąc się z Twoim mieczem.
+common-abilities-axe-leap-name = Skok Drwala
+common-abilities-axe-leap-desc = Skaczesz w kierunku kursora, tnąc swoją siekierą.
+common-abilities-hammer-leap-name = Uderzenie Zagłady
+common-abilities-hammer-leap-desc = Atak obszarowy z odrzutem. Skaczesz w kierunku kursora, uderzając w ziemię swoim młotem.
+common-abilities-bow-shotgun-name = Salwa
+common-abilities-bow-shotgun-desc = Wystrzeliwujesz salwę strzał.
+common-abilities-staff-fireshockwave-name = Pierścień Ognia
+common-abilities-staff-fireshockwave-desc = Przywołujesz ognisty pierścień odrzucający przeciwników.
+common-abilities-sceptre-wardingaura-name = Ochronna Aura
+common-abilities-sceptre-wardingaura-desc = Chroni twoich sojuszników przed atakami.
+common-abilities-unknown-name = Umiejętność bez nazwy
+common-abilities-unknown-desc = Umiejętność bez opisu

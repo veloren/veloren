@@ -1,0 +1,10 @@
+hud-social = Andre spillere
+hud-social-online = Tilstede:
+hud-social-friends = Venner
+hud-social-not_yet_available = Ikke tilgjengelig enda
+hud-social-faction = Fraksjon
+hud-social-play_online_fmt = { $nb_player } spiller(e) tilstede
+hud-social-name = Navn
+hud-social-level = Nivå
+hud-social-zone = Sone
+hud-social-account = Bruker

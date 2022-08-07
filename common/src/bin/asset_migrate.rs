@@ -1,9 +1,6 @@
+use common_assets::{walk_tree, Walk};
 use serde::{de::DeserializeOwned, Serialize};
-use std::{
-    fs, io,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::{fs, io, io::Write, path::Path};
 
 // If you want to migrate assets.
 // 1) Copy-paste old asset type to own module
@@ -17,37 +14,6 @@ mod old {
 
 mod new {
     pub type Config = ();
-}
-
-#[derive(Debug)]
-enum Walk {
-    File(PathBuf),
-    Dir { path: PathBuf, content: Vec<Walk> },
-}
-
-fn walk_tree(dir: &Path, root: &Path) -> io::Result<Vec<Walk>> {
-    let mut buff = Vec::new();
-    for entry in fs::read_dir(dir)? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.is_dir() {
-            buff.push(Walk::Dir {
-                path: path
-                    .strip_prefix(root)
-                    .expect("strip can't fail, this path is created from root")
-                    .to_owned(),
-                content: walk_tree(&path, root)?,
-            });
-        } else {
-            let filename = path
-                .strip_prefix(root)
-                .expect("strip can't fail, this file is created from root")
-                .to_owned();
-            buff.push(Walk::File(filename));
-        }
-    }
-
-    Ok(buff)
 }
 
 fn walk_with_migrate<OldV, NewV>(tree: Walk, from: &Path, to: &Path) -> io::Result<()>

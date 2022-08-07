@@ -1,0 +1,10 @@
+hud-social = Diğer Oyuncular
+hud-social-online = Çevrimiçi:
+hud-social-friends = Arkadaşlar
+hud-social-not_yet_available = Şu anda kullanılabilir değil
+hud-social-faction = Klan
+hud-social-play_online_fmt = { $nb_player } oyuncu çevrimiçi
+hud-social-name = İsim
+hud-social-level = Seviye
+hud-social-zone = Bölge
+hud-social-account = Hesap

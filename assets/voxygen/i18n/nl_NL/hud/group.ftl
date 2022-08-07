@@ -1,0 +1,12 @@
+hud-group = Groep
+hud-group-invite_to_join = [{ $name }] heeft je voor zijn/haar groep uitgenodigd!
+hud-group-invite = Uitnodigen
+hud-group-kick = Kick
+hud-group-assign_leader = Maak Leider
+hud-group-leave = Groep Verlaten
+hud-group-dead = Dood
+hud-group-out_of_range = Buiten Bereik
+hud-group-add_friend = Aan Vrienden Toevoegen
+hud-group-link_group = Link Groups
+hud-group-in_menu = In Menu
+hud-group-members = Groepsleden

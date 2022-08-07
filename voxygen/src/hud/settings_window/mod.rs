@@ -184,7 +184,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.icon, ui);
         // Title
         Text::new(
-            self.localized_strings
+            &self
+                .localized_strings
                 .get(self.show.settings_tab.title_key()),
         )
         .mid_top_with_margin_on(state.ids.frame, 3.0)
@@ -214,6 +215,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             });
         }
         for (i, settings_tab) in SettingsTab::iter().enumerate() {
+            let tab_name = self.localized_strings.get(settings_tab.name_key());
             let mut button = Button::image(if self.show.settings_tab == settings_tab {
                 self.imgs.selection
             } else {
@@ -223,7 +225,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .hover_image(self.imgs.selection_hover)
             .press_image(self.imgs.selection_press)
             .image_color(color::rgba(1.0, 0.82, 0.27, 1.0))
-            .label(self.localized_strings.get(settings_tab.name_key()))
+            .label(&tab_name)
             .label_font_size(self.fonts.cyri.scale(tab_font_scale))
             .label_font_id(self.fonts.cyri.conrod_id)
             .label_color(TEXT_COLOR);

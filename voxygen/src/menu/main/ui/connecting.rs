@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::{ConnectionState, Imgs, Message};
 
 use crate::{
@@ -102,38 +100,26 @@ impl Screen {
         let children = match connection_state {
             ConnectionState::InProgress => {
                 let tip = if show_tip {
-                    let tip = &i18n.get_variation("loading.tips", self.tip_number);
-                    let mut new_tip = String::with_capacity(tip.len());
-                    let mut last_index = 0;
+                    let key = |code| match controls.keybindings.get(&code) {
+                        Some(Some(key_mouse)) => key_mouse.display_string(key_layout),
+                        Some(None) => i18n.get("main.unbound_key_tip").into_owned(),
+                        None => ControlSettings::default_binding(code).display_string(key_layout),
+                    };
+                    let keys = i18n::fluent_args! {
+                        "gameinput-togglelantern" => key(GameInput::ToggleLantern),
+                        "gameinput-help" => key(GameInput::Help),
+                        "gameinput-settings" => key(GameInput::Settings),
+                        "gameinput-social" => key(GameInput::Social),
+                        "gameinput-dance" => key(GameInput::Dance),
+                        "gameinput-glide" => key(GameInput::Glide),
+                        "gameinput-sit" => key(GameInput::Sit),
+                        "gameinput-crafting" => key(GameInput::Crafting),
+                        "gameinput-roll" => key(GameInput::Roll),
+                        "gameinput-screenshot" => key(GameInput::Screenshot),
+                    };
+                    let tip = &i18n.get_variation_ctx("loading-tips", self.tip_number, &keys);
+                    let tip = format!("{} {}", i18n.get("main.tip"), tip);
 
-                    // This could be done with regex instead, but adding new dependencies is
-                    // scary...
-                    tip.match_indices("{gameinput.").for_each(|(start, s)| {
-                        if let Some(end) = tip[start + s.len()..].find('}') {
-                            let end = start + s.len() + end;
-                            if let Ok(game_input) = GameInput::from_str(&tip[start + 1..end]) {
-                                new_tip.push_str(&tip[last_index..start]);
-                                new_tip.push_str(
-                                    match controls.keybindings.get(&game_input) {
-                                        Some(Some(key_mouse)) => {
-                                            key_mouse.display_string(key_layout)
-                                        },
-                                        Some(None) => i18n.get("main.unbound_key_tip").to_string(),
-                                        None => ControlSettings::default_binding(game_input)
-                                            .display_string(key_layout),
-                                    }
-                                    .as_str(),
-                                );
-                                last_index = end + 1;
-                            }
-                        }
-                    });
-                    // If there is any text left over append it
-                    if last_index < tip.len() {
-                        new_tip.push_str(&tip[last_index..]);
-                    }
-
-                    let tip = format!("{} {}", i18n.get("main.tip"), new_tip.as_str());
                     Container::new(Text::new(tip).size(fonts.cyri.scale(25)))
                         .width(Length::Fill)
                         .height(Length::Fill)

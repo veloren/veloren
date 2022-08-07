@@ -1,0 +1,12 @@
+hud-group = Gruppe
+hud-group-invite_to_join = [{ $name }] inviterte deg til gruppen deres!
+hud-group-invite = Inviter
+hud-group-kick = Spark
+hud-group-assign_leader = Tilordne leder
+hud-group-leave = Forlat Gruppe
+hud-group-dead = Død
+hud-group-out_of_range = Ute av rekkevidde
+hud-group-add_friend = Legg til i vennelisten
+hud-group-link_group = Koble til grupper
+hud-group-in_menu = I Meny
+hud-group-members = Gruppemedlemmer

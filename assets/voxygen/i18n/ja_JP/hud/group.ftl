@@ -1,0 +1,13 @@
+hud-group = グループ
+hud-group-invite_to_join = [{ $name }]があなたをグループに招待しました！
+hud-group-invite_to_trade = [{ $name }]があなたと取引を希望しています。
+hud-group-invite = 招待
+hud-group-kick = キック
+hud-group-assign_leader = リーダーに設定
+hud-group-leave = グループを離れる
+hud-group-dead = 死亡
+hud-group-out_of_range = 範囲外
+hud-group-add_friend = フレンドに追加
+hud-group-link_group = グループをリンク
+hud-group-in_menu = メニュー内
+hud-group-members = グループメンバー

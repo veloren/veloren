@@ -363,7 +363,7 @@ impl LoginBanner {
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.username,
-                        i18n.get("main.username"),
+                        &i18n.get("main.username"),
                         &login_info.username,
                         Message::Username,
                     )
@@ -378,7 +378,7 @@ impl LoginBanner {
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.password,
-                        i18n.get("main.password"),
+                        &i18n.get("main.password"),
                         &login_info.password,
                         Message::Password,
                     )
@@ -394,7 +394,7 @@ impl LoginBanner {
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.server,
-                        i18n.get("main.server"),
+                        &i18n.get("main.server"),
                         &login_info.server,
                         Message::Server,
                     )

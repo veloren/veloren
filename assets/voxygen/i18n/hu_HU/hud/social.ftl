@@ -1,0 +1,10 @@
+hud-social = Más játékosok
+hud-social-online = Online:
+hud-social-friends = Barátok
+hud-social-not_yet_available = Még nem elérhető
+hud-social-faction = Frakció
+hud-social-play_online_fmt = { $nb_player } játékos online
+hud-social-name = Név
+hud-social-level = Szint
+hud-social-zone = Zóna
+hud-social-account = Felhasználói fiók

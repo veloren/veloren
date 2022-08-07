@@ -141,7 +141,7 @@ impl<'a> Widget for Chat<'a> {
             .set(state.ids.window_r, ui);
 
         // General Title
-        Text::new(self.localized_strings.get("hud.settings.general"))
+        Text::new(&self.localized_strings.get("hud.settings.general"))
             .top_left_with_margins_on(state.ids.window, 5.0, 5.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
@@ -150,7 +150,8 @@ impl<'a> Widget for Chat<'a> {
 
         // Chat Transp
         Text::new(
-            self.localized_strings
+            &self
+                .localized_strings
                 .get("hud.settings.background_opacity"),
         )
         .down_from(state.ids.general_txt, 20.0)
@@ -185,7 +186,8 @@ impl<'a> Widget for Chat<'a> {
 
         // "Show character names in chat" toggle button
         Text::new(
-            self.localized_strings
+            &self
+                .localized_strings
                 .get("hud.settings.chat_character_name"),
         )
         .down_from(state.ids.transp_slider, 10.0)
@@ -217,7 +219,7 @@ impl<'a> Widget for Chat<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.char_name_text, 20.0)
-            .label(self.localized_strings.get("hud.settings.reset_chat"))
+            .label(&self.localized_strings.get("hud.settings.reset_chat"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)
@@ -229,7 +231,7 @@ impl<'a> Widget for Chat<'a> {
         }
 
         // Tabs Title
-        Text::new(self.localized_strings.get("hud.settings.chat_tabs"))
+        Text::new(&self.localized_strings.get("hud.settings.chat_tabs"))
             .top_left_with_margins_on(state.ids.window_r, 5.0, 5.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
@@ -333,7 +335,7 @@ impl<'a> Widget for Chat<'a> {
         {
             let mut updated_chat_tab = chat_tab.clone();
 
-            Text::new(self.localized_strings.get("hud.settings.label"))
+            Text::new(&self.localized_strings.get("hud.settings.label"))
                 .top_left_with_margins_on(state.ids.tab_content_align, 5.0, 25.0)
                 .font_size(self.fonts.cyri.scale(16))
                 .font_id(self.fonts.cyri.conrod_id)
@@ -361,7 +363,7 @@ impl<'a> Widget for Chat<'a> {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .w_h(100.0, 30.0)
-                .label(self.localized_strings.get("hud.settings.delete"))
+                .label(&self.localized_strings.get("hud.settings.delete"))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
@@ -416,7 +418,7 @@ impl<'a> Widget for Chat<'a> {
             };
 
             //Messages
-            Text::new(self.localized_strings.get("hud.settings.messages"))
+            Text::new(&self.localized_strings.get("hud.settings.messages"))
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(16))
                 .color(TEXT_COLOR)
@@ -439,7 +441,7 @@ impl<'a> Widget for Chat<'a> {
                 updated_chat_tab.filter.message_all = !chat_tab.filter.message_all;
             };
 
-            Text::new(self.localized_strings.get("hud.settings.show_all"))
+            Text::new(&self.localized_strings.get("hud.settings.show_all"))
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(16))
                 .color(TEXT_COLOR)
@@ -456,12 +458,10 @@ impl<'a> Widget for Chat<'a> {
                 updated_chat_tab.filter.message_group = !chat_tab.filter.message_group;
             }
 
-            create_toggle_text(
-                self.localized_strings.get("hud.settings.group"),
-                !chat_tab.filter.message_all,
-            )
-            .right_from(state.ids.btn_messages_group, 5.0)
-            .set(state.ids.text_messages_group, ui);
+            let group_text = self.localized_strings.get("hud.settings.group");
+            create_toggle_text(&group_text, !chat_tab.filter.message_all)
+                .right_from(state.ids.btn_messages_group, 5.0)
+                .set(state.ids.text_messages_group, ui);
 
             create_toggle_icon(self.imgs.chat_group_small, !chat_tab.filter.message_all)
                 .right_from(state.ids.text_messages_group, 5.0)
@@ -480,12 +480,10 @@ impl<'a> Widget for Chat<'a> {
                 updated_chat_tab.filter.message_faction = !chat_tab.filter.message_faction;
             }
 
-            create_toggle_text(
-                self.localized_strings.get("hud.settings.faction"),
-                !chat_tab.filter.message_all,
-            )
-            .right_from(state.ids.btn_messages_faction, 5.0)
-            .set(state.ids.text_messages_faction, ui);
+            let faction_text = self.localized_strings.get("hud.settings.faction");
+            create_toggle_text(&faction_text, !chat_tab.filter.message_all)
+                .right_from(state.ids.btn_messages_faction, 5.0)
+                .set(state.ids.text_messages_faction, ui);
 
             create_toggle_icon(self.imgs.chat_faction_small, !chat_tab.filter.message_all)
                 .right_from(state.ids.text_messages_faction, 5.0)
@@ -501,12 +499,10 @@ impl<'a> Widget for Chat<'a> {
                 updated_chat_tab.filter.message_world = !chat_tab.filter.message_world;
             }
 
-            create_toggle_text(
-                self.localized_strings.get("hud.settings.world"),
-                !chat_tab.filter.message_all,
-            )
-            .right_from(state.ids.btn_messages_world, 5.0)
-            .set(state.ids.text_messages_world, ui);
+            let world_text = self.localized_strings.get("hud.settings.world");
+            create_toggle_text(&world_text, !chat_tab.filter.message_all)
+                .right_from(state.ids.btn_messages_world, 5.0)
+                .set(state.ids.text_messages_world, ui);
 
             create_toggle_icon(self.imgs.chat_world_small, !chat_tab.filter.message_all)
                 .right_from(state.ids.text_messages_world, 5.0)
@@ -522,12 +518,10 @@ impl<'a> Widget for Chat<'a> {
                 updated_chat_tab.filter.message_region = !chat_tab.filter.message_region;
             }
 
-            create_toggle_text(
-                self.localized_strings.get("hud.settings.region"),
-                !chat_tab.filter.message_all,
-            )
-            .right_from(state.ids.btn_messages_region, 5.0)
-            .set(state.ids.text_messages_region, ui);
+            let region_text = self.localized_strings.get("hud.settings.region");
+            create_toggle_text(&region_text, !chat_tab.filter.message_all)
+                .right_from(state.ids.btn_messages_region, 5.0)
+                .set(state.ids.text_messages_region, ui);
 
             create_toggle_icon(self.imgs.chat_region_small, !chat_tab.filter.message_all)
                 .right_from(state.ids.text_messages_region, 5.0)
@@ -543,19 +537,17 @@ impl<'a> Widget for Chat<'a> {
                 updated_chat_tab.filter.message_say = !chat_tab.filter.message_say;
             }
 
-            create_toggle_text(
-                self.localized_strings.get("hud.settings.say"),
-                !chat_tab.filter.message_all,
-            )
-            .right_from(state.ids.btn_messages_say, 5.0)
-            .set(state.ids.text_messages_say, ui);
+            let say_text = self.localized_strings.get("hud.settings.say");
+            create_toggle_text(&say_text, !chat_tab.filter.message_all)
+                .right_from(state.ids.btn_messages_say, 5.0)
+                .set(state.ids.text_messages_say, ui);
 
             create_toggle_icon(self.imgs.chat_say_small, !chat_tab.filter.message_all)
                 .right_from(state.ids.text_messages_say, 5.0)
                 .set(state.ids.icon_messages_say, ui);
 
             //Activity
-            Text::new(self.localized_strings.get("hud.settings.activity"))
+            Text::new(&self.localized_strings.get("hud.settings.activity"))
                 .top_left_with_margins_on(state.ids.tab_content_align_r, 0.0, 5.0)
                 .align_middle_y_of(state.ids.text_messages)
                 .font_size(self.fonts.cyri.scale(16))
@@ -606,7 +598,7 @@ impl<'a> Widget for Chat<'a> {
             }
 
             //Death
-            Text::new(self.localized_strings.get("hud.settings.death"))
+            Text::new(&self.localized_strings.get("hud.settings.death"))
                 .down_from(state.ids.list_activity, 20.0)
                 .font_size(self.fonts.cyri.scale(16))
                 .font_id(self.fonts.cyri.conrod_id)

@@ -31,6 +31,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Scalar, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
+use std::borrow::Cow;
 
 use crate::hud::slots::SlotKind;
 use specs::Entity as EcsEntity;
@@ -194,8 +195,9 @@ impl<'a> InventoryScroller<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.bag.inventory")
-                .replace("{playername}", &*self.playername),
+                .get_msg_ctx("hud-bag-inventory", &i18n::fluent_args! {
+                    "playername" => &*self.playername,
+                }),
         )
         .mid_top_with_margin_on(self.bg_ids.bg_frame, 9.0)
         .font_id(self.fonts.cyri.conrod_id)
@@ -205,8 +207,9 @@ impl<'a> InventoryScroller<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.bag.inventory")
-                .replace("{playername}", &*self.playername),
+                .get_msg_ctx("hud-bag-inventory", &i18n::fluent_args! {
+                    "playername" => &*self.playername,
+                }),
         )
         .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
         .font_id(self.fonts.cyri.conrod_id)
@@ -814,11 +817,11 @@ impl<'a> Widget for Bag<'a> {
             .top_left_with_margins_on(state.bg_ids.bg_frame, inv_sort_btn_top, 47.0)
             .with_tooltip(
                 self.tooltip_manager,
-                match inventory.next_sort_order() {
+                &(match inventory.next_sort_order() {
                     InventorySortOrder::Name => i18n.get("hud.bag.sort_by_name"),
                     InventorySortOrder::Quality => i18n.get("hud.bag.sort_by_quality"),
                     InventorySortOrder::Tag => i18n.get("hud.bag.sort_by_category"),
-                },
+                }),
                 "",
                 &tooltip,
                 color::WHITE,
@@ -887,7 +890,7 @@ impl<'a> Widget for Bag<'a> {
                 } else {
                     let manager = &mut *self.tooltip_manager;
                     $slot_maker
-                        .with_tooltip(manager, i18n.get($desc), "", &tooltip, color::WHITE)
+                        .with_tooltip(manager, &i18n.get($desc), "", &tooltip, color::WHITE)
                         .set($slot_id, ui)
                 }
             };
@@ -973,18 +976,18 @@ impl<'a> Widget for Bag<'a> {
                     "Protection" => i18n.get("hud.bag.protection"),
                     "Stun Resilience" => i18n.get("hud.bag.stun_res"),
                     "Stealth" => i18n.get("hud.bag.stealth"),
-                    _ => "",
+                    _ => Cow::Borrowed(""),
                 };
                 let tooltip_txt = match i.1 {
                     "Combat Rating" => i18n.get("hud.bag.combat_rating_desc"),
                     "Protection" => i18n.get("hud.bag.protection_desc"),
                     "Stun Resilience" => i18n.get("hud.bag.stun_res_desc"),
-                    _ => "",
+                    _ => Cow::Borrowed(""),
                 };
                 btn.with_tooltip(
                     self.tooltip_manager,
-                    tooltip_head,
-                    tooltip_txt,
+                    &tooltip_head,
+                    &tooltip_txt,
                     &bag_tooltip,
                     TEXT_COLOR,
                 )
@@ -1213,19 +1216,22 @@ impl<'a> Widget for Bag<'a> {
                 .align_middle_y_of(state.ids.active_mainhand_slot)
                 .with_tooltip(
                     self.tooltip_manager,
-                    i18n.get("hud.bag.swap_equipped_weapons_title"),
-                    if let Some(key) = self
+                    &i18n.get("hud.bag.swap_equipped_weapons_title"),
+                    &(if let Some(key) = self
                         .global_state
                         .settings
                         .controls
                         .get_binding(GameInput::SwapLoadout)
                     {
-                        i18n.get("hud.bag.swap_equipped_weapons_desc")
-                            .replace("{key}", key.display_string(key_layout).as_str())
+                        i18n.get_msg_ctx(
+                            "hud-bag-swap_equipped_weapons_desc",
+                            &i18n::fluent_args! {
+                                "key" => key.display_string(key_layout)
+                            },
+                        )
                     } else {
-                        "".to_string()
-                    }
-                    .as_str(),
+                        Cow::Borrowed("")
+                    }),
                     &tooltip,
                     color::WHITE,
                 )

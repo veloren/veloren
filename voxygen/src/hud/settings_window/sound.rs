@@ -108,7 +108,7 @@ impl<'a> Widget for Sound<'a> {
             .set(state.ids.window_scrollbar, ui);
 
         // Master Volume
-        Text::new(self.localized_strings.get("hud.settings.master_volume"))
+        Text::new(&self.localized_strings.get("hud.settings.master_volume"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -144,7 +144,8 @@ impl<'a> Widget for Sound<'a> {
 
         // Master Volume (inactive window)
         Text::new(
-            self.localized_strings
+            &self
+                .localized_strings
                 .get("hud.settings.inactive_master_volume_perc"),
         )
         .down_from(state.ids.master_volume_slider, 10.0)
@@ -181,7 +182,7 @@ impl<'a> Widget for Sound<'a> {
         .set(state.ids.inactive_master_volume_number, ui);
 
         // Music Volume
-        Text::new(self.localized_strings.get("hud.settings.music_volume"))
+        Text::new(&self.localized_strings.get("hud.settings.music_volume"))
             .down_from(state.ids.inactive_master_volume_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -217,7 +218,8 @@ impl<'a> Widget for Sound<'a> {
 
         // SFX Volume
         Text::new(
-            self.localized_strings
+            &self
+                .localized_strings
                 .get("hud.settings.sound_effect_volume"),
         )
         .down_from(state.ids.music_volume_slider, 10.0)
@@ -253,7 +255,7 @@ impl<'a> Widget for Sound<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.sfx_volume_number, ui);
         // Ambience Volume
-        Text::new(self.localized_strings.get("hud.settings.ambience_volume"))
+        Text::new(&self.localized_strings.get("hud.settings.ambience_volume"))
             .down_from(state.ids.sfx_volume_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -288,7 +290,7 @@ impl<'a> Widget for Sound<'a> {
         .set(state.ids.ambience_volume_number, ui);
 
         // Music frequency (actually gap between songs)
-        Text::new(self.localized_strings.get("hud.settings.music_frequency"))
+        Text::new(&self.localized_strings.get("hud.settings.music_frequency"))
             .down_from(state.ids.ambience_volume_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -355,7 +357,7 @@ impl<'a> Widget for Sound<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.music_frequency_slider, 12.0)
-            .label(self.localized_strings.get("hud.settings.reset_sound"))
+            .label(&self.localized_strings.get("hud.settings.reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)

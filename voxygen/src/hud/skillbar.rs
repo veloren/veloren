@@ -17,6 +17,7 @@ use crate::{
     GlobalState,
 };
 use i18n::Localization;
+use std::borrow::Cow;
 
 use client::{self, Client};
 use common::comp::{
@@ -329,38 +330,34 @@ impl<'a> Skillbar<'a> {
             .controls
             .get_binding(GameInput::Respawn)
         {
-            Text::new(localized_strings.get("hud.you_died"))
+            Text::new(&localized_strings.get("hud.you_died"))
                 .middle_of(ui.window)
                 .font_size(self.fonts.cyri.scale(50))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_1_bg, ui);
-            Text::new(
-                &localized_strings
-                    .get("hud.press_key_to_respawn")
-                    .replace("{key}", key.display_string(key_layout).as_str()),
-            )
-            .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
-            .font_size(self.fonts.cyri.scale(30))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-            .set(state.ids.death_message_2_bg, ui);
-            Text::new(localized_strings.get("hud.you_died"))
+            let respawn_msg =
+                localized_strings.get_msg_ctx("hud-press_key_to_respawn", &i18n::fluent_args! {
+                    "key" => key.display_string(key_layout)
+                });
+            Text::new(&respawn_msg)
+                .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.death_message_2_bg, ui);
+            Text::new(&localized_strings.get("hud.you_died"))
                 .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
                 .font_size(self.fonts.cyri.scale(50))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
-            Text::new(
-                &localized_strings
-                    .get("hud.press_key_to_respawn")
-                    .replace("{key}", key.display_string(key_layout).as_str()),
-            )
-            .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
-            .font_size(self.fonts.cyri.scale(30))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(CRITICAL_HP_COLOR)
-            .set(state.ids.death_message_2, ui);
+            Text::new(&respawn_msg)
+                .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(CRITICAL_HP_COLOR)
+                .set(state.ids.death_message_2, ui);
         }
     }
 
@@ -455,8 +452,8 @@ impl<'a> Skillbar<'a> {
         // Bar Text
         let bar_text = if self.health.is_dead {
             Some((
-                self.localized_strings.get("hud.group.dead").to_owned(),
-                self.localized_strings.get("hud.group.dead").to_owned(),
+                self.localized_strings.get("hud.group.dead").into_owned(),
+                self.localized_strings.get("hud.group.dead").into_owned(),
             ))
         } else if let BarNumbers::Values = bar_values {
             Some((
@@ -605,7 +602,7 @@ impl<'a> Skillbar<'a> {
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
                     .get_by_hash(i)
-                    .map(|item| (item.name(), item.description())),
+                    .map(|item| (item.name(), Cow::Borrowed(item.description()))),
                 hotbar::SlotContents::Ability(i) => active_abilities
                     .and_then(|a| {
                         a.auxiliary_set(Some(inventory), Some(skill_set))
@@ -636,7 +633,7 @@ impl<'a> Skillbar<'a> {
                 .set(entry.widget_id, ui);
             // if we can gather some text to display, show it
             } else if let Some((title, desc)) = tooltip_text(entry.slot) {
-                slot.with_tooltip(self.tooltip_manager, &title, desc, &tooltip, TEXT_COLOR)
+                slot.with_tooltip(self.tooltip_manager, &title, &desc, &tooltip, TEXT_COLOR)
                     .set(entry.widget_id, ui);
             // if not, just set slot
             } else {

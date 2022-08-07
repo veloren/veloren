@@ -1,0 +1,1 @@
+character_window-character_name = Pertsonaiaren izena

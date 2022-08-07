@@ -1,0 +1,10 @@
+hud-social = Jokalari gehiago
+hud-social-online = Online:
+hud-social-friends = Lagunak
+hud-social-not_yet_available = Oraindik ez dago erabilgarri
+hud-social-faction = Taldea
+hud-social-play_online_fmt = { $nb_player } jokalari daude online
+hud-social-name = Izena
+hud-social-level = Maila
+hud-social-zone = Zona
+hud-social-account = Kontua

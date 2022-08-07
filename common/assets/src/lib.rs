@@ -16,6 +16,8 @@ pub use assets_manager::{
 };
 
 mod fs;
+mod walk;
+pub use walk::{walk_tree, Walk};
 
 lazy_static! {
     /// The HashMap where all loaded assets are stored in.
