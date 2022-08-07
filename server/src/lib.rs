@@ -340,35 +340,9 @@ impl Server {
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
 
+        let banned_words = settings.moderation.load_banned_words(data_dir);
+
         //Alias validator
-        let banned_words_paths = &settings.moderation.banned_words_files;
-        let mut banned_words = Vec::new();
-        for path in banned_words_paths {
-            let mut list = match std::fs::File::open(&path) {
-                Ok(file) => match ron::de::from_reader(&file) {
-                    Ok(vec) => vec,
-                    Err(error) => {
-                        warn!(?error, ?file, "Couldn't deserialize banned words file");
-                        return Err(Error::Other(format!(
-                            "Couldn't read banned words file \"{}\"",
-                            path.to_string_lossy()
-                        )));
-                    },
-                },
-                Err(error) => {
-                    warn!(?error, ?path, "Couldn't open banned words file");
-                    return Err(Error::Other(format!(
-                        "Couldn't open banned words file \"{}\". Error: {}",
-                        path.to_string_lossy(),
-                        error
-                    )));
-                },
-            };
-            banned_words.append(&mut list);
-        }
-        let banned_words_count = banned_words.len();
-        debug!(?banned_words_count);
-        trace!(?banned_words);
         state
             .ecs_mut()
             .insert(AliasValidator::new(banned_words.clone()));

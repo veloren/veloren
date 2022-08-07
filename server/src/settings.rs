@@ -105,6 +105,24 @@ pub struct ModerationSettings {
     pub admins_exempt: bool,
 }
 
+impl ModerationSettings {
+    pub fn load_banned_words(&self, data_dir: &Path) -> Vec<String> {
+        let mut banned_words = Vec::new();
+        for fname in self.banned_words_files.iter() {
+            let mut path = with_config_dir(data_dir);
+            path.push(fname);
+            match std::fs::File::open(&path) {
+                Ok(file) => match ron::de::from_reader(&file) {
+                    Ok(mut words) => banned_words.append(&mut words),
+                    Err(error) => error!(?error, ?file, "Couldn't read banned words file"),
+                },
+                Err(error) => error!(?error, ?path, "Couldn't open banned words file"),
+            }
+        }
+        banned_words
+    }
+}
+
 impl Default for ModerationSettings {
     fn default() -> Self {
         Self {
@@ -286,7 +304,7 @@ impl Settings {
     }
 }
 
-fn with_config_dir(path: &Path) -> PathBuf {
+pub fn with_config_dir(path: &Path) -> PathBuf {
     let mut path = PathBuf::from(path);
     path.push(CONFIG_DIR);
     path
