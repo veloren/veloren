@@ -72,7 +72,7 @@ struct Language {
 }
 
 impl Language {
-    fn try_msg<'a>(&'a self, key: &str, args: Option<&'a FluentArgs>) -> Option<Cow<str>> {
+    fn try_msg<'a>(&'a self, key: &str, args: Option<&'a FluentArgs>) -> Option<Cow<'a, str>> {
         let bundle = &self.bundle;
         let msg = bundle.get_message(key)?;
         let mut errs = Vec::new();
@@ -247,18 +247,19 @@ pub struct LocalizationHandle {
     pub use_english_fallback: bool,
 }
 
-/// Read `LocalizationGuard`
+/// Read [LocalizationGuard](LocalizationGuard)
 // arbitrary choice to minimize changing all of veloren
 pub type Localization = LocalizationGuard;
 
-/// RAII guard returned from `Localization::read`(), resembles `AssetGuard`
+/// RAII guard returned from [LocalizationHandle::read()](LocalizationHandle::read),
+/// resembles [AssetGuard](AssetGuard)
 pub struct LocalizationGuard {
     active: AssetGuard<Language>,
     fallback: Option<AssetGuard<Language>>,
 }
 
 impl LocalizationGuard {
-    /// DEPRECATED
+    /// !!!DEPRECATED!!!
     ///
     /// Get a localized text from the given key
     ///
@@ -267,7 +268,8 @@ impl LocalizationGuard {
     /// If the key is not present in the localization object
     /// then the key itself is returned.
     ///
-    /// NOTE: this function shouldn't be used in new code.
+    /// # NOTE:
+    /// This function shouldn't be used in new code.
     /// It is kept for compatibility with old code that uses
     /// old style dot-separated keys and this function internally
     /// replaces them with dashes.
@@ -299,7 +301,7 @@ impl LocalizationGuard {
         // NOTE: we clone the key if translation was missing
         // We could use borrowed version, but it would mean that
         // `key`, `self`, and result should have the same lifetime.
-        // Which would make it impossible to use with runtime generated keys.
+        // Which would make it way more awkard to use with runtime generated keys.
         self.try_msg(key)
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
     }
@@ -311,7 +313,7 @@ impl LocalizationGuard {
     pub fn try_msg_ctx<'a>(&'a self, key: &str, args: &'a FluentArgs) -> Option<Cow<'static, str>> {
         // NOTE: as after using args we get our result owned (because you need
         // to clone pattern during forming value from args), this conversion
-        // to Cow;:Owned is no-op.
+        // to Cow::Owned is no-op.
         // We could use String here, but using Cow everywhere in i18n API is
         // prefered for consistency.
         self.active
@@ -483,15 +485,18 @@ mod tests {
     use super::*;
 
     #[test]
+    // Test that localization list is loaded (not empty)
     fn check_localization_list() {
         let list = list_localizations();
         assert!(!list.is_empty());
     }
 
     #[test]
+    // Test that reference language can be loaded
     fn validate_reference_language() { let _ = LocalizationHandle::load_expect(REFERENCE_LANG); }
 
     #[test]
+    // Test to verify that all languages are valid and loadable
     fn validate_all_localizations() {
         let list = list_localizations();
         for meta in list {

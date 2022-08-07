@@ -359,7 +359,7 @@ pub fn ability_description<'a>(
     ability_id: &str,
     loc: &'a Localization,
 ) -> (Cow<'a, str>, Cow<'a, str>) {
-    // TODO: Use attribute mechanic
+    // TODO: Use fluent attribute mechanic
     let (name, desc) = (
         format!("{}.name", ability_id),
         format!("{}.desc", ability_id),

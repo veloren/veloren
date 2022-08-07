@@ -3359,6 +3359,8 @@ fn mining_skill_strings(skill: MiningSkill) -> SkillStrings<'static> {
     }
 }
 
+/// Helper object used returned by `skill_strings` as source for
+/// later internationalization and formatting.
 enum SkillStrings<'a> {
     Plain {
         title: &'a str,
