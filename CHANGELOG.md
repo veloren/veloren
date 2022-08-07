@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Fixed crash due to zooming out very far
 
 ## [0.13.0] - 2022-07-23
 

@@ -541,7 +541,9 @@ impl Camera {
     }
 
     /// Zoom with the ability to switch between first and third-person mode.
-    pub fn zoom_switch(&mut self, delta: f32, cap: Option<f32>) {
+    ///
+    /// Note that cap > 18237958000000.0 can cause panic due to float overflow
+    pub fn zoom_switch(&mut self, delta: f32, cap: f32) {
         if delta > 0_f32 || self.mode != CameraMode::FirstPerson {
             let t = self.tgt_dist + delta;
             const MIN_THIRD_PERSON: f32 = 2.35;
@@ -561,9 +563,7 @@ impl Camera {
             }
         }
 
-        if let Some(cap) = cap {
-            self.tgt_dist = self.tgt_dist.min(cap);
-        }
+        self.tgt_dist = self.tgt_dist.min(cap);
     }
 
     /// Get the distance of the camera from the focus
