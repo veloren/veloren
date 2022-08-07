@@ -418,8 +418,7 @@ impl LocalizationHandle {
             fallback: if is_default {
                 None
             } else {
-                // TODO: shouldn't this panic?
-                Language::load(&default_key).ok()
+                Some(Language::load(&default_key)?)
             },
             use_english_fallback: false,
         })
