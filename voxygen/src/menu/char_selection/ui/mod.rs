@@ -554,8 +554,7 @@ impl Controls {
                                                     .into(),
                                                 Text::new(
                                                     // TODO: Add actual location here
-                                                    i18n.get("char_selection.uncanny_valley")
-                                                        .into_owned(),
+                                                    i18n.get("char_selection.uncanny_valley"),
                                                 )
                                                 .into(),
                                             ]),
@@ -601,7 +600,7 @@ impl Controls {
                             let button = Button::new(
                                 new_character_button,
                                 Container::new(Text::new(
-                                    i18n.get("char_selection.create_new_character").to_owned(),
+                                    i18n.get("char_selection.create_new_character"),
                                 ))
                                 .width(Length::Fill)
                                 .height(Length::Fill)
@@ -717,7 +716,7 @@ impl Controls {
                 if let Some(info_content) = info_content {
                     let over_content: Element<_> = match &info_content {
                         InfoContent::Deletion(_) => Column::with_children(vec![
-                            Text::new(i18n.get("char_selection.delete_permanently").into_owned())
+                            Text::new(i18n.get("char_selection.delete_permanently"))
                                 .size(fonts.cyri.scale(24))
                                 .into(),
                             Row::with_children(vec![
@@ -744,22 +743,22 @@ impl Controls {
                         .spacing(10)
                         .into(),
                         InfoContent::LoadingCharacters => {
-                            Text::new(i18n.get("char_selection.loading_characters").into_owned())
+                            Text::new(i18n.get("char_selection.loading_characters"))
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
                         InfoContent::CreatingCharacter => {
-                            Text::new(i18n.get("char_selection.creating_character").into_owned())
+                            Text::new(i18n.get("char_selection.creating_character"))
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
                         InfoContent::EditingCharacter => {
-                            Text::new(i18n.get("char_selection.editing_character").into_owned())
+                            Text::new(i18n.get("char_selection.editing_character"))
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
                         InfoContent::DeletingCharacter => {
-                            Text::new(i18n.get("char_selection.deleting_character").into_owned())
+                            Text::new(i18n.get("char_selection.deleting_character"))
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
