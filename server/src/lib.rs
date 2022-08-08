@@ -82,7 +82,7 @@ use common::{
     rtsim::RtSimEntity,
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
-    terrain::{TerrainChunk, TerrainChunkSize},
+    terrain::{TerrainChunk, TerrainChunkSize, Block},
     vol::RectRasterableVol,
 };
 use common_ecs::run_now;
@@ -342,6 +342,7 @@ impl Server {
             pool.configure("CHUNK_DROP", |_n| 1);
             pool.configure("CHUNK_GENERATOR", |n| n / 2 + n / 4);
             pool.configure("CHUNK_SERIALIZER", |n| n / 2);
+            pool.configure("RTSIM_SAVE", |_| 1);
         }
         state
             .ecs_mut()
@@ -700,6 +701,13 @@ impl Server {
 
         let before_state_tick = Instant::now();
 
+        fn on_block_update(ecs: &specs::World, wpos: Vec3<i32>, old_block: Block, new_block: Block) {
+            // When a resource block updates, inform rtsim
+            if old_block.get_rtsim_resource().is_some() || new_block.get_rtsim_resource().is_some() {
+                ecs.write_resource::<rtsim2::RtSim>().hook_block_update(wpos, old_block, new_block);
+            }
+        }
+
         // 4) Tick the server's LocalState.
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // in sys/terrain.rs
@@ -726,6 +734,7 @@ impl Server {
             false,
             Some(&mut state_tick_metrics),
             &self.server_constants,
+            on_block_update,
         );
 
         let before_handle_events = Instant::now();
@@ -749,7 +758,7 @@ impl Server {
         self.state.update_region_map();
         // NOTE: apply_terrain_changes sends the *new* value since it is not being
         // synchronized during the tick.
-        self.state.apply_terrain_changes();
+        self.state.apply_terrain_changes(on_block_update);
 
         let before_sync = Instant::now();
 
@@ -994,6 +1003,10 @@ impl Server {
                 let mut chunk_generator = ecs.write_resource::<ChunkGenerator>();
                 let client = ecs.read_storage::<Client>();
                 let mut terrain = ecs.write_resource::<common::terrain::TerrainGrid>();
+                #[cfg(feature = "worldgen")]
+                let rtsim = ecs.read_resource::<rtsim2::RtSim>();
+                #[cfg(not(feature = "worldgen"))]
+                let rtsim = ();
 
                 // Cancel all pending chunks.
                 chunk_generator.cancel_all();
@@ -1009,6 +1022,7 @@ impl Server {
                             pos,
                             &slow_jobs,
                             Arc::clone(world),
+                            &rtsim,
                             index.clone(),
                             (
                                 *ecs.read_resource::<TimeOfDay>(),
@@ -1172,11 +1186,16 @@ impl Server {
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
         let ecs = self.state.ecs();
         let slow_jobs = ecs.read_resource::<SlowJobPool>();
+        #[cfg(feature = "worldgen")]
+        let rtsim = ecs.read_resource::<rtsim2::RtSim>();
+        #[cfg(not(feature = "worldgen"))]
+        let rtsim = ();
         ecs.write_resource::<ChunkGenerator>().generate_chunk(
             Some(entity),
             key,
             &slow_jobs,
             Arc::clone(&self.world),
+            &rtsim,
             self.index.clone(),
             (
                 *ecs.read_resource::<TimeOfDay>(),

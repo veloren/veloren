@@ -112,7 +112,7 @@ impl<'a> System<'a> for Sys {
             mut terrain_changes,
             mut chunk_requests,
             //mut rtsim,
-            mut rtsim2,
+            mut rtsim,
             mut _terrain_persistence,
             mut positions,
             presences,
@@ -137,6 +137,7 @@ impl<'a> System<'a> for Sys {
                 request.key,
                 &slow_jobs,
                 Arc::clone(&world),
+                &rtsim,
                 index.clone(),
                 (*time_of_day, calendar.clone()),
             )
@@ -182,7 +183,7 @@ impl<'a> System<'a> for Sys {
             } else {
                 terrain_changes.new_chunks.insert(key);
                 #[cfg(feature = "worldgen")]
-                rtsim2.hook_load_chunk(key);
+                rtsim.hook_load_chunk(key, supplement.rtsim_max_resources);
             }
 
             // Handle chunk supplement
@@ -387,7 +388,7 @@ impl<'a> System<'a> for Sys {
                 terrain.remove(key).map(|chunk| {
                     terrain_changes.removed_chunks.insert(key);
                     #[cfg(feature = "worldgen")]
-                    rtsim2.hook_unload_chunk(key);
+                    rtsim.hook_unload_chunk(key);
                     chunk
                 })
             })

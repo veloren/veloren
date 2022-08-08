@@ -524,7 +524,12 @@ impl State {
     }
 
     // Apply terrain changes
-    pub fn apply_terrain_changes(&self) { self.apply_terrain_changes_internal(false); }
+    pub fn apply_terrain_changes(
+        &self,
+        mut block_update: impl FnMut(&specs::World, Vec3<i32>, Block, Block),
+    ) {
+        self.apply_terrain_changes_internal(false, block_update);
+    }
 
     /// `during_tick` is true if and only if this is called from within
     /// [State::tick].
@@ -534,7 +539,11 @@ impl State {
     /// from within both the client and the server ticks, right after
     /// handling terrain messages; currently, client sets it to true and
     /// server to false.
-    fn apply_terrain_changes_internal(&self, during_tick: bool) {
+    fn apply_terrain_changes_internal(
+        &self,
+        during_tick: bool,
+        mut block_update: impl FnMut(&specs::World, Vec3<i32>, Block, Block),
+    ) {
         span!(
             _guard,
             "apply_terrain_changes",
@@ -575,14 +584,17 @@ impl State {
         }
         // Apply block modifications
         // Only include in `TerrainChanges` if successful
-        modified_blocks.retain(|pos, block| {
-            let res = terrain.set(*pos, *block);
+        modified_blocks.retain(|pos, new_block| {
+            let res = terrain.map(*pos, |old_block| {
+                block_update(&self.ecs, *pos, old_block, *new_block);
+                *new_block
+            });
             if let (&Ok(old_block), true) = (&res, during_tick) {
                 // NOTE: If the changes are applied during the tick, we push the *old* value as
                 // the modified block (since it otherwise can't be recovered after the tick).
                 // Otherwise, the changes will be applied after the tick, so we push the *new*
                 // value.
-                *block = old_block;
+                *new_block = old_block;
             }
             res.is_ok()
         });
@@ -597,6 +609,7 @@ impl State {
         update_terrain_and_regions: bool,
         mut metrics: Option<&mut StateTickMetrics>,
         server_constants: &ServerConstants,
+        block_update: impl FnMut(&specs::World, Vec3<i32>, Block, Block),
     ) {
         span!(_guard, "tick", "State::tick");
 
@@ -643,7 +656,7 @@ impl State {
         drop(guard);
 
         if update_terrain_and_regions {
-            self.apply_terrain_changes_internal(true);
+            self.apply_terrain_changes_internal(true, block_update);
         }
 
         // Process local events

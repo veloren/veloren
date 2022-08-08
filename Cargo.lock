@@ -1840,6 +1840,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum-map"
+version = "2.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5a56d54c8dd9b3ad34752ed197a4eb2a6601bc010808eb097a04a58ae4c43e1"
+dependencies = [
+ "enum-map-derive",
+ "serde",
+]
+
+[[package]]
+name = "enum-map-derive"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9045e2676cd5af83c3b167d917b0a5c90a4d8e266e2683d6631b235c457fc27"
+dependencies = [
+ "proc-macro2 1.0.43",
+ "quote 1.0.21",
+ "syn 1.0.100",
+]
+
+[[package]]
 name = "enumset"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6655,6 +6676,8 @@ dependencies = [
  "crossbeam-utils 0.8.11",
  "csv",
  "dot_vox",
+ "enum-iterator 1.1.3",
+ "enum-map",
  "fxhash",
  "hashbrown 0.12.3",
  "indexmap",
@@ -6888,9 +6911,11 @@ dependencies = [
 name = "veloren-rtsim"
 version = "0.10.0"
 dependencies = [
+ "enum-map",
  "hashbrown 0.12.3",
  "ron 0.8.0",
  "serde",
+ "vek 0.15.8",
  "veloren-common",
  "veloren-world",
 ]
@@ -6907,6 +6932,7 @@ dependencies = [
  "chrono-tz",
  "crossbeam-channel",
  "drop_guard",
+ "enum-map",
  "enumset",
  "futures-util",
  "hashbrown 0.12.3",
@@ -7120,6 +7146,7 @@ dependencies = [
  "csv",
  "deflate",
  "enum-iterator 1.1.3",
+ "enum-map",
  "fallible-iterator",
  "flate2",
  "fxhash",

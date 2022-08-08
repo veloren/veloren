@@ -1,4 +1,7 @@
-use crate::metrics::ChunkGenMetrics;
+use crate::{
+    metrics::ChunkGenMetrics,
+    rtsim2::RtSim,
+};
 #[cfg(not(feature = "worldgen"))]
 use crate::test_world::{IndexOwned, World};
 use common::{
@@ -44,6 +47,10 @@ impl ChunkGenerator {
         key: Vec2<i32>,
         slowjob_pool: &SlowJobPool,
         world: Arc<World>,
+        #[cfg(feature = "worldgen")]
+        rtsim: &RtSim,
+        #[cfg(not(feature = "worldgen"))]
+        rtsim: &(),
         index: IndexOwned,
         time: (TimeOfDay, Calendar),
     ) {
@@ -56,10 +63,17 @@ impl ChunkGenerator {
         v.insert(Arc::clone(&cancel));
         let chunk_tx = self.chunk_tx.clone();
         self.metrics.chunks_requested.inc();
+
+        // Get state for this chunk from rtsim
+        #[cfg(feature = "worldgen")]
+        let rtsim_resources = Some(rtsim.get_chunk_resources(key));
+        #[cfg(not(feature = "worldgen"))]
+        let rtsim_resources = None;
+
         slowjob_pool.spawn("CHUNK_GENERATOR", move || {
             let index = index.as_index_ref();
             let payload = world
-                .generate_chunk(index, key, || cancel.load(Ordering::Relaxed), Some(time))
+                .generate_chunk(index, key, rtsim_resources, || cancel.load(Ordering::Relaxed), Some(time))
                 // FIXME: Since only the first entity who cancels a chunk is notified, we end up
                 // delaying chunk re-requests for up to 3 seconds for other clients, which isn't
                 // great.  We *could* store all the other requesting clients here, but it could

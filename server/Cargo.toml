@@ -64,6 +64,7 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253
 slab  = "0.4"
 rand_distr = "0.4.0"
 enumset = "1.0.8"
+enum-map = "2.4"
 noise = { version = "0.7", default-features = false }
 censor = "0.2"
 

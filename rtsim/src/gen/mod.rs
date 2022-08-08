@@ -5,7 +5,7 @@ use world::World;
 impl Data {
     pub fn generate(world: &World) -> Self {
         Self {
-            nature: Nature {},
+            nature: Nature::generate(world),
             actors: Actors {
                 actors: HashMap::default(),
             },

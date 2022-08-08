@@ -4,6 +4,7 @@
 // module in `server`.
 
 use specs::Component;
+use serde::{Serialize, Deserialize};
 use vek::*;
 
 use crate::comp::dialogue::MoodState;
@@ -81,4 +82,11 @@ impl RtSimController {
             events: Vec::new(),
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, enum_map::Enum)]
+pub enum ChunkResource {
+    Grass,
+    Flax,
+    Cotton,
 }

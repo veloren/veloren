@@ -8,7 +8,9 @@ use crate::{
     lottery::LootSpec,
     npc::{self, NPC_NAMES},
     trade::SiteInformation,
+    rtsim,
 };
+use enum_map::EnumMap;
 use serde::Deserialize;
 use vek::*;
 
@@ -449,6 +451,7 @@ impl EntityInfo {
 #[derive(Default)]
 pub struct ChunkSupplement {
     pub entities: Vec<EntityInfo>,
+    pub rtsim_max_resources: EnumMap<rtsim::ChunkResource, usize>,
 }
 
 impl ChunkSupplement {

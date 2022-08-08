@@ -7,6 +7,7 @@ use crate::{
     presence::{Presence, RepositionOnChunkLoad},
     settings::Settings,
     sys::sentinel::DeletedEntities,
+    rtsim2::RtSim,
     wiring, BattleModeBuffer, SpawnPoint,
 };
 use common::{
@@ -497,6 +498,10 @@ impl StateExt for State {
         {
             let ecs = self.ecs();
             let slow_jobs = ecs.write_resource::<SlowJobPool>();
+            #[cfg(feature = "worldgen")]
+            let rtsim = ecs.read_resource::<RtSim>();
+            #[cfg(not(feature = "worldgen"))]
+            let rtsim = ();
             let mut chunk_generator =
                 ecs.write_resource::<crate::chunk_generator::ChunkGenerator>();
             let chunk_pos = self.terrain().pos_key(pos.0.map(|e| e as i32));
@@ -517,7 +522,7 @@ impl StateExt for State {
                 #[cfg(feature = "worldgen")]
                 {
                     let time = (*ecs.read_resource::<TimeOfDay>(), (*ecs.read_resource::<Calendar>()).clone());
-                    chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), index.clone(), time);
+                    chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), &rtsim, index.clone(), time);
                 }
             });
         }

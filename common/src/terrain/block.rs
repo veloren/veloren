@@ -4,6 +4,7 @@ use crate::{
     consts::FRIC_GROUND,
     lottery::LootSpec,
     make_case_elim,
+    rtsim,
 };
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
@@ -192,6 +193,26 @@ impl Block {
             Some(self.attr[1] & 0b111)
         } else {
             None
+        }
+    }
+
+    /// Returns the rtsim resource, if any, that this block corresponds to. If you want the scarcity of a block to change with rtsim's resource depletion tracking, you can do so by editing this function.
+    #[inline]
+    pub fn get_rtsim_resource(&self) -> Option<rtsim::ChunkResource> {
+        match self.get_sprite()? {
+            SpriteKind::LongGrass
+                | SpriteKind::MediumGrass
+                | SpriteKind::ShortGrass
+                | SpriteKind::LargeGrass
+                | SpriteKind::GrassSnow
+                | SpriteKind::GrassBlue
+                | SpriteKind::SavannaGrass
+                | SpriteKind::TallSavannaGrass
+                | SpriteKind::RedSavannaGrass
+                | SpriteKind::JungleRedGrass => Some(rtsim::ChunkResource::Grass),
+            SpriteKind::WildFlax => Some(rtsim::ChunkResource::Flax),
+            SpriteKind::Cotton => Some(rtsim::ChunkResource::Cotton),
+            _ => None,
         }
     }
 

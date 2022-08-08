@@ -7,10 +7,11 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time},
+    slowjob::SlowJobPool,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 #[derive(Default)]
 pub struct Sys;
@@ -22,6 +23,7 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, RtSim>,
         ReadExpect<'a, Arc<world::World>>,
         ReadExpect<'a, world::IndexOwned>,
+        ReadExpect<'a, SlowJobPool>,
     );
 
     const NAME: &'static str = "rtsim::tick";
@@ -30,9 +32,14 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (dt, time, server_event_bus, mut rtsim, world, index): Self::SystemData,
+        (dt, time, server_event_bus, mut rtsim, world, index, slow_jobs): Self::SystemData,
     ) {
         let rtsim = &mut *rtsim;
+
+        if rtsim.last_saved.map_or(true, |ls| ls.elapsed() > Duration::from_secs(60)) {
+            rtsim.save(&slow_jobs);
+        }
+
         // rtsim.tick += 1;
 
         // Update unloaded rtsim entities, in groups at a time

@@ -141,6 +141,7 @@ pub struct Canvas<'a> {
     pub(crate) info: CanvasInfo<'a>,
     pub(crate) chunk: &'a mut TerrainChunk,
     pub(crate) entities: Vec<EntityInfo>,
+    pub(crate) rtsim_resource_blocks: Vec<Vec3<i32>>,
 }
 
 impl<'a> Canvas<'a> {
@@ -159,11 +160,20 @@ impl<'a> Canvas<'a> {
     }
 
     pub fn set(&mut self, pos: Vec3<i32>, block: Block) {
+        if block.get_rtsim_resource().is_some() {
+            self.rtsim_resource_blocks.push(pos);
+        }
         let _ = self.chunk.set(pos - self.wpos(), block);
     }
 
     pub fn map(&mut self, pos: Vec3<i32>, f: impl FnOnce(Block) -> Block) {
-        let _ = self.chunk.map(pos - self.wpos(), f);
+        let _ = self.chunk.map(pos - self.wpos(), |b| {
+            let new_block = f(b);
+            if new_block.get_rtsim_resource().is_some() {
+                self.rtsim_resource_blocks.push(pos);
+            }
+            new_block
+        });
     }
 
     pub fn set_sprite_cfg(&mut self, pos: Vec3<i32>, sprite_cfg: SpriteCfg) {
