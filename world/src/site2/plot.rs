@@ -1,5 +1,7 @@
 mod castle;
 mod cliff_tower;
+mod desert_city_multiplot;
+mod desert_city_temple;
 pub mod dungeon;
 mod giant_tree;
 mod gnarling;
@@ -7,7 +9,8 @@ mod house;
 mod workshop;
 
 pub use self::{
-    castle::Castle, cliff_tower::CliffTower, dungeon::Dungeon, giant_tree::GiantTree,
+    castle::Castle, cliff_tower::CliffTower, desert_city_multiplot::DesertCityMultiPlot,
+    desert_city_temple::DesertCityTemple, dungeon::Dungeon, giant_tree::GiantTree,
     gnarling::GnarlingFortification, house::House, workshop::Workshop,
 };
 
@@ -47,6 +50,8 @@ impl Plot {
 pub enum PlotKind {
     House(House),
     Workshop(Workshop),
+    DesertCityMultiPlot(DesertCityMultiPlot),
+    DesertCityTemple(DesertCityTemple),
     Plaza,
     Castle(Castle),
     Road(Path<Vec2<i32>>),

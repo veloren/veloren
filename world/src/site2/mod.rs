@@ -747,7 +747,7 @@ impl Site {
 
         let mut site = Site {
             origin,
-            name: NameGen::location(&mut rng).generate_cliff_town(),
+            name: NameGen::location(&mut rng).generate_arabic(),
             ..Site::default()
         };
 
@@ -784,6 +784,100 @@ impl Site {
             }
         }
 
+        site
+    }
+
+    pub fn generate_desert_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+
+        let mut site = Site {
+            origin,
+            name: NameGen::location(&mut rng).generate_arabic(),
+            ..Site::default()
+        };
+
+        site.demarcate_obstacles(land);
+
+        site.make_plaza(land, &mut rng);
+
+        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2)]);
+
+        let mut temples = 0;
+
+        for _ in 0..30 {
+            match *build_chance.choose_seeded(rng.gen()) {
+                // DesertCityMultiplot
+                1 => {
+                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            8..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let desert_city_multi_plot = plot::DesertCityMultiPlot::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let desert_city_multi_plot_alt = desert_city_multi_plot.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::DesertCityMultiPlot(desert_city_multi_plot),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(desert_city_multi_plot_alt),
+                        });
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+                // DesertCityTemple
+                2 if temples < 1 => {
+                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            8..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let desert_city_temple = plot::DesertCityTemple::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let desert_city_temple_alt = desert_city_temple.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::DesertCityTemple(desert_city_temple),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(desert_city_temple_alt),
+                        });
+                        temples += 1;
+                    }
+                },
+                _ => {},
+            }
+        }
         site
     }
 
@@ -1035,6 +1129,12 @@ impl Site {
                 PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
+                PlotKind::DesertCityMultiPlot(desert_city_multi_plot) => {
+                    desert_city_multi_plot.render_collect(self, canvas)
+                },
+                PlotKind::DesertCityTemple(desert_city_temple) => {
+                    desert_city_temple.render_collect(self, canvas)
+                },
                 _ => continue,
             };
 
