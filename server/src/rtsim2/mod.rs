@@ -43,7 +43,7 @@ impl RtSim {
                         match File::open(&file_path) {
                             Ok(file) => {
                                 info!("Rtsim state found. Attempting to load...");
-                                match Data::from_reader(file) {
+                                match Data::from_reader(io::BufReader::new(file)) {
                                     Ok(data) => { info!("Rtsim state loaded."); break 'load data },
                                     Err(e) => {
                                         error!("Rtsim state failed to load: {}", e);
@@ -127,7 +127,7 @@ impl RtSim {
                 .map_err(|e: io::Error| ron::Error::from(e))
                 .and_then(|(mut file, tmp_file_path)| {
                     info!("Writing rtsim state to file...");
-                    data.write_to(&mut file)?;
+                    data.write_to(io::BufWriter::new(&mut file))?;
                     file.flush()?;
                     drop(file);
                     fs::rename(tmp_file_path, file_path)?;
