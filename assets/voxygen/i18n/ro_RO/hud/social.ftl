@@ -1,0 +1,10 @@
+hud-social = Alți jucători
+hud-social-online = Conectați:
+hud-social-friends = Prieteni
+hud-social-not_yet_available = Nu este valabil încă
+hud-social-faction = Facțiune
+hud-social-play_online_fmt = { $nb_player } jucator(i) conectați
+hud-social-name = Numa
+hud-social-level = Nivel
+hud-social-zone = Zonă
+hud-social-account = Cont
