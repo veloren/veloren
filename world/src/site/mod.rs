@@ -66,6 +66,7 @@ pub enum SiteKind {
     Refactor(site2::Site),
     CliffTown(site2::Site),
     Tree(Tree),
+    DesertCity(site2::Site),
     GiantTree(site2::Site),
     Gnarling(site2::Site),
 }
@@ -113,6 +114,13 @@ impl Site {
         }
     }
 
+    pub fn desert_city(dc: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::DesertCity(dc),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn tree(t: Tree) -> Self {
         Self {
             kind: SiteKind::Tree(t),
@@ -134,6 +142,7 @@ impl Site {
             SiteKind::Castle(c) => c.radius(),
             SiteKind::Refactor(s) => s.radius(),
             SiteKind::CliffTown(ct) => ct.radius(),
+            SiteKind::DesertCity(dc) => dc.radius(),
             SiteKind::Tree(t) => t.radius(),
             SiteKind::GiantTree(gt) => gt.radius(),
             SiteKind::Gnarling(g) => g.radius(),
@@ -147,6 +156,7 @@ impl Site {
             SiteKind::Castle(c) => c.get_origin(),
             SiteKind::Refactor(s) => s.origin,
             SiteKind::CliffTown(ct) => ct.origin,
+            SiteKind::DesertCity(dc) => dc.origin,
             SiteKind::Tree(t) => t.origin,
             SiteKind::GiantTree(gt) => gt.origin,
             SiteKind::Gnarling(g) => g.origin,
@@ -160,6 +170,7 @@ impl Site {
             SiteKind::Castle(c) => c.spawn_rules(wpos),
             SiteKind::Refactor(s) => s.spawn_rules(wpos),
             SiteKind::CliffTown(ct) => ct.spawn_rules(wpos),
+            SiteKind::DesertCity(dc) => dc.spawn_rules(wpos),
             SiteKind::Tree(t) => t.spawn_rules(wpos),
             SiteKind::GiantTree(gt) => gt.spawn_rules(wpos),
             SiteKind::Gnarling(g) => g.spawn_rules(wpos),
@@ -173,6 +184,7 @@ impl Site {
             SiteKind::Castle(c) => c.name(),
             SiteKind::Refactor(s) => s.name(),
             SiteKind::CliffTown(ct) => ct.name(),
+            SiteKind::DesertCity(dc) => dc.name(),
             SiteKind::Tree(_) => "Giant Tree",
             SiteKind::GiantTree(gt) => gt.name(),
             SiteKind::Gnarling(g) => g.name(),
@@ -184,12 +196,13 @@ impl Site {
         site_id: common::trade::SiteId,
     ) -> Option<common::trade::SiteInformation> {
         match &self.kind {
-            SiteKind::Settlement(_) | SiteKind::Refactor(_) | SiteKind::CliffTown(_) => {
-                Some(common::trade::SiteInformation {
-                    id: site_id,
-                    unconsumed_stock: self.economy.get_available_stock(),
-                })
-            },
+            SiteKind::Settlement(_)
+            | SiteKind::Refactor(_)
+            | SiteKind::CliffTown(_)
+            | SiteKind::DesertCity(_) => Some(common::trade::SiteInformation {
+                id: site_id,
+                unconsumed_stock: self.economy.get_available_stock(),
+            }),
             _ => None,
         }
     }
@@ -203,6 +216,7 @@ impl Site {
             SiteKind::Castle(c) => c.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
             SiteKind::Refactor(s) => s.render(canvas, dynamic_rng),
             SiteKind::CliffTown(ct) => ct.render(canvas, dynamic_rng),
+            SiteKind::DesertCity(dc) => dc.render(canvas, dynamic_rng),
             SiteKind::Tree(t) => t.render(canvas, dynamic_rng),
             SiteKind::GiantTree(gt) => gt.render(canvas, dynamic_rng),
             SiteKind::Gnarling(g) => g.render(canvas, dynamic_rng),
@@ -229,6 +243,7 @@ impl Site {
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Refactor(_) => {},
             SiteKind::CliffTown(_) => {},
+            SiteKind::DesertCity(_) => {},
             SiteKind::Tree(_) => {},
             SiteKind::GiantTree(gt) => gt.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
@@ -238,7 +253,10 @@ impl Site {
     pub fn do_economic_simulation(&self) -> bool {
         matches!(
             self.kind,
-            SiteKind::Refactor(_) | SiteKind::CliffTown(_) | SiteKind::Settlement(_)
+            SiteKind::Refactor(_)
+                | SiteKind::CliffTown(_)
+                | SiteKind::DesertCity(_)
+                | SiteKind::Settlement(_)
         )
     }
 }

@@ -170,6 +170,7 @@ impl Civs {
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::CliffTown => (32i32, 10.0),
+                SiteKind::DesertCity => (64i32, 25.0),
                 SiteKind::Tree => (12i32, 8.0),
                 SiteKind::GiantTree => (12i32, 8.0),
                 SiteKind::Gnarling => (16i32, 10.0),
@@ -231,42 +232,46 @@ impl Civs {
                 });
 
             let mut rng = ctx.reseed().rng;
-            let site = index.sites.insert(match &sim_site.kind {
-                SiteKind::Settlement => {
-                    WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
-                },
-                SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Castle => {
-                    WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
-                },
-                SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Tree => {
-                    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
-                },
-                SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-            });
+            let site =
+                index.sites.insert(match &sim_site.kind {
+                    SiteKind::Settlement => {
+                        WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
+                    },
+                    SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Castle => {
+                        WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
+                    },
+                    SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::DesertCity => WorldSite::desert_city(
+                        site2::Site::generate_desert_city(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
+                    SiteKind::Tree => {
+                        WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
+                    },
+                    SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                });
             sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];
 
@@ -549,6 +554,7 @@ impl Civs {
         // TODO: specify SiteKind based on where a suitable location is found
         let kind = match ctx.rng.gen_range(0..64) {
             0..=10 => SiteKind::CliffTown,
+            11..=12 => SiteKind::DesertCity,
             _ => SiteKind::Refactor,
         };
         let site = attempt(100, || {
@@ -968,6 +974,7 @@ impl Civs {
                     SiteKind::Refactor
                         | SiteKind::Settlement
                         | SiteKind::CliffTown
+                        | SiteKind::DesertCity
                         | SiteKind::Castle
                 )
             })
@@ -976,8 +983,11 @@ impl Civs {
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        if let SiteKind::Refactor | SiteKind::Settlement | SiteKind::CliffTown | SiteKind::Castle =
-            self.sites[site].kind
+        if let SiteKind::Refactor
+        | SiteKind::Settlement
+        | SiteKind::CliffTown
+        | SiteKind::DesertCity
+        | SiteKind::Castle = self.sites[site].kind
         {
             for (nearby, _) in nearby.into_iter().take(5) {
                 // Find a novel path
@@ -1229,6 +1239,7 @@ pub enum SiteKind {
     Castle,
     Refactor,
     CliffTown,
+    DesertCity,
     Tree,
     GiantTree,
     Gnarling,
@@ -1344,6 +1355,11 @@ impl SiteKind {
                         && chunk.near_cliffs()
                         && suitable_for_town(4.0)
                 },
+                SiteKind::DesertCity => {
+                    (0.9..1.0).contains(&chunk.temp)
+                        && !chunk.near_cliffs()
+                        && suitable_for_town(4.0)
+                },
                 SiteKind::Castle => {
                     if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {
                         return false;
@@ -1392,7 +1408,10 @@ impl Site {
     pub fn is_dungeon(&self) -> bool { matches!(self.kind, SiteKind::Dungeon) }
 
     pub fn is_settlement(&self) -> bool {
-        matches!(self.kind, SiteKind::Settlement | SiteKind::Refactor)
+        matches!(
+            self.kind,
+            SiteKind::Settlement | SiteKind::Refactor | SiteKind::CliffTown | SiteKind::DesertCity
+        )
     }
 
     pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }

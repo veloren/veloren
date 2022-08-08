@@ -54,6 +54,13 @@ pub const DIRS: [Vec2<i32>; 8] = [
     Vec2::new(1, -1),
 ];
 
+pub const DIAGONALS: [Vec2<i32>; 4] = [
+    Vec2::new(-1, -1),
+    Vec2::new(1, -1),
+    Vec2::new(-1, 1),
+    Vec2::new(1, 1),
+];
+
 pub const NEIGHBORS: [Vec2<i32>; 8] = [
     Vec2::new(1, 0),
     Vec2::new(1, 1),

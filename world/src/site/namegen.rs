@@ -623,8 +623,8 @@ impl<'a, R: Rng> NameGen<'a, R> {
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
 
-    // arabic inspired location names for cliff towns
-    pub fn generate_cliff_town(mut self) -> String {
+    // arabic inspired location names for clifftown and desertcity
+    pub fn generate_arabic(mut self) -> String {
         let start = [
             "zor", "el", "mas", "yaz", "ra", "boh", "mah", "ah", "lam", "mak", "mol", "wa", "bisk",
             "moj", "bis", "ay", "sha", "rez", "bakh", "ta", "je", "ki", "mos", "asj", "meh",

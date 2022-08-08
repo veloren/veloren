@@ -3329,7 +3329,7 @@ Lantern: Some((
     ],
     wind_sway: 0.0,
 )),
-// CliffTown Decor
+// CliffTown & DesertCity Decor
 WindowArabic: Some((
     variations: [
         (

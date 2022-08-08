@@ -119,9 +119,10 @@ impl Environment {
             for site in index.sites.ids() {
                 let site = &index.sites[site];
                 match site.kind {
-                    SiteKind::Settlement(_) | SiteKind::Refactor(_) | SiteKind::CliffTown(_) => {
-                        towns += site.economy.pop
-                    },
+                    SiteKind::Settlement(_)
+                    | SiteKind::Refactor(_)
+                    | SiteKind::CliffTown(_)
+                    | SiteKind::DesertCity(_) => towns += site.economy.pop,
                     SiteKind::Dungeon(_) => dungeons += site.economy.pop,
                     SiteKind::Castle(_) => castles += site.economy.pop,
                     SiteKind::Tree(_) => (),
@@ -383,7 +384,8 @@ mod tests {
                         kind: match i.kind {
                             crate::site::SiteKind::Settlement(_)
                             | crate::site::SiteKind::Refactor(_)
-                            | crate::site::SiteKind::CliffTown(_) => {
+                            | crate::site::SiteKind::CliffTown(_)
+                            | crate::site::SiteKind::DesertCity(_) => {
                                 common::terrain::site::SitesKind::Settlement
                             },
                             crate::site::SiteKind::Dungeon(_) => {
