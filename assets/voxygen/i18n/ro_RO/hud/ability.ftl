@@ -1,0 +1,16 @@
+common-abilities-debug-possess-name = Săgeată Manipulatoare
+common-abilities-debug-possess-desc = Trage o săgeată otrăvitoare care te lasă să controlezi inamicul.
+common-abilities-sword-spin-name = Vârtej de vânt
+common-abilities-sword-spin-desc = Mișcă-te înainte în timp ce te rotești cu sabia.
+common-abilities-axe-leap-name = Saltul Toporului
+common-abilities-axe-leap-desc = Un salt cu mișcare tăioasă la poziția cursorului.
+common-abilities-hammer-leap-name = Lovitura Morții
+common-abilities-hammer-leap-desc = Un atac „Zonă de Efect” cu aruncare. Salt la poziția cursorului.
+common-abilities-bow-shotgun-name = Burst
+common-abilities-bow-shotgun-desc = Trage rapid mai multe sageți
+common-abilities-staff-fireshockwave-name = Inel de Foc
+common-abilities-staff-fireshockwave-desc = Aprinde pământul cu undă de șoc în flăcări.
+common-abilities-sceptre-wardingaura-name = Aură Protectoare
+common-abilities-sceptre-wardingaura-desc = Protejează aliații tăi împotriva atacutilor inamicilor
+common-abilities-unknown-name = Ablitatea nu are titlu
+common-abilities-unknown-desc = Ablitatea nu are descripție
