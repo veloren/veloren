@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
+use specs::{Component, DerefFlaggedStorage, VecStorage};
 
 pub const COMBO_DECAY_START: f64 = 7.5; // seconds
 
@@ -37,5 +36,5 @@ impl Combo {
 }
 
 impl Component for Combo {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }

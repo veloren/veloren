@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, SystemData};
-use specs_idvs::IdvStorage;
 use std::{ops::Deref, sync::Arc};
 
 pub trait Link: Sized + Send + Sync + 'static {
@@ -49,7 +48,7 @@ impl<R: Role + 'static> Component for Is<R>
 where
     R::Link: Send + Sync + 'static,
 {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }
 
 #[derive(Serialize, Deserialize, Debug)]

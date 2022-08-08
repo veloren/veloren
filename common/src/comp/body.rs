@@ -24,7 +24,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use strum::Display;
 use vek::*;
 
@@ -942,5 +941,5 @@ impl Body {
 }
 
 impl Component for Body {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }

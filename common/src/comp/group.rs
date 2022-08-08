@@ -3,7 +3,6 @@ use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
 use specs::{Component, DerefFlaggedStorage, Join};
-use specs_idvs::IdvStorage;
 use tracing::{error, warn};
 
 // Primitive group system
@@ -25,7 +24,7 @@ pub const ENEMY: Group = Group(u32::MAX);
 pub const NPC: Group = Group(u32::MAX - 1);
 
 impl Component for Group {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }
 
 #[derive(Clone, Debug)]

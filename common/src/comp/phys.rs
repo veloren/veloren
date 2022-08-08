@@ -7,8 +7,7 @@ use crate::{
 };
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage, NullStorage};
-use specs_idvs::IdvStorage;
+use specs::{Component, DerefFlaggedStorage, NullStorage, VecStorage};
 use std::sync::Arc;
 use vek::*;
 
@@ -17,9 +16,7 @@ use vek::*;
 pub struct Pos(pub Vec3<f32>);
 
 impl Component for Pos {
-    // TODO: why not regular vec storage????
-    // TODO: component occupancy metrics
-    type Storage = IdvStorage<Self>;
+    type Storage = VecStorage<Self>;
 }
 
 /// Velocity
@@ -31,8 +28,7 @@ impl Vel {
 }
 
 impl Component for Vel {
-    // TODO: why not regular vec storage????
-    type Storage = IdvStorage<Self>;
+    type Storage = VecStorage<Self>;
 }
 
 /// Used to defer writes to Pos/Vel in nested join loops
@@ -44,8 +40,7 @@ pub struct PosVelOriDefer {
 }
 
 impl Component for PosVelOriDefer {
-    // TODO: why not regular vec storage????
-    type Storage = IdvStorage<Self>;
+    type Storage = VecStorage<Self>;
 }
 
 /// Cache of Velocity (of last tick) * dt (of curent tick)
@@ -71,8 +66,7 @@ pub struct PreviousPhysCache {
 }
 
 impl Component for PreviousPhysCache {
-    // TODO: why not regular vec storage????
-    type Storage = IdvStorage<Self>;
+    type Storage = VecStorage<Self>;
 }
 
 // Scale
@@ -80,7 +74,7 @@ impl Component for PreviousPhysCache {
 pub struct Scale(pub f32);
 
 impl Component for Scale {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }
 
 // Mass
@@ -92,7 +86,7 @@ impl Default for Mass {
 }
 
 impl Component for Mass {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }
 
 /// The average density (specific mass) of an entity.
@@ -105,7 +99,7 @@ impl Default for Density {
 }
 
 impl Component for Density {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }
 
 // Collider
@@ -159,7 +153,7 @@ impl Collider {
 }
 
 impl Component for Collider {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
@@ -214,12 +208,12 @@ impl PhysicsState {
 }
 
 impl Component for PhysicsState {
-    type Storage = IdvStorage<Self>;
+    type Storage = VecStorage<Self>;
 }
 
 /// Used to forcefully update the position, velocity, and orientation of the
 /// client
-#[derive(Copy, Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct ForceUpdate;
 
 impl Component for ForceUpdate {

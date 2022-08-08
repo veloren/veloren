@@ -5,9 +5,7 @@ use core::{cmp::Ordering, time::Duration};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 #[cfg(not(target_arch = "wasm32"))]
-use specs::{Component, DerefFlaggedStorage};
-#[cfg(not(target_arch = "wasm32"))]
-use specs_idvs::IdvStorage;
+use specs::{Component, DerefFlaggedStorage, VecStorage};
 use strum::EnumIter;
 
 /// De/buff Kind.
@@ -529,5 +527,5 @@ pub type BuffId = u64;
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Component for Buffs {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }

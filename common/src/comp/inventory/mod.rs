@@ -1,7 +1,6 @@
 use core::ops::Not;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::{convert::TryFrom, mem, ops::Range};
 use tracing::{debug, trace, warn};
 use vek::Vec3;
@@ -820,7 +819,7 @@ impl Inventory {
 }
 
 impl Component for Inventory {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -871,5 +870,7 @@ impl InventoryUpdate {
 }
 
 impl Component for InventoryUpdate {
-    type Storage = IdvStorage<Self>;
+    // TODO: This could probabably be `DenseVecStorage` (except we call clear on
+    // this and that essentially leaks for `DenseVecStorage` atm afaict).
+    type Storage = specs::VecStorage<Self>;
 }

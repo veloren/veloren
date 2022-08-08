@@ -4,7 +4,6 @@
 use super::InterpolatableComponent;
 use common::comp::{Ori, Pos, Vel};
 use specs::Component;
-use specs_idvs::IdvStorage;
 use tracing::warn;
 use vek::ops::{Lerp, Slerp};
 
@@ -53,7 +52,7 @@ impl<T: Clone> InterpBuffer<T> {
 }
 
 impl<T: 'static + Send + Sync> Component for InterpBuffer<T> {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::VecStorage<Self>;
 }
 
 // 0 is pure physics, 1 is pure extrapolation

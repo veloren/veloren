@@ -7,8 +7,7 @@ use common::{
 };
 use common_state::BlockChange;
 use hashbrown::HashMap;
-use specs::{Component, Entity};
-use specs_idvs::IdvStorage;
+use specs::{Component, DenseVecStorage, Entity};
 use tracing::warn;
 use vek::{num_traits::ToPrimitive, Rgb, Vec3};
 
@@ -243,9 +242,9 @@ impl WireNode {
 }
 
 impl Component for WiringElement {
-    type Storage = IdvStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }
 
 impl Component for Circuit {
-    type Storage = IdvStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }

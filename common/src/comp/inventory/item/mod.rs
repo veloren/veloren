@@ -21,8 +21,7 @@ use core::{
 };
 use crossbeam_utils::atomic::AtomicCell;
 use serde::{de, Deserialize, Serialize, Serializer};
-use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
+use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
 use strum::{EnumString, IntoStaticStr};
 use tracing::error;
@@ -1211,14 +1210,14 @@ impl ItemDesc for ItemDef {
 }
 
 impl Component for Item {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, DenseVecStorage<Self>>;
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ItemDrop(pub Item);
 
 impl Component for ItemDrop {
-    type Storage = IdvStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }
 
 impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {

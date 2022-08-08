@@ -10,7 +10,6 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::{collections::BTreeSet, hash::Hash};
 use tracing::{trace, warn};
 
@@ -239,13 +238,14 @@ pub struct SkillSet {
     skills: HashMap<Skill, u16>,
     pub modify_health: bool,
     pub modify_energy: bool,
+    // TODO: why is this part of the component?
     /// Used to indicate to the frontend that there was an error in loading the
     /// skillset from the database
     pub persistence_load_error: Option<SkillsPersistenceError>,
 }
 
 impl Component for SkillSet {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }
 
 impl Default for SkillSet {

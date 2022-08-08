@@ -14,7 +14,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::Component;
-use specs_idvs::IdvStorage;
 use std::collections::BTreeMap;
 use vek::*;
 
@@ -319,5 +318,5 @@ impl Controller {
 }
 
 impl Component for Controller {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::VecStorage<Self>;
 }

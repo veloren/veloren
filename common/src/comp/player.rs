@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, NullStorage};
-use specs_idvs::IdvStorage;
 use uuid::Uuid;
 
 use crate::resources::{BattleMode, Time};
@@ -74,10 +73,10 @@ impl Player {
 }
 
 impl Component for Player {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default)]
 pub struct Respawn;
 impl Component for Respawn {
     type Storage = NullStorage<Self>;

@@ -2,7 +2,6 @@ use crate::util::{Dir, Plane, Projection};
 use core::f32::consts::{FRAC_PI_2, PI, TAU};
 use serde::{Deserialize, Serialize};
 use specs::Component;
-use specs_idvs::IdvStorage;
 use vek::{Quaternion, Vec2, Vec3};
 
 // Orientation
@@ -435,7 +434,7 @@ impl From<Ori> for SerdeOri {
 }
 
 impl Component for Ori {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::VecStorage<Self>;
 }
 
 #[cfg(test)]

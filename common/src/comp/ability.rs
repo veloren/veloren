@@ -29,7 +29,6 @@ use crate::{
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::{convert::TryFrom, time::Duration};
 
 pub const MAX_ABILITIES: usize = 5;
@@ -48,7 +47,7 @@ pub struct ActiveAbilities {
 }
 
 impl Component for ActiveAbilities {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }
 
 impl Default for ActiveAbilities {

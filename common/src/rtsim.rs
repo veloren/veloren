@@ -4,7 +4,6 @@
 // module in `server`.
 
 use specs::Component;
-use specs_idvs::IdvStorage;
 use vek::*;
 
 use crate::comp::dialogue::MoodState;
@@ -15,7 +14,7 @@ pub type RtSimId = usize;
 pub struct RtSimEntity(pub RtSimId);
 
 impl Component for RtSimEntity {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::VecStorage<Self>;
 }
 
 #[derive(Clone, Debug)]

@@ -9,7 +9,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::Component;
-use specs_idvs::IdvStorage;
 use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -22,7 +21,7 @@ pub enum Effect {
     Bonk, // Knock/dislodge/change objects on hit
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Projectile {
     // TODO: use SmallVec for these effects
     pub hit_solid: Vec<Effect>,
@@ -40,7 +39,7 @@ pub struct Projectile {
 }
 
 impl Component for Projectile {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::DenseVecStorage<Self>;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
