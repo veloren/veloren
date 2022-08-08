@@ -1,7 +1,6 @@
 use crate::{combat::Attack, uid::Uid};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -27,7 +26,7 @@ pub struct Shockwave {
 }
 
 impl Component for Shockwave {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
 }
 
 impl std::ops::Deref for Shockwave {
@@ -36,13 +35,13 @@ impl std::ops::Deref for Shockwave {
     fn deref(&self) -> &Properties { &self.properties }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ShockwaveHitEntities {
     pub hit_entities: Vec<Uid>,
 }
 
 impl Component for ShockwaveHitEntities {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::DenseVecStorage<Self>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]

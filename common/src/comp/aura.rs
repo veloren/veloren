@@ -5,8 +5,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use slotmap::{new_key_type, SlotMap};
-use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
+use specs::{Component, DerefFlaggedStorage, VecStorage};
 use std::time::Duration;
 
 new_key_type! { pub struct AuraKey; }
@@ -154,5 +153,5 @@ impl AuraBuffConstructor {
 }
 
 impl Component for Auras {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }

@@ -3,8 +3,7 @@ use crate::{
     uid::Uid,
 };
 use serde::{Deserialize, Serialize};
-use specs::Component;
-use specs_idvs::IdvStorage;
+use specs::{Component, DenseVecStorage};
 use std::time::{Duration, Instant};
 
 /// A player's current chat mode. These are chat types that can only be sent by
@@ -26,7 +25,7 @@ pub enum ChatMode {
 }
 
 impl Component for ChatMode {
-    type Storage = IdvStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }
 
 impl ChatMode {
@@ -257,7 +256,7 @@ impl<G> GenericChatMsg<G> {
 #[derive(Clone, Debug)]
 pub struct Faction(pub String);
 impl Component for Faction {
-    type Storage = IdvStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }
 impl From<String> for Faction {
     fn from(s: String) -> Self { Faction(s) }

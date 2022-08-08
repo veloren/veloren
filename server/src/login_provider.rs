@@ -5,7 +5,6 @@ use common::comp::AdminRole;
 use common_net::msg::RegisterError;
 use hashbrown::HashMap;
 use specs::Component;
-use specs_idvs::IdvStorage;
 use std::{str::FromStr, sync::Arc};
 use tokio::{runtime::Runtime, sync::oneshot};
 use tracing::{error, info};
@@ -44,7 +43,7 @@ impl PendingLogin {
 }
 
 impl Component for PendingLogin {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::DenseVecStorage<Self>;
 }
 
 pub struct LoginProvider {

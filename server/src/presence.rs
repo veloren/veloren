@@ -1,8 +1,7 @@
 use common_net::msg::PresenceKind;
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage, NullStorage};
-use specs_idvs::IdvStorage;
+use specs::{Component, DenseVecStorage, DerefFlaggedStorage, NullStorage, VecStorage};
 use vek::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -23,7 +22,8 @@ impl Presence {
 }
 
 impl Component for Presence {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    // Presence seems <= 64 bits, so it isn't worth using DenseVecStorage.
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }
 
 // Distance from fuzzy_chunk before snapping to current chunk
@@ -38,7 +38,7 @@ pub struct RegionSubscription {
 }
 
 impl Component for RegionSubscription {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, DenseVecStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]

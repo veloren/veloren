@@ -13,7 +13,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::collections::BTreeMap;
 use strum::Display;
 
@@ -401,5 +400,5 @@ impl Default for CharacterState {
 }
 
 impl Component for CharacterState {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }

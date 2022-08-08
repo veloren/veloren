@@ -8,8 +8,6 @@ use std::convert::TryFrom;
 use crate::{combat::DamageContributor, resources::Time};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::{Component, DerefFlaggedStorage};
-#[cfg(not(target_arch = "wasm32"))]
-use specs_idvs::IdvStorage;
 use std::ops::Mul;
 
 /// Specifies what and how much changed current health
@@ -230,7 +228,7 @@ impl Health {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Component for Health {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }
 
 #[cfg(test)]

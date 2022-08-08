@@ -1,6 +1,5 @@
 use common::{comp::Ori, outcome::HealthChangeInfo};
-use specs::Component;
-use specs_idvs::IdvStorage;
+use specs::{Component, VecStorage};
 use vek::*;
 
 // Floats over entity that has had a health change, rising up over time until it
@@ -24,7 +23,7 @@ pub struct HpFloaterList {
     pub time_since_last_dmg_by_me: Option<f32>,
 }
 impl Component for HpFloaterList {
-    type Storage = IdvStorage<Self>;
+    type Storage = VecStorage<Self>;
 }
 
 // Used for smooth interpolation of visual elements that are tied to entity
@@ -35,5 +34,5 @@ pub struct Interpolated {
     pub ori: Ori,
 }
 impl Component for Interpolated {
-    type Storage = IdvStorage<Self>;
+    type Storage = VecStorage<Self>;
 }

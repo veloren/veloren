@@ -1,10 +1,9 @@
 use crate::{resources::Time, uid::Uid};
 use serde::{Deserialize, Serialize};
 use specs::Component;
-use specs_idvs::IdvStorage;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug)]
 pub struct Waypoint {
     pos: Vec3<f32>,
     last_save: Time,
@@ -28,7 +27,7 @@ impl Waypoint {
 }
 
 impl Component for Waypoint {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::VecStorage<Self>;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -39,7 +38,7 @@ impl WaypointArea {
 }
 
 impl Component for WaypointArea {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::VecStorage<Self>;
 }
 
 impl Default for WaypointArea {
@@ -48,11 +47,11 @@ impl Default for WaypointArea {
 
 /// Marker on the map, used for sharing waypoint with group and
 /// persisting it server side.
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug)]
 pub struct MapMarker(pub Vec2<i32>);
 
 impl Component for MapMarker {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::VecStorage<Self>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]

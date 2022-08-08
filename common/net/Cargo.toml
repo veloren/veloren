@@ -26,7 +26,6 @@ hashbrown = { version = "0.12", features = ["rayon", "serde", "nightly"] }
 
 # ECS
 specs = { version = "0.18", features = ["serde", "storage-event-control"] }
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "c17abc638f23ef221ce7384c7dd77eef757b82f4" }
 
 # Serde
 serde = { version = "1.0.110", features = ["derive"] }

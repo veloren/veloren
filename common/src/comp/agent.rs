@@ -10,7 +10,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, Entity as EcsEntity};
-use specs_idvs::IdvStorage;
 use std::{collections::VecDeque, fmt};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
@@ -80,7 +79,7 @@ impl Alignment {
 }
 
 impl Component for Alignment {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }
 
 bitflags::bitflags! {
@@ -610,7 +609,7 @@ impl Agent {
 }
 
 impl Component for Agent {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::DenseVecStorage<Self>;
 }
 
 #[cfg(test)]

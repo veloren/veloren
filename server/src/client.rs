@@ -2,7 +2,6 @@ use common_net::msg::{ClientType, ServerGeneral, ServerMsg};
 use network::{Message, Participant, Stream, StreamError, StreamParams};
 use serde::{de::DeserializeOwned, Serialize};
 use specs::Component;
-use specs_idvs::IdvStorage;
 use std::sync::{atomic::AtomicBool, Mutex};
 
 /// Client handles ALL network related information of everything that connects
@@ -40,7 +39,7 @@ pub struct PreparedMsg {
 }
 
 impl Component for Client {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::DenseVecStorage<Self>;
 }
 
 impl Client {

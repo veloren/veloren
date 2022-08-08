@@ -26,7 +26,6 @@ network = { package = "veloren-network", path = "../network", features = ["metri
 #inline_tweak = "1.0.8"
 
 specs = { version = "0.18", features = ["shred-derive"] }
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "c17abc638f23ef221ce7384c7dd77eef757b82f4" }
 
 strum = { version = "0.24", features = ["derive"] }
 bincode = "1.3.2"

@@ -1,7 +1,6 @@
 use crate::{comp, consts::ENERGY_PER_LEVEL};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::ops::Mul;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
@@ -125,5 +124,5 @@ impl Energy {
 }
 
 impl Component for Energy {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }

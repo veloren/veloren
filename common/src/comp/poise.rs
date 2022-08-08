@@ -10,8 +10,7 @@ use crate::{
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
+use specs::{Component, DerefFlaggedStorage, VecStorage};
 use std::{ops::Mul, time::Duration};
 use vek::*;
 
@@ -264,5 +263,5 @@ impl Poise {
 }
 
 impl Component for Poise {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }

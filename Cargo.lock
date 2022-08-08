@@ -5644,14 +5644,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "specs-idvs"
-version = "0.1.1"
-source = "git+https://gitlab.com/veloren/specs-idvs.git?rev=c17abc638f23ef221ce7384c7dd77eef757b82f4#c17abc638f23ef221ce7384c7dd77eef757b82f4"
-dependencies = [
- "specs",
-]
-
-[[package]]
 name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6517,7 +6509,6 @@ dependencies = [
  "slab",
  "slotmap 1.0.6",
  "specs",
- "specs-idvs",
  "spin_sleep",
  "structopt",
  "strum",
@@ -6587,7 +6578,6 @@ dependencies = [
  "num-traits",
  "serde",
  "specs",
- "specs-idvs",
  "sum_type",
  "tracing",
  "vek 0.15.8",
@@ -6748,7 +6738,6 @@ dependencies = [
  "serde_json",
  "slab",
  "specs",
- "specs-idvs",
  "strum",
  "tokio",
  "tracing",
@@ -6842,7 +6831,6 @@ dependencies = [
  "shaderc",
  "slab",
  "specs",
- "specs-idvs",
  "strum",
  "tokio",
  "tracing",

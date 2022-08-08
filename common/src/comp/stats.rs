@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
@@ -86,5 +85,5 @@ impl Stats {
 }
 
 impl Component for Stats {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }

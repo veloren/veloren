@@ -1,15 +1,13 @@
 use crate::comp::{body::Body, phys::Mass, quadruped_low, quadruped_medium, quadruped_small};
 use crossbeam_utils::atomic::AtomicCell;
-use serde::{Deserialize, Serialize};
 use specs::Component;
-use specs_idvs::IdvStorage;
 use std::{num::NonZeroU64, sync::Arc};
 
 pub type PetId = AtomicCell<Option<NonZeroU64>>;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+// TODO: move to server crate
+#[derive(Clone, Debug)]
 pub struct Pet {
-    #[serde(skip)]
     database_id: Arc<PetId>,
 }
 
@@ -99,5 +97,8 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
 }
 
 impl Component for Pet {
-    type Storage = IdvStorage<Self>;
+    // Using `DenseVecStorage` has a u64 space overhead per entity and `Pet` just
+    // has an `Arc` pointer which is the same size on 64-bit platforms. So it
+    // isn't worth using `DenseVecStorage` here.
+    type Storage = specs::VecStorage<Self>;
 }

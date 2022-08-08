@@ -1,7 +1,6 @@
 use crate::{combat::Attack, uid::Uid};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -26,7 +25,7 @@ pub struct BeamSegment {
 }
 
 impl Component for BeamSegment {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
 }
 
 impl std::ops::Deref for BeamSegment {
@@ -43,7 +42,7 @@ pub struct Beam {
 }
 
 impl Component for Beam {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::DenseVecStorage<Self>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]

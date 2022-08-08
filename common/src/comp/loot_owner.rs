@@ -4,7 +4,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use specs_idvs::IdvStorage;
 use std::{
     ops::Add,
     time::{Duration, Instant},
@@ -72,7 +71,7 @@ impl LootOwner {
 }
 
 impl Component for LootOwner {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]

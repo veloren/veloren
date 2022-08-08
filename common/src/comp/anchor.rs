@@ -1,5 +1,4 @@
 use specs::{Component, Entity};
-use specs_idvs::IdvStorage;
 use vek::Vec2;
 
 /// This component exists in order to fix a bug that caused entities
@@ -16,5 +15,5 @@ pub enum Anchor {
 }
 
 impl Component for Anchor {
-    type Storage = IdvStorage<Self>;
+    type Storage = specs::VecStorage<Self>;
 }
