@@ -19,3 +19,14 @@ fluent-bundle = { git = "https://github.com/juliancoffee/fluent-rs.git", branch 
 hashbrown = { version = "0.12", features = ["serde", "nightly"] }
 deunicode = "1.0"
 tracing = "0.1"
+# Bin
+clap = { version = "3.1.8", features = ["suggestions", "std"], default-features = false, optional = true }
+fluent-syntax = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
+
+[[bin]]
+name = "i18n-check"
+required-features = ["bin"]
+
+[features]
+bin = ["clap"]
+stat = []

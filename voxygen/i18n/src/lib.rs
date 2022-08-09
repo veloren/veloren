@@ -1,4 +1,10 @@
+mod error;
 mod raw;
+
+use error::ResourceErr;
+
+#[cfg(any(feature = "bin", feature = "stat"))]
+pub mod analysis;
 
 use fluent_bundle::{bundle::FluentBundle, FluentResource};
 use intl_memoizer::concurrent::IntlLangMemoizer;
@@ -147,74 +153,10 @@ impl assets::Compound for Language {
 
             match cache.load(id) {
                 Ok(handle) => {
-                    use std::{error::Error, fmt, ops::Range};
-
-                    #[derive(Debug)]
-                    struct Pos {
-                        #[allow(dead_code)] // false-positive
-                        line: usize,
-                        #[allow(dead_code)] // false-positive
-                        character: usize,
-                    }
-
-                    fn unspan(src: &str, span: Range<usize>) -> Range<Pos> {
-                        let count = |idx| {
-                            let mut line = 1;
-                            let mut character = 1;
-                            for ch in src.bytes().take(idx) {
-                                // Count characters
-                                character += 1;
-
-                                // Count newlines
-                                if ch == b'\n' {
-                                    line += 1;
-                                    // If found new line, reset character count
-                                    character = 1;
-                                }
-                            }
-                            Pos { line, character }
-                        };
-                        let Range { start, end } = span;
-                        count(start)..count(end)
-                    }
-
-                    // TODO:
-                    // better error handling?
-                    #[derive(Debug)]
-                    enum ResourceErr {
-                        ParsingError {
-                            #[allow(dead_code)] // false-positive
-                            file: String,
-                            #[allow(dead_code)] // false-positive
-                            err: String,
-                        },
-                        BundleError(String),
-                    }
-
-                    impl fmt::Display for ResourceErr {
-                        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                            write!(f, "{self:?}")
-                        }
-                    }
-
-                    impl Error for ResourceErr {}
-
                     let source: &raw::Resource = &*handle.read();
                     let resource =
                         FluentResource::try_new(source.src.clone()).map_err(|(_ast, errs)| {
-                            let file = id.to_owned();
-                            let errs = errs
-                                .into_iter()
-                                .map(|e| {
-                                    let pos = unspan(&source.src, e.pos);
-                                    format!("{pos:?}, kind {:?}", e.kind)
-                                })
-                                .collect::<Vec<_>>();
-
-                            ResourceErr::ParsingError {
-                                file,
-                                err: format!("{errs:?}"),
-                            }
+                            ResourceErr::parsing_error(errs, id.to_owned(), &source.src)
                         })?;
 
                     bundle
@@ -505,14 +447,15 @@ mod tests {
 
     #[test]
     #[ignore]
+    #[cfg(feature = "stat")]
     // Generate translation stats
     fn test_all_localizations() {
-        // FIXME (i18n translation stats):
-        use std::{fs, io::Write};
+        use analysis::{Language, ReferenceLanguage};
+        use assets::find_root;
+        use std::{fs, io::Write, path::Path};
 
-        let output = assets::find_root()
-            .unwrap()
-            .join("translation_analysis.csv");
+        let root = find_root().unwrap();
+        let output = root.join("translation_analysis.csv");
         let mut f = fs::File::create(output).expect("couldn't write csv file");
 
         writeln!(
@@ -520,5 +463,46 @@ mod tests {
             "country_code,file_name,translation_key,status,git_commit"
         )
         .unwrap();
+
+        let i18n_directory = root.join("assets/voxygen/i18n");
+        let reference = ReferenceLanguage::at(&i18n_directory.join(REFERENCE_LANG));
+
+        let list = list_localizations();
+        let file = |filename: Option<String>| {
+            let file = filename
+                .as_ref()
+                .map(|s| Path::new(s))
+                .and_then(|p| p.file_name())
+                .and_then(|s| s.to_str())
+                .unwrap_or("None");
+
+            format!("{file}")
+        };
+        for meta in list {
+            let code = meta.language_identifier;
+            let lang = Language {
+                code: code.clone(),
+                path: i18n_directory.join(code.clone()),
+            };
+            let stats = reference.compare_with(&lang);
+            for key in stats.up_to_date {
+                let code = &code;
+                let filename = &file(key.file);
+                let key = &key.key;
+                writeln!(f, "{code},{filename},{key},UpToDate,None").unwrap();
+            }
+            for key in stats.not_found {
+                let code = &code;
+                let filename = &file(key.file);
+                let key = &key.key;
+                writeln!(f, "{code},{filename},{key},NotFound,None").unwrap();
+            }
+            for key in stats.unused {
+                let code = &code;
+                let filename = &file(key.file);
+                let key = &key.key;
+                writeln!(f, "{code},{filename},{key},Unused,None").unwrap();
+            }
+        }
     }
 }
