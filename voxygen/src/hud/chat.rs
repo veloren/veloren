@@ -437,7 +437,7 @@ impl<'a> Widget for Chat<'a> {
                         .get_msg_ctx(template_key, &i18n::fluent_args! {
                             "attacker" => "{attacker}",
                             "name" => "{name}",
-                            "died_from_buff" => "{died_from_buff}",
+                            "died_of_buff" => "{died_of_buff}",
                             "victim" => "{victim}",
                             "environment" => "{environment}",
                         })
@@ -808,7 +808,7 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
         },
     };
 
-    template.replace("{died_from_buff}", &localized_strings.get_msg(buff_outcome))
+    template.replace("{died_of_buff}", &localized_strings.get_msg(buff_outcome))
 }
 
 fn get_chat_template_key(chat_type: &ChatType<String>) -> Option<&str> {
