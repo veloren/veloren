@@ -8,7 +8,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use common_ecs::{dispatch, System};
-use rtsim2::{data::Data, RtState};
+use rtsim2::{data::{Data, ReadError}, RtState};
 use specs::{DispatcherBuilder, WorldExt};
 use std::{
     fs::{self, File},
@@ -16,6 +16,7 @@ use std::{
     sync::Arc,
     time::Instant,
     io::{self, Write},
+    error::Error,
 };
 use enum_map::EnumMap;
 use tracing::{error, warn, info};
@@ -51,7 +52,7 @@ impl RtSim {
                                         loop {
                                             let mut backup_path = file_path.clone();
                                             backup_path.set_extension(if i == 0 {
-                                                format!("ron_backup_{}", i)
+                                                format!("backup_{}", i)
                                             } else {
                                                 "ron_backup".to_string()
                                             });
@@ -88,7 +89,7 @@ impl RtSim {
                 data_dir.push("rtsim");
                 data_dir
             });
-        path.push("state.ron");
+        path.push("state.dat");
         path
     }
 
@@ -112,7 +113,7 @@ impl RtSim {
         // TODO: Use slow job
         // slowjob_pool.spawn("RTSIM_SAVE", move || {
         std::thread::spawn(move || {
-            let tmp_file_name = "state_tmp.ron";
+            let tmp_file_name = "state_tmp.dat";
             if let Err(e) = file_path
                 .parent()
                 .map(|dir| {
@@ -124,7 +125,7 @@ impl RtSim {
                 .and_then(|tmp_file_path| {
                     Ok((File::create(&tmp_file_path)?, tmp_file_path))
                 })
-                .map_err(|e: io::Error| ron::Error::from(e))
+                .map_err(|e: io::Error| Box::new(e) as Box::<dyn Error>)
                 .and_then(|(mut file, tmp_file_path)| {
                     info!("Writing rtsim state to file...");
                     data.write_to(io::BufWriter::new(&mut file))?;

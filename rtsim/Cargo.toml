@@ -11,3 +11,4 @@ serde = { version = "1.0.110", features = ["derive"] }
 hashbrown = { version = "0.12", features = ["rayon", "serde", "nightly"] }
 enum-map = { version = "2.4", features = ["serde"] }
 vek = { version = "0.15.8", features = ["serde"] }
+rmp-serde = "1.1.0"
