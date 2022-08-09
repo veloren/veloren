@@ -7,7 +7,8 @@
     let_chains,
     never_type,
     option_zip,
-    unwrap_infallible
+    unwrap_infallible,
+    explicit_generic_args_with_impl_trait
 )]
 #![feature(hash_drain_filter)]
 

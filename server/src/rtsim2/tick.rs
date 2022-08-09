@@ -36,6 +36,8 @@ impl<'a> System<'a> for Sys {
     ) {
         let rtsim = &mut *rtsim;
 
+        rtsim.state.tick(dt.0);
+
         if rtsim.last_saved.map_or(true, |ls| ls.elapsed() > Duration::from_secs(60)) {
             rtsim.save(&slow_jobs);
         }

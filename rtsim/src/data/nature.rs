@@ -7,6 +7,8 @@ use common::{
 use world::World;
 use vek::*;
 
+/// Represents the state of 'natural' elements of the world such as plant/animal/resource populations, weather systems,
+/// etc.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Nature {
     chunks: Grid<Chunk>,
@@ -40,5 +42,6 @@ impl Nature {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Chunk {
+    /// Represent the 'naturally occurring' resource proportion that exists in this chunk.
     res: EnumMap<ChunkResource, f32>,
 }

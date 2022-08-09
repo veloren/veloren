@@ -146,6 +146,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
 
 [[package]]
+name = "anymap2"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d301b3b94cb4b2f23d7917810addbbaff90738e0ca2be692bd027e70d7e0330c"
+
+[[package]]
 name = "app_dirs2"
 version = "2.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6939,11 +6945,14 @@ dependencies = [
 name = "veloren-rtsim"
 version = "0.10.0"
 dependencies = [
+ "anymap2",
+ "atomic_refcell",
  "enum-map",
  "hashbrown 0.12.3",
  "rmp-serde",
  "ron 0.8.0",
  "serde",
+ "tracing",
  "vek 0.15.8",
  "veloren-common",
  "veloren-world",
