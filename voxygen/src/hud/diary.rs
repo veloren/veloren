@@ -3466,7 +3466,7 @@ impl<'a> SkillStrings<'a> {
                 let title = i18n.get(title);
 
                 let args = i18n::fluent_args! {
-                    "boost" => percentage,
+                    "boost" => format!("{percentage:.0}"),
                     "SP" => sp(i18n, skill_set, skill),
                 };
                 let desc = i18n.get_msg_ctx(&desc.replace('.', "-"), &args);
