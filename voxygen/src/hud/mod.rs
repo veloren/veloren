@@ -3783,31 +3783,29 @@ impl Hud {
                         self.show.intro = true;
                         self.show.want_grab = true;
                     }
+                    let tutorial_click_msg =
+                        i18n.get_msg_ctx("hud-tutorial_click_here", &i18n::fluent_args! {
+                            "key" => toggle_cursor_key.display_string(key_layout),
+                        });
                     Image::new(self.imgs.sp_indicator_arrow)
                         .w_h(20.0, 11.0)
                         .mid_top_with_margin_on(self.ids.intro_button, -20.0 + arrow_ani as f64)
                         .color(Some(QUALITY_LEGENDARY))
                         .set(self.ids.tut_arrow, ui_widgets);
-                    Text::new(&i18n.get("hud.tutorial_click_here").replace(
-                        "{key}",
-                        toggle_cursor_key.display_string(key_layout).as_str(),
-                    ))
-                    .mid_top_with_margin_on(self.ids.tut_arrow, -40.0)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(14))
-                    .center_justify()
-                    .color(BLACK)
-                    .set(self.ids.tut_arrow_txt_bg, ui_widgets);
-                    Text::new(&i18n.get("hud.tutorial_click_here").replace(
-                        "{key}",
-                        toggle_cursor_key.display_string(key_layout).as_str(),
-                    ))
-                    .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
-                    .center_justify()
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(14))
-                    .color(QUALITY_LEGENDARY)
-                    .set(self.ids.tut_arrow_txt, ui_widgets);
+                    Text::new(&tutorial_click_msg)
+                        .mid_top_with_margin_on(self.ids.tut_arrow, -40.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14))
+                        .center_justify()
+                        .color(BLACK)
+                        .set(self.ids.tut_arrow_txt_bg, ui_widgets);
+                    Text::new(&tutorial_click_msg)
+                        .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
+                        .center_justify()
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14))
+                        .color(QUALITY_LEGENDARY)
+                        .set(self.ids.tut_arrow_txt, ui_widgets);
                 },
                 Intro::Never => {
                     self.show.intro = false;
