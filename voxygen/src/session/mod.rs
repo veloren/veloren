@@ -88,6 +88,7 @@ pub struct SessionState {
     is_aiming: bool,
     target_entity: Option<specs::Entity>,
     selected_entity: Option<(specs::Entity, std::time::Instant)>,
+    viewpoint_entity: Option<specs::Entity>,
     interactable: Option<Interactable>,
     #[cfg(not(target_os = "macos"))]
     mumble_link: SharedLink,
@@ -149,6 +150,7 @@ impl SessionState {
             is_aiming: false,
             target_entity: None,
             selected_entity: None,
+            viewpoint_entity: None,
             interactable: None,
             #[cfg(not(target_os = "macos"))]
             mumble_link,
@@ -160,6 +162,14 @@ impl SessionState {
         self.auto_walk = false;
         self.hud.auto_walk(false);
         self.key_state.auto_walk = false;
+    }
+
+    /// Gets the entity that is the current viewpoint, and a bool if the client
+    /// is allowed to edit it's data.
+    fn viewpoint_entity(&self) -> (specs::Entity, bool) {
+        self.viewpoint_entity
+            .map(|e| (e, false))
+            .unwrap_or_else(|| (self.client.borrow().entity(), true))
     }
 
     /// Tick the session (and the client attached to it).
@@ -358,6 +368,9 @@ impl SessionState {
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
                 },
+                client::Event::SpectatePosition(pos) => {
+                    self.scene.camera_mut().force_focus_pos(pos);
+                },
             }
         }
 
@@ -386,14 +399,13 @@ impl PlayState for SessionState {
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<Session as PlayState>::tick");
         // TODO: let mut client = self.client.borrow_mut();
-
         // TODO: can this be a method on the session or are there borrowcheck issues?
         let (client_presence, client_registered) = {
             let client = self.client.borrow();
             (client.presence(), client.registered())
         };
 
-        if client_presence.is_some() {
+        if let Some(presence) = client_presence {
             let camera = self.scene.camera_mut();
 
             // Clamp camera's vertical angle if the toggle is enabled
@@ -425,7 +437,7 @@ impl PlayState for SessionState {
             }
 
             // Compute camera data
-            camera.compute_dependents(&*self.client.borrow().state().terrain());
+            camera.compute_dependents(&*client.state().terrain());
             let camera::Dependents {
                 cam_pos, cam_dir, ..
             } = self.scene.camera().dependents();
@@ -479,6 +491,10 @@ impl PlayState for SessionState {
             );
 
             drop(client);
+
+            if presence == PresenceKind::Spectator {
+                self.client.borrow_mut().spectate_position(cam_pos);
+            }
 
             // Nearest block to consider with GameInput primary or secondary key.
             let nearest_block_dist = find_shortest_distance(&[
@@ -542,12 +558,11 @@ impl PlayState for SessionState {
                         if !self.inputs_state.insert(input) {
                             self.inputs_state.remove(&input);
                         }
-
                         match input {
                             GameInput::Primary => {
                                 let mut client = self.client.borrow_mut();
-                                // Mine and build targets can be the same block. make building take
-                                // precedence.
+                                // Mine and build targets can be the same block. make building
+                                // take precedence.
                                 // Order of precedence: build, then mining, then attack.
                                 if let Some(build_target) = build_target.filter(|bt| {
                                     state && can_build && nearest_block_dist == Some(bt.distance)
@@ -884,10 +899,19 @@ impl PlayState for SessionState {
                                 // Prevent accessing camera modes which aren't available in
                                 // multiplayer unless you are an
                                 // admin. This is an easily bypassed clientside check.
-                                // The server should do its own filtering of which entities are sent
-                                // to clients to prevent abuse.
+                                // The server should do its own filtering of which entities are
+                                // sent to clients to
+                                // prevent abuse.
                                 let camera = self.scene.camera_mut();
-                                camera.next_mode(self.client.borrow().is_moderator());
+                                let client = self.client.borrow();
+                                camera.next_mode(
+                                    client.is_moderator(),
+                                    client
+                                        .presence()
+                                        .map(|presence| presence != PresenceKind::Spectator)
+                                        .unwrap_or(true)
+                                        || self.viewpoint_entity.is_some(),
+                                );
                             },
                             GameInput::Select => {
                                 if !state {
@@ -905,6 +929,24 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 if client.invite().is_some() {
                                     client.decline_invite();
+                                }
+                            },
+                            GameInput::SpectateViewpoint if state => {
+                                if self.viewpoint_entity.is_some() {
+                                    self.viewpoint_entity = None;
+                                    self.scene.camera_mut().set_mode(CameraMode::Freefly);
+                                } else if let Some(interactable) = self.interactable {
+                                    if self.scene.camera().get_mode() == CameraMode::Freefly {
+                                        match interactable {
+                                            Interactable::Block(_, _, _) => {},
+                                            Interactable::Entity(entity) => {
+                                                self.viewpoint_entity = Some(entity);
+                                                self.scene
+                                                    .camera_mut()
+                                                    .set_mode(CameraMode::FirstPerson);
+                                            },
+                                        }
+                                    }
                                 }
                             },
                             _ => {},
@@ -936,103 +978,128 @@ impl PlayState for SessionState {
                 }
             }
 
-            // If auto-gliding, point camera into the wind
-            if let Some(dir) = self
-                .auto_walk
-                .then_some(self.client.borrow())
-                .filter(|client| client.is_gliding())
-                .and_then(|client| {
-                    let ecs = client.state().ecs();
-                    let entity = client.entity();
-                    let fluid = ecs
-                        .read_storage::<comp::PhysicsState>()
-                        .get(entity)?
-                        .in_fluid?;
-                    ecs.read_storage::<Vel>()
-                        .get(entity)
-                        .map(|vel| fluid.relative_flow(vel).0)
-                        .map(|rel_flow| {
-                            let is_wind_downwards = rel_flow.dot(Vec3::unit_z()).is_sign_negative();
-                            if !self.free_look {
-                                if is_wind_downwards {
-                                    self.scene.camera().forward_xy().into()
-                                } else {
-                                    let windwards = rel_flow
-                                        * self
-                                            .scene
-                                            .camera()
-                                            .forward_xy()
-                                            .dot(rel_flow.xy())
-                                            .signum();
-                                    Plane::from(Dir::new(self.scene.camera().right()))
-                                        .projection(windwards)
-                                }
-                            } else if is_wind_downwards {
-                                Vec3::from(-rel_flow.xy())
-                            } else {
-                                -rel_flow
-                            }
-                        })
-                        .and_then(Dir::from_unnormalized)
-                })
-            {
-                self.key_state.auto_walk = false;
-                self.inputs.move_dir = Vec2::zero();
-                self.inputs.look_dir = dir;
-            } else {
-                self.key_state.auto_walk = self.auto_walk;
-                if !self.free_look {
-                    self.walk_forward_dir = self.scene.camera().forward_xy();
-                    self.walk_right_dir = self.scene.camera().right_xy();
-                    self.inputs.look_dir =
-                        Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
-                }
+            if self.viewpoint_entity.map_or(false, |entity| {
+                !self
+                    .client
+                    .borrow()
+                    .state()
+                    .ecs()
+                    .read_storage::<Pos>()
+                    .contains(entity)
+            }) {
+                self.viewpoint_entity = None;
+                self.scene.camera_mut().set_mode(CameraMode::Freefly);
             }
-            self.inputs.strafing = matches!(
-                self.scene.camera().get_mode(),
-                camera::CameraMode::FirstPerson
-            );
+
+            let (viewpoint_entity, mutable_viewpoint) = self.viewpoint_entity();
 
             // Get the current state of movement related inputs
             let input_vec = self.key_state.dir_vec();
             let (axis_right, axis_up) = (input_vec[0], input_vec[1]);
             let dt = global_state.clock.get_stable_dt().as_secs_f32();
 
-            // Auto camera mode
-            if global_state.settings.gameplay.auto_camera
-                && matches!(
+            if mutable_viewpoint {
+                // If auto-gliding, point camera into the wind
+                if let Some(dir) = self
+                    .auto_walk
+                    .then_some(self.client.borrow())
+                    .filter(|client| client.is_gliding())
+                    .and_then(|client| {
+                        let ecs = client.state().ecs();
+                        let entity = client.entity();
+                        let fluid = ecs
+                            .read_storage::<comp::PhysicsState>()
+                            .get(entity)?
+                            .in_fluid?;
+                        ecs.read_storage::<Vel>()
+                            .get(entity)
+                            .map(|vel| fluid.relative_flow(vel).0)
+                            .map(|rel_flow| {
+                                let is_wind_downwards =
+                                    rel_flow.dot(Vec3::unit_z()).is_sign_negative();
+                                if !self.free_look {
+                                    if is_wind_downwards {
+                                        self.scene.camera().forward_xy().into()
+                                    } else {
+                                        let windwards = rel_flow
+                                            * self
+                                                .scene
+                                                .camera()
+                                                .forward_xy()
+                                                .dot(rel_flow.xy())
+                                                .signum();
+                                        Plane::from(Dir::new(self.scene.camera().right()))
+                                            .projection(windwards)
+                                    }
+                                } else if is_wind_downwards {
+                                    Vec3::from(-rel_flow.xy())
+                                } else {
+                                    -rel_flow
+                                }
+                            })
+                            .and_then(Dir::from_unnormalized)
+                    })
+                {
+                    self.key_state.auto_walk = false;
+                    self.inputs.move_dir = Vec2::zero();
+                    self.inputs.look_dir = dir;
+                } else {
+                    self.key_state.auto_walk = self.auto_walk;
+                    if !self.free_look {
+                        self.walk_forward_dir = self.scene.camera().forward_xy();
+                        self.walk_right_dir = self.scene.camera().right_xy();
+                        self.inputs.look_dir =
+                            Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
+                    }
+                }
+                self.inputs.strafing = matches!(
                     self.scene.camera().get_mode(),
-                    camera::CameraMode::ThirdPerson | camera::CameraMode::FirstPerson
-                )
-                && input_vec.magnitude_squared() > 0.0
-            {
-                let camera = self.scene.camera_mut();
-                let ori = camera.get_orientation();
-                camera.set_orientation_instant(Vec3::new(
-                    ori.x
-                        + input_vec.x
-                            * (3.0 - input_vec.y * 1.5 * if is_aiming { 1.5 } else { 1.0 })
-                            * dt,
-                    std::f32::consts::PI * if is_aiming { 0.015 } else { 0.1 },
-                    0.0,
-                ));
+                    camera::CameraMode::FirstPerson
+                );
+
+                // Auto camera mode
+                if global_state.settings.gameplay.auto_camera
+                    && matches!(
+                        self.scene.camera().get_mode(),
+                        camera::CameraMode::ThirdPerson | camera::CameraMode::FirstPerson
+                    )
+                    && input_vec.magnitude_squared() > 0.0
+                {
+                    let camera = self.scene.camera_mut();
+                    let ori = camera.get_orientation();
+                    camera.set_orientation_instant(Vec3::new(
+                        ori.x
+                            + input_vec.x
+                                * (3.0 - input_vec.y * 1.5 * if is_aiming { 1.5 } else { 1.0 })
+                                * dt,
+                        std::f32::consts::PI * if is_aiming { 0.015 } else { 0.1 },
+                        0.0,
+                    ));
+                }
+
+                self.inputs.climb = self.key_state.climb();
+                self.inputs.move_z =
+                    self.key_state.swim_up as i32 as f32 - self.key_state.swim_down as i32 as f32;
             }
 
             match self.scene.camera().get_mode() {
                 CameraMode::FirstPerson | CameraMode::ThirdPerson => {
-                    // Move the player character based on their walking direction.
-                    // This could be different from the camera direction if free look is enabled.
-                    self.inputs.move_dir =
-                        self.walk_right_dir * axis_right + self.walk_forward_dir * axis_up;
+                    if mutable_viewpoint {
+                        // Move the player character based on their walking direction.
+                        // This could be different from the camera direction if free look is
+                        // enabled.
+                        self.inputs.move_dir =
+                            self.walk_right_dir * axis_right + self.walk_forward_dir * axis_up;
+                    }
                     self.freefly_vel = Vec3::zero();
                 },
-
                 CameraMode::Freefly => {
                     // Move the camera freely in 3d space. Apply acceleration so that
                     // the movement feels more natural and controlled.
                     const FREEFLY_ACCEL: f32 = 120.0;
                     const FREEFLY_DAMPING: f32 = 80.0;
                     const FREEFLY_MAX_SPEED: f32 = 50.0;
+                    const FREEFLY_SPEED_BOOST: f32 = 5.0;
 
                     let forward = self.scene.camera().forward();
                     let right = self.scene.camera().right();
@@ -1054,19 +1121,21 @@ impl PlayState for SessionState {
                         }
                     }
 
+                    let boost = if self.inputs_state.contains(&GameInput::SpectateSpeedBoost) {
+                        FREEFLY_SPEED_BOOST
+                    } else {
+                        1.0
+                    };
+
                     let pos = self.scene.camera().get_focus_pos();
                     self.scene
                         .camera_mut()
-                        .set_focus_pos(pos + self.freefly_vel * dt);
+                        .set_focus_pos(pos + self.freefly_vel * dt * boost);
 
                     // Do not apply any movement to the player character
                     self.inputs.move_dir = Vec2::zero();
                 },
             };
-
-            self.inputs.climb = self.key_state.climb();
-            self.inputs.move_z =
-                self.key_state.swim_up as i32 as f32 - self.key_state.swim_down as i32 as f32;
 
             let mut outcomes = Vec::new();
 
@@ -1157,6 +1226,8 @@ impl PlayState for SessionState {
                         self.scene.camera().get_mode(),
                         camera::CameraMode::FirstPerson
                     ),
+                    viewpoint_entity,
+                    mutable_viewpoint,
                     target_entity: self.target_entity,
                     selected_entity: self.selected_entity,
                 },
@@ -1588,7 +1659,8 @@ impl PlayState for SessionState {
                 let scene_data = SceneData {
                     client: &client,
                     state: client.state(),
-                    player_entity: client.entity(),
+                    viewpoint_entity,
+                    mutable_viewpoint: mutable_viewpoint || self.free_look,
                     // Only highlight if interactable
                     target_entity: self.interactable.and_then(Interactable::entity),
                     loaded_distance: client.loaded_distance(),
@@ -1668,10 +1740,13 @@ impl PlayState for SessionState {
 
         let client = self.client.borrow();
 
+        let (viewpoint_entity, mutable_viewpoint) = self.viewpoint_entity();
+
         let scene_data = SceneData {
             client: &client,
             state: client.state(),
-            player_entity: client.entity(),
+            viewpoint_entity,
+            mutable_viewpoint,
             // Only highlight if interactable
             target_entity: self.interactable.and_then(Interactable::entity),
             loaded_distance: client.loaded_distance(),

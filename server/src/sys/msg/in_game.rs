@@ -3,8 +3,8 @@ use crate::TerrainPersistence;
 use crate::{client::Client, presence::Presence, Settings};
 use common::{
     comp::{
-        Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet,
-        Vel,
+        Admin, AdminRole, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player,
+        Pos, SkillSet, Vel,
     },
     event::{EventBus, ServerEvent},
     link::Is,
@@ -14,7 +14,7 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{ClientGeneral, ServerGeneral};
+use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace, warn};
@@ -111,7 +111,7 @@ impl Sys {
                     }
                 }
             },
-            ClientGeneral::PlayerPhysics { pos, vel, ori } => {
+            ClientGeneral::PlayerPhysics { pos, vel, ori, force_counter } => {
                 let player_physics_setting = maybe_player.map(|p| {
                     player_physics_settings
                         .settings
@@ -120,7 +120,7 @@ impl Sys {
                 });
 
                 if presence.kind.controlling_char()
-                    && force_updates.get(entity).is_none()
+                    && force_updates.get(entity).map_or(true, |force_update| force_update.counter() == force_counter)
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && is_rider.get(entity).is_none()
                     && player_physics_setting
@@ -287,6 +287,13 @@ impl Sys {
             },
             ClientGeneral::UpdateMapMarker(update) => {
                 server_emitter.emit(ServerEvent::UpdateMapMarker { entity, update });
+            },
+            ClientGeneral::SpectatePosition(pos) => {
+                if let Some(admin) = maybe_admin && admin.0 >= AdminRole::Moderator && presence.kind == PresenceKind::Spectator {
+                    if let Some(position) = positions.get_mut(entity) {
+                        position.0 = pos;
+                    }
+                }
             },
             ClientGeneral::RequestCharacterList
             | ClientGeneral::CreateCharacter { .. }

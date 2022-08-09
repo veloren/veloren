@@ -208,12 +208,15 @@ impl<'a> System<'a> for Sys {
                 // We lazily initialize the the synchronization messages in case there are no
                 // clients.
                 let mut entity_comp_sync = Either::Left((entity_sync_package, comp_sync_package));
-                for (client, _, _, _) in &mut subscribers {
+                for (client, _, client_entity, _) in &mut subscribers {
                     let msg = entity_comp_sync.right_or_else(
                         |(entity_sync_package, comp_sync_package)| {
                             (
                                 client.prepare(ServerGeneral::EntitySync(entity_sync_package)),
-                                client.prepare(ServerGeneral::CompSync(comp_sync_package)),
+                                client.prepare(ServerGeneral::CompSync(
+                                    comp_sync_package,
+                                    force_updates.get(*client_entity).map_or(0, |f| f.counter()),
+                                )),
                             )
                         },
                     );
@@ -234,7 +237,7 @@ impl<'a> System<'a> for Sys {
                         (&positions, last_pos.mask().maybe()),
                         (&velocities, last_vel.mask().maybe()).maybe(),
                         (&orientations, last_vel.mask().maybe()).maybe(),
-                        force_updates.mask().maybe(),
+                        force_updates.maybe(),
                         colliders.maybe(),
                     )
                         .join()
@@ -250,7 +253,7 @@ impl<'a> System<'a> for Sys {
                             // Don't send client physics updates about itself unless force update is
                             // set or the client is subject to
                             // server-authoritative physics
-                            force_update.is_some()
+                            force_update.map_or(false, |f| f.is_forced())
                                 || player_physics_setting.server_authoritative()
                                 || is_rider.get(entity).is_some()
                         } else if matches!(collider, Some(Collider::Voxel { .. })) {
@@ -305,7 +308,10 @@ impl<'a> System<'a> for Sys {
                         }
                     }
 
-                    client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+                    client.send_fallible(ServerGeneral::CompSync(
+                        comp_sync_package,
+                        force_updates.get(*client_entity).map_or(0, |f| f.counter()),
+                    ));
                 }
             },
         );
@@ -363,7 +369,10 @@ impl<'a> System<'a> for Sys {
             let comp_sync_package =
                 trackers.create_sync_from_client_package(&tracked_storages, entity);
             if !comp_sync_package.is_empty() {
-                client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+                client.send_fallible(ServerGeneral::CompSync(
+                    comp_sync_package,
+                    force_updates.get(entity).map_or(0, |f| f.counter()),
+                ));
             }
         }
 
@@ -392,7 +401,9 @@ impl<'a> System<'a> for Sys {
         }
 
         // Remove all force flags.
-        force_updates.clear();
+        for force_update in (&mut force_updates).join() {
+            force_update.clear();
+        }
         inventory_updates.clear();
 
         // Sync resources

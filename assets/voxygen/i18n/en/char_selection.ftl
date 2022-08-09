@@ -3,6 +3,7 @@ char_selection-delete_permanently = Permanently delete this Character?
 char_selection-deleting_character = Deleting Character...
 char_selection-change_server = Change Server
 char_selection-enter_world = Enter World
+char_selection-spectate = Spectate World
 char_selection-logout = Logout
 char_selection-create_new_character = Create New Character
 char_selection-creating_character = Creating Character...

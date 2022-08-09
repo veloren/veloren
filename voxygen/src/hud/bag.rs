@@ -3,7 +3,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
-    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    HudInfo, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     game_input::GameInput,
@@ -563,6 +563,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Bag<'a> {
     client: &'a Client,
+    info: &'a HudInfo,
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
@@ -589,6 +590,7 @@ impl<'a> Bag<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
+        info: &'a HudInfo,
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
@@ -610,6 +612,7 @@ impl<'a> Bag<'a> {
     ) -> Self {
         Self {
             client,
+            info,
             global_state,
             imgs,
             item_imgs,
@@ -695,7 +698,7 @@ impl<'a> Widget for Bag<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
         let inventories = self.client.inventories();
-        let inventory = match inventories.get(self.client.entity()) {
+        let inventory = match inventories.get(self.info.viewpoint_entity) {
             Some(l) => l,
             None => return None,
         };
@@ -733,6 +736,7 @@ impl<'a> Widget for Bag<'a> {
                 )
             },
             self.client,
+            self.info,
             self.imgs,
             self.item_imgs,
             self.pulse,
@@ -759,7 +763,7 @@ impl<'a> Widget for Bag<'a> {
             true,
             &item_tooltip,
             self.stats.name.to_string(),
-            self.client.entity(),
+            self.info.viewpoint_entity,
             true,
             inventory,
             &state.bg_ids,

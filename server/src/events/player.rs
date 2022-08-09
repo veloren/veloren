@@ -486,7 +486,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
             possessee,
         );
         if !comp_sync_package.is_empty() {
-            client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+            client.send_fallible(ServerGeneral::CompSync(comp_sync_package, 0)); // TODO: Check if this should be zero
         }
     }
 

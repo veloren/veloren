@@ -108,6 +108,7 @@ pub enum ServerEvent {
         entity: EcsEntity,
         character_id: CharacterId,
     },
+    InitSpectator(EcsEntity),
     UpdateCharacterData {
         entity: EcsEntity,
         components: (

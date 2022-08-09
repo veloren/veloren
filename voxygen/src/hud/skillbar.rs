@@ -2,8 +2,8 @@ use super::{
     hotbar,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slots, util, BarNumbers, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
-    QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
+    slots, util, BarNumbers, HudInfo, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
+    LOW_HP_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
     game_input::GameInput,
@@ -242,6 +242,7 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
 #[derive(WidgetCommon)]
 pub struct Skillbar<'a> {
     client: &'a Client,
+    info: &'a HudInfo,
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
@@ -271,6 +272,7 @@ impl<'a> Skillbar<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
+        info: &'a HudInfo,
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
@@ -295,6 +297,7 @@ impl<'a> Skillbar<'a> {
     ) -> Self {
         Self {
             client,
+            info,
             global_state,
             imgs,
             item_imgs,
@@ -576,6 +579,7 @@ impl<'a> Skillbar<'a> {
                 )
             },
             self.client,
+            self.info,
             self.imgs,
             self.item_imgs,
             self.pulse,

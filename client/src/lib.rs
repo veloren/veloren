@@ -30,7 +30,7 @@ use common::{
         slot::{EquipSlot, InvSlotId, Slot},
         CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
         GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
-        MapMarkerChange, UtteranceKind,
+        MapMarkerChange, Pos, UtteranceKind,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -107,6 +107,7 @@ pub enum Event {
     CharacterEdited(CharacterId),
     CharacterError(String),
     MapMarker(comp::MapMarkerUpdate),
+    SpectatePosition(Vec3<f32>),
 }
 
 pub struct WorldData {
@@ -216,6 +217,7 @@ pub struct Client {
     available_recipes: HashMap<String, Option<SpriteKind>>,
     lod_zones: HashMap<Vec2<i32>, lod::Zone>,
     lod_last_requested: Option<Instant>,
+    force_update_counter: u64,
 
     max_group_size: u32,
     // Client has received an invite (inviter uid, time out instant)
@@ -678,6 +680,8 @@ impl Client {
             lod_zones: HashMap::new(),
             lod_last_requested: None,
 
+            force_update_counter: 0,
+
             max_group_size,
             invite: None,
             group_leader: None,
@@ -816,7 +820,8 @@ impl Client {
                     | ClientGeneral::RequestPlayerPhysics { .. }
                     | ClientGeneral::RequestLossyTerrainCompression { .. }
                     | ClientGeneral::AcknowledgePersistenceLoadError
-                    | ClientGeneral::UpdateMapMarker(_) => {
+                    | ClientGeneral::UpdateMapMarker(_)
+                    | ClientGeneral::SpectatePosition(_) => {
                         #[cfg(feature = "tracy")]
                         {
                             ingame = 1.0;
@@ -879,6 +884,14 @@ impl Client {
 
         //Assume we are in_game unless server tells us otherwise
         self.presence = Some(PresenceKind::Character(character_id));
+    }
+
+    /// Request a state transition to `ClientState::Spectate`.
+    pub fn request_spectate(&mut self) {
+        self.send_msg(ClientGeneral::Spectate);
+
+        //Assume we are in_game unless server tells us otherwise
+        self.presence = Some(PresenceKind::Spectator);
     }
 
     /// Load the current players character list
@@ -1334,6 +1347,18 @@ impl Client {
         self.send_msg(ClientGeneral::UpdateMapMarker(event));
     }
 
+    pub fn spectate_position(&mut self, pos: Vec3<f32>) {
+        if let Some(position) = self
+            .state
+            .ecs()
+            .write_storage::<comp::Pos>()
+            .get_mut(self.entity())
+        {
+            position.0 = pos;
+        }
+        self.send_msg(ClientGeneral::SpectatePosition(pos));
+    }
+
     /// Checks whether a player can swap their weapon+ability `Loadout` settings
     /// and sends the `ControlAction` event that signals to do the swap.
     pub fn swap_loadout(&mut self) { self.control_action(ControlAction::SwapEquippedWeapons) }
@@ -1732,8 +1757,12 @@ impl Client {
                 self.state.read_storage().get(self.entity()).cloned(),
                 self.state.read_storage().get(self.entity()).cloned(),
             ) {
-                self.in_game_stream
-                    .send(ClientGeneral::PlayerPhysics { pos, vel, ori })?;
+                self.in_game_stream.send(ClientGeneral::PlayerPhysics {
+                    pos,
+                    vel,
+                    ori,
+                    force_counter: self.force_update_counter,
+                })?;
             }
         }
 
@@ -2049,7 +2078,8 @@ impl Client {
                     .ecs_mut()
                     .apply_entity_sync_package(entity_sync_package);
             },
-            ServerGeneral::CompSync(comp_sync_package) => {
+            ServerGeneral::CompSync(comp_sync_package, force_counter) => {
+                self.force_update_counter = force_counter;
                 self.state
                     .ecs_mut()
                     .apply_comp_sync_package(comp_sync_package);
@@ -2256,6 +2286,9 @@ impl Client {
             ServerGeneral::WeatherUpdate(weather) => {
                 self.weather.weather_update(weather);
             },
+            ServerGeneral::SpectatePosition(pos) => {
+                frontend_events.push(Event::SpectatePosition(pos));
+            },
             _ => unreachable!("Not a in_game message"),
         }
         Ok(())
@@ -2316,6 +2349,18 @@ impl Client {
             ServerGeneral::CharacterSuccess => {
                 debug!("client is now in ingame state on server");
                 if let Some(vd) = self.view_distance {
+                    self.set_view_distance(vd);
+                }
+            },
+            ServerGeneral::SpectatorSuccess(spawn_point) => {
+                if let Some(vd) = self.view_distance {
+                    self.state
+                        .ecs()
+                        .write_storage()
+                        .insert(self.entity(), Pos(spawn_point))
+                        .expect("This shouldn't exist");
+                    events.push(Event::SpectatePosition(spawn_point));
+                    debug!("client is now in ingame state on server");
                     self.set_view_distance(vd);
                 }
             },

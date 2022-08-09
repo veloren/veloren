@@ -410,10 +410,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             .map(|e| error!(?e, ?entity, "Failed to set zero vel on dead client"));
         state
             .ecs()
-            .write_storage()
-            .insert(entity, comp::ForceUpdate)
-            .err()
-            .map(|e| error!(?e, ?entity, "Failed to insert ForceUpdate on dead client"));
+            .write_storage::<comp::ForceUpdate>()
+            .get_mut(entity)
+            .map(|force_update| force_update.update());
         state
             .ecs()
             .write_storage::<Energy>()
@@ -648,15 +647,14 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
             .map(|pos| pos.0 = respawn_point);
         state
             .ecs()
-            .write_storage()
-            .insert(entity, comp::ForceUpdate)
-            .err()
-            .map(|e| {
-                error!(
-                    ?e,
-                    "Error inserting ForceUpdate component when respawning client"
-                )
-            });
+            .write_storage::<comp::PhysicsState>()
+            .get_mut(entity)
+            .map(|phys_state| phys_state.reset());
+        state
+            .ecs()
+            .write_storage::<comp::ForceUpdate>()
+            .get_mut(entity)
+            .map(|force_update| force_update.update());
     }
 }
 
@@ -1259,15 +1257,9 @@ pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_r
     if let (Some(pos), Some(target_pos)) = (positions.get_mut(entity), target_pos) {
         if max_range.map_or(true, |r| pos.0.distance_squared(target_pos.0) < r.powi(2)) {
             *pos = target_pos;
-            ecs.write_storage()
-                .insert(entity, comp::ForceUpdate)
-                .err()
-                .map(|e| {
-                    error!(
-                        ?e,
-                        "Error inserting ForceUpdate component when teleporting client"
-                    )
-                });
+            ecs.write_storage::<comp::ForceUpdate>()
+                .get_mut(entity)
+                .map(|force_update| force_update.update());
         }
     }
 }

@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cave biomes
 - Updated the Polish translation
 - Setting for disabling flashing lights
+- Spectate mode for moderators.
 
 ### Changed
 
@@ -101,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modular weapons now have a selling price
 - Closing a subwindow now only regrabs the cursor if no other subwindow requires it.
 - Fixed npc not handling interactions while fighting (especially merchants in trade)
+- Fixed bug where you would still be burning after dying in lava. 
 
 ## [0.12.0] - 2022-02-19
 

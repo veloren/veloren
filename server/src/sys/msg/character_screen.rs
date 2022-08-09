@@ -7,7 +7,7 @@ use crate::{
     EditableSettings,
 };
 use common::{
-    comp::{ChatType, Player, UnresolvedChatMsg},
+    comp::{Admin, AdminRole, ChatType, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
     uid::Uid,
 };
@@ -15,7 +15,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect};
 use std::sync::atomic::Ordering;
-use tracing::{debug, warn};
+use tracing::debug;
 
 impl Sys {
     fn handle_client_character_screen_msg(
@@ -26,18 +26,43 @@ impl Sys {
         character_updater: &mut WriteExpect<'_, CharacterUpdater>,
         uids: &ReadStorage<'_, Uid>,
         players: &ReadStorage<'_, Player>,
+        admins: &ReadStorage<'_, Admin>,
         presences: &ReadStorage<'_, Presence>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
         alias_validator: &ReadExpect<'_, AliasValidator>,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
+        let mut send_join_messages = || -> Result<(), crate::error::Error> {
+            // Give the player a welcome message
+            if !editable_settings.server_description.is_empty() {
+                client.send(ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    &*editable_settings.server_description,
+                ))?;
+            }
+
+            if !client.login_msg_sent.load(Ordering::Relaxed) {
+                if let Some(player_uid) = uids.get(entity) {
+                    server_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg {
+                        chat_type: ChatType::Online(*player_uid),
+                        message: "".to_string(),
+                    }));
+
+                    client.login_msg_sent.store(true, Ordering::Relaxed);
+                }
+            }
+            Ok(())
+        };
         match msg {
             // Request spectator state
             ClientGeneral::Spectate => {
-                if players.contains(entity) {
-                    warn!("Spectator mode not yet implemented on server");
+                if let Some(admin) = admins.get(entity) && admin.0 >= AdminRole::Moderator {
+                    send_join_messages()?;
+
+                    server_emitter.emit(ServerEvent::InitSpectator(entity));
+
                 } else {
-                    debug!("dropped Spectate msg from unregistered client")
+                    debug!("dropped Spectate msg from unprivileged client")
                 }
             },
             ClientGeneral::Character(character_id) => {
@@ -76,31 +101,14 @@ impl Sys {
                             character_id,
                         );
 
+                        send_join_messages()?;
+
                         // Start inserting non-persisted/default components for the entity
                         // while we load the DB data
                         server_emitter.emit(ServerEvent::InitCharacterData {
                             entity,
                             character_id,
                         });
-
-                        // Give the player a welcome message
-                        if !editable_settings.server_description.is_empty() {
-                            client.send(ServerGeneral::server_msg(
-                                ChatType::CommandInfo,
-                                &*editable_settings.server_description,
-                            ))?;
-                        }
-
-                        if !client.login_msg_sent.load(Ordering::Relaxed) {
-                            if let Some(player_uid) = uids.get(entity) {
-                                server_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg {
-                                    chat_type: ChatType::Online(*player_uid),
-                                    message: "".to_string(),
-                                }));
-
-                                client.login_msg_sent.store(true, Ordering::Relaxed);
-                            }
-                        }
                     }
                 } else {
                     debug!("Client is not yet registered");
@@ -199,6 +207,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Player>,
+        ReadStorage<'a, Admin>,
         ReadStorage<'a, Presence>,
         ReadExpect<'a, EditableSettings>,
         ReadExpect<'a, AliasValidator>,
@@ -218,6 +227,7 @@ impl<'a> System<'a> for Sys {
             uids,
             clients,
             players,
+            admins,
             presences,
             editable_settings,
             alias_validator,
@@ -235,6 +245,7 @@ impl<'a> System<'a> for Sys {
                     &mut character_updater,
                     &uids,
                     &players,
+                    &admins,
                     &presences,
                     &editable_settings,
                     &alias_validator,

@@ -243,7 +243,9 @@ impl<'a> System<'a> for Sys {
                     .map(|x| x.as_::<f32>())
                     .unwrap_or_else(|| chunk.find_accessible_pos(pos.0.xy().as_::<i32>(), false));
                 repositioned.push(entity);
-                let _ = force_update.insert(entity, ForceUpdate);
+                force_update
+                    .get_mut(entity)
+                    .map(|force_update| force_update.update());
                 let _ = waypoints.insert(entity, Waypoint::new(pos.0, *time));
             }
         }

@@ -3,7 +3,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs},
     slots::{CraftSlot, CraftSlotInfo, SlotManager},
-    Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    HudInfo, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::ui::{
     fonts::Fonts,
@@ -137,6 +137,7 @@ impl Default for CraftingShow {
 #[derive(WidgetCommon)]
 pub struct Crafting<'a> {
     client: &'a Client,
+    info: &'a HudInfo,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
@@ -156,6 +157,7 @@ pub struct Crafting<'a> {
 impl<'a> Crafting<'a> {
     pub fn new(
         client: &'a Client,
+        info: &'a HudInfo,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
@@ -171,6 +173,7 @@ impl<'a> Crafting<'a> {
     ) -> Self {
         Self {
             client,
+            info,
             imgs,
             fonts,
             localized_strings,
@@ -321,6 +324,7 @@ impl<'a> Widget for Crafting<'a> {
                 )
             },
             self.client,
+            self.info,
             self.imgs,
             self.item_imgs,
             self.pulse,

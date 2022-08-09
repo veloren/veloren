@@ -144,6 +144,18 @@ impl PlayState for CharSelectionState {
                             Rc::clone(&self.client),
                         )));
                     },
+                    ui::Event::Spectate => {
+                        {
+                            let mut c = self.client.borrow_mut();
+                            c.request_spectate();
+                            c.set_view_distance(global_state.settings.graphics.view_distance);
+                            c.set_lod_distance(global_state.settings.graphics.lod_distance);
+                        }
+                        return PlayStateResult::Switch(Box::new(SessionState::new(
+                            global_state,
+                            Rc::clone(&self.client),
+                        )));
+                    },
                     ui::Event::ClearCharacterListError => {
                         self.char_selection_ui.error = None;
                     },

@@ -6,7 +6,8 @@ use common::event::{EventBus, ServerEvent, ServerEventDiscriminants};
 use common_base::span;
 use entity_creation::{
     handle_beam, handle_create_npc, handle_create_ship, handle_create_waypoint,
-    handle_initialize_character, handle_loaded_character_data, handle_shockwave, handle_shoot,
+    handle_initialize_character, handle_initialize_spectator, handle_loaded_character_data,
+    handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
     handle_aura, handle_bonk, handle_buff, handle_change_ability, handle_combo_change,
@@ -139,6 +140,7 @@ impl Server {
                     entity,
                     character_id,
                 } => handle_initialize_character(self, entity, character_id),
+                ServerEvent::InitSpectator(entity) => handle_initialize_spectator(self, entity),
                 ServerEvent::UpdateCharacterData { entity, components } => {
                     let (
                         body,

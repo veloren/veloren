@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_LEGENDARY, TEXT_COLOR,
+    HudInfo, BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_LEGENDARY, TEXT_COLOR,
 };
 use crate::{
     game_input::GameInput,
@@ -51,6 +51,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Buttons<'a> {
     client: &'a Client,
+    info: &'a HudInfo,
     show_bag: bool,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
@@ -68,6 +69,7 @@ pub struct Buttons<'a> {
 impl<'a> Buttons<'a> {
     pub fn new(
         client: &'a Client,
+        info: &'a HudInfo,
         show_bag: bool,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
@@ -81,6 +83,7 @@ impl<'a> Buttons<'a> {
     ) -> Self {
         Self {
             client,
+            info,
             show_bag,
             imgs,
             fonts,
@@ -192,7 +195,7 @@ impl<'a> Widget for Buttons<'a> {
             );
         }
         let invs = self.client.inventories();
-        let inventory = match invs.get(self.client.entity()) {
+        let inventory = match invs.get(self.info.viewpoint_entity) {
             Some(inv) => inv,
             None => return None,
         };

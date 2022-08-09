@@ -4,6 +4,8 @@ use common::comp::{
 };
 use serde::{Deserialize, Serialize};
 
+use super::HudInfo;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Slot {
     One = 0,
@@ -63,22 +65,22 @@ impl State {
     // TODO: remove pending UI
     // Adds ability slots if missing and should be present
     // Removes ability slots if not there and shouldn't be present
-    pub fn maintain_abilities(&mut self, client: &client::Client) {
+    pub fn maintain_abilities(&mut self, client: &client::Client, info: &HudInfo) {
         use specs::WorldExt;
         if let Some(active_abilities) = client
             .state()
             .ecs()
             .read_storage::<comp::ActiveAbilities>()
-            .get(client.entity())
+            .get(info.viewpoint_entity)
         {
             use common::comp::ability::AuxiliaryAbility;
             for ((i, ability), hotbar_slot) in active_abilities
                 .auxiliary_set(
-                    client.inventories().get(client.entity()),
+                    client.inventories().get(info.viewpoint_entity),
                     client
                         .state()
                         .read_storage::<comp::SkillSet>()
-                        .get(client.entity()),
+                        .get(info.viewpoint_entity),
                 )
                 .iter()
                 .enumerate()

@@ -3,7 +3,7 @@ use crate::hud::{
     get_quality_col,
     img_ids::Imgs,
     item_imgs::{animate_by_pulse, ItemImgs},
-    util,
+    util, HudInfo,
 };
 use client::Client;
 use common::{
@@ -291,6 +291,7 @@ pub struct ItemTooltip<'a> {
     transparency: f32,
     image_frame: ImageFrame,
     client: &'a Client,
+    info: &'a HudInfo,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     pulse: f32,
@@ -352,6 +353,7 @@ impl<'a> ItemTooltip<'a> {
     pub fn new(
         image_frame: ImageFrame,
         client: &'a Client,
+        info: &'a HudInfo,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         pulse: f32,
@@ -369,6 +371,7 @@ impl<'a> ItemTooltip<'a> {
             image: None,
             image_dims: None,
             client,
+            info,
             imgs,
             item_imgs,
             pulse,
@@ -448,7 +451,7 @@ impl<'a> Widget for ItemTooltip<'a> {
         let i18n = &self.localized_strings;
 
         let inventories = self.client.inventories();
-        let inventory = match inventories.get(self.client.entity()) {
+        let inventory = match inventories.get(self.info.viewpoint_entity) {
             Some(l) => l,
             None => return,
         };

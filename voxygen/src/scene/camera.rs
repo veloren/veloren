@@ -16,7 +16,7 @@ const CLIPPING_MODE_DISTANCE: f32 = 20.0;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
-#[derive(PartialEq, Clone, Copy, Eq, Hash)]
+#[derive(PartialEq, Debug, Clone, Copy, Eq, Hash)]
 pub enum CameraMode {
     FirstPerson = 0,
     ThirdPerson = 1,
@@ -320,13 +320,18 @@ impl Camera {
         // Make sure aspect is valid
         let aspect = if aspect.is_normal() { aspect } else { 1.0 };
 
+        let dist = match mode {
+            CameraMode::ThirdPerson => 10.0,
+            CameraMode::FirstPerson | CameraMode::Freefly => MIN_ZOOM,
+        };
+
         Self {
             tgt_focus: Vec3::unit_z() * 10.0,
             focus: Vec3::unit_z() * 10.0,
             tgt_ori: Vec3::zero(),
             ori: Vec3::zero(),
-            tgt_dist: 10.0,
-            dist: 10.0,
+            tgt_dist: dist,
+            dist,
             tgt_fov: 1.1,
             fov: 1.1,
             tgt_fixate: 1.0,
@@ -652,6 +657,12 @@ impl Camera {
     /// Set the focus position of the camera.
     pub fn set_focus_pos(&mut self, focus: Vec3<f32>) { self.tgt_focus = focus; }
 
+    /// Set the focus position of the camera, without lerping.
+    pub fn force_focus_pos(&mut self, focus: Vec3<f32>) {
+        self.tgt_focus = focus;
+        self.focus = focus;
+    }
+
     /// Get the aspect ratio of the camera.
     pub fn get_aspect_ratio(&self) -> f32 { self.aspect }
 
@@ -695,7 +706,7 @@ impl Camera {
                     self.set_distance(MIN_ZOOM);
                 },
                 CameraMode::Freefly => {
-                    self.zoom_by(0.0, None);
+                    self.set_distance(MIN_ZOOM);
                 },
             }
         }
@@ -714,18 +725,22 @@ impl Camera {
 
     /// Cycle the camera to its next valid mode. If is_admin is false then only
     /// modes which are accessible without admin access will be cycled to.
-    pub fn next_mode(&mut self, is_admin: bool) {
-        self.set_mode(match self.mode {
-            CameraMode::ThirdPerson => CameraMode::FirstPerson,
-            CameraMode::FirstPerson => {
-                if is_admin {
-                    CameraMode::Freefly
-                } else {
-                    CameraMode::ThirdPerson
-                }
-            },
-            CameraMode::Freefly => CameraMode::ThirdPerson,
-        });
+    pub fn next_mode(&mut self, is_admin: bool, has_target: bool) {
+        if has_target {
+            self.set_mode(match self.mode {
+                CameraMode::ThirdPerson => CameraMode::FirstPerson,
+                CameraMode::FirstPerson => {
+                    if is_admin {
+                        CameraMode::Freefly
+                    } else {
+                        CameraMode::ThirdPerson
+                    }
+                },
+                CameraMode::Freefly => CameraMode::ThirdPerson,
+            });
+        } else {
+            self.set_mode(CameraMode::Freefly);
+        }
     }
 
     /// Return a unit vector in the forward direction for the current camera

@@ -127,6 +127,7 @@ image_ids_ice! {
 pub enum Event {
     Logout,
     Play(CharacterId),
+    Spectate,
     AddCharacter {
         alias: String,
         mainhand: Option<String>,
@@ -152,6 +153,7 @@ enum Mode {
         new_character_button: button::State,
         logout_button: button::State,
         enter_world_button: button::State,
+        spectate_button: button::State,
         yes_button: button::State,
         no_button: button::State,
     },
@@ -185,6 +187,7 @@ impl Mode {
             new_character_button: Default::default(),
             logout_button: Default::default(),
             enter_world_button: Default::default(),
+            spectate_button: Default::default(),
             yes_button: Default::default(),
             no_button: Default::default(),
         }
@@ -283,6 +286,7 @@ enum Message {
     Back,
     Logout,
     EnterWorld,
+    Spectate,
     Select(CharacterId),
     Delete(usize),
     Edit(usize),
@@ -397,6 +401,7 @@ impl Controls {
                 ref mut new_character_button,
                 ref mut logout_button,
                 ref mut enter_world_button,
+                ref mut spectate_button,
                 ref mut yes_button,
                 ref mut no_button,
             } => {
@@ -676,36 +681,52 @@ impl Controls {
                 .padding(15)
                 .width(Length::Fill)
                 .height(Length::Fill);
+                let mut bottom_content = vec![
+                    Container::new(neat_button(
+                        logout_button,
+                        i18n.get("char_selection.logout").into_owned(),
+                        FILL_FRAC_ONE,
+                        button_style,
+                        Some(Message::Logout),
+                    ))
+                    .width(Length::Fill)
+                    .height(Length::Units(SMALL_BUTTON_HEIGHT))
+                    .into(),
+                ];
 
-                let logout = neat_button(
-                    logout_button,
-                    i18n.get("char_selection.logout").into_owned(),
-                    FILL_FRAC_ONE,
-                    button_style,
-                    Some(Message::Logout),
-                );
-
-                let enter_world = neat_button(
-                    enter_world_button,
-                    i18n.get("char_selection.enter_world").into_owned(),
-                    FILL_FRAC_TWO,
-                    button_style,
-                    selected.map(|_| Message::EnterWorld),
-                );
-
-                let bottom = Row::with_children(vec![
-                    Container::new(logout)
-                        .width(Length::Fill)
-                        .height(Length::Units(SMALL_BUTTON_HEIGHT))
-                        .into(),
-                    Container::new(enter_world)
+                if client.is_moderator() {
+                    bottom_content.push(
+                        Container::new(neat_button(
+                            spectate_button,
+                            i18n.get("char_selection.spectate").into_owned(),
+                            FILL_FRAC_TWO,
+                            button_style,
+                            Some(Message::Spectate),
+                        ))
                         .width(Length::Fill)
                         .height(Length::Units(52))
                         .center_x()
                         .into(),
-                    Space::new(Length::Fill, Length::Shrink).into(),
-                ])
-                .align_items(Align::End);
+                    );
+                }
+
+                bottom_content.push(
+                    Container::new(neat_button(
+                        enter_world_button,
+                        i18n.get("char_selection.enter_world").into_owned(),
+                        FILL_FRAC_TWO,
+                        button_style,
+                        selected.map(|_| Message::EnterWorld),
+                    ))
+                    .width(Length::Fill)
+                    .height(Length::Units(52))
+                    .center_x()
+                    .into(),
+                );
+
+                bottom_content.push(Space::new(Length::Fill, Length::Shrink).into());
+
+                let bottom = Row::with_children(bottom_content).align_items(Align::End);
 
                 let content = Column::with_children(vec![top.into(), bottom.into()])
                     .width(Length::Fill)
@@ -1408,6 +1429,11 @@ impl Controls {
             Message::EnterWorld => {
                 if let (Mode::Select { .. }, Some(selected)) = (&self.mode, self.selected) {
                     events.push(Event::Play(selected));
+                }
+            },
+            Message::Spectate => {
+                if matches!(self.mode, Mode::Select { .. }) {
+                    events.push(Event::Spectate);
                 }
             },
             Message::Select(id) => {
