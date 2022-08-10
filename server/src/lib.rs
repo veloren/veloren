@@ -230,6 +230,10 @@ impl Server {
         debug!("Running DB migrations...");
         persistence::run_migrations(&database_settings);
 
+        // Vacuum database
+        debug!("Vacuuming database...");
+        persistence::vacuum_database(&database_settings);
+
         let database_settings = Arc::new(RwLock::new(database_settings));
 
         let registry = Arc::new(Registry::new());
