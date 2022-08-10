@@ -409,15 +409,16 @@ impl Scene {
                 // when zooming in the distance the camera travelles should be based on the
                 // final distance. This is to make sure the camera travelles the
                 // same distance when zooming in and out
+                let player_scale = client.state().read_component_copied::<comp::Scale>(client.entity()).map_or(1.0, |s| s.0);
                 if delta < 0.0 {
                     self.camera.zoom_switch(
                         // Thank you Imbris for doing the math
                         delta * (0.05 + self.camera.get_distance() * 0.01) / (1.0 - delta * 0.01),
                         cap,
+                        player_scale,
                     );
                 } else {
-                    self.camera
-                        .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01), cap);
+                    self.camera.zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01), cap, player_scale);
                 }
                 true
             },

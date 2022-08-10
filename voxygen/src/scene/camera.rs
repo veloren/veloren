@@ -551,13 +551,13 @@ impl Camera {
     /// Zoom with the ability to switch between first and third-person mode.
     ///
     /// Note that cap > 18237958000000.0 can cause panic due to float overflow
-    pub fn zoom_switch(&mut self, delta: f32, cap: f32) {
+    pub fn zoom_switch(&mut self, delta: f32, cap: f32, scale: f32) {
         if delta > 0_f32 || self.mode != CameraMode::FirstPerson {
             let t = self.tgt_dist + delta;
             const MIN_THIRD_PERSON: f32 = 2.35;
             match self.mode {
                 CameraMode::ThirdPerson => {
-                    if t < MIN_THIRD_PERSON {
+                    if t < MIN_THIRD_PERSON * scale {
                         self.set_mode(CameraMode::FirstPerson);
                     } else {
                         self.tgt_dist = t;
@@ -565,7 +565,7 @@ impl Camera {
                 },
                 CameraMode::FirstPerson => {
                     self.set_mode(CameraMode::ThirdPerson);
-                    self.tgt_dist = MIN_THIRD_PERSON;
+                    self.tgt_dist = MIN_THIRD_PERSON * scale;
                 },
                 _ => {},
             }
