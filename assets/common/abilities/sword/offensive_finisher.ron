@@ -1,7 +1,7 @@
 FinisherMelee(
-    energy_cost: /*40*/0,
+    energy_cost: 40,
     buildup_duration: 0.4,
-    swing_duration: 0.1,
+    swing_duration: 0.05,
     recover_duration: 0.4,
     melee_constructor: (
         kind: Slash(
@@ -23,7 +23,7 @@ FinisherMelee(
         target: Attack,
         kind: Linear,
     )),
-    minimum_combo: /*10*/0,
+    minimum_combo: 10,
     meta: (
         kind: Some(Sword(Offensive)),
     ),
