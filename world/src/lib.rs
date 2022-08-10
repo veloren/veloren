@@ -304,10 +304,12 @@ impl World {
             sim_chunk.river.velocity,
             sim_chunk.temp,
             sim_chunk.humidity,
-            sim_chunk
-                .sites
-                .iter()
-                .any(|site| matches!(index.sites[*site].kind, SiteKind::Refactor(_))),
+            sim_chunk.sites.iter().any(|site| {
+                matches!(
+                    index.sites[*site].kind,
+                    SiteKind::Refactor(_) | SiteKind::CliffTown(_) | SiteKind::DesertCity(_)
+                )
+            }),
             sim_chunk
                 .sites
                 .iter()
