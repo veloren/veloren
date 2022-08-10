@@ -1350,19 +1350,15 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     read: &PhysicsRead,
     ori: &Ori,
 ) {
-    // FIXME: Review these
-    #![allow(
-        clippy::cast_precision_loss,
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss
-    )]
+    let scale = read.scales.get(entity).map_or(1.0, |s| s.0);
+
     //prof_span!("box_voxel_collision");
 
     // Convience function to compute the player aabb
-    fn player_aabb(pos: Vec3<f32>, radius: f32, z_range: Range<f32>) -> Aabb<f32> {
+    fn player_aabb(pos: Vec3<f32>, radius: f32, z_range: Range<f32>, scale: f32) -> Aabb<f32> {
         Aabb {
-            min: pos + Vec3::new(-radius, -radius, z_range.start),
-            max: pos + Vec3::new(radius, radius, z_range.end),
+            min: pos + Vec3::new(-radius, -radius, z_range.start) * scale,
+            max: pos + Vec3::new(radius, radius, z_range.end) * scale,
         }
     }
 
@@ -1383,8 +1379,9 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         near_aabb: Aabb<i32>,
         radius: f32,
         z_range: Range<f32>,
+        scale: f32,
     ) -> bool {
-        let player_aabb = player_aabb(pos, radius, z_range);
+        let player_aabb = player_aabb(pos, radius, z_range, scale);
 
         // Calculate the world space near aabb
         let near_aabb = move_aabb(near_aabb, pos);
@@ -1451,7 +1448,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         let try_colliding_block = |pos: &Pos| {
             //prof_span!("most colliding check");
             // Calculate the player's AABB
-            let player_aabb = player_aabb(pos.0, radius, z_range.clone());
+            let player_aabb = player_aabb(pos.0, radius, z_range.clone(), scale);
 
             // Determine the block that we are colliding with most
             // (based on minimum collision axis)
@@ -1501,7 +1498,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             .flatten()
         {
             // Calculate the player's AABB
-            let player_aabb = player_aabb(pos.0, radius, z_range.clone());
+            let player_aabb = player_aabb(pos.0, radius, z_range.clone(), scale);
 
             // Find the intrusion vector of the collision
             let dir = player_aabb.collision_vector_with_aabb(block_aabb);
@@ -1547,6 +1544,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     near_aabb,
                     radius,
                     z_range.clone(),
+                    scale,
                 )
             }
             // ...and there is a collision with a block beneath our current hitbox...
@@ -1559,6 +1557,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     near_aabb,
                     radius,
                     z_range.clone(),
+                    scale,
                 )
             } {
                 // ...block-hop!
@@ -1613,6 +1612,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             near_aabb,
             radius,
             z_range.clone(),
+            scale,
         )
     } {
         //prof_span!("snap!!");
@@ -1630,7 +1630,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     }
 
     // Find liquid immersion and wall collision all in one round of iteration
-    let player_aabb = player_aabb(pos.0, radius, z_range.clone());
+    let player_aabb = player_aabb(pos.0, radius, z_range.clone(), scale);
     // Calculate the world space near_aabb
     let near_aabb = move_aabb(near_aabb, pos.0);
 

@@ -86,7 +86,10 @@ impl RtSimController {
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, enum_map::Enum)]
 pub enum ChunkResource {
+    #[serde(rename = "0")]
     Grass,
+    #[serde(rename = "1")]
     Flax,
+    #[serde(rename = "2")]
     Cotton,
 }

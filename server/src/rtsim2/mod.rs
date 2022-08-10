@@ -27,7 +27,7 @@ use std::{
 use enum_map::EnumMap;
 use tracing::{error, warn, info, debug};
 use vek::*;
-use world::World;
+use world::{IndexRef, World};
 
 pub struct RtSim {
     file_path: PathBuf,
@@ -36,43 +36,47 @@ pub struct RtSim {
 }
 
 impl RtSim {
-    pub fn new(world: &World, data_dir: PathBuf) -> Result<Self, ron::Error> {
+    pub fn new(index: IndexRef, world: &World, data_dir: PathBuf) -> Result<Self, ron::Error> {
         let file_path = Self::get_file_path(data_dir);
 
         info!("Looking for rtsim data in {}...", file_path.display());
         let data = 'load: {
-            match File::open(&file_path) {
-                Ok(file) => {
-                    info!("Rtsim data found. Attempting to load...");
-                    match Data::from_reader(io::BufReader::new(file)) {
-                        Ok(data) => { info!("Rtsim data loaded."); break 'load data },
-                        Err(e) => {
-                            error!("Rtsim data failed to load: {}", e);
-                            let mut i = 0;
-                            loop {
-                                let mut backup_path = file_path.clone();
-                                backup_path.set_extension(if i == 0 {
-                                    format!("backup_{}", i)
-                                } else {
-                                    "ron_backup".to_string()
-                                });
-                                if !backup_path.exists() {
-                                    fs::rename(&file_path, &backup_path)?;
-                                    warn!("Failed rtsim data was moved to {}", backup_path.display());
-                                    info!("A fresh rtsim data will now be generated.");
-                                    break;
+            if std::env::var("RTSIM_NOLOAD").map_or(true, |v| v != "1") {
+                match File::open(&file_path) {
+                    Ok(file) => {
+                        info!("Rtsim data found. Attempting to load...");
+                        match Data::from_reader(io::BufReader::new(file)) {
+                            Ok(data) => { info!("Rtsim data loaded."); break 'load data },
+                            Err(e) => {
+                                error!("Rtsim data failed to load: {}", e);
+                                let mut i = 0;
+                                loop {
+                                    let mut backup_path = file_path.clone();
+                                    backup_path.set_extension(if i == 0 {
+                                        format!("backup_{}", i)
+                                    } else {
+                                        "ron_backup".to_string()
+                                    });
+                                    if !backup_path.exists() {
+                                        fs::rename(&file_path, &backup_path)?;
+                                        warn!("Failed rtsim data was moved to {}", backup_path.display());
+                                        info!("A fresh rtsim data will now be generated.");
+                                        break;
+                                    }
+                                    i += 1;
                                 }
-                                i += 1;
-                            }
-                        },
-                    }
-                },
-                Err(e) if e.kind() == io::ErrorKind::NotFound =>
-                    info!("No rtsim data found. Generating from world..."),
-                Err(e) => return Err(e.into()),
+                            },
+                        }
+                    },
+                    Err(e) if e.kind() == io::ErrorKind::NotFound =>
+                        info!("No rtsim data found. Generating from world..."),
+                    Err(e) => return Err(e.into()),
+                }
+            } else {
+                warn!("'RTSIM_NOLOAD' is set, skipping loading of rtsim state (old state will be overwritten).");
             }
 
-            let data = Data::generate(&world);
+            let data = Data::generate(index, &world);
             info!("Rtsim data generated.");
             data
         };

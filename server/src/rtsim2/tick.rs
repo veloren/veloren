@@ -10,6 +10,7 @@ use common::{
     slowjob::SlowJobPool,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use rtsim2::data::npc::NpcMode;
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
 
@@ -32,14 +33,47 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (dt, time, server_event_bus, mut rtsim, world, index, slow_jobs): Self::SystemData,
+        (dt, time, mut server_event_bus, mut rtsim, world, index, slow_jobs): Self::SystemData,
     ) {
+        let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
 
         rtsim.state.tick(dt.0);
 
         if rtsim.last_saved.map_or(true, |ls| ls.elapsed() > Duration::from_secs(60)) {
             rtsim.save(&slow_jobs);
+        }
+
+        let chunk_states = rtsim.state.resource::<ChunkStates>();
+        for (npc_id, npc) in rtsim.state.data_mut().npcs.iter_mut() {
+            let chunk = npc.wpos
+                .xy()
+                .map2(TerrainChunk::RECT_SIZE, |e, sz| (e as i32).div_euclid(sz as i32));
+
+            // Load the NPC into the world if it's in a loaded chunk and is not already loaded
+            if matches!(npc.mode, NpcMode::Simulated) && chunk_states.0.get(chunk).map_or(false, |c| c.is_some()) {
+                npc.mode = NpcMode::Loaded;
+
+                println!("Loading in rtsim NPC at {:?}", npc.wpos);
+
+                let body = comp::Body::Object(comp::object::Body::Scarecrow);
+                emitter.emit(ServerEvent::CreateNpc {
+                    pos: comp::Pos(npc.wpos),
+                    stats: comp::Stats::new("Rtsim NPC".to_string()),
+                    skill_set: comp::SkillSet::default(),
+                    health: None,
+                    poise: comp::Poise::new(body),
+                    inventory: comp::Inventory::with_empty(),
+                    body,
+                    agent: None,
+                    alignment: comp::Alignment::Wild,
+                    scale: comp::Scale(10.0),
+                    anchor: None,
+                    loot: Default::default(),
+                    rtsim_entity: None, // For now, the old one is used!
+                    projectile: None,
+                });
+            }
         }
 
         // rtsim.tick += 1;

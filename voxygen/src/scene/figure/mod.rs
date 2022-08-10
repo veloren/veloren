@@ -776,7 +776,7 @@ impl FigureMgr {
             .enumerate()
         {
             // Velocity relative to the current ground
-            let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel);
+            let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel) / scale.map_or(1.0, |s| s.0);
 
             let look_dir = controller.map(|c| c.inputs.look_dir).unwrap_or_default();
             let is_viewpoint = scene_data.viewpoint_entity == entity;
@@ -1005,7 +1005,7 @@ impl FigureMgr {
                         });
 
                     // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
+                    let rel_avg_vel = (state.avg_vel - physics.ground_vel) / scale;
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -6157,6 +6157,7 @@ impl FigureMgr {
                     None,
                     entity,
                     body,
+                    scale.copied(),
                     inventory,
                     false,
                     pos.0,
@@ -6238,6 +6239,7 @@ impl FigureMgr {
                 character_state,
                 entity,
                 body,
+                scale.copied(),
                 inventory,
                 false,
                 pos.0,
@@ -6273,9 +6275,10 @@ impl FigureMgr {
         let character_state = character_state_storage.get(player_entity);
         let items = ecs.read_storage::<Item>();
 
-        if let (Some(pos), Some(body)) = (
+        if let (Some(pos), Some(body), scale) = (
             ecs.read_storage::<Pos>().get(player_entity),
             ecs.read_storage::<Body>().get(player_entity),
+            ecs.read_storage::<Scale>().get(player_entity),
         ) {
             let healths = state.read_storage::<Health>();
             let health = healths.get(player_entity);
@@ -6292,6 +6295,7 @@ impl FigureMgr {
                 character_state,
                 player_entity,
                 body,
+                scale.copied(),
                 inventory,
                 true,
                 pos.0,
@@ -6325,6 +6329,7 @@ impl FigureMgr {
         character_state: Option<&CharacterState>,
         entity: EcsEntity,
         body: &Body,
+        scale: Option<Scale>,
         inventory: Option<&Inventory>,
         is_viewpoint: bool,
         pos: Vec3<f32>,
@@ -6702,8 +6707,8 @@ impl FigureMgr {
         } {
             let model_entry = model_entry?;
 
-            let figure_low_detail_distance = figure_lod_render_distance * 0.75;
-            let figure_mid_detail_distance = figure_lod_render_distance * 0.5;
+            let figure_low_detail_distance = figure_lod_render_distance * scale.map_or(1.0, |s| s.0) * 0.75;
+            let figure_mid_detail_distance = figure_lod_render_distance * scale.map_or(1.0, |s| s.0) * 0.5;
 
             let model = if pos.distance_squared(cam_pos) > figure_low_detail_distance.powi(2) {
                 model_entry.lod_model(2)
@@ -7092,7 +7097,7 @@ impl<S: Skeleton> FigureState<S> {
 
         self.last_ori = Lerp::lerp(self.last_ori, *ori, 15.0 * dt).normalized();
 
-        self.state_time += dt * state_animation_rate;
+        self.state_time += dt * state_animation_rate / scale;
 
         let mat = {
             let scale_mat = anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(*scale));
@@ -7254,7 +7259,7 @@ impl<S: Skeleton> FigureState<S> {
 
         // Can potentially overflow
         if self.avg_vel.magnitude_squared() != 0.0 {
-            self.acc_vel += (self.avg_vel - *ground_vel).magnitude() * dt;
+            self.acc_vel += (self.avg_vel - *ground_vel).magnitude() * dt / scale;
         } else {
             self.acc_vel = 0.0;
         }

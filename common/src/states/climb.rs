@@ -122,10 +122,10 @@ impl CharacterBehavior for Data {
         // Apply Vertical Climbing Movement
         match climb {
             Climb::Down => {
-                update.vel.0.z += data.dt.0 * (GRAVITY - self.static_data.movement_speed.powi(2))
+                update.vel.0.z += data.dt.0 * (GRAVITY - self.static_data.movement_speed.powi(2) * data.scale.map_or(1.0, |s| s.0))
             },
             Climb::Up => {
-                update.vel.0.z += data.dt.0 * (GRAVITY + self.static_data.movement_speed.powi(2))
+                update.vel.0.z += data.dt.0 * (GRAVITY + self.static_data.movement_speed.powi(2) * data.scale.map_or(1.0, |s| s.0))
             },
             Climb::Hold => update.vel.0.z += data.dt.0 * GRAVITY,
         }

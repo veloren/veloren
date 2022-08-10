@@ -298,6 +298,7 @@ pub enum ServerChatCommand {
     RevokeBuildAll,
     Safezone,
     Say,
+    Scale,
     ServerPhysics,
     SetMotd,
     Ship,
@@ -727,6 +728,9 @@ impl ServerChatCommand {
             ServerChatCommand::Lightning => {
                 cmd(vec![], "Lightning strike at current position", Some(Admin))
             },
+            ServerChatCommand::Scale => {
+                cmd(vec![Float("factor", 1.0, Required)], "Scale your character", Some(Admin))
+            },
         }
     }
 
@@ -808,6 +812,7 @@ impl ServerChatCommand {
             ServerChatCommand::DeleteLocation => "delete_location",
             ServerChatCommand::WeatherZone => "weather_zone",
             ServerChatCommand::Lightning => "lightning",
+            ServerChatCommand::Scale => "scale",
         }
     }
 

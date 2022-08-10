@@ -196,6 +196,7 @@ fn do_command(
         ServerChatCommand::DeleteLocation => handle_delete_location,
         ServerChatCommand::WeatherZone => handle_weather_zone,
         ServerChatCommand::Lightning => handle_lightning,
+        ServerChatCommand::Scale => handle_scale,
     };
 
     handler(server, client, target, args, cmd)
@@ -3830,6 +3831,29 @@ fn handle_body(
         {
             stat.original_body = body;
         }
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn handle_scale(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(scale) = parse_cmd_args!(args, f32) {
+        let _ = server
+            .state
+            .ecs_mut()
+            .write_storage::<comp::Scale>()
+            .insert(target, comp::Scale(scale));
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, format!("Set scale to {}", scale)),
+        );
         Ok(())
     } else {
         Err(action.help_string())

@@ -526,7 +526,30 @@ impl Scene {
                 .get(scene_data.viewpoint_entity)
                 .map_or(Quaternion::identity(), |ori| ori.to_quat());
 
-            let (is_humanoid, viewpoint_height, viewpoint_eye_height) = ecs
+            let viewpoint_scale = ecs
+                .read_storage::<comp::Scale>()
+                .get(scene_data.viewpoint_entity)
+                .map_or(1.0, |scale| scale.0);
+
+            let viewpoint_rolling = ecs
+                .read_storage::<comp::CharacterState>()
+                .get(scene_data.viewpoint_entity)
+                .map_or(false, |cs| cs.is_dodge());
+
+            let is_running = ecs
+                .read_storage::<comp::Vel>()
+                .get(scene_data.viewpoint_entity)
+                .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2))
+                .unwrap_or(false);
+
+            let on_ground = ecs
+                .read_storage::<comp::PhysicsState>()
+                .get(scene_data.viewpoint_entity)
+                .map(|p| p.on_ground.is_some());
+
+            let (is_humanoid, viewpoint_height, viewpoint_eye_height) = scene_data
+                .state
+                .ecs()
                 .read_storage::<comp::Body>()
                 .get(scene_data.viewpoint_entity)
                 .map_or((false, 1.0, 0.0), |b| {
@@ -602,10 +625,10 @@ impl Scene {
                 let tilt = self.camera.get_orientation().y;
                 let dist = self.camera.get_distance();
 
-                Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6)
+                Vec3::unit_z() * (up * viewpoint_scale - tilt.min(0.0).sin() * dist * 0.6)
             } else {
                 self.figure_mgr
-                    .viewpoint_offset(scene_data, scene_data.viewpoint_entity)
+                    .viewpoint_offset(scene_data, scene_data.viewpoint_entity) * viewpoint_scale
             };
 
             match self.camera.get_mode() {
