@@ -1,5 +1,5 @@
 FinisherMelee(
-    energy_cost: 40,
+    energy_cost: /*40*/0,
     buildup_duration: 0.4,
     swing_duration: 0.1,
     recover_duration: 0.4,
@@ -23,7 +23,7 @@ FinisherMelee(
         target: Attack,
         kind: Linear,
     )),
-    minimum_combo: 10,
+    minimum_combo: /*10*/0,
     meta: (
         kind: Some(Sword(Offensive)),
     ),
