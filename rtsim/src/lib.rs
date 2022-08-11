@@ -49,8 +49,8 @@ impl RtState {
 
     fn start_default_rules(&mut self) {
         info!("Starting default rtsim rules...");
-        self.start_rule::<rule::simulate_npcs::SimulateNpcs>();
         self.start_rule::<rule::setup::Setup>();
+        self.start_rule::<rule::simulate_npcs::SimulateNpcs>();
     }
 
     pub fn start_rule<R: Rule>(&mut self) {
@@ -110,6 +110,8 @@ impl RtState {
     }
 
     pub fn tick(&mut self, world: &World, index: IndexRef, dt: f32) {
-        self.emit(OnTick { dt }, world, index);
+        self.data_mut().time += dt as f64;
+        let event = OnTick { dt, time: self.data().time };
+        self.emit(event, world, index);
     }
 }

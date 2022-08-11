@@ -1,4 +1,4 @@
-use crate::rtsim::Entity as RtSimEntity;
+use common::rtsim::RtSimEntity;
 use common::{
     comp::{
         agent::{
@@ -40,8 +40,6 @@ mod interaction;
 pub struct BehaviorData<'a, 'b, 'c> {
     pub agent: &'a mut Agent,
     pub agent_data: AgentData<'a>,
-    // TODO: Move rtsim back into AgentData after rtsim2 when it has a separate crate
-    // pub rtsim_entity: Option<&'a RtSimEntity>,
     pub read_data: &'a ReadData<'a>,
     pub event_emitter: &'a mut Emitter<'c, ServerEvent>,
     pub controller: &'a mut Controller,
@@ -643,7 +641,6 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
         agent,
         agent_data,
-        // rtsim_entity,
         read_data,
         event_emitter,
         controller,
@@ -750,7 +747,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         controller,
                         read_data,
                         event_emitter,
-                        will_ambush(/* *rtsim_entity */None, agent_data),
+                        will_ambush(agent_data.rtsim_entity, agent_data),
                     );
                 }
 
@@ -768,9 +765,9 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         read_data,
                         event_emitter,
                         rng,
-                        remembers_fight_with(/* *rtsim_entity */None, read_data, target),
+                        remembers_fight_with(agent_data.rtsim_entity, read_data, target),
                     );
-                    remember_fight(/* *rtsim_entity */ None, read_data, agent, target);
+                    remember_fight(agent_data.rtsim_entity, read_data, agent, target);
                 }
             }
         }
@@ -780,10 +777,11 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
 
 fn will_ambush(rtsim_entity: Option<&RtSimEntity>, agent_data: &AgentData) -> bool {
     // TODO: implement for rtsim2
-    agent_data
-        .health
-        .map_or(false, |h| h.current() / h.maximum() > 0.7)
-        && rtsim_entity.map_or(false, |re| re.brain.personality.will_ambush)
+    // agent_data
+    //     .health
+    //     .map_or(false, |h| h.current() / h.maximum() > 0.7)
+    //     && rtsim_entity.map_or(false, |re| re.brain.personality.will_ambush)
+    false
 }
 
 fn remembers_fight_with(
@@ -794,11 +792,12 @@ fn remembers_fight_with(
     // TODO: implement for rtsim2
     let name = || read_data.stats.get(other).map(|stats| stats.name.clone());
 
-    rtsim_entity.map_or(false, |rtsim_entity| {
-        name().map_or(false, |name| {
-            rtsim_entity.brain.remembers_fight_with_character(&name)
-        })
-    })
+    // rtsim_entity.map_or(false, |rtsim_entity| {
+    //     name().map_or(false, |name| {
+    //         rtsim_entity.brain.remembers_fight_with_character(&name)
+    //     })
+    // })
+    false
 }
 
 /// Remember target.

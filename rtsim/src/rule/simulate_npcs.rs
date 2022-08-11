@@ -1,6 +1,7 @@
 use tracing::info;
+use vek::*;
 use crate::{
-    data::npc::NpcLoc,
+    data::npc::NpcMode,
     event::OnTick,
     RtState, Rule, RuleError,
 };
@@ -11,12 +12,33 @@ impl Rule for SimulateNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
 
         rtstate.bind::<Self, OnTick>(|ctx| {
-            for (_, npc) in ctx.state.data_mut().npcs.iter_mut() {
-                npc.tick_wpos(match npc.loc {
-                    NpcLoc::Wild { wpos } => wpos,
-                    NpcLoc::Site { site, wpos } => wpos,
-                    NpcLoc::Travelling { a, b, frac } => todo!(),
-                });
+            for npc in ctx.state
+                .data_mut()
+                .npcs
+                .values_mut()
+                .filter(|npc| matches!(npc.mode, NpcMode::Simulated))
+            {
+                let body = npc.get_body();
+
+                if let Some((target, speed_factor)) = npc.target {
+                    npc.wpos += Vec3::from(
+                        (target.xy() - npc.wpos.xy())
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero)
+                            * body.max_speed_approx()
+                            * speed_factor,
+                    ) * ctx.event.dt;
+                }
+            }
+
+            // Do some thinking. TODO: Not here!
+            for npc in ctx.state
+                .data_mut()
+                .npcs
+                .values_mut()
+            {
+                // TODO: Not this
+                npc.target = Some((npc.wpos + Vec3::new(ctx.event.time.sin() as f32 * 16.0, ctx.event.time.cos() as f32 * 16.0, 0.0), 1.0));
             }
         });
 

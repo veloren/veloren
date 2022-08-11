@@ -28,6 +28,8 @@ pub struct Data {
     pub nature: Nature,
     pub npcs: Npcs,
     pub sites: Sites,
+
+    pub time: f64,
 }
 
 pub type ReadError = rmp_serde::decode::Error;

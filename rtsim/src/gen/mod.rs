@@ -1,7 +1,7 @@
 pub mod site;
 
 use crate::data::{
-    npc::{Npcs, Npc, NpcLoc},
+    npc::{Npcs, Npc},
     site::{Sites, Site},
     Data,
     Nature,
@@ -25,6 +25,8 @@ impl Data {
             nature: Nature::generate(world),
             npcs: Npcs { npcs: Default::default() },
             sites: Sites { sites: Default::default() },
+
+            time: 0.0,
         };
 
         // Register sites with rtsim
@@ -39,10 +41,12 @@ impl Data {
 
         // Spawn some test entities at the sites
         for (site_id, site) in this.sites.iter() {
-            let wpos = site.wpos.map(|e| e as f32)
-                .with_z(world.sim().get_alt_approx(site.wpos).unwrap_or(0.0));
-            this.npcs.create(Npc::new(NpcLoc::Site { site: site_id, wpos }));
-            println!("Spawned rtsim NPC at {:?}", wpos);
+            for _ in 0..10 {
+                let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
+                let wpos = wpos2d.map(|e| e as f32 + 0.5)
+                    .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0));
+                this.npcs.create(Npc::new(rng.gen(), wpos));
+            }
         }
 
         this

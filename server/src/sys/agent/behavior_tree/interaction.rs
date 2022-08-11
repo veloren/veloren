@@ -16,7 +16,6 @@ use rand::{thread_rng, Rng};
 use specs::saveload::Marker;
 
 use crate::{
-    rtsim::entity::{PersonalityTrait, RtSimEntityKind},
     sys::agent::util::get_entity_by_id,
 };
 

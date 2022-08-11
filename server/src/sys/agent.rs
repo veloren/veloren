@@ -206,6 +206,7 @@ impl<'a> System<'a> for Sys {
                         msm: &read_data.msm,
                         poise: read_data.poises.get(entity),
                         stance: read_data.stances.get(entity),
+                        rtsim_entity: read_data.rtsim_entities.get(entity),
                     };
 
                     ///////////////////////////////////////////////////////////

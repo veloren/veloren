@@ -2,49 +2,16 @@ use hashbrown::HashMap;
 use serde::{Serialize, Deserialize};
 use slotmap::HopSlotMap;
 use vek::*;
+use rand::prelude::*;
 use std::ops::{Deref, DerefMut};
 use common::{
     uid::Uid,
     store::Id,
-    rtsim::SiteId,
+    rtsim::{SiteId, RtSimController},
+    comp,
 };
+use world::util::RandomPerm;
 pub use common::rtsim::NpcId;
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct Npc {
-    // Persisted state
-
-    /// Represents the location of the NPC.
-    pub loc: NpcLoc,
-
-    // Unpersisted state
-
-    /// The position of the NPC in the world. Note that this is derived from [`Npc::loc`] and cannot be updated manually
-    #[serde(skip_serializing, skip_deserializing)]
-    wpos: Vec3<f32>,
-    /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the server, loaded corresponds to being
-    /// within a loaded chunk). When in loaded mode, the interactions of the NPC should not be simulated but should
-    /// instead be derived from the game.
-    #[serde(skip_serializing, skip_deserializing)]
-    pub mode: NpcMode,
-}
-
-impl Npc {
-    pub fn new(loc: NpcLoc) -> Self {
-        Self {
-            loc,
-            wpos: Vec3::zero(),
-            mode: NpcMode::Simulated,
-        }
-    }
-
-    pub fn wpos(&self) -> Vec3<f32> { self.wpos }
-
-    /// You almost certainly *DO NOT* want to use this method.
-    ///
-    /// Update the NPC's wpos as a result of routine NPC simulation derived from its location.
-    pub(crate) fn tick_wpos(&mut self, wpos: Vec3<f32>) { self.wpos = wpos; }
-}
 
 #[derive(Copy, Clone, Default)]
 pub enum NpcMode {
@@ -56,14 +23,46 @@ pub enum NpcMode {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub enum NpcLoc {
-    Wild { wpos: Vec3<f32> },
-    Site { site: SiteId, wpos: Vec3<f32> },
-    Travelling {
-        a: SiteId,
-        b: SiteId,
-        frac: f32,
-    },
+pub struct Npc {
+    // Persisted state
+
+    /// Represents the location of the NPC.
+    pub seed: u32,
+    pub wpos: Vec3<f32>,
+
+    // Unpersisted state
+
+    /// (wpos, speed_factor)
+    #[serde(skip_serializing, skip_deserializing)]
+    pub target: Option<(Vec3<f32>, f32)>,
+    /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the server, loaded corresponds to being
+    /// within a loaded chunk). When in loaded mode, the interactions of the NPC should not be simulated but should
+    /// instead be derived from the game.
+    #[serde(skip_serializing, skip_deserializing)]
+    pub mode: NpcMode,
+}
+
+impl Npc {
+    const PERM_SPECIES: u32 = 0;
+    const PERM_BODY: u32 = 1;
+
+    pub fn new(seed: u32, wpos: Vec3<f32>) -> Self {
+        Self {
+            seed,
+            wpos,
+            target: None,
+            mode: NpcMode::Simulated,
+        }
+    }
+
+    pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed + perm) }
+
+    pub fn get_body(&self) -> comp::Body {
+        let species = *(&comp::humanoid::ALL_SPECIES)
+            .choose(&mut self.rng(Self::PERM_SPECIES))
+            .unwrap();
+        comp::humanoid::Body::random_with(&mut self.rng(Self::PERM_BODY), &species).into()
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

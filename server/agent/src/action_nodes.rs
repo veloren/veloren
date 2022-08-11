@@ -212,7 +212,7 @@ impl<'a> AgentData<'a> {
         }
 
         agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.0;
-        if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
+        if let Some(travel_to) = &agent.rtsim_controller.travel_to {
             // If it has an rtsim destination and can fly, then it should.
             // If it is flying and bumps something above it, then it should move down.
             if self.traversal_config.can_fly

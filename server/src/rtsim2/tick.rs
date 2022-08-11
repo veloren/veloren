@@ -8,7 +8,7 @@ use common::{
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time},
     slowjob::SlowJobPool,
-    rtsim::RtSimEntity,
+    rtsim::{RtSimEntity, RtSimController},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim2::data::npc::NpcMode;
@@ -26,6 +26,9 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, Arc<world::World>>,
         ReadExpect<'a, world::IndexOwned>,
         ReadExpect<'a, SlowJobPool>,
+        ReadStorage<'a, comp::Pos>,
+        ReadStorage<'a, RtSimEntity>,
+        WriteStorage<'a, comp::Agent>,
     );
 
     const NAME: &'static str = "rtsim::tick";
@@ -34,7 +37,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (dt, time, mut server_event_bus, mut rtsim, world, index, slow_jobs): Self::SystemData,
+        (dt, time, mut server_event_bus, mut rtsim, world, index, slow_jobs, positions, rtsim_entities, mut agents): Self::SystemData,
     ) {
         let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
@@ -47,7 +50,7 @@ impl<'a> System<'a> for Sys {
 
         let chunk_states = rtsim.state.resource::<ChunkStates>();
         for (npc_id, npc) in rtsim.state.data_mut().npcs.iter_mut() {
-            let chunk = npc.wpos()
+            let chunk = npc.wpos
                 .xy()
                 .map2(TerrainChunk::RECT_SIZE, |e, sz| (e as i32).div_euclid(sz as i32));
 
@@ -55,18 +58,18 @@ impl<'a> System<'a> for Sys {
             if matches!(npc.mode, NpcMode::Simulated) && chunk_states.0.get(chunk).map_or(false, |c| c.is_some()) {
                 npc.mode = NpcMode::Loaded;
 
-                let body = comp::Body::Object(comp::object::Body::Scarecrow);
+                let body = npc.get_body();
                 emitter.emit(ServerEvent::CreateNpc {
-                    pos: comp::Pos(npc.wpos()),
+                    pos: comp::Pos(npc.wpos),
                     stats: comp::Stats::new("Rtsim NPC".to_string()),
                     skill_set: comp::SkillSet::default(),
                     health: None,
                     poise: comp::Poise::new(body),
                     inventory: comp::Inventory::with_empty(),
                     body,
-                    agent: None,
+                    agent: Some(comp::Agent::from_body(&body)),
                     alignment: comp::Alignment::Wild,
-                    scale: comp::Scale(10.0),
+                    scale: comp::Scale(1.0),
                     anchor: None,
                     loot: Default::default(),
                     rtsim_entity: Some(RtSimEntity(npc_id)),
@@ -75,147 +78,24 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        // rtsim.tick += 1;
-
-        // Update unloaded rtsim entities, in groups at a time
-        /*
-        const TICK_STAGGER: usize = 30;
-        let entities_per_iteration = rtsim.entities.len() / TICK_STAGGER;
-        let mut to_reify = Vec::new();
-        for (id, entity) in rtsim
-            .entities
-            .iter_mut()
-            .skip((rtsim.tick as usize % TICK_STAGGER) * entities_per_iteration)
-            .take(entities_per_iteration)
-            .filter(|(_, e)| !e.is_loaded)
-        {
-            if rtsim
-                .chunk_states
-                .get(entity.pos.xy())
-                .copied()
-                .unwrap_or(false)
-            {
-                to_reify.push(id);
-            } else {
-                // Simulate behaviour
-                if let Some(travel_to) = &entity.controller.travel_to {
-                    // Move towards target at approximate character speed
-                    entity.pos += Vec3::from(
-                        (travel_to.0.xy() - entity.pos.xy())
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::zero)
-                            * entity.get_body().max_speed_approx()
-                            * entity.controller.speed_factor,
-                    ) * dt;
-                }
-
-                if let Some(alt) = world
-                    .sim()
-                    .get_alt_approx(entity.pos.xy().map(|e| e.floor() as i32))
-                {
-                    entity.pos.z = alt;
-                }
-            }
-            // entity.tick(&time, &terrain, &world, &index.as_index_ref());
-        }
-        */
-
-        // Tick entity AI each time if it's loaded
-        // for (_, entity) in rtsim.entities.iter_mut().filter(|(_, e)|
-        // e.is_loaded) {     entity.last_time_ticked = time.0;
-        //     entity.tick(&time, &terrain, &world, &index.as_index_ref());
-        // }
-
-        /*
-        let mut server_emitter = server_event_bus.emitter();
-        for id in to_reify {
-            rtsim.reify_entity(id);
-            let entity = &rtsim.entities[id];
-            let rtsim_entity = Some(RtSimEntity(id));
-
-            let body = entity.get_body();
-            let spawn_pos = terrain
-                .find_space(entity.pos.map(|e| e.floor() as i32))
-                .map(|e| e as f32)
-                + Vec3::new(0.5, 0.5, body.flying_height());
-
-            let pos = comp::Pos(spawn_pos);
-
-            let event = if let comp::Body::Ship(ship) = body {
-                ServerEvent::CreateShip {
-                    pos,
-                    ship,
-                    mountable: false,
-                    agent: Some(comp::Agent::from_body(&body)),
-                    rtsim_entity,
-                }
-            } else {
-                let entity_config_path = entity.get_entity_config();
-                let mut loadout_rng = entity.loadout_rng();
-                let ad_hoc_loadout = entity.get_adhoc_loadout();
-                // Body is rewritten so that body parameters
-                // are consistent between reifications
-                let entity_config = EntityConfig::from_asset_expect_owned(entity_config_path)
-                    .with_body(BodyBuilder::Exact(body));
-
-                let mut entity_info = EntityInfo::at(pos.0)
-                    .with_entity_config(entity_config, Some(entity_config_path), &mut loadout_rng)
-                    .with_lazy_loadout(ad_hoc_loadout);
-                // Merchants can be traded with
-                if let Some(economy) = entity.get_trade_info(&world, &index) {
-                    entity_info = entity_info
-                        .with_agent_mark(comp::agent::Mark::Merchant)
-                        .with_economy(&economy);
-                }
-                match NpcData::from_entity_info(entity_info) {
-                    NpcData::Data {
-                        pos,
-                        stats,
-                        skill_set,
-                        health,
-                        poise,
-                        inventory,
-                        agent,
-                        body,
-                        alignment,
-                        scale,
-                        loot,
-                    } => ServerEvent::CreateNpc {
-                        pos,
-                        stats,
-                        skill_set,
-                        health,
-                        poise,
-                        inventory,
-                        agent,
-                        body,
-                        alignment,
-                        scale,
-                        anchor: None,
-                        loot,
-                        rtsim_entity,
-                        projectile: None,
-                    },
-                    // EntityConfig can't represent Waypoints at all
-                    // as of now, and if someone will try to spawn
-                    // rtsim waypoint it is definitely error.
-                    NpcData::Waypoint(_) => unimplemented!(),
-                }
-            };
-            server_emitter.emit(event);
-        }
-
-        // Update rtsim with real entity data
-        for (pos, rtsim_entity, agent) in (&positions, &rtsim_entities, &mut agents).join() {
+        // Synchronise rtsim NPC with entity data
+        for (pos, rtsim_entity, agent) in (&positions, &rtsim_entities, (&mut agents).maybe()).join() {
             rtsim
-                .entities
+                .state
+                .data_mut()
+                .npcs
                 .get_mut(rtsim_entity.0)
-                .filter(|e| e.is_loaded)
-                .map(|entity| {
-                    entity.pos = pos.0;
-                    agent.rtsim_controller = entity.controller.clone();
+                .filter(|npc| matches!(npc.mode, NpcMode::Loaded))
+                .map(|npc| {
+                    // Update rtsim NPC state
+                    npc.wpos = pos.0;
+
+                    // Update entity state
+                    if let Some(agent) = agent {
+                        agent.rtsim_controller.travel_to = npc.target.map(|(wpos, _)| wpos);
+                        agent.rtsim_controller.speed_factor = npc.target.map_or(1.0, |(_, sf)| sf);
+                    }
                 });
         }
-        */
     }
 }

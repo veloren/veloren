@@ -17,5 +17,8 @@ pub struct OnSetup;
 impl Event for OnSetup {}
 
 #[derive(Clone)]
-pub struct OnTick { pub dt: f32 }
+pub struct OnTick {
+    pub dt: f32,
+    pub time: f64,
+}
 impl Event for OnTick {}
