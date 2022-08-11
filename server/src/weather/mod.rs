@@ -20,6 +20,7 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<sync::Sys>(dispatch_builder, &[&tick::Sys::sys_name()]);
 }
 
+#[cfg(feature = "worldgen")]
 pub fn init(state: &mut State, world: &world::World) {
     let weather_size = world.sim().get_size() / CHUNKS_PER_CELL;
     let sim = WeatherSim::new(weather_size, world);
