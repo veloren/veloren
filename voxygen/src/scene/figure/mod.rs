@@ -809,7 +809,7 @@ impl FigureMgr {
             const MIN_PERFECT_RATE_DIST: f32 = 100.0;
 
             if (i as u64 + tick)
-                % (((pos.0.distance_squared(focus_pos).powf(0.25) - MIN_PERFECT_RATE_DIST.sqrt())
+                % ((((pos.0.distance_squared(focus_pos) / scale.map_or(1.0, |s| s.0)).powf(0.25) - MIN_PERFECT_RATE_DIST.sqrt())
                     .max(0.0)
                     / 3.0) as u64)
                     .saturating_add(1)

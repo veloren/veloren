@@ -1189,8 +1189,8 @@ fn handle_spawn(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    match parse_cmd_args!(args, String, npc::NpcBody, u32, bool) {
-        (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai) => {
+    match parse_cmd_args!(args, String, npc::NpcBody, u32, bool, f32) {
+        (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai, opt_scale) => {
             let uid = uid(server, target, "target")?;
             let alignment = parse_alignment(uid, &opt_align)?;
             let amount = opt_amount.filter(|x| *x > 0).unwrap_or(1).min(50);
@@ -1227,7 +1227,7 @@ fn handle_spawn(
                         body,
                     )
                     .with(comp::Vel(vel))
-                    .with(body.scale())
+                    .with(opt_scale.map(comp::Scale).unwrap_or(body.scale()))
                     .with(alignment);
 
                 if ai {
