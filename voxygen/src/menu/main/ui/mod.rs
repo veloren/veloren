@@ -501,6 +501,9 @@ impl Controls {
                 screen.banner.server = text_input::State::new();
                 screen.banner.username = text_input::State::focused();
                 screen.banner.username.move_cursor_to_end();
+            } else {
+                screen.banner.username = text_input::State::focused();
+                screen.banner.username.move_cursor_to_end();
             }
         }
     }
