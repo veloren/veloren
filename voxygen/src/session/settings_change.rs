@@ -210,9 +210,9 @@ impl SettingsChange {
                         settings.audio.ambience_volume = ambience_volume;
                     },
                     Audio::AdjustMusicFrequency(multiplier) => {
-                        global_state.audio.set_music_frequency(multiplier);
+                        global_state.audio.set_music_spacing(multiplier);
 
-                        settings.audio.music_frequency = multiplier;
+                        settings.audio.music_spacing = multiplier;
                     },
                     //Audio::ChangeAudioDevice(name) => {
                     //    global_state.audio.set_device(name.clone());

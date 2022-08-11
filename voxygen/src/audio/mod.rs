@@ -55,7 +55,7 @@ pub struct AudioFrontend {
     ambience_volume: f32,
     music_volume: f32,
     master_volume: f32,
-    music_frequency: f32,
+    music_spacing: f32,
     listener: Listener,
 
     mtm: AssetHandle<MusicTransitionManifest>,
@@ -108,7 +108,7 @@ impl AudioFrontend {
             ambience_volume: 1.0,
             music_volume: 1.0,
             master_volume: 1.0,
-            music_frequency: 1.0,
+            music_spacing: 1.0,
             listener: Listener::default(),
             mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
         }
@@ -140,7 +140,7 @@ impl AudioFrontend {
             ambience_volume: 1.0,
             music_volume: 1.0,
             master_volume: 1.0,
-            music_frequency: 1.0,
+            music_spacing: 1.0,
             listener: Listener::default(),
             mtm,
         }
@@ -516,7 +516,7 @@ impl AudioFrontend {
         }
     }
 
-    pub fn set_music_frequency(&mut self, multiplier: f32) { self.music_frequency = multiplier }
+    pub fn set_music_spacing(&mut self, multiplier: f32) { self.music_spacing = multiplier }
 
     /// Updates master volume in all channels
     pub fn set_master_volume(&mut self, master_volume: f32) {
