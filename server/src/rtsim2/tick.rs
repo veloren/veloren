@@ -39,7 +39,7 @@ impl<'a> System<'a> for Sys {
         let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
 
-        rtsim.state.tick(dt.0);
+        rtsim.state.tick(&world, index.as_index_ref(), dt.0);
 
         if rtsim.last_saved.map_or(true, |ls| ls.elapsed() > Duration::from_secs(60)) {
             rtsim.save(&slow_jobs);
@@ -47,7 +47,7 @@ impl<'a> System<'a> for Sys {
 
         let chunk_states = rtsim.state.resource::<ChunkStates>();
         for (npc_id, npc) in rtsim.state.data_mut().npcs.iter_mut() {
-            let chunk = npc.wpos
+            let chunk = npc.wpos()
                 .xy()
                 .map2(TerrainChunk::RECT_SIZE, |e, sz| (e as i32).div_euclid(sz as i32));
 
@@ -55,11 +55,9 @@ impl<'a> System<'a> for Sys {
             if matches!(npc.mode, NpcMode::Simulated) && chunk_states.0.get(chunk).map_or(false, |c| c.is_some()) {
                 npc.mode = NpcMode::Loaded;
 
-                println!("Loading in rtsim NPC at {:?}", npc.wpos);
-
                 let body = comp::Body::Object(comp::object::Body::Scarecrow);
                 emitter.emit(ServerEvent::CreateNpc {
-                    pos: comp::Pos(npc.wpos),
+                    pos: comp::Pos(npc.wpos()),
                     stats: comp::Stats::new("Rtsim NPC".to_string()),
                     skill_set: comp::SkillSet::default(),
                     health: None,

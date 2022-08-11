@@ -707,7 +707,13 @@ impl Server {
         fn on_block_update(ecs: &specs::World, wpos: Vec3<i32>, old_block: Block, new_block: Block) {
             // When a resource block updates, inform rtsim
             if old_block.get_rtsim_resource().is_some() || new_block.get_rtsim_resource().is_some() {
-                ecs.write_resource::<rtsim2::RtSim>().hook_block_update(wpos, old_block, new_block);
+                ecs.write_resource::<rtsim2::RtSim>().hook_block_update(
+                    &ecs.read_resource::<Arc<world::World>>(),
+                    ecs.read_resource::<Arc<world::IndexOwned>>().as_index_ref(),
+                    wpos,
+                    old_block,
+                    new_block,
+                );
             }
         }
 

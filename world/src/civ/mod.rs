@@ -1430,6 +1430,7 @@ fn find_site_loc(
             });
         }
     }
+
     debug!("Failed to place site {:?}.", site_kind);
     None
 }

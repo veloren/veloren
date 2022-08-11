@@ -1,8 +1,10 @@
 pub mod npc;
+pub mod site;
 pub mod nature;
 
 pub use self::{
     npc::{Npc, NpcId, Npcs},
+    site::{Site, SiteId, Sites},
     nature::Nature,
 };
 
@@ -25,6 +27,7 @@ pub enum Actor {
 pub struct Data {
     pub nature: Nature,
     pub npcs: Npcs,
+    pub sites: Sites,
 }
 
 pub type ReadError = rmp_serde::decode::Error;
@@ -39,13 +42,6 @@ impl Data {
         rmp_serde::encode::write_named(&mut writer, self)
     }
 }
-
-// fn rugged_ser_enum_map<K: EnumArray<V> + Serialize, V: PartialEq + Default + Serialize, S: ser::Serializer>(map: &EnumMap<K, V>, mut ser: S) -> Result<S::Ok, S::Error> {
-//     ser.collect_map(map
-//         .iter()
-//         .filter(|(k, v)| v != &&V::default())
-//         .map(|(k, v)| (k, v)))
-// }
 
 fn rugged_ser_enum_map<
     K: EnumArray<V> + Serialize,

@@ -7,9 +7,10 @@ pub mod rule;
 
 pub use self::{
     data::Data,
-    event::{Event, OnTick},
+    event::{Event, EventCtx, OnTick},
     rule::{Rule, RuleError},
 };
+use world::{World, IndexRef};
 use anymap2::SendSyncAnyMap;
 use tracing::{info, error};
 use atomic_refcell::AtomicRefCell;
@@ -25,7 +26,7 @@ pub struct RtState {
 }
 
 type RuleState<R> = AtomicRefCell<R>;
-type EventHandlersOf<E> = Vec<Box<dyn Fn(&RtState, E) + Send + Sync + 'static>>;
+type EventHandlersOf<E> = Vec<Box<dyn Fn(&RtState, &World, IndexRef, &E) + Send + Sync + 'static>>;
 
 impl RtState {
     pub fn new(data: Data) -> Self {
@@ -48,7 +49,8 @@ impl RtState {
 
     fn start_default_rules(&mut self) {
         info!("Starting default rtsim rules...");
-        self.start_rule::<rule::example::RuleState>();
+        self.start_rule::<rule::simulate_npcs::SimulateNpcs>();
+        self.start_rule::<rule::setup::Setup>();
     }
 
     pub fn start_rule<R: Rule>(&mut self) {
@@ -66,13 +68,19 @@ impl RtState {
             .borrow_mut()
     }
 
-    pub fn bind<R: Rule, E: Event>(&mut self, mut f: impl FnMut(&mut R, &RtState, E) + Send + Sync + 'static) {
+    pub fn bind<R: Rule, E: Event>(&mut self, mut f: impl FnMut(EventCtx<R, E>) + Send + Sync + 'static) {
         let f = AtomicRefCell::new(f);
         self.event_handlers
             .entry::<EventHandlersOf<E>>()
             .or_default()
-            .push(Box::new(move |rtstate, event| {
-                (f.borrow_mut())(&mut rtstate.rule_mut(), rtstate, event)
+            .push(Box::new(move |state, world, index, event| {
+                (f.borrow_mut())(EventCtx {
+                    state,
+                    rule: &mut state.rule_mut(),
+                    event,
+                    world,
+                    index,
+                })
             }));
     }
 
@@ -93,15 +101,15 @@ impl RtState {
             .borrow_mut()
     }
 
-    pub fn emit<E: Event>(&mut self, e: E) {
+    pub fn emit<E: Event>(&mut self, e: E, world: &World, index: IndexRef) {
         self.event_handlers
             .get::<EventHandlersOf<E>>()
             .map(|handlers| handlers
                 .iter()
-                .for_each(|f| f(self, e.clone())));
+                .for_each(|f| f(self, world, index, &e)));
     }
 
-    pub fn tick(&mut self, dt: f32) {
-        self.emit(OnTick { dt });
+    pub fn tick(&mut self, world: &World, index: IndexRef, dt: f32) {
+        self.emit(OnTick { dt }, world, index);
     }
 }

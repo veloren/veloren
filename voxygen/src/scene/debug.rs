@@ -7,7 +7,7 @@ use hashbrown::{HashMap, HashSet};
 use tracing::warn;
 use vek::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DebugShape {
     Line([Vec3<f32>; 2]),
     Cylinder {
@@ -261,7 +261,8 @@ pub struct DebugShapeId(pub u64);
 
 pub struct Debug {
     next_shape_id: DebugShapeId,
-    pending_shapes: HashMap<DebugShapeId, DebugShape>,
+    shapes: HashMap<DebugShapeId, DebugShape>,
+    pending: HashSet<DebugShapeId>,
     pending_locals: HashMap<DebugShapeId, ([f32; 4], [f32; 4], [f32; 4])>,
     pending_deletes: HashSet<DebugShapeId>,
     models: HashMap<DebugShapeId, (Model<DebugVertex>, Bound<Consts<DebugLocals>>)>,
@@ -272,7 +273,8 @@ impl Debug {
     pub fn new() -> Debug {
         Debug {
             next_shape_id: DebugShapeId(0),
-            pending_shapes: HashMap::new(),
+            shapes: HashMap::new(),
+            pending: HashSet::new(),
             pending_locals: HashMap::new(),
             pending_deletes: HashSet::new(),
             models: HashMap::new(),
@@ -286,8 +288,13 @@ impl Debug {
         if matches!(shape, DebugShape::TrainTrack { .. }) {
             self.casts_shadow.insert(id);
         }
-        self.pending_shapes.insert(id, shape);
+        self.shapes.insert(id, shape);
+        self.pending.insert(id);
         id
+    }
+
+    pub fn get_shape(&self, id: DebugShapeId) -> Option<&DebugShape> {
+        self.shapes.get(&id)
     }
 
     pub fn set_context(&mut self, id: DebugShapeId, pos: [f32; 4], color: [f32; 4], ori: [f32; 4]) {
@@ -297,19 +304,21 @@ impl Debug {
     pub fn remove_shape(&mut self, id: DebugShapeId) { self.pending_deletes.insert(id); }
 
     pub fn maintain(&mut self, renderer: &mut Renderer) {
-        for (id, shape) in self.pending_shapes.drain() {
-            if let Some(model) = renderer.create_model(&shape.mesh()) {
-                let locals = renderer.create_debug_bound_locals(&[DebugLocals {
-                    pos: [0.0; 4],
-                    color: [1.0, 0.0, 0.0, 1.0],
-                    ori: [0.0, 0.0, 0.0, 1.0],
-                }]);
-                self.models.insert(id, (model, locals));
-            } else {
-                warn!(
-                    "Failed to create model for debug shape {:?}: {:?}",
-                    id, shape
-                );
+        for id in self.pending.drain() {
+            if let Some(shape) = self.shapes.get(&id) {
+                if let Some(model) = renderer.create_model(&shape.mesh()) {
+                    let locals = renderer.create_debug_bound_locals(&[DebugLocals {
+                        pos: [0.0; 4],
+                        color: [1.0, 0.0, 0.0, 1.0],
+                        ori: [0.0, 0.0, 0.0, 1.0],
+                    }]);
+                    self.models.insert(id, (model, locals));
+                } else {
+                    warn!(
+                        "Failed to create model for debug shape {:?}: {:?}",
+                        id, shape
+                    );
+                }
             }
         }
         for (id, (pos, color, ori)) in self.pending_locals.drain() {
@@ -330,6 +339,7 @@ impl Debug {
         }
         for id in self.pending_deletes.drain() {
             self.models.remove(&id);
+            self.shapes.remove(&id);
         }
     }
 

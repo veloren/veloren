@@ -9,6 +9,7 @@ use crate::{
     },
     // rtsim::RtSim,
     sys::terrain::SAFE_ZONE_RADIUS,
+    rtsim2,
     Server, SpawnPoint, StateExt,
 };
 use authc::Uuid;
@@ -26,7 +27,7 @@ use common::{
     event::{EventBus, ServerEvent},
     outcome::{HealthChangeInfo, Outcome},
     resources::{Secs, Time},
-    // rtsim::RtSimEntity,
+    rtsim::RtSimEntity,
     states::utils::{AbilityInfo, StageSection},
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
@@ -519,7 +520,6 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
     }
 
     if should_delete {
-        /*
         if let Some(rtsim_entity) = state
             .ecs()
             .read_storage::<RtSimEntity>()
@@ -528,10 +528,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         {
             state
                 .ecs()
-                .write_resource::<RtSim>()
-                .destroy_entity(rtsim_entity.0);
+                .write_resource::<rtsim2::RtSim>()
+                .hook_rtsim_entity_delete(rtsim_entity);
         }
-        */
 
         if let Err(e) = state.delete_entity_recorded(entity) {
             error!(?e, ?entity, "Failed to delete destroyed entity");

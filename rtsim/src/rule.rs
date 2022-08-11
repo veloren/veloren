@@ -1,4 +1,5 @@
-pub mod example;
+pub mod setup;
+pub mod simulate_npcs;
 
 use std::fmt;
 use super::RtState;

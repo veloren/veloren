@@ -17,6 +17,7 @@ use rtsim2::{
         ReadError,
     },
     rule::Rule,
+    event::OnSetup,
     RtState,
 };
 use specs::{DispatcherBuilder, WorldExt};
@@ -80,7 +81,7 @@ impl RtSim {
                 warn!("'RTSIM_NOLOAD' is set, skipping loading of rtsim state (old state will be overwritten).");
             }
 
-            let data = Data::generate(index, &world);
+            let data = Data::generate(&world, index);
             info!("Rtsim data generated.");
             data
         };
@@ -93,6 +94,8 @@ impl RtSim {
         };
 
         rule::start_rules(&mut this.state);
+
+        this.state.emit(OnSetup, world, index);
 
         Ok(this)
     }
@@ -120,14 +123,19 @@ impl RtSim {
         }
     }
 
-    pub fn hook_block_update(&mut self, wpos: Vec3<i32>, old: Block, new: Block) {
-        self.state.emit(event::OnBlockChange { wpos, old, new });
+    pub fn hook_block_update(&mut self, world: &World, index: IndexRef, wpos: Vec3<i32>, old: Block, new: Block) {
+        self.state.emit(event::OnBlockChange { wpos, old, new }, world, index);
     }
 
     pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
         if let Some(npc) = self.state.data_mut().npcs.get_mut(entity.0) {
             npc.mode = NpcMode::Simulated;
         }
+    }
+
+    pub fn hook_rtsim_entity_delete(&mut self, entity: RtSimEntity) {
+        // TODO: Emit event on deletion to catch death?
+        self.state.data_mut().npcs.remove(entity.0);
     }
 
     pub fn save(&mut self, slowjob_pool: &SlowJobPool) {

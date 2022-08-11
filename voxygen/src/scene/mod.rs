@@ -1465,17 +1465,28 @@ impl Scene {
                         z_min,
                         z_max,
                     } => {
+                        let scale = scale.map_or(1.0, |s| s.0);
                         current_entities.insert(entity);
-                        let s = scale.map_or(1.0, |sc| sc.0);
+
+                        let shape = DebugShape::CapsulePrism {
+                            p0: *p0 * scale,
+                            p1: *p1 * scale,
+                            radius: *radius * scale,
+                            height: (*z_max - *z_min) * scale,
+                        };
+
+                        // If this shape no longer matches, remove the old one
+                        if let Some(shape_id) = hitboxes.get(&entity) {
+                            if self.debug.get_shape(*shape_id).map_or(false, |s| s != &shape) {
+                                self.debug.remove_shape(*shape_id);
+                                hitboxes.remove(&entity);
+                            }
+                        }
+
                         let shape_id = hitboxes.entry(entity).or_insert_with(|| {
-                            self.debug.add_shape(DebugShape::CapsulePrism {
-                                p0: *p0 * s,
-                                p1: *p1 * s,
-                                radius: *radius * s,
-                                height: (*z_max - *z_min) * s,
-                            })
+                            self.debug.add_shape(shape)
                         });
-                        let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
+                        let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min * scale, 0.0];
                         let color = if group == Some(&comp::group::ENEMY) {
                             [1.0, 0.0, 0.0, 0.5]
                         } else if group == Some(&comp::group::NPC) {

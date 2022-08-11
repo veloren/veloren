@@ -11,6 +11,8 @@ use crate::comp::dialogue::MoodState;
 
 slotmap::new_key_type! { pub struct NpcId; }
 
+slotmap::new_key_type! { pub struct SiteId; }
+
 #[derive(Copy, Clone, Debug)]
 pub struct RtSimEntity(pub NpcId);
 
