@@ -341,30 +341,33 @@ impl MusicMgr {
         // a town, or exploring.
         // TODO: make this something that is decided when a song ends, instead of when
         // it begins
-        let frequency_multipler = audio.music_frequency;
-        let silence_between_tracks_seconds: f32 =
-            if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                && matches!(client.current_site(), SitesKind::Settlement)
-            {
-                rng.gen_range(120.0 * frequency_multipler..180.0 * frequency_multipler)
-            } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                && matches!(client.current_site(), SitesKind::Dungeon)
-            {
-                rng.gen_range(10.0 * frequency_multipler..20.0 * frequency_multipler)
-            } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                && matches!(client.current_site(), SitesKind::Cave)
-            {
-                rng.gen_range(20.0 * frequency_multipler..40.0 * frequency_multipler)
-            } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
-                rng.gen_range(120.0 * frequency_multipler..240.0 * frequency_multipler)
-            } else if matches!(
-                music_state,
-                MusicState::Activity(MusicActivity::Combat(_)) | MusicState::Transition(_, _)
-            ) {
-                0.0
-            } else {
-                rng.gen_range(30.0 * frequency_multipler..60.0 * frequency_multipler)
-            };
+        let spacing_multiplier = audio.music_spacing;
+        let mut silence_between_tracks_seconds: f32 = 0.0;
+        if spacing_multiplier > f32::EPSILON {
+            silence_between_tracks_seconds =
+                if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
+                    && matches!(client.current_site(), SitesKind::Settlement)
+                {
+                    rng.gen_range(120.0 * spacing_multiplier..180.0 * spacing_multiplier)
+                } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
+                    && matches!(client.current_site(), SitesKind::Dungeon)
+                {
+                    rng.gen_range(10.0 * spacing_multiplier..20.0 * spacing_multiplier)
+                } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
+                    && matches!(client.current_site(), SitesKind::Cave)
+                {
+                    rng.gen_range(20.0 * spacing_multiplier..40.0 * spacing_multiplier)
+                } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
+                    rng.gen_range(120.0 * spacing_multiplier..240.0 * spacing_multiplier)
+                } else if matches!(
+                    music_state,
+                    MusicState::Activity(MusicActivity::Combat(_)) | MusicState::Transition(_, _)
+                ) {
+                    0.0
+                } else {
+                    rng.gen_range(30.0 * spacing_multiplier..60.0 * spacing_multiplier)
+                };
+        }
 
         let is_dark = (state.get_day_period().is_dark()) as bool;
         let current_period_of_day = Self::get_current_day_period(is_dark);

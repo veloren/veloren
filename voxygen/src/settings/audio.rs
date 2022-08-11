@@ -28,7 +28,7 @@ pub struct AudioSettings {
     pub ambience_volume: f32,
     pub num_sfx_channels: usize,
     pub num_ui_channels: usize,
-    pub music_frequency: f32,
+    pub music_spacing: f32,
 
     /// Audio Device that Voxygen will use to play audio.
     pub output: AudioOutput,
@@ -44,7 +44,7 @@ impl Default for AudioSettings {
             ambience_volume: 0.6,
             num_sfx_channels: 60,
             num_ui_channels: 10,
-            music_frequency: 1.0,
+            music_spacing: 1.0,
             output: AudioOutput::Automatic,
         }
     }

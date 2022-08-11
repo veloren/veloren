@@ -289,16 +289,16 @@ impl<'a> Widget for Sound<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.ambience_volume_number, ui);
 
-        // Music frequency (actually gap between songs)
+        // Music spacing
         Text::new(&self.localized_strings.get("hud.settings.music_frequency"))
             .down_from(state.ids.ambience_volume_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.music_frequency_text, ui);
-        // Music frequency Slider
+        // Music spacing Slider
         if let Some(new_val) = ImageSlider::continuous(
-            self.global_state.settings.audio.music_frequency,
+            self.global_state.settings.audio.music_spacing,
             0.0,
             2.0,
             self.imgs.slider_indicator,
@@ -313,10 +313,10 @@ impl<'a> Widget for Sound<'a> {
         {
             events.push(AdjustMusicFrequency(new_val));
         }
-        // Music frequency Number
+        // Music spacing Number
         Text::new(&format!(
             "{:1.2}x",
-            self.global_state.settings.audio.music_frequency
+            self.global_state.settings.audio.music_spacing
         ))
         .right_from(state.ids.music_frequency_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
