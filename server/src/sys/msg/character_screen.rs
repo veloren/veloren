@@ -1,5 +1,5 @@
 use crate::{
-    alias_validator::AliasValidator,
+    automod::AutoMod,
     character_creator,
     client::Client,
     persistence::{character_loader::CharacterLoader, character_updater::CharacterUpdater},
@@ -14,7 +14,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect};
-use std::sync::atomic::Ordering;
+use std::sync::{atomic::Ordering, Arc};
 use tracing::debug;
 
 impl Sys {
@@ -29,7 +29,8 @@ impl Sys {
         admins: &ReadStorage<'_, Admin>,
         presences: &ReadStorage<'_, Presence>,
         editable_settings: &ReadExpect<'_, EditableSettings>,
-        alias_validator: &ReadExpect<'_, AliasValidator>,
+        censor: &ReadExpect<'_, Arc<censor::Censor>>,
+        automod: &AutoMod,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         let mut send_join_messages = || -> Result<(), crate::error::Error> {
@@ -38,6 +39,14 @@ impl Sys {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
                     &*editable_settings.server_description,
+                ))?;
+            }
+
+            // Warn them about automod
+            if automod.enabled() {
+                client.send(ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    "Automatic moderation is enabled: play nice and have fun!",
                 ))?;
             }
 
@@ -128,9 +137,12 @@ impl Sys {
                 offhand,
                 body,
             } => {
-                if let Err(error) = alias_validator.validate(&alias) {
-                    debug!(?error, ?alias, "denied alias as it contained a banned word");
-                    client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
+                if censor.check(&alias) {
+                    debug!(?alias, "denied alias as it contained a banned word");
+                    client.send(ServerGeneral::CharacterActionError(format!(
+                        "Alias '{}' contains a banned word",
+                        alias
+                    )))?;
                 } else if let Some(player) = players.get(entity) {
                     if let Err(error) = character_creator::create_character(
                         entity,
@@ -153,9 +165,12 @@ impl Sys {
                 }
             },
             ClientGeneral::EditCharacter { id, alias, body } => {
-                if let Err(error) = alias_validator.validate(&alias) {
-                    debug!(?error, ?alias, "denied alias as it contained a banned word");
-                    client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
+                if censor.check(&alias) {
+                    debug!(?alias, "denied alias as it contained a banned word");
+                    client.send(ServerGeneral::CharacterActionError(format!(
+                        "Alias '{}' contains a banned word",
+                        alias
+                    )))?;
                 } else if let Some(player) = players.get(entity) {
                     if let Err(error) = character_creator::edit_character(
                         entity,
@@ -210,7 +225,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Admin>,
         ReadStorage<'a, Presence>,
         ReadExpect<'a, EditableSettings>,
-        ReadExpect<'a, AliasValidator>,
+        ReadExpect<'a, Arc<censor::Censor>>,
+        ReadExpect<'a, AutoMod>,
     );
 
     const NAME: &'static str = "msg::character_screen";
@@ -230,7 +246,8 @@ impl<'a> System<'a> for Sys {
             admins,
             presences,
             editable_settings,
-            alias_validator,
+            censor,
+            automod,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
@@ -248,7 +265,8 @@ impl<'a> System<'a> for Sys {
                     &admins,
                     &presences,
                     &editable_settings,
-                    &alias_validator,
+                    &censor,
+                    &automod,
                     msg,
                 )
             });

@@ -554,6 +554,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "censor"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5563d2728feef9a6186acdd148bccbe850dad63c5ba55a3b3355abc9137cb3eb"
+dependencies = [
+ "once_cell",
+]
+
+[[package]]
 name = "cesu8"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6711,6 +6720,7 @@ dependencies = [
  "atomicwrites",
  "authc",
  "bincode",
+ "censor",
  "chrono",
  "chrono-tz",
  "crossbeam-channel",

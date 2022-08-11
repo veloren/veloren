@@ -96,6 +96,44 @@ impl Default for GameplaySettings {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ModerationSettings {
+    #[serde(default)]
+    pub banned_words_files: Vec<PathBuf>,
+    #[serde(default)]
+    pub automod: bool,
+    #[serde(default)]
+    pub admins_exempt: bool,
+}
+
+impl ModerationSettings {
+    pub fn load_banned_words(&self, data_dir: &Path) -> Vec<String> {
+        let mut banned_words = Vec::new();
+        for fname in self.banned_words_files.iter() {
+            let mut path = with_config_dir(data_dir);
+            path.push(fname);
+            match std::fs::File::open(&path) {
+                Ok(file) => match ron::de::from_reader(&file) {
+                    Ok(mut words) => banned_words.append(&mut words),
+                    Err(error) => error!(?error, ?file, "Couldn't read banned words file"),
+                },
+                Err(error) => error!(?error, ?path, "Couldn't open banned words file"),
+            }
+        }
+        banned_words
+    }
+}
+
+impl Default for ModerationSettings {
+    fn default() -> Self {
+        Self {
+            banned_words_files: Vec::new(),
+            automod: false,
+            admins_exempt: true,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CalendarMode {
     None,
     Auto,
@@ -132,7 +170,6 @@ pub struct Settings {
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
     pub max_view_distance: Option<u32>,
-    pub banned_words_files: Vec<PathBuf>,
     pub max_player_group_size: u32,
     pub client_timeout: Duration,
     pub spawn_town: Option<String>,
@@ -146,6 +183,8 @@ pub struct Settings {
 
     #[serde(default)]
     pub gameplay: GameplaySettings,
+    #[serde(default)]
+    pub moderation: ModerationSettings,
 }
 
 impl Default for Settings {
@@ -167,7 +206,6 @@ impl Default for Settings {
             start_time: 9.0 * 3600.0,
             map_file: None,
             max_view_distance: Some(65),
-            banned_words_files: Vec::new(),
             max_player_group_size: 6,
             calendar_mode: CalendarMode::Auto,
             client_timeout: Duration::from_secs(40),
@@ -175,6 +213,7 @@ impl Default for Settings {
             max_player_for_kill_broadcast: None,
             experimental_terrain_persistence: false,
             gameplay: GameplaySettings::default(),
+            moderation: ModerationSettings::default(),
         }
     }
 }
@@ -265,7 +304,7 @@ impl Settings {
     }
 }
 
-fn with_config_dir(path: &Path) -> PathBuf {
+pub fn with_config_dir(path: &Path) -> PathBuf {
     let mut path = PathBuf::from(path);
     path.push(CONFIG_DIR);
     path

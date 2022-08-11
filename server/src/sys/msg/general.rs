@@ -6,9 +6,7 @@ use common::{
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{
-    validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG,
-};
+use common_net::msg::ClientGeneral;
 use specs::{Entities, Join, Read, ReadStorage};
 use tracing::{debug, error, warn};
 
@@ -25,24 +23,16 @@ impl Sys {
         match msg {
             ClientGeneral::ChatMsg(message) => {
                 if player.is_some() {
-                    match validate_chat_msg(&message) {
-                        Ok(()) => {
-                            if let Some(from) = uids.get(entity) {
-                                const CHAT_MODE_DEFAULT: &ChatMode = &ChatMode::default();
-                                let mode = chat_modes.get(entity).unwrap_or(CHAT_MODE_DEFAULT);
-                                // Send chat message
-                                server_emitter
-                                    .emit(ServerEvent::Chat(mode.new_message(*from, message)));
-                            } else {
-                                error!("Could not send message. Missing player uid");
-                            }
-                        },
-                        Err(ChatMsgValidationError::TooLong) => {
-                            let max = MAX_BYTES_CHAT_MSG;
-                            let len = message.len();
-                            warn!(?len, ?max, "Received a chat message that's too long")
-                        },
+                    if let Some(from) = uids.get(entity) {
+                        const CHAT_MODE_DEFAULT: &ChatMode = &ChatMode::default();
+                        let mode = chat_modes.get(entity).unwrap_or(CHAT_MODE_DEFAULT);
+                        // Send chat message
+                        server_emitter.emit(ServerEvent::Chat(mode.new_message(*from, message)));
+                    } else {
+                        error!("Could not send message. Missing player uid");
                     }
+                } else {
+                    warn!("Received a chat message from an unregistered client");
                 }
             },
             ClientGeneral::Command(name, args) => {
@@ -93,7 +83,7 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client, player) in (&entities, &clients, (&players).maybe()).join() {
+        for (entity, client, player) in (&entities, &clients, players.maybe()).join() {
             let res = super::try_recv_all(client, 3, |client, msg| {
                 Self::handle_general_msg(
                     &mut server_emitter,
