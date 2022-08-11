@@ -12,7 +12,6 @@
     option_zip,
     unwrap_infallible
 )]
-#![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
 pub mod automod;
 mod character_creator;
@@ -39,7 +38,9 @@ pub mod sys;
 #[cfg(feature = "persistent_world")]
 pub mod terrain_persistence;
 #[cfg(not(feature = "worldgen"))] mod test_world;
+
 mod weather;
+
 pub mod wiring;
 
 // Reexports
@@ -546,11 +547,12 @@ impl Server {
 
         // Initiate real-time world simulation
         #[cfg(feature = "worldgen")]
-        rtsim::init(&mut state, &world, index.as_index_ref(), spawn_point);
+        {
+            rtsim::init(&mut state, &world, index.as_index_ref(), spawn_point);
+            weather::init(&mut state, &world);
+        }
         #[cfg(not(feature = "worldgen"))]
         rtsim::init(&mut state);
-
-        weather::init(&mut state, &world);
 
         let this = Self {
             state,
@@ -689,8 +691,10 @@ impl Server {
                 sys::msg::add_server_systems(dispatcher_builder);
                 sys::add_server_systems(dispatcher_builder);
                 #[cfg(feature = "worldgen")]
-                rtsim::add_server_systems(dispatcher_builder);
-                weather::add_server_systems(dispatcher_builder);
+                {
+                    rtsim::add_server_systems(dispatcher_builder);
+                    weather::add_server_systems(dispatcher_builder);
+                }
             },
             false,
         );

@@ -53,7 +53,7 @@ impl Lod {
             client.world_data().lod_base.raw(),
             client.world_data().lod_alt.raw(),
             client.world_data().lod_horizon.raw(),
-            client.world_data().chunk_size().as_() / weather::CHUNKS_PER_CELL,
+            (client.world_data().chunk_size().as_() / weather::CHUNKS_PER_CELL).map(|e| e.max(1)),
             settings.graphics.lod_detail.max(100).min(2500),
             /* TODO: figure out how we want to do this without color borders?
              * water_color().into_array().into(), */
