@@ -30,7 +30,8 @@ pub mod metrics;
 pub mod persistence;
 mod pet;
 pub mod presence;
-pub mod rtsim;
+// TODO: Remove
+//pub mod rtsim;
 pub mod rtsim2;
 pub mod settings;
 pub mod state_ext;
@@ -65,7 +66,7 @@ use crate::{
     login_provider::LoginProvider,
     persistence::PersistedComponents,
     presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
-    rtsim::RtSim,
+    // rtsim::RtSim,
     state_ext::StateExt,
     sys::sentinel::DeletedEntities,
 };
@@ -386,6 +387,7 @@ impl Server {
         state.ecs_mut().register::<comp::Pet>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
+        state.ecs_mut().register::<RtSimEntity>();
 
         // Load banned words list
         let banned_words = settings.moderation.load_banned_words(data_dir);
@@ -838,8 +840,8 @@ impl Server {
         };
 
         for entity in to_delete {
-            /*
             // Assimilate entities that are part of the real-time world simulation
+            #[cfg(feature = "worldgen")]
             if let Some(rtsim_entity) = self
                 .state
                 .ecs()
@@ -849,10 +851,9 @@ impl Server {
             {
                 self.state
                     .ecs()
-                    .write_resource::<RtSim>()
-                    .assimilate_entity(rtsim_entity.0);
+                    .write_resource::<rtsim2::RtSim>()
+                    .hook_rtsim_entity_unload(rtsim_entity);
             }
-            */
 
             if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");

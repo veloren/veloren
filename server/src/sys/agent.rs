@@ -2,7 +2,7 @@ pub mod behavior_tree;
 pub use server_agent::{action_nodes, attack, consts, data, util};
 
 use crate::{
-    rtsim::RtSim,
+    // rtsim::{entity::PersonalityTrait, RtSim},
     sys::agent::{
         behavior_tree::{BehaviorData, BehaviorTree},
         data::{AgentData, ReadData},

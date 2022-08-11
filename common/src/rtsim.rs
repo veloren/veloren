@@ -9,10 +9,10 @@ use vek::*;
 
 use crate::comp::dialogue::MoodState;
 
-pub type RtSimId = usize;
+slotmap::new_key_type! { pub struct NpcId; }
 
 #[derive(Copy, Clone, Debug)]
-pub struct RtSimEntity(pub RtSimId);
+pub struct RtSimEntity(pub NpcId);
 
 impl Component for RtSimEntity {
     type Storage = specs::VecStorage<Self>;

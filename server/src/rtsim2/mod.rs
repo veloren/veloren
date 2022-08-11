@@ -5,13 +5,17 @@ pub mod tick;
 use common::{
     grid::Grid,
     slowjob::SlowJobPool,
-    rtsim::ChunkResource,
+    rtsim::{ChunkResource, RtSimEntity},
     terrain::{TerrainChunk, Block},
     vol::RectRasterableVol,
 };
 use common_ecs::{dispatch, System};
 use rtsim2::{
-    data::{Data, ReadError},
+    data::{
+        npc::NpcMode,
+        Data,
+        ReadError,
+    },
     rule::Rule,
     RtState,
 };
@@ -116,6 +120,16 @@ impl RtSim {
         }
     }
 
+    pub fn hook_block_update(&mut self, wpos: Vec3<i32>, old: Block, new: Block) {
+        self.state.emit(event::OnBlockChange { wpos, old, new });
+    }
+
+    pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
+        if let Some(npc) = self.state.data_mut().npcs.get_mut(entity.0) {
+            npc.mode = NpcMode::Simulated;
+        }
+    }
+
     pub fn save(&mut self, slowjob_pool: &SlowJobPool) {
         info!("Saving rtsim data...");
         let file_path = self.file_path.clone();
@@ -156,9 +170,6 @@ impl RtSim {
     // TODO: Clean up this API a bit
     pub fn get_chunk_resources(&self, key: Vec2<i32>) -> EnumMap<ChunkResource, f32> {
         self.state.data().nature.get_chunk_resources(key)
-    }
-    pub fn hook_block_update(&mut self, wpos: Vec3<i32>, old: Block, new: Block) {
-        self.state.emit(event::OnBlockChange { wpos, old, new });
     }
 }
 

@@ -8,6 +8,7 @@ use common::{
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time},
     slowjob::SlowJobPool,
+    rtsim::RtSimEntity,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim2::data::npc::NpcMode;
@@ -70,7 +71,7 @@ impl<'a> System<'a> for Sys {
                     scale: comp::Scale(10.0),
                     anchor: None,
                     loot: Default::default(),
-                    rtsim_entity: None, // For now, the old one is used!
+                    rtsim_entity: Some(RtSimEntity(npc_id)),
                     projectile: None,
                 });
             }

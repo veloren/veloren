@@ -5,7 +5,7 @@ use vek::*;
 use std::ops::{Deref, DerefMut};
 use common::uid::Uid;
 
-slotmap::new_key_type! { pub struct NpcId; }
+pub use common::rtsim::NpcId;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Npc {

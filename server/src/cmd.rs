@@ -3845,6 +3845,7 @@ fn handle_scale(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let Some(scale) = parse_cmd_args!(args, f32) {
+        let scale = scale.clamped(0.025, 1000.0);
         let _ = server
             .state
             .ecs_mut()
