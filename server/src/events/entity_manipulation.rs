@@ -94,7 +94,7 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
     let damage = -change.amount;
     if damage > 5.0 {
         if let Some(agent) = ecs.write_storage::<Agent>().get_mut(entity) {
-            agent.inbox.push_front(AgentEvent::Hurt);
+            agent.inbox.push_back(AgentEvent::Hurt);
         }
     }
 }
