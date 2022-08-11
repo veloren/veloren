@@ -20,6 +20,7 @@ impl Rule for SimulateNpcs {
             {
                 let body = npc.get_body();
 
+                // Move NPCs if they have a target
                 if let Some((target, speed_factor)) = npc.target {
                     npc.wpos += Vec3::from(
                         (target.xy() - npc.wpos.xy())
@@ -29,6 +30,11 @@ impl Rule for SimulateNpcs {
                             * speed_factor,
                     ) * ctx.event.dt;
                 }
+
+                // Make sure NPCs remain on the surface
+                npc.wpos.z = ctx.world.sim()
+                    .get_alt_approx(npc.wpos.xy().map(|e| e as i32))
+                    .unwrap_or(0.0);
             }
 
             // Do some thinking. TODO: Not here!
