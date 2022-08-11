@@ -7,7 +7,7 @@ pub mod util;
 use crate::{
     rtsim::RtSim,
     sys::agent::{
-        behavior_tree::BehaviorTree,
+        behavior_tree::{BehaviorData, BehaviorTree},
         consts::{
             AVG_FOLLOW_DIST, DEFAULT_ATTACK_RANGE, IDLE_HEALING_ITEM_THRESHOLD, PARTIAL_PATH_DIST,
             SEPARATION_BIAS, SEPARATION_DIST,
@@ -122,7 +122,7 @@ impl<'a> System<'a> for Sys {
                     _,
                 )| {
                     let mut event_emitter = event_bus.emitter();
-                    // let mut rng = thread_rng();
+                    let mut rng = thread_rng();
 
                     // Hack, replace with better system when groups are more sophisticated
                     // Override alignment if in a group unless entity is owned already
@@ -245,14 +245,16 @@ impl<'a> System<'a> for Sys {
                     // also methods on the `AgentData` struct. Action nodes
                     // are the only parts of this tree that should provide
                     // inputs.
-
-                    BehaviorTree::root().run(
+                    let mut behavior_data = BehaviorData {
                         agent,
-                        data,
-                        &read_data,
-                        &mut event_emitter,
+                        agent_data: data,
+                        read_data: &read_data,
+                        event_emitter: &mut event_emitter,
                         controller,
-                    );
+                        rng: &mut rng,
+                    };
+
+                    BehaviorTree::root().run(&mut behavior_data);
 
                     debug_assert!(controller.inputs.move_dir.map(|e| !e.is_nan()).reduce_and());
                     debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());

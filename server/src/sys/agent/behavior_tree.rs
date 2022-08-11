@@ -9,7 +9,7 @@ use common::{
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
 };
-use rand::{prelude::ThreadRng, thread_rng, Rng};
+use rand::{prelude::ThreadRng, Rng};
 use specs::saveload::{Marker, MarkerAllocator};
 use vek::Vec2;
 
@@ -32,12 +32,12 @@ mod interaction;
 
 /// Struct containing essential data for running a behavior tree
 pub struct BehaviorData<'a, 'b, 'c> {
-    agent: &'a mut Agent,
-    agent_data: AgentData<'a>,
-    read_data: &'a ReadData<'a>,
-    event_emitter: &'a mut Emitter<'c, ServerEvent>,
-    controller: &'a mut Controller,
-    rng: &'b mut ThreadRng,
+    pub agent: &'a mut Agent,
+    pub agent_data: AgentData<'a>,
+    pub read_data: &'a ReadData<'a>,
+    pub event_emitter: &'a mut Emitter<'c, ServerEvent>,
+    pub controller: &'a mut Controller,
+    pub rng: &'b mut ThreadRng,
 }
 
 /// Behavior function
@@ -88,7 +88,7 @@ impl BehaviorTree {
 
     /// Pet BehaviorTree
     ///
-    /// Follow the owner and attack ennemies
+    /// Follow the owner and attack enemies
     pub fn pet() -> Self {
         Self {
             tree: vec![follow_if_far_away, attack_if_owner_hurt, do_idle_tree],
@@ -101,11 +101,7 @@ impl BehaviorTree {
     /// talk. If not, or if we are in combat, deny all talk and trade
     /// events.
     pub fn interaction(agent: &Agent) -> Self {
-        let is_in_combat = if let Some(Target { hostile, .. }) = agent.target {
-            hostile
-        } else {
-            false
-        };
+        let is_in_combat = agent.target.map_or(false, |t| t.hostile);
         if !is_in_combat && agent.behavior.can(BehaviorCapability::SPEAK) {
             Self {
                 tree: vec![
@@ -141,29 +137,9 @@ impl BehaviorTree {
     }
 
     /// Run the behavior tree until an event has been handled
-    pub fn run<'a, 'b>(
-        &self,
-        agent: &'a mut Agent,
-        agent_data: AgentData<'a>,
-        read_data: &'a ReadData,
-        event_emitter: &'a mut Emitter<'b, ServerEvent>,
-        controller: &'a mut Controller,
-    ) -> bool {
-        let mut behavior_data = BehaviorData {
-            agent,
-            agent_data,
-            read_data,
-            event_emitter,
-            controller,
-            rng: &mut thread_rng(),
-        };
-
-        self.run_with_behavior_data(&mut behavior_data)
-    }
-
-    fn run_with_behavior_data(&self, bdata: &mut BehaviorData) -> bool {
+    pub fn run(&self, behavior_data: &mut BehaviorData) -> bool {
         for behavior_fn in self.tree.iter() {
-            if behavior_fn(bdata) {
+            if behavior_fn(behavior_data) {
                 return true;
             }
         }
@@ -286,9 +262,9 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
 /// This function will never stop the BehaviorTree
 fn do_target_tree_if_target_else_do_idle_tree(bdata: &mut BehaviorData) -> bool {
     if bdata.agent.target.is_some() {
-        BehaviorTree::target().run_with_behavior_data(bdata);
+        BehaviorTree::target().run(bdata);
     } else {
-        BehaviorTree::idle().run_with_behavior_data(bdata);
+        BehaviorTree::idle().run(bdata);
     }
     false
 }
@@ -296,9 +272,7 @@ fn do_target_tree_if_target_else_do_idle_tree(bdata: &mut BehaviorData) -> bool 
 /// Run the Idle BehaviorTree
 ///
 /// This function can stop the BehaviorTree
-fn do_idle_tree(bdata: &mut BehaviorData) -> bool {
-    BehaviorTree::idle().run_with_behavior_data(bdata)
-}
+fn do_idle_tree(bdata: &mut BehaviorData) -> bool { BehaviorTree::idle().run(bdata) }
 
 /// If target is dead, forget them
 fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
@@ -325,7 +299,7 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
 fn do_hostile_tree_if_hostile(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { hostile, .. }) = bdata.agent.target {
         if hostile {
-            BehaviorTree::hostile().run_with_behavior_data(bdata);
+            BehaviorTree::hostile().run(bdata);
             return true;
         }
     }
@@ -338,10 +312,10 @@ fn do_pet_tree_if_owned(bdata: &mut BehaviorData) -> bool {
         (bdata.agent.target, bdata.agent_data.alignment)
     {
         if bdata.read_data.uids.get(target) == Some(uid) {
-            BehaviorTree::pet().run_with_behavior_data(bdata);
+            BehaviorTree::pet().run(bdata);
         } else {
             bdata.agent.target = None;
-            BehaviorTree::idle().run_with_behavior_data(bdata);
+            BehaviorTree::idle().run(bdata);
         }
         return true;
     }

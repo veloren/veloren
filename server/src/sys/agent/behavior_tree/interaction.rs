@@ -47,7 +47,7 @@ pub fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
 
 /// If we receive a new interaction, start the interaction timer
 pub fn process_inbox_interaction(bdata: &mut BehaviorData) -> bool {
-    if BehaviorTree::interaction(bdata.agent).run_with_behavior_data(bdata) {
+    if BehaviorTree::interaction(bdata.agent).run(bdata) {
         bdata
             .agent
             .timer
