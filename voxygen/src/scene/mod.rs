@@ -1192,7 +1192,7 @@ impl Scene {
         &'a self,
         drawer: &mut Drawer<'a>,
         state: &State,
-        player_entity: EcsEntity,
+        viewpoint_entity: EcsEntity,
         tick: u64,
         scene_data: &SceneData,
     ) {
@@ -1251,10 +1251,10 @@ impl Scene {
 
         prof_span!(guard, "main pass");
         if let Some(mut first_pass) = drawer.first_pass() {
-            self.figure_mgr.render_player(
+            self.figure_mgr.render_viewpoint(
                 &mut first_pass.draw_figures(),
                 state,
-                player_entity,
+                viewpoint_entity,
                 tick,
                 camera_data,
             );
@@ -1264,7 +1264,7 @@ impl Scene {
             self.figure_mgr.render(
                 &mut first_pass.draw_figures(),
                 state,
-                player_entity,
+                viewpoint_entity,
                 tick,
                 camera_data,
             );

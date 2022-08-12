@@ -1794,7 +1794,7 @@ impl PlayState for SessionState {
         self.scene.render(
             drawer,
             client.state(),
-            client.entity(),
+            viewpoint_entity,
             client.get_tick(),
             &scene_data,
         );
