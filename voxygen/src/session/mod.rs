@@ -368,6 +368,22 @@ impl SessionState {
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
                 },
+                client::Event::StartSpectate(spawn_point) => {
+                    let server_name = &client.server_info().name;
+                    let spawn_point = global_state
+                        .profile
+                        .get_spectate_position(server_name)
+                        .unwrap_or(spawn_point);
+
+                    client
+                        .state()
+                        .ecs()
+                        .write_storage()
+                        .insert(client.entity(), Pos(spawn_point))
+                        .expect("This shouldn't exist");
+
+                    self.scene.camera_mut().force_focus_pos(spawn_point);
+                },
                 client::Event::SpectatePosition(pos) => {
                     self.scene.camera_mut().force_focus_pos(pos);
                 },
@@ -493,7 +509,14 @@ impl PlayState for SessionState {
             drop(client);
 
             if presence == PresenceKind::Spectator {
-                self.client.borrow_mut().spectate_position(cam_pos);
+                let mut client = self.client.borrow_mut();
+                if client.spectate_position(cam_pos) {
+                    let server_name = &client.server_info().name;
+                    global_state.profile.set_spectate_position(
+                        server_name,
+                        Some(self.scene.camera().get_focus_pos()),
+                    );
+                }
             }
 
             // Nearest block to consider with GameInput primary or secondary key.
@@ -906,11 +929,9 @@ impl PlayState for SessionState {
                                 let client = self.client.borrow();
                                 camera.next_mode(
                                     client.is_moderator(),
-                                    client
-                                        .presence()
-                                        .map(|presence| presence != PresenceKind::Spectator)
-                                        .unwrap_or(true)
-                                        || self.viewpoint_entity.is_some(),
+                                    client.presence().map_or(true, |presence| {
+                                        presence != PresenceKind::Spectator
+                                    }) || self.viewpoint_entity.is_some(),
                                 );
                             },
                             GameInput::Select => {
