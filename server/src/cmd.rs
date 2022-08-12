@@ -1228,6 +1228,7 @@ fn handle_spawn(
                     )
                     .with(comp::Vel(vel))
                     .with(opt_scale.map(comp::Scale).unwrap_or(body.scale()))
+                    .maybe_with(opt_scale.map(|s| comp::Mass(body.mass().0 * s.powi(3))))
                     .with(alignment);
 
                 if ai {
@@ -3844,13 +3845,27 @@ fn handle_scale(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(scale) = parse_cmd_args!(args, f32) {
+    if let (Some(scale), reset_mass) = parse_cmd_args!(args, f32, bool) {
         let scale = scale.clamped(0.025, 1000.0);
         let _ = server
             .state
             .ecs_mut()
             .write_storage::<comp::Scale>()
             .insert(target, comp::Scale(scale));
+        if reset_mass.unwrap_or(true) {
+            if let Some(body) = server
+                .state
+                .ecs()
+                .read_storage::<comp::Body>()
+                .get(target)
+            {
+                let _ = server
+                    .state
+                    .ecs()
+                    .write_storage()
+                    .insert(target, comp::Mass(body.mass().0 * scale.powi(3)));
+            }
+        }
         server.notify_client(
             client,
             ServerGeneral::server_msg(ChatType::CommandInfo, format!("Set scale to {}", scale)),

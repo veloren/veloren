@@ -50,6 +50,7 @@ fn integrate_forces(
     mass: &Mass,
     fluid: &Fluid,
     gravity: f32,
+    scale: Option<Scale>,
 ) -> Vel {
     let dim = body.dimensions();
     let height = dim.z;
@@ -61,7 +62,7 @@ fn integrate_forces(
     // Aerodynamic/hydrodynamic forces
     if !rel_flow.0.is_approx_zero() {
         debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
-        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0, wings);
+        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0, wings, scale.map_or(1.0, |s| s.0));
         debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
         if !impulse.is_approx_zero() {
             let new_v = vel.0 + impulse / mass.0;
@@ -610,6 +611,7 @@ impl<'a> PhysicsData<'a> {
             &write.physics_states,
             &read.masses,
             &read.densities,
+            read.scales.maybe(),
             !&read.is_ridings,
         )
             .par_join()
@@ -628,6 +630,7 @@ impl<'a> PhysicsData<'a> {
                     physics_state,
                     mass,
                     density,
+                    scale,
                     _,
                 )| {
                     let in_loaded_chunk = read
@@ -672,6 +675,7 @@ impl<'a> PhysicsData<'a> {
                                     mass,
                                     &fluid,
                                     GRAVITY,
+                                    scale.copied(),
                                 )
                                 .0
                             },
@@ -1438,7 +1442,8 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
 
     // Don't jump too far at once
     const MAX_INCREMENTS: usize = 100; // The maximum number of collision tests per tick
-    let increments = ((pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3).ceil() as usize)
+    let min_step = (radius / 2.0).min(z_max - z_min).clamped(0.01, 0.3);
+    let increments = ((pos_delta.map(|e| e.abs()).reduce_partial_max() / min_step).ceil() as usize)
         .clamped(1, MAX_INCREMENTS);
     let old_pos = pos.0;
     for _ in 0..increments {

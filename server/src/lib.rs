@@ -709,7 +709,7 @@ impl Server {
             if old_block.get_rtsim_resource().is_some() || new_block.get_rtsim_resource().is_some() {
                 ecs.write_resource::<rtsim2::RtSim>().hook_block_update(
                     &ecs.read_resource::<Arc<world::World>>(),
-                    ecs.read_resource::<Arc<world::IndexOwned>>().as_index_ref(),
+                    ecs.read_resource::<world::IndexOwned>().as_index_ref(),
                     wpos,
                     old_block,
                     new_block,

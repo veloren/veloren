@@ -730,7 +730,7 @@ impl ServerChatCommand {
                 cmd(vec![], "Lightning strike at current position", Some(Admin))
             },
             ServerChatCommand::Scale => {
-                cmd(vec![Float("factor", 1.0, Required)], "Scale your character", Some(Admin))
+                cmd(vec![Float("factor", 1.0, Required), Boolean("reset_mass", true.to_string(), Optional)], "Scale your character", Some(Admin))
             },
         }
     }
