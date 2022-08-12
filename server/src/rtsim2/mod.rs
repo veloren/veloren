@@ -179,6 +179,10 @@ impl RtSim {
     pub fn get_chunk_resources(&self, key: Vec2<i32>) -> EnumMap<ChunkResource, f32> {
         self.state.data().nature.get_chunk_resources(key)
     }
+
+    pub fn state(&self) -> &RtState {
+        &self.state
+    }
 }
 
 struct ChunkStates(pub Grid<Option<LoadedChunkState>>);

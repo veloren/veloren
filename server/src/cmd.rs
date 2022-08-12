@@ -184,6 +184,7 @@ fn do_command(
         ServerChatCommand::Tell => handle_tell,
         ServerChatCommand::Time => handle_time,
         ServerChatCommand::Tp => handle_tp,
+        ServerChatCommand::TpNpc => handle_tp_npc,
         ServerChatCommand::Unban => handle_unban,
         ServerChatCommand::Version => handle_version,
         ServerChatCommand::Waypoint => handle_waypoint,
@@ -1179,6 +1180,25 @@ fn handle_tp(
     let player_pos = position(server, player, "player")?;
     position_mut(server, target, "target", |target_pos| {
         *target_pos = player_pos
+    })
+}
+
+fn handle_tp_npc(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim2::RtSim;
+    let pos = if let Some(id) = parse_cmd_args!(args, u32) {
+        // TODO: Take some other identifier than an integer to this command. 
+        server.state.ecs().read_resource::<RtSim>().state().data().npcs.values().nth(id as usize).ok_or(action.help_string())?.wpos
+    }  else {
+        return Err(action.help_string());
+    };
+    position_mut(server, target, "target", |target_pos| {
+        target_pos.0 = pos;
     })
 }
 

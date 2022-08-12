@@ -310,6 +310,7 @@ pub enum ServerChatCommand {
     Tell,
     Time,
     Tp,
+    TpNpc,
     Unban,
     Version,
     Waypoint,
@@ -679,6 +680,11 @@ impl ServerChatCommand {
                 "Teleport to another player",
                 Some(Moderator),
             ),
+            ServerChatCommand::TpNpc => cmd(
+                vec![Integer("npc index", 0, Required)],
+                "Teleport to a npc",
+                Some(Moderator),
+            ),
             ServerChatCommand::Unban => cmd(
                 vec![PlayerName(Required)],
                 "Remove the ban for the given username",
@@ -801,6 +807,7 @@ impl ServerChatCommand {
             ServerChatCommand::Tell => "tell",
             ServerChatCommand::Time => "time",
             ServerChatCommand::Tp => "tp",
+            ServerChatCommand::TpNpc => "tp_npc",
             ServerChatCommand::Unban => "unban",
             ServerChatCommand::Version => "version",
             ServerChatCommand::Waypoint => "waypoint",
