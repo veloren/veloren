@@ -679,7 +679,7 @@ impl Structure for DesertCityMultiPlot {
                     // Tower base
                     painter
                         .aabb(Aabb {
-                            min: (tower_center - tower.length - 1).with_z(base),
+                            min: (tower_center - tower.length - 1).with_z(base - 10),
                             max: (tower_center + tower.length + 1).with_z(base + 6),
                         })
                         .fill(sandstone.clone());
