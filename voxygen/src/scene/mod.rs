@@ -562,7 +562,7 @@ impl Scene {
                 let yaw = siny_cosp.atan2(cosy_cosp);
 
                 self.camera
-                    .set_orientation_instant(Vec3::new(yaw, pitch, -roll));
+                    .set_orientation_instant(Vec3::new(-yaw, pitch, roll));
             }
 
             // Alter camera position to match player.
