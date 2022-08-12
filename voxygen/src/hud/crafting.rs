@@ -38,7 +38,7 @@ use hashbrown::HashMap;
 use i18n::Localization;
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 use strum::{EnumIter, IntoEnumIterator};
-use tracing::warn;
+use tracing::{error, warn};
 use vek::*;
 
 widget_ids! {
@@ -61,6 +61,7 @@ widget_ids! {
         align_ing,
         scrollbar_ing,
         btn_craft,
+        btn_craft_all,
         recipe_list_btns[],
         recipe_list_labels[],
         recipe_list_quality_indicators[],
@@ -96,7 +97,10 @@ widget_ids! {
 }
 
 pub enum Event {
-    CraftRecipe(String),
+    CraftRecipe {
+        recipe_name: String,
+        amount: u32,
+    },
     CraftModularWeapon {
         primary_slot: InvSlotId,
         secondary_slot: InvSlotId,
@@ -1355,7 +1359,7 @@ impl<'a> Widget for Crafting<'a> {
                 .label_font_size(self.fonts.cyri.scale(12))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
-                .mid_bottom_with_margin_on(state.ids.align_ing, -31.0)
+                .bottom_left_with_margins_on(state.ids.align_ing, -31.0, 15.0)
                 .parent(state.ids.window_frame)
                 .set(state.ids.btn_craft, ui)
                 .was_clicked()
@@ -1381,9 +1385,61 @@ impl<'a> Widget for Crafting<'a> {
                             });
                         }
                     },
-                    RecipeKind::Simple => events.push(Event::CraftRecipe(recipe_name)),
+                    RecipeKind::Simple => events.push(Event::CraftRecipe {
+                        recipe_name,
+                        amount: 1,
+                    }),
                 }
             }
+
+            // Craft All button
+            let can_perform_all = can_perform && matches!(recipe_kind, RecipeKind::Simple);
+            if Button::image(self.imgs.button)
+                .w_h(105.0, 25.0)
+                .hover_image(
+                    can_perform
+                        .then_some(self.imgs.button_hover)
+                        .unwrap_or(self.imgs.button),
+                )
+                .press_image(
+                    can_perform
+                        .then_some(self.imgs.button_press)
+                        .unwrap_or(self.imgs.button),
+                )
+                .label(&self.localized_strings.get("hud.crafting.craft_all"))
+                .label_y(conrod_core::position::Relative::Scalar(1.0))
+                .label_color(
+                    can_perform_all
+                        .then_some(TEXT_COLOR)
+                        .unwrap_or(TEXT_GRAY_COLOR),
+                )
+                .label_font_size(self.fonts.cyri.scale(12))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .image_color(
+                    can_perform_all
+                        .then_some(TEXT_COLOR)
+                        .unwrap_or(TEXT_GRAY_COLOR),
+                )
+                .bottom_right_with_margins_on(state.ids.align_ing, -31.0, 15.0)
+                .parent(state.ids.window_frame)
+                .set(state.ids.btn_craft_all, ui)
+                .was_clicked()
+                && can_perform_all
+            {
+                if let (RecipeKind::Simple, Some(selected_recipe)) =
+                    (recipe_kind, &state.selected_recipe)
+                {
+                    let amount = recipe.max_from_ingredients(self.inventory);
+                    if amount > 0 {
+                        events.push(Event::CraftRecipe {
+                            recipe_name: selected_recipe.to_string(),
+                            amount,
+                        });
+                    }
+                } else {
+                    error!("State shows no selected recipe when trying to craft multiple.");
+                }
+            };
 
             // Crafting Station Info
             if recipe.craft_sprite.is_some() {

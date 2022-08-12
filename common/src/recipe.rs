@@ -164,12 +164,51 @@ impl Recipe {
     pub fn inventory_contains_ingredients(
         &self,
         inv: &Inventory,
+        recipe_amount: u32,
     ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&RecipeInput, u32)>> {
         inventory_contains_ingredients(
             self.inputs()
                 .map(|(input, amount, _is_modular)| (input, amount)),
             inv,
+            recipe_amount,
         )
+    }
+
+    /// Calculates the maximum number of items craftable given the current
+    /// inventory state.
+    pub fn max_from_ingredients(&self, inv: &Inventory) -> u32 {
+        let mut max_recipes = None;
+
+        for (input, amount) in self
+            .inputs()
+            .map(|(input, amount, _is_modular)| (input, amount))
+        {
+            let needed = amount as f32;
+            let mut input_max = HashMap::<InvSlotId, u32>::new();
+
+            // Checks through every slot, filtering to only those that contain items that
+            // can satisfy the input.
+            for (inv_slot_id, slot) in inv.slots_with_id() {
+                if let Some(item) = slot
+                    .as_ref()
+                    .filter(|item| item.matches_recipe_input(&*input, amount))
+                {
+                    *input_max.entry(inv_slot_id).or_insert(0) += item.amount();
+                }
+            }
+
+            // Updates maximum craftable amount based on least recipe-proportional
+            // availability.
+            let max_item_proportion =
+                ((input_max.values().sum::<u32>() as f32) / needed).floor() as u32;
+            max_recipes = Some(match max_recipes {
+                None => max_item_proportion,
+                Some(max_recipes) if (max_item_proportion < max_recipes) => max_item_proportion,
+                Some(n) => n,
+            });
+        }
+
+        max_recipes.unwrap_or(0)
     }
 }
 
@@ -183,6 +222,7 @@ impl Recipe {
 fn inventory_contains_ingredients<'a, I: Iterator<Item = (&'a RecipeInput, u32)>>(
     ingredients: I,
     inv: &Inventory,
+    recipe_amount: u32,
 ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&'a RecipeInput, u32)>> {
     // Hashmap tracking the quantity that needs to be removed from each slot (so
     // that it doesn't think a slot can provide more items than it contains)
@@ -194,7 +234,7 @@ fn inventory_contains_ingredients<'a, I: Iterator<Item = (&'a RecipeInput, u32)>
     let mut missing = Vec::<(&RecipeInput, u32)>::new();
 
     for (i, (input, amount)) in ingredients.enumerate() {
-        let mut needed = amount;
+        let mut needed = amount * recipe_amount;
         let mut contains_any = false;
         // Checks through every slot, filtering to only those that contain items that
         // can satisfy the input
@@ -358,7 +398,7 @@ impl RecipeBook {
     pub fn get_available(&self, inv: &Inventory) -> Vec<(String, Recipe)> {
         self.recipes
             .iter()
-            .filter(|(_, recipe)| recipe.inventory_contains_ingredients(inv).is_ok())
+            .filter(|(_, recipe)| recipe.inventory_contains_ingredients(inv, 1).is_ok())
             .map(|(name, recipe)| (name.clone(), recipe.clone()))
             .collect()
     }
@@ -654,6 +694,7 @@ impl ComponentRecipe {
                 .iter()
                 .map(|(input, amount)| (input, *amount)),
             inv,
+            1,
         )
     }
 

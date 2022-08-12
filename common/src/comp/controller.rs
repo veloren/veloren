@@ -98,6 +98,7 @@ pub enum CraftEvent {
     Simple {
         recipe: String,
         slots: Vec<(u32, InvSlotId)>,
+        amount: u32,
     },
     Salvage(InvSlotId),
     // TODO: Maybe look at making this more general when there are more modular recipes?

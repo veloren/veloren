@@ -672,7 +672,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             };
 
             let crafted_items = match craft_event {
-                CraftEvent::Simple { recipe, slots } => recipe_book
+                CraftEvent::Simple {
+                    recipe,
+                    slots,
+                    amount,
+                } => recipe_book
                     .get(&recipe)
                     .filter(|r| {
                         if let Some(needed_sprite) = r.craft_sprite {
@@ -683,13 +687,21 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         }
                     })
                     .and_then(|r| {
-                        r.craft_simple(
-                            &mut inventory,
-                            slots,
-                            &state.ecs().read_resource::<AbilityMap>(),
-                            &state.ecs().read_resource::<MaterialStatManifest>(),
-                        )
-                        .ok()
+                        let items = (0..amount)
+                            .into_iter()
+                            .filter_map(|_| {
+                                r.craft_simple(
+                                    &mut inventory,
+                                    slots.clone(),
+                                    &state.ecs().read_resource::<AbilityMap>(),
+                                    &state.ecs().read_resource::<MaterialStatManifest>(),
+                                )
+                                .ok()
+                            })
+                            .flatten()
+                            .collect::<Vec<_>>();
+
+                        if items.is_empty() { None } else { Some(items) }
                     }),
                 CraftEvent::Salvage(slot) => {
                     let sprite = get_craft_sprite(state, craft_sprite);

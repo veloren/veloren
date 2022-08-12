@@ -1,7 +1,8 @@
 hud-crafting = Criação
 hud-crafting-recipes = Receitas
 hud-crafting-ingredients = Ingredientes:
-hud-crafting-craft = Criar
+hud-crafting-craft = Forjar
+hud-crafting-craft_all = Forjar Tudo
 hud-crafting-tool_cata = Requer:
 hud-crafting-req_crafting_station = Requer:
 hud-crafting-anvil = Bigorna

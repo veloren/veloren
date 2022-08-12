@@ -538,8 +538,9 @@ pub enum Event {
     Quit,
 
     CraftRecipe {
-        recipe: String,
+        recipe_name: String,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+        amount: u32,
     },
     SalvageItem {
         slot: InvSlotId,
@@ -2912,10 +2913,14 @@ impl Hud {
                 .set(self.ids.crafting_window, ui_widgets)
                 {
                     match event {
-                        crafting::Event::CraftRecipe(recipe) => {
+                        crafting::Event::CraftRecipe {
+                            recipe_name,
+                            amount,
+                        } => {
                             events.push(Event::CraftRecipe {
-                                recipe,
+                                recipe_name,
                                 craft_sprite: self.show.crafting_fields.craft_sprite,
+                                amount,
                             });
                         },
                         crafting::Event::CraftModularWeapon {
