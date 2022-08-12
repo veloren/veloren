@@ -2,6 +2,7 @@ hud-crafting = Crafting
 hud-crafting-recipes = Recipes
 hud-crafting-ingredients = Ingredients:
 hud-crafting-craft = Craft
+hud-crafting-craft_all = Craft All
 hud-crafting-tool_cata = Requires:
 hud-crafting-req_crafting_station = Requires:
 hud-crafting-anvil = Anvil

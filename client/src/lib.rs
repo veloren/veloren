@@ -1074,13 +1074,13 @@ impl Client {
 
     /// Returns whether the specified recipe can be crafted and the sprite, if
     /// any, that is required to do so.
-    pub fn can_craft_recipe(&self, recipe: &str) -> (bool, Option<SpriteKind>) {
+    pub fn can_craft_recipe(&self, recipe: &str, amount: u32) -> (bool, Option<SpriteKind>) {
         self.recipe_book
             .get(recipe)
             .zip(self.inventories().get(self.entity()))
             .map(|(recipe, inv)| {
                 (
-                    recipe.inventory_contains_ingredients(inv).is_ok(),
+                    recipe.inventory_contains_ingredients(inv, amount).is_ok(),
                     recipe.craft_sprite,
                 )
             })
@@ -1092,8 +1092,9 @@ impl Client {
         recipe: &str,
         slots: Vec<(u32, InvSlotId)>,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+        amount: u32,
     ) -> bool {
-        let (can_craft, required_sprite) = self.can_craft_recipe(recipe);
+        let (can_craft, required_sprite) = self.can_craft_recipe(recipe, amount);
         let has_sprite = required_sprite.map_or(true, |s| Some(s) == craft_sprite.map(|(_, s)| s));
         if can_craft && has_sprite {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
@@ -1101,6 +1102,7 @@ impl Client {
                     craft_event: CraftEvent::Simple {
                         recipe: recipe.to_string(),
                         slots,
+                        amount,
                     },
                     craft_sprite: craft_sprite.map(|(pos, _)| pos),
                 },
@@ -1213,7 +1215,7 @@ impl Client {
             .iter()
             .map(|(name, _)| name.clone())
             .filter_map(|name| {
-                let (can_craft, required_sprite) = self.can_craft_recipe(&name);
+                let (can_craft, required_sprite) = self.can_craft_recipe(&name, 1);
                 if can_craft {
                     Some((name, required_sprite))
                 } else {

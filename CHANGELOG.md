@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Currently playing music track and artist now shows in the debug menu.
 - Added a setting to influence the gap between music track plays.
+- Added a Craft All button.
 
 ### Changed
 - Use fluent for translations

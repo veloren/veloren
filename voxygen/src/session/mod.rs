@@ -1541,26 +1541,30 @@ impl PlayState for SessionState {
                     },
 
                     HudEvent::CraftRecipe {
-                        recipe,
+                        recipe_name: recipe,
                         craft_sprite,
+                        amount,
                     } => {
                         let slots = {
                             let client = self.client.borrow();
                             if let Some(recipe) = client.recipe_book().get(&recipe) {
-                                client
-                                    .inventories()
-                                    .get(client.entity())
-                                    .and_then(|inv| recipe.inventory_contains_ingredients(inv).ok())
+                                client.inventories().get(client.entity()).and_then(|inv| {
+                                    recipe.inventory_contains_ingredients(inv, 1).ok()
+                                })
                             } else {
                                 None
                             }
                         };
                         if let Some(slots) = slots {
-                            self.client
-                                .borrow_mut()
-                                .craft_recipe(&recipe, slots, craft_sprite);
+                            self.client.borrow_mut().craft_recipe(
+                                &recipe,
+                                slots,
+                                craft_sprite,
+                                amount,
+                            );
                         }
                     },
+
                     HudEvent::CraftModularWeapon {
                         primary_slot,
                         secondary_slot,
@@ -1572,6 +1576,7 @@ impl PlayState for SessionState {
                             craft_sprite,
                         );
                     },
+
                     HudEvent::CraftModularWeaponComponent {
                         toolkind,
                         material,

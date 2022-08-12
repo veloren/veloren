@@ -2,6 +2,7 @@ hud-crafting = Fabricación
 hud-crafting-recipes = Recetas
 hud-crafting-ingredients = Ingredientes:
 hud-crafting-craft = Fabricar
+hud-crafting-craft_all = Fabricar Todo
 hud-crafting-tool_cata = Requisitos:
 hud-crafting-req_crafting_station = Requisitos:
 hud-crafting-anvil = Yunque

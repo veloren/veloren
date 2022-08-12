@@ -2,6 +2,7 @@ hud-crafting = Elaborar
 hud-crafting-recipes = Receptes
 hud-crafting-ingredients = Ingredients:
 hud-crafting-craft = Elaborar
+hud-crafting-craft_all = Elaborar Tot
 hud-crafting-tool_cata = Requereix:
 hud-crafting-req_crafting_station = Requereix:
 hud-crafting-anvil = Enclusa
