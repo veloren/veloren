@@ -13,6 +13,15 @@ use common::{
 use world::util::RandomPerm;
 pub use common::rtsim::NpcId;
 
+#[derive(Clone, Serialize, Deserialize)]
+pub enum Profession {
+    Farmer,
+    Hunter,
+    Merchant,
+    Guard,
+    Adventurer(u32),
+}
+
 #[derive(Copy, Clone, Default)]
 pub enum NpcMode {
     /// The NPC is unloaded and is being simulated via rtsim.
@@ -29,6 +38,9 @@ pub struct Npc {
     /// Represents the location of the NPC.
     pub seed: u32,
     pub wpos: Vec3<f32>,
+
+    pub profession: Option<Profession>,
+    pub home: Option<SiteId>,
 
     // Unpersisted state
 
@@ -50,12 +62,24 @@ impl Npc {
         Self {
             seed,
             wpos,
+            profession: None,
+            home: None,
             target: None,
             mode: NpcMode::Simulated,
         }
     }
 
-    pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed + perm) }
+    pub fn with_profession(mut self, profession: Profession) -> Self {
+        self.profession = Some(profession);
+        self
+    }
+
+    pub fn with_home(mut self, home: SiteId) -> Self {
+        self.home = Some(home);
+        self
+    }
+
+    pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed.wrapping_add(perm)) }
 
     pub fn get_body(&self) -> comp::Body {
         let species = *(&comp::humanoid::ALL_SPECIES)

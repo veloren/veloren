@@ -1,7 +1,7 @@
 pub mod site;
 
 use crate::data::{
-    npc::{Npcs, Npc},
+    npc::{Npcs, Npc, Profession},
     site::{Sites, Site},
     Data,
     Nature,
@@ -41,12 +41,20 @@ impl Data {
 
         // Spawn some test entities at the sites
         for (site_id, site) in this.sites.iter() {
-            for _ in 0..10 {
+            let rand_wpos = |rng: &mut SmallRng| {
                 let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
-                let wpos = wpos2d.map(|e| e as f32 + 0.5)
-                    .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0));
-                this.npcs.create(Npc::new(rng.gen(), wpos));
+                wpos2d.map(|e| e as f32 + 0.5)
+                    .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+            };
+            for _ in 0..10 {
+                
+                this.npcs.create(Npc::new(rng.gen(), rand_wpos(&mut rng)).with_home(site_id).with_profession(match rng.gen_range(0..10) {
+                    0 => Profession::Hunter,
+                    1..=4 => Profession::Farmer,
+                    _ => Profession::Guard,
+                }));
             }
+            this.npcs.create(Npc::new(rng.gen(), rand_wpos(&mut rng)).with_home(site_id).with_profession(Profession::Merchant));
         }
 
         this

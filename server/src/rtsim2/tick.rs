@@ -3,17 +3,19 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp,
+    comp::{self, inventory::loadout::Loadout},
     event::{EventBus, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time},
+    rtsim::{RtSimController, RtSimEntity},
     slowjob::SlowJobPool,
-    rtsim::{RtSimEntity, RtSimController},
+    LoadoutBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use rtsim2::data::npc::NpcMode;
+use rtsim2::data::npc::{NpcMode, Profession};
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
+use world::site::settlement::merchant_loadout;
 
 #[derive(Default)]
 pub struct Sys;
@@ -37,35 +39,78 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (dt, time, mut server_event_bus, mut rtsim, world, index, slow_jobs, positions, rtsim_entities, mut agents): Self::SystemData,
+        (
+            dt,
+            time,
+            mut server_event_bus,
+            mut rtsim,
+            world,
+            index,
+            slow_jobs,
+            positions,
+            rtsim_entities,
+            mut agents,
+        ): Self::SystemData,
     ) {
         let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
 
         rtsim.state.tick(&world, index.as_index_ref(), dt.0);
 
-        if rtsim.last_saved.map_or(true, |ls| ls.elapsed() > Duration::from_secs(60)) {
+        if rtsim
+            .last_saved
+            .map_or(true, |ls| ls.elapsed() > Duration::from_secs(60))
+        {
             rtsim.save(&slow_jobs);
         }
 
         let chunk_states = rtsim.state.resource::<ChunkStates>();
-        for (npc_id, npc) in rtsim.state.data_mut().npcs.iter_mut() {
-            let chunk = npc.wpos
-                .xy()
-                .map2(TerrainChunk::RECT_SIZE, |e, sz| (e as i32).div_euclid(sz as i32));
+        let data = &mut *rtsim.state.data_mut();
+        for (npc_id, npc) in data.npcs.iter_mut() {
+            let chunk = npc.wpos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                (e as i32).div_euclid(sz as i32)
+            });
 
-            // Load the NPC into the world if it's in a loaded chunk and is not already loaded
-            if matches!(npc.mode, NpcMode::Simulated) && chunk_states.0.get(chunk).map_or(false, |c| c.is_some()) {
+            // Load the NPC into the world if it's in a loaded chunk and is not already
+            // loaded
+            if matches!(npc.mode, NpcMode::Simulated)
+                && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
+            {
                 npc.mode = NpcMode::Loaded;
-
                 let body = npc.get_body();
+                let mut loadout_builder = LoadoutBuilder::from_default(&body);
+                let mut rng = npc.rng(3);
+
+                if let Some(ref profession) = npc.profession {
+                    loadout_builder = match profession {
+                        Profession::Guard => loadout_builder
+                            .with_asset_expect("common.loadout.village.guard", &mut rng),
+
+                        Profession::Merchant => {
+                            merchant_loadout(
+                                loadout_builder,
+                                npc.home
+                                    .and_then(|home| {
+                                        let site = data.sites.get(home)?.world_site?;
+                                        index.sites.get(site).trade_information(site.id())
+                                    }).as_ref(),
+                            )
+                        }
+
+                        Profession::Farmer | Profession::Hunter => loadout_builder
+                            .with_asset_expect("common.loadout.village.villager", &mut rng),
+
+                        Profession::Adventurer(level) => todo!(),
+                    };
+                }
+
                 emitter.emit(ServerEvent::CreateNpc {
                     pos: comp::Pos(npc.wpos),
                     stats: comp::Stats::new("Rtsim NPC".to_string()),
                     skill_set: comp::SkillSet::default(),
                     health: None,
                     poise: comp::Poise::new(body),
-                    inventory: comp::Inventory::with_empty(),
+                    inventory: comp::Inventory::with_loadout(loadout_builder.build(), body),
                     body,
                     agent: Some(comp::Agent::from_body(&body)),
                     alignment: comp::Alignment::Wild,
@@ -79,10 +124,10 @@ impl<'a> System<'a> for Sys {
         }
 
         // Synchronise rtsim NPC with entity data
-        for (pos, rtsim_entity, agent) in (&positions, &rtsim_entities, (&mut agents).maybe()).join() {
-            rtsim
-                .state
-                .data_mut()
+        for (pos, rtsim_entity, agent) in
+            (&positions, &rtsim_entities, (&mut agents).maybe()).join()
+        {
+            data
                 .npcs
                 .get_mut(rtsim_entity.0)
                 .filter(|npc| matches!(npc.mode, NpcMode::Loaded))
