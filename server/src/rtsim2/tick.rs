@@ -3,13 +3,14 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp::{self, inventory::loadout::Loadout},
+    comp::{self, inventory::loadout::Loadout, skillset::skills},
     event::{EventBus, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time},
     rtsim::{RtSimController, RtSimEntity},
     slowjob::SlowJobPool,
     LoadoutBuilder,
+    SkillSetBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim2::data::npc::{NpcMode, Profession};
@@ -104,16 +105,37 @@ impl<'a> System<'a> for Sys {
                     };
                 }
 
+                let can_speak = npc.profession.is_some(); // TODO: not this
+
+                let trade_for_site = if let Some(Profession::Merchant) = npc.profession {
+                    npc.home.and_then(|home| Some(data.sites.get(home)?.world_site?.id()))
+                } else {
+                    None
+                };
+
+                let skill_set = SkillSetBuilder::default().build();
+                let health_level = skill_set
+                    .skill_level(skills::Skill::General(skills::GeneralSkill::HealthIncrease))
+                    .unwrap_or(0);
                 emitter.emit(ServerEvent::CreateNpc {
                     pos: comp::Pos(npc.wpos),
                     stats: comp::Stats::new("Rtsim NPC".to_string()),
-                    skill_set: comp::SkillSet::default(),
-                    health: None,
+                    skill_set: skill_set,
+                    health: Some(comp::Health::new(body, health_level)),
                     poise: comp::Poise::new(body),
                     inventory: comp::Inventory::with_loadout(loadout_builder.build(), body),
                     body,
-                    agent: Some(comp::Agent::from_body(&body)),
-                    alignment: comp::Alignment::Wild,
+                    agent: Some(comp::Agent::from_body(&body)
+                        .with_behavior(
+                            comp::Behavior::default()
+                                .maybe_with_capabilities(can_speak.then_some(comp::BehaviorCapability::SPEAK))
+                                .with_trade_site(trade_for_site),
+                        )),
+                    alignment: if can_speak {
+                        comp::Alignment::Npc
+                    } else {
+                        comp::Alignment::Wild
+                    },
                     scale: comp::Scale(1.0),
                     anchor: None,
                     loot: Default::default(),
