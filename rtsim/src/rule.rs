@@ -1,5 +1,6 @@
 pub mod setup;
 pub mod simulate_npcs;
+pub mod npc_ai;
 
 use std::fmt;
 use super::RtState;

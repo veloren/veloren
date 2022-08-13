@@ -51,6 +51,7 @@ impl RtState {
         info!("Starting default rtsim rules...");
         self.start_rule::<rule::setup::Setup>();
         self.start_rule::<rule::simulate_npcs::SimulateNpcs>();
+        self.start_rule::<rule::npc_ai::NpcAi>();
     }
 
     pub fn start_rule<R: Rule>(&mut self) {
