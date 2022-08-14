@@ -74,7 +74,7 @@ fn path_between(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
         } else if b_tile.is_building() && a_tile.is_road() {
             b_tile.plot.and_then(|plot| is_door_tile(plot, *b).then(|| 1.0)).unwrap_or(f32::INFINITY)
         } else if (a_tile.is_building() || b_tile.is_building()) && a_tile.plot != b_tile.plot {
-            f32::INFINITY  
+            f32::INFINITY
         } else {
             1.0
         };
@@ -140,7 +140,7 @@ impl Rule for NpcAi {
                             npc.target = None;
                         }
                     } else {
-                        npc.target = path_town(npc.wpos, home_id, ctx.index, ctx.event.time, npc.seed);
+                        npc.target = path_town(npc.wpos, home_id, ctx.index, ctx.event.time.0, npc.seed);
                     }
                 } else {
                     // TODO: Don't make homeless people walk around in circles
