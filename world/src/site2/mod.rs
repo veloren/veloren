@@ -42,10 +42,11 @@ fn reseed(rng: &mut impl Rng) -> impl Rng { ChaChaRng::from_seed(rng.gen::<[u8; 
 pub struct Site {
     pub(crate) origin: Vec2<i32>,
     name: String,
-    tiles: TileGrid,
-    plots: Store<Plot>,
-    plazas: Vec<Id<Plot>>,
-    roads: Vec<Id<Plot>>,
+    // NOTE: Do we want these to be public?
+    pub tiles: TileGrid,
+    pub plots: Store<Plot>,
+    pub plazas: Vec<Id<Plot>>,
+    pub roads: Vec<Id<Plot>>,
 }
 
 impl Site {
