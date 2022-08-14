@@ -53,8 +53,8 @@ impl Rule for NpcAi {
                     npc.target = Some((
                         npc.wpos
                             + Vec3::new(
-                                ctx.event.time.sin() as f32 * 16.0,
-                                ctx.event.time.cos() as f32 * 16.0,
+                                ctx.event.time.0.sin() as f32 * 16.0,
+                                ctx.event.time.0.cos() as f32 * 16.0,
                                 0.0,
                             ),
                         1.0,

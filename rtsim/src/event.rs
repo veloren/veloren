@@ -1,4 +1,4 @@
-use common::resources::Time;
+use common::resources::{Time, TimeOfDay};
 use world::{World, IndexRef};
 use super::{Rule, RtState};
 
@@ -18,7 +18,8 @@ impl Event for OnSetup {}
 
 #[derive(Clone)]
 pub struct OnTick {
+    pub time_of_day: TimeOfDay,
+    pub time: Time,
     pub dt: f32,
-    pub time: f64,
 }
 impl Event for OnTick {}

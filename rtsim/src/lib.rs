@@ -10,6 +10,7 @@ pub use self::{
     event::{Event, EventCtx, OnTick},
     rule::{Rule, RuleError},
 };
+use common::resources::{Time, TimeOfDay};
 use world::{World, IndexRef};
 use anymap2::SendSyncAnyMap;
 use tracing::{info, error};
@@ -110,9 +111,9 @@ impl RtState {
                 .for_each(|f| f(self, world, index, &e)));
     }
 
-    pub fn tick(&mut self, world: &World, index: IndexRef, dt: f32) {
-        self.data_mut().time += dt as f64;
-        let event = OnTick { dt, time: self.data().time };
+    pub fn tick(&mut self, world: &World, index: IndexRef, time_of_day: TimeOfDay, time: Time, dt: f32) {
+        self.data_mut().time_of_day = time_of_day;
+        let event = OnTick { time_of_day, time, dt };
         self.emit(event, world, index);
     }
 }

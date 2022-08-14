@@ -66,7 +66,6 @@ use crate::{
     login_provider::LoginProvider,
     persistence::PersistedComponents,
     presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
-    // rtsim::RtSim,
     state_ext::StateExt,
     sys::sentinel::DeletedEntities,
 };
@@ -567,7 +566,10 @@ impl Server {
         #[cfg(feature = "worldgen")]
         {
             match rtsim2::RtSim::new(index.as_index_ref(), &world, data_dir.to_owned()) {
-                Ok(rtsim) => state.ecs_mut().insert(rtsim),
+                Ok(rtsim) => {
+                    state.ecs_mut().insert(rtsim.state().data().time_of_day);
+                    state.ecs_mut().insert(rtsim);
+                },
                 Err(err) => {
                     error!("Failed to load rtsim: {}", err);
                     return Err(Error::RtsimError(err));

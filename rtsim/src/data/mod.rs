@@ -8,6 +8,7 @@ pub use self::{
     nature::Nature,
 };
 
+use common::resources::TimeOfDay;
 use enum_map::{EnumMap, EnumArray, enum_map};
 use serde::{Serialize, Deserialize, ser, de};
 use std::{
@@ -29,7 +30,7 @@ pub struct Data {
     pub npcs: Npcs,
     pub sites: Sites,
 
-    pub time: f64,
+    pub time_of_day: TimeOfDay,
 }
 
 pub type ReadError = rmp_serde::decode::Error;

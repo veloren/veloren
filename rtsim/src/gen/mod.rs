@@ -26,7 +26,7 @@ impl Data {
             npcs: Npcs { npcs: Default::default() },
             sites: Sites { sites: Default::default() },
 
-            time: 0.0,
+            time_of_day: Default::default(),
         };
 
         // Register sites with rtsim
@@ -47,7 +47,7 @@ impl Data {
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
             for _ in 0..10 {
-                
+
                 this.npcs.create(Npc::new(rng.gen(), rand_wpos(&mut rng)).with_home(site_id).with_profession(match rng.gen_range(0..10) {
                     0 => Profession::Hunter,
                     1..=4 => Profession::Farmer,

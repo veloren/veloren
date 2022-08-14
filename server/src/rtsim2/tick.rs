@@ -6,7 +6,7 @@ use common::{
     comp::{self, inventory::loadout::Loadout, skillset::skills},
     event::{EventBus, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
-    resources::{DeltaTime, Time},
+    resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{RtSimController, RtSimEntity},
     slowjob::SlowJobPool,
     LoadoutBuilder,
@@ -24,6 +24,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, DeltaTime>,
         Read<'a, Time>,
+        Read<'a, TimeOfDay>,
         Read<'a, EventBus<ServerEvent>>,
         WriteExpect<'a, RtSim>,
         ReadExpect<'a, Arc<world::World>>,
@@ -43,6 +44,7 @@ impl<'a> System<'a> for Sys {
         (
             dt,
             time,
+            time_of_day,
             mut server_event_bus,
             mut rtsim,
             world,
@@ -56,7 +58,7 @@ impl<'a> System<'a> for Sys {
         let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
 
-        rtsim.state.tick(&world, index.as_index_ref(), dt.0);
+        rtsim.state.tick(&world, index.as_index_ref(), *time_of_day, *time, dt.0);
 
         if rtsim
             .last_saved

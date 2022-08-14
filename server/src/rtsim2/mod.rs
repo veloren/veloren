@@ -44,7 +44,7 @@ impl RtSim {
     pub fn new(index: IndexRef, world: &World, data_dir: PathBuf) -> Result<Self, ron::Error> {
         let file_path = Self::get_file_path(data_dir);
 
-        info!("Looking for rtsim data in {}...", file_path.display());
+        info!("Looking for rtsim data at {}...", file_path.display());
         let data = 'load: {
             if std::env::var("RTSIM_NOLOAD").map_or(true, |v| v != "1") {
                 match File::open(&file_path) {
