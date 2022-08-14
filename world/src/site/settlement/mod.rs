@@ -1012,6 +1012,15 @@ pub fn merchant_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
 ) -> LoadoutBuilder {
+    trader_loadout(loadout_builder
+        .with_asset_expect("common.loadout.village.merchant", &mut thread_rng()), economy, |_| true)
+}
+
+pub fn trader_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+    mut permitted: impl FnMut(Good) -> bool,
+) -> LoadoutBuilder {
     let rng = &mut thread_rng();
 
     let mut backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
@@ -1021,7 +1030,10 @@ pub fn merchant_loadout(
     let mut bag4 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
     let slots = backpack.slots().len() + 4 * bag1.slots().len();
     let mut stockmap: HashMap<Good, f32> = economy
-        .map(|e| e.unconsumed_stock.clone())
+        .map(|e| e.unconsumed_stock.clone()
+            .into_iter()
+            .filter(|(good, _)| permitted(*good))
+            .collect())
         .unwrap_or_default();
     // modify stock for better gameplay
 
@@ -1029,21 +1041,27 @@ pub fn merchant_loadout(
     // for the players to buy; the `.max` is temporary to ensure that there's some
     // food for sale at every site, to be used until we have some solution like NPC
     // houses as a limit on econsim population growth
-    stockmap
-        .entry(Good::Food)
-        .and_modify(|e| *e = e.max(10_000.0))
-        .or_insert(10_000.0);
+    if permitted(Good::Food) {
+        stockmap
+            .entry(Good::Food)
+            .and_modify(|e| *e = e.max(10_000.0))
+            .or_insert(10_000.0);
+    }
     // Reduce amount of potions so merchants do not oversupply potions.
     // TODO: Maybe remove when merchants and their inventories are rtsim?
     // Note: Likely without effect now that potions are counted as food
-    stockmap
-        .entry(Good::Potions)
-        .and_modify(|e| *e = e.powf(0.25));
+    if permitted(Good::Potions) {
+        stockmap
+            .entry(Good::Potions)
+            .and_modify(|e| *e = e.powf(0.25));
+    }
     // It's safe to truncate here, because coins clamped to 3000 max
     // also we don't really want negative values here
-    stockmap
-        .entry(Good::Coin)
-        .and_modify(|e| *e = e.min(rng.gen_range(1000.0..3000.0)));
+    if permitted(Good::Coin) {
+        stockmap
+            .entry(Good::Coin)
+            .and_modify(|e| *e = e.min(rng.gen_range(1000.0..3000.0)));
+    }
     // assume roughly 10 merchants sharing a town's stock (other logic for coins)
     stockmap
         .iter_mut()
@@ -1073,7 +1091,6 @@ pub fn merchant_loadout(
     transfer(&mut wares, &mut bag4);
 
     loadout_builder
-        .with_asset_expect("common.loadout.village.merchant", rng)
         .back(Some(backpack))
         .bag(ArmorSlot::Bag1, Some(bag1))
         .bag(ArmorSlot::Bag2, Some(bag2))

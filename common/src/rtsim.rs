@@ -93,3 +93,29 @@ pub enum ChunkResource {
     #[serde(rename = "2")]
     Cotton,
 }
+
+#[derive(Clone, Serialize, Deserialize)]
+pub enum Profession {
+    #[serde(rename = "0")]
+    Farmer,
+    #[serde(rename = "1")]
+    Hunter,
+    #[serde(rename = "2")]
+    Merchant,
+    #[serde(rename = "3")]
+    Guard,
+    #[serde(rename = "4")]
+    Adventurer(u32),
+}
+
+impl Profession {
+    pub fn to_name(&self) -> String {
+        match self {
+            Self::Farmer => "Farmer".to_string(),
+            Self::Hunter => "Hunter".to_string(),
+            Self::Merchant => "Merchant".to_string(),
+            Self::Guard => "Guard".to_string(),
+            Self::Adventurer(_) => "Adventurer".to_string(),
+        }
+    }
+}

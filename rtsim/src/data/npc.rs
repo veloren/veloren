@@ -11,16 +11,7 @@ use common::{
     comp,
 };
 use world::util::RandomPerm;
-pub use common::rtsim::NpcId;
-
-#[derive(Clone, Serialize, Deserialize)]
-pub enum Profession {
-    Farmer,
-    Hunter,
-    Merchant,
-    Guard,
-    Adventurer(u32),
-}
+pub use common::rtsim::{NpcId, Profession};
 
 #[derive(Copy, Clone, Default)]
 pub enum NpcMode {

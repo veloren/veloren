@@ -9,6 +9,7 @@ use common::{
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{RtSimController, RtSimEntity},
     slowjob::SlowJobPool,
+    trade::Good,
     LoadoutBuilder,
     SkillSetBuilder,
 };
@@ -16,7 +17,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use rtsim2::data::npc::{NpcMode, Profession};
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
-use world::site::settlement::merchant_loadout;
+use world::site::settlement::{merchant_loadout, trader_loadout};
 
 #[derive(Default)]
 pub struct Sys;
@@ -58,6 +59,7 @@ impl<'a> System<'a> for Sys {
         let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
 
+        rtsim.state.data_mut().time_of_day = *time_of_day;
         rtsim.state.tick(&world, index.as_index_ref(), *time_of_day, *time, dt.0);
 
         if rtsim
@@ -84,23 +86,26 @@ impl<'a> System<'a> for Sys {
                 let mut loadout_builder = LoadoutBuilder::from_default(&body);
                 let mut rng = npc.rng(3);
 
+                let economy = npc.home
+                    .and_then(|home| {
+                        let site = data.sites.get(home)?.world_site?;
+                        index.sites.get(site).trade_information(site.id())
+                    });
+
                 if let Some(ref profession) = npc.profession {
                     loadout_builder = match profession {
                         Profession::Guard => loadout_builder
                             .with_asset_expect("common.loadout.village.guard", &mut rng),
 
-                        Profession::Merchant => {
-                            merchant_loadout(
-                                loadout_builder,
-                                npc.home
-                                    .and_then(|home| {
-                                        let site = data.sites.get(home)?.world_site?;
-                                        index.sites.get(site).trade_information(site.id())
-                                    }).as_ref(),
-                            )
-                        }
+                        Profession::Merchant => merchant_loadout(loadout_builder, economy.as_ref()),
 
-                        Profession::Farmer | Profession::Hunter => loadout_builder
+                        Profession::Farmer => trader_loadout(
+                            loadout_builder
+                                .with_asset_expect("common.loadout.village.villager", &mut rng),
+                            economy.as_ref(),
+                            |good| matches!(good, Good::Food),
+                        ),
+                        Profession::Hunter => loadout_builder
                             .with_asset_expect("common.loadout.village.villager", &mut rng),
 
                         Profession::Adventurer(level) => todo!(),
@@ -109,7 +114,7 @@ impl<'a> System<'a> for Sys {
 
                 let can_speak = npc.profession.is_some(); // TODO: not this
 
-                let trade_for_site = if let Some(Profession::Merchant) = npc.profession {
+                let trade_for_site = if let Some(Profession::Merchant | Profession::Farmer) = npc.profession {
                     npc.home.and_then(|home| Some(data.sites.get(home)?.world_site?.id()))
                 } else {
                     None
@@ -121,7 +126,10 @@ impl<'a> System<'a> for Sys {
                     .unwrap_or(0);
                 emitter.emit(ServerEvent::CreateNpc {
                     pos: comp::Pos(npc.wpos),
-                    stats: comp::Stats::new("Rtsim NPC".to_string()),
+                    stats: comp::Stats::new(npc.profession
+                        .as_ref()
+                        .map(|p| p.to_name())
+                        .unwrap_or_else(|| "Rtsim NPC".to_string())),
                     skill_set: skill_set,
                     health: Some(comp::Health::new(body, health_level)),
                     poise: comp::Poise::new(body),
