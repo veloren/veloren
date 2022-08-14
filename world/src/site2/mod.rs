@@ -3,11 +3,11 @@ pub mod plot;
 mod tile;
 pub mod util;
 
-use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
+use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TILE_SIZE};
 pub use self::{
     gen::{aabr_with_z, Fill, Painter, Primitive, PrimitiveRef, Structure},
     plot::{Plot, PlotKind},
-    util::Dir,
+    util::Dir, tile::TileKind,
 };
 use crate::{
     sim::Path,
@@ -40,7 +40,7 @@ fn reseed(rng: &mut impl Rng) -> impl Rng { ChaChaRng::from_seed(rng.gen::<[u8; 
 
 #[derive(Default)]
 pub struct Site {
-    pub(crate) origin: Vec2<i32>,
+    pub origin: Vec2<i32>,
     name: String,
     // NOTE: Do we want these to be public?
     pub tiles: TileGrid,
@@ -110,8 +110,8 @@ impl Site {
     pub fn bounds(&self) -> Aabr<i32> {
         let border = 1;
         Aabr {
-            min: self.origin + self.tile_wpos(self.tiles.bounds.min - border),
-            max: self.origin + self.tile_wpos(self.tiles.bounds.max + 1 + border),
+            min: self.tile_wpos(self.tiles.bounds.min - border),
+            max: self.tile_wpos(self.tiles.bounds.max + 1 + border),
         }
     }
 

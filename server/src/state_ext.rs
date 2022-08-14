@@ -292,6 +292,7 @@ impl StateExt for State {
             .with(comp::Combo::default())
             .with(comp::Auras::default())
             .with(comp::Stance::default())
+            .with(RepositionOnChunkLoad)
     }
 
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder {

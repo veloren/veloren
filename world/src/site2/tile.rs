@@ -193,8 +193,8 @@ pub enum TileKind {
 
 #[derive(Clone, PartialEq)]
 pub struct Tile {
-    pub(crate) kind: TileKind,
-    pub(crate) plot: Option<Id<Plot>>,
+    pub kind: TileKind,
+    pub plot: Option<Id<Plot>>,
     pub(crate) hard_alt: Option<i32>,
 }
 

@@ -17,3 +17,4 @@ tracing = "0.1"
 atomic_refcell = "0.1"
 slotmap = { version = "1.0.6", features = ["serde"] }
 rand = { version = "0.8", features = ["small_rng"] }
+fxhash = "0.2.1"
