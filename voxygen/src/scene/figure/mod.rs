@@ -40,9 +40,9 @@ use common::{
     mounting::Rider,
     resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
-    terrain::{TerrainChunk, TerrainGrid, Block},
+    terrain::{Block, TerrainChunk, TerrainGrid},
     uid::UidAllocator,
-    vol::{RectRasterableVol, ReadVol},
+    vol::{ReadVol, RectRasterableVol},
 };
 use common_base::span;
 use common_state::State;
@@ -1191,9 +1191,7 @@ impl FigureMgr {
                         CharacterState::DiveMelee(s) => {
                             let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
-                                StageSection::Movement => {
-                                    stage_time
-                                },
+                                StageSection::Movement => stage_time,
                                 StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
@@ -1202,9 +1200,8 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            let convert_vec3 = |vec3: anim::vek::Vec3<_>| {
-                                Vec3::new(vec3.x, vec3.y, vec3.z)
-                            };
+                            let convert_vec3 =
+                                |vec3: anim::vek::Vec3<_>| Vec3::new(vec3.x, vec3.y, vec3.z);
                             let ground_dist = terrain_grid
                                 .ray(convert_vec3(pos.0), convert_vec3(pos.0 + vel.0))
                                 .until(Block::is_solid)

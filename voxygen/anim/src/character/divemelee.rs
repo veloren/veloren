@@ -38,7 +38,12 @@ impl Animation for DiveMeleeAnimation {
         match ability_id {
             Some("common.abilities.sword.cleaving_dive") => {
                 let (move1, move2, move3, move4) = match stage_section {
-                    Some(StageSection::Movement) => (anim_time.min(1.0).powi(2), (1.0 - ground_dist).powi(2), 0.0, 0.0),
+                    Some(StageSection::Movement) => (
+                        anim_time.min(1.0).powi(2),
+                        (1.0 - ground_dist).powi(2),
+                        0.0,
+                        0.0,
+                    ),
                     Some(StageSection::Action) => (1.0, 1.0, anim_time.powf(0.25), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0, 0.0),
@@ -50,13 +55,8 @@ impl Animation for DiveMeleeAnimation {
                 next.hand_r.position =
                     Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
                 next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);
-                next.control.position = Vec3::new(
-                    s_a.sc.0,
-                    s_a.sc.1,
-                    s_a.sc.2,
-                );
-                next.control.orientation =
-                    Quaternion::rotation_x(s_a.sc.3);
+                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
                 next.torso.orientation.rotate_x(move1 * -0.8);
                 next.control.orientation.rotate_x(move1 * 1.5);
