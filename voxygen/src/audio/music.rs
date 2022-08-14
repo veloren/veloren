@@ -47,7 +47,7 @@ use crate::audio::{AudioFrontend, MusicChannelTag};
 use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
-    terrain::{BiomeKind, SitesKind},
+    terrain::{BiomeKind, SiteKindMeta},
     weather::WeatherKind,
 };
 use common_state::State;
@@ -84,7 +84,7 @@ pub struct SoundtrackItem {
     /// What biomes this track should play in with chance of play
     biomes: Vec<(BiomeKind, u8)>,
     /// Whether this track should play in a specific site
-    site: Option<SitesKind>,
+    sites: Vec<SiteKindMeta>,
     /// What the player is doing when the track is played (i.e. exploring,
     /// combat)
     music_state: MusicState,
@@ -105,7 +105,7 @@ enum RawSoundtrackItem {
         timing: Option<DayPeriod>,
         weather: Option<WeatherKind>,
         biomes: Vec<(BiomeKind, u8)>,
-        site: Option<SitesKind>,
+        sites: Vec<SiteKindMeta>,
         segments: Vec<(String, f32, MusicState, Option<MusicActivity>)>,
         artist: String,
     },
@@ -346,15 +346,15 @@ impl MusicMgr {
         if spacing_multiplier > f32::EPSILON {
             silence_between_tracks_seconds =
                 if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                    && matches!(client.current_site(), SitesKind::Settlement)
+                    && matches!(client.current_site(), SiteKindMeta::Settlement(_))
                 {
                     rng.gen_range(120.0 * spacing_multiplier..180.0 * spacing_multiplier)
                 } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                    && matches!(client.current_site(), SitesKind::Dungeon)
+                    && matches!(client.current_site(), SiteKindMeta::Dungeon(_))
                 {
                     rng.gen_range(10.0 * spacing_multiplier..20.0 * spacing_multiplier)
                 } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                    && matches!(client.current_site(), SitesKind::Cave)
+                    && matches!(client.current_site(), SiteKindMeta::Cave)
                 {
                     rng.gen_range(20.0 * spacing_multiplier..40.0 * spacing_multiplier)
                 } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
@@ -389,14 +389,12 @@ impl MusicMgr {
                 (match &track.timing {
                     Some(period_of_day) => period_of_day == &current_period_of_day,
                     None => true,
-                }) && match &track.site {
-                    Some(site) => site == &current_site,
-                    None => true,
-                } && match &track.weather {
+                }) && match &track.weather {
                     Some(weather) => weather == &current_weather.get_kind(),
                     None => true,
                 }
             })
+            .filter(|track| track.sites.iter().any(|s| s == &current_site))
             .filter(|track| {
                 track.biomes.is_empty() || track.biomes.iter().any(|b| b.0 == current_biome)
             })
@@ -444,7 +442,7 @@ impl MusicMgr {
                 .biomes
                 .iter()
                 .find(|b| b.0 == current_biome)
-                .map_or(1, |b| b.1)
+                .map_or(1.0, |b| (1.0_f32 / (b.1 as f32)))
         });
         debug!(
             "selecting new track for {:?}: {:?}",
@@ -515,7 +513,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                         timing,
                         weather,
                         biomes,
-                        site,
+                        sites,
                         segments,
                         artist,
                     } => {
@@ -527,7 +525,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                                 timing: timing.clone(),
                                 weather,
                                 biomes: biomes.clone(),
-                                site,
+                                sites: sites.clone(),
                                 music_state,
                                 activity_override,
                                 artist: artist.clone(),

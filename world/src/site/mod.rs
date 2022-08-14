@@ -10,6 +10,8 @@ pub use self::{
     block_mask::BlockMask, castle::Castle, economy::Economy, settlement::Settlement, tree::Tree,
 };
 
+pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta, SiteKindMeta};
+
 use crate::{column::ColumnSample, site2, Canvas};
 use common::generation::ChunkSupplement;
 use rand::Rng;
@@ -258,5 +260,20 @@ impl Site {
                 | SiteKind::DesertCity(_)
                 | SiteKind::Settlement(_)
         )
+    }
+}
+
+impl SiteKind {
+    pub fn convert_to_meta(&self) -> Option<SiteKindMeta> {
+        match self {
+            SiteKind::Refactor(_) | SiteKind::Settlement(_) => {
+                Some(SiteKindMeta::Settlement(SettlementKindMeta::Default))
+            },
+            SiteKind::CliffTown(_) => Some(SiteKindMeta::Settlement(SettlementKindMeta::Cliff)),
+            SiteKind::DesertCity(_) => Some(SiteKindMeta::Settlement(SettlementKindMeta::Desert)),
+            SiteKind::Dungeon(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Old)),
+            SiteKind::Gnarling(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Gnarling)),
+            _ => None,
+        }
     }
 }

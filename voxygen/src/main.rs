@@ -234,6 +234,7 @@ fn main() {
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);
     audio.set_ambience_volume(settings.audio.ambience_volume);
+    audio.set_music_spacing(settings.audio.music_spacing);
 
     // Load the profile.
     let profile = Profile::load(&config_dir);

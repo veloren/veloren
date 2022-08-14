@@ -23,7 +23,7 @@ pub enum Audio {
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     AdjustAmbienceVolume(f32),
-    AdjustMusicFrequency(f32),
+    AdjustMusicSpacing(f32),
     //ChangeAudioDevice(String),
     ResetAudioSettings,
 }
@@ -209,7 +209,7 @@ impl SettingsChange {
 
                         settings.audio.ambience_volume = ambience_volume;
                     },
-                    Audio::AdjustMusicFrequency(multiplier) => {
+                    Audio::AdjustMusicSpacing(multiplier) => {
                         global_state.audio.set_music_spacing(multiplier);
 
                         settings.audio.music_spacing = multiplier;

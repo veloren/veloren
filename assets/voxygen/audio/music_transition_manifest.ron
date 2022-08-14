@@ -1,6 +1,6 @@
 (
     combat_nearby_radius: 25.0,
-    combat_health_factor: 50.0,
+    combat_health_factor: 70.0,
     combat_nearby_high_thresh: 4,
     combat_nearby_low_thresh: 4,
     fade_timings: {

@@ -348,13 +348,13 @@
         //
         Wield(Hammer): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_out",
+                "voxygen.audio.sfx.weapon.weapon_out",
             ],
             threshold: 0.5,
         ),
         Unwield(Hammer): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_in",
+                "voxygen.audio.sfx.weapon.weapon_in",
             ],
             threshold: 0.5,
         ),
@@ -388,13 +388,13 @@
         //
         Wield(Axe): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_out",
+                "voxygen.audio.sfx.weapon.weapon_out",
             ],
             threshold: 0.5,
         ),
         Unwield(Axe): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_in",
+                "voxygen.audio.sfx.weapon.weapon_in",
             ],
             threshold: 0.5,
         ),
@@ -434,13 +434,13 @@
         //
         Wield(Staff): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_out",
+                "voxygen.audio.sfx.weapon.staff_out",
             ],
             threshold: 0.5,
         ),
         Unwield(Staff): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_in",
+                "voxygen.audio.sfx.weapon.staff_in",
             ],
             threshold: 0.5,
         ),
@@ -468,13 +468,13 @@
         //
         Wield(Bow): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_out",
+                "voxygen.audio.sfx.weapon.weapon_out",
             ],
             threshold: 0.5,
         ),
         Unwield(Bow): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_in",
+                "voxygen.audio.sfx.weapon.weapon_in",
             ],
             threshold: 0.5,
         ),
@@ -496,13 +496,13 @@
         //
         Wield(Sceptre): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_out",
+                "voxygen.audio.sfx.weapon.staff_out",
             ],
             threshold: 0.5,
         ),
         Unwield(Sceptre): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_in",
+                "voxygen.audio.sfx.weapon.staff_in",
             ],
             threshold: 0.5,
         ),
@@ -514,7 +514,7 @@
         ),
         Inventory(CollectedTool(Sceptre)): (
             files: [
-                "voxygen.audio.sfx.inventory.add_item",
+                "voxygen.audio.sfx.inventory.pickup_staff",
             ],
             threshold: 0.3,
         ),
@@ -564,7 +564,7 @@
         ),
         Unwield(Shield): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_in",
+                "voxygen.audio.sfx.weapon.weapon_in",
             ],
             threshold: 0.5,
         ),
