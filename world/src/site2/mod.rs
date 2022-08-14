@@ -744,17 +744,17 @@ impl Site {
 
     pub fn generate_cliff_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
-
         let mut site = Site {
             origin,
             name: NameGen::location(&mut rng).generate_arabic(),
             ..Site::default()
         };
-
+        let mut campfires = 0;
         site.make_plaza(land, &mut rng);
         for _ in 0..30 {
             // CliffTower
             let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+            let campfire = campfires < 4;
             if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                 site.find_roadside_aabr(&mut rng, 6..(size + 1).pow(2), Extent2::broadcast(size))
             }) {
@@ -765,6 +765,7 @@ impl Site {
                     door_tile,
                     door_dir,
                     aabr,
+                    campfire,
                 );
                 let cliff_tower_alt = cliff_tower.alt;
                 let plot = site.create_plot(Plot {
@@ -779,6 +780,7 @@ impl Site {
                     plot: Some(plot),
                     hard_alt: Some(cliff_tower_alt),
                 });
+                campfires += 1;
             } else {
                 site.make_plaza(land, &mut rng);
             }
@@ -803,12 +805,14 @@ impl Site {
         let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2)]);
 
         let mut temples = 0;
+        let mut campfires = 0;
 
         for _ in 0..30 {
             match *build_chance.choose_seeded(rng.gen()) {
                 // DesertCityMultiplot
                 1 => {
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let campfire = campfires < 4;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -823,6 +827,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            campfire,
                         );
                         let desert_city_multi_plot_alt = desert_city_multi_plot.alt;
                         let plot = site.create_plot(Plot {
@@ -837,6 +842,7 @@ impl Site {
                             plot: Some(plot),
                             hard_alt: Some(desert_city_multi_plot_alt),
                         });
+                        campfires += 1;
                     } else {
                         site.make_plaza(land, &mut rng);
                     }

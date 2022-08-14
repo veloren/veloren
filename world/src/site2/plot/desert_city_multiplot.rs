@@ -5,8 +5,9 @@ use crate::{
     util::{RandomField, Sampler, DIAGONALS, NEIGHBORS},
     Land,
 };
-use common::terrain::{
-    Block, BlockKind, SpriteKind, Structure as PrefabStructure, StructuresGroup,
+use common::{
+    generation::EntityInfo,
+    terrain::{Block, BlockKind, SpriteKind, Structure as PrefabStructure, StructuresGroup},
 };
 use lazy_static::lazy_static;
 use rand::prelude::*;
@@ -44,6 +45,7 @@ pub struct DesertCityMultiPlot {
     pub(crate) alt: i32,
     diameter: i32,
     plot_kind: PlotKind,
+    campfire: bool,
 }
 
 impl DesertCityMultiPlot {
@@ -54,6 +56,7 @@ impl DesertCityMultiPlot {
         door_tile: Vec2<i32>,
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
+        campfire: bool,
     ) -> Self {
         let bounds = Aabr {
             min: site.tile_wpos(tile_aabr.min),
@@ -120,6 +123,7 @@ impl DesertCityMultiPlot {
             alt: land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32,
             diameter,
             plot_kind,
+            campfire,
         }
     }
 }
@@ -2406,6 +2410,11 @@ impl Structure for DesertCityMultiPlot {
                             }
                         },
                     }
+                }
+                // spawn campfire in some multiplots that are not markethall
+                let campfire_pos = (center).with_z(base + 1);
+                if self.campfire {
+                    painter.spawn(EntityInfo::at(campfire_pos.map(|e| e as f32)).into_waypoint())
                 }
             },
         }
