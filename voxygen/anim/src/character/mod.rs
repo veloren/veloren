@@ -9,6 +9,7 @@ pub mod combomelee;
 pub mod consume;
 pub mod dance;
 pub mod dash;
+pub mod divemelee;
 pub mod equip;
 pub mod finishermelee;
 pub mod glidewield;
@@ -51,7 +52,7 @@ pub use self::{
     sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation, spin::SpinAnimation,
     spinmelee::SpinMeleeAnimation, staggered::StaggeredAnimation, stand::StandAnimation,
     stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
-    talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
+    talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation, divemelee::DiveMeleeAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp;

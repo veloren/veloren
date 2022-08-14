@@ -40,9 +40,9 @@ use common::{
     mounting::Rider,
     resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
-    terrain::TerrainChunk,
+    terrain::{TerrainChunk, TerrainGrid, Block},
     uid::UidAllocator,
-    vol::RectRasterableVol,
+    vol::{RectRasterableVol, ReadVol},
 };
 use common_base::span;
 use common_state::State;
@@ -726,6 +726,8 @@ impl FigureMgr {
 
         let bodies = ecs.read_storage::<Body>();
 
+        let terrain_grid = ecs.read_resource::<TerrainGrid>();
+
         for (
             i,
             (
@@ -1181,6 +1183,38 @@ impl FigureMgr {
                             anim::character::FinisherMeleeAnimation::update_skeleton(
                                 &target_base,
                                 (ability_id, Some(s.stage_section)),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::DiveMelee(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Movement => {
+                                    stage_time
+                                },
+                                StageSection::Action => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            let convert_vec3 = |vec3: anim::vek::Vec3<_>| {
+                                Vec3::new(vec3.x, vec3.y, vec3.z)
+                            };
+                            let ground_dist = terrain_grid
+                                .ray(convert_vec3(pos.0), convert_vec3(pos.0 + vel.0))
+                                .until(Block::is_solid)
+                                .cast()
+                                .0
+                                .powi(2)
+                                / vel.0.magnitude_squared();
+                            anim::character::DiveMeleeAnimation::update_skeleton(
+                                &target_base,
+                                (ability_id, Some(s.stage_section), ground_dist),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
