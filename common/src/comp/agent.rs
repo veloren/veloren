@@ -507,6 +507,59 @@ pub struct Agent {
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
     pub position_pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
+    pub awareness: Awareness,
+}
+
+#[derive(Clone, Debug)]
+/// Always clamped between `0.0` and `1.0`.
+pub struct Awareness {
+    level: f32,
+}
+impl fmt::Display for Awareness {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:.2}", self.level) }
+}
+impl Awareness {
+    const AWARE: f32 = 1.0;
+    const HIGH: f32 = 0.6;
+    const LOW: f32 = 0.1;
+    const MEDIUM: f32 = 0.3;
+    const UNAWARE: f32 = 0.0;
+
+    pub fn new(level: f32) -> Self {
+        Self {
+            level: level.clamp(Self::UNAWARE, Self::AWARE),
+        }
+    }
+
+    pub fn level(&self) -> f32 { self.level }
+
+    pub fn state(&self) -> AwarenessState {
+        if self.level == Self::AWARE {
+            AwarenessState::Aware
+        } else if self.level.is_between(Self::HIGH, Self::AWARE) {
+            AwarenessState::High
+        } else if self.level.is_between(Self::MEDIUM, Self::HIGH) {
+            AwarenessState::Medium
+        } else if self.level.is_between(Self::LOW, Self::MEDIUM) {
+            AwarenessState::Low
+        } else {
+            AwarenessState::Unaware
+        }
+    }
+
+    pub fn change_by(&mut self, amount: f32, dt: f32) {
+        let change = amount * dt * 30.0;
+        self.level = (self.level + change).clamp(Self::UNAWARE, Self::AWARE);
+    }
+}
+
+#[derive(Clone, Debug, PartialOrd, PartialEq)]
+pub enum AwarenessState {
+    Unaware = 0,
+    Low = 1,
+    Medium = 2,
+    High = 3,
+    Aware = 4,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -534,6 +587,7 @@ impl Agent {
             bearing: Vec2::zero(),
             sounds_heard: Vec::new(),
             position_pid_controller: None,
+            awareness: Awareness::new(0.0),
         }
     }
 
