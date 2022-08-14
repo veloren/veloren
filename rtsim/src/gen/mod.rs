@@ -46,11 +46,12 @@ impl Data {
                 wpos2d.map(|e| e as f32 + 0.5)
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
-            for _ in 0..10 {
+            for _ in 0..20 {
 
                 this.npcs.create(Npc::new(rng.gen(), rand_wpos(&mut rng)).with_home(site_id).with_profession(match rng.gen_range(0..10) {
                     0 => Profession::Hunter,
-                    1..=4 => Profession::Farmer,
+                    1 => Profession::Blacksmith,
+                    2..=4 => Profession::Farmer,
                     _ => Profession::Guard,
                 }));
             }

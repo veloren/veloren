@@ -105,6 +105,12 @@ impl<'a> System<'a> for Sys {
                             economy.as_ref(),
                             |good| matches!(good, Good::Food),
                         ),
+                        Profession::Blacksmith => trader_loadout(
+                            loadout_builder
+                                .with_asset_expect("common.loadout.village.blacksmith", &mut rng),
+                            economy.as_ref(),
+                            |good| matches!(good, Good::Tools | Good::Armor),
+                        ),
                         Profession::Hunter => loadout_builder
                             .with_asset_expect("common.loadout.village.villager", &mut rng),
 
@@ -114,7 +120,7 @@ impl<'a> System<'a> for Sys {
 
                 let can_speak = npc.profession.is_some(); // TODO: not this
 
-                let trade_for_site = if let Some(Profession::Merchant | Profession::Farmer) = npc.profession {
+                let trade_for_site = if let Some(Profession::Merchant | Profession::Farmer | Profession::Blacksmith) = npc.profession {
                     npc.home.and_then(|home| Some(data.sites.get(home)?.world_site?.id()))
                 } else {
                     None

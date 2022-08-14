@@ -106,6 +106,8 @@ pub enum Profession {
     Guard,
     #[serde(rename = "4")]
     Adventurer(u32),
+    #[serde(rename = "5")]
+    Blacksmith,
 }
 
 impl Profession {
@@ -116,6 +118,7 @@ impl Profession {
             Self::Merchant => "Merchant".to_string(),
             Self::Guard => "Guard".to_string(),
             Self::Adventurer(_) => "Adventurer".to_string(),
+            Self::Blacksmith => "Blacksmith".to_string(),
         }
     }
 }
