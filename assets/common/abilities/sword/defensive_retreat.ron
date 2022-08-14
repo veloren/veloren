@@ -18,7 +18,7 @@ ComboMelee2(
             movement: (
                 buildup: None,
                 swing: None,
-                recover: Some(Reverse(1.5)),
+                recover: Some(Reverse(1.0)),
             ),
             ori_modifier: 0.6,
         ),
