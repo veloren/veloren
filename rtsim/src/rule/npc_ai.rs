@@ -11,7 +11,7 @@ use vek::*;
 use world::{
     site::{Site as WorldSite, SiteKind},
     site2::{self, TileKind},
-    IndexRef,
+    IndexRef, World,
 };
 
 pub struct NpcAi;
@@ -97,6 +97,7 @@ fn path_town(
     index: IndexRef,
     time: f64,
     seed: u32,
+    world: &World,
 ) -> Option<(Vec3<f32>, f32)> {
     match &index.sites.get(site).kind {
         SiteKind::Refactor(site) | SiteKind::CliffTown(site) | SiteKind::DesertCity(site) => {
@@ -115,7 +116,8 @@ fn path_town(
                 PathResult::Pending => None,
             }.unwrap_or(end);
 
-            let wpos = site.tile_center_wpos(next_tile).as_().with_z(wpos.z);
+            let wpos = site.tile_center_wpos(next_tile);
+            let wpos = wpos.as_::<f32>().with_z(world.sim().get_alt_approx(wpos).unwrap_or(0.0));
 
             Some((wpos, 1.0))
         },
@@ -140,7 +142,7 @@ impl Rule for NpcAi {
                             npc.target = None;
                         }
                     } else {
-                        npc.target = path_town(npc.wpos, home_id, ctx.index, ctx.event.time.0, npc.seed);
+                        npc.target = path_town(npc.wpos, home_id, ctx.index, ctx.event.time.0, npc.seed, ctx.world);
                     }
                 } else {
                     // TODO: Don't make homeless people walk around in circles
