@@ -1254,9 +1254,6 @@ impl<'a> AgentData<'a> {
                 .map_or(false, |stats| stats.name == *"Guard".to_string());
             let follows_threatening_sounds = has_enemy_alignment || is_village_guard;
 
-            // TODO: Awareness currently doesn't influence anything.
-            //agent.awareness += 0.5 * sound.vol;
-
             if sound_was_threatening && is_close {
                 if !self.below_flee_health(agent) && follows_threatening_sounds {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);

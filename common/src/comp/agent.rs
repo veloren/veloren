@@ -18,7 +18,6 @@ use super::dialogue::Subject;
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
-const AWARENESS_DECREMENT_CONSTANT: f32 = 2.1;
 const SECONDS_BEFORE_FORGET_SOUNDS: f64 = 180.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -507,7 +506,6 @@ pub struct Agent {
     pub timer: Timer,
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
-    pub awareness: f32,
     pub position_pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
 }
 
@@ -535,7 +533,6 @@ impl Agent {
             timer: Timer::default(),
             bearing: Vec2::zero(),
             sounds_heard: Vec::new(),
-            awareness: 0.0,
             position_pid_controller: None,
         }
     }
@@ -585,34 +582,6 @@ impl Agent {
     pub fn with_aggro_no_warn(mut self) -> Self {
         self.psyche.aggro_dist = None;
         self
-    }
-
-    pub fn decrement_awareness(&mut self, dt: f32) {
-        let mut decrement = dt * AWARENESS_DECREMENT_CONSTANT;
-        let awareness = self.awareness;
-
-        let too_high = awareness >= 100.0;
-        let high = awareness >= 50.0;
-        let medium = awareness >= 30.0;
-        let low = awareness > 15.0;
-        let positive = awareness >= 0.0;
-        let negative = awareness < 0.0;
-
-        if too_high {
-            decrement *= 3.0;
-        } else if high {
-            decrement *= 1.0;
-        } else if medium {
-            decrement *= 2.5;
-        } else if low {
-            decrement *= 0.70;
-        } else if positive {
-            decrement *= 0.5;
-        } else if negative {
-            return;
-        }
-
-        self.awareness -= decrement;
     }
 
     pub fn forget_old_sounds(&mut self, time: f64) {
