@@ -42,8 +42,8 @@ use common::{
     resources::{PlayerEntity, TimeOfDay},
     spiral::Spiral2d,
     terrain::{
-        block::Block, map::MapConfig, neighbors, BiomeKind, SitesKind, SpriteKind, TerrainChunk,
-        TerrainChunkSize,
+        block::Block, map::MapConfig, neighbors, site::DungeonKindMeta, BiomeKind, SiteKindMeta,
+        SpriteKind, TerrainChunk, TerrainChunkSize,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
@@ -1517,31 +1517,30 @@ impl Client {
         }
     }
 
-    pub fn current_site(&self) -> SitesKind {
+    pub fn current_site(&self) -> SiteKindMeta {
         let mut player_alt = 0.0;
         if let Some(position) = self.current::<comp::Pos>() {
             player_alt = position.0.z;
         }
         //let mut contains_cave = false;
         let mut terrain_alt = 0.0;
-        let mut contains_dungeon = false;
-        let mut contains_settlement = false;
+        let mut site = None;
         if let Some(chunk) = self.current_chunk() {
             terrain_alt = chunk.meta().alt();
             //contains_cave = chunk.meta().contains_cave();
-            contains_dungeon = chunk.meta().contains_dungeon();
-            contains_settlement = chunk.meta().contains_settlement();
+            site = chunk.meta().site();
         }
         if player_alt < terrain_alt - 40.0 {
-            if contains_dungeon {
-                SitesKind::Dungeon
+            if let Some(SiteKindMeta::Dungeon(dungeon)) = site {
+                SiteKindMeta::Dungeon(dungeon)
             } else {
-                SitesKind::Cave
+                SiteKindMeta::Cave
             }
-        } else if contains_settlement {
-            SitesKind::Settlement
+        } else if matches!(site, Some(SiteKindMeta::Dungeon(DungeonKindMeta::Old))) {
+            // If the player is in a dungeon chunk but aboveground, pass Void instead
+            SiteKindMeta::Void
         } else {
-            SitesKind::Void
+            site.unwrap_or_default()
         }
     }
 

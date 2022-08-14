@@ -165,6 +165,7 @@ pub enum AmbientChannelTag {
     Rain,
     Thunder,
     Leaves,
+    Cave,
 }
 
 /// A AmbientChannel uses a non-positional audio sink designed to play sounds

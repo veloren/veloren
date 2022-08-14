@@ -39,6 +39,7 @@ pub use crate::{
 };
 pub use block::BlockGen;
 pub use column::ColumnSample;
+pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta};
 pub use index::{IndexOwned, IndexRef};
 
 use crate::{
@@ -304,16 +305,10 @@ impl World {
             sim_chunk.river.velocity,
             sim_chunk.temp,
             sim_chunk.humidity,
-            sim_chunk.sites.iter().any(|site| {
-                matches!(
-                    index.sites[*site].kind,
-                    SiteKind::Refactor(_) | SiteKind::CliffTown(_) | SiteKind::DesertCity(_)
-                )
-            }),
             sim_chunk
                 .sites
                 .iter()
-                .any(|site| matches!(index.sites[*site].kind, SiteKind::Dungeon(_))),
+                .find_map(|site| index.sites[*site].kind.convert_to_meta()),
         );
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);

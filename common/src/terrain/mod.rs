@@ -11,7 +11,7 @@ pub use self::{
     biome::BiomeKind,
     block::{Block, BlockKind},
     map::MapSizeLg,
-    site::SitesKind,
+    site::SiteKindMeta,
     sprite::SpriteKind,
     structure::{Structure, StructuresGroup},
 };
@@ -89,8 +89,7 @@ pub struct TerrainChunkMeta {
     river_velocity: Vec3<f32>,
     temp: f32,
     humidity: f32,
-    contains_settlement: bool,
-    contains_dungeon: bool,
+    site: Option<SiteKindMeta>,
 }
 
 impl TerrainChunkMeta {
@@ -104,8 +103,7 @@ impl TerrainChunkMeta {
         river_velocity: Vec3<f32>,
         temp: f32,
         humidity: f32,
-        contains_settlement: bool,
-        contains_dungeon: bool,
+        site: Option<SiteKindMeta>,
     ) -> Self {
         Self {
             name,
@@ -117,8 +115,7 @@ impl TerrainChunkMeta {
             river_velocity,
             temp,
             humidity,
-            contains_settlement,
-            contains_dungeon,
+            site,
         }
     }
 
@@ -133,8 +130,7 @@ impl TerrainChunkMeta {
             river_velocity: Vec3::zero(),
             temp: 0.0,
             humidity: 0.0,
-            contains_settlement: false,
-            contains_dungeon: false,
+            site: None,
         }
     }
 
@@ -152,9 +148,7 @@ impl TerrainChunkMeta {
 
     pub fn river_velocity(&self) -> Vec3<f32> { self.river_velocity }
 
-    pub fn contains_settlement(&self) -> bool { self.contains_settlement }
-
-    pub fn contains_dungeon(&self) -> bool { self.contains_dungeon }
+    pub fn site(&self) -> Option<SiteKindMeta> { self.site }
 
     pub fn temp(&self) -> f32 { self.temp }
 

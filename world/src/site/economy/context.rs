@@ -262,7 +262,14 @@ fn tick(index: &mut Index, dt: f32, _env: &mut Environment) {
 #[cfg(test)]
 mod tests {
     use crate::{sim, util::seed_expan};
-    use common::{store::Id, terrain::BiomeKind, trade::Good};
+    use common::{
+        store::Id,
+        terrain::{
+            site::{DungeonKindMeta, SiteKindMeta},
+            BiomeKind,
+        },
+        trade::Good,
+    };
     use hashbrown::HashMap;
     use rand::SeedableRng;
     use rand_chacha::ChaChaRng;
@@ -294,7 +301,7 @@ mod tests {
     struct EconomySetup {
         name: String,
         position: (i32, i32),
-        kind: common::terrain::site::SitesKind,
+        kind: common::terrain::site::SiteKindMeta,
         neighbors: Vec<u64>, // id
         resources: Vec<ResourcesSetup>,
     }
@@ -381,21 +388,7 @@ mod tests {
                         position: (i.get_origin().x, i.get_origin().y),
                         resources,
                         neighbors,
-                        kind: match i.kind {
-                            crate::site::SiteKind::Settlement(_)
-                            | crate::site::SiteKind::Refactor(_)
-                            | crate::site::SiteKind::CliffTown(_)
-                            | crate::site::SiteKind::DesertCity(_) => {
-                                common::terrain::site::SitesKind::Settlement
-                            },
-                            crate::site::SiteKind::Dungeon(_) => {
-                                common::terrain::site::SitesKind::Dungeon
-                            },
-                            crate::site::SiteKind::Castle(_) => {
-                                common::terrain::site::SitesKind::Castle
-                            },
-                            _ => common::terrain::site::SitesKind::Void,
-                        },
+                        kind: i.kind.convert_to_meta().unwrap_or_default(),
                     };
                     outarr.push(val);
                 }
@@ -419,10 +412,10 @@ mod tests {
                     // loading on demand using the public API. There is no way to set
                     // the name, do we care?
                     let mut settlement = match i.kind {
-                        common::terrain::site::SitesKind::Castle => crate::site::Site::castle(
+                        SiteKindMeta::Castle => crate::site::Site::castle(
                             crate::site::Castle::generate(wpos, None, &mut rng),
                         ),
-                        common::terrain::site::SitesKind::Dungeon => {
+                        SiteKindMeta::Dungeon(DungeonKindMeta::Old) => {
                             crate::site::Site::dungeon(crate::site2::Site::generate_dungeon(
                                 &crate::Land::empty(),
                                 &mut rng,

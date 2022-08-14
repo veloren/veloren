@@ -20,5 +20,10 @@
             length: 26.0,
             tag: Leaves,
         ),
+        (
+            path:"voxygen.audio.ambience.cave",
+            length: 75.5,
+            tag: Cave,
+        )
     ]
 )

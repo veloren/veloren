@@ -6,6 +6,7 @@ use crate::{
 use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
+    terrain::site::SiteKindMeta,
     vol::ReadVol,
 };
 use common_state::State;
@@ -57,6 +58,7 @@ impl AmbientMgr {
                     AmbientChannelTag::Rain => 0.1,
                     AmbientChannelTag::Thunder => 0.1,
                     AmbientChannelTag::Leaves => 0.05,
+                    AmbientChannelTag::Cave => 0.1,
                 }
                 && audio.get_ambient_channel(tag).is_none()
             {
@@ -109,10 +111,11 @@ impl AmbientMgr {
 impl AmbientChannelTag {
     pub fn tag_max_volume(tag: AmbientChannelTag) -> f32 {
         match tag {
-            AmbientChannelTag::Wind => 1.15,
+            AmbientChannelTag::Wind => 1.0,
             AmbientChannelTag::Rain => 0.95,
             AmbientChannelTag::Thunder => 1.33,
             AmbientChannelTag::Leaves => 1.33,
+            AmbientChannelTag::Cave => 1.0,
         }
     }
 
@@ -205,6 +208,25 @@ impl AmbientChannelTag {
                     0.0
                 }
             },
+            AmbientChannelTag::Cave => {
+                let focus_off = camera.get_focus_pos().map(f32::trunc);
+                let cam_pos = camera.dependents().cam_pos + focus_off;
+
+                let terrain_alt = if let Some(chunk) = client.current_chunk() {
+                    chunk.meta().alt()
+                } else {
+                    0.0
+                };
+
+                // When the camera is roughly above ground, don't play cave sounds
+                let camera_multiplier = (-(cam_pos.z - terrain_alt) / 100.0).max(0.0);
+
+                if client.current_site() == SiteKindMeta::Cave {
+                    camera_multiplier
+                } else {
+                    0.0
+                }
+            },
         }
     }
 }
@@ -237,8 +259,13 @@ fn get_target_volume(
     }
 
     // Is the camera underneath the terrain? Fade out the lower it goes beneath.
-    (volume_multiplier * ((cam_pos.z - terrain_alt) / 40.0 + 1.0).clamped(0.0, 1.0))
-        .min(AmbientChannelTag::tag_max_volume(tag))
+    // Unless, of course, the player is in a cave.
+    if tag != AmbientChannelTag::Cave {
+        (volume_multiplier * ((cam_pos.z - terrain_alt) / 50.0 + 1.0).clamped(0.0, 1.0))
+            .min(AmbientChannelTag::tag_max_volume(tag))
+    } else {
+        volume_multiplier.min(AmbientChannelTag::tag_max_volume(tag))
+    }
 }
 
 pub fn load_ambience_items() -> AssetHandle<AmbientCollection> {
