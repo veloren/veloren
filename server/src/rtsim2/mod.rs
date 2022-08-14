@@ -5,7 +5,7 @@ pub mod tick;
 use common::{
     grid::Grid,
     slowjob::SlowJobPool,
-    rtsim::{ChunkResource, RtSimEntity},
+    rtsim::{ChunkResource, RtSimEntity, WorldSettings},
     terrain::{TerrainChunk, Block},
     vol::RectRasterableVol,
 };
@@ -41,7 +41,7 @@ pub struct RtSim {
 }
 
 impl RtSim {
-    pub fn new(index: IndexRef, world: &World, data_dir: PathBuf) -> Result<Self, ron::Error> {
+    pub fn new(settings: &WorldSettings, index: IndexRef, world: &World, data_dir: PathBuf) -> Result<Self, ron::Error> {
         let file_path = Self::get_file_path(data_dir);
 
         info!("Looking for rtsim data at {}...", file_path.display());
@@ -81,7 +81,7 @@ impl RtSim {
                 warn!("'RTSIM_NOLOAD' is set, skipping loading of rtsim state (old state will be overwritten).");
             }
 
-            let data = Data::generate(&world, index);
+            let data = Data::generate(settings, &world, index);
             info!("Rtsim data generated.");
             data
         };

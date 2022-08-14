@@ -9,6 +9,10 @@ use crate::data::{
 use hashbrown::HashMap;
 use rand::prelude::*;
 use tracing::info;
+use common::{
+    rtsim::WorldSettings,
+    resources::TimeOfDay,
+};
 use world::{
     site::SiteKind,
     IndexRef,
@@ -16,7 +20,7 @@ use world::{
 };
 
 impl Data {
-    pub fn generate(world: &World, index: IndexRef) -> Self {
+    pub fn generate(settings: &WorldSettings, world: &World, index: IndexRef) -> Self {
         let mut seed = [0; 32];
         seed.iter_mut().zip(&mut index.seed.to_le_bytes()).for_each(|(dst, src)| *dst = *src);
         let mut rng = SmallRng::from_seed(seed);
@@ -26,7 +30,7 @@ impl Data {
             npcs: Npcs { npcs: Default::default() },
             sites: Sites { sites: Default::default() },
 
-            time_of_day: Default::default(),
+            time_of_day: TimeOfDay(settings.start_time),
         };
 
         // Register sites with rtsim

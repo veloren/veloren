@@ -459,7 +459,7 @@ impl Server {
         state.ecs_mut().insert(index.clone());
 
         // Set starting time for the server.
-        state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
+        state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.world.start_time;
 
         // Register trackers
         sys::sentinel::UpdateTrackers::register(state.ecs_mut());
@@ -565,7 +565,7 @@ impl Server {
         // Init rtsim, loading it from disk if possible
         #[cfg(feature = "worldgen")]
         {
-            match rtsim2::RtSim::new(index.as_index_ref(), &world, data_dir.to_owned()) {
+            match rtsim2::RtSim::new(&settings.world, index.as_index_ref(), &world, data_dir.to_owned()) {
                 Ok(rtsim) => {
                     state.ecs_mut().insert(rtsim.state().data().time_of_day);
                     state.ecs_mut().insert(rtsim);

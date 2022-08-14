@@ -122,3 +122,16 @@ impl Profession {
         }
     }
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct WorldSettings {
+    pub start_time: f64,
+}
+
+impl Default for WorldSettings {
+    fn default() -> Self {
+        Self {
+            start_time: 9.0 * 3600.0, // 9am
+        }
+    }
+}
