@@ -17,6 +17,7 @@ pub struct CliffTower {
     bounds: Aabr<i32>,
     /// Approximate altitude of the door tile
     pub(crate) alt: i32,
+    campfire: bool,
 }
 
 impl CliffTower {
@@ -27,6 +28,7 @@ impl CliffTower {
         door_tile: Vec2<i32>,
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
+        campfire: bool,
     ) -> Self {
         let bounds = Aabr {
             min: site.tile_wpos(tile_aabr.min),
@@ -35,6 +37,7 @@ impl CliffTower {
         Self {
             bounds,
             alt: land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32,
+            campfire,
         }
     }
 }
@@ -893,6 +896,11 @@ impl Structure for CliffTower {
             floor_level += height;
             mem::swap(&mut length, &mut width);
             mem::swap(&mut stair_pos1, &mut stair_pos2);
+        }
+        // spawn campfire next to some clifftowers
+        if self.campfire {
+            let campfire_pos = (center - 20).with_z(self.alt + 18);
+            painter.spawn(EntityInfo::at(campfire_pos.map(|e| e as f32)).into_waypoint());
         }
     }
 }
