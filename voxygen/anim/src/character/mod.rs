@@ -22,6 +22,7 @@ pub mod music;
 pub mod repeater;
 pub mod roll;
 pub mod run;
+pub mod selfbuff;
 pub mod shockwave;
 pub mod shoot;
 pub mod sit;
@@ -48,12 +49,12 @@ pub use self::{
     finishermelee::FinisherMeleeAnimation, glidewield::GlideWieldAnimation,
     gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
     mount::MountAnimation, music::MusicAnimation, repeater::RepeaterAnimation, roll::RollAnimation,
-    run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation, sit::SitAnimation,
-    sneak::SneakAnimation, sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation,
-    spin::SpinAnimation, spinmelee::SpinMeleeAnimation, staggered::StaggeredAnimation,
-    stand::StandAnimation, stunned::StunnedAnimation, swim::SwimAnimation,
-    swimwield::SwimWieldAnimation, talk::TalkAnimation, wallrun::WallrunAnimation,
-    wield::WieldAnimation,
+    run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
+    shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation,
+    sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation, spin::SpinAnimation,
+    spinmelee::SpinMeleeAnimation, staggered::StaggeredAnimation, stand::StandAnimation,
+    stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
+    talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp;
