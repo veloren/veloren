@@ -5706,7 +5706,7 @@ impl FigureMgr {
         }
     }
 
-    pub fn render_player<'a>(
+    pub fn render_viewpoint<'a>(
         &'a self,
         drawer: &mut FigureDrawer<'_, 'a>,
         state: &State,
@@ -5774,7 +5774,7 @@ impl FigureMgr {
         entity: EcsEntity,
         body: &Body,
         inventory: Option<&Inventory>,
-        is_player: bool,
+        is_viewpoint: bool,
         pos: Vec3<f32>,
         figure_lod_render_distance: f32,
         mut_count: usize,
@@ -5783,14 +5783,14 @@ impl FigureMgr {
     ) -> Option<FigureModelRef> {
         let body = *body;
 
-        let player_camera_mode = if is_player {
+        let viewpoint_camera_mode = if is_viewpoint {
             camera.get_mode()
         } else {
             CameraMode::default()
         };
         let focus_pos = camera.get_focus_pos();
         let cam_pos = camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
-        let character_state = if is_player { character_state } else { None };
+        let character_state = if is_viewpoint { character_state } else { None };
 
         let FigureMgr {
             col_lights: ref col_lights_,
@@ -5847,7 +5847,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -5864,7 +5864,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -5881,7 +5881,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -5898,7 +5898,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -5915,7 +5915,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -5932,7 +5932,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -5949,7 +5949,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -5966,7 +5966,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -5983,7 +5983,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -6000,7 +6000,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -6017,7 +6017,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -6034,7 +6034,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -6051,7 +6051,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -6068,7 +6068,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -6085,7 +6085,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             None,
                         ),
@@ -6102,7 +6102,7 @@ impl FigureMgr {
                             body,
                             inventory,
                             tick,
-                            player_camera_mode,
+                            viewpoint_camera_mode,
                             character_state,
                             item_key,
                         ),
@@ -6121,7 +6121,7 @@ impl FigureMgr {
                                     body,
                                     inventory,
                                     tick,
-                                    player_camera_mode,
+                                    viewpoint_camera_mode,
                                     character_state,
                                     None,
                                 ),
@@ -6139,7 +6139,7 @@ impl FigureMgr {
                                     VolumeKey { entity, mut_count },
                                     inventory,
                                     tick,
-                                    player_camera_mode,
+                                    viewpoint_camera_mode,
                                     character_state,
                                     None,
                                 ),

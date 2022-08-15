@@ -81,7 +81,6 @@ pub struct SessionState {
     selected_block: Block,
     walk_forward_dir: Vec2<f32>,
     walk_right_dir: Vec2<f32>,
-    freefly_vel: Vec3<f32>,
     free_look: bool,
     auto_walk: bool,
     camera_clamp: bool,
@@ -143,7 +142,6 @@ impl SessionState {
             selected_block: Block::new(BlockKind::Misc, Rgb::broadcast(255)),
             walk_forward_dir,
             walk_right_dir,
-            freefly_vel: Vec3::zero(),
             free_look: false,
             auto_walk: false,
             camera_clamp: false,
@@ -368,6 +366,22 @@ impl SessionState {
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
                 },
+                client::Event::StartSpectate(spawn_point) => {
+                    let server_name = &client.server_info().name;
+                    let spawn_point = global_state
+                        .profile
+                        .get_spectate_position(server_name)
+                        .unwrap_or(spawn_point);
+
+                    client
+                        .state()
+                        .ecs()
+                        .write_storage()
+                        .insert(client.entity(), Pos(spawn_point))
+                        .expect("This shouldn't exist");
+
+                    self.scene.camera_mut().force_focus_pos(spawn_point);
+                },
                 client::Event::SpectatePosition(pos) => {
                     self.scene.camera_mut().force_focus_pos(pos);
                 },
@@ -493,7 +507,14 @@ impl PlayState for SessionState {
             drop(client);
 
             if presence == PresenceKind::Spectator {
-                self.client.borrow_mut().spectate_position(cam_pos);
+                let mut client = self.client.borrow_mut();
+                if client.spectate_position(cam_pos) {
+                    let server_name = &client.server_info().name;
+                    global_state.profile.set_spectate_position(
+                        server_name,
+                        Some(self.scene.camera().get_focus_pos()),
+                    );
+                }
             }
 
             // Nearest block to consider with GameInput primary or secondary key.
@@ -906,11 +927,9 @@ impl PlayState for SessionState {
                                 let client = self.client.borrow();
                                 camera.next_mode(
                                     client.is_moderator(),
-                                    client
-                                        .presence()
-                                        .map(|presence| presence != PresenceKind::Spectator)
-                                        .unwrap_or(true)
-                                        || self.viewpoint_entity.is_some(),
+                                    client.presence().map_or(true, |presence| {
+                                        presence != PresenceKind::Spectator
+                                    }) || self.viewpoint_entity.is_some(),
                                 );
                             },
                             GameInput::Select => {
@@ -1091,46 +1110,32 @@ impl PlayState for SessionState {
                         self.inputs.move_dir =
                             self.walk_right_dir * axis_right + self.walk_forward_dir * axis_up;
                     }
-                    self.freefly_vel = Vec3::zero();
                 },
                 CameraMode::Freefly => {
                     // Move the camera freely in 3d space. Apply acceleration so that
                     // the movement feels more natural and controlled.
-                    const FREEFLY_ACCEL: f32 = 120.0;
-                    const FREEFLY_DAMPING: f32 = 80.0;
-                    const FREEFLY_MAX_SPEED: f32 = 50.0;
+                    const FREEFLY_SPEED: f32 = 50.0;
                     const FREEFLY_SPEED_BOOST: f32 = 5.0;
 
-                    let forward = self.scene.camera().forward();
-                    let right = self.scene.camera().right();
-                    let dir = right * axis_right + forward * axis_up;
+                    let forward = self.scene.camera().forward().with_z(0.0).normalized();
+                    let right = self.scene.camera().right().with_z(0.0).normalized();
+                    let up = Vec3::unit_z();
+                    let up_axis = self.key_state.swim_up as i32 as f32
+                        - self.key_state.swim_down as i32 as f32;
 
-                    if self.freefly_vel.magnitude_squared() > 0.01 {
-                        let new_vel = self.freefly_vel
-                            - self.freefly_vel.normalized() * (FREEFLY_DAMPING * dt);
-                        if self.freefly_vel.dot(new_vel) > 0.0 {
-                            self.freefly_vel = new_vel;
+                    let dir = (right * axis_right + forward * axis_up + up * up_axis).normalized();
+
+                    let speed = FREEFLY_SPEED
+                        * if self.inputs_state.contains(&GameInput::SpectateSpeedBoost) {
+                            FREEFLY_SPEED_BOOST
                         } else {
-                            self.freefly_vel = Vec3::zero();
-                        }
-                    }
-                    if dir.magnitude_squared() > 0.01 {
-                        self.freefly_vel += dir * (FREEFLY_ACCEL * dt);
-                        if self.freefly_vel.magnitude() > FREEFLY_MAX_SPEED {
-                            self.freefly_vel = self.freefly_vel.normalized() * FREEFLY_MAX_SPEED;
-                        }
-                    }
-
-                    let boost = if self.inputs_state.contains(&GameInput::SpectateSpeedBoost) {
-                        FREEFLY_SPEED_BOOST
-                    } else {
-                        1.0
-                    };
+                            1.0
+                        };
 
                     let pos = self.scene.camera().get_focus_pos();
                     self.scene
                         .camera_mut()
-                        .set_focus_pos(pos + self.freefly_vel * dt * boost);
+                        .set_focus_pos(pos + dir * dt * speed);
 
                     // Do not apply any movement to the player character
                     self.inputs.move_dir = Vec2::zero();
@@ -1773,7 +1778,7 @@ impl PlayState for SessionState {
         self.scene.render(
             drawer,
             client.state(),
-            client.entity(),
+            viewpoint_entity,
             client.get_tick(),
             &scene_data,
         );

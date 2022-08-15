@@ -37,6 +37,8 @@ pub struct ServerProfile {
     pub characters: HashMap<CharacterId, CharacterProfile>,
     /// Selected character in the chararacter selection screen
     pub selected_character: Option<CharacterId>,
+    /// Last spectate position
+    pub spectate_position: Option<vek::Vec3<f32>>,
 }
 
 impl Default for ServerProfile {
@@ -44,6 +46,7 @@ impl Default for ServerProfile {
         ServerProfile {
             characters: HashMap::new(),
             selected_character: None,
+            spectate_position: None,
         }
     }
 }
@@ -190,6 +193,41 @@ impl Profile {
             .entry(server.to_string())
             .or_insert(ServerProfile::default())
             .selected_character = selected_character;
+    }
+
+    /// Get the selected_character for the provided server.
+    ///
+    /// if the server does not exist then the default spectate_position (None)
+    /// is returned.
+    ///
+    /// # Arguments
+    ///
+    /// * server - current server the player is on.
+    pub fn get_spectate_position(&self, server: &str) -> Option<vek::Vec3<f32>> {
+        self.servers
+            .get(server)
+            .map(|s| s.spectate_position)
+            .unwrap_or_default()
+    }
+
+    /// Set the spectate_position for the provided server.
+    ///
+    /// If the server does not exist then the appropriate fields
+    /// will be initialised and the selected_character added.
+    ///
+    /// # Arguments
+    ///
+    /// * server - current server the player is on.
+    /// * spectate_position - option containing the position we're spectating
+    pub fn set_spectate_position(
+        &mut self,
+        server: &str,
+        spectate_position: Option<vek::Vec3<f32>>,
+    ) {
+        self.servers
+            .entry(server.to_string())
+            .or_insert(ServerProfile::default())
+            .spectate_position = spectate_position;
     }
 
     /// Save the current profile to disk.

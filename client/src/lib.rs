@@ -30,7 +30,7 @@ use common::{
         slot::{EquipSlot, InvSlotId, Slot},
         CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
         GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
-        MapMarkerChange, Pos, UtteranceKind,
+        MapMarkerChange, UtteranceKind,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -106,6 +106,7 @@ pub enum Event {
     CharacterEdited(CharacterId),
     CharacterError(String),
     MapMarker(comp::MapMarkerUpdate),
+    StartSpectate(Vec3<f32>),
     SpectatePosition(Vec3<f32>),
 }
 
@@ -881,7 +882,7 @@ impl Client {
     pub fn request_character(&mut self, character_id: CharacterId) {
         self.send_msg(ClientGeneral::Character(character_id));
 
-        //Assume we are in_game unless server tells us otherwise
+        // Assume we are in_game unless server tells us otherwise
         self.presence = Some(PresenceKind::Character(character_id));
     }
 
@@ -889,7 +890,6 @@ impl Client {
     pub fn request_spectate(&mut self) {
         self.send_msg(ClientGeneral::Spectate);
 
-        //Assume we are in_game unless server tells us otherwise
         self.presence = Some(PresenceKind::Spectator);
     }
 
@@ -1348,16 +1348,24 @@ impl Client {
         self.send_msg(ClientGeneral::UpdateMapMarker(event));
     }
 
-    pub fn spectate_position(&mut self, pos: Vec3<f32>) {
-        if let Some(position) = self
+    /// Set the current position to spectate, returns true if the client's
+    /// player has a Pos component to write to.
+    pub fn spectate_position(&mut self, pos: Vec3<f32>) -> bool {
+        let write = if let Some(position) = self
             .state
             .ecs()
             .write_storage::<comp::Pos>()
             .get_mut(self.entity())
         {
             position.0 = pos;
+            true
+        } else {
+            false
+        };
+        if write {
+            self.send_msg(ClientGeneral::SpectatePosition(pos));
         }
-        self.send_msg(ClientGeneral::SpectatePosition(pos));
+        write
     }
 
     /// Checks whether a player can swap their weapon+ability `Loadout` settings
@@ -2346,12 +2354,7 @@ impl Client {
             },
             ServerGeneral::SpectatorSuccess(spawn_point) => {
                 if let Some(vd) = self.view_distance {
-                    self.state
-                        .ecs()
-                        .write_storage()
-                        .insert(self.entity(), Pos(spawn_point))
-                        .expect("This shouldn't exist");
-                    events.push(Event::SpectatePosition(spawn_point));
+                    events.push(Event::StartSpectate(spawn_point));
                     debug!("client is now in ingame state on server");
                     self.set_view_distance(vd);
                 }
