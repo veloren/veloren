@@ -151,6 +151,10 @@ fn handle_main_events_cleared(
                 break;
             },
             PlayStateResult::Shutdown => {
+                // Clear the Discord activity before shutting down
+                #[cfg(feature = "discord")]
+                global_state.discord.clear_activity();
+
                 debug!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {

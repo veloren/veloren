@@ -22,6 +22,7 @@ pub mod audio;
 pub mod cmd;
 pub mod controller;
 mod credits;
+#[cfg(feature = "discord")] pub mod discord;
 mod ecs;
 pub mod error;
 pub mod game_input;
@@ -83,6 +84,9 @@ pub struct GlobalState {
     pub client_error: Option<String>,
     // Used to clear the shadow textures when entering a PlayState that doesn't utilise shadows
     pub clear_shadows_next_frame: bool,
+    /// A channel that sends Discord activity updates to a background task
+    #[cfg(feature = "discord")]
+    pub discord: crate::discord::Discord,
 }
 
 impl GlobalState {

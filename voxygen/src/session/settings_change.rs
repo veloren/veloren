@@ -62,7 +62,6 @@ pub enum Gameplay {
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeCameraClampBehavior(PressBehavior),
-    ChangePlayerPhysicsBehavior { server_authoritative: bool },
     ChangeStopAutoWalkOnInput(bool),
     ChangeAutoCamera(bool),
     ChangeBowZoom(bool),
@@ -89,7 +88,6 @@ pub enum Graphics {
 
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
-    ToggleLossyTerrainCompression(bool),
     ToggleWeaponTrailsEnabled(bool),
     AdjustWindowSize([u16; 2]),
 
@@ -148,7 +146,16 @@ pub enum Language {
     ToggleEnglishFallback(bool),
 }
 #[derive(Clone)]
-pub enum Networking {}
+pub enum Networking {
+    AdjustViewDistance(u32),
+    ChangePlayerPhysicsBehavior {
+        server_authoritative: bool,
+    },
+    ToggleLossyTerrainCompression(bool),
+
+    #[cfg(feature = "discord")]
+    ToggleDiscordIntegration(bool),
+}
 
 #[derive(Clone)]
 pub enum SettingsChange {
@@ -319,15 +326,6 @@ impl SettingsChange {
                     Gameplay::ChangeCameraClampBehavior(behavior) => {
                         settings.gameplay.camera_clamp_behavior = behavior;
                     },
-                    Gameplay::ChangePlayerPhysicsBehavior {
-                        server_authoritative,
-                    } => {
-                        settings.gameplay.player_physics_behavior = server_authoritative;
-                        session_state
-                            .client
-                            .borrow_mut()
-                            .request_player_physics(server_authoritative);
-                    },
                     Gameplay::ChangeStopAutoWalkOnInput(state) => {
                         settings.gameplay.stop_auto_walk_on_input = state;
                     },
@@ -423,13 +421,6 @@ impl SettingsChange {
                     },
                     Graphics::ToggleParticlesEnabled(particles_enabled) => {
                         settings.graphics.particles_enabled = particles_enabled;
-                    },
-                    Graphics::ToggleLossyTerrainCompression(lossy_terrain_compression) => {
-                        settings.graphics.lossy_terrain_compression = lossy_terrain_compression;
-                        session_state
-                            .client
-                            .borrow_mut()
-                            .request_lossy_terrain_compression(lossy_terrain_compression);
                     },
                     Graphics::ToggleWeaponTrailsEnabled(weapon_trails_enabled) => {
                         settings.graphics.weapon_trails_enabled = weapon_trails_enabled;
@@ -612,7 +603,56 @@ impl SettingsChange {
                         .set_english_fallback(settings.language.use_english_fallback);
                 },
             },
-            SettingsChange::Networking(networking_change) => match networking_change {},
+            SettingsChange::Networking(networking_change) => match networking_change {
+                Networking::AdjustViewDistance(view_distance) => {
+                    session_state
+                        .client
+                        .borrow_mut()
+                        .set_view_distance(view_distance);
+                    settings.graphics.view_distance = view_distance;
+                },
+                Networking::ChangePlayerPhysicsBehavior {
+                    server_authoritative,
+                } => {
+                    settings.networking.player_physics_behavior = server_authoritative;
+                    session_state
+                        .client
+                        .borrow_mut()
+                        .request_player_physics(server_authoritative);
+                },
+                Networking::ToggleLossyTerrainCompression(lossy_terrain_compression) => {
+                    settings.networking.lossy_terrain_compression = lossy_terrain_compression;
+                    session_state
+                        .client
+                        .borrow_mut()
+                        .request_lossy_terrain_compression(lossy_terrain_compression);
+                },
+                #[cfg(feature = "discord")]
+                Networking::ToggleDiscordIntegration(enabled) => {
+                    use crate::discord::Discord;
+
+                    settings.networking.enable_discord_integration = enabled;
+                    if enabled {
+                        global_state.discord = Discord::start(&global_state.tokio_runtime);
+
+                        #[cfg(feature = "singleplayer")]
+                        let singleplayer = global_state.singleplayer.is_some();
+                        #[cfg(not(feature = "singleplayer"))]
+                        let singleplayer = false;
+
+                        if singleplayer {
+                            global_state.discord.join_singleplayer();
+                        } else {
+                            global_state.discord.join_server(
+                                session_state.client.borrow().server_info().name.clone(),
+                            );
+                        }
+                    } else {
+                        global_state.discord.clear_activity();
+                        global_state.discord = Discord::Inactive;
+                    }
+                },
+            },
         }
         settings.save_to_file_warn(&global_state.config_dir);
     }

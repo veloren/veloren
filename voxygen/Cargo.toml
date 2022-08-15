@@ -32,9 +32,10 @@ tracy-memory = ["tracy"] # enables heap profiling with tracy
 plugins = ["client/plugins"]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 shaderc-from-source = ["shaderc/build-from-source"]
+discord = ["discord-sdk"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
-default-publish = ["singleplayer", "native-dialog", "plugins", "simd"]
+default-publish = ["singleplayer", "native-dialog", "plugins", "simd", "discord"]
 # Temp for bug on current wgpu version that has access violation in vulkan when constructing egui pipeline
 default-no-egui = ["default-publish", "hot-reloading", "shaderc-from-source"]
 default = ["default-no-egui", "egui-ui"]
@@ -130,6 +131,9 @@ itertools = "0.10.0"
 # Tracy
 tracing = "0.1"
 profiling = { version = "1.0.6", default-features = false, optional = true }
+
+# Discord RPC
+discord-sdk = { version = "0.3.0", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"

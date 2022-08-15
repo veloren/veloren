@@ -10,6 +10,9 @@ pub struct NetworkingSettings {
     pub default_server: String,
     pub trusted_auth_servers: HashSet<String>,
     pub use_quic: bool,
+    pub player_physics_behavior: bool,
+    pub lossy_terrain_compression: bool,
+    pub enable_discord_integration: bool,
 }
 
 impl Default for NetworkingSettings {
@@ -23,6 +26,9 @@ impl Default for NetworkingSettings {
                 .map(|s| s.to_string())
                 .collect(),
             use_quic: false,
+            player_physics_behavior: false,
+            lossy_terrain_compression: false,
+            enable_discord_integration: true,
         }
     }
 }

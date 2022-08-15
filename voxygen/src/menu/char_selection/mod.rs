@@ -74,6 +74,9 @@ impl PlayState for CharSelectionState {
 
         // Clear shadow textures since we don't render to them here
         global_state.clear_shadows_next_frame = true;
+
+        #[cfg(feature = "discord")]
+        global_state.discord.enter_character_selection();
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<WinEvent>) -> PlayStateResult {

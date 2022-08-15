@@ -285,6 +285,13 @@ fn main() {
     #[cfg(feature = "egui-ui")]
     let egui_state = EguiState::new(&window);
 
+    #[cfg(feature = "discord")]
+    let discord = if settings.networking.enable_discord_integration {
+        veloren_voxygen::discord::Discord::start(&tokio_runtime)
+    } else {
+        veloren_voxygen::discord::Discord::Inactive
+    };
+
     let global_state = GlobalState {
         userdata_dir,
         config_dir,
@@ -306,6 +313,8 @@ fn main() {
         clipboard,
         client_error: None,
         clear_shadows_next_frame: false,
+        #[cfg(feature = "discord")]
+        discord,
     };
 
     run::run(global_state, event_loop);
