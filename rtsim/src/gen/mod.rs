@@ -52,10 +52,12 @@ impl Data {
             };
             for _ in 0..20 {
 
-                this.npcs.create(Npc::new(rng.gen(), rand_wpos(&mut rng)).with_home(site_id).with_profession(match rng.gen_range(0..10) {
+                this.npcs.create(Npc::new(rng.gen(), rand_wpos(&mut rng)).with_home(site_id).with_profession(match rng.gen_range(0..15) {
                     0 => Profession::Hunter,
                     1 => Profession::Blacksmith,
-                    2..=4 => Profession::Farmer,
+                    2 => Profession::Chef,
+                    3 => Profession::Alchemist,
+                    5..=10 => Profession::Farmer,
                     _ => Profession::Guard,
                 }));
             }

@@ -108,6 +108,14 @@ pub enum Profession {
     Adventurer(u32),
     #[serde(rename = "5")]
     Blacksmith,
+    #[serde(rename = "6")]
+    Chef,
+    #[serde(rename = "7")]
+    Alchemist,
+    #[serde(rename = "8")]
+    Pirate,
+    #[serde(rename = "9")]
+    Cultist,
 }
 
 impl Profession {
@@ -119,6 +127,10 @@ impl Profession {
             Self::Guard => "Guard".to_string(),
             Self::Adventurer(_) => "Adventurer".to_string(),
             Self::Blacksmith => "Blacksmith".to_string(),
+            Self::Chef => "Chef".to_string(),
+            Self::Alchemist => "Alchemist".to_string(),
+            Self::Pirate => "Pirate".to_string(),
+            Self::Cultist => "Cultist".to_string(),
         }
     }
 }

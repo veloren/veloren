@@ -9,15 +9,114 @@ use common::{
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{RtSimController, RtSimEntity},
     slowjob::SlowJobPool,
-    trade::Good,
+    trade::{Good, SiteInformation},
     LoadoutBuilder,
     SkillSetBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use rtsim2::data::npc::{NpcMode, Profession};
+use rtsim2::data::{npc::{NpcMode, Profession}, Npc, Sites};
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
-use world::site::settlement::{merchant_loadout, trader_loadout};
+use world::site::settlement::trader_loadout;
+
+fn humanoid_config(profession: &Profession) -> &'static str {
+    match profession {
+            Profession::Farmer | Profession::Hunter => "common.entity.village.villager",
+            Profession::Merchant => "common.entity.village.merchant",
+            Profession::Guard => "common.entity.village.guard",
+            Profession::Adventurer(rank) => match rank {
+                0 => "common.entity.world.traveler0",
+                1 => "common.entity.world.traveler1",
+                2 => "common.entity.world.traveler2",
+                _ => "common.entity.world.traveler3",
+            },
+            Profession::Blacksmith => "common.entity.village.blacksmith",
+            Profession::Chef => "common.entity.village.chef",
+            Profession::Alchemist => "common.entity.village.alchemist",
+            Profession::Pirate => "common.entity.spot.pirate",
+            Profession::Cultist => "common.entity.dungeon.tier-5.cultist",
+    }
+}
+
+fn loadout_default(loadout: LoadoutBuilder, _economy: Option<&SiteInformation>) -> LoadoutBuilder {
+    loadout
+}
+
+fn merchant_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |_| true)
+}
+
+fn farmer_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
+}
+
+fn chef_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
+}
+
+fn blacksmith_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Tools | Good::Armor))
+}
+
+fn profession_extra_loadout(profession: Option<&Profession>) -> fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder {
+    match profession {
+        Some(Profession::Merchant) => merchant_loadout,
+        Some(Profession::Farmer) => farmer_loadout,
+        Some(Profession::Chef) => chef_loadout,
+        Some(Profession::Blacksmith) => blacksmith_loadout,
+        _ => loadout_default,
+    }
+}
+
+fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent::Mark> {
+    match profession {
+        Some(Profession::Merchant | Profession::Farmer | Profession::Chef | Profession::Blacksmith) => Some(comp::agent::Mark::Merchant),
+        Some(Profession::Guard) => Some(comp::agent::Mark::Guard),
+        _ => None,
+    }
+}
+
+fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo {
+    let body = npc.get_body();
+    let pos = comp::Pos(npc.wpos);
+
+    if let Some(ref profession) = npc.profession {
+
+        let economy = npc.home
+            .and_then(|home| {
+                let site = sites.get(home)?.world_site?;
+                index.sites.get(site).trade_information(site.id())
+            });
+        
+        let config_asset = humanoid_config(profession);
+
+        let entity_config = EntityConfig::from_asset_expect_owned(config_asset).with_body(BodyBuilder::Exact(body));
+        let mut rng = npc.rng(3);
+        EntityInfo::at(pos.0)
+            .with_entity_config(entity_config, Some(config_asset), &mut rng)
+            .with_alignment(comp::Alignment::Npc)
+            .with_maybe_economy(economy.as_ref())
+            .with_lazy_loadout(profession_extra_loadout(npc.profession.as_ref()))
+            .with_maybe_agent_mark(profession_agent_mark(npc.profession.as_ref()))
+    } else {
+        EntityInfo::at(pos.0)
+            .with_body(body)
+            .with_alignment(comp::Alignment::Wild)
+            .with_name("Rtsim NPC")
+    }
+}
 
 #[derive(Default)]
 pub struct Sys;
@@ -46,7 +145,7 @@ impl<'a> System<'a> for Sys {
             dt,
             time,
             time_of_day,
-            mut server_event_bus,
+            server_event_bus,
             mut rtsim,
             world,
             index,
@@ -82,81 +181,42 @@ impl<'a> System<'a> for Sys {
                 && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
             {
                 npc.mode = NpcMode::Loaded;
-                let body = npc.get_body();
-                let mut loadout_builder = LoadoutBuilder::from_default(&body);
-                let mut rng = npc.rng(3);
 
-                let economy = npc.home
-                    .and_then(|home| {
-                        let site = data.sites.get(home)?.world_site?;
-                        index.sites.get(site).trade_information(site.id())
-                    });
+                let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
 
-                if let Some(ref profession) = npc.profession {
-                    loadout_builder = match profession {
-                        Profession::Guard => loadout_builder
-                            .with_asset_expect("common.loadout.village.guard", &mut rng),
-
-                        Profession::Merchant => merchant_loadout(loadout_builder, economy.as_ref()),
-
-                        Profession::Farmer => trader_loadout(
-                            loadout_builder
-                                .with_asset_expect("common.loadout.village.villager", &mut rng),
-                            economy.as_ref(),
-                            |good| matches!(good, Good::Food),
-                        ),
-                        Profession::Blacksmith => trader_loadout(
-                            loadout_builder
-                                .with_asset_expect("common.loadout.village.blacksmith", &mut rng),
-                            economy.as_ref(),
-                            |good| matches!(good, Good::Tools | Good::Armor),
-                        ),
-                        Profession::Hunter => loadout_builder
-                            .with_asset_expect("common.loadout.village.villager", &mut rng),
-
-                        Profession::Adventurer(level) => todo!(),
-                    };
-                }
-
-                let can_speak = npc.profession.is_some(); // TODO: not this
-
-                let trade_for_site = if let Some(Profession::Merchant | Profession::Farmer | Profession::Blacksmith) = npc.profession {
-                    npc.home.and_then(|home| Some(data.sites.get(home)?.world_site?.id()))
-                } else {
-                    None
-                };
-
-                let skill_set = SkillSetBuilder::default().build();
-                let health_level = skill_set
-                    .skill_level(skills::Skill::General(skills::GeneralSkill::HealthIncrease))
-                    .unwrap_or(0);
-                emitter.emit(ServerEvent::CreateNpc {
-                    pos: comp::Pos(npc.wpos),
-                    stats: comp::Stats::new(npc.profession
-                        .as_ref()
-                        .map(|p| p.to_name())
-                        .unwrap_or_else(|| "Rtsim NPC".to_string())),
-                    skill_set: skill_set,
-                    health: Some(comp::Health::new(body, health_level)),
-                    poise: comp::Poise::new(body),
-                    inventory: comp::Inventory::with_loadout(loadout_builder.build(), body),
-                    body,
-                    agent: Some(comp::Agent::from_body(&body)
-                        .with_behavior(
-                            comp::Behavior::default()
-                                .maybe_with_capabilities(can_speak.then_some(comp::BehaviorCapability::SPEAK))
-                                .with_trade_site(trade_for_site),
-                        )),
-                    alignment: if can_speak {
-                        comp::Alignment::Npc
-                    } else {
-                        comp::Alignment::Wild
+                emitter.emit(match NpcData::from_entity_info(entity_info) {
+                    NpcData::Data {
+                        pos,
+                        stats,
+                        skill_set,
+                        health,
+                        poise,
+                        inventory,
+                        agent,
+                        body,
+                        alignment,
+                        scale,
+                        loot,
+                    } => ServerEvent::CreateNpc {
+                        pos,
+                        stats,
+                        skill_set,
+                        health,
+                        poise,
+                        inventory,
+                        agent,
+                        body,
+                        alignment,
+                        scale,
+                        anchor: None,
+                        loot,
+                        rtsim_entity: Some(RtSimEntity(npc_id)),
+                        projectile: None,
                     },
-                    scale: comp::Scale(1.0),
-                    anchor: None,
-                    loot: Default::default(),
-                    rtsim_entity: Some(RtSimEntity(npc_id)),
-                    projectile: None,
+                    // EntityConfig can't represent Waypoints at all
+                    // as of now, and if someone will try to spawn
+                    // rtsim waypoint it is definitely error.
+                    NpcData::Waypoint(_) => unimplemented!(),
                 });
             }
         }
