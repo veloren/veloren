@@ -30,6 +30,7 @@ pub use crate::{
     canvas::{Canvas, CanvasInfo},
     config::{Features, CONFIG},
     land::Land,
+    layer::PathLocals,
 };
 pub use block::BlockGen;
 pub use column::ColumnSample;
@@ -41,7 +42,7 @@ use crate::{
     index::Index,
     layer::spot::Spot,
     site::{SiteKind, SpawnRules},
-    util::{Grid, Sampler},
+    util::{Grid, Sampler, NEIGHBORS},
 };
 use common::{
     assets,
@@ -357,6 +358,65 @@ impl World {
             chunk: &mut chunk,
             entities: Vec::new(),
         };
+
+        {
+            let mut splines = Vec::new();
+            let g = |v: Vec2<f32>| -> Vec3<f32> {
+                let path_nearest = 
+                self.sim
+                    .get_nearest_path(v.as_::<i32>())
+                    .map(|x| x.1)
+                    .unwrap_or(v.as_::<f32>());
+                let alt = if let Some(c) = canvas.col_or_gen(v.as_::<i32>()) {
+                    let pl = PathLocals::new(&canvas, &c, path_nearest);
+                    pl.riverless_alt + pl.bridge_offset + 0.75
+                } else {
+                    sim_chunk.alt
+                };
+                v.with_z(alt)
+            };
+            fn hermit_to_bezier(p0: Vec3<f32>, m0: Vec3<f32>, p3: Vec3<f32>, m3: Vec3<f32>) -> CubicBezier3<f32> {
+                let hermite = Vec4::new(p0, p3, m0, m3);
+                let hermite = hermite.map(|v| v.with_w(0.0));
+                let hermite: [[f32; 4]; 4] =
+                    hermite.map(|v: Vec4<f32>| v.into_array()).into_array();
+                // https://courses.engr.illinois.edu/cs418/sp2009/notes/12-MoreSplines.pdf
+                let mut m = Mat4::from_row_arrays([
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                    [-3.0, 3.0, 0.0, 0.0],
+                    [0.0, 0.0, -3.0, 3.0],
+                ]);
+                m.invert();
+                let bezier = m * Mat4::from_row_arrays(hermite);
+                let bezier: Vec4<Vec4<f32>> =
+                    Vec4::<[f32; 4]>::from(bezier.into_row_arrays())
+                        .map(Vec4::from);
+                let bezier = bezier.map(|v| Vec3::from(v));
+                CubicBezier3::from(bezier)
+            }
+            for (_, _, _, _, bez, _) in self.sim.get_nearest_ways(chunk_center_wpos2d, &|chunk| Some(chunk.path)) {
+                if bez.length_by_discretization(16) < 0.125 {
+                    continue;
+                }
+                /*if bez.ctrl.as_::<i32>().distance_squared(chunk_center_wpos2d) > 20i32.pow(2) {
+                    continue;
+                }*/
+                //println!("chunk: {:?}, bez: {:?}", chunk_center_wpos2d, bez);
+                let a = 0.0;
+                let b = 1.0;
+                for bez in bez.split((a + b) / 2.0) {
+                    let p0 = g(bez.evaluate(a));
+                    let p1 = g(bez.evaluate(a + (b - a) / 3.0));
+                    let p2 = g(bez.evaluate(a + 2.0 * (b-a)/3.0));
+                    let p3 = g(bez.evaluate(b));
+                    splines.push(hermit_to_bezier(p0, 3.0 * (p1 - p0), p3, 3.0 * (p3 - p2)));
+                }
+            }
+            for spline in splines.into_iter() {
+                canvas.chunk.meta_mut().add_track(spline);
+            }
+        }
 
         if index.features.caverns {
             layer::apply_caverns_to(&mut canvas, &mut dynamic_rng);

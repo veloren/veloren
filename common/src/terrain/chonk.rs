@@ -57,6 +57,8 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
 
     pub fn meta(&self) -> &M { &self.meta }
 
+    pub fn meta_mut(&mut self) -> &mut M { &mut self.meta }
+
     #[inline]
     pub fn get_min_z(&self) -> i32 { self.z_offset }
 

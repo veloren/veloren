@@ -34,7 +34,7 @@ use common::{
     comp,
     outcome::Outcome,
     resources::DeltaTime,
-    terrain::{BlockKind, TerrainChunk},
+    terrain::{BlockKind, TerrainChunk, TerrainGrid},
     vol::ReadVol,
 };
 use common_base::{prof_span, span};
@@ -1301,8 +1301,43 @@ impl Scene {
         client: &Client,
         settings: &Settings,
         hitboxes: &mut HashMap<specs::Entity, DebugShapeId>,
+        tracks: &mut HashMap<Vec2<i32>, Vec<DebugShapeId>>,
     ) {
         let ecs = client.state().ecs();
+        {
+            let terrain_grid = ecs.read_resource::<TerrainGrid>();
+            for (key, chunk) in terrain_grid.iter() {
+                tracks.entry(key).or_insert_with(|| {
+                    let mut ret = Vec::new();
+                    for bezier in chunk.meta().tracks().iter() {
+                        let shape_id = self.debug.add_shape(DebugShape::TrainTrack {
+                            path: *bezier, 
+                            rail_width: 0.25,
+                            rail_sep: 1.0,
+                            plank_width: 0.5,
+                            plank_height: 0.125,
+                            plank_sep: 2.0,
+                        });
+                        ret.push(shape_id);
+                        self.debug.set_context(shape_id, [0.0; 4], [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
+                    }
+                    for point in chunk.meta().debug_points().iter() {
+                        let shape_id = self.debug.add_shape(DebugShape::Cylinder {
+                            radius: 0.1,
+                            height: 0.1,
+                        });
+                        ret.push(shape_id);
+                        self.debug.set_context(shape_id, point.with_w(0.0).into_array(), [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
+                    }
+                    for line in chunk.meta().debug_lines().iter() {
+                        let shape_id = self.debug.add_shape(DebugShape::Line([line.start.into(), line.end.into()]));
+                        ret.push(shape_id);
+                        self.debug.set_context(shape_id, [0.0; 4], [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
+                    }
+                    ret
+                });
+            }
+        }
         let mut current_entities = hashbrown::HashSet::new();
         if settings.interface.toggle_hitboxes {
             let positions = ecs.read_component::<comp::Pos>();
@@ -1343,6 +1378,7 @@ impl Scene {
                         } else {
                             [0.0, 1.0, 0.0, 0.5]
                         };
+                        //let color = [1.0, 1.0, 1.0, 1.0];
                         let ori = ori.to_quat();
                         let hb_ori = [ori.x, ori.y, ori.z, ori.w];
                         self.debug.set_context(*shape_id, hb_pos, color, hb_ori);

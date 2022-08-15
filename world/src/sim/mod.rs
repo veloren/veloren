@@ -2133,14 +2133,11 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    /// Return the distance to the nearest way in blocks, along with the
-    /// closest point on the way, the way metadata, and the tangent vector
-    /// of that way.
-    pub fn get_nearest_way<M: Clone + Lerp<Output = M>>(
-        &self,
+    pub fn get_nearest_ways<'a, M: Clone + Lerp<Output = M>>(
+        &'a self,
         wpos: Vec2<i32>,
-        get_way: impl Fn(&SimChunk) -> Option<(Way, M)>,
-    ) -> Option<(f32, Vec2<f32>, M, Vec2<f32>)> {
+        get_way: &'a impl Fn(&SimChunk) -> Option<(Way, M)>,
+    ) -> impl Iterator<Item=(usize, f32, Vec2<f32>, M, QuadraticBezier2<f32>, impl FnOnce() -> Vec2<f32>)> + 'a {
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e.div_euclid(sz as i32)
         });
@@ -2150,10 +2147,9 @@ impl WorldSim {
             })
         };
 
-        let get_way = &get_way;
         LOCALITY
             .iter()
-            .filter_map(|ctrl| {
+            .filter_map(move |ctrl| {
                 let (way, meta) = get_way(self.get(chunk_pos + *ctrl)?)?;
                 let ctrl_pos = get_chunk_centre(chunk_pos + *ctrl).map(|e| e as f32)
                     + way.offset.map(|e| e as f32);
@@ -2163,7 +2159,7 @@ impl WorldSim {
                     return None;
                 }
 
-                let (start_pos, _start_idx, start_meta) = if chunk_connections != 2 {
+                let (start_pos, start_idx, start_meta) = if chunk_connections != 2 {
                     (ctrl_pos, None, meta.clone())
                 } else {
                     let (start_idx, start_rpos) = NEIGHBORS
@@ -2186,8 +2182,8 @@ impl WorldSim {
                     NEIGHBORS
                         .iter()
                         .enumerate()
-                        .filter(move |(i, _)| way.neighbors & (1 << *i as u8) != 0)
-                        .filter_map(move |(_, end_rpos)| {
+                        .filter(move |(i, _)| way.neighbors & (1 << *i as u8) != 0 && Some(*i) != start_idx)
+                        .filter_map(move |(i, end_rpos)| {
                             let end_pos_chunk = chunk_pos + *ctrl + end_rpos;
                             let (end_way, end_meta) = get_way(self.get(end_pos_chunk)?)?;
                             let end_pos = get_chunk_centre(end_pos_chunk).map(|e| e as f32)
@@ -2209,15 +2205,27 @@ impl WorldSim {
                             } else {
                                 Lerp::lerp(meta.clone(), end_meta, nearest_interval - 0.5)
                             };
-                            Some((dist_sqrd, pos, meta, move || {
+                            Some((i, dist_sqrd, pos, meta, bez, move || {
                                 bez.evaluate_derivative(nearest_interval).normalized()
                             }))
                         }),
                 )
             })
             .flatten()
-            .min_by_key(|(dist_sqrd, _, _, _)| (dist_sqrd * 1024.0) as i32)
-            .map(|(dist, pos, meta, calc_tangent)| (dist.sqrt(), pos, meta, calc_tangent()))
+    }
+
+    /// Return the distance to the nearest way in blocks, along with the
+    /// closest point on the way, the way metadata, and the tangent vector
+    /// of that way.
+    pub fn get_nearest_way<M: Clone + Lerp<Output = M>>(
+        &self,
+        wpos: Vec2<i32>,
+        get_way: impl Fn(&SimChunk) -> Option<(Way, M)>,
+    ) -> Option<(f32, Vec2<f32>, M, Vec2<f32>)> {
+        let get_way = &get_way;
+        self.get_nearest_ways(wpos, get_way)
+            .min_by_key(|(_, dist_sqrd, _, _, _, _)| (dist_sqrd * 1024.0) as i32)
+            .map(|(_, dist, pos, meta, _, calc_tangent)| (dist.sqrt(), pos, meta, calc_tangent()))
     }
 
     pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Path, Vec2<f32>)> {
@@ -2227,6 +2235,14 @@ impl WorldSim {
     pub fn get_nearest_cave(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Cave, Vec2<f32>)> {
         self.get_nearest_way(wpos, |chunk| Some(chunk.cave))
     }
+
+    pub fn get_nearest_path_for_direction(&self, wpos: Vec2<i32>, dir: usize) -> Option<(f32, Vec2<f32>, Path, QuadraticBezier2<f32>, Vec2<f32>)> {
+        self.get_nearest_ways(wpos, &|chunk| Some(chunk.path))
+            .filter(|(i, _, _, _, _, _)| *i == dir)
+            .min_by_key(|(_, dist_sqrd, _, _, _, _)| (dist_sqrd * 1024.0) as i32)
+            .map(|(_, dist, pos, meta, bez, calc_tangent)| (dist.sqrt(), pos, meta, bez, calc_tangent()))
+    }
+
 
     /// Create a [`Lottery<Option<ForestKind>>`] that generates [`ForestKind`]s
     /// according to the conditions at the given position. If no or fewer

@@ -7,18 +7,18 @@ use vek::*;
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
     pub pos: [f32; 3],
+    pub color: [f32; 4],
+    pub normal: [f32; 3],
 }
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        const ATTRIBUTES: [wgpu::VertexAttribute; 3] =
+            wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x4, 2 => Float32x3];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &[wgpu::VertexAttribute {
-                offset: 0,
-                shader_location: 0,
-                format: wgpu::VertexFormat::Float32x3,
-            }],
+            attributes: &ATTRIBUTES,
         }
     }
 }
@@ -46,6 +46,18 @@ impl From<Vec3<f32>> for Vertex {
     fn from(pos: Vec3<f32>) -> Vertex {
         Vertex {
             pos: [pos.x, pos.y, pos.z],
+            color: [1.0; 4],
+            normal: [0.0, 0.0, 1.0],
+        }
+    }
+}
+
+impl From<(Vec3<f32>, [f32; 4], Vec3<f32>)> for Vertex {
+    fn from((pos, color, normal): (Vec3<f32>, [f32; 4], Vec3<f32>)) -> Vertex {
+        Vertex {
+            pos: [pos.x, pos.y, pos.z],
+            color,
+            normal: [normal.x, normal.y, normal.z],
         }
     }
 }

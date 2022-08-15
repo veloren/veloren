@@ -90,6 +90,9 @@ pub struct TerrainChunkMeta {
     temp: f32,
     humidity: f32,
     site: Option<SiteKindMeta>,
+    tracks: Vec<CubicBezier3<f32>>,
+    debug_points: Vec<Vec3<f32>>,
+    debug_lines: Vec<LineSegment3<f32>>,
 }
 
 impl TerrainChunkMeta {
@@ -116,6 +119,9 @@ impl TerrainChunkMeta {
             temp,
             humidity,
             site,
+            tracks: Vec::new(),
+            debug_points: Vec::new(),
+            debug_lines: Vec::new(),
         }
     }
 
@@ -131,6 +137,9 @@ impl TerrainChunkMeta {
             temp: 0.0,
             humidity: 0.0,
             site: None,
+            tracks: Vec::new(),
+            debug_points: Vec::new(),
+            debug_lines: Vec::new(),
         }
     }
 
@@ -153,6 +162,24 @@ impl TerrainChunkMeta {
     pub fn temp(&self) -> f32 { self.temp }
 
     pub fn humidity(&self) -> f32 { self.humidity }
+
+    pub fn tracks(&self) -> &[CubicBezier3<f32>] { &self.tracks }
+
+    pub fn add_track(&mut self, bezier: CubicBezier3<f32>) {
+        self.tracks.push(bezier);
+    }
+
+    pub fn debug_points(&self) -> &[Vec3<f32>] { &self.debug_points }
+
+    pub fn add_debug_point(&mut self, point: Vec3<f32>) {
+        self.debug_points.push(point);
+    }
+
+    pub fn debug_lines(&self) -> &[LineSegment3<f32>] { &self.debug_lines }
+
+    pub fn add_debug_line(&mut self, line: LineSegment3<f32>) {
+        self.debug_lines.push(line);
+    }
 }
 
 // Terrain type aliases

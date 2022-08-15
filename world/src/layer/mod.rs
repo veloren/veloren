@@ -15,7 +15,7 @@ use crate::{
     column::ColumnSample,
     config::CONFIG,
     util::{FastNoise, RandomField, RandomPerm, Sampler},
-    Canvas, IndexRef,
+    Canvas, CanvasInfo, IndexRef,
 };
 use common::{
     assets::AssetExt,
@@ -48,6 +48,52 @@ pub struct Colors {
 
 const EMPTY_AIR: Block = Block::air(SpriteKind::Empty);
 
+pub struct PathLocals {
+    pub riverless_alt: f32,
+    pub alt: f32,
+    pub water_dist: f32,
+    pub bridge_offset: f32,
+    pub depth: i32,
+}
+
+impl PathLocals {
+    pub fn new(info: &CanvasInfo, col: &ColumnSample, path_nearest: Vec2<f32>) -> PathLocals {
+        // Try to use the column at the centre of the path for sampling to make them
+        // flatter
+        let col_pos = -info.wpos().map(|e| e as f32) + path_nearest;
+        let col00 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 0));
+        let col10 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 0));
+        let col01 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 1));
+        let col11 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 1));
+        let col_attr = |col: &ColumnSample| {
+            Vec3::new(col.riverless_alt, col.alt, col.water_dist.unwrap_or(1000.0))
+        };
+        let [riverless_alt, alt, water_dist] = match (col00, col10, col01, col11) {
+            (Some(col00), Some(col10), Some(col01), Some(col11)) => Lerp::lerp(
+                Lerp::lerp(col_attr(col00), col_attr(col10), path_nearest.x.fract()),
+                Lerp::lerp(col_attr(col01), col_attr(col11), path_nearest.x.fract()),
+                path_nearest.y.fract(),
+            ),
+            _ => col_attr(col),
+        }
+        .into_array();
+        let (bridge_offset, depth) = (
+            ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
+            ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
+                * (riverless_alt + 5.0 - alt).max(0.0)
+                * 1.75
+                + 3.0) as i32,
+        );
+        PathLocals {
+            riverless_alt,
+            alt,
+            water_dist,
+            bridge_offset,
+            depth,
+        }
+    }
+}
+
 pub fn apply_paths_to(canvas: &mut Canvas) {
     let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
@@ -67,32 +113,13 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
         {
             let inset = 0;
 
-            // Try to use the column at the centre of the path for sampling to make them
-            // flatter
-            let col_pos = -info.wpos().map(|e| e as f32) + path_nearest;
-            let col00 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 0));
-            let col10 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 0));
-            let col01 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 1));
-            let col11 = info.col(info.wpos() + col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 1));
-            let col_attr = |col: &ColumnSample| {
-                Vec3::new(col.riverless_alt, col.alt, col.water_dist.unwrap_or(1000.0))
-            };
-            let [riverless_alt, alt, water_dist] = match (col00, col10, col01, col11) {
-                (Some(col00), Some(col10), Some(col01), Some(col11)) => Lerp::lerp(
-                    Lerp::lerp(col_attr(col00), col_attr(col10), path_nearest.x.fract()),
-                    Lerp::lerp(col_attr(col01), col_attr(col11), path_nearest.x.fract()),
-                    path_nearest.y.fract(),
-                ),
-                _ => col_attr(col),
-            }
-            .into_array();
-            let (bridge_offset, depth) = (
-                ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
-                ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
-                    * (riverless_alt + 5.0 - alt).max(0.0)
-                    * 1.75
-                    + 3.0) as i32,
-            );
+            let PathLocals {
+                riverless_alt,
+                alt: _,
+                water_dist: _,
+                bridge_offset,
+                depth,
+            } = PathLocals::new(&canvas.info(), col, path_nearest);
             let surface_z = (riverless_alt + bridge_offset).floor() as i32;
 
             for z in inset - depth..inset {

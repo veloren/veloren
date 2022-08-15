@@ -91,6 +91,7 @@ pub struct SessionState {
     #[cfg(not(target_os = "macos"))]
     mumble_link: SharedLink,
     hitboxes: HashMap<specs::Entity, DebugShapeId>,
+    tracks: HashMap<Vec2<i32>, Vec<DebugShapeId>>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -157,6 +158,7 @@ impl SessionState {
             mumble_link,
             hitboxes: HashMap::new(),
             metadata,
+            tracks: HashMap::new(),
         }
     }
 
@@ -184,8 +186,12 @@ impl SessionState {
         span!(_guard, "tick", "Session::tick");
 
         let mut client = self.client.borrow_mut();
-        self.scene
-            .maintain_debug_hitboxes(&client, &global_state.settings, &mut self.hitboxes);
+        self.scene.maintain_debug_hitboxes(
+            &client,
+            &global_state.settings,
+            &mut self.hitboxes,
+            &mut self.tracks,
+        );
 
         // All this camera code is just to determine if it's underwater for the sfx
         // filter
