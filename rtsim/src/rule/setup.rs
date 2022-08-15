@@ -41,7 +41,7 @@ impl Rule for Setup {
                     warn!("{:?} is new and does not have a corresponding rtsim site. One will now be generated afresh.", world_site_id);
                     data
                         .sites
-                        .create(Site::generate(world_site_id, ctx.world, ctx.index));
+                        .create(Site::generate(world_site_id, ctx.world, ctx.index, &[]));
                 }
             }
 

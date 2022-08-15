@@ -6,6 +6,7 @@ use std::ops::{Deref, DerefMut};
 use common::{
     uid::Uid,
     store::Id,
+    rtsim::FactionId,
 };
 pub use common::rtsim::SiteId;
 use world::site::Site as WorldSite;
@@ -13,6 +14,7 @@ use world::site::Site as WorldSite;
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Site {
     pub wpos: Vec2<i32>,
+    pub faction: Option<FactionId>,
 
     /// The site generated during initial worldgen that this site corresponds to.
     ///
@@ -24,6 +26,13 @@ pub struct Site {
     /// 'orphaned' site. (TODO: create new sites for new initial worldgen sites that come into being too).
     #[serde(skip_serializing, skip_deserializing)]
     pub world_site: Option<Id<WorldSite>>,
+}
+
+impl Site {
+    pub fn with_faction(mut self, faction: impl Into<Option<FactionId>>) -> Self {
+        self.faction = faction.into();
+        self
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

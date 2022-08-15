@@ -1,3 +1,4 @@
+pub mod faction;
 pub mod npc;
 pub mod site;
 pub mod nature;
@@ -5,6 +6,7 @@ pub mod nature;
 pub use self::{
     npc::{Npc, NpcId, Npcs},
     site::{Site, SiteId, Sites},
+    faction::{Faction, FactionId, Factions},
     nature::Nature,
 };
 
@@ -29,6 +31,7 @@ pub struct Data {
     pub nature: Nature,
     pub npcs: Npcs,
     pub sites: Sites,
+    pub factions: Factions,
 
     pub time_of_day: TimeOfDay,
 }

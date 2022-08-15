@@ -1,5 +1,6 @@
-use crate::data::Site;
+use crate::data::{Site, FactionId};
 use common::store::Id;
+use vek::*;
 use world::{
     site::Site as WorldSite,
     World,
@@ -7,19 +8,16 @@ use world::{
 };
 
 impl Site {
-    pub fn generate(world_site: Id<WorldSite>, world: &World, index: IndexRef) -> Self {
-        // match &world_site.kind {
-        //     SiteKind::Refactor(site2) => {
-        //         let site = Site::generate(world_site_id, world, index);
-        //         println!("Registering rtsim site at {:?}...", site.wpos);
-        //         this.sites.create(site);
-        //     }
-        //     _ => {},
-        // }
+    pub fn generate(world_site: Id<WorldSite>, world: &World, index: IndexRef, nearby_factions: &[(Vec2<i32>, FactionId)]) -> Self {
+        let wpos = index.sites.get(world_site).get_origin();
 
         Self {
-            wpos: index.sites.get(world_site).get_origin(),
+            wpos,
             world_site: Some(world_site),
+            faction: nearby_factions
+                .iter()
+                .min_by_key(|(faction_wpos, _)| faction_wpos.distance_squared(wpos))
+                .map(|(_, faction)| *faction),
         }
     }
 }

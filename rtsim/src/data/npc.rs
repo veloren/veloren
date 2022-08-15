@@ -7,7 +7,7 @@ use std::ops::{Deref, DerefMut};
 use common::{
     uid::Uid,
     store::Id,
-    rtsim::{SiteId, RtSimController},
+    rtsim::{SiteId, FactionId, RtSimController},
     comp,
 };
 use world::util::RandomPerm;
@@ -32,6 +32,7 @@ pub struct Npc {
 
     pub profession: Option<Profession>,
     pub home: Option<SiteId>,
+    pub faction: Option<FactionId>,
 
     // Unpersisted state
 
@@ -55,18 +56,24 @@ impl Npc {
             wpos,
             profession: None,
             home: None,
+            faction: None,
             target: None,
             mode: NpcMode::Simulated,
         }
     }
 
-    pub fn with_profession(mut self, profession: Profession) -> Self {
-        self.profession = Some(profession);
+    pub fn with_profession(mut self, profession: impl Into<Option<Profession>>) -> Self {
+        self.profession = profession.into();
         self
     }
 
-    pub fn with_home(mut self, home: SiteId) -> Self {
-        self.home = Some(home);
+    pub fn with_home(mut self, home: impl Into<Option<SiteId>>) -> Self {
+        self.home = home.into();
+        self
+    }
+
+    pub fn with_faction(mut self, faction: impl Into<Option<FactionId>>) -> Self {
+        self.faction = faction.into();
         self
     }
 

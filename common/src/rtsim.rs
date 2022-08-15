@@ -13,6 +13,8 @@ slotmap::new_key_type! { pub struct NpcId; }
 
 slotmap::new_key_type! { pub struct SiteId; }
 
+slotmap::new_key_type! { pub struct FactionId; }
+
 #[derive(Copy, Clone, Debug)]
 pub struct RtSimEntity(pub NpcId);
 
