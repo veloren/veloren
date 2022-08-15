@@ -129,6 +129,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.61"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "508b352bb5c066aac251f6daf6b36eccd03e8a88e8081cd44959ea277a3af9a8"
+
+[[package]]
+name = "app_dirs2"
+version = "2.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3564c46eaa62f4a4e50c98e2c698cbb95f95c08501bd2e3baf6ea73773ab9fc"
+dependencies = [
+ "jni",
+ "ndk-context",
+ "winapi 0.3.9",
+ "xdg",
+]
+
+[[package]]
 name = "approx"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1566,6 +1584,31 @@ name = "discard"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "212d0f5754cb6769937f4501cc0e67f4f4483c8d2c3e1e922ee9edbe4ab4c7c0"
+
+[[package]]
+name = "discord-sdk"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e314b59ba110cb4fad80073f5276eb62cda4cc3caabe998f5d664b19fd6a7be0"
+dependencies = [
+ "anyhow",
+ "app_dirs2",
+ "async-trait",
+ "base64",
+ "bitflags",
+ "crossbeam-channel",
+ "num-traits",
+ "parking_lot 0.12.0",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "thiserror",
+ "time 0.3.9",
+ "tokio",
+ "tracing",
+ "url",
+ "winreg",
+]
 
 [[package]]
 name = "dispatch"
@@ -6806,6 +6849,7 @@ dependencies = [
  "crossbeam-channel",
  "crossbeam-utils 0.8.8",
  "directories-next",
+ "discord-sdk",
  "dispatch 0.1.4",
  "dot_vox",
  "egui",
@@ -7795,6 +7839,15 @@ dependencies = [
  "wayland-client 0.28.6",
  "winapi 0.3.9",
  "x11-dl",
+]
+
+[[package]]
+name = "winreg"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
+dependencies = [
+ "winapi 0.3.9",
 ]
 
 [[package]]

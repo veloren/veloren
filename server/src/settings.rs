@@ -201,7 +201,7 @@ impl Default for Settings {
             metrics_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
             auth_server_address: Some("https://auth.veloren.net".into()),
             world_seed: DEFAULT_WORLD_SEED,
-            server_name: "Veloren Alpha".into(),
+            server_name: "Veloren Server".into(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
             map_file: None,

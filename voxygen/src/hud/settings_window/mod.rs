@@ -3,6 +3,7 @@ mod controls;
 mod gameplay;
 mod interface;
 mod language;
+mod networking;
 mod sound;
 mod video;
 
@@ -39,6 +40,7 @@ widget_ids! {
         sound,
         language,
         chat,
+        networking,
     }
 }
 
@@ -54,6 +56,7 @@ pub enum SettingsTab {
     Gameplay,
     Controls,
     Lang,
+    Networking,
 }
 impl SettingsTab {
     fn name_key(&self) -> &str {
@@ -65,6 +68,7 @@ impl SettingsTab {
             SettingsTab::Video => "common.video",
             SettingsTab::Sound => "common.sound",
             SettingsTab::Lang => "common.languages",
+            SettingsTab::Networking => "common.networking",
         }
     }
 
@@ -77,6 +81,7 @@ impl SettingsTab {
             SettingsTab::Video => "common.video_settings",
             SettingsTab::Sound => "common.sound_settings",
             SettingsTab::Lang => "common.language_settings",
+            SettingsTab::Networking => "common.networking_settings",
         }
     }
 }
@@ -317,6 +322,16 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
                     .wh_of(state.ids.settings_content_align)
                     .set(state.ids.language, ui)
+                {
+                    events.push(Event::SettingsChange(change.into()));
+                }
+            },
+            SettingsTab::Networking => {
+                for change in
+                    networking::Networking::new(global_state, imgs, fonts, localized_strings)
+                        .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                        .wh_of(state.ids.settings_content_align)
+                        .set(state.ids.networking, ui)
                 {
                     events.push(Event::SettingsChange(change.into()));
                 }

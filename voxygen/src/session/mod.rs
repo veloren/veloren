@@ -114,9 +114,9 @@ impl SessionState {
         let mut mumble_link = SharedLink::new("veloren", "veloren-voxygen");
         {
             let mut client = client.borrow_mut();
-            client.request_player_physics(global_state.settings.gameplay.player_physics_behavior);
+            client.request_player_physics(global_state.settings.networking.player_physics_behavior);
             client.request_lossy_terrain_compression(
-                global_state.settings.graphics.lossy_terrain_compression,
+                global_state.settings.networking.lossy_terrain_compression,
             );
             #[cfg(not(target_os = "macos"))]
             if let Some(uid) = client.uid() {
@@ -394,6 +394,23 @@ impl PlayState for SessionState {
                 self.client.borrow_mut().send_chat(cmd.to_string());
             }
         }
+
+        #[cfg(feature = "discord")]
+        {
+            // Update the Discord activity on client initialization
+            #[cfg(feature = "singleplayer")]
+            let singleplayer = global_state.singleplayer.is_some();
+            #[cfg(not(feature = "singleplayer"))]
+            let singleplayer = false;
+
+            if singleplayer {
+                global_state.discord.join_singleplayer();
+            } else {
+                global_state
+                    .discord
+                    .join_server(self.client.borrow().server_info().name.clone());
+            }
+        }
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
@@ -419,6 +436,17 @@ impl PlayState for SessionState {
 
             let client = self.client.borrow();
             let player_entity = client.entity();
+
+            #[cfg(feature = "discord")]
+            if global_state.discord.is_active() {
+                if let Some(chunk) = client.current_chunk() {
+                    if let Some(location_name) = chunk.meta().name() {
+                        global_state
+                            .discord
+                            .update_location(location_name, client.current_site());
+                    }
+                }
+            }
 
             if global_state.settings.gameplay.bow_zoom {
                 let mut fov_scaling = 1.0;

@@ -82,6 +82,9 @@ impl PlayState for MainMenuState {
         // Set scale mode in case it was change
         self.main_menu_ui
             .set_scale_mode(global_state.settings.interface.ui_scale);
+
+        #[cfg(feature = "discord")]
+        global_state.discord.enter_main_menu();
     }
 
     #[allow(clippy::single_match)] // TODO: remove when event match has multiple arms
