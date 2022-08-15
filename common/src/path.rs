@@ -19,7 +19,7 @@ use vek::*;
 
 #[derive(Clone, Debug)]
 pub struct Path<T> {
-    nodes: Vec<T>,
+    pub nodes: Vec<T>,
 }
 
 impl<T> Default for Path<T> {

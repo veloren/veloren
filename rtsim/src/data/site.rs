@@ -38,11 +38,19 @@ impl Site {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Sites {
     pub sites: HopSlotMap<SiteId, Site>,
+    
+    #[serde(skip_serializing, skip_deserializing)]
+    pub world_site_map: HashMap<Id<WorldSite>, SiteId>,
 }
 
 impl Sites {
     pub fn create(&mut self, site: Site) -> SiteId {
-        self.sites.insert(site)
+        let world_site = site.world_site;
+        let key = self.sites.insert(site);
+        if let Some(world_site) = world_site {
+            self.world_site_map.insert(world_site, key);
+        }
+        key
     }
 }
 

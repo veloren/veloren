@@ -6950,6 +6950,7 @@ dependencies = [
  "enum-map",
  "fxhash",
  "hashbrown 0.12.3",
+ "itertools",
  "rand 0.8.5",
  "rmp-serde",
  "ron 0.8.0",

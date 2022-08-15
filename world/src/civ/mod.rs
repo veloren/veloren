@@ -628,13 +628,12 @@ impl Civs {
         }
     }
 
-    /// Return the direct track between two places
-    pub fn track_between(&self, a: Id<Site>, b: Id<Site>) -> Option<Id<Track>> {
+    /// Return the direct track between two places, bool if the track should be reversed or not
+    pub fn track_between(&self, a: Id<Site>, b: Id<Site>) -> Option<(Id<Track>, bool)> {
         self.track_map
             .get(&a)
-            .and_then(|dests| dests.get(&b))
-            .or_else(|| self.track_map.get(&b).and_then(|dests| dests.get(&a)))
-            .copied()
+            .and_then(|dests| Some((*dests.get(&b)?, false)))
+            .or_else(|| self.track_map.get(&b).and_then(|dests| Some((*dests.get(&a)?, true))))
     }
 
     /// Return an iterator over a site's neighbors
@@ -665,7 +664,7 @@ impl Civs {
         };
         let neighbors = |p: &Id<Site>| self.neighbors(*p);
         let transition =
-            |a: &Id<Site>, b: &Id<Site>| self.tracks.get(self.track_between(*a, *b).unwrap()).cost;
+            |a: &Id<Site>, b: &Id<Site>| self.tracks.get(self.track_between(*a, *b).unwrap().0).cost;
         let satisfied = |p: &Id<Site>| *p == b;
         // We use this hasher (FxHasher64) because
         // (1) we don't care about DDOS attacks (ruling out SipHash);
@@ -1453,7 +1452,7 @@ pub struct Track {
     /// Cost of using this track relative to other paths. This cost is an
     /// arbitrary unit and doesn't make sense unless compared to other track
     /// costs.
-    cost: f32,
+    pub cost: f32,
     path: Path<Vec2<i32>>,
 }
 

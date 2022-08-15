@@ -3,14 +3,15 @@ use serde::{Serialize, Deserialize};
 use slotmap::HopSlotMap;
 use vek::*;
 use rand::prelude::*;
-use std::ops::{Deref, DerefMut};
+use std::{ops::{Deref, DerefMut}, collections::VecDeque};
 use common::{
     uid::Uid,
     store::Id,
     rtsim::{SiteId, FactionId, RtSimController},
     comp,
 };
-use world::util::RandomPerm;
+use world::{util::RandomPerm, civ::Track};
+use world::site::Site as WorldSite;
 pub use common::rtsim::{NpcId, Profession};
 
 #[derive(Copy, Clone, Default)]
@@ -20,6 +21,19 @@ pub enum NpcMode {
     Simulated,
     /// The NPC has been loaded into the game world as an ECS entity.
     Loaded,
+}
+
+#[derive(Clone)]
+pub struct PathData<P, N> {
+    pub end: N,
+    pub path: VecDeque<P>,
+    pub repoll: bool,
+}
+
+#[derive(Clone, Default)]
+pub struct PathingMemory {
+    pub intrasite_path: Option<(PathData<Vec2<i32>, Vec2<i32>>, Id<WorldSite>)>,
+    pub intersite_path: Option<(PathData<(Id<Track>, bool), SiteId>, usize)>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -35,6 +49,11 @@ pub struct Npc {
     pub faction: Option<FactionId>,
 
     // Unpersisted state
+    #[serde(skip_serializing, skip_deserializing)]
+    pub pathing: PathingMemory,
+
+    #[serde(skip_serializing, skip_deserializing)]
+    pub current_site: Option<SiteId>,
 
     /// (wpos, speed_factor)
     #[serde(skip_serializing, skip_deserializing)]
@@ -57,6 +76,8 @@ impl Npc {
             profession: None,
             home: None,
             faction: None,
+            pathing: Default::default(),
+            current_site: None,
             target: None,
             mode: NpcMode::Simulated,
         }

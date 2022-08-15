@@ -45,6 +45,15 @@ impl<T> PathResult<T> {
             _ => None,
         }
     }
+
+    pub fn map<U>(self, f: impl FnOnce(Path<T>) -> Path<U>) -> PathResult<U> {
+        match self {
+            PathResult::None(p) => PathResult::None(f(p)),
+            PathResult::Exhausted(p) => PathResult::Exhausted(f(p)),
+            PathResult::Path(p) => PathResult::Path(f(p)),
+            PathResult::Pending => PathResult::Pending,
+        }
+    }
 }
 
 #[derive(Clone)]

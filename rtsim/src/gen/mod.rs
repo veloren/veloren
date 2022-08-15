@@ -33,7 +33,7 @@ impl Data {
         let mut this = Self {
             nature: Nature::generate(world),
             npcs: Npcs { npcs: Default::default() },
-            sites: Sites { sites: Default::default() },
+            sites: Sites { sites: Default::default(), world_site_map: Default::default() },
             factions: Factions { factions: Default::default() },
 
             time_of_day: TimeOfDay(settings.start_time),
@@ -72,13 +72,14 @@ impl Data {
 
                 this.npcs.create(Npc::new(rng.gen(), rand_wpos(&mut rng))
                     .with_faction(site.faction)
-                    .with_home(site_id).with_profession(match rng.gen_range(0..15) {
+                    .with_home(site_id).with_profession(match rng.gen_range(0..20) {
                         0 => Profession::Hunter,
                         1 => Profession::Blacksmith,
                         2 => Profession::Chef,
                         3 => Profession::Alchemist,
                         5..=10 => Profession::Farmer,
-                        _ => Profession::Guard,
+                        11..=15 => Profession::Guard,
+                        _ => Profession::Adventurer(rng.gen_range(0..=3)),
                     }));
             }
             this.npcs.create(Npc::new(rng.gen(), rand_wpos(&mut rng)).with_home(site_id).with_profession(Profession::Merchant));
