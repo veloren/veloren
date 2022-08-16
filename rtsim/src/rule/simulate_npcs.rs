@@ -26,7 +26,7 @@ impl Rule for SimulateNpcs {
                     let diff = target.xy() - npc.wpos.xy();
                     let dist2 = diff.magnitude_squared();
 
-                    if dist2 > 0.5.powi(2) {
+                    if dist2 > 0.5f32.powi(2) {
                         npc.wpos += (diff
                             * (body.max_speed_approx() * speed_factor * ctx.event.dt / dist2.sqrt())
                                 .min(1.0))
