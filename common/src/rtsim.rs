@@ -60,6 +60,7 @@ pub struct RtSimController {
     /// toward the given location, accounting for obstacles and other
     /// high-priority situations like being attacked.
     pub travel_to: Option<Vec3<f32>>,
+    pub heading_to: Option<String>,
     /// Proportion of full speed to move
     pub speed_factor: f32,
     /// Events
@@ -70,6 +71,7 @@ impl Default for RtSimController {
     fn default() -> Self {
         Self {
             travel_to: None,
+            heading_to: None,
             speed_factor: 1.0,
             events: Vec::new(),
         }
@@ -80,6 +82,7 @@ impl RtSimController {
     pub fn with_destination(pos: Vec3<f32>) -> Self {
         Self {
             travel_to: Some(pos),
+            heading_to: None,
             speed_factor: 0.5,
             events: Vec::new(),
         }

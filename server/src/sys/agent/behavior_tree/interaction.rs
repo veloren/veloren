@@ -107,88 +107,90 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
 
                     match subject {
                         Subject::Regular => {
-                            /*
-                            if let Some(rtsim_entity) = &bdata.rtsim_entity {
-                                if matches!(rtsim_entity.kind, RtSimEntityKind::Prisoner) {
-                                    agent_data.chat_npc("npc-speech-prisoner", event_emitter);
-                                } else if let Some((_travel_to, destination_name) = &agent.rtsim_controller.travel_to {
-                                    let personality = &rtsim_entity.brain.personality;
-                                    let standard_response_msg = || -> String {
+                            if let Some(destination_name) = &agent.rtsim_controller.heading_to {
+                                let msg = format!(
+                                    "I'm heading to {}! Want to come along?",
+                                    destination_name
+                                );
+                                agent_data.chat_npc(msg, event_emitter);
+                            }
+                            /*if let (
+                                Some((_travel_to, destination_name)),
+                                Some(rtsim_entity),
+                            ) = (&agent.rtsim_controller.travel_to, &agent_data.rtsim_entity)
+                            {
+                                let personality = &rtsim_entity.brain.personality;
+                                let standard_response_msg = || -> String {
+                                    if personality.will_ambush {
+                                        format!(
+                                            "I'm heading to {}! Want to come along? We'll make \
+                                             great travel buddies, hehe.",
+                                            destination_name
+                                        )
+                                    } else if personality
+                                        .personality_traits
+                                        .contains(PersonalityTrait::Extroverted)
+                                    {
+                                        format!(
+                                            "I'm heading to {}! Want to come along?",
+                                            destination_name
+                                        )
+                                    } else if personality
+                                        .personality_traits
+                                        .contains(PersonalityTrait::Disagreeable)
+                                    {
+                                        "Hrm.".to_string()
+                                    } else {
+                                        "Hello!".to_string()
+                                    }
+                                };
+                                let msg = if let Some(tgt_stats) = read_data.stats.get(target) {
+                                    agent.rtsim_controller.events.push(RtSimEvent::AddMemory(
+                                        Memory {
+                                            item: MemoryItem::CharacterInteraction {
+                                                name: tgt_stats.name.clone(),
+                                            },
+                                            time_to_forget: read_data.time.0 + 600.0,
+                                        },
+                                    ));
+                                    if rtsim_entity.brain.remembers_character(&tgt_stats.name) {
                                         if personality.will_ambush {
-                                            format!(
-                                                "I'm heading to {}! Want to come along? We'll make \
-                                                great travel buddies, hehe.",
-                                                destination_name
-                                            )
+                                            "Just follow me a bit more, hehe.".to_string()
                                         } else if personality
                                             .personality_traits
                                             .contains(PersonalityTrait::Extroverted)
                                         {
-                                            format!(
-                                                "I'm heading to {}! Want to come along?",
-                                                destination_name
-                                            )
-                                        } else if personality
-                                            .personality_traits
-                                            .contains(PersonalityTrait::Disagreeable)
-                                        {
-                                            "Hrm.".to_string()
-                                        } else {
-                                            "Hello!".to_string()
-                                        }
-                                    };
-                                    let msg = if let Some(tgt_stats) = read_data.stats.get(target) {
-                                        agent.rtsim_controller.events.push(RtSimEvent::AddMemory(
-                                            Memory {
-                                                item: MemoryItem::CharacterInteraction {
-                                                    name: tgt_stats.name.clone(),
-                                                },
-                                                time_to_forget: read_data.time.0 + 600.0,
-                                            },
-                                        ));
-                                        if rtsim_entity.brain.remembers_character(&tgt_stats.name) {
-                                            if personality.will_ambush {
-                                                format!(
-                                                    "I'm heading to {}! Want to come along? We'll \
-                                                    make great travel buddies, hehe.",
-                                                    destination_name
-                                                )
-                                            } else if personality
+                                            if personality
                                                 .personality_traits
                                                 .contains(PersonalityTrait::Extroverted)
                                             {
-                                                if personality
-                                                    .personality_traits
-                                                    .contains(PersonalityTrait::Extroverted)
-                                                {
-                                                    format!(
-                                                        "Greetings fair {}! It has been far \
-                                                            too long since last I saw you. I'm \
-                                                            going to {} right now.",
-                                                        &tgt_stats.name, destination_name
-                                                    )
-                                                } else if personality
-                                                    .personality_traits
-                                                    .contains(PersonalityTrait::Disagreeable)
-                                                {
-                                                    "Oh. It's you again.".to_string()
-                                                } else {
-                                                    format!(
-                                                        "Hi again {}! Unfortunately I'm in a \
-                                                            hurry right now. See you!",
-                                                        &tgt_stats.name
-                                                    )
-                                                }
+                                                format!(
+                                                    "Greetings fair {}! It has been far \
+                                                        too long since last I saw you. I'm \
+                                                        going to {} right now.",
+                                                    &tgt_stats.name, destination_name
+                                                )
+                                            } else if personality
+                                                .personality_traits
+                                                .contains(PersonalityTrait::Disagreeable)
+                                            {
+                                                "Oh. It's you again.".to_string()
                                             } else {
-                                                standard_response_msg()
+                                                format!(
+                                                    "Hi again {}! Unfortunately I'm in a \
+                                                        hurry right now. See you!",
+                                                    &tgt_stats.name
+                                                )
                                             }
                                         } else {
                                             standard_response_msg()
-                                        };
-                                    agent_data.chat_npc(msg, event_emitter);
-                                }
+                                        }
+                                    } else {
+                                        standard_response_msg()
+                                    };
+                                agent_data.chat_npc(msg, event_emitter);
                             } else*/
-                            if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
+                            else if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
                                 if !agent.behavior.is(BehaviorState::TRADING) {
                                     controller.push_initiate_invite(by, InviteKind::Trade);
                                     agent_data.chat_npc(

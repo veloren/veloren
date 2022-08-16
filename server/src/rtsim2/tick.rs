@@ -10,32 +10,34 @@ use common::{
     rtsim::{RtSimController, RtSimEntity},
     slowjob::SlowJobPool,
     trade::{Good, SiteInformation},
-    LoadoutBuilder,
-    SkillSetBuilder,
+    LoadoutBuilder, SkillSetBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use rtsim2::data::{npc::{NpcMode, Profession}, Npc, Sites};
+use rtsim2::data::{
+    npc::{NpcMode, Profession},
+    Npc, Sites,
+};
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
 use world::site::settlement::trader_loadout;
 
 fn humanoid_config(profession: &Profession) -> &'static str {
     match profession {
-            Profession::Farmer | Profession::Hunter => "common.entity.village.villager",
-            Profession::Merchant => "common.entity.village.merchant",
-            Profession::Guard => "common.entity.village.guard",
-            Profession::Adventurer(rank) => match rank {
-                0 => "common.entity.world.traveler0",
-                1 => "common.entity.world.traveler1",
-                2 => "common.entity.world.traveler2",
-                3 => "common.entity.world.traveler3",
-                _ => panic!("Not a valid adventurer rank"),
-            },
-            Profession::Blacksmith => "common.entity.village.blacksmith",
-            Profession::Chef => "common.entity.village.chef",
-            Profession::Alchemist => "common.entity.village.alchemist",
-            Profession::Pirate => "common.entity.spot.pirate",
-            Profession::Cultist => "common.entity.dungeon.tier-5.cultist",
+        Profession::Farmer | Profession::Hunter => "common.entity.village.villager",
+        Profession::Merchant => "common.entity.village.merchant",
+        Profession::Guard => "common.entity.village.guard",
+        Profession::Adventurer(rank) => match rank {
+            0 => "common.entity.world.traveler0",
+            1 => "common.entity.world.traveler1",
+            2 => "common.entity.world.traveler2",
+            3 => "common.entity.world.traveler3",
+            _ => panic!("Not a valid adventurer rank"),
+        },
+        Profession::Blacksmith => "common.entity.village.blacksmith",
+        Profession::Chef => "common.entity.village.chef",
+        Profession::Alchemist => "common.entity.village.alchemist",
+        Profession::Pirate => "common.entity.spot.pirate",
+        Profession::Cultist => "common.entity.dungeon.tier-5.cultist",
     }
 }
 
@@ -68,10 +70,14 @@ fn blacksmith_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Tools | Good::Armor))
+    trader_loadout(loadout_builder, economy, |good| {
+        matches!(good, Good::Tools | Good::Armor)
+    })
 }
 
-fn profession_extra_loadout(profession: Option<&Profession>) -> fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder {
+fn profession_extra_loadout(
+    profession: Option<&Profession>,
+) -> fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder {
     match profession {
         Some(Profession::Merchant) => merchant_loadout,
         Some(Profession::Farmer) => farmer_loadout,
@@ -83,7 +89,9 @@ fn profession_extra_loadout(profession: Option<&Profession>) -> fn(LoadoutBuilde
 
 fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent::Mark> {
     match profession {
-        Some(Profession::Merchant | Profession::Farmer | Profession::Chef | Profession::Blacksmith) => Some(comp::agent::Mark::Merchant),
+        Some(
+            Profession::Merchant | Profession::Farmer | Profession::Chef | Profession::Blacksmith,
+        ) => Some(comp::agent::Mark::Merchant),
         Some(Profession::Guard) => Some(comp::agent::Mark::Guard),
         _ => None,
     }
@@ -94,16 +102,15 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
     let pos = comp::Pos(npc.wpos);
 
     if let Some(ref profession) = npc.profession {
+        let economy = npc.home.and_then(|home| {
+            let site = sites.get(home)?.world_site?;
+            index.sites.get(site).trade_information(site.id())
+        });
 
-        let economy = npc.home
-            .and_then(|home| {
-                let site = sites.get(home)?.world_site?;
-                index.sites.get(site).trade_information(site.id())
-            });
-        
         let config_asset = humanoid_config(profession);
 
-        let entity_config = EntityConfig::from_asset_expect_owned(config_asset).with_body(BodyBuilder::Exact(body));
+        let entity_config =
+            EntityConfig::from_asset_expect_owned(config_asset).with_body(BodyBuilder::Exact(body));
         let mut rng = npc.rng(3);
         EntityInfo::at(pos.0)
             .with_entity_config(entity_config, Some(config_asset), &mut rng)
@@ -160,7 +167,9 @@ impl<'a> System<'a> for Sys {
         let rtsim = &mut *rtsim;
 
         rtsim.state.data_mut().time_of_day = *time_of_day;
-        rtsim.state.tick(&world, index.as_index_ref(), *time_of_day, *time, dt.0);
+        rtsim
+            .state
+            .tick(&world, index.as_index_ref(), *time_of_day, *time, dt.0);
 
         if rtsim
             .last_saved
@@ -226,8 +235,7 @@ impl<'a> System<'a> for Sys {
         for (pos, rtsim_entity, agent) in
             (&positions, &rtsim_entities, (&mut agents).maybe()).join()
         {
-            data
-                .npcs
+            data.npcs
                 .get_mut(rtsim_entity.0)
                 .filter(|npc| matches!(npc.mode, NpcMode::Loaded))
                 .map(|npc| {
@@ -238,6 +246,16 @@ impl<'a> System<'a> for Sys {
                     if let Some(agent) = agent {
                         agent.rtsim_controller.travel_to = npc.target.map(|(wpos, _)| wpos);
                         agent.rtsim_controller.speed_factor = npc.target.map_or(1.0, |(_, sf)| sf);
+                        agent.rtsim_controller.heading_to =
+                            npc.pathing.intersite_path.as_ref().and_then(|(path, _)| {
+                                Some(
+                                    index
+                                        .sites
+                                        .get(data.sites.get(path.end)?.world_site?)
+                                        .name()
+                                        .to_string(),
+                                )
+                            });
                     }
                 });
         }

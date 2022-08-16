@@ -71,6 +71,7 @@ impl<'a> System<'a> for Sys {
             &mut controllers,
             read_data.light_emitter.maybe(),
             read_data.groups.maybe(),
+            read_data.rtsim_entities.maybe(),
             !&read_data.is_mounts,
         )
             .par_join()
@@ -93,6 +94,7 @@ impl<'a> System<'a> for Sys {
                     controller,
                     light_emitter,
                     group,
+                    rtsim_entity,
                     _,
                 )| {
                     let mut event_emitter = event_bus.emitter();
@@ -180,6 +182,7 @@ impl<'a> System<'a> for Sys {
                     // Package all this agent's data into a convenient struct
                     let data = AgentData {
                         entity: &entity,
+                        rtsim_entity,
                         uid,
                         pos,
                         vel,
@@ -206,7 +209,6 @@ impl<'a> System<'a> for Sys {
                         msm: &read_data.msm,
                         poise: read_data.poises.get(entity),
                         stance: read_data.stances.get(entity),
-                        rtsim_entity: read_data.rtsim_entities.get(entity),
                     };
 
                     ///////////////////////////////////////////////////////////

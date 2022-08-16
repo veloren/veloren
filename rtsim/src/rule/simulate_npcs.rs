@@ -36,9 +36,6 @@ impl Rule for SimulateNpcs {
                 npc.wpos.z = ctx.world.sim()
                     .get_alt_approx(npc.wpos.xy().map(|e| e as i32))
                     .unwrap_or(0.0);
-                npc.current_site = ctx.world.sim().get(npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_()).and_then(|chunk| {
-                    data.sites.world_site_map.get(chunk.sites.first()?).copied()
-                });
             }
         });
 

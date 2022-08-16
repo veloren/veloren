@@ -9,9 +9,8 @@ use common::{
     mounting::Mount,
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
-    // rtsim::RtSimEntity,
     terrain::TerrainGrid,
-    uid::{Uid, UidAllocator},
+    uid::{Uid, UidAllocator}, rtsim::RtSimEntity,
 };
 use specs::{
     shred::ResourceId, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData,
@@ -21,6 +20,7 @@ use std::sync::Arc;
 
 pub struct AgentData<'a> {
     pub entity: &'a EcsEntity,
+    pub rtsim_entity: Option<&'a RtSimEntity>,
     //pub rtsim_entity: Option<&'a RtSimData>,
     pub uid: &'a Uid,
     pub pos: &'a Pos,
@@ -153,6 +153,7 @@ pub struct ReadData<'a> {
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]
     pub world: ReadExpect<'a, Arc<world::World>>,
+    pub rtsim_entity: ReadStorage<'a, RtSimEntity>,
     //pub rtsim_entities: ReadStorage<'a, RtSimEntity>,
     pub buffs: ReadStorage<'a, Buffs>,
     pub combos: ReadStorage<'a, Combo>,
