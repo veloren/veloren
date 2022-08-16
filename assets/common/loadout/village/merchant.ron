@@ -11,4 +11,5 @@
     legs: Item("common.items.armor.merchant.pants"),
     feet: Item("common.items.armor.merchant.foot"),
     lantern: Item("common.items.lantern.black_0"),
+    tabard: Item("common.items.debug.admin"),    
 )
