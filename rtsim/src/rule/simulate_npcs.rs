@@ -23,13 +23,15 @@ impl Rule for SimulateNpcs {
 
                 // Move NPCs if they have a target
                 if let Some((target, speed_factor)) = npc.target {
-                    npc.wpos += Vec3::from(
-                        (target.xy() - npc.wpos.xy())
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::zero)
-                            * body.max_speed_approx()
-                            * speed_factor,
-                    ) * ctx.event.dt;
+                    let diff = target.xy() - npc.wpos.xy();
+                    let dist2 = diff.magnitude_squared();
+
+                    if dist2 > 0.5.powi(2) {
+                        npc.wpos += (diff
+                            * (body.max_speed_approx() * speed_factor * ctx.event.dt / dist2.sqrt())
+                                .min(1.0))
+                        .with_z(0.0);
+                    }
                 }
 
                 // Make sure NPCs remain on the surface
