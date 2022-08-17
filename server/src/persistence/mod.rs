@@ -172,6 +172,18 @@ pub fn run_migrations(settings: &DatabaseSettings) {
     info!("Applied {} database migrations", applied_migrations);
 }
 
+/// Runs after the migrations. In some cases, it can reclaim a significant
+/// amount of space (reported 30%)
+pub fn vacuum_database(settings: &DatabaseSettings) {
+    let conn = establish_connection(settings, ConnectionMode::ReadWrite);
+
+    // The params type is phony; it's required, but not meaningful.
+    conn.execute::<&[u32]>("VACUUM main", &[])
+        .expect("Database vacuuming failed, server startup aborted");
+
+    info!("Database vacuumed");
+}
+
 // These callbacks use info logging because they are never enabled by default,
 // only when explicitly turned on via CLI arguments or interactive CLI commands.
 // Setting them to anything other than info would remove the ability to get SQL
