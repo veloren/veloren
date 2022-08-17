@@ -23,3 +23,4 @@ hud-trade-tooltip_hint_1 = <Shift-klicka för att lägga till/ta bort från byte
 hud-trade-tooltip_hint_2 = <Ctrl-klicka för att automatiskt balansera med detta.>
 hud-trade-your_offer = Ditt erbjudande
 hud-trade-their_offer = Deras erbjudande
+hud-trade-amount_input = Välj ett föremål

@@ -28,6 +28,7 @@ hud-bag-energy = Energi
 hud-bag-combat_rating = Stridsduglighet
 hud-bag-protection = Skydd
 hud-bag-stun_res = Motståndskraft mot att bli överväldigad
+hud-bag-stealth = Smygning
 hud-bag-combat_rating_desc =
     Beräknas från din
     utrustning och hälsa.
