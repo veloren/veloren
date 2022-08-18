@@ -152,6 +152,11 @@ impl assets::Compound for Language {
                     let source: &raw::Resource = &*handle.read();
                     let src = source.src.clone();
 
+                    // NOTE:
+                    // This deunicode whole file, which mean it may break if
+                    // we have non-ascii keys.
+                    // I don't consider this a problem, because having
+                    // non-ascii keys is quite exotic.
                     let src = if convert_utf8_to_ascii {
                         deunicode(&src)
                     } else {

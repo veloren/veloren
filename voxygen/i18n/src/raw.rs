@@ -25,7 +25,7 @@ impl crate::assets::Asset for Manifest {
 //
 // NOTE:
 // We store String, that later converted to FluentResource.
-// We can't do it at load time, because we might want to do ut8 to ascii
+// We can't do it at load time, because we might want to do utf8 to ascii
 // conversion and we know it only after we've loaded language manifest.
 //
 // Alternative solution is to make it hold Rc/Arc around FluentResource,
