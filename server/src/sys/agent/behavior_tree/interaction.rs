@@ -94,7 +94,13 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                             {
                                 let personality = &rtsim_entity.brain.personality;
                                 let standard_response_msg = || -> String {
-                                    if personality
+                                    if personality.will_ambush {
+                                        format!(
+                                            "I'm heading to {}! Want to come along? We'll make \
+                                             great travel buddies, hehe.",
+                                            destination_name
+                                        )
+                                    } else if personality
                                         .personality_traits
                                         .contains(PersonalityTrait::Extroverted)
                                     {
@@ -121,7 +127,9 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                         },
                                     ));
                                     if rtsim_entity.brain.remembers_character(&tgt_stats.name) {
-                                        if personality
+                                        if personality.will_ambush {
+                                            "Just follow me a bit more, hehe.".to_string()
+                                        } else if personality
                                             .personality_traits
                                             .contains(PersonalityTrait::Extroverted)
                                         {

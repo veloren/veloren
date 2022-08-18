@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Use fluent for translations
 - First tab on Login screen triggers username focus
+- Certain NPCs will now attack when alone with victim
 
 ### Removed
 

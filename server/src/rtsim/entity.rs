@@ -706,6 +706,8 @@ impl PersonalityBase {
      * don't want everyone to be completely weird.
      */
     pub fn to_personality(&self) -> Personality {
+        let will_ambush = self.agreeableness < Personality::LOW_THRESHOLD
+            && self.conscientiousness < Personality::LOW_THRESHOLD;
         let mut chat_traits: EnumSet<PersonalityTrait> = EnumSet::new();
         if self.openness > Personality::HIGH_THRESHOLD {
             chat_traits.insert(PersonalityTrait::Open);
@@ -752,12 +754,14 @@ impl PersonalityBase {
         }
         Personality {
             personality_traits: chat_traits,
+            will_ambush,
         }
     }
 }
 
 pub struct Personality {
     pub personality_traits: EnumSet<PersonalityTrait>,
+    pub will_ambush: bool,
 }
 
 #[derive(EnumSetType)]
