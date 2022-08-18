@@ -105,7 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modular weapons now have a selling price
 - Closing a subwindow now only regrabs the cursor if no other subwindow requires it.
 - Fixed npc not handling interactions while fighting (especially merchants in trade)
-- Fixed bug where you would still be burning after dying in lava. 
+- Fixed bug where you would still be burning after dying in lava.
+- Workaround for rayon bug that caused lag spikes in slowjobs
 
 ## [0.12.0] - 2022-02-19
 
