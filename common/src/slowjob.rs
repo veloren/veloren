@@ -399,6 +399,8 @@ impl SlowJobPool {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Barrier;
+    use std::sync::atomic::AtomicU64;
     use super::*;
 
     fn mock_pool(
@@ -745,5 +747,109 @@ mod tests {
         assert!(metrics.get("BAR").is_none());
         let baz = metrics.get("BAZ").expect("BAZ doesn't exist in metrics");
         assert_eq!(baz.len(), 1);
+    }
+
+
+    fn busy_work(ms: u64) {
+        let x = Instant::now();
+        while x.elapsed() < std::time::Duration::from_millis(ms) {
+        }
+    }
+
+    use std::time::Duration;
+    use std::sync::atomic::Ordering;
+
+    fn work_barrier2(counter: Arc<AtomicU64>, ms: u64) -> () {
+        println!(".{}..", ms);
+        busy_work(ms);
+        println!(".{}..Done", ms);
+        counter.fetch_add(1, Ordering::SeqCst);
+    }
+
+    fn work_barrier(counter: &Arc<AtomicU64>, ms: u64) -> impl std::ops::FnOnce() -> () {
+        let counter = Arc::clone(&counter);
+        println!("Create work_barrier");
+        move || work_barrier2(counter, ms)
+    }
+
+    #[test]
+    fn ffffff() {
+        let threadpool = Arc::new(rayon::ThreadPoolBuilder::new()
+            .num_threads(2)
+            .build()
+            .unwrap());
+        let pool = SlowJobPool::new(2, 100, threadpool.clone());
+        pool.configure("FOO", |x| x );
+        pool.configure("BAR", |x| x / 2);
+        pool.configure("BAZ", |_| 1);
+        let pool2 = SlowJobPool::new(2, 100, threadpool.clone());
+        pool2.configure("FOO", |x| x );
+        pool2.configure("BAR", |x| x / 2);
+        pool2.configure("BAZ", |_| 1);
+        let counter = Arc::new(AtomicU64::new(0));
+        let start = Instant::now();
+        //pool.spawn("BAZ",  work_barrier(&counter, 1000));
+        //for _ in 0..600 {
+        //    pool.spawn("FOO",  work_barrier(&counter, 10));
+        //}
+
+        threadpool.install(|| {
+            use rayon::prelude::*;
+            let mut iter = Vec::new();
+            for i in 0..1000 {
+                iter.push((i, work_barrier(&counter, 10)));
+            }
+            let mut iter2 = Vec::new();
+            for i in 0..1000 {
+                iter2.push((i, work_barrier(&counter, 10)));
+            }
+            iter.into_par_iter().map(|(i, task)| {
+                task();
+                if i == 900 {
+                    println!("Spawning task");
+                    pool.spawn("BAZ",  work_barrier(&counter, 1000));
+                    pool2.spawn("BAZ",  work_barrier(&counter, 10000));
+                    println!("Spawned tasks");
+                }
+                if i == 999 {
+                    println!("The first ITER end");
+                }
+            }).collect::<Vec<_>>();
+            println!("The first ITER finished");
+            //pool2.spawn("BAZ",  work_barrier(&counter, 1000));
+            //pool2.spawn("BAZ",  work_barrier(&counter, 1000));
+            //pool2.spawn("BAZ",  work_barrier(&counter, 1000));
+            iter2.into_par_iter().map(|(i, task)| {
+                if i == 0 {
+                    println!("The second ITER started");
+                }
+                task();
+            }).collect::<Vec<_>>();
+
+        });
+
+
+        //pool.spawn("FOO",  work_barrier(&barrier, 1));
+
+
+
+
+        println!("wait for test finish");
+        const TIMEOUT: Duration = Duration::from_secs(2);
+        let mut last_n_time = (0, start);
+        loop {
+            let now = Instant::now();
+            let n = counter.load(Ordering::SeqCst);
+            if n != last_n_time.0 {
+                last_n_time = (n, now);
+            } else if now.duration_since(last_n_time.1) > TIMEOUT {
+                break;
+            }
+        }
+        let d = last_n_time.1.duration_since(start);
+        println!("==============");
+        println!("Time Passed: {}ms", d.as_millis());
+        println!("Jobs finished: {}", last_n_time.0);
+
     }
 }
