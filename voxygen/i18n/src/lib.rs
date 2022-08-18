@@ -10,6 +10,8 @@ use fluent_bundle::{bundle::FluentBundle, FluentResource};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use unic_langid::LanguageIdentifier;
 
+use deunicode::deunicode;
+
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, io};
@@ -65,15 +67,9 @@ pub type Fonts = HashMap<String, Font>;
 struct Language {
     /// The bundle storing all localized texts
     pub(crate) bundle: FluentBundle<FluentResource, IntlLangMemoizer>,
-    /// Whether to convert the input text encoded in UTF-8
-    /// into a ASCII version by using the `deunicode` crate.
-    // FIXME (i18n convert_utf8_to_ascii):
-    #[allow(dead_code)]
-    convert_utf8_to_ascii: bool,
 
     /// Font configuration is stored here
     pub(crate) fonts: Fonts,
-
     pub(crate) metadata: LanguageMetadata,
 }
 
@@ -154,10 +150,22 @@ impl assets::Compound for Language {
             match cache.load(id) {
                 Ok(handle) => {
                     let source: &raw::Resource = &*handle.read();
-                    let resource =
-                        FluentResource::try_new(source.src.clone()).map_err(|(_ast, errs)| {
-                            ResourceErr::parsing_error(errs, id.to_owned(), &source.src)
-                        })?;
+                    let src = source.src.clone();
+
+                    // NOTE:
+                    // This deunicode whole file, which mean it may break if
+                    // we have non-ascii keys.
+                    // I don't consider this a problem, because having
+                    // non-ascii keys is quite exotic.
+                    let src = if convert_utf8_to_ascii {
+                        deunicode(&src)
+                    } else {
+                        src
+                    };
+
+                    let resource = FluentResource::try_new(src).map_err(|(_ast, errs)| {
+                        ResourceErr::parsing_error(errs, id.to_owned(), &source.src)
+                    })?;
 
                     bundle
                         .add_resource(resource)
@@ -172,7 +180,6 @@ impl assets::Compound for Language {
 
         Ok(Self {
             bundle,
-            convert_utf8_to_ascii,
             fonts,
             metadata,
         })
