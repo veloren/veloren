@@ -60,13 +60,13 @@ type JobType = Box<dyn FnOnce() + Send + Sync + 'static>;
 struct InternalSlowJobPool {
     next_id: u64,
     queue: HashMap<String, VecDeque<Queue>>,
-    dispatch_sender: std::sync::mpsc::Sender<JobType>,
     configs: HashMap<String, Config>,
     last_spawned_configs: Vec<String>,
     global_spawned_and_running: u64,
     global_limit: u64,
     jobs_metrics_cnt: usize,
     jobs_metrics: HashMap<String, Vec<JobMetrics>>,
+    threadpool: Arc<ThreadPool>,
     internal: Option<Arc<Mutex<Self>>>,
 }
 
@@ -124,20 +124,27 @@ impl InternalSlowJobPool {
     pub fn new(
         global_limit: u64,
         jobs_metrics_cnt: usize,
-        threadpool: Arc<ThreadPool>,
+        _threadpool: Arc<ThreadPool>,
     ) -> Arc<Mutex<Self>> {
-        let (dispatch_sender, dispatch_receiver) = std::sync::mpsc::channel();
-        Self::dispatcher(threadpool, dispatch_receiver);
+        // rayon is having a bug where a ECS task could work-steal a slowjob if we use
+        // the same threadpool, which would cause lagspikes we dont want!
+        let threadpool = Arc::new(
+            rayon::ThreadPoolBuilder::new()
+                .num_threads(global_limit as usize)
+                .thread_name(move |i| format!("slowjob-{}", i))
+                .build()
+                .unwrap(),
+        );
         let link = Arc::new(Mutex::new(Self {
             next_id: 0,
             queue: HashMap::new(),
-            dispatch_sender,
             configs: HashMap::new(),
             last_spawned_configs: Vec::new(),
             global_spawned_and_running: 0,
             global_limit: global_limit.max(1),
             jobs_metrics_cnt,
             jobs_metrics: HashMap::new(),
+            threadpool,
             internal: None,
         }));
 
@@ -146,24 +153,6 @@ impl InternalSlowJobPool {
             .expect("poisoned on InternalSlowJobPool::new")
             .internal = Some(link_clone);
         link
-    }
-
-    pub fn dispatcher(
-        threadpool: Arc<ThreadPool>,
-        dispatch_receiver: std::sync::mpsc::Receiver<JobType>,
-    ) {
-        let dispatch_receiver = Mutex::new(dispatch_receiver);
-        let threadpool2 = Arc::clone(&threadpool);
-        threadpool.spawn(move || {
-            threadpool2.in_place_scope(|s| {
-                s.spawn(|s| {
-                    let dispatch_receiver = dispatch_receiver.lock().unwrap();
-                    for task in dispatch_receiver.iter() {
-                        s.spawn(|_| (task)());
-                    }
-                });
-            });
-        });
     }
 
     /// returns order of configuration which are queued next
@@ -329,9 +318,7 @@ impl InternalSlowJobPool {
                             .position(|e| e == &queue.name)
                             .map(|i| self.last_spawned_configs.remove(i));
                         self.last_spawned_configs.push(queue.name.to_owned());
-                        if let Err(e) = self.dispatch_sender.send(queue.task) {
-                            error!(?e, "dispatcher thread seems to have crashed");
-                        };
+                        self.threadpool.spawn(queue.task);
                     },
                     None => error!(
                         "internal calculation is wrong, we extected a schedulable job to be \

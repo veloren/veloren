@@ -110,7 +110,7 @@ impl State {
 
         let thread_pool = Arc::new(
             ThreadPoolBuilder::new()
-                .num_threads(num_cpus::get().max(common::consts::MIN_RECOMMENDED_RAYON_THREADS) + 1 /*workaround for a rayon schedule bug, see MR 3546*/)
+                .num_threads(num_cpus::get().max(common::consts::MIN_RECOMMENDED_RAYON_THREADS))
                 .thread_name(move |i| format!("rayon-{}-{}", thread_name_infix, i))
                 .build()
                 .unwrap(),
