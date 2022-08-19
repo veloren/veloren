@@ -155,10 +155,14 @@ impl InternalSlowJobPool {
         let dispatch_receiver = Mutex::new(dispatch_receiver);
         let threadpool2 = Arc::clone(&threadpool);
         threadpool.spawn(move || {
-            let dispatch_receiver = dispatch_receiver.lock().unwrap();
-            for task in dispatch_receiver.iter() {
-                threadpool2.spawn(task)
-            }
+            threadpool2.in_place_scope(|s| {
+                s.spawn(|s| {
+                    let dispatch_receiver = dispatch_receiver.lock().unwrap();
+                    for task in dispatch_receiver.iter() {
+                        s.spawn(|_| (task)());
+                    }
+                });
+            });
         });
     }
 
