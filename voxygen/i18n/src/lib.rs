@@ -86,6 +86,26 @@ impl Language {
         Some(msg)
     }
 
+    fn try_attr<'a>(
+        &'a self,
+        key: &str,
+        attr: &str,
+        args: Option<&'a FluentArgs>,
+    ) -> Option<Cow<'a, str>> {
+        let bundle = &self.bundle;
+        let msg = bundle.get_message(key)?;
+        let attr = msg.get_attribute(attr)?;
+        let attr = attr.value();
+
+        let mut errs = Vec::new();
+        let msg = bundle.format_pattern(attr, args, &mut errs);
+        for err in errs {
+            tracing::error!("err: {err} for {key}");
+        }
+
+        Some(msg)
+    }
+
     fn try_variation<'a>(
         &'a self,
         key: &str,
@@ -291,6 +311,10 @@ impl LocalizationGuard {
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
     }
 
+    /// Get a localized text from the variation of given key
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
     pub fn try_variation(&self, key: &str, seed: u16) -> Option<Cow<str>> {
         self.active.try_variation(key, seed, None).or_else(|| {
             self.fallback
@@ -299,11 +323,22 @@ impl LocalizationGuard {
         })
     }
 
+    /// Get a localized text from the variation of given key
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
+    /// If the key is not present in the localization object
+    /// then the key itself is returned.
     pub fn get_variation(&self, key: &str, seed: u16) -> Cow<str> {
         self.try_variation(key, seed)
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
     }
 
+    /// Get a localized text from the variation of given key with given
+    /// arguments
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
     pub fn try_variation_ctx<'a>(
         &'a self,
         key: &str,
@@ -325,9 +360,75 @@ impl LocalizationGuard {
             })
     }
 
+    /// Get a localized text from the variation of given key with given
+    /// arguments
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
+    /// If the key is not present in the localization object
+    /// then the key itself is returned.
     pub fn get_variation_ctx<'a>(&'a self, key: &str, seed: u16, args: &'a FluentArgs) -> Cow<str> {
         self.try_variation_ctx(key, seed, args)
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
+    }
+
+    /// Get a localized text from the given key by given attribute
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
+    pub fn try_attr(&self, key: &str, attr: &str) -> Option<Cow<str>> {
+        self.active.try_attr(key, attr, None).or_else(|| {
+            self.fallback
+                .as_ref()
+                .and_then(|fb| fb.try_attr(key, attr, None))
+        })
+    }
+
+    /// Get a localized text from the given key by given attribute
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
+    /// If the key is not present in the localization object
+    /// then the key itself is returned.
+    pub fn get_attr(&self, key: &str, attr: &str) -> Cow<str> {
+        self.try_attr(key, attr)
+            .unwrap_or_else(|| Cow::Owned(format!("{key}.{attr}")))
+    }
+
+    /// Get a localized text from the given key by given attribute and arguments
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
+    pub fn try_attr_ctx<'a>(
+        &'a self,
+        key: &str,
+        attr: &str,
+        args: &'a FluentArgs,
+    ) -> Option<Cow<str>> {
+        self.active
+            .try_attr(key, attr, Some(args))
+            .or_else(|| {
+                self.fallback
+                    .as_ref()
+                    .and_then(|fb| fb.try_attr(key, attr, Some(args)))
+            })
+            .map(|x| {
+                // NOTE:
+                // Hack. Remove Unicode Directionality Marks, conrod doesn't support them.
+                let res = x.replace('\u{2068}', "").replace('\u{2069}', "");
+                Cow::Owned(res)
+            })
+    }
+
+    /// Get a localized text from the given key by given attribute and arguments
+    ///
+    /// First lookup is done in the active language, second in
+    /// the fallback (if present).
+    /// If the key is not present in the localization object
+    /// then the key itself is returned.
+    pub fn get_attr_ctx<'a>(&'a self, key: &str, attr: &str, args: &'a FluentArgs) -> Cow<str> {
+        self.try_attr_ctx(key, attr, args)
+            .unwrap_or_else(|| Cow::Owned(format!("{key}.{attr}")))
     }
 
     #[must_use]

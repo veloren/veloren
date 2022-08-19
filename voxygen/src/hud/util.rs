@@ -359,22 +359,7 @@ pub fn ability_description<'a>(
     ability_id: &str,
     loc: &'a Localization,
 ) -> (Cow<'a, str>, Cow<'a, str>) {
-    // TODO: Use fluent attribute mechanic
-    let (name, desc) = (
-        format!("{}.name", ability_id).replace('.', "-"),
-        format!("{}.desc", ability_id).replace('.', "-"),
-    );
+    let ability = ability_id.replace('.', "-");
 
-    // 1) Try localize ability
-    // 2) If not, say that ability is unknown
-    // 3) If unknown key is missed, just return id
-    // TODO: better algorithm?
-    (
-        loc.try_msg(&name)
-            .or_else(|| loc.try_msg("common-abilities-unknown-name"))
-            .unwrap_or(Cow::Owned(name)),
-        loc.try_msg(&desc)
-            .or_else(|| loc.try_msg("common-abilities-unknown-desc"))
-            .unwrap_or(Cow::Owned(desc)),
-    )
+    (loc.get_msg(&ability), loc.get_attr(&ability, "desc"))
 }
