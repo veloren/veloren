@@ -567,7 +567,7 @@ impl Body {
         }
     }
 
-    // Body collider
+    /// Body collider
     pub fn collider(&self) -> Collider {
         if let Body::Ship(ship) = self {
             ship.make_collider()
@@ -584,10 +584,10 @@ impl Body {
         }
     }
 
-    // How far away other entities should try to be. Will be added upon the other
-    // entity's spacing_radius. So an entity with 2.0 and an entity with 3.0 will
-    // lead to that both entities will try to keep 5.0 units away from each
-    // other.
+    /// How far away other entities should try to be. Will be added upon the
+    /// other entity's spacing_radius. So an entity with 2.0 and an entity
+    /// with 3.0 will lead to that both entities will try to keep 5.0 units
+    /// away from each other.
     pub fn spacing_radius(&self) -> f32 {
         self.max_radius()
             + match self {
