@@ -240,6 +240,7 @@ pub enum ServerChatCommand {
     Ban,
     BattleMode,
     BattleModeForce,
+    Body,
     Build,
     BuildAreaAdd,
     BuildAreaList,
@@ -364,6 +365,11 @@ impl ServerChatCommand {
                 If called without arguments will show current battle mode.",
                 None,
 
+            ),
+            ServerChatCommand::Body => cmd(
+                vec![Enum("body", ENTITIES.clone(), Required)],
+                "Change your body to different species",
+                Some(Admin),
             ),
             ServerChatCommand::BattleModeForce => cmd(
                 vec![Enum(
@@ -720,6 +726,7 @@ impl ServerChatCommand {
             ServerChatCommand::Ban => "ban",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",
+            ServerChatCommand::Body => "body",
             ServerChatCommand::Build => "build",
             ServerChatCommand::BuildAreaAdd => "build_area_add",
             ServerChatCommand::BuildAreaList => "build_area_list",
