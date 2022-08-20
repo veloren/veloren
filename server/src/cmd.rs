@@ -1826,27 +1826,35 @@ fn handle_kill_npcs(
         false
     };
 
-    let ecs = server.state.ecs();
-    let mut healths = ecs.write_storage::<comp::Health>();
-    let players = ecs.read_storage::<comp::Player>();
-    let alignments = ecs.read_storage::<Alignment>();
-    let mut count = 0;
+    let to_kill = {
+        let ecs = server.state.ecs();
+        let entities = ecs.entities();
+        let healths = ecs.write_storage::<comp::Health>();
+        let players = ecs.read_storage::<comp::Player>();
+        let alignments = ecs.read_storage::<Alignment>();
 
-    for (mut health, (), alignment) in (&mut healths, !&players, alignments.maybe()).join() {
-        let should_kill = kill_pets
-            || if let Some(Alignment::Owned(owned)) = alignment {
-                ecs.entity_from_uid(owned.0)
-                    .map_or(true, |owner| !players.contains(owner))
-            } else {
-                true
-            };
+        (&entities, &healths, !&players, alignments.maybe())
+            .join()
+            .filter_map(|(entity, _health, (), alignment)| {
+                let should_kill = kill_pets
+                    || if let Some(Alignment::Owned(owned)) = alignment {
+                        ecs.entity_from_uid(owned.0)
+                            .map_or(true, |owner| !players.contains(owner))
+                    } else {
+                        true
+                    };
 
-        if should_kill {
-            count += 1;
-            health.kill();
+                should_kill.then(|| entity)
+            })
+            .collect::<Vec<_>>()
+    };
+    let count = to_kill.len();
+    for entity in to_kill {
+        // Directly remove entities instead of modifying health to avoid loot drops.
+        if let Err(e) server.state.delete_entity_recorded(entity) {
+            error!(?e, ?entity, "Failed to delete entity");
         }
     }
-
     let text = if count > 0 {
         format!("Destroyed {} NPCs.", count)
     } else {
