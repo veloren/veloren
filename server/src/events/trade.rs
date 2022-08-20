@@ -55,7 +55,7 @@ fn notify_agent_prices(
 }
 
 /// Invoked when the trade UI is up, handling item changes, accepts, etc
-pub fn handle_process_trade_action(
+pub(super) fn handle_process_trade_action(
     server: &mut Server,
     entity: EcsEntity,
     trade_id: TradeId,
@@ -164,29 +164,34 @@ pub fn handle_process_trade_action(
     }
 }
 
-//Cancel all trades registered for a given UID.
-pub fn cancel_trade_for(server: &mut Server, entity: EcsEntity) {
-    if let Some(uid) = server.state().ecs().uid_from_entity(entity) {
-        let mut trades = server.state.ecs().write_resource::<Trades>();
+/// Cancel all trades registered for a given UID.
+///
+/// Note: This doesn't send any notification to the provided entity (only other
+/// participants in the trade). It is assumed that the supplied entity either no
+/// longer exists or is awareof this cancellation through other means (e.g.
+/// client getting ExitInGameSuccess message knows that it should clear any
+/// trades).
+pub(crate) fn cancel_trades_for(state: &mut common_state::State, entity: EcsEntity) {
+    let ecs = state.ecs();
+    if let Some(uid) = ecs.uid_from_entity(entity) {
+        let mut trades = ecs.write_resource::<Trades>();
 
         let active_trade = match trades.entity_trades.get(&uid) {
             Some(n) => *n,
-            None => {
-                return;
-            },
+            None => return,
         };
 
         let to_notify = trades.decline_trade(active_trade, uid);
-        to_notify
-            .and_then(|u| server.state.ecs().entity_from_uid(u.0))
-            .map(|e| {
-                server.notify_client(e, ServerGeneral::FinishedTrade(TradeResult::Declined));
-                notify_agent_simple(
-                    server.state.ecs().write_storage::<Agent>(),
-                    e,
-                    AgentEvent::FinishedTrade(TradeResult::Declined),
-                );
-            });
+        to_notify.and_then(|u| ecs.entity_from_uid(u.0)).map(|e| {
+            if let Some(c) = ecs.read_storage::<crate::Client>().get(e) {
+                c.send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
+            }
+            notify_agent_simple(
+                ecs.write_storage::<Agent>(),
+                e,
+                AgentEvent::FinishedTrade(TradeResult::Declined),
+            );
+        });
     }
 }
 

@@ -2065,6 +2065,8 @@ impl Client {
                             PresenceKind::Possessor => PresenceKind::Possessor,
                         });
                     }
+                    // Clear pending trade
+                    self.pending_trade = None;
                 } else {
                     return Err(Error::Other("Failed to find entity from uid.".into()));
                 }
@@ -2543,6 +2545,9 @@ impl Client {
 
     /// Clean client ECS state
     fn clean_state(&mut self) {
+        // Clear pending trade
+        self.pending_trade = None;
+
         let client_uid = self
             .uid()
             .map(|u| u.into())

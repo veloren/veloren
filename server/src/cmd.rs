@@ -1851,7 +1851,7 @@ fn handle_kill_npcs(
     let count = to_kill.len();
     for entity in to_kill {
         // Directly remove entities instead of modifying health to avoid loot drops.
-        if let Err(e) server.state.delete_entity_recorded(entity) {
+        if let Err(e) = server.state.delete_entity_recorded(entity) {
             error!(?e, ?entity, "Failed to delete entity");
         }
     }
