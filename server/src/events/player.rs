@@ -1,8 +1,7 @@
 use super::Event;
 use crate::{
-    client::Client, metrics::PlayerMetrics,
-    persistence::character_updater::CharacterUpdater, presence::Presence, state_ext::StateExt,
-    BattleModeBuffer, Server,
+    client::Client, metrics::PlayerMetrics, persistence::character_updater::CharacterUpdater,
+    presence::Presence, state_ext::StateExt, BattleModeBuffer, Server,
 };
 use common::{
     comp,
@@ -31,8 +30,9 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     // Note: If other `ServerEvent`s are referring to this entity they will be
     // disrupted.
 
-    // Since we remove `Uid` below, any trades won't be cancelled by `delete_entity_recorded`. So
-    // we cancel the trade here. (maybe the trade key could be switched from `Uid` to `Entity`)
+    // Since we remove `Uid` below, any trades won't be cancelled by
+    // `delete_entity_recorded`. So we cancel the trade here. (maybe the trade
+    // key could be switched from `Uid` to `Entity`)
     super::cancel_trades_for(state, entity);
 
     let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);

@@ -1172,11 +1172,8 @@ impl Server {
     where
         S: Into<ServerMsg>,
     {
-        if let Some(client) = self.state
-            .ecs()
-            .read_storage::<Client>()
-            .get(entity) {
-                client.send_fallible(msg);
+        if let Some(client) = self.state.ecs().read_storage::<Client>().get(entity) {
+            client.send_fallible(msg);
         }
     }
 
