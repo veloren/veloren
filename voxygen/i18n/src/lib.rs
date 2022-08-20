@@ -198,6 +198,11 @@ impl assets::Compound for Language {
             }
         }
 
+        // NOTE:
+        // Basically a hack, but conrod can't use isolation marks yet.
+        // Veloren Issue 1649
+        bundle.set_use_isolating(false);
+
         Ok(Self {
             bundle,
             fonts,
@@ -292,12 +297,7 @@ impl LocalizationGuard {
                     .as_ref()
                     .and_then(|fb| fb.try_msg(key, Some(args)))
             })
-            .map(|x| {
-                // NOTE:
-                // Hack. Remove Unicode Directionality Marks, conrod doesn't support them.
-                let res = x.replace('\u{2068}', "").replace('\u{2069}', "");
-                Cow::Owned(res)
-            })
+            .map(|res| Cow::Owned(res.into_owned()))
     }
 
     /// Get a localized text from the given key using given arguments
@@ -352,12 +352,6 @@ impl LocalizationGuard {
                     .as_ref()
                     .and_then(|fb| fb.try_variation(key, seed, Some(args)))
             })
-            .map(|x| {
-                // NOTE:
-                // Hack. Remove Unicode Directionality Marks, conrod doesn't support them.
-                let res = x.replace('\u{2068}', "").replace('\u{2069}', "");
-                Cow::Owned(res)
-            })
     }
 
     /// Get a localized text from the variation of given key with given
@@ -405,19 +399,11 @@ impl LocalizationGuard {
         attr: &str,
         args: &'a FluentArgs,
     ) -> Option<Cow<str>> {
-        self.active
-            .try_attr(key, attr, Some(args))
-            .or_else(|| {
-                self.fallback
-                    .as_ref()
-                    .and_then(|fb| fb.try_attr(key, attr, Some(args)))
-            })
-            .map(|x| {
-                // NOTE:
-                // Hack. Remove Unicode Directionality Marks, conrod doesn't support them.
-                let res = x.replace('\u{2068}', "").replace('\u{2069}', "");
-                Cow::Owned(res)
-            })
+        self.active.try_attr(key, attr, Some(args)).or_else(|| {
+            self.fallback
+                .as_ref()
+                .and_then(|fb| fb.try_attr(key, attr, Some(args)))
+        })
     }
 
     /// Get a localized text from the given key by given attribute and arguments
