@@ -241,10 +241,7 @@ impl StateExt for State {
             )
             .with(body.mass())
             .with(body.density())
-            .with(match body {
-                comp::Body::Ship(ship) => ship.make_collider(),
-                _ => capsule(&body),
-            })
+            .with(body.collider())
             .with(comp::Controller::default())
             .with(body)
             .with(comp::Energy::new(
@@ -275,7 +272,7 @@ impl StateExt for State {
             .with(comp::Ori::default())
             .with(body.mass())
             .with(body.density())
-            .with(capsule(&body))
+            .with(body.collider())
             .with(body)
     }
 
@@ -290,7 +287,7 @@ impl StateExt for State {
             .with(item_drop.orientation(&mut thread_rng()))
             .with(item_drop.mass())
             .with(item_drop.density())
-            .with(capsule(&body))
+            .with(body.collider())
             .with(body)
     }
 
@@ -352,7 +349,7 @@ impl StateExt for State {
         if projectile.is_point {
             projectile_base = projectile_base.with(comp::Collider::Point)
         } else {
-            projectile_base = projectile_base.with(capsule(&body))
+            projectile_base = projectile_base.with(body.collider())
         }
 
         projectile_base.with(projectile).with(body)
@@ -425,7 +422,10 @@ impl StateExt for State {
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
-            .with(capsule(&object.into()))
+            .with({
+                let body: comp::Body = object.into();
+                body.collider()
+            })
             .with(comp::Body::Object(object))
             .with(comp::Mass(100.0))
             // .with(comp::Sticky)
@@ -577,7 +577,7 @@ impl StateExt for State {
             // and we call nothing that can delete it in any of the subsequent
             // commands, so we can assume that all of these calls succeed,
             // justifying ignoring the result of insertion.
-            self.write_component_ignore_entity_dead(entity, capsule(&body));
+            self.write_component_ignore_entity_dead(entity, body.collider());
             self.write_component_ignore_entity_dead(entity, body);
             self.write_component_ignore_entity_dead(entity, body.mass());
             self.write_component_ignore_entity_dead(entity, body.density());
@@ -1038,17 +1038,5 @@ fn send_to_group(g: &Group, ecs: &specs::World, msg: &comp::ChatMsg) {
         if g == group {
             client.send_fallible(ServerGeneral::ChatMsg(msg.clone()));
         }
-    }
-}
-
-fn capsule(body: &comp::Body) -> comp::Collider {
-    let (p0, p1, radius) = body.sausage();
-
-    comp::Collider::CapsulePrism {
-        p0,
-        p1,
-        radius,
-        z_min: 0.0,
-        z_max: body.height(),
     }
 }

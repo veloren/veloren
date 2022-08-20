@@ -27,7 +27,7 @@ use specs::{Component, DerefFlaggedStorage};
 use strum::Display;
 use vek::*;
 
-use super::{BuffKind, Density, Mass};
+use super::{BuffKind, Collider, Density, Mass};
 
 make_case_elim!(
     body,
@@ -564,6 +564,23 @@ impl Body {
             let p1 = Vec2::new(a / 2.0, 0.0);
 
             (p0, p1, radius)
+        }
+    }
+
+    // Body collider
+    pub fn collider(&self) -> Collider {
+        if let Body::Ship(ship) = self {
+            ship.make_collider()
+        } else {
+            let (p0, p1, radius) = self.sausage();
+
+            Collider::CapsulePrism {
+                p0,
+                p1,
+                radius,
+                z_min: 0.0,
+                z_max: self.height(),
+            }
         }
     }
 

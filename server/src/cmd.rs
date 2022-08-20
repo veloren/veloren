@@ -3715,11 +3715,10 @@ fn handle_body(
 ) -> CmdResult<()> {
     if let Some(npc::NpcBody(_id, mut body)) = parse_cmd_args!(args, npc::NpcBody) {
         let body = body();
-        let ecs = &server.state.ecs();
-        let mut bodies = ecs.write_storage::<comp::Body>();
-        if let Some(mut target_body) = bodies.get_mut(target) {
-            *target_body = body;
-        }
+        insert_or_replace_component(server, target, body, "body")?;
+        insert_or_replace_component(server, target, body.mass(), "mass")?;
+        insert_or_replace_component(server, target, body.density(), "density")?;
+        insert_or_replace_component(server, target, body.collider(), "collider")?;
         Ok(())
     } else {
         Err(action.help_string())
