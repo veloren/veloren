@@ -129,6 +129,7 @@ fn do_command(
         ServerChatCommand::Ban => handle_ban,
         ServerChatCommand::BattleMode => handle_battlemode,
         ServerChatCommand::BattleModeForce => handle_battlemode_force,
+        ServerChatCommand::Body => handle_body,
         ServerChatCommand::Build => handle_build,
         ServerChatCommand::BuildAreaAdd => handle_build_area_add,
         ServerChatCommand::BuildAreaList => handle_build_area_list,
@@ -3703,4 +3704,24 @@ fn handle_lightning(
         .read_resource::<EventBus<Outcome>>()
         .emit_now(Outcome::Lightning { pos });
     Ok(())
+}
+
+fn handle_body(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(npc::NpcBody(_id, mut body)) = parse_cmd_args!(args, npc::NpcBody) {
+        let body = body();
+        let ecs = &server.state.ecs();
+        let mut bodies = ecs.write_storage::<comp::Body>();
+        if let Some(mut target_body) = bodies.get_mut(target) {
+            *target_body = body;
+        }
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
 }
