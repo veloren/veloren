@@ -35,7 +35,7 @@ shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
-default-publish = ["singleplayer", "native-dialog", "plugins", "discord", "simd"] # keep simd the last in this list
+default-publish = ["singleplayer", "native-dialog", "plugins", "discord", "simd"]
 # Temp for bug on current wgpu version that has access violation in vulkan when constructing egui pipeline
 default-no-egui = ["default-publish", "hot-reloading", "shaderc-from-source"]
 default = ["default-no-egui", "egui-ui"]
