@@ -1172,11 +1172,12 @@ impl Server {
     where
         S: Into<ServerMsg>,
     {
-        self.state
+        if let Some(client) = self.state
             .ecs()
             .read_storage::<Client>()
-            .get(entity)
-            .map(|c| c.send(msg));
+            .get(entity) {
+                client.send_fallible(msg);
+        }
     }
 
     pub fn notify_players(&mut self, msg: ServerGeneral) { self.state.notify_players(msg); }

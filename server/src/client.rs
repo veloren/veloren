@@ -140,6 +140,7 @@ impl Client {
         }*/
     }
 
+    /// Like `send` but any errors are explicitly ignored.
     pub(crate) fn send_fallible<M: Into<ServerMsg>>(&self, msg: M) { let _ = self.send(msg); }
 
     pub(crate) fn send_prepared(&self, msg: &PreparedMsg) -> Result<(), StreamError> {
