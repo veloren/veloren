@@ -130,3 +130,7 @@ hud-settings-say = Fala
 hud-settings-all = Todos
 hud-settings-group_only = Grupo apenas
 hud-settings-reset_chat = Restaurar Padrões
+hud-settings-third_party_integrations = Integrações de Aplicativos Terceiros
+hud-settings-enable_discord_integration = Habilitar integração com o Discord
+hud-settings-flashing_lights = Luzes Intermitentes
+hud-settings-flashing_lights_info = Desabilita todo tipo de luzes intermitentes, e.g. cintilações ou trovões.
