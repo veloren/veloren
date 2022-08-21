@@ -355,12 +355,7 @@ impl SettingsChange {
             SettingsChange::Graphics(graphics_change) => {
                 match graphics_change {
                     Graphics::AdjustViewDistance(view_distance) => {
-                        session_state
-                            .client
-                            .borrow_mut()
-                            .set_view_distance(view_distance);
-
-                        settings.graphics.view_distance = view_distance;
+                        adjust_view_distance(view_distance, global_state, session_state)
                     },
                     Graphics::AdjustLodDistance(lod_distance) => {
                         session_state
@@ -605,11 +600,7 @@ impl SettingsChange {
             },
             SettingsChange::Networking(networking_change) => match networking_change {
                 Networking::AdjustViewDistance(view_distance) => {
-                    session_state
-                        .client
-                        .borrow_mut()
-                        .set_view_distance(view_distance);
-                    settings.graphics.view_distance = view_distance;
+                    adjust_view_distance(view_distance, global_state, session_state)
                 },
                 Networking::ChangePlayerPhysicsBehavior {
                     server_authoritative,
@@ -654,6 +645,21 @@ impl SettingsChange {
                 },
             },
         }
-        settings.save_to_file_warn(&global_state.config_dir);
+        global_state
+            .settings
+            .save_to_file_warn(&global_state.config_dir);
     }
+}
+
+fn adjust_view_distance(
+    view_distance: u32,
+    global_state: &mut GlobalState,
+    session_state: &mut SessionState,
+) {
+    session_state
+        .client
+        .borrow_mut()
+        .set_view_distance(view_distance);
+
+    global_state.settings.graphics.view_distance = view_distance;
 }

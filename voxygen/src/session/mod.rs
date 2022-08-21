@@ -351,12 +351,7 @@ impl SessionState {
                 client::Event::Notification(n) => {
                     self.hud.new_notification(n);
                 },
-                client::Event::SetViewDistance(vd) => {
-                    global_state.settings.graphics.view_distance = vd;
-                    global_state
-                        .settings
-                        .save_to_file_warn(&global_state.config_dir);
-                },
+                client::Event::SetViewDistance(_vd) => {},
                 client::Event::Outcome(outcome) => outcomes.push(outcome),
                 client::Event::CharacterCreated(_) => {},
                 client::Event::CharacterEdited(_) => {},

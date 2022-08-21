@@ -93,6 +93,7 @@ pub struct SettingsWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
+    server_view_distance_limit: Option<u32>,
     fps: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -105,6 +106,7 @@ impl<'a> SettingsWindow<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
+        server_view_distance_limit: Option<u32>,
         fps: f32,
     ) -> Self {
         Self {
@@ -113,6 +115,7 @@ impl<'a> SettingsWindow<'a> {
             imgs,
             fonts,
             localized_strings,
+            server_view_distance_limit,
             fps,
             common: widget::CommonBuilder::default(),
         }
@@ -299,11 +302,17 @@ impl<'a> Widget for SettingsWindow<'a> {
                 }
             },
             SettingsTab::Video => {
-                for change in
-                    video::Video::new(global_state, imgs, fonts, localized_strings, self.fps)
-                        .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
-                        .wh_of(state.ids.settings_content_align)
-                        .set(state.ids.video, ui)
+                for change in video::Video::new(
+                    global_state,
+                    imgs,
+                    fonts,
+                    localized_strings,
+                    self.server_view_distance_limit,
+                    self.fps,
+                )
+                .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                .wh_of(state.ids.settings_content_align)
+                .set(state.ids.video, ui)
                 {
                     events.push(Event::SettingsChange(change.into()));
                 }
@@ -327,11 +336,16 @@ impl<'a> Widget for SettingsWindow<'a> {
                 }
             },
             SettingsTab::Networking => {
-                for change in
-                    networking::Networking::new(global_state, imgs, fonts, localized_strings)
-                        .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
-                        .wh_of(state.ids.settings_content_align)
-                        .set(state.ids.networking, ui)
+                for change in networking::Networking::new(
+                    global_state,
+                    imgs,
+                    fonts,
+                    localized_strings,
+                    self.server_view_distance_limit,
+                )
+                .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                .wh_of(state.ids.settings_content_align)
+                .set(state.ids.networking, ui)
                 {
                     events.push(Event::SettingsChange(change.into()));
                 }

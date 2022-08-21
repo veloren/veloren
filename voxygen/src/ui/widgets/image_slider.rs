@@ -29,6 +29,10 @@ pub struct ImageSlider<T, K> {
     value: T,
     min: T,
     max: T,
+    // If `value > soft_max` we will display the slider at `soft_max` along with a faded ghost
+    // slider at `value`. The slider displayed at `soft_max` is purely a visual indicator and has
+    // no effect on the values produced by this slider.
+    soft_max: T,
     /// The amount in which the slider's display should be skewed.
     ///
     /// Higher skew amounts (above 1.0) will weigh lower values.
@@ -65,6 +69,7 @@ widget_ids! {
     struct Ids {
         track,
         slider,
+        soft_max_slider,
     }
 }
 
@@ -76,6 +81,7 @@ pub struct State {
 impl<T, K> ImageSlider<T, K> {
     builder_methods! {
         pub skew { skew = f32 }
+        pub soft_max { soft_max = T }
         pub pad_track { track.padding = (f32, f32) }
         pub hover_image { slider.hover_image_id = Some(image::Id) }
         pub press_image { slider.press_image_id = Some(image::Id) }
@@ -85,18 +91,16 @@ impl<T, K> ImageSlider<T, K> {
         pub slider_color { slider.color = Some(Color) }
     }
 
-    fn new(
-        value: T,
-        min: T,
-        max: T,
-        slider_image_id: image::Id,
-        track_image_id: image::Id,
-    ) -> Self {
+    fn new(value: T, min: T, max: T, slider_image_id: image::Id, track_image_id: image::Id) -> Self
+    where
+        T: Copy,
+    {
         Self {
             common: widget::CommonBuilder::default(),
             value,
             min,
             max,
+            soft_max: max,
             skew: 1.0,
             track: Track {
                 image_id: track_image_id,
@@ -133,7 +137,7 @@ where
 
 impl<T> ImageSlider<T, Discrete>
 where
-    T: Integer,
+    T: Integer + Copy,
 {
     pub fn discrete(
         value: T,
@@ -266,44 +270,66 @@ where
             .unwrap_or(slider.image_id);
 
         // A rectangle for positioning and sizing the slider.
-        let value_perc = utils::map_range(new_value, min, max, 0.0, 1.0);
-        let unskewed_perc = value_perc.powf(1.0 / skew as f64);
-        let slider_rect = if is_horizontal {
-            let pos = utils::map_range(
-                unskewed_perc,
-                0.0,
-                1.0,
-                rect.x.start + start_pad,
-                rect.x.end - end_pad,
-            );
-            let w = slider.length.map_or(rect.w() / 10.0, |w| w as f64);
-            Rect {
-                x: Range::from_pos_and_len(pos, w),
-                ..rect
-            }
-        } else {
-            let pos = utils::map_range(
-                unskewed_perc,
-                0.0,
-                1.0,
-                rect.y.start + start_pad,
-                rect.y.end - end_pad,
-            );
-            let h = slider.length.map_or(rect.h() / 10.0, |h| h as f64);
-            Rect {
-                y: Range::from_pos_and_len(pos, h),
-                ..rect
+        let slider_rect = |slider_value| {
+            let value_perc = utils::map_range(slider_value, min, max, 0.0, 1.0);
+            let unskewed_perc = value_perc.powf(1.0 / skew as f64);
+            if is_horizontal {
+                let pos = utils::map_range(
+                    unskewed_perc,
+                    0.0,
+                    1.0,
+                    rect.x.start + start_pad,
+                    rect.x.end - end_pad,
+                );
+                let w = slider.length.map_or(rect.w() / 10.0, |w| w as f64);
+                Rect {
+                    x: Range::from_pos_and_len(pos, w),
+                    ..rect
+                }
+            } else {
+                let pos = utils::map_range(
+                    unskewed_perc,
+                    0.0,
+                    1.0,
+                    rect.y.start + start_pad,
+                    rect.y.end - end_pad,
+                );
+                let h = slider.length.map_or(rect.h() / 10.0, |h| h as f64);
+                Rect {
+                    y: Range::from_pos_and_len(pos, h),
+                    ..rect
+                }
             }
         };
 
-        let (x, y, w, h) = slider_rect.x_y_w_h();
+        // Whether soft max slider needs to be displayed and main slider faded to look
+        // like a ghost.
+        let over_soft_max = new_value > self.soft_max;
+
+        let (x, y, w, h) = slider_rect(new_value).x_y_w_h();
+        let fade = if over_soft_max { 0.5 } else { 1.0 };
         Image::new(slider_image)
             .x_y(x, y)
             .w_h(w, h)
             .parent(id)
             .graphics_for(id)
-            .color(slider.color)
+            .color(Some(
+                slider
+                    .color
+                    .map_or(Color::Rgba(1.0, 1.0, 1.0, fade), |c: Color| c.alpha(fade)),
+            ))
             .set(state.ids.slider, ui);
+
+        if over_soft_max {
+            let (x, y, w, h) = slider_rect(self.soft_max).x_y_w_h();
+            Image::new(slider_image)
+                .x_y(x, y)
+                .w_h(w, h)
+                .parent(id)
+                .graphics_for(id)
+                .color(slider.color)
+                .set(state.ids.soft_max_slider, ui);
+        }
 
         // If the value has just changed, return the new value.
         if value != new_value {

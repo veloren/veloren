@@ -231,12 +231,7 @@ impl PlayState for MainMenuState {
                 Ok(events) => {
                     for event in events {
                         match event {
-                            client::Event::SetViewDistance(vd) => {
-                                global_state.settings.graphics.view_distance = vd;
-                                global_state
-                                    .settings
-                                    .save_to_file_warn(&global_state.config_dir);
-                            },
+                            client::Event::SetViewDistance(_vd) => {},
                             client::Event::Disconnect => {
                                 global_state.info_message = Some(
                                     localized_strings

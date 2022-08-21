@@ -3063,6 +3063,7 @@ impl Hud {
                 &self.imgs,
                 &self.fonts,
                 i18n,
+                client.server_view_distance_limit(),
                 fps as f32,
             )
             .set(self.ids.settings_window, ui_widgets)

@@ -34,6 +34,7 @@ pub struct Networking<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
+    server_view_distance_limit: Option<u32>,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -43,12 +44,14 @@ impl<'a> Networking<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
+        server_view_distance_limit: Option<u32>,
     ) -> Self {
         Self {
             global_state,
             imgs,
             fonts,
             localized_strings,
+            server_view_distance_limit,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -107,6 +110,7 @@ impl<'a> Widget for Networking<'a> {
         .down_from(state.ids.vd_text, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
+        .soft_max(self.server_view_distance_limit.unwrap_or(u32::MAX))
         .pad_track((5.0, 5.0))
         .set(state.ids.vd_slider, ui)
         {

@@ -248,6 +248,7 @@ pub struct Client {
     tick: u64,
     state: State,
 
+    server_view_distance_limit: Option<u32>,
     view_distance: Option<u32>,
     lod_distance: f32,
     // TODO: move into voxygen
@@ -707,6 +708,7 @@ impl Client {
 
             tick: 0,
             state,
+            server_view_distance_limit: None,
             view_distance: None,
             lod_distance: 4.0,
             loaded_distance: 0.0,
@@ -943,9 +945,11 @@ impl Client {
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
-        let view_distance = view_distance.max(1).min(65);
-        self.view_distance = Some(view_distance);
-        self.send_msg(ClientGeneral::SetViewDistance(view_distance));
+        if self.server_view_distance_limit.map_or(true, |limit| view_distance >= limit) {
+            let view_distance = view_distance.max(1).min(65);
+            self.view_distance = Some(view_distance);
+            self.send_msg(ClientGeneral::SetViewDistance(view_distance));
+        }
     }
 
     pub fn set_lod_distance(&mut self, lod_distance: u32) {
@@ -1485,6 +1489,8 @@ impl Client {
     }
 
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
+
+    pub fn server_view_distance_limit(&self) -> Option<u32> { self.server_view_distance_limit }
 
     pub fn loaded_distance(&self) -> f32 { self.loaded_distance }
 
@@ -2254,6 +2260,9 @@ impl Client {
             ServerGeneral::SetViewDistance(vd) => {
                 self.view_distance = Some(vd);
                 frontend_events.push(Event::SetViewDistance(vd));
+                // If the server is correcting client vd selection we assume this is the max
+                // allowed view distance.
+                self.server_view_distance_limit = Some(vd);
             },
             ServerGeneral::Outcomes(outcomes) => {
                 frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
