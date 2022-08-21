@@ -195,10 +195,7 @@ impl Health {
 
     pub fn should_die(&self) -> bool { self.current == 0 }
 
-    pub fn kill(&mut self) {
-        self.current = 0;
-        self.is_dead = true;
-    }
+    pub fn kill(&mut self) { self.current = 0; }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn revive(&mut self) {

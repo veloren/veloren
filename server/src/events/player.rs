@@ -1,8 +1,7 @@
 use super::Event;
 use crate::{
-    client::Client, events::trade::cancel_trade_for, metrics::PlayerMetrics,
-    persistence::character_updater::CharacterUpdater, presence::Presence, state_ext::StateExt,
-    BattleModeBuffer, Server,
+    client::Client, metrics::PlayerMetrics, persistence::character_updater::CharacterUpdater,
+    presence::Presence, state_ext::StateExt, BattleModeBuffer, Server,
 };
 use common::{
     comp,
@@ -24,9 +23,17 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     let entity = persist_entity(state, entity);
 
     // Create new entity with just `Client`, `Uid`, `Player`, and `...Stream`
-    // components Easier than checking and removing all other known components
+    // components.
+    //
+    // Easier than checking and removing all other known components.
+    //
     // Note: If other `ServerEvent`s are referring to this entity they will be
-    // disrupted
+    // disrupted.
+
+    // Since we remove `Uid` below, any trades won't be cancelled by
+    // `delete_entity_recorded`. So we cancel the trade here. (maybe the trade
+    // key could be switched from `Uid` to `Entity`)
+    super::cancel_trades_for(state, entity);
 
     let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
     let maybe_group = state
@@ -115,7 +122,6 @@ pub fn handle_client_disconnect(
     skip_persistence: bool,
 ) -> Event {
     span!(_guard, "handle_client_disconnect");
-    cancel_trade_for(server, entity);
     if let Some(client) = server
         .state()
         .ecs()

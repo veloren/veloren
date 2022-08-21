@@ -17,11 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use fluent for translations
 - First tab on Login screen triggers username focus
 - Certain NPCs will now attack when alone with victim
+- /kill_npcs no longer leaves drops behind and also has bug causing it to not destroy entities
+  fixed.
 
 ### Removed
 
 ### Fixed
 - Fixed crash due to zooming out very far
+- Client properly knows trade was cancelled when exiting to the character screen (and no longer
+  tries to display the trade window when rejoining)
+- Cancel trades for an entity when it is deleted (note this doesn't effect trades between players
+  since their entities are not removed).
 
 ## [0.13.0] - 2022-07-23
 

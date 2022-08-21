@@ -129,15 +129,6 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
 /// other players. If the entity that killed it had stats, then give it exp for
 /// the kill. Experience given is equal to the level of the entity that was
 /// killed times 10.
-// NOTE: Clippy incorrectly warns about a needless collect here because it does
-// not understand that the pet count (which is computed during the first
-// iteration over the members in range) is actually used by the second iteration
-// over the members in range; since we have no way of knowing the pet count
-// before the first loop finishes, we definitely need at least two loops.   Then
-// (currently) our only options are to store the member list in temporary space
-// (e.g. by collecting to a vector), or to repeat the loop; but repeating the
-// loop would currently be very inefficient since it has to rescan every entity
-// on the server again.
 pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: HealthChange) {
     let state = server.state_mut();
 
@@ -531,18 +522,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                 .destroy_entity(rtsim_entity.0);
         }
 
-        let _ = state
-            .delete_entity_recorded(entity)
-            .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
+        println!("deleting");
+        if let Err(e) = state.delete_entity_recorded(entity) {
+            error!(?e, ?entity, "Failed to delete destroyed entity");
+        }
     }
-
-    // TODO: Add Delete(time_left: Duration) component
-    /*
-    // If not a player delete the entity
-    if let Err(err) = state.delete_entity_recorded(entity) {
-        error!(?e, "Failed to delete destroyed entity");
-    }
-    */
 }
 
 /// Delete an entity without any special actions (this is generally used for

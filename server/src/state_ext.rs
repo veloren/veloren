@@ -1,7 +1,7 @@
 use crate::{
     automod::AutoMod,
     client::Client,
-    events::update_map_markers,
+    events::{self, update_map_markers},
     persistence::PersistedComponents,
     pet::restore_pet,
     presence::{Presence, RepositionOnChunkLoad},
@@ -1000,10 +1000,14 @@ impl StateExt for State {
             );
         }
 
+        // Cancel extant trades
+        events::cancel_trades_for(self, entity);
+
         let (maybe_uid, maybe_pos) = (
             self.ecs().read_storage::<Uid>().get(entity).copied(),
             self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
         );
+
         let res = self.ecs_mut().delete_entity(entity);
         if res.is_ok() {
             if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
