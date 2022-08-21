@@ -211,7 +211,7 @@ impl MovementEventMapper {
                         SfxEvent::Run(BlockKind::Rock)
                     },
                     BlockKind::Earth => SfxEvent::Run(BlockKind::Earth),
-                    BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
+                    // BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
                     BlockKind::Air => SfxEvent::Idle,
                     _ => SfxEvent::Run(BlockKind::Grass),
                 }
@@ -238,7 +238,7 @@ impl MovementEventMapper {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
                 BlockKind::Rock | BlockKind::WeakRock => SfxEvent::Run(BlockKind::Rock),
-                BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
+                // BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
                 BlockKind::Earth => SfxEvent::Run(BlockKind::Earth),
                 BlockKind::Air => SfxEvent::Idle,
                 _ => SfxEvent::Run(BlockKind::Grass),
@@ -260,7 +260,7 @@ impl MovementEventMapper {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::QuadRun(BlockKind::Snow),
                 BlockKind::Rock | BlockKind::WeakRock => SfxEvent::QuadRun(BlockKind::Rock),
-                BlockKind::Sand => SfxEvent::QuadRun(BlockKind::Sand),
+                // BlockKind::Sand => SfxEvent::QuadRun(BlockKind::Sand),
                 BlockKind::Earth => SfxEvent::QuadRun(BlockKind::Earth),
                 BlockKind::Air => SfxEvent::Idle,
                 _ => SfxEvent::QuadRun(BlockKind::Grass),

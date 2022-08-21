@@ -154,11 +154,10 @@ impl CombatEventMapper {
                     );
                 } else if let Some(wield_event) = match (
                     previous_state.weapon_drawn,
-                    character_state.is_dodge(),
                     Self::weapon_drawn(character_state),
                 ) {
-                    (false, false, true) => Some(SfxEvent::Wield(data.kind)),
-                    (true, false, false) => Some(SfxEvent::Unwield(data.kind)),
+                    (false, true) => Some(SfxEvent::Wield(data.kind)),
+                    (true, false) => Some(SfxEvent::Unwield(data.kind)),
                     _ => None,
                 } {
                     return wield_event;

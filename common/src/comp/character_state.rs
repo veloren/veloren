@@ -149,6 +149,14 @@ impl CharacterState {
                 | CharacterState::Blink(_)
                 | CharacterState::BasicSummon(_)
                 | CharacterState::SpriteSummon(_)
+                | CharacterState::Roll(roll::Data {
+                    was_wielded: true,
+                    ..
+                })
+                | CharacterState::Stunned(stunned::Data {
+                    was_wielded: true,
+                    ..
+                })
         )
     }
 
