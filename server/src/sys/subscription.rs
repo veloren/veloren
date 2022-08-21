@@ -60,7 +60,8 @@ impl<'a> System<'a> for Sys {
         // To update subscriptions
         // 1. Iterate through clients
         // 2. Calculate current chunk position
-        // 3. If chunk is the same return, otherwise continue (use fuzziness)
+        // 3. If chunk is different (use fuzziness) or the client view distance
+        //    has changed continue, otherwise return
         // 4. Iterate through subscribed regions
         // 5. Check if region is still in range (use fuzziness)
         // 6. If not in range
@@ -78,13 +79,15 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            let vd = presence.view_distance;
+            let vd = presence.view_distance.current();
             // Calculate current chunk
             let chunk = (Vec2::<f32>::from(pos.0))
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
-            // Only update regions when moving to a new chunk
-            // uses a fuzzy border to prevent rapid triggering when moving along chunk
-            // boundaries
+            // Only update regions when moving to a new chunk or if view distance has
+            // changed.
+            //
+            // Uses a fuzzy border to prevent rapid triggering when moving along chunk
+            // boundaries.
             if chunk != subscription.fuzzy_chunk
                 && (subscription
                     .fuzzy_chunk
@@ -96,7 +99,10 @@ impl<'a> System<'a> for Sys {
                     e.abs() > (sz / 2 + presence::CHUNK_FUZZ) as f32
                 })
                 .reduce_or()
+                || subscription.last_view_distance != vd
             {
+                // Update the view distance
+                subscription.last_view_distance = vd;
                 // Update current chunk
                 subscription.fuzzy_chunk = Vec2::<f32>::from(pos.0)
                     .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
@@ -216,7 +222,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
         let regions = regions_in_vd(
             client_pos.0,
-            (presence.view_distance as f32 * chunk_size) as f32
+            (presence.view_distance.current() as f32 * chunk_size) as f32
                 + (presence::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
         );
 
@@ -261,6 +267,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
 
         if let Err(e) = world.write_storage().insert(entity, RegionSubscription {
             fuzzy_chunk,
+            last_view_distance: presence.view_distance.current(),
             regions,
         }) {
             error!(?e, "Failed to insert region subscription component");

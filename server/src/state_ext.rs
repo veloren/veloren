@@ -519,7 +519,7 @@ impl StateExt for State {
             // Make sure physics components are updated
             self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());
 
-            const INITIAL_VD: u32 = 5; //will be changed after login
+            const INITIAL_VD: u32 = 5; // will be changed after login
             self.write_component_ignore_entity_dead(
                 entity,
                 Presence::new(INITIAL_VD, PresenceKind::Character(character_id)),

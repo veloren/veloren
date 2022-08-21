@@ -269,7 +269,7 @@ impl<'a> System<'a> for Sys {
                             .map(|e: i32| (e.unsigned_abs()).saturating_sub(2))
                             .magnitude_squared();
 
-                        if adjusted_dist_sqr <= presence.view_distance.pow(2) {
+                        if adjusted_dist_sqr <= presence.view_distance.current().pow(2) {
                             chunk_send_emitter.emit(ChunkSendEntry {
                                 entity,
                                 chunk_key: key,
@@ -293,7 +293,7 @@ impl<'a> System<'a> for Sys {
 
                 // For each player with a position, calculate the distance.
                 for (presence, pos) in (&presences, &positions).join() {
-                    if chunk_in_vd(pos.0, chunk_key, &terrain, presence.view_distance) {
+                    if chunk_in_vd(pos.0, chunk_key, &terrain, presence.view_distance.current()) {
                         should_drop = false;
                         break;
                     }

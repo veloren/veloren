@@ -384,7 +384,8 @@ impl<'a> System<'a> for Sys {
             let is_near = |o_pos: Vec3<f32>| {
                 pos.zip_with(presence, |pos, presence| {
                     pos.0.xy().distance_squared(o_pos.xy())
-                        < (presence.view_distance as f32 * TerrainChunkSize::RECT_SIZE.x as f32)
+                        < (presence.view_distance.current() as f32
+                            * TerrainChunkSize::RECT_SIZE.x as f32)
                             .powi(2)
                 })
             };
