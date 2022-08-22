@@ -36,9 +36,12 @@ widget_ids! {
         reset_graphics_button,
         fps_counter,
         pipeline_recreation_text,
-        vd_slider,
-        vd_text,
-        vd_value,
+        terrain_vd_slider,
+        terrain_vd_text,
+        terrain_vd_value,
+        entity_vd_slider,
+        entity_vd_text,
+        entity_vd_value,
         ld_slider,
         ld_text,
         ld_value,
@@ -285,39 +288,126 @@ impl<'a> Widget for Video<'a> {
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
-            .set(state.ids.vd_text, ui);
+            .set(state.ids.terrain_vd_text, ui);
 
+        let terrain_view_distance = self.global_state.settings.graphics.terrain_view_distance;
+        let server_view_distance_limit = self.server_view_distance_limit.unwrap_or(u32::MAX);
         if let Some(new_val) = ImageSlider::discrete(
-            self.global_state.settings.graphics.view_distance,
+            terrain_view_distance,
             1,
             65,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.vd_text, 8.0)
+        .down_from(state.ids.terrain_vd_text, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
-        .soft_max(self.server_view_distance_limit.unwrap_or(u32::MAX))
+        .soft_max(server_view_distance_limit)
         .pad_track((5.0, 5.0))
-        .set(state.ids.vd_slider, ui)
+        .set(state.ids.terrain_vd_slider, ui)
         {
-            events.push(GraphicsChange::AdjustViewDistance(new_val));
+            events.push(GraphicsChange::AdjustTerrainViewDistance(new_val));
         }
 
-        Text::new(&format!(
-            "{}",
-            self.global_state.settings.graphics.view_distance
-        ))
-        .right_from(state.ids.vd_slider, 8.0)
+        Text::new(&if terrain_view_distance <= server_view_distance_limit {
+            format!("{terrain_view_distance}")
+        } else {
+            format!("{terrain_view_distance} ({server_view_distance_limit})")
+        })
+        .right_from(state.ids.terrain_vd_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
-        .set(state.ids.vd_value, ui);
+        .set(state.ids.terrain_vd_value, ui);
+
+        // Entity View Distance
+        let soft_entity_vd_max = self
+            .server_view_distance_limit
+            .unwrap_or(u32::MAX)
+            .min(terrain_view_distance);
+        let entity_view_distance = self.global_state.settings.graphics.entity_view_distance;
+        if let Some(new_val) = ImageSlider::discrete(
+            entity_view_distance,
+            1,
+            65,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .right_from(state.ids.terrain_vd_slider, 70.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .soft_max(soft_entity_vd_max)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.entity_vd_slider, ui)
+        {
+            events.push(GraphicsChange::AdjustEntityViewDistance(new_val));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-entity_view_distance"),
+        )
+        .up_from(state.ids.entity_vd_slider, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.entity_vd_text, ui);
+
+        Text::new(&if entity_view_distance <= soft_entity_vd_max {
+            format!("{entity_view_distance}")
+        } else {
+            format!("{entity_view_distance} ({soft_entity_vd_max})")
+        })
+        .right_from(state.ids.entity_vd_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.entity_vd_value, ui);
+
+        // Sprites VD
+        if let Some(new_val) = ImageSlider::discrete(
+            self.global_state.settings.graphics.sprite_render_distance,
+            50,
+            500,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .right_from(state.ids.entity_vd_slider, 70.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.sprite_dist_slider, ui)
+        {
+            events.push(GraphicsChange::AdjustSpriteRenderDistance(new_val));
+        }
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-sprites_view_distance"),
+        )
+        .up_from(state.ids.sprite_dist_slider, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.sprite_dist_text, ui);
+
+        Text::new(&format!(
+            "{}",
+            self.global_state.settings.graphics.sprite_render_distance
+        ))
+        .right_from(state.ids.sprite_dist_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.sprite_dist_value, ui);
 
         // LoD Distance
         Text::new(&self.localized_strings.get_msg("hud-settings-lod_distance"))
-            .down_from(state.ids.vd_slider, 10.0)
+            .down_from(state.ids.terrain_vd_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
@@ -349,6 +439,50 @@ impl<'a> Widget for Video<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.ld_value, ui);
+
+        // Figure LOD distance
+        if let Some(new_val) = ImageSlider::discrete(
+            self.global_state
+                .settings
+                .graphics
+                .figure_lod_render_distance,
+            50,
+            500,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .right_from(state.ids.ld_slider, 70.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.figure_dist_slider, ui)
+        {
+            events.push(GraphicsChange::AdjustFigureLoDRenderDistance(new_val));
+        }
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-entities_detail_distance"),
+        )
+        .up_from(state.ids.figure_dist_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.figure_dist_text, ui);
+
+        Text::new(&format!(
+            "{}",
+            self.global_state
+                .settings
+                .graphics
+                .figure_lod_render_distance
+        ))
+        .right_from(state.ids.figure_dist_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.figure_dist_value, ui);
 
         // Max FPS
         Text::new(&self.localized_strings.get_msg("hud-settings-maximum_fps"))
@@ -392,7 +526,7 @@ impl<'a> Widget for Video<'a> {
                 .get_msg("hud-settings-background_fps"),
         )
         .down_from(state.ids.ld_slider, 10.0)
-        .right_from(state.ids.max_fps_value, 30.0)
+        .right_from(state.ids.max_fps_value, 44.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
@@ -654,87 +788,6 @@ impl<'a> Widget for Video<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.ambiance_value, ui);
-
-        // Sprites VD
-        if let Some(new_val) = ImageSlider::discrete(
-            self.global_state.settings.graphics.sprite_render_distance,
-            50,
-            500,
-            self.imgs.slider_indicator,
-            self.imgs.slider,
-        )
-        .w_h(104.0, 22.0)
-        .right_from(state.ids.vd_slider, 50.0)
-        .track_breadth(12.0)
-        .slider_length(10.0)
-        .pad_track((5.0, 5.0))
-        .set(state.ids.sprite_dist_slider, ui)
-        {
-            events.push(GraphicsChange::AdjustSpriteRenderDistance(new_val));
-        }
-        Text::new(
-            &self
-                .localized_strings
-                .get_msg("hud-settings-sprites_view_distance"),
-        )
-        .up_from(state.ids.sprite_dist_slider, 8.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
-        .set(state.ids.sprite_dist_text, ui);
-
-        Text::new(&format!(
-            "{}",
-            self.global_state.settings.graphics.sprite_render_distance
-        ))
-        .right_from(state.ids.sprite_dist_slider, 8.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
-        .set(state.ids.sprite_dist_value, ui);
-        // Figure VD
-        if let Some(new_val) = ImageSlider::discrete(
-            self.global_state
-                .settings
-                .graphics
-                .figure_lod_render_distance,
-            50,
-            500,
-            self.imgs.slider_indicator,
-            self.imgs.slider,
-        )
-        .w_h(104.0, 22.0)
-        .right_from(state.ids.sprite_dist_slider, 50.0)
-        .track_breadth(12.0)
-        .slider_length(10.0)
-        .pad_track((5.0, 5.0))
-        .set(state.ids.figure_dist_slider, ui)
-        {
-            events.push(GraphicsChange::AdjustFigureLoDRenderDistance(new_val));
-        }
-        Text::new(
-            &self
-                .localized_strings
-                .get_msg("hud-settings-figures_view_distance"),
-        )
-        .up_from(state.ids.figure_dist_slider, 8.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
-        .set(state.ids.figure_dist_text, ui);
-
-        Text::new(&format!(
-            "{}",
-            self.global_state
-                .settings
-                .graphics
-                .figure_lod_render_distance
-        ))
-        .right_from(state.ids.figure_dist_slider, 8.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
-        .set(state.ids.figure_dist_value, ui);
 
         // AaMode
         Text::new(

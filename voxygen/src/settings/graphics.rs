@@ -29,7 +29,8 @@ impl fmt::Display for Fps {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GraphicsSettings {
-    pub view_distance: u32,
+    pub terrain_view_distance: u32,
+    pub entity_view_distance: u32,
     pub lod_distance: u32,
     pub sprite_render_distance: u32,
     pub particles_enabled: bool,
@@ -50,7 +51,8 @@ pub struct GraphicsSettings {
 impl Default for GraphicsSettings {
     fn default() -> Self {
         Self {
-            view_distance: 10,
+            terrain_view_distance: 10,
+            entity_view_distance: 65,
             lod_distance: 200,
             sprite_render_distance: 100,
             particles_enabled: true,

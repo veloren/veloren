@@ -37,7 +37,7 @@ impl<'a> System<'a> for Sys {
                     pos.0,
                     *chunk_key,
                     &terrain,
-                    presence.view_distance.current(),
+                    presence.terrain_view_distance.current(),
                 ) {
                     chunk_send_emitter.emit(ChunkSendEntry {
                         entity,

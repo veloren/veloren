@@ -15,9 +15,12 @@ widget_ids! {
     struct Ids {
         window,
         window_r,
-        vd_text,
-        vd_slider,
-        vd_value,
+        terrain_vd_text,
+        terrain_vd_slider,
+        terrain_vd_value,
+        entity_vd_text,
+        entity_vd_slider,
+        entity_vd_value,
         player_physics_behavior_text,
         player_physics_behavior_list,
         lossy_terrain_compression_button,
@@ -97,35 +100,84 @@ impl<'a> Widget for Networking<'a> {
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
-            .set(state.ids.vd_text, ui);
+            .set(state.ids.terrain_vd_text, ui);
 
+        let terrain_view_distance = self.global_state.settings.graphics.terrain_view_distance;
+        let server_view_distance_limit = self.server_view_distance_limit.unwrap_or(u32::MAX);
         if let Some(new_val) = ImageSlider::discrete(
-            self.global_state.settings.graphics.view_distance,
+            terrain_view_distance,
             1,
             65,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.vd_text, 8.0)
+        .down_from(state.ids.terrain_vd_text, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
-        .soft_max(self.server_view_distance_limit.unwrap_or(u32::MAX))
+        .soft_max(server_view_distance_limit)
         .pad_track((5.0, 5.0))
-        .set(state.ids.vd_slider, ui)
+        .set(state.ids.terrain_vd_slider, ui)
         {
-            events.push(NetworkingChange::AdjustViewDistance(new_val));
+            events.push(NetworkingChange::AdjustTerrainViewDistance(new_val));
         }
 
-        Text::new(&format!(
-            "{}",
-            self.global_state.settings.graphics.view_distance
-        ))
-        .right_from(state.ids.vd_slider, 8.0)
+        Text::new(&if terrain_view_distance <= server_view_distance_limit {
+            format!("{terrain_view_distance}")
+        } else {
+            format!("{terrain_view_distance} ({server_view_distance_limit})")
+        })
+        .right_from(state.ids.terrain_vd_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
-        .set(state.ids.vd_value, ui);
+        .set(state.ids.terrain_vd_value, ui);
+
+        // Entity View Distance
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-entity_view_distance"),
+        )
+        .down_from(state.ids.terrain_vd_slider, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.entity_vd_text, ui);
+
+        let soft_entity_vd_max = self
+            .server_view_distance_limit
+            .unwrap_or(u32::MAX)
+            .min(terrain_view_distance);
+        let entity_view_distance = self.global_state.settings.graphics.entity_view_distance;
+        if let Some(new_val) = ImageSlider::discrete(
+            entity_view_distance,
+            1,
+            65,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.entity_vd_text, 8.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .soft_max(soft_entity_vd_max)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.entity_vd_slider, ui)
+        {
+            events.push(NetworkingChange::AdjustEntityViewDistance(new_val));
+        }
+
+        Text::new(&if entity_view_distance <= soft_entity_vd_max {
+            format!("{entity_view_distance}")
+        } else {
+            format!("{entity_view_distance} ({soft_entity_vd_max})")
+        })
+        .right_from(state.ids.entity_vd_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.entity_vd_value, ui);
 
         // Player physics behavior
         Text::new(
@@ -133,7 +185,7 @@ impl<'a> Widget for Networking<'a> {
                 .localized_strings
                 .get_msg("hud-settings-player_physics_behavior"),
         )
-        .down_from(state.ids.vd_slider, 8.0)
+        .down_from(state.ids.entity_vd_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)

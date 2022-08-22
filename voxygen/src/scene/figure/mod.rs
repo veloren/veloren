@@ -629,7 +629,7 @@ impl FigureMgr {
         let time = state.get_time() as f32;
         let tick = scene_data.tick;
         let ecs = state.ecs();
-        let view_distance = scene_data.view_distance;
+        let view_distance = scene_data.entity_view_distance;
         let dt = state.get_delta_time();
         let dt_lerp = (15.0 * dt).min(1.0);
         let frustum = camera.frustum();

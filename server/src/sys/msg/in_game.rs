@@ -53,7 +53,7 @@ impl Sys {
         time_for_vd_changes: Instant,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
-        let presence = match maybe_presence {
+        let presence = match maybe_presence.as_deref_mut() {
             Some(g) => g,
             None => {
                 debug!(?entity, "client is not in_game, ignoring msg");
@@ -68,16 +68,15 @@ impl Sys {
                 client.send(ServerGeneral::ExitInGameSuccess)?;
                 *maybe_presence = None;
             },
-            ClientGeneral::SetViewDistance(view_distance) => {
-                let clamped_view_distance = settings
-                    .max_view_distance
-                    .map(|max| view_distance.min(max))
-                    .unwrap_or(view_distance);
-                presence.view_distance.set_target(clamped_view_distance, time_for_vd_changes);
+            ClientGeneral::SetViewDistance(view_distances) => {
+                let clamped_vds = view_distances.clamp(settings.max_view_distance);
+
+                presence.terrain_view_distance.set_target(clamped_vds.terrain, time_for_vd_changes);
+                presence.entity_view_distance.set_target(clamped_vds.entity, time_for_vd_changes);
 
                 // Correct client if its requested VD is too high.
-                if view_distance != clamped_view_distance {
-                    client.send(ServerGeneral::SetViewDistance(clamped_view_distance))?;
+                if view_distances.terrain != clamped_vds.terrain {
+                    client.send(ServerGeneral::SetViewDistance(clamped_vds.terrain))?;
                 }
             },
             ClientGeneral::ControllerInputs(inputs) => {
@@ -296,8 +295,8 @@ impl Sys {
             | ClientGeneral::CreateCharacter { .. }
             | ClientGeneral::EditCharacter { .. }
             | ClientGeneral::DeleteCharacter(_)
-            | ClientGeneral::Character(_)
-            | ClientGeneral::Spectate
+            | ClientGeneral::Character(_, _)
+            | ClientGeneral::Spectate(_)
             | ClientGeneral::TerrainChunkRequest { .. }
             | ClientGeneral::LodZoneRequest { .. }
             | ClientGeneral::ChatMsg(_)
@@ -419,8 +418,9 @@ impl<'a> System<'a> for Sys {
 
             // Ensure deferred view distance changes are applied (if the
             // requsite time has elapsed).
-            if let Some(mut presence) = maybe_presence {
-                presence.view_distance.update(time_for_vd_changes);
+            if let Some(presence) = maybe_presence {
+                presence.terrain_view_distance.update(time_for_vd_changes);
+                presence.entity_view_distance.update(time_for_vd_changes);
             }
         }
     }

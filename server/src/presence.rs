@@ -1,22 +1,24 @@
 use common_net::msg::PresenceKind;
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage, NullStorage};
+use specs::{Component, NullStorage};
 use std::time::{Duration, Instant};
 use vek::*;
 
 #[derive(Debug)]
 pub struct Presence {
-    // TODO: separate view distance for syncing entities?
-    pub view_distance: ViewDistance,
+    pub terrain_view_distance: ViewDistance,
+    pub entity_view_distance: ViewDistance,
     pub kind: PresenceKind,
     pub lossy_terrain_compression: bool,
 }
 
 impl Presence {
-    pub fn new(view_distance: u32, kind: PresenceKind) -> Self {
+    pub fn new(view_distances: common::ViewDistances, kind: PresenceKind) -> Self {
+        let now = Instant::now();
         Self {
-            view_distance: ViewDistance::new(view_distance, Instant::now()),
+            terrain_view_distance: ViewDistance::new(view_distances.terrain, now),
+            entity_view_distance: ViewDistance::new(view_distances.entity, now),
             kind,
             lossy_terrain_compression: false,
         }
@@ -24,7 +26,7 @@ impl Presence {
 }
 
 impl Component for Presence {
-    type Storage = DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
+    type Storage = specs::DenseVecStorage<Self>;
 }
 
 // Distance from fuzzy_chunk before snapping to current chunk
@@ -35,12 +37,12 @@ pub const REGION_FUZZ: u32 = 16;
 #[derive(Clone, Debug)]
 pub struct RegionSubscription {
     pub fuzzy_chunk: Vec2<i32>,
-    pub last_view_distance: u32,
+    pub last_entity_view_distance: u32,
     pub regions: HashSet<Vec2<i32>>,
 }
 
 impl Component for RegionSubscription {
-    type Storage = DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
+    type Storage = specs::DenseVecStorage<Self>;
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]

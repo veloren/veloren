@@ -1697,7 +1697,11 @@ impl PlayState for SessionState {
                     // Only highlight if interactable
                     target_entity: self.interactable.and_then(Interactable::entity),
                     loaded_distance: client.loaded_distance(),
-                    view_distance: client.view_distance().unwrap_or(1),
+                    terrain_view_distance: client.view_distance().unwrap_or(1),
+                    entity_view_distance: client
+                        .view_distance()
+                        .unwrap_or(1)
+                        .min(global_state.settings.graphics.entity_view_distance),
                     tick: client.get_tick(),
                     gamma: global_state.settings.graphics.gamma,
                     exposure: global_state.settings.graphics.exposure,
@@ -1783,7 +1787,11 @@ impl PlayState for SessionState {
             // Only highlight if interactable
             target_entity: self.interactable.and_then(Interactable::entity),
             loaded_distance: client.loaded_distance(),
-            view_distance: client.view_distance().unwrap_or(1),
+            terrain_view_distance: client.view_distance().unwrap_or(1),
+            entity_view_distance: client
+                .view_distance()
+                .unwrap_or(1)
+                .min(settings.graphics.entity_view_distance),
             tick: client.get_tick(),
             gamma: settings.graphics.gamma,
             exposure: settings.graphics.exposure,

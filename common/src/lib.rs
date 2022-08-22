@@ -81,6 +81,7 @@ pub mod terrain;
 #[cfg(not(target_arch = "wasm32"))] pub mod typed;
 pub mod uid;
 #[cfg(not(target_arch = "wasm32"))] pub mod util;
+mod view_distances;
 #[cfg(not(target_arch = "wasm32"))] pub mod vol;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod volumes;
@@ -98,3 +99,4 @@ pub use comp::inventory::loadout_builder::LoadoutBuilder;
 pub use explosion::{Explosion, RadiusEffect};
 #[cfg(not(target_arch = "wasm32"))]
 pub use skillset_builder::SkillSetBuilder;
+pub use view_distances::ViewDistances;

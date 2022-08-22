@@ -137,10 +137,11 @@ impl PlayState for CharSelectionState {
                     ui::Event::Play(character_id) => {
                         {
                             let mut c = self.client.borrow_mut();
-                            c.request_character(character_id);
-                            //Send our ViewDistance and LoD distance
-                            c.set_view_distance(global_state.settings.graphics.view_distance);
-                            c.set_lod_distance(global_state.settings.graphics.lod_distance);
+                            let graphics = &global_state.settings.graphics;
+                            c.request_character(character_id, common::ViewDistances {
+                                terrain: graphics.terrain_view_distance,
+                                entity: graphics.entity_view_distance,
+                            });
                         }
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
@@ -150,9 +151,11 @@ impl PlayState for CharSelectionState {
                     ui::Event::Spectate => {
                         {
                             let mut c = self.client.borrow_mut();
-                            c.request_spectate();
-                            c.set_view_distance(global_state.settings.graphics.view_distance);
-                            c.set_lod_distance(global_state.settings.graphics.lod_distance);
+                            let graphics = &global_state.settings.graphics;
+                            c.request_spectate(common::ViewDistances {
+                                terrain: graphics.terrain_view_distance,
+                                entity: graphics.entity_view_distance,
+                            });
                         }
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,

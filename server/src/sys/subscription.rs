@@ -79,7 +79,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            let vd = presence.view_distance.current();
+            let vd = presence.entity_view_distance.current();
             // Calculate current chunk
             let chunk = (Vec2::<f32>::from(pos.0))
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
@@ -99,10 +99,10 @@ impl<'a> System<'a> for Sys {
                     e.abs() > (sz / 2 + presence::CHUNK_FUZZ) as f32
                 })
                 .reduce_or()
-                || subscription.last_view_distance != vd
+                || subscription.last_entity_view_distance != vd
             {
                 // Update the view distance
-                subscription.last_view_distance = vd;
+                subscription.last_entity_view_distance = vd;
                 // Update current chunk
                 subscription.fuzzy_chunk = Vec2::<f32>::from(pos.0)
                     .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
@@ -222,7 +222,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
         let regions = regions_in_vd(
             client_pos.0,
-            (presence.view_distance.current() as f32 * chunk_size) as f32
+            (presence.entity_view_distance.current() as f32 * chunk_size) as f32
                 + (presence::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
         );
 
@@ -267,7 +267,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
 
         if let Err(e) = world.write_storage().insert(entity, RegionSubscription {
             fuzzy_chunk,
-            last_view_distance: presence.view_distance.current(),
+            last_entity_view_distance: presence.entity_view_distance.current(),
             regions,
         }) {
             error!(?e, "Failed to insert region subscription component");

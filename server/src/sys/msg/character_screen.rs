@@ -64,17 +64,17 @@ impl Sys {
         };
         match msg {
             // Request spectator state
-            ClientGeneral::Spectate => {
+            ClientGeneral::Spectate(requested_view_distances) => {
                 if let Some(admin) = admins.get(entity) && admin.0 >= AdminRole::Moderator {
                     send_join_messages()?;
 
-                    server_emitter.emit(ServerEvent::InitSpectator(entity));
+                    server_emitter.emit(ServerEvent::InitSpectator(entity, requested_view_distances));
 
                 } else {
                     debug!("dropped Spectate msg from unprivileged client")
                 }
             },
-            ClientGeneral::Character(character_id) => {
+            ClientGeneral::Character(character_id, requested_view_distances) => {
                 if let Some(player) = players.get(entity) {
                     if presences.contains(entity) {
                         debug!("player already ingame, aborting");
@@ -117,6 +117,7 @@ impl Sys {
                         server_emitter.emit(ServerEvent::InitCharacterData {
                             entity,
                             character_id,
+                            requested_view_distances,
                         });
                     }
                 } else {

@@ -120,7 +120,8 @@ pub struct SceneData<'a> {
     pub mutable_viewpoint: bool,
     pub target_entity: Option<specs::Entity>,
     pub loaded_distance: f32,
-    pub view_distance: u32,
+    pub terrain_view_distance: u32, // not used currently
+    pub entity_view_distance: u32,
     pub tick: u64,
     pub gamma: f32,
     pub exposure: f32,
