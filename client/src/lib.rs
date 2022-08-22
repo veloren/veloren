@@ -81,6 +81,8 @@ use tokio::runtime::Runtime;
 use tracing::{debug, error, trace, warn};
 use vek::*;
 
+pub const MAX_SELECTABLE_VIEW_DISTANCE: u32 = 65;
+
 const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 #[derive(Debug)]
@@ -948,7 +950,7 @@ impl Client {
     pub fn set_view_distances(&mut self, view_distances: common::ViewDistances) {
         if self.server_view_distance_limit.map_or(true, |limit| view_distances.terrain >= limit) {
             let view_distances = common::ViewDistances {
-                terrain: view_distances.terrain.max(1).min(65),
+                terrain: view_distances.terrain.max(1).min(MAX_SELECTABLE_VIEW_DISTANCE),
                 entity: view_distances.entity,
             };
             self.view_distance = Some(view_distances.terrain);

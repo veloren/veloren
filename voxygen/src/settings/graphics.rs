@@ -52,7 +52,7 @@ impl Default for GraphicsSettings {
     fn default() -> Self {
         Self {
             terrain_view_distance: 10,
-            entity_view_distance: 65,
+            entity_view_distance: client::MAX_SELECTABLE_VIEW_DISTANCE,
             lod_distance: 200,
             sprite_render_distance: 100,
             particles_enabled: true,
