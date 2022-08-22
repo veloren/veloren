@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     terrain::BiomeKind,
-    trade::Good::{self, Territory},
+    trade::Good::{self, Territory, Terrain},
 };
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -20,10 +20,6 @@ const fn default_true() -> bool { true }
 struct RawGoodProperties {
     #[serde(default)]
     pub decay_rate: f32,
-    // #[serde(default)]
-    // pub decay_regain: Option<(Good, f32)>,
-    // #[serde(default)]
-    // pub equivalent_to: Option<(Good, f32, EquivalenceType)>,
     #[serde(default = "default_one")]
     pub transport_effort: f32,
     #[serde(default = "default_true")]
@@ -40,10 +36,8 @@ impl assets::Asset for RawGoodPropertiesList {
     const EXTENSION: &'static str = "ron";
 }
 
-/// Contains all caches used for economical simulation
+/// Contains caches used for economic simulation
 pub struct EconomyCache {
-    // professions: Vec<Profession>,
-    // everybody: Profession,
     pub(crate) transport_effort: GoodMap<f32>,
     pub(crate) decay_rate: GoodMap<f32>,
     pub(crate) direct_use_goods: Vec<GoodIndex>,
@@ -76,6 +70,17 @@ fn load_cache() -> EconomyCache {
                 Territory(BiomeKind::Void) => {
                     for j in good_list() {
                         if let Territory(_) = Good::from(j) {
+                            decay_rate[j] = i.1.decay_rate;
+                            transport_effort[j] = i.1.transport_effort;
+                            if !i.1.storable {
+                                direct_use_goods.push(j);
+                            }
+                        }
+                    }
+                },
+                Terrain(BiomeKind::Void) => {
+                    for j in good_list() {
+                        if let Terrain(_) = Good::from(j) {
                             decay_rate[j] = i.1.decay_rate;
                             transport_effort[j] = i.1.transport_effort;
                             if !i.1.storable {
