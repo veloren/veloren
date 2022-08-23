@@ -251,16 +251,13 @@ impl Default for UpscaleMode {
 
 /// Present modes
 /// See https://docs.rs/wgpu/0.7.0/wgpu/enum.PresentMode.html
-#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum PresentMode {
-    Fifo,
     Mailbox,
-    #[serde(other)]
     Immediate,
-}
-
-impl Default for PresentMode {
-    fn default() -> Self { Self::Immediate }
+    #[default]
+    #[serde(other)]
+    Fifo, // has to be last for `#[serde(other)]`
 }
 
 impl From<PresentMode> for wgpu::PresentMode {
