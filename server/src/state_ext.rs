@@ -114,7 +114,12 @@ pub trait StateExt {
     /// Performed after loading component data from the database
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
     /// Iterates over registered clients and send each `ServerMsg`
-    fn validate_chat_msg(&self, player: EcsEntity, msg: &str) -> bool;
+    fn validate_chat_msg(
+        &self,
+        player: EcsEntity,
+        chat_type: &comp::ChatType<comp::Group>,
+        msg: &str,
+    ) -> bool;
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
     fn notify_players(&self, msg: ServerGeneral);
     fn notify_in_game_clients(&self, msg: ServerGeneral);
@@ -676,7 +681,12 @@ impl StateExt for State {
         }
     }
 
-    fn validate_chat_msg(&self, entity: EcsEntity, msg: &str) -> bool {
+    fn validate_chat_msg(
+        &self,
+        entity: EcsEntity,
+        chat_type: &comp::ChatType<comp::Group>,
+        msg: &str,
+    ) -> bool {
         let mut automod = self.ecs().write_resource::<AutoMod>();
         let Some(client) = self.ecs().read_storage::<Client>().get(entity) else { return true };
         let Some(player) = self.ecs().read_storage::<Player>().get(entity) else { return true };
@@ -688,6 +698,7 @@ impl StateExt for State {
                 .get(entity)
                 .map(|a| a.0),
             Instant::now(),
+            chat_type,
             msg,
         ) {
             Ok(note) => {
@@ -727,7 +738,9 @@ impl StateExt for State {
         if msg.chat_type.uid().map_or(true, |sender| {
             (*ecs.read_resource::<UidAllocator>())
                 .retrieve_entity_internal(sender.0)
-                .map_or(false, |e| self.validate_chat_msg(e, &msg.message))
+                .map_or(false, |e| {
+                    self.validate_chat_msg(e, &msg.chat_type, &msg.message)
+                })
         }) {
             match &msg.chat_type {
                 comp::ChatType::Offline(_)

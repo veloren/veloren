@@ -1,7 +1,7 @@
 use crate::settings::ModerationSettings;
 use authc::Uuid;
 use censor::Censor;
-use common::comp::AdminRole;
+use common::comp::{AdminRole, ChatType, Group};
 use hashbrown::HashMap;
 use std::{
     fmt,
@@ -95,12 +95,18 @@ impl AutoMod {
         player: Uuid,
         role: Option<AdminRole>,
         now: Instant,
+        chat_type: &ChatType<Group>,
         msg: &str,
     ) -> Result<Option<ActionNote>, ActionErr> {
         // TODO: Consider using grapheme cluster count instead of size in bytes
         if msg.len() > MAX_BYTES_CHAT_MSG {
             Err(ActionErr::TooLong)
-        } else if !self.settings.automod || (role.is_some() && self.settings.admins_exempt) {
+        } else if !self.settings.automod
+            // Is this a private chat message?
+            || chat_type.is_private().unwrap_or(true)
+            // Is the user exempt from automoderation?
+            || (role.is_some() && self.settings.admins_exempt)
+        {
             Ok(None)
         } else if self.censor.check(msg) {
             Err(ActionErr::BannedWord)
@@ -123,7 +129,7 @@ impl AutoMod {
 const CHAT_VOLUME_PERIOD: f32 = 30.0;
 /// The maximum permitted average number of chat messages over the chat volume
 /// period.
-const MAX_AVG_MSG_PER_SECOND: f32 = 1.0 / 7.0; // No more than a message every 7 seconds on average
+const MAX_AVG_MSG_PER_SECOND: f32 = 1.0 / 5.0; // No more than a message every 5 seconds on average
 /// The period for which a player should be muted when they exceed the message
 /// spam threshold.
 const SPAM_MUTE_PERIOD: Duration = Duration::from_secs(180);
