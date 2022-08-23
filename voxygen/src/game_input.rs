@@ -19,138 +19,138 @@ use strum::{AsRefStr, EnumIter, EnumString};
     EnumString,
 )]
 pub enum GameInput {
-    #[strum(serialize = "gameinput.primary")]
+    #[strum(serialize = "gameinput-primary")]
     Primary,
-    #[strum(serialize = "gameinput.secondary")]
+    #[strum(serialize = "gameinput-secondary")]
     Secondary,
-    #[strum(serialize = "gameinput.block")]
+    #[strum(serialize = "gameinput-block")]
     Block,
-    #[strum(serialize = "gameinput.slot1")]
+    #[strum(serialize = "gameinput-slot1")]
     Slot1,
-    #[strum(serialize = "gameinput.slot2")]
+    #[strum(serialize = "gameinput-slot2")]
     Slot2,
-    #[strum(serialize = "gameinput.slot3")]
+    #[strum(serialize = "gameinput-slot3")]
     Slot3,
-    #[strum(serialize = "gameinput.slot4")]
+    #[strum(serialize = "gameinput-slot4")]
     Slot4,
-    #[strum(serialize = "gameinput.slot5")]
+    #[strum(serialize = "gameinput-slot5")]
     Slot5,
-    #[strum(serialize = "gameinput.slot6")]
+    #[strum(serialize = "gameinput-slot6")]
     Slot6,
-    #[strum(serialize = "gameinput.slot7")]
+    #[strum(serialize = "gameinput-slot7")]
     Slot7,
-    #[strum(serialize = "gameinput.slot8")]
+    #[strum(serialize = "gameinput-slot8")]
     Slot8,
-    #[strum(serialize = "gameinput.slot9")]
+    #[strum(serialize = "gameinput-slot9")]
     Slot9,
-    #[strum(serialize = "gameinput.slot10")]
+    #[strum(serialize = "gameinput-slot10")]
     Slot10,
-    #[strum(serialize = "gameinput.togglecursor")]
+    #[strum(serialize = "gameinput-togglecursor")]
     ToggleCursor,
-    #[strum(serialize = "gameinput.moveforward")]
+    #[strum(serialize = "gameinput-moveforward")]
     MoveForward,
-    #[strum(serialize = "gameinput.moveback")]
+    #[strum(serialize = "gameinput-moveback")]
     MoveBack,
-    #[strum(serialize = "gameinput.moveleft")]
+    #[strum(serialize = "gameinput-moveleft")]
     MoveLeft,
-    #[strum(serialize = "gameinput.moveright")]
+    #[strum(serialize = "gameinput-moveright")]
     MoveRight,
-    #[strum(serialize = "gameinput.jump")]
+    #[strum(serialize = "gameinput-jump")]
     Jump,
-    #[strum(serialize = "gameinput.sit")]
+    #[strum(serialize = "gameinput-sit")]
     Sit,
-    #[strum(serialize = "gameinput.dance")]
+    #[strum(serialize = "gameinput-dance")]
     Dance,
-    #[strum(serialize = "gameinput.greet")]
+    #[strum(serialize = "gameinput-greet")]
     Greet,
-    #[strum(serialize = "gameinput.glide")]
+    #[strum(serialize = "gameinput-glide")]
     Glide,
-    #[strum(serialize = "gameinput.climb")]
+    #[strum(serialize = "gameinput-climb")]
     Climb,
-    #[strum(serialize = "gameinput.climbdown")]
+    #[strum(serialize = "gameinput-climbdown")]
     ClimbDown,
-    #[strum(serialize = "gameinput.swimup")]
+    #[strum(serialize = "gameinput-swimup")]
     SwimUp,
-    #[strum(serialize = "gameinput.swimdown")]
+    #[strum(serialize = "gameinput-swimdown")]
     SwimDown,
-    #[strum(serialize = "gameinput.fly")]
+    #[strum(serialize = "gameinput-fly")]
     Fly,
-    #[strum(serialize = "gameinput.sneak")]
+    #[strum(serialize = "gameinput-sneak")]
     Sneak,
-    #[strum(serialize = "gameinput.togglelantern")]
+    #[strum(serialize = "gameinput-togglelantern")]
     ToggleLantern,
-    #[strum(serialize = "gameinput.mount")]
+    #[strum(serialize = "gameinput-mount")]
     Mount,
-    #[strum(serialize = "gameinput.chat")]
+    #[strum(serialize = "gameinput-chat")]
     Chat,
-    #[strum(serialize = "gameinput.command")]
+    #[strum(serialize = "gameinput-command")]
     Command,
-    #[strum(serialize = "gameinput.escape")]
+    #[strum(serialize = "gameinput-escape")]
     Escape,
-    #[strum(serialize = "gameinput.map")]
+    #[strum(serialize = "gameinput-map")]
     Map,
-    #[strum(serialize = "gameinput.bag")]
+    #[strum(serialize = "gameinput-bag")]
     Bag,
-    #[strum(serialize = "gameinput.trade")]
+    #[strum(serialize = "gameinput-trade")]
     Trade,
-    #[strum(serialize = "gameinput.social")]
+    #[strum(serialize = "gameinput-social")]
     Social,
-    #[strum(serialize = "gameinput.crafting")]
+    #[strum(serialize = "gameinput-crafting")]
     Crafting,
-    #[strum(serialize = "gameinput.spellbook")]
+    #[strum(serialize = "gameinput-spellbook")]
     Spellbook,
-    #[strum(serialize = "gameinput.settings")]
+    #[strum(serialize = "gameinput-settings")]
     Settings,
-    #[strum(serialize = "gameinput.toggleinterface")]
+    #[strum(serialize = "gameinput-toggleinterface")]
     ToggleInterface,
-    #[strum(serialize = "gameinput.help")]
+    #[strum(serialize = "gameinput-help")]
     Help,
-    #[strum(serialize = "gameinput.toggledebug")]
+    #[strum(serialize = "gameinput-toggledebug")]
     ToggleDebug,
     #[cfg(feature = "egui-ui")]
-    #[strum(serialize = "gameinput.toggle_egui_debug")]
+    #[strum(serialize = "gameinput-toggle_egui_debug")]
     ToggleEguiDebug,
-    #[strum(serialize = "gameinput.togglechat")]
+    #[strum(serialize = "gameinput-togglechat")]
     ToggleChat,
-    #[strum(serialize = "gameinput.fullscreen")]
+    #[strum(serialize = "gameinput-fullscreen")]
     Fullscreen,
-    #[strum(serialize = "gameinput.screenshot")]
+    #[strum(serialize = "gameinput-screenshot")]
     Screenshot,
-    #[strum(serialize = "gameinput.toggleingameui")]
+    #[strum(serialize = "gameinput-toggleingameui")]
     ToggleIngameUi,
-    #[strum(serialize = "gameinput.roll")]
+    #[strum(serialize = "gameinput-roll")]
     Roll,
-    #[strum(serialize = "gameinput.respawn")]
+    #[strum(serialize = "gameinput-respawn")]
     Respawn,
-    #[strum(serialize = "gameinput.interact")]
+    #[strum(serialize = "gameinput-interact")]
     Interact,
-    #[strum(serialize = "gameinput.togglewield")]
+    #[strum(serialize = "gameinput-togglewield")]
     ToggleWield,
-    #[strum(serialize = "gameinput.swaploadout")]
+    #[strum(serialize = "gameinput-swaploadout")]
     SwapLoadout,
-    #[strum(serialize = "gameinput.freelook")]
+    #[strum(serialize = "gameinput-freelook")]
     FreeLook,
-    #[strum(serialize = "gameinput.autowalk")]
+    #[strum(serialize = "gameinput-autowalk")]
     AutoWalk,
-    #[strum(serialize = "gameinput.cameraclamp")]
+    #[strum(serialize = "gameinput-cameraclamp")]
     CameraClamp,
-    #[strum(serialize = "gameinput.cyclecamera")]
+    #[strum(serialize = "gameinput-cyclecamera")]
     CycleCamera,
-    #[strum(serialize = "gameinput.select")]
+    #[strum(serialize = "gameinput-select")]
     Select,
-    #[strum(serialize = "gameinput.acceptgroupinvite")]
+    #[strum(serialize = "gameinput-acceptgroupinvite")]
     AcceptGroupInvite,
-    #[strum(serialize = "gameinput.declinegroupinvite")]
+    #[strum(serialize = "gameinput-declinegroupinvite")]
     DeclineGroupInvite,
-    #[strum(serialize = "gameinput.mapzoomin")]
+    #[strum(serialize = "gameinput-mapzoomin")]
     MapZoomIn,
-    #[strum(serialize = "gameinput.mapzoomout")]
+    #[strum(serialize = "gameinput-mapzoomout")]
     MapZoomOut,
-    #[strum(serialize = "gameinput.map.locationmarkerbutton")]
+    #[strum(serialize = "gameinput-map-locationmarkerbutton")]
     MapSetMarker,
-    #[strum(serialize = "gameinput.spectatespeedboost")]
+    #[strum(serialize = "gameinput-spectatespeedboost")]
     SpectateSpeedBoost,
-    #[strum(serialize = "gameinput.spectateviewpoint")]
+    #[strum(serialize = "gameinput-spectateviewpoint")]
     SpectateViewpoint,
 }
 
