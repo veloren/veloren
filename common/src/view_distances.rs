@@ -13,11 +13,13 @@ pub struct ViewDistances {
 impl ViewDistances {
     /// Clamps the terrain view distance to an optional max and clamps the
     /// entity view distance to the resulting terrain view distance.
+    ///
+    /// Also ensures both are at a minimum of 1 (unless the provided max is 0).
     pub fn clamp(self, max: Option<u32>) -> Self {
-        let terrain = max.unwrap_or(u32::MAX).min(self.terrain);
+        let terrain = self.terrain.max(1).min(max.unwrap_or(u32::MAX));
         Self {
             terrain,
-            entity: self.entity.min(terrain),
+            entity: self.entity.max(1).min(terrain),
         }
     }
 }

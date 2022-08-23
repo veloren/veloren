@@ -884,7 +884,12 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Character`.
-    pub fn request_character(&mut self, character_id: CharacterId, view_distances: common::ViewDistances) {
+    pub fn request_character(
+        &mut self,
+        character_id: CharacterId,
+        view_distances: common::ViewDistances,
+    ) {
+        let view_distances = self.set_view_distances_local(view_distances);
         self.send_msg(ClientGeneral::Character(character_id, view_distances));
 
         // Assume we are in_game unless server tells us otherwise
@@ -893,6 +898,7 @@ impl Client {
 
     /// Request a state transition to `ClientState::Spectate`.
     pub fn request_spectate(&mut self, view_distances: common::ViewDistances) {
+        let view_distances = self.set_view_distances_local(view_distances);
         self.send_msg(ClientGeneral::Spectate(view_distances));
 
         self.presence = Some(PresenceKind::Spectator);
@@ -948,14 +954,26 @@ impl Client {
     }
 
     pub fn set_view_distances(&mut self, view_distances: common::ViewDistances) {
-        if self.server_view_distance_limit.map_or(true, |limit| view_distances.terrain >= limit) {
-            let view_distances = common::ViewDistances {
-                terrain: view_distances.terrain.max(1).min(MAX_SELECTABLE_VIEW_DISTANCE),
-                entity: view_distances.entity,
-            };
-            self.view_distance = Some(view_distances.terrain);
-            self.send_msg(ClientGeneral::SetViewDistance(view_distances));
-        }
+        let view_distances = self.set_view_distances_local(view_distances);
+        self.send_msg(ClientGeneral::SetViewDistance(view_distances));
+    }
+
+    /// Clamps provided view distances, locally sets the terrain view distance
+    /// in the client's properties and returns the clamped values for the
+    /// caller to send to the server.
+    fn set_view_distances_local(
+        &mut self,
+        view_distances: common::ViewDistances,
+    ) -> common::ViewDistances {
+        let view_distances = common::ViewDistances {
+            terrain: view_distances
+                .terrain
+                .max(1)
+                .min(MAX_SELECTABLE_VIEW_DISTANCE),
+            entity: view_distances.entity.max(1),
+        };
+        self.view_distance = Some(view_distances.terrain);
+        view_distances
     }
 
     pub fn set_lod_distance(&mut self, lod_distance: u32) {
