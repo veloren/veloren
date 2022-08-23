@@ -574,7 +574,7 @@ impl<'a> Widget for Video<'a> {
         // Present Mode
         Text::new(&self.localized_strings.get_msg("hud-settings-present_mode"))
             .down_from(state.ids.ld_slider, 10.0)
-            .right_from(state.ids.max_background_fps_value, 30.0)
+            .right_from(state.ids.max_background_fps_value, 40.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
@@ -586,16 +586,11 @@ impl<'a> Widget for Video<'a> {
             PresentMode::Immediate,
         ];
         let mode_label_list = [
-            &self
-                .localized_strings
-                .get_msg("hud-settings-present_mode-fifo"),
-            &self
-                .localized_strings
-                .get_msg("hud-settings-present_mode-mailbox"),
-            &self
-                .localized_strings
-                .get_msg("hud-settings-present_mode-immediate"),
-        ];
+            "hud-settings-present_mode-vsync_capped",
+            "hud-settings-present_mode-vsync_uncapped",
+            "hud-settings-present_mode-vsync_off",
+        ]
+        .map(|k| self.localized_strings.get_msg(k));
 
         // Get which present mode is currently active
         let selected = mode_list
@@ -603,7 +598,7 @@ impl<'a> Widget for Video<'a> {
             .position(|x| *x == render_mode.present_mode);
 
         if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
-            .w_h(120.0, 22.0)
+            .w_h(150.0, 26.0)
             .color(MENU_BG)
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)
