@@ -89,7 +89,7 @@ impl<'a> Widget for Networking<'a> {
             .set(state.ids.window_r, ui);
 
         // View Distance
-        Text::new(&self.localized_strings.get("hud.settings.view_distance"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-view_distance"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -127,7 +127,7 @@ impl<'a> Widget for Networking<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.player_physics_behavior"),
+                .get_msg("hud-settings-player_physics_behavior"),
         )
         .down_from(state.ids.vd_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -166,7 +166,7 @@ impl<'a> Widget for Networking<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.lossy_terrain_compression"),
+                .get_msg("hud-settings-lossy_terrain_compression"),
         )
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
@@ -206,7 +206,7 @@ impl<'a> Widget for Networking<'a> {
             Text::new(
                 &self
                     .localized_strings
-                    .get("hud.settings.third_party_integrations"),
+                    .get_msg("hud-settings-third_party_integrations"),
             )
             .down_from(state.ids.player_physics_behavior_list, 16.0)
             .font_size(self.fonts.cyri.scale(18))
@@ -248,7 +248,7 @@ impl<'a> Widget for Networking<'a> {
             Text::new(
                 &self
                     .localized_strings
-                    .get("hud.settings.enable_discord_integration"),
+                    .get_msg("hud-settings-enable_discord_integration"),
             )
             .right_from(state.ids.enable_discord_integration_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))

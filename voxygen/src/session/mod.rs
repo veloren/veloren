@@ -343,7 +343,7 @@ impl SessionState {
                 client::Event::Kicked(reason) => {
                     global_state.info_message = Some(format!(
                         "{}: {}",
-                        global_state.i18n.read().get("main.login.kicked"),
+                        global_state.i18n.read().get_msg("main-login-kicked"),
                         reason
                     ));
                     return Ok(TickAction::Disconnect);
@@ -1187,7 +1187,7 @@ impl PlayState for SessionState {
                             global_state
                                 .i18n
                                 .read()
-                                .get("common.connection_lost")
+                                .get_msg("common-connection_lost")
                                 .into_owned(),
                         );
                         error!("[session] Failed to tick the scene: {:?}", err);

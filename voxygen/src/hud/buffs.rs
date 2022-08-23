@@ -230,7 +230,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     let title = hud::get_buff_title(buff.kind, localized_strings);
                     let desc_txt = hud::get_buff_desc(buff.kind, buff.data, localized_strings);
                     let remaining_time = hud::get_buff_time(*buff);
-                    let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
+                    let click_to_remove = format!("<{}>", &localized_strings.get_msg("buff-remove"));
                     let desc = format!("{}\n\n{}\n\n{}", desc_txt, remaining_time, click_to_remove);
                     // Timer overlay
                     if Button::image(self.get_duration_image(duration_percentage))
@@ -388,7 +388,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     let title = hud::get_buff_title(buff.kind, localized_strings);
                     let desc_txt = hud::get_buff_desc(buff.kind, buff.data, localized_strings);
                     let remaining_time = hud::get_buff_time(*buff);
-                    let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
+                    let click_to_remove = format!("<{}>", &localized_strings.get_msg("buff-remove"));
                     let desc = if buff.is_buff {
                         format!("{}\n\n{}", desc_txt, click_to_remove)
                     } else {

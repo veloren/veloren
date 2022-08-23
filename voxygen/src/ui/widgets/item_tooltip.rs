@@ -1265,8 +1265,8 @@ impl<'a> Widget for ItemTooltip<'a> {
         ) {
             // Get localized tooltip strings (gotten here because these should
             // only show if in a trade- aka if buy/sell prices are present)
-            let tt_hint_1 = self.localized_strings.get("hud.trade.tooltip_hint_1");
-            let tt_hint_2 = self.localized_strings.get("hud.trade.tooltip_hint_2");
+            let tt_hint_1 = self.localized_strings.get_msg("hud-trade-tooltip_hint_1");
+            let tt_hint_2 = self.localized_strings.get_msg("hud-trade-tooltip_hint_2");
 
             widget::Text::new(&format!("{}\n{}\n{}\n{}", buy, sell, tt_hint_1, tt_hint_2))
                 .with_style(self.style.desc)

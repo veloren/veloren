@@ -4584,69 +4584,69 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
 pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<str> {
     match buff {
         // Buffs
-        BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
-        BuffKind::Saturation { .. } => localized_strings.get("buff.title.saturation"),
-        BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
-        BuffKind::CampfireHeal { .. } => localized_strings.get("buff.title.campfire_heal"),
-        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.title.IncreaseMaxHealth"),
-        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.energyup"),
-        BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
-        BuffKind::ProtectingWard => localized_strings.get("buff.title.protectingward"),
-        BuffKind::Frenzied => localized_strings.get("buff.title.frenzied"),
-        BuffKind::Hastened => localized_strings.get("buff.title.hastened"),
+        BuffKind::Regeneration { .. } => localized_strings.get_msg("buff-title-heal"),
+        BuffKind::Saturation { .. } => localized_strings.get_msg("buff-title-saturation"),
+        BuffKind::Potion { .. } => localized_strings.get_msg("buff-title-potion"),
+        BuffKind::CampfireHeal { .. } => localized_strings.get_msg("buff-title-campfire_heal"),
+        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get_msg("buff-title-IncreaseMaxHealth"),
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get_msg("buff-title-energyup"),
+        BuffKind::Invulnerability => localized_strings.get_msg("buff-title-invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get_msg("buff-title-protectingward"),
+        BuffKind::Frenzied => localized_strings.get_msg("buff-title-frenzied"),
+        BuffKind::Hastened => localized_strings.get_msg("buff-title-hastened"),
         // Debuffs
-        BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
-        BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
-        BuffKind::Burning { .. } => localized_strings.get("buff.title.burn"),
-        BuffKind::Crippled { .. } => localized_strings.get("buff.title.crippled"),
-        BuffKind::Frozen { .. } => localized_strings.get("buff.title.frozen"),
-        BuffKind::Wet { .. } => localized_strings.get("buff.title.wet"),
-        BuffKind::Ensnared { .. } => localized_strings.get("buff.title.ensnared"),
-        BuffKind::Poisoned { .. } => localized_strings.get("buff.title.poisoned"),
+        BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-title-bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get_msg("buff-title-cursed"),
+        BuffKind::Burning { .. } => localized_strings.get_msg("buff-title-burn"),
+        BuffKind::Crippled { .. } => localized_strings.get_msg("buff-title-crippled"),
+        BuffKind::Frozen { .. } => localized_strings.get_msg("buff-title-frozen"),
+        BuffKind::Wet { .. } => localized_strings.get_msg("buff-title-wet"),
+        BuffKind::Ensnared { .. } => localized_strings.get_msg("buff-title-ensnared"),
+        BuffKind::Poisoned { .. } => localized_strings.get_msg("buff-title-poisoned"),
     }
 }
 
 pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localization) -> Cow<str> {
     match buff {
         // Buffs
-        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
-        BuffKind::Saturation { .. } => localized_strings.get("buff.desc.saturation"),
-        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
+        BuffKind::Regeneration { .. } => localized_strings.get_msg("buff-desc-heal"),
+        BuffKind::Saturation { .. } => localized_strings.get_msg("buff-desc-saturation"),
+        BuffKind::Potion { .. } => localized_strings.get_msg("buff-desc-potion"),
         BuffKind::CampfireHeal { .. } => {
             localized_strings.get_msg_ctx("buff-desc-campfire_heal", &i18n::fluent_args! {
                 "rate" => data.strength * 100.0
             })
         },
-        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.desc.IncreaseMaxHealth"),
-        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.desc.IncreaseMaxEnergy"),
-        BuffKind::Invulnerability => localized_strings.get("buff.desc.invulnerability"),
-        BuffKind::ProtectingWard => localized_strings.get("buff.desc.protectingward"),
-        BuffKind::Frenzied => localized_strings.get("buff.desc.frenzied"),
-        BuffKind::Hastened => localized_strings.get("buff.desc.hastened"),
+        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get_msg("buff-desc-IncreaseMaxHealth"),
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get_msg("buff-desc-IncreaseMaxEnergy"),
+        BuffKind::Invulnerability => localized_strings.get_msg("buff-desc-invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get_msg("buff-desc-protectingward"),
+        BuffKind::Frenzied => localized_strings.get_msg("buff-desc-frenzied"),
+        BuffKind::Hastened => localized_strings.get_msg("buff-desc-hastened"),
         // Debuffs
-        BuffKind::Bleeding { .. } => localized_strings.get("buff.desc.bleed"),
-        BuffKind::Cursed { .. } => localized_strings.get("buff.desc.cursed"),
-        BuffKind::Burning { .. } => localized_strings.get("buff.desc.burn"),
-        BuffKind::Crippled { .. } => localized_strings.get("buff.desc.crippled"),
-        BuffKind::Frozen { .. } => localized_strings.get("buff.desc.frozen"),
-        BuffKind::Wet { .. } => localized_strings.get("buff.desc.wet"),
-        BuffKind::Ensnared { .. } => localized_strings.get("buff.desc.ensnared"),
-        BuffKind::Poisoned { .. } => localized_strings.get("buff.desc.poisoned"),
+        BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-desc-bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get_msg("buff-desc-cursed"),
+        BuffKind::Burning { .. } => localized_strings.get_msg("buff-desc-burn"),
+        BuffKind::Crippled { .. } => localized_strings.get_msg("buff-desc-crippled"),
+        BuffKind::Frozen { .. } => localized_strings.get_msg("buff-desc-frozen"),
+        BuffKind::Wet { .. } => localized_strings.get_msg("buff-desc-wet"),
+        BuffKind::Ensnared { .. } => localized_strings.get_msg("buff-desc-ensnared"),
+        BuffKind::Poisoned { .. } => localized_strings.get_msg("buff-desc-poisoned"),
     }
 }
 
 pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> Option<Cow<str>> {
     let i18n_key = match sprite {
         SpriteKind::Empty => return None,
-        SpriteKind::Anvil => "hud.crafting.anvil",
-        SpriteKind::Cauldron => "hud.crafting.cauldron",
-        SpriteKind::CookingPot => "hud.crafting.cooking_pot",
-        SpriteKind::CraftingBench => "hud.crafting.crafting_bench",
-        SpriteKind::Forge => "hud.crafting.forge",
-        SpriteKind::Loom => "hud.crafting.loom",
-        SpriteKind::SpinningWheel => "hud.crafting.spinning_wheel",
-        SpriteKind::TanningRack => "hud.crafting.tanning_rack",
-        SpriteKind::DismantlingBench => "hud.crafting.salvaging_station",
+        SpriteKind::Anvil => "hud-crafting-anvil",
+        SpriteKind::Cauldron => "hud-crafting-cauldron",
+        SpriteKind::CookingPot => "hud-crafting-cooking_pot",
+        SpriteKind::CraftingBench => "hud-crafting-crafting_bench",
+        SpriteKind::Forge => "hud-crafting-forge",
+        SpriteKind::Loom => "hud-crafting-loom",
+        SpriteKind::SpinningWheel => "hud-crafting-spinning_wheel",
+        SpriteKind::TanningRack => "hud-crafting-tanning_rack",
+        SpriteKind::DismantlingBench => "hud-crafting-salvaging_station",
         SpriteKind::ChestBuried
         | SpriteKind::Chest
         | SpriteKind::DungeonChest0
@@ -4654,10 +4654,10 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::DungeonChest2
         | SpriteKind::DungeonChest3
         | SpriteKind::DungeonChest4
-        | SpriteKind::DungeonChest5 => "common.sprite.chest",
+        | SpriteKind::DungeonChest5 => "common-sprite-chest",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
-    Some(localized_strings.get(i18n_key))
+    Some(localized_strings.get_msg(i18n_key))
 }
 
 pub fn get_buff_time(buff: BuffInfo) -> String {

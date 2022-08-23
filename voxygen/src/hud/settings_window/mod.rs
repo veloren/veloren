@@ -61,27 +61,27 @@ pub enum SettingsTab {
 impl SettingsTab {
     fn name_key(&self) -> &str {
         match self {
-            SettingsTab::Interface => "common.interface",
-            SettingsTab::Chat => "common.chat",
-            SettingsTab::Gameplay => "common.gameplay",
-            SettingsTab::Controls => "common.controls",
-            SettingsTab::Video => "common.video",
-            SettingsTab::Sound => "common.sound",
-            SettingsTab::Lang => "common.languages",
-            SettingsTab::Networking => "common.networking",
+            SettingsTab::Interface => "common-interface",
+            SettingsTab::Chat => "common-chat",
+            SettingsTab::Gameplay => "common-gameplay",
+            SettingsTab::Controls => "common-controls",
+            SettingsTab::Video => "common-video",
+            SettingsTab::Sound => "common-sound",
+            SettingsTab::Lang => "common-languages",
+            SettingsTab::Networking => "common-networking",
         }
     }
 
     fn title_key(&self) -> &str {
         match self {
-            SettingsTab::Interface => "common.interface_settings",
-            SettingsTab::Chat => "common.chat_settings",
-            SettingsTab::Gameplay => "common.gameplay_settings",
-            SettingsTab::Controls => "common.controls_settings",
-            SettingsTab::Video => "common.video_settings",
-            SettingsTab::Sound => "common.sound_settings",
-            SettingsTab::Lang => "common.language_settings",
-            SettingsTab::Networking => "common.networking_settings",
+            SettingsTab::Interface => "common-interface_settings",
+            SettingsTab::Chat => "common-chat_settings",
+            SettingsTab::Gameplay => "common-gameplay_settings",
+            SettingsTab::Controls => "common-controls_settings",
+            SettingsTab::Video => "common-video_settings",
+            SettingsTab::Sound => "common-sound_settings",
+            SettingsTab::Lang => "common-language_settings",
+            SettingsTab::Networking => "common-networking_settings",
         }
     }
 }
@@ -191,7 +191,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get(self.show.settings_tab.title_key()),
+                .get_msg(self.show.settings_tab.title_key()),
         )
         .mid_top_with_margin_on(state.ids.frame, 3.0)
         .font_id(self.fonts.cyri.conrod_id)
@@ -220,7 +220,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             });
         }
         for (i, settings_tab) in SettingsTab::iter().enumerate() {
-            let tab_name = self.localized_strings.get(settings_tab.name_key());
+            let tab_name = self.localized_strings.get_msg(settings_tab.name_key());
             let mut button = Button::image(if self.show.settings_tab == settings_tab {
                 self.imgs.selection
             } else {

@@ -240,7 +240,7 @@ impl PlayState for MainMenuState {
                             client::Event::Disconnect => {
                                 global_state.info_message = Some(
                                     localized_strings
-                                        .get("main.login.server_shut_down")
+                                        .get_msg("main-login-server_shut_down")
                                         .into_owned(),
                                 );
                                 self.init = InitState::None;
@@ -251,7 +251,7 @@ impl PlayState for MainMenuState {
                 },
                 Err(err) => {
                     global_state.info_message =
-                        Some(localized_strings.get("common.connection_lost").into_owned());
+                        Some(localized_strings.get_msg("common-connection_lost").into_owned());
                     error!(?err, "[main menu] Failed to tick the client");
                     self.init = InitState::None;
                 },
@@ -420,18 +420,18 @@ fn get_client_msg_error(
         if let Some(server_info) = mismatched_server_info {
             format!(
                 "{} {}: {} ({}) {}: {} ({})",
-                localization.get("main.login.network_wrong_version"),
-                localization.get("main.login.client_version"),
+                localization.get_msg("main-login-network_wrong_version"),
+                localization.get_msg("main-login-client_version"),
                 &*common::util::GIT_HASH,
                 &*common::util::GIT_DATE,
-                localization.get("main.login.server_version"),
+                localization.get_msg("main-login-server_version"),
                 server_info.git_hash,
                 server_info.git_date,
             )
         } else {
             format!(
                 "{}: {}",
-                localization.get("main.login.network_error"),
+                localization.get_msg("main-login-network_error"),
                 error
             )
         }
@@ -444,30 +444,30 @@ fn get_client_msg_error(
             mismatched_server_info,
         } => match error {
             Error::SpecsErr(e) => {
-                format!("{}: {}", localization.get("main.login.internal_error"), e)
+                format!("{}: {}", localization.get_msg("main-login-internal_error"), e)
             },
             Error::AuthErr(e) => format!(
                 "{}: {}",
-                localization.get("main.login.authentication_error"),
+                localization.get_msg("main-login-authentication_error"),
                 e
             ),
             Error::Kicked(e) => e,
-            Error::TooManyPlayers => localization.get("main.login.server_full").into(),
+            Error::TooManyPlayers => localization.get_msg("main-login-server_full").into(),
             Error::AuthServerNotTrusted => {
-                localization.get("main.login.untrusted_auth_server").into()
+                localization.get_msg("main-login-untrusted_auth_server").into()
             },
-            Error::ServerTimeout => localization.get("main.login.timeout").into(),
-            Error::ServerShutdown => localization.get("main.login.server_shut_down").into(),
-            Error::NotOnWhitelist => localization.get("main.login.not_on_whitelist").into(),
+            Error::ServerTimeout => localization.get_msg("main-login-timeout").into(),
+            Error::ServerShutdown => localization.get_msg("main-login-server_shut_down").into(),
+            Error::NotOnWhitelist => localization.get_msg("main-login-not_on_whitelist").into(),
             Error::Banned(reason) => {
-                format!("{}: {}", localization.get("main.login.banned"), reason)
+                format!("{}: {}", localization.get_msg("main-login-banned"), reason)
             },
-            Error::InvalidCharacter => localization.get("main.login.invalid_character").into(),
+            Error::InvalidCharacter => localization.get_msg("main-login-invalid_character").into(),
             Error::NetworkErr(NetworkError::ConnectFailed(NetworkConnectError::Handshake(
                 InitProtocolError::WrongVersion(_),
             ))) => net_error(
                 localization
-                    .get("main.login.network_wrong_version")
+                    .get_msg("main-login-network_wrong_version")
                     .into_owned(),
                 mismatched_server_info,
             ),
@@ -475,38 +475,38 @@ fn get_client_msg_error(
             Error::ParticipantErr(e) => net_error(e.to_string(), mismatched_server_info),
             Error::StreamErr(e) => net_error(e.to_string(), mismatched_server_info),
             Error::HostnameLookupFailed(e) => {
-                format!("{}: {}", localization.get("main.login.server_not_found"), e)
+                format!("{}: {}", localization.get_msg("main-login-server_not_found"), e)
             },
             Error::Other(e) => {
-                format!("{}: {}", localization.get("common.error"), e)
+                format!("{}: {}", localization.get_msg("common-error"), e)
             },
             Error::AuthClientError(e) => match e {
                 // TODO: remove parentheses
                 client::AuthClientError::RequestError(e) => format!(
                     "{}: {}",
-                    localization.get("main.login.failed_sending_request"),
+                    localization.get_msg("main-login-failed_sending_request"),
                     e
                 ),
                 client::AuthClientError::JsonError(e) => format!(
                     "{}: {}",
-                    localization.get("main.login.failed_sending_request"),
+                    localization.get_msg("main-login-failed_sending_request"),
                     e
                 ),
                 client::AuthClientError::InsecureSchema => {
-                    localization.get("main.login.insecure_auth_scheme").into()
+                    localization.get_msg("main-login-insecure_auth_scheme").into()
                 },
                 client::AuthClientError::ServerError(_, e) => String::from_utf8_lossy(&e).into(),
             },
             Error::AuthServerUrlInvalid(e) => {
                 format!(
                     "{}: https://{}",
-                    localization.get("main.login.failed_auth_server_url_invalid"),
+                    localization.get_msg("main-login-failed_auth_server_url_invalid"),
                     e
                 )
             },
         },
-        InitError::ClientCrashed => localization.get("main.login.client_crashed").into(),
-        InitError::ServerNotFound => localization.get("main.login.server_not_found").into(),
+        InitError::ClientCrashed => localization.get_msg("main-login-client_crashed").into(),
+        InitError::ServerNotFound => localization.get_msg("main-login-server_not_found").into(),
     }
 }
 
@@ -525,7 +525,7 @@ fn attempt_login(
             comp::AliasError::ForbiddenCharacters => {
                 *info_message = Some(
                     localization
-                        .get("main.login.username_bad_characters")
+                        .get_msg("main-login-username_bad_characters")
                         .into_owned(),
                 );
             },
