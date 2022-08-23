@@ -588,7 +588,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 // Power
                 widget::Text::new(&format!(
                     "{} : {:.1}",
-                    i18n.get("common.stats.power"),
+                    i18n.get_msg("common-stats-power"),
                     stats.power * 10.0
                 ))
                 .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
@@ -613,7 +613,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 stat_text(
                     format!(
                         "{} : {:+.0}%",
-                        i18n.get("common.stats.speed"),
+                        i18n.get_msg("common-stats-speed"),
                         (stats.speed - 1.0) * 100.0
                     ),
                     1,
@@ -625,7 +625,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 stat_text(
                     format!(
                         "{} : {:+.0}%",
-                        i18n.get("common.stats.poise"),
+                        i18n.get_msg("common-stats-poise"),
                         (stats.effect_power - 1.0) * 100.0
                     ),
                     2,
@@ -635,7 +635,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 stat_text(
                     format!(
                         "{} : {:.1}%",
-                        i18n.get("common.stats.crit_chance"),
+                        i18n.get_msg("common-stats-crit_chance"),
                         stats.crit_chance * 100.0
                     ),
                     3,
@@ -645,7 +645,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 stat_text(
                     format!(
                         "{} : {:+.0}%",
-                        i18n.get("common.stats.range"),
+                        i18n.get_msg("common-stats-range"),
                         (stats.range - 1.0) * 100.0
                     ),
                     4,
@@ -655,7 +655,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 stat_text(
                     format!(
                         "{} : {:+.0}%",
-                        i18n.get("common.stats.energy_efficiency"),
+                        i18n.get_msg("common-stats-energy_efficiency"),
                         (stats.energy_efficiency - 1.0) * 100.0
                     ),
                     5,
@@ -665,7 +665,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 stat_text(
                     format!(
                         "{} : {:+.0}%",
-                        i18n.get("common.stats.buff_strength"),
+                        i18n.get_msg("common-stats-buff_strength"),
                         (stats.buff_strength - 1.0) * 100.0
                     ),
                     6,
@@ -786,7 +786,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     stat_text(
                         format!(
                             "{} : {}",
-                            i18n.get("common.stats.armor"),
+                            i18n.get_msg("common-stats-armor"),
                             util::protec2string(
                                 armor_stats.protection.unwrap_or(Protection::Normal(0.0))
                             )
@@ -801,7 +801,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     stat_text(
                         format!(
                             "{} : {}",
-                            i18n.get("common.stats.poise_res"),
+                            i18n.get_msg("common-stats-poise_res"),
                             util::protec2string(
                                 armor_stats
                                     .poise_resilience
@@ -818,7 +818,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     stat_text(
                         format!(
                             "{} : {:.1}",
-                            i18n.get("common.stats.energy_max"),
+                            i18n.get_msg("common-stats-energy_max"),
                             armor_stats.energy_max.unwrap_or(0.0)
                         ),
                         index,
@@ -831,7 +831,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     stat_text(
                         format!(
                             "{} : {:.1}%",
-                            i18n.get("common.stats.energy_reward"),
+                            i18n.get_msg("common-stats-energy_reward"),
                             armor_stats.energy_reward.map_or(0.0, |x| x * 100.0)
                         ),
                         index,
@@ -844,7 +844,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     stat_text(
                         format!(
                             "{} : {:.3}",
-                            i18n.get("common.stats.crit_power"),
+                            i18n.get_msg("common-stats-crit_power"),
                             armor_stats.crit_power.unwrap_or(0.0)
                         ),
                         index,
@@ -857,7 +857,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     stat_text(
                         format!(
                             "{} : {:.3}",
-                            i18n.get("common.stats.stealth"),
+                            i18n.get_msg("common-stats-stealth"),
                             armor_stats.stealth.unwrap_or(0.0)
                         ),
                         index,
@@ -868,7 +868,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 // Slots
                 if item.num_slots() > 0 {
                     stat_text(
-                        format!("{} : {}", i18n.get("common.stats.slots"), item.num_slots()),
+                        format!("{} : {}", i18n.get_msg("common-stats-slots"), item.num_slots()),
                         index,
                     );
                 }
@@ -1002,11 +1002,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let power_text = if is_primary {
                         format!(
                             "{} : {:.1}",
-                            i18n.get("common.stats.power"),
+                            i18n.get_msg("common-stats-power"),
                             stats.power * 10.0
                         )
                     } else {
-                        format!("{} : x{:.2}", i18n.get("common.stats.power"), stats.power)
+                        format!("{} : x{:.2}", i18n.get_msg("common-stats-power"), stats.power)
                     };
                     widget::Text::new(&power_text)
                         .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
@@ -1021,11 +1021,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let speed_text = if is_primary {
                         format!(
                             "{} : {:+.0}%",
-                            i18n.get("common.stats.speed"),
+                            i18n.get_msg("common-stats-speed"),
                             (stats.speed - 1.0) * 100.0
                         )
                     } else {
-                        format!("{} : x{:.2}", i18n.get("common.stats.speed"), stats.speed)
+                        format!("{} : x{:.2}", i18n.get_msg("common-stats-speed"), stats.speed)
                     };
                     widget::Text::new(&speed_text)
                         .graphics_for(id)
@@ -1041,13 +1041,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let effect_power_text = if is_primary {
                         format!(
                             "{} : {:+.0}%",
-                            i18n.get("common.stats.poise"),
+                            i18n.get_msg("common-stats-poise"),
                             (stats.effect_power - 1.0) * 100.0
                         )
                     } else {
                         format!(
                             "{} : x{:.2}",
-                            i18n.get("common.stats.poise"),
+                            i18n.get_msg("common-stats-poise"),
                             stats.effect_power
                         )
                     };
@@ -1063,13 +1063,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let crit_chance_text = if is_primary {
                         format!(
                             "{} : {:.1}%",
-                            i18n.get("common.stats.crit_chance"),
+                            i18n.get_msg("common-stats-crit_chance"),
                             stats.crit_chance * 100.0
                         )
                     } else {
                         format!(
                             "{} : x{:.2}",
-                            i18n.get("common.stats.crit_chance"),
+                            i18n.get_msg("common-stats-crit_chance"),
                             stats.crit_chance
                         )
                     };
@@ -1085,11 +1085,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let range_text = if is_primary {
                         format!(
                             "{} : {:.0}%",
-                            i18n.get("common.stats.range"),
+                            i18n.get_msg("common-stats-range"),
                             (stats.range - 1.0) * 100.0
                         )
                     } else {
-                        format!("{} : x{:.2}", i18n.get("common.stats.range"), stats.range)
+                        format!("{} : x{:.2}", i18n.get_msg("common-stats-range"), stats.range)
                     };
                     widget::Text::new(&range_text)
                         .graphics_for(id)
@@ -1103,13 +1103,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let energy_eff_text = if is_primary {
                         format!(
                             "{} : {:.0}%",
-                            i18n.get("common.stats.energy_efficiency"),
+                            i18n.get_msg("common-stats-energy_efficiency"),
                             (stats.energy_efficiency - 1.0) * 100.0
                         )
                     } else {
                         format!(
                             "{} : x{:.2}",
-                            i18n.get("common.stats.energy_efficiency"),
+                            i18n.get_msg("common-stats-energy_efficiency"),
                             stats.energy_efficiency
                         )
                     };
@@ -1125,13 +1125,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let buff_str_text = if is_primary {
                         format!(
                             "{} : {:.0}%",
-                            i18n.get("common.stats.buff_strength"),
+                            i18n.get_msg("common-stats-buff_strength"),
                             (stats.buff_strength - 1.0) * 100.0
                         )
                     } else {
                         format!(
                             "{} : x{:.2}",
-                            i18n.get("common.stats.buff_strength"),
+                            i18n.get_msg("common-stats-buff_strength"),
                             stats.buff_strength
                         )
                     };
@@ -1203,8 +1203,8 @@ impl<'a> Widget for ItemTooltip<'a> {
             //Tooltips for trade mini-tutorial
             widget::Text::new(&format!(
                 "{}\n{}",
-                i18n.get("hud.trade.tooltip_hint_1"),
-                i18n.get("hud.trade.tooltip_hint_2"),
+                i18n.get_msg("hud-trade-tooltip_hint_1"),
+                i18n.get_msg("hud-trade-tooltip_hint_2"),
             ))
             .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
             .graphics_for(id)

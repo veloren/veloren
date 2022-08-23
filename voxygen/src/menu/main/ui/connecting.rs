@@ -102,7 +102,7 @@ impl Screen {
                 let tip = if show_tip {
                     let key = |code| match controls.keybindings.get(&code) {
                         Some(Some(key_mouse)) => key_mouse.display_string(key_layout),
-                        Some(None) => i18n.get("main.unbound_key_tip").into_owned(),
+                        Some(None) => i18n.get_msg("main-unbound_key_tip").into_owned(),
                         None => ControlSettings::default_binding(code).display_string(key_layout),
                     };
                     let keys = i18n::fluent_args! {
@@ -118,7 +118,7 @@ impl Screen {
                         "gameinput-screenshot" => key(GameInput::Screenshot),
                     };
                     let tip = &i18n.get_variation_ctx("loading-tips", self.tip_number, &keys);
-                    let tip = format!("{} {}", i18n.get("main.tip"), tip);
+                    let tip = format!("{} {}", i18n.get_msg("main-tip"), tip);
 
                     Container::new(Text::new(tip).size(fonts.cyri.scale(25)))
                         .width(Length::Fill)
@@ -132,7 +132,7 @@ impl Screen {
 
                 let cancel = Container::new(neat_button(
                     &mut self.cancel_button,
-                    i18n.get("common.cancel"),
+                    i18n.get_msg("common-cancel"),
                     0.7,
                     button_style,
                     Some(Message::CancelConnect),
@@ -190,14 +190,14 @@ impl Screen {
 
                 let cancel = neat_button(
                     &mut self.cancel_button,
-                    i18n.get("common.cancel"),
+                    i18n.get_msg("common-cancel"),
                     0.7,
                     button_style,
                     Some(Message::TrustPromptCancel),
                 );
                 let add = neat_button(
                     &mut self.add_button,
-                    i18n.get("common.add"),
+                    i18n.get_msg("common-add"),
                     0.7,
                     button_style,
                     Some(Message::TrustPromptAdd),

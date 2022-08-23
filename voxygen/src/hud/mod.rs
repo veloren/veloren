@@ -3763,7 +3763,7 @@ impl Hud {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .bottom_left_with_margins_on(ui_widgets.window, 350.0, 150.0)
-                        .label(&i18n._msg("hud-tutorial_btn"))
+                        .label(&i18n.get_msg("hud-tutorial_btn"))
                         .label_font_id(self.fonts.cyri.conrod_id)
                         .label_font_size(self.fonts.cyri.scale(18))
                         .label_color(TEXT_COLOR)
@@ -3812,7 +3812,7 @@ impl Hud {
                     if self.show.intro {
                         self.show.want_grab = false;
                         let quest_headline = i18n.get_msg("hud-temp_quest_headline");
-                        let quest_text = i18n.get("hud.temp_quest_text");
+                        let quest_text = i18n.get_msg("hud-temp_quest_text");
                         Image::new(self.imgs.quest_bg)
                             .w_h(404.0, 858.0)
                             .middle_of(ui_widgets.window)
@@ -3851,7 +3851,7 @@ impl Hud {
                             .hover_image(self.imgs.button_hover)
                             .press_image(self.imgs.button_press)
                             .mid_bottom_with_margin_on(self.ids.q_text_bg, -80.0)
-                            .label(&i18n.get("common.close"))
+                            .label(&i18n.get_msg("common-close"))
                             .label_font_id(self.fonts.cyri.conrod_id)
                             .label_font_size(self.fonts.cyri.scale(22))
                             .label_color(TEXT_COLOR)
@@ -3875,14 +3875,14 @@ impl Hud {
                                 )
                                 .color(Some(QUALITY_LEGENDARY))
                                 .set(self.ids.tut_arrow, ui_widgets);
-                            Text::new(&i18n.get("hud.tutorial_elements"))
+                            Text::new(&i18n.get_msg("hud-tutorial_elements"))
                                 .mid_top_with_margin_on(self.ids.tut_arrow, -50.0)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .font_size(self.fonts.cyri.scale(40))
                                 .color(BLACK)
                                 .floating(true)
                                 .set(self.ids.tut_arrow_txt_bg, ui_widgets);
-                            Text::new(&i18n.get("hud.tutorial_elements"))
+                            Text::new(&i18n.get_msg("hud-tutorial_elements"))
                                 .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .font_size(self.fonts.cyri.scale(40))

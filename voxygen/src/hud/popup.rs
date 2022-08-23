@@ -127,7 +127,7 @@ impl<'a> Widget for Popup<'a> {
                         if s.infos.is_empty() {
                             s.last_info_update = Instant::now();
                         }
-                        let text = self.i18n.get("hud.waypoint_saved");
+                        let text = self.i18n.get_msg("hud-waypoint_saved");
                         s.infos.push_back(text.to_string());
                     });
                 },

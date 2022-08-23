@@ -394,7 +394,7 @@ impl<'a> Widget for Overhead<'a> {
                     }
                     let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
                     if health.is_dead {
-                        txt = self.i18n.get("hud.group.dead").to_string()
+                        txt = self.i18n.get_msg("hud-group-dead").to_string()
                     };
                     Text::new(&txt)
                         .mid_top_with_margin_on(state.ids.health_bar_bg, 2.0)

@@ -31,14 +31,14 @@ impl Screen {
         Container::new(
             Container::new(
                 Column::with_children(vec![
-                    iced::Text::new(i18n.get("common.disclaimer"))
+                    iced::Text::new(i18n.get_msg("common-disclaimer"))
                         .font(fonts.alkhemi.id)
                         .size(fonts.alkhemi.scale(35))
                         .into(),
                     Space::new(Length::Fill, Length::Units(20)).into(),
                     Scrollable::new(&mut self.scroll)
                         .push(
-                            iced::Text::new(i18n.get("main.notice"))
+                            iced::Text::new(i18n.get_msg("main-notice"))
                                 .font(fonts.cyri.id)
                                 .size(fonts.cyri.scale(23)),
                         )
@@ -47,7 +47,7 @@ impl Screen {
                     Container::new(
                         Container::new(neat_button(
                             &mut self.accept_button,
-                            i18n.get("common.accept"),
+                            i18n.get_msg("common-accept"),
                             0.7,
                             button_style,
                             Some(Message::AcceptDisclaimer),

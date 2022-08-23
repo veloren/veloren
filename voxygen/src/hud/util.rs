@@ -44,15 +44,15 @@ pub fn price_desc(
             let deal_goodness = deal_goodness.log(2.0);
             let buy_string = format!(
                 "{} : {:0.1} {}",
-                i18n.get("hud.trade.buy_price"),
+                i18n.get_msg("hud-trade-buy_price"),
                 buyprice / coinprice,
-                i18n.get("hud.trade.coin"),
+                i18n.get_msg("hud-trade-coin"),
             );
             let sell_string = format!(
                 "{} : {:0.1} {}",
-                i18n.get("hud.trade.sell_price"),
+                i18n.get_msg("hud-trade-sell_price"),
                 sellprice / coinprice,
-                i18n.get("hud.trade.coin"),
+                i18n.get_msg("hud-trade-coin"),
             );
             let deal_goodness = match deal_goodness {
                 x if x < -2.5 => 0.0,
@@ -82,30 +82,30 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
             if let Some(toolkind) = mc.toolkind() {
                 Cow::Owned(format!(
                     "{} {}",
-                    i18n.get(&format!("common.weapons.{}", toolkind.identifier_name())),
-                    i18n.get("common.kind.modular_component_partial")
+                    i18n.get_msg(&format!("common-weapons-{}", toolkind.identifier_name())),
+                    i18n.get_msg("common-kind-modular_component_partial")
                 ))
             } else {
-                i18n.get("common.kind.modular_component")
+                i18n.get_msg("common-kind-modular_component")
             }
         },
-        ItemKind::Glider => i18n.get("common.kind.glider"),
-        ItemKind::Consumable { .. } => i18n.get("common.kind.consumable"),
-        ItemKind::Throwable { .. } => i18n.get("common.kind.throwable"),
-        ItemKind::Utility { .. } => i18n.get("common.kind.utility"),
-        ItemKind::Ingredient { .. } => i18n.get("common.kind.ingredient"),
-        ItemKind::Lantern { .. } => i18n.get("common.kind.lantern"),
+        ItemKind::Glider => i18n.get_msg("common-kind-glider"),
+        ItemKind::Consumable { .. } => i18n.get_msg("common-kind-consumable"),
+        ItemKind::Throwable { .. } => i18n.get_msg("common-kind-throwable"),
+        ItemKind::Utility { .. } => i18n.get_msg("common-kind-utility"),
+        ItemKind::Ingredient { .. } => i18n.get_msg("common-kind-ingredient"),
+        ItemKind::Lantern { .. } => i18n.get_msg("common-kind-lantern"),
         ItemKind::TagExamples { .. } => Cow::Borrowed(""),
     }
 }
 
 pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> Cow<'a, str> {
     match kind {
-        MaterialKind::Metal { .. } => i18n.get("common.material.metal"),
-        MaterialKind::Wood { .. } => i18n.get("common.material.wood"),
-        MaterialKind::Stone { .. } => i18n.get("common.material.stone"),
-        MaterialKind::Cloth { .. } => i18n.get("common.material.cloth"),
-        MaterialKind::Hide { .. } => i18n.get("common.material.hide"),
+        MaterialKind::Metal { .. } => i18n.get_msg("common-material-metal"),
+        MaterialKind::Wood { .. } => i18n.get_msg("common-material-wood"),
+        MaterialKind::Stone { .. } => i18n.get_msg("common-material-stone"),
+        MaterialKind::Cloth { .. } => i18n.get_msg("common-material-cloth"),
+        MaterialKind::Hide { .. } => i18n.get_msg("common-material-hide"),
     }
 }
 
@@ -161,7 +161,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                         "strength" => format_float(strength),
                     })
                 },
-                BuffKind::Invulnerability => i18n.get("buff.stat.invulnerability"),
+                BuffKind::Invulnerability => i18n.get_msg("buff-stat-invulnerability"),
                 BuffKind::Bleeding
                 | BuffKind::Burning
                 | BuffKind::CampfireHeal
@@ -207,7 +207,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                     | BuffKind::Hastened => Cow::Borrowed(""),
                 }
             } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
-                i18n.get("buff.text.every_second")
+                i18n.get_msg("buff-text-every_second")
             } else {
                 Cow::Borrowed("")
             };
@@ -223,18 +223,18 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
 // Armor
 fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> Cow<'a, str> {
     let kind = match armor.kind {
-        ArmorKind::Shoulder => i18n.get("hud.bag.shoulders"),
-        ArmorKind::Chest => i18n.get("hud.bag.chest"),
-        ArmorKind::Belt => i18n.get("hud.bag.belt"),
-        ArmorKind::Hand => i18n.get("hud.bag.hands"),
-        ArmorKind::Pants => i18n.get("hud.bag.legs"),
-        ArmorKind::Foot => i18n.get("hud.bag.feet"),
-        ArmorKind::Back => i18n.get("hud.bag.back"),
-        ArmorKind::Ring => i18n.get("hud.bag.ring"),
-        ArmorKind::Neck => i18n.get("hud.bag.neck"),
-        ArmorKind::Head => i18n.get("hud.bag.head"),
-        ArmorKind::Tabard => i18n.get("hud.bag.tabard"),
-        ArmorKind::Bag => i18n.get("hud.bag.bag"),
+        ArmorKind::Shoulder => i18n.get_msg("hud-bag-shoulders"),
+        ArmorKind::Chest => i18n.get_msg("hud-bag-chest"),
+        ArmorKind::Belt => i18n.get_msg("hud-bag-belt"),
+        ArmorKind::Hand => i18n.get_msg("hud-bag-hands"),
+        ArmorKind::Pants => i18n.get_msg("hud-bag-legs"),
+        ArmorKind::Foot => i18n.get_msg("hud-bag-feet"),
+        ArmorKind::Back => i18n.get_msg("hud-bag-back"),
+        ArmorKind::Ring => i18n.get_msg("hud-bag-ring"),
+        ArmorKind::Neck => i18n.get_msg("hud-bag-neck"),
+        ArmorKind::Head => i18n.get_msg("hud-bag-head"),
+        ArmorKind::Tabard => i18n.get_msg("hud-bag-tabard"),
+        ArmorKind::Bag => i18n.get_msg("hud-bag-bag"),
     };
     kind
 }
@@ -242,21 +242,21 @@ fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> Cow<'a, str> {
 // Tool
 fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
     let kind = match tool.kind {
-        ToolKind::Sword => i18n.get("common.weapons.sword"),
-        ToolKind::Axe => i18n.get("common.weapons.axe"),
-        ToolKind::Hammer => i18n.get("common.weapons.hammer"),
-        ToolKind::Bow => i18n.get("common.weapons.bow"),
-        ToolKind::Dagger => i18n.get("common.weapons.dagger"),
-        ToolKind::Staff => i18n.get("common.weapons.staff"),
-        ToolKind::Sceptre => i18n.get("common.weapons.sceptre"),
-        ToolKind::Shield => i18n.get("common.weapons.shield"),
-        ToolKind::Spear => i18n.get("common.weapons.spear"),
-        ToolKind::Blowgun => i18n.get("common.weapons.blowgun"),
-        ToolKind::Natural => i18n.get("common.weapons.natural"),
-        ToolKind::Debug => i18n.get("common.tool.debug"),
-        ToolKind::Farming => i18n.get("common.tool.farming"),
-        ToolKind::Pick => i18n.get("common.tool.pick"),
-        ToolKind::Empty => i18n.get("common.empty"),
+        ToolKind::Sword => i18n.get_msg("common-weapons-sword"),
+        ToolKind::Axe => i18n.get_msg("common-weapons-axe"),
+        ToolKind::Hammer => i18n.get_msg("common-weapons-hammer"),
+        ToolKind::Bow => i18n.get_msg("common-weapons-bow"),
+        ToolKind::Dagger => i18n.get_msg("common-weapons-dagger"),
+        ToolKind::Staff => i18n.get_msg("common-weapons-staff"),
+        ToolKind::Sceptre => i18n.get_msg("common-weapons-sceptre"),
+        ToolKind::Shield => i18n.get_msg("common-weapons-shield"),
+        ToolKind::Spear => i18n.get_msg("common-weapons-spear"),
+        ToolKind::Blowgun => i18n.get_msg("common-weapons-blowgun"),
+        ToolKind::Natural => i18n.get_msg("common-weapons-natural"),
+        ToolKind::Debug => i18n.get_msg("common-tool-debug"),
+        ToolKind::Farming => i18n.get_msg("common-tool-farming"),
+        ToolKind::Pick => i18n.get_msg("common-tool-pick"),
+        ToolKind::Empty => i18n.get_msg("common-empty"),
     };
     kind
 }
@@ -264,8 +264,8 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
 /// Output the number of hands needed to hold a tool
 pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
     let hands = match tool.hands {
-        Hands::One => i18n.get("common.hands.one"),
-        Hands::Two => i18n.get("common.hands.two"),
+        Hands::One => i18n.get_msg("common-hands-one"),
+        Hands::Two => i18n.get_msg("common-hands-two"),
     };
     hands
 }

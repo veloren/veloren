@@ -258,9 +258,9 @@ impl SessionState {
                     self.hud.clear_cursor();
                     let i18n = global_state.i18n.read();
                     let msg = match result {
-                        TradeResult::Completed => i18n.get("hud.trade.result.completed"),
-                        TradeResult::Declined => i18n.get("hud.trade.result.declined"),
-                        TradeResult::NotEnoughSpace => i18n.get("hud.trade.result.nospace"),
+                        TradeResult::Completed => i18n.get_msg("hud-trade-result-completed"),
+                        TradeResult::Declined => i18n.get_msg("hud-trade-result-declined"),
+                        TradeResult::NotEnoughSpace => i18n.get_msg("hud-trade-result-nospace"),
                     };
                     self.hud.new_message(ChatType::Meta.chat_msg(msg));
                 },
@@ -327,7 +327,7 @@ impl SessionState {
                     let i18n = global_state.i18n.read();
 
                     let message = match time {
-                        0 => String::from(i18n.get("hud.chat.goodbye")),
+                        0 => String::from(i18n.get_msg("hud-chat-goodbye")),
                         _ => i18n
                             .get_msg_ctx("hud-chat-connection_lost", &i18n::fluent_args! {
                                 "time" => time
