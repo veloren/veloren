@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Certain NPCs will now attack when alone with victim
 - /kill_npcs no longer leaves drops behind and also has bug causing it to not destroy entities
   fixed.
+- Default present mode changed to Fifo (aka 'Vsync capped').
 
 ### Removed
 
