@@ -161,9 +161,15 @@ impl<'a> Trade<'a> {
         trade: &'a PendingTrade,
     ) {
         let phase_text = match trade.phase() {
-            TradePhase::Mutate => self.localized_strings.get_msg("hud-trade-phase1_description"),
-            TradePhase::Review => self.localized_strings.get_msg("hud-trade-phase2_description"),
-            TradePhase::Complete => self.localized_strings.get_msg("hud-trade-phase3_description"),
+            TradePhase::Mutate => self
+                .localized_strings
+                .get_msg("hud-trade-phase1_description"),
+            TradePhase::Review => self
+                .localized_strings
+                .get_msg("hud-trade-phase2_description"),
+            TradePhase::Complete => self
+                .localized_strings
+                .get_msg("hud-trade-phase3_description"),
         };
 
         Text::new(&phase_text)

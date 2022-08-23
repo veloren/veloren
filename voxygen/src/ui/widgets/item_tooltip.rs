@@ -868,7 +868,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                 // Slots
                 if item.num_slots() > 0 {
                     stat_text(
-                        format!("{} : {}", i18n.get_msg("common-stats-slots"), item.num_slots()),
+                        format!(
+                            "{} : {}",
+                            i18n.get_msg("common-stats-slots"),
+                            item.num_slots()
+                        ),
                         index,
                     );
                 }
@@ -1006,7 +1010,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                             stats.power * 10.0
                         )
                     } else {
-                        format!("{} : x{:.2}", i18n.get_msg("common-stats-power"), stats.power)
+                        format!(
+                            "{} : x{:.2}",
+                            i18n.get_msg("common-stats-power"),
+                            stats.power
+                        )
                     };
                     widget::Text::new(&power_text)
                         .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
@@ -1025,7 +1033,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                             (stats.speed - 1.0) * 100.0
                         )
                     } else {
-                        format!("{} : x{:.2}", i18n.get_msg("common-stats-speed"), stats.speed)
+                        format!(
+                            "{} : x{:.2}",
+                            i18n.get_msg("common-stats-speed"),
+                            stats.speed
+                        )
                     };
                     widget::Text::new(&speed_text)
                         .graphics_for(id)
@@ -1089,7 +1101,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                             (stats.range - 1.0) * 100.0
                         )
                     } else {
-                        format!("{} : x{:.2}", i18n.get_msg("common-stats-range"), stats.range)
+                        format!(
+                            "{} : x{:.2}",
+                            i18n.get_msg("common-stats-range"),
+                            stats.range
+                        )
                     };
                     widget::Text::new(&range_text)
                         .graphics_for(id)

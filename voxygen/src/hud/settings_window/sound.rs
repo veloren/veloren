@@ -255,12 +255,16 @@ impl<'a> Widget for Sound<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.sfx_volume_number, ui);
         // Ambience Volume
-        Text::new(&self.localized_strings.get_msg("hud-settings-ambience_volume"))
-            .down_from(state.ids.sfx_volume_slider, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.ambience_volume_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-ambience_volume"),
+        )
+        .down_from(state.ids.sfx_volume_slider, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.ambience_volume_text, ui);
         // Ambience Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
             self.global_state.settings.audio.ambience_volume,

@@ -240,8 +240,11 @@ impl PlayState for CharSelectionState {
                     }
                 },
                 Err(err) => {
-                    global_state.info_message =
-                        Some(localized_strings.get_msg("common-connection_lost").into_owned());
+                    global_state.info_message = Some(
+                        localized_strings
+                            .get_msg("common-connection_lost")
+                            .into_owned(),
+                    );
                     error!(?err, "[char_selection] Failed to tick the client");
                     return PlayStateResult::Pop;
                 },

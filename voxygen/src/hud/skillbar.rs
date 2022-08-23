@@ -455,8 +455,12 @@ impl<'a> Skillbar<'a> {
         // Bar Text
         let bar_text = if self.health.is_dead {
             Some((
-                self.localized_strings.get_msg("hud-group-dead").into_owned(),
-                self.localized_strings.get_msg("hud-group-dead").into_owned(),
+                self.localized_strings
+                    .get_msg("hud-group-dead")
+                    .into_owned(),
+                self.localized_strings
+                    .get_msg("hud-group-dead")
+                    .into_owned(),
             ))
         } else if let BarNumbers::Values = bar_values {
             Some((

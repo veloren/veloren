@@ -196,7 +196,11 @@ impl<'a> Widget for Controls<'a> {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .down_from(prev_id, 20.0)
-                .label(&self.localized_strings.get_msg("hud-settings-reset_keybinds"))
+                .label(
+                    &self
+                        .localized_strings
+                        .get_msg("hud-settings-reset_keybinds"),
+                )
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_color(TEXT_COLOR)
                 .label_font_id(self.fonts.cyri.conrod_id)

@@ -250,8 +250,11 @@ impl PlayState for MainMenuState {
                     }
                 },
                 Err(err) => {
-                    global_state.info_message =
-                        Some(localized_strings.get_msg("common-connection_lost").into_owned());
+                    global_state.info_message = Some(
+                        localized_strings
+                            .get_msg("common-connection_lost")
+                            .into_owned(),
+                    );
                     error!(?err, "[main menu] Failed to tick the client");
                     self.init = InitState::None;
                 },
@@ -444,7 +447,11 @@ fn get_client_msg_error(
             mismatched_server_info,
         } => match error {
             Error::SpecsErr(e) => {
-                format!("{}: {}", localization.get_msg("main-login-internal_error"), e)
+                format!(
+                    "{}: {}",
+                    localization.get_msg("main-login-internal_error"),
+                    e
+                )
             },
             Error::AuthErr(e) => format!(
                 "{}: {}",
@@ -453,9 +460,9 @@ fn get_client_msg_error(
             ),
             Error::Kicked(e) => e,
             Error::TooManyPlayers => localization.get_msg("main-login-server_full").into(),
-            Error::AuthServerNotTrusted => {
-                localization.get_msg("main-login-untrusted_auth_server").into()
-            },
+            Error::AuthServerNotTrusted => localization
+                .get_msg("main-login-untrusted_auth_server")
+                .into(),
             Error::ServerTimeout => localization.get_msg("main-login-timeout").into(),
             Error::ServerShutdown => localization.get_msg("main-login-server_shut_down").into(),
             Error::NotOnWhitelist => localization.get_msg("main-login-not_on_whitelist").into(),
@@ -475,7 +482,11 @@ fn get_client_msg_error(
             Error::ParticipantErr(e) => net_error(e.to_string(), mismatched_server_info),
             Error::StreamErr(e) => net_error(e.to_string(), mismatched_server_info),
             Error::HostnameLookupFailed(e) => {
-                format!("{}: {}", localization.get_msg("main-login-server_not_found"), e)
+                format!(
+                    "{}: {}",
+                    localization.get_msg("main-login-server_not_found"),
+                    e
+                )
             },
             Error::Other(e) => {
                 format!("{}: {}", localization.get_msg("common-error"), e)
@@ -492,9 +503,9 @@ fn get_client_msg_error(
                     localization.get_msg("main-login-failed_sending_request"),
                     e
                 ),
-                client::AuthClientError::InsecureSchema => {
-                    localization.get_msg("main-login-insecure_auth_scheme").into()
-                },
+                client::AuthClientError::InsecureSchema => localization
+                    .get_msg("main-login-insecure_auth_scheme")
+                    .into(),
                 client::AuthClientError::ServerError(_, e) => String::from_utf8_lossy(&e).into(),
             },
             Error::AuthServerUrlInvalid(e) => {

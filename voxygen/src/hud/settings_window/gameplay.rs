@@ -122,12 +122,16 @@ impl<'a> Widget for Gameplay<'a> {
         let display_clamp = self.global_state.settings.gameplay.camera_clamp_angle;
 
         // Mouse Pan Sensitivity
-        Text::new(&self.localized_strings.get_msg("hud-setting-pan_sensitivity"))
-            .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.mouse_pan_label, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-setting-pan_sensitivity"),
+        )
+        .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.mouse_pan_label, ui);
 
         if let Some(new_val) = ImageSlider::discrete(
             display_pan,
@@ -154,12 +158,16 @@ impl<'a> Widget for Gameplay<'a> {
             .set(state.ids.mouse_pan_value, ui);
 
         // Mouse Zoom Sensitivity
-        Text::new(&self.localized_strings.get_msg("hud-settings-zoom_sensitivity"))
-            .down_from(state.ids.mouse_pan_slider, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.mouse_zoom_label, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-zoom_sensitivity"),
+        )
+        .down_from(state.ids.mouse_pan_slider, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.mouse_zoom_label, ui);
 
         if let Some(new_val) = ImageSlider::discrete(
             display_zoom,
@@ -526,7 +534,11 @@ impl<'a> Widget for Gameplay<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.camera_clamp_behavior_list, 12.0)
-            .label(&self.localized_strings.get_msg("hud-settings-reset_gameplay"))
+            .label(
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-reset_gameplay"),
+            )
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)

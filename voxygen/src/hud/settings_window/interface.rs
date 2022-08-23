@@ -319,13 +319,17 @@ impl<'a> Widget for Interface<'a> {
             events.push(ToggleHotkeyHints(show_hotkey_hints));
         }
 
-        Text::new(&self.localized_strings.get_msg("hud-settings-show_hotkey_hints"))
-            .right_from(state.ids.hotkey_hints_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.hotkey_hints_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.hotkey_hints_button_label, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-show_hotkey_hints"),
+        )
+        .right_from(state.ids.hotkey_hints_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.hotkey_hints_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.hotkey_hints_button_label, ui);
 
         // Ui Scale
         Text::new(&self.localized_strings.get_msg("hud-settings-ui_scale"))
@@ -362,13 +366,17 @@ impl<'a> Widget for Interface<'a> {
             events.push(UiScale(ScaleChange::ToRelative));
         }
 
-        Text::new(&self.localized_strings.get_msg("hud-settings-relative_scaling"))
-            .right_from(state.ids.relative_to_win_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.relative_to_win_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.relative_to_win_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-relative_scaling"),
+        )
+        .right_from(state.ids.relative_to_win_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.relative_to_win_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.relative_to_win_text, ui);
 
         // Absolute Scaling Button
         let (check_img, check_mo_img, check_press_img, absolute_selected) = match ui_scale {
@@ -397,13 +405,17 @@ impl<'a> Widget for Interface<'a> {
             events.push(UiScale(ScaleChange::ToAbsolute));
         }
 
-        Text::new(&self.localized_strings.get_msg("hud-settings-custom_scaling"))
-            .right_from(state.ids.absolute_scale_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.absolute_scale_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.absolute_scale_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-custom_scaling"),
+        )
+        .right_from(state.ids.absolute_scale_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.absolute_scale_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.absolute_scale_text, ui);
 
         // Slider -> Inactive when "Relative to window" is selected
         if let ScaleMode::Absolute(scale) = ui_scale {
@@ -648,13 +660,17 @@ impl<'a> Widget for Interface<'a> {
                 ShortcutNumbers::Off => events.push(ToggleShortcutNumbers(ShortcutNumbers::On)),
             }
         }
-        Text::new(&self.localized_strings.get_msg("hud-settings-toggle_shortcuts"))
-            .right_from(state.ids.show_shortcuts_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_shortcuts_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.show_shortcuts_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-toggle_shortcuts"),
+        )
+        .right_from(state.ids.show_shortcuts_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.show_shortcuts_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.show_shortcuts_text, ui);
         // Buff Position
         // Buffs above skills
         if Button::image(match self.global_state.settings.interface.buff_position {
@@ -676,13 +692,17 @@ impl<'a> Widget for Interface<'a> {
         {
             events.push(BuffPosition(BuffPosition::Bar))
         }
-        Text::new(&self.localized_strings.get_msg("hud-settings-buffs_skillbar"))
-            .right_from(state.ids.buff_pos_bar_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_shortcuts_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.buff_pos_bar_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-buffs_skillbar"),
+        )
+        .right_from(state.ids.buff_pos_bar_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.show_shortcuts_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.buff_pos_bar_text, ui);
         // Buffs left from minimap
         if Button::image(match self.global_state.settings.interface.buff_position {
             BuffPosition::Map => self.imgs.check_checked,
@@ -823,13 +843,17 @@ impl<'a> Widget for Interface<'a> {
                     !self.global_state.settings.interface.sct_inc_dmg,
                 ))
             }
-            Text::new(&self.localized_strings.get_msg("hud-settings-incoming_damage"))
-                .right_from(state.ids.sct_show_inc_dmg_radio, 10.0)
-                .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .graphics_for(state.ids.sct_show_inc_dmg_radio)
-                .color(TEXT_COLOR)
-                .set(state.ids.sct_show_inc_dmg_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-incoming_damage"),
+            )
+            .right_from(state.ids.sct_show_inc_dmg_radio, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.sct_show_inc_dmg_radio)
+            .color(TEXT_COLOR)
+            .set(state.ids.sct_show_inc_dmg_text, ui);
             if self.global_state.settings.interface.sct_inc_dmg {
                 Text::new(
                     &self
@@ -997,12 +1021,16 @@ impl<'a> Widget for Interface<'a> {
 
         // Energybars Numbers
         // Hotbar text
-        Text::new(&self.localized_strings.get_msg("hud-settings-energybar_numbers"))
-            .down_from(state.ids.speech_bubble_icon_button, 20.0)
-            .font_size(self.fonts.cyri.scale(18))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.bar_numbers_title, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-energybar_numbers"),
+        )
+        .down_from(state.ids.speech_bubble_icon_button, 20.0)
+        .font_size(self.fonts.cyri.scale(18))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.bar_numbers_title, ui);
 
         // None
         if Button::image(if let BarNumbers::Off = bar_values {
@@ -1113,13 +1141,17 @@ impl<'a> Widget for Interface<'a> {
             events.push(ToggleAlwaysShowBars(always_show_bars));
         }
 
-        Text::new(&self.localized_strings.get_msg("hud-settings-always_show_bars"))
-            .right_from(state.ids.always_show_bars_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.always_show_bars_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.always_show_bars_label, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-always_show_bars"),
+        )
+        .right_from(state.ids.always_show_bars_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.always_show_bars_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.always_show_bars_label, ui);
 
         // Experience Numbers
         Text::new(
@@ -1169,7 +1201,11 @@ impl<'a> Widget for Interface<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.buff_pos_map_button, 12.0)
-            .label(&self.localized_strings.get_msg("hud-settings-reset_interface"))
+            .label(
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-reset_interface"),
+            )
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)

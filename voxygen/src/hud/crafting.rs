@@ -1804,13 +1804,17 @@ impl<'a> Widget for Crafting<'a> {
             }
         } else if *sel_crafting_tab == CraftingTab::Dismantle {
             // Title
-            Text::new(&self.localized_strings.get_msg("hud-crafting-dismantle_title"))
-                .mid_top_with_margin_on(state.ids.align_ing, 0.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(24))
-                .color(TEXT_COLOR)
-                .parent(state.ids.window)
-                .set(state.ids.dismantle_title, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get_msg("hud-crafting-dismantle_title"),
+            )
+            .mid_top_with_margin_on(state.ids.align_ing, 0.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(24))
+            .color(TEXT_COLOR)
+            .parent(state.ids.window)
+            .set(state.ids.dismantle_title, ui);
 
             // Bench Icon
             let size = 140.0;
