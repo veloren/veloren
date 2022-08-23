@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Setting for disabling flashing lights
+- Spectate mode for moderators.
 - Currently playing music track and artist now shows in the debug menu.
 - Added a setting to influence the gap between music track plays.
 - Added a Craft All button.
@@ -25,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Fixed npc not handling interactions while fighting (especially merchants in trade)
+- Fixed bug where you would still be burning after dying in lava.
+- Workaround for rayon bug that caused lag spikes in slowjobs
 - Fixed crash due to zooming out very far
 - Client properly knows trade was cancelled when exiting to the character screen (and no longer
   tries to display the trade window when rejoining)
@@ -68,8 +73,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More varied ambient birdcalls
 - Cave biomes
 - Updated the Polish translation
-- Setting for disabling flashing lights
-- Spectate mode for moderators.
 
 ### Changed
 
@@ -113,9 +116,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Combat music now loops and ends properly
 - Modular weapons now have a selling price
 - Closing a subwindow now only regrabs the cursor if no other subwindow requires it.
-- Fixed npc not handling interactions while fighting (especially merchants in trade)
-- Fixed bug where you would still be burning after dying in lava.
-- Workaround for rayon bug that caused lag spikes in slowjobs
 
 ## [0.12.0] - 2022-02-19
 
