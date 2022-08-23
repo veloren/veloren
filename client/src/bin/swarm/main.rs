@@ -111,7 +111,6 @@ fn run_client(
     let mut client = runtime
         .block_on(Client::new(addr, runtime_clone, &mut None))
         .expect("Failed to connect to the server");
-    client.set_view_distance(opt.vd);
 
     // Login
     // NOTE: use a no-auth server
@@ -159,6 +158,10 @@ fn run_client(
             .character
             .id
             .expect("Why is this an option?"),
+        common::ViewDistances {
+            terrain: opt.vd,
+            entity: opt.vd,
+        },
     );
 
     // If this is the admin client then adminify the other swarm members
