@@ -75,6 +75,15 @@ fn blacksmith_loadout(
     })
 }
 
+fn alchemist_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| {
+        matches!(good, Good::Potions)
+    })
+}
+
 fn profession_extra_loadout(
     profession: Option<&Profession>,
 ) -> fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder {
@@ -83,6 +92,7 @@ fn profession_extra_loadout(
         Some(Profession::Farmer) => farmer_loadout,
         Some(Profession::Chef) => chef_loadout,
         Some(Profession::Blacksmith) => blacksmith_loadout,
+        Some(Profession::Alchemist) => alchemist_loadout,
         _ => loadout_default,
     }
 }
@@ -90,7 +100,7 @@ fn profession_extra_loadout(
 fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent::Mark> {
     match profession {
         Some(
-            Profession::Merchant | Profession::Farmer | Profession::Chef | Profession::Blacksmith,
+            Profession::Merchant | Profession::Farmer | Profession::Chef | Profession::Blacksmith | Profession::Alchemist,
         ) => Some(comp::agent::Mark::Merchant),
         Some(Profession::Guard) => Some(comp::agent::Mark::Guard),
         _ => None,
