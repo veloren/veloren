@@ -3424,7 +3424,7 @@ impl<'a> SkillStrings<'a> {
                 let args = i18n::fluent_args! {
                     "SP" => sp(i18n, skill_set, skill),
                 };
-                let desc = i18n.get_msg_ctx(&desc, &args);
+                let desc = i18n.get_msg_ctx(desc, &args);
 
                 (title, desc)
             },
