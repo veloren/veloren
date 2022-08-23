@@ -146,6 +146,25 @@ impl<G> ChatType<G> {
             ChatType::Meta => None,
         }
     }
+
+    /// `None` means that the chat type is automated.
+    pub fn is_private(&self) -> Option<bool> {
+        match self {
+            ChatType::Online(_)
+            | ChatType::Offline(_)
+            | ChatType::CommandInfo
+            | ChatType::CommandError
+            | ChatType::FactionMeta(_)
+            | ChatType::GroupMeta(_)
+            | ChatType::Npc(_, _)
+            | ChatType::NpcSay(_, _)
+            | ChatType::NpcTell(_, _, _)
+            | ChatType::Meta
+            | ChatType::Kill(_, _) => None,
+            ChatType::Tell(_, _) | ChatType::Group(_, _) | ChatType::Faction(_, _) => Some(true),
+            ChatType::Say(_) | ChatType::Region(_) | ChatType::World(_) => Some(false),
+        }
+    }
 }
 
 // Stores chat text, type
