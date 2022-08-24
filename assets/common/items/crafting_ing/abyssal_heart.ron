@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Abyssal Heart",
+    description: "Source of Dagons Power.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Epic,
+    tags: [],
+)

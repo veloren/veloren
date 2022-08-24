@@ -1,0 +1,5 @@
+[    
+    (0.5, Item("common.items.crafting_ing.abyssal_heart")),
+    (2.5, LootTable("common.loot_tables.food.prepared")),
+    (2.5, Item("common.items.crafting_ing.seashells")),
+]

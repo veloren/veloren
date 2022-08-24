@@ -1,0 +1,16 @@
+#![enable(implicit_some)]
+(
+    name: Name("Cardinal"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.sea_chapel.cardinal"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.sea_chapel.cardinal"),
+            active_hands: InHands((Item("common.items.npc_weapons.unique.cardinal"), None)),
+            )),
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
+    ],
+)

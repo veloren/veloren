@@ -1,0 +1,13 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.armor.misc.head.winged_coronet"),
+    shoulders: Item("common.items.armor.cloth.silken.shoulder"),
+    chest: Item("common.items.armor.cloth.silken.chest"),
+    gloves: Item("common.items.armor.cloth.silken.hand"),
+    ring1: Item("common.items.armor.misc.ring.gold"),
+    ring2: Item("common.items.armor.misc.ring.gold"),
+    belt: Item("common.items.armor.cloth.silken.belt"),
+    legs: Item("common.items.armor.cloth.silken.pants"),
+    feet: Item("common.items.armor.cloth.silken.foot"),
+    lantern: Item("common.items.lantern.blue_0"),
+)

@@ -6,12 +6,13 @@ pub mod dungeon;
 mod giant_tree;
 mod gnarling;
 mod house;
+mod sea_chapel;
 mod workshop;
 
 pub use self::{
     castle::Castle, cliff_tower::CliffTower, desert_city_multiplot::DesertCityMultiPlot,
     desert_city_temple::DesertCityTemple, dungeon::Dungeon, giant_tree::GiantTree,
-    gnarling::GnarlingFortification, house::House, workshop::Workshop,
+    gnarling::GnarlingFortification, house::House, sea_chapel::SeaChapel, workshop::Workshop,
 };
 
 use super::*;
@@ -52,6 +53,7 @@ pub enum PlotKind {
     Workshop(Workshop),
     DesertCityMultiPlot(DesertCityMultiPlot),
     DesertCityTemple(DesertCityTemple),
+    SeaChapel(SeaChapel),
     Plaza,
     Castle(Castle),
     Road(Path<Vec2<i32>>),

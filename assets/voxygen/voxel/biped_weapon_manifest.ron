@@ -1529,6 +1529,10 @@
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None
     ),
+    Tool("common.items.npc_weapons.unique.cardinal"): (
+        vox_spec: ("weapon.sceptre.caduceus", (-2.5, -4.5, -6.0)),
+        color: None
+    ),
 //BIPEDLARGE
     Tool("common.items.npc_weapons.hammer.ogre_hammer"): (
         vox_spec: ("weapon.hammer.2hhammer_ogre", (-5.0, -5.5, -7.0)),

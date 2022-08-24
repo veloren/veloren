@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Organ"),
+    body: Exact(Object(BarrelOrgan)),
+    alignment: Alignment(Enemy),
+    loot: Item("common.items.crafting_ing.seashells"),
+    inventory: (
+        loadout: FromBody
+    ),
+    meta: [],
+)

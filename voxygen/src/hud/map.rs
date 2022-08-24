@@ -57,6 +57,9 @@ widget_ids! {
         show_towns_img,
         show_towns_box,
         show_towns_text,
+        show_sea_chapels_img,
+        show_sea_chapels_box,
+        show_sea_chapels_text,
         show_castles_img,
         show_castles_box,
         show_castles_text,
@@ -878,6 +881,7 @@ impl<'a> Widget for Map<'a> {
                         SiteKind::Cave => i18n.get_msg("hud-map-cave"),
                         SiteKind::Tree => i18n.get_msg("hud-map-tree"),
                         SiteKind::Gnarling => i18n.get_msg("hud-map-gnarling"),
+                        SiteKind::ChapelSite => i18n.get_msg("hud-map-chapel_Site"),
                     });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (None, i18n.get_msg("hud-map-town")),
@@ -902,10 +906,12 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cave => (None, i18n.get_msg("hud-map-cave")),
                 SiteKind::Tree => (None, i18n.get_msg("hud-map-tree")),
                 SiteKind::Gnarling => (Some(0), i18n.get_msg("hud-map-gnarling")),
+                SiteKind::ChapelSite => (Some(0), i18n.get_msg("hud-map-chapel_site")),
             };
             let desc = desc.into_owned() + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town,
+                SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
                 SiteKind::Castle => self.imgs.mmap_site_castle,
                 SiteKind::Cave => self.imgs.mmap_site_cave,
                 SiteKind::Tree => self.imgs.mmap_site_tree,
@@ -924,6 +930,7 @@ impl<'a> Widget for Map<'a> {
             .w_h(rside as f64, rside as f64)
             .hover_image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town_hover,
+                SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel_hover,
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
                 SiteKind::Cave => self.imgs.mmap_site_cave_hover,
                 SiteKind::Tree => self.imgs.mmap_site_tree_hover,
@@ -943,13 +950,15 @@ impl<'a> Widget for Map<'a> {
                 match &site.kind {
                     SiteKind::Town => TEXT_COLOR,
                     SiteKind::Castle => TEXT_COLOR,
-                    SiteKind::Dungeon { .. } | SiteKind::Gnarling => match difficulty {
-                        Some(0) => QUALITY_LOW,
-                        Some(1) => QUALITY_COMMON,
-                        Some(2) => QUALITY_MODERATE,
-                        Some(3) => QUALITY_HIGH,
-                        Some(4 | 5) => QUALITY_EPIC,
-                        _ => TEXT_COLOR,
+                    SiteKind::Dungeon { .. } | SiteKind::Gnarling | SiteKind::ChapelSite => {
+                        match difficulty {
+                            Some(0) => QUALITY_LOW,
+                            Some(1) => QUALITY_COMMON,
+                            Some(2) => QUALITY_MODERATE,
+                            Some(3) => QUALITY_HIGH,
+                            Some(4 | 5) => QUALITY_EPIC,
+                            _ => TEXT_COLOR,
+                        }
                     },
                     SiteKind::Cave => TEXT_COLOR,
                     SiteKind::Tree => TEXT_COLOR,
@@ -967,7 +976,9 @@ impl<'a> Widget for Map<'a> {
             // Only display sites that are toggled on
             let show_site = match &site.kind {
                 SiteKind::Town => show_towns,
-                SiteKind::Dungeon { .. } | SiteKind::Gnarling => show_dungeons,
+                SiteKind::Dungeon { .. } | SiteKind::Gnarling | SiteKind::ChapelSite => {
+                    show_dungeons
+                },
                 SiteKind::Castle => show_castles,
                 SiteKind::Cave => show_caves,
                 SiteKind::Tree => show_trees,
@@ -1023,7 +1034,7 @@ impl<'a> Widget for Map<'a> {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Dungeon { .. } | SiteKind::Gnarling => {
+                    SiteKind::Dungeon { .. } | SiteKind::Gnarling | SiteKind::ChapelSite => {
                         if show_dungeons {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }

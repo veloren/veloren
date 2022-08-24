@@ -359,6 +359,9 @@ impl ParticleMgr {
                 Body::Object(object::Body::CampfireLit) => {
                     self.maintain_campfirelit_particles(scene_data, interpolated.pos, vel)
                 },
+                Body::Object(object::Body::BarrelOrgan) => {
+                    self.maintain_barrel_organ_particles(scene_data, interpolated.pos, vel)
+                },
                 Body::Object(object::Body::BoltFire) => {
                     self.maintain_boltfire_particles(scene_data, interpolated.pos, vel)
                 },
@@ -412,6 +415,39 @@ impl ParticleMgr {
                 Duration::from_secs(10),
                 time,
                 ParticleMode::CampfireSmoke,
+                pos.map(|e| e + thread_rng().gen_range(-0.25..0.25))
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+            ));
+        }
+    }
+
+    fn maintain_barrel_organ_particles(
+        &mut self,
+        scene_data: &SceneData,
+        pos: Vec3<f32>,
+        vel: Option<&Vel>,
+    ) {
+        span!(
+            _guard,
+            "barrel_organ_particles",
+            "ParticleMgr::maintain_barrel_organ_particles"
+        );
+        let time = scene_data.state.get_time();
+        let dt = scene_data.state.get_delta_time();
+        let mut rng = thread_rng();
+
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(20)) {
+            self.particles.push(Particle::new(
+                Duration::from_millis(250),
+                time,
+                ParticleMode::BarrelOrgan,
+                pos,
+            ));
+
+            self.particles.push(Particle::new(
+                Duration::from_secs(10),
+                time,
+                ParticleMode::BarrelOrgan,
                 pos.map(|e| e + thread_rng().gen_range(-0.25..0.25))
                     + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
             ));

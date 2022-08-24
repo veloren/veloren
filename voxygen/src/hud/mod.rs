@@ -4644,6 +4644,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
 pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> Option<Cow<str>> {
     let i18n_key = match sprite {
         SpriteKind::Empty => return None,
+        SpriteKind::GlassBarrier => return None,
         SpriteKind::Anvil => "hud-crafting-anvil",
         SpriteKind::Cauldron => "hud-crafting-cauldron",
         SpriteKind::CookingPot => "hud-crafting-cooking_pot",
@@ -4655,6 +4656,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::DismantlingBench => "hud-crafting-salvaging_station",
         SpriteKind::ChestBuried
         | SpriteKind::Chest
+        | SpriteKind::CoralChest
         | SpriteKind::DungeonChest0
         | SpriteKind::DungeonChest1
         | SpriteKind::DungeonChest2

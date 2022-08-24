@@ -451,6 +451,16 @@
                 color: None
             )
         ),
+        "common.items.armor.cardinal.shoulder": (
+            left: (
+                vox_spec: ("armor.cardinal.shoulder", (-5.0, -4.0, -2.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.empty", (-0.5, -4.0, -2.0)),
+                color: None
+            )
+        ),
         "common.items.armor.merchant.shoulder": (
             left: (
                 vox_spec: ("armor.merchant.shoulder_l", (-3.0, -4.0 , -8.0)),

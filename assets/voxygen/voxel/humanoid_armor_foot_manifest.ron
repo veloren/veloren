@@ -160,6 +160,10 @@
             vox_spec: ("armor.mail.orichalcum.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        "common.items.armor.cardinal.foot": (
+            vox_spec: ("armor.cardinal.foot",(-2.5, -3.5, -2.0)),
+            color: None
+        ),
         "common.items.armor.merchant.foot": (
             vox_spec: ("armor.merchant.foot", (-2.5, -3.5, -2.0)),
             color: None

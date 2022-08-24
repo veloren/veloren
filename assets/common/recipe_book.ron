@@ -1723,6 +1723,15 @@
         ],
         craft_sprite: None,
     ),
+    "abyssal gorget": (
+        output: ("common.items.armor.misc.neck.abyssal_gorget", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.coral_branch"), 10, false),
+            (Item("common.items.crafting_ing.abyssal_heart"), 2, false),
+            (Item("common.items.crafting_ing.cloth.linen"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
     "tin pickaxe": (
         output: ("common.items.tool.pickaxe_stone", 1),
         inputs: [

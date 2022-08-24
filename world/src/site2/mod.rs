@@ -887,6 +887,38 @@ impl Site {
         site
     }
 
+    pub fn generate_chapel_site(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: NameGen::location(&mut rng).generate_danari(),
+            ..Site::default()
+        };
+        // SeaChapel
+        let size = 10.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let sea_chapel = plot::SeaChapel::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let sea_chapel_alt = sea_chapel.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::SeaChapel(sea_chapel),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(sea_chapel_alt),
+            });
+        }
+        site
+    }
+
     pub fn wpos_tile_pos(&self, wpos2d: Vec2<i32>) -> Vec2<i32> {
         (wpos2d - self.origin).map(|e| e.div_euclid(TILE_SIZE as i32))
     }
@@ -1131,6 +1163,7 @@ impl Site {
                 PlotKind::House(house) => house.render_collect(self, canvas),
                 PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
                 PlotKind::Castle(castle) => castle.render_collect(self, canvas),
+                PlotKind::SeaChapel(sea_chapel) => sea_chapel.render_collect(self, canvas),
                 PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
                 PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),

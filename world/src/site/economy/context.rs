@@ -128,6 +128,7 @@ impl Environment {
                     SiteKind::Tree(_) => (),
                     SiteKind::GiantTree(_) => (),
                     SiteKind::Gnarling(_) => {},
+                    SiteKind::ChapelSite(_) => {},
                 }
             }
             if towns.valid() {

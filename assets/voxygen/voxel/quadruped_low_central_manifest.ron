@@ -572,6 +572,58 @@
             central: ("npc.hakulaq.male.tail_front"),
         ),
     ),
+    (Dagon, Male): (
+        upper: (
+            offset: (-4.5, 2.5, -13.0),
+            central: ("npc.dagon.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.5, -10.0, -10.5),
+            central: ("npc.dagon.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, 11.5, -13.0),
+            central: ("npc.dagon.male.jaw"),
+        ),
+        chest: (
+            offset: (-4.5, -8.0, -10.5),
+            central: ("npc.dagon.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-0.5, -31.0, -8.0),
+            central: ("npc.dagon.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-1.5, -12.0, -10.0),
+            central: ("npc.dagon.male.tail_front"),
+        ),
+    ),
+    (Dagon, Female): (
+        upper: (
+            offset: (-4.5, 2.5, -13.0),
+            central: ("npc.dagon.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.5, -10.0, -10.5),
+            central: ("npc.dagon.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, 11.5, -13.0),
+            central: ("npc.dagon.male.jaw"),
+        ),
+        chest: (
+            offset: (-4.5, -8.0, -10.5),
+            central: ("npc.dagon.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-0.5, -31.0, -8.0),
+            central: ("npc.dagon.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-1.5, -12.0, -10.0),
+            central: ("npc.dagon.male.tail_front"),
+        ),
+    ),
     (Sandshark, Male): (
         upper: (
             offset: (-5.5, -8.0, -5.0),

@@ -145,6 +145,7 @@ pub enum SiteKind {
     Cave,
     Tree,
     Gnarling,
+    ChapelSite,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

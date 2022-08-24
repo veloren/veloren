@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Dagon"),
+    body: RandomWith("dagon"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.sea_chapel.dagon"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

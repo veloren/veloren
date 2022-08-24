@@ -579,6 +579,9 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_low::Species::Asp => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.asp",
             )),
+            quadruped_low::Species::Dagon => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.dagon",
+            )),
             quadruped_low::Species::Crocodile
             | quadruped_low::Species::SeaCrocodile
             | quadruped_low::Species::Alligator
@@ -717,6 +720,9 @@ fn default_main_tool(body: &Body) -> Item {
         Body::Object(body) => match body {
             object::Body::Crossbow => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.turret",
+            )),
+            object::Body::BarrelOrgan => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.organ",
             )),
             object::Body::HaniwaSentry => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.haniwa_sentry",

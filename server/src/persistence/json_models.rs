@@ -85,7 +85,8 @@ pub fn skill_group_to_db_string(skill_group: comp::skillset::SkillGroupKind) -> 
         | Weapon(ToolKind::Debug)
         | Weapon(ToolKind::Farming)
         | Weapon(ToolKind::Empty)
-        | Weapon(ToolKind::Natural) => panic!(
+        | Weapon(ToolKind::Natural)
+        | Weapon(ToolKind::Organ) => panic!(
             "Tried to add unsupported skill group to database: {:?}",
             skill_group
         ),
@@ -104,6 +105,7 @@ pub fn db_string_to_skill_group(skill_group_string: &str) -> comp::skillset::Ski
         "Weapon Staff" => Weapon(ToolKind::Staff),
         "Weapon Sceptre" => Weapon(ToolKind::Sceptre),
         "Weapon Pick" => Weapon(ToolKind::Pick),
+
         _ => panic!(
             "Tried to convert an unsupported string from the database: {}",
             skill_group_string
@@ -203,6 +205,7 @@ fn tool_kind_to_string(tool: Option<comp::item::tool::ToolKind>) -> String {
         Some(Farming) => "Farming",
         Some(Debug) => "Debug",
         Some(Natural) => "Natural",
+        Some(Organ) => "Organ",
         Some(Empty) => "Empty",
         None => "None",
     })
@@ -226,6 +229,7 @@ fn tool_kind_from_string(tool: String) -> Option<comp::item::tool::ToolKind> {
         "Farming" => Some(Farming),
         "Debug" => Some(Debug),
         "Natural" => Some(Natural),
+        "Organ" => Some(Organ),
         "Empty" => Some(Empty),
         "None" => None,
         unknown => {
