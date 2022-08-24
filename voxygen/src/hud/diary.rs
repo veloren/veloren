@@ -3438,7 +3438,7 @@ impl<'a> SkillStrings<'a> {
                     "boost" => constant,
                     "SP" => sp(i18n, skill_set, skill),
                 };
-                let desc = i18n.get_msg_ctx(&desc.replace('.', "-"), &args);
+                let desc = i18n.get_msg_ctx(&desc, &args);
 
                 (title, desc)
             },
@@ -3452,7 +3452,7 @@ impl<'a> SkillStrings<'a> {
                     "boost" => constant,
                     "SP" => sp(i18n, skill_set, skill),
                 };
-                let desc = i18n.get_msg_ctx(&desc.replace('.', "-"), &args);
+                let desc = i18n.get_msg_ctx(&desc, &args);
 
                 (title, desc)
             },
@@ -3469,7 +3469,7 @@ impl<'a> SkillStrings<'a> {
                     "boost" => format!("{percentage:.0}"),
                     "SP" => sp(i18n, skill_set, skill),
                 };
-                let desc = i18n.get_msg_ctx(&desc.replace('.', "-"), &args);
+                let desc = i18n.get_msg_ctx(&desc, &args);
 
                 (title, desc)
             },
