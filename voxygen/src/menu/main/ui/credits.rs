@@ -128,22 +128,22 @@ impl Screen {
                     Space::new(Length::Fill, Length::Units(25)).into(),
                     Scrollable::new(&mut self.scroll)
                         .push(art_section(
-                            "main.credits.music",
+                            "main-credits-music",
                             music_header_color,
                             &credits.music,
                         ))
                         .push(art_section(
-                            "main.credits.fonts",
+                            "main-credits-fonts",
                             fonts_header_color,
                             &credits.fonts,
                         ))
                         .push(art_section(
-                            "main.credits.other_art",
+                            "main-credits-other_art",
                             other_art_header_color,
                             &credits.other_art,
                         ))
                         .push(credit_section(
-                            "main.credits.contributors",
+                            "main-credits-contributors",
                             contributors_header_color,
                             credits.contributors.iter(),
                             format_contributor_credit,
