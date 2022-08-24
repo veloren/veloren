@@ -941,7 +941,7 @@ impl Controls {
                                 matches!(body.species, humanoid::Species::Human),
                                 Message::Species(humanoid::Species::Human),
                                 human_icon,
-                                "common.species.human",
+                                "common-species-human",
                             )
                             .into(),
                             icon_button_tooltip(
@@ -949,7 +949,7 @@ impl Controls {
                                 matches!(body.species, humanoid::Species::Orc),
                                 Message::Species(humanoid::Species::Orc),
                                 orc_icon,
-                                "common.species.orc",
+                                "common-species-orc",
                             )
                             .into(),
                             icon_button_tooltip(
@@ -957,7 +957,7 @@ impl Controls {
                                 matches!(body.species, humanoid::Species::Dwarf),
                                 Message::Species(humanoid::Species::Dwarf),
                                 dwarf_icon,
-                                "common.species.dwarf",
+                                "common-species-dwarf",
                             )
                             .into(),
                         ])
@@ -969,7 +969,7 @@ impl Controls {
                                 matches!(body.species, humanoid::Species::Elf),
                                 Message::Species(humanoid::Species::Elf),
                                 elf_icon,
-                                "common.species.elf",
+                                "common-species-elf",
                             )
                             .into(),
                             icon_button_tooltip(
@@ -977,7 +977,7 @@ impl Controls {
                                 matches!(body.species, humanoid::Species::Draugr),
                                 Message::Species(humanoid::Species::Draugr),
                                 draugr_icon,
-                                "common.species.draugr",
+                                "common-species-draugr",
                             )
                             .into(),
                             icon_button_tooltip(
@@ -985,7 +985,7 @@ impl Controls {
                                 matches!(body.species, humanoid::Species::Danari),
                                 Message::Species(humanoid::Species::Danari),
                                 danari_icon,
-                                "common.species.danari",
+                                "common-species-danari",
                             )
                             .into(),
                         ])
@@ -1008,7 +1008,7 @@ impl Controls {
                                 *mainhand == Some(STARTER_SWORD),
                                 Message::Tool((Some(STARTER_SWORD), None)),
                                 imgs.sword,
-                                "common.weapons.greatsword",
+                                "common-weapons-greatsword",
                             )
                             .into(),
                             icon_button_tooltip(
@@ -1016,7 +1016,7 @@ impl Controls {
                                 *mainhand == Some(STARTER_HAMMER),
                                 Message::Tool((Some(STARTER_HAMMER), None)),
                                 imgs.hammer,
-                                "common.weapons.hammer",
+                                "common-weapons-hammer",
                             )
                             .into(),
                             icon_button_tooltip(
@@ -1024,7 +1024,7 @@ impl Controls {
                                 *mainhand == Some(STARTER_AXE),
                                 Message::Tool((Some(STARTER_AXE), None)),
                                 imgs.axe,
-                                "common.weapons.axe",
+                                "common-weapons-axe",
                             )
                             .into(),
                         ])
@@ -1036,7 +1036,7 @@ impl Controls {
                                 *mainhand == Some(STARTER_SWORDS),
                                 Message::Tool((Some(STARTER_SWORDS), Some(STARTER_SWORDS))),
                                 imgs.swords,
-                                "common.weapons.shortswords",
+                                "common-weapons-shortswords",
                             )
                             .into(),
                             icon_button_tooltip(
@@ -1044,7 +1044,7 @@ impl Controls {
                                 *mainhand == Some(STARTER_BOW),
                                 Message::Tool((Some(STARTER_BOW), None)),
                                 imgs.bow,
-                                "common.weapons.bow",
+                                "common-weapons-bow",
                             )
                             .into(),
                             icon_button_tooltip(
@@ -1052,7 +1052,7 @@ impl Controls {
                                 *mainhand == Some(STARTER_STAFF),
                                 Message::Tool((Some(STARTER_STAFF), None)),
                                 imgs.staff,
-                                "common.weapons.staff",
+                                "common-weapons-staff",
                             )
                             .into(),
                         ])
