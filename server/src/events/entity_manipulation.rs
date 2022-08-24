@@ -522,7 +522,6 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                 .destroy_entity(rtsim_entity.0);
         }
 
-        println!("deleting");
         if let Err(e) = state.delete_entity_recorded(entity) {
             error!(?e, ?entity, "Failed to delete destroyed entity");
         }
