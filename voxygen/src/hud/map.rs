@@ -278,7 +278,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.icon, ui);
 
         // Map Title
-        Text::new(&i18n.get("hud.map.map_title"))
+        Text::new(&i18n.get_msg("hud-map-map_title"))
             .mid_top_with_margin_on(state.ids.frame, 3.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(29))
@@ -286,7 +286,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.map_title, ui);
 
         // Questlog Title
-        Text::new(&i18n.get("hud.map.qlog_title"))
+        Text::new(&i18n.get_msg("hud-map-qlog_title"))
             .mid_top_with_margin_on(state.ids.qlog_align, 6.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(21))
@@ -506,7 +506,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowDifficulty(!show_difficulty)));
         }
-        Text::new(&i18n.get("hud.map.difficulty"))
+        Text::new(&i18n.get_msg("hud-map-difficulty"))
             .right_from(state.ids.show_difficulty_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -540,7 +540,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowTowns(!show_towns)));
         }
-        Text::new(&i18n.get("hud.map.towns"))
+        Text::new(&i18n.get_msg("hud-map-towns"))
             .right_from(state.ids.show_towns_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -574,7 +574,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowCastles(!show_castles)));
         }
-        Text::new(&i18n.get("hud.map.castles"))
+        Text::new(&i18n.get_msg("hud-map-castles"))
             .right_from(state.ids.show_castles_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -608,7 +608,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowDungeons(!show_dungeons)));
         }
-        Text::new(&i18n.get("hud.map.dungeons"))
+        Text::new(&i18n.get_msg("hud-map-dungeons"))
             .right_from(state.ids.show_dungeons_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -642,7 +642,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowCaves(!show_caves)));
         }
-        Text::new(&i18n.get("hud.map.caves"))
+        Text::new(&i18n.get_msg("hud-map-caves"))
             .right_from(state.ids.show_caves_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -676,7 +676,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowTrees(!show_trees)));
         }
-        Text::new(&i18n.get("hud.map.trees"))
+        Text::new(&i18n.get_msg("hud-map-trees"))
             .right_from(state.ids.show_trees_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -710,7 +710,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowBiomes(!show_biomes)));
         }
-        Text::new(&i18n.get("hud.map.biomes"))
+        Text::new(&i18n.get_msg("hud-map-biomes"))
             .right_from(state.ids.show_biomes_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -744,7 +744,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowPeaks(!show_peaks)));
         }
-        Text::new(&i18n.get("hud.map.peaks"))
+        Text::new(&i18n.get_msg("hud-map-peaks"))
             .right_from(state.ids.show_peaks_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -781,7 +781,7 @@ impl<'a> Widget for Map<'a> {
             {
                 events.push(Event::SettingsChange(MapShowVoxelMap(!show_voxel_map)));
             }
-            Text::new(&i18n.get("hud.map.voxel_map"))
+            Text::new(&i18n.get_msg("hud-map-voxel_map"))
                 .right_from(state.ids.show_voxel_map_box, 10.0)
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
@@ -872,15 +872,15 @@ impl<'a> Widget for Map<'a> {
                     .as_deref()
                     .map(Cow::Borrowed)
                     .unwrap_or_else(|| match &site.kind {
-                        SiteKind::Town => i18n.get("hud.map.town"),
-                        SiteKind::Dungeon { .. } => i18n.get("hud.map.dungeon"),
-                        SiteKind::Castle => i18n.get("hud.map.castle"),
-                        SiteKind::Cave => i18n.get("hud.map.cave"),
-                        SiteKind::Tree => i18n.get("hud.map.tree"),
-                        SiteKind::Gnarling => i18n.get("hud.map.gnarling"),
+                        SiteKind::Town => i18n.get_msg("hud-map-town"),
+                        SiteKind::Dungeon { .. } => i18n.get_msg("hud-map-dungeon"),
+                        SiteKind::Castle => i18n.get_msg("hud-map-castle"),
+                        SiteKind::Cave => i18n.get_msg("hud-map-cave"),
+                        SiteKind::Tree => i18n.get_msg("hud-map-tree"),
+                        SiteKind::Gnarling => i18n.get_msg("hud-map-gnarling"),
                     });
             let (difficulty, desc) = match &site.kind {
-                SiteKind::Town => (None, i18n.get("hud.map.town")),
+                SiteKind::Town => (None, i18n.get_msg("hud-map-town")),
                 SiteKind::Dungeon { difficulty } => {
                     if *difficulty < 5 {
                         (
@@ -898,10 +898,10 @@ impl<'a> Widget for Map<'a> {
                         )
                     }
                 },
-                SiteKind::Castle => (None, i18n.get("hud.map.castle")),
-                SiteKind::Cave => (None, i18n.get("hud.map.cave")),
-                SiteKind::Tree => (None, i18n.get("hud.map.tree")),
-                SiteKind::Gnarling => (Some(0), i18n.get("hud.map.gnarling")),
+                SiteKind::Castle => (None, i18n.get_msg("hud-map-castle")),
+                SiteKind::Cave => (None, i18n.get_msg("hud-map-cave")),
+                SiteKind::Tree => (None, i18n.get_msg("hud-map-tree")),
+                SiteKind::Gnarling => (Some(0), i18n.get_msg("hud-map-gnarling")),
             };
             let desc = desc.into_owned() + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
@@ -1274,7 +1274,7 @@ impl<'a> Widget for Map<'a> {
                     .floating(true)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &i18n.get("hud.map.marked_location"),
+                        &i18n.get_msg("hud-map-marked_location"),
                         &format!(
                             "X: {}, Y: {}\n\n{}",
                             lm.x as i32,
@@ -1316,12 +1316,12 @@ impl<'a> Widget for Map<'a> {
                 .floating(true)
                 .with_tooltip(
                     self.tooltip_manager,
-                    &i18n.get("hud.map.marked_location"),
+                    &i18n.get_msg("hud-map-marked_location"),
                     &format!(
                         "X: {}, Y: {}\n\n{}",
                         lm.x as i32,
                         lm.y as i32,
-                        i18n.get("hud.map.marked_location_remove")
+                        i18n.get_msg("hud-map-marked_location_remove")
                     ),
                     &site_tooltip,
                     TEXT_VELORITE,
@@ -1389,7 +1389,7 @@ impl<'a> Widget for Map<'a> {
             } else {
                 self.imgs.button
             })
-            .label(&i18n.get("hud.map.recenter"))
+            .label(&i18n.get_msg("hud-map-recenter"))
             .label_y(position::Relative::Scalar(1.0))
             .label_color(if recenter {
                 TEXT_COLOR
@@ -1414,7 +1414,7 @@ impl<'a> Widget for Map<'a> {
             .w_h(icon_size.x, icon_size.y)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.drag_ico, ui);
-        Text::new(&i18n.get("hud.map.drag"))
+        Text::new(&i18n.get_msg("hud-map-drag"))
             .right_from(state.ids.drag_ico, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -1426,7 +1426,7 @@ impl<'a> Widget for Map<'a> {
             .w_h(icon_size.x, icon_size.y)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.zoom_ico, ui);
-        Text::new(&i18n.get("hud.map.zoom"))
+        Text::new(&i18n.get_msg("hud-map-zoom"))
             .right_from(state.ids.zoom_ico, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -1442,7 +1442,7 @@ impl<'a> Widget for Map<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.waypoint_binding_txt, ui);
 
-        Text::new(&i18n.get("hud.map.mid_click"))
+        Text::new(&i18n.get_msg("hud-map-mid_click"))
             .right_from(state.ids.waypoint_binding_txt, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -1458,7 +1458,7 @@ impl<'a> Widget for Map<'a> {
             .bottom_right_with_margins_on(state.ids.map_layers[0], -36.0, 0.0)
             .with_tooltip(
                 self.tooltip_manager,
-                &i18n.get("hud.map.change_map_mode"),
+                &i18n.get_msg("hud-map-change_map_mode"),
                 "",
                 &site_tooltip,
                 TEXT_COLOR,
@@ -1482,8 +1482,8 @@ impl<'a> Widget for Map<'a> {
             .left_from(state.ids.map_mode_btn, 5.0)
             .with_tooltip(
                 self.tooltip_manager,
-                &i18n.get("hud.map.toggle_minimap_voxel"),
-                &i18n.get("hud.map.zoom_minimap_explanation"),
+                &i18n.get_msg("hud-map-toggle_minimap_voxel"),
+                &i18n.get_msg("hud-map-zoom_minimap_explanation"),
                 &site_tooltip,
                 TEXT_COLOR,
             )

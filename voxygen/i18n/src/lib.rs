@@ -233,28 +233,6 @@ pub struct LocalizationGuard {
 }
 
 impl LocalizationGuard {
-    /// !!!DEPRECATED!!!
-    ///
-    /// Get a localized text from the given key
-    ///
-    /// First lookup is done in the active language, second in
-    /// the fallback (if present).
-    /// If the key is not present in the localization object
-    /// then the key itself is returned.
-    ///
-    /// # NOTE:
-    /// This function shouldn't be used in new code.
-    /// It is kept for compatibility with old code that uses
-    /// old style dot-separated keys and this function internally
-    /// replaces them with dashes.
-    // FIXME (i18n old style keys):
-    // this is deprecated, fix all usages of this asap
-    pub fn get(&self, key: &str) -> Cow<str> {
-        // Fluent uses `-` as informal separator, while in the past with our
-        // RON based system we used `.` for that purpose.
-        self.get_msg(&key.replace('.', "-"))
-    }
-
     /// Get a localized text from the given key
     ///
     /// First lookup is done in the active language, second in

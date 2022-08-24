@@ -40,7 +40,7 @@ impl Screen {
                 write!(
                     &mut text,
                     " {} {}",
-                    i18n.get("main.credits.created_by"),
+                    i18n.get_msg("main-credits-created_by"),
                     author
                 )?;
             }
@@ -79,7 +79,7 @@ impl Screen {
         ) -> Element<'a, Message> {
             Column::with_children(
                 core::iter::once(
-                    iced::Text::new(i18n.get(header_i18n_key))
+                    iced::Text::new(i18n.get_msg(header_i18n_key))
                         .font(fonts.cyri.id)
                         .size(fonts.cyri.scale(30))
                         .color(header_color)
@@ -119,7 +119,7 @@ impl Screen {
         Container::new(
             Container::new(
                 Column::with_children(vec![
-                    iced::Text::new(i18n.get("main.credits"))
+                    iced::Text::new(i18n.get_msg("main-credits"))
                         .font(fonts.alkhemi.id)
                         .size(fonts.alkhemi.scale(35))
                         .width(Length::Fill)
@@ -128,22 +128,22 @@ impl Screen {
                     Space::new(Length::Fill, Length::Units(25)).into(),
                     Scrollable::new(&mut self.scroll)
                         .push(art_section(
-                            "main.credits.music",
+                            "main-credits-music",
                             music_header_color,
                             &credits.music,
                         ))
                         .push(art_section(
-                            "main.credits.fonts",
+                            "main-credits-fonts",
                             fonts_header_color,
                             &credits.fonts,
                         ))
                         .push(art_section(
-                            "main.credits.other_art",
+                            "main-credits-other_art",
                             other_art_header_color,
                             &credits.other_art,
                         ))
                         .push(credit_section(
-                            "main.credits.contributors",
+                            "main-credits-contributors",
                             contributors_header_color,
                             credits.contributors.iter(),
                             format_contributor_credit,
@@ -156,7 +156,7 @@ impl Screen {
                     Container::new(
                         Container::new(neat_button(
                             &mut self.back_button,
-                            i18n.get("common.back"),
+                            i18n.get_msg("common-back"),
                             0.7,
                             button_style,
                             Some(Message::Back),

@@ -552,7 +552,7 @@ impl<'a> Widget for Chat<'a> {
             .hover_image(self.imgs.selection_hover)
             .hover_image(self.imgs.selection_press)
             .image_color(shading)
-            .label(&self.localized_strings.get("hud.chat.all"))
+            .label(&self.localized_strings.get_msg("hud-chat-all"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_font_id(self.fonts.cyri.conrod_id)
             .label_color(TEXT_COLOR.alpha(alpha))
@@ -613,7 +613,7 @@ impl<'a> Widget for Chat<'a> {
                     Text::new(
                         &self
                             .localized_strings
-                            .get("hud.chat.chat_tab_hover_tooltip"),
+                            .get_msg("hud-chat-chat_tab_hover_tooltip"),
                     )
                     .mid_top_with_margin_on(state.ids.chat_tab_tooltip_bg, 3.0)
                     .font_size(self.fonts.cyri.scale(10))

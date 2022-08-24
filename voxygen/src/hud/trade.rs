@@ -140,13 +140,13 @@ impl<'a> Trade<'a> {
     }
 
     fn title(&mut self, state: &mut ConrodState<'_, State>, ui: &mut UiCell<'_>) {
-        Text::new(&self.localized_strings.get("hud.trade.trade_window"))
+        Text::new(&self.localized_strings.get_msg("hud-trade-trade_window"))
             .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.trade_title_bg, ui);
-        Text::new(&self.localized_strings.get("hud.trade.trade_window"))
+        Text::new(&self.localized_strings.get_msg("hud-trade-trade_window"))
             .top_left_with_margins_on(state.ids.trade_title_bg, 2.0, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
@@ -161,9 +161,15 @@ impl<'a> Trade<'a> {
         trade: &'a PendingTrade,
     ) {
         let phase_text = match trade.phase() {
-            TradePhase::Mutate => self.localized_strings.get("hud.trade.phase1_description"),
-            TradePhase::Review => self.localized_strings.get("hud.trade.phase2_description"),
-            TradePhase::Complete => self.localized_strings.get("hud.trade.phase3_description"),
+            TradePhase::Mutate => self
+                .localized_strings
+                .get_msg("hud-trade-phase1_description"),
+            TradePhase::Review => self
+                .localized_strings
+                .get_msg("hud-trade-phase2_description"),
+            TradePhase::Complete => self
+                .localized_strings
+                .get_msg("hud-trade-phase3_description"),
         };
 
         Text::new(&phase_text)
@@ -223,11 +229,11 @@ impl<'a> Trade<'a> {
 
         let offer_header = if ours {
             self.localized_strings
-                .get("hud.trade.your_offer")
+                .get_msg("hud-trade-your_offer")
                 .to_owned()
         } else {
             self.localized_strings
-                .get("hud.trade.their_offer")
+                .get_msg("hud-trade-their_offer")
                 .to_owned()
         };
 
@@ -515,7 +521,7 @@ impl<'a> Trade<'a> {
             .press_image(press_img)
             .image_color(accept_button_luminance)
             .bottom_left_with_margins_on(state.ids.bg, 90.0, 47.0)
-            .label(&self.localized_strings.get("hud.trade.accept"))
+            .label(&self.localized_strings.get_msg("hud-trade-accept"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)
@@ -531,7 +537,7 @@ impl<'a> Trade<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .right_from(state.ids.accept_button, 20.0)
-            .label(&self.localized_strings.get("hud.trade.decline"))
+            .label(&self.localized_strings.get_msg("hud-trade-decline"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)
@@ -662,7 +668,7 @@ impl<'a> Trade<'a> {
             }
         } else {
             // placeholder text when no trade slot is selected
-            Text::new(&self.localized_strings.get("hud.trade.amount_input"))
+            Text::new(&self.localized_strings.get_msg("hud-trade-amount_input"))
                 .middle_of(state.ids.amount_bg)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))

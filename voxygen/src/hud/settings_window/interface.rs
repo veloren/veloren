@@ -174,7 +174,7 @@ impl<'a> Widget for Interface<'a> {
         let crosshair_type = self.global_state.settings.interface.crosshair_type;
         let ui_scale = self.global_state.settings.interface.ui_scale;
 
-        Text::new(&self.localized_strings.get("hud.settings.general"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-general"))
             .top_left_with_margins_on(state.ids.window, 5.0, 5.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
@@ -197,7 +197,7 @@ impl<'a> Widget for Interface<'a> {
             events.push(ToggleHelp(show_help));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.help_window"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-help_window"))
             .right_from(state.ids.button_help, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -223,7 +223,7 @@ impl<'a> Widget for Interface<'a> {
             ));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.loading_tips"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-loading_tips"))
             .right_from(state.ids.load_tips_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -247,7 +247,7 @@ impl<'a> Widget for Interface<'a> {
             events.push(ToggleDebug(show_debug));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.debug_info"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-debug_info"))
             .right_from(state.ids.debug_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -271,7 +271,7 @@ impl<'a> Widget for Interface<'a> {
             events.push(ToggleHitboxes(show_hitboxes));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.show_hitboxes"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-show_hitboxes"))
             .right_from(state.ids.hitboxes_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -295,7 +295,7 @@ impl<'a> Widget for Interface<'a> {
             events.push(ToggleChat(show_chat));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.show_chat"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-show_chat"))
             .right_from(state.ids.chat_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -319,16 +319,20 @@ impl<'a> Widget for Interface<'a> {
             events.push(ToggleHotkeyHints(show_hotkey_hints));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.show_hotkey_hints"))
-            .right_from(state.ids.hotkey_hints_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.hotkey_hints_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.hotkey_hints_button_label, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-show_hotkey_hints"),
+        )
+        .right_from(state.ids.hotkey_hints_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.hotkey_hints_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.hotkey_hints_button_label, ui);
 
         // Ui Scale
-        Text::new(&self.localized_strings.get("hud.settings.ui_scale"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-ui_scale"))
             .down_from(state.ids.hotkey_hints_button, 20.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
@@ -362,13 +366,17 @@ impl<'a> Widget for Interface<'a> {
             events.push(UiScale(ScaleChange::ToRelative));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.relative_scaling"))
-            .right_from(state.ids.relative_to_win_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.relative_to_win_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.relative_to_win_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-relative_scaling"),
+        )
+        .right_from(state.ids.relative_to_win_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.relative_to_win_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.relative_to_win_text, ui);
 
         // Absolute Scaling Button
         let (check_img, check_mo_img, check_press_img, absolute_selected) = match ui_scale {
@@ -397,13 +405,17 @@ impl<'a> Widget for Interface<'a> {
             events.push(UiScale(ScaleChange::ToAbsolute));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.custom_scaling"))
-            .right_from(state.ids.absolute_scale_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.absolute_scale_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.absolute_scale_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-custom_scaling"),
+        )
+        .right_from(state.ids.absolute_scale_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.absolute_scale_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.absolute_scale_text, ui);
 
         // Slider -> Inactive when "Relative to window" is selected
         if let ScaleMode::Absolute(scale) = ui_scale {
@@ -574,13 +586,13 @@ impl<'a> Widget for Interface<'a> {
             .graphics_for(state.ids.ch_3_bg)
             .set(state.ids.crosshair_inner_3, ui);
         // Crosshair Transparency Text and Slider
-        Text::new(&self.localized_strings.get("hud.settings.crosshair"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-crosshair"))
             .down_from(state.ids.absolute_scale_button, 20.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.ch_title, ui);
-        Text::new(&self.localized_strings.get("hud.settings.opacity"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-opacity"))
             .right_from(state.ids.ch_3_bg, 20.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -613,7 +625,7 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.ch_transp_value, ui);
 
         // Hotbar text
-        Text::new(&self.localized_strings.get("hud.settings.hotbar"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-hotbar"))
             .down_from(state.ids.ch_1_bg, 20.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
@@ -648,13 +660,17 @@ impl<'a> Widget for Interface<'a> {
                 ShortcutNumbers::Off => events.push(ToggleShortcutNumbers(ShortcutNumbers::On)),
             }
         }
-        Text::new(&self.localized_strings.get("hud.settings.toggle_shortcuts"))
-            .right_from(state.ids.show_shortcuts_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_shortcuts_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.show_shortcuts_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-toggle_shortcuts"),
+        )
+        .right_from(state.ids.show_shortcuts_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.show_shortcuts_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.show_shortcuts_text, ui);
         // Buff Position
         // Buffs above skills
         if Button::image(match self.global_state.settings.interface.buff_position {
@@ -676,13 +692,17 @@ impl<'a> Widget for Interface<'a> {
         {
             events.push(BuffPosition(BuffPosition::Bar))
         }
-        Text::new(&self.localized_strings.get("hud.settings.buffs_skillbar"))
-            .right_from(state.ids.buff_pos_bar_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_shortcuts_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.buff_pos_bar_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-buffs_skillbar"),
+        )
+        .right_from(state.ids.buff_pos_bar_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.show_shortcuts_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.buff_pos_bar_text, ui);
         // Buffs left from minimap
         if Button::image(match self.global_state.settings.interface.buff_position {
             BuffPosition::Map => self.imgs.check_checked,
@@ -703,7 +723,7 @@ impl<'a> Widget for Interface<'a> {
         {
             events.push(BuffPosition(BuffPosition::Map))
         }
-        Text::new(&self.localized_strings.get("hud.settings.buffs_mmap"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-buffs_mmap"))
             .right_from(state.ids.buff_pos_map_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -727,7 +747,7 @@ impl<'a> Widget for Interface<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.scrolling_combat_text"),
+                .get_msg("hud-settings-scrolling_combat_text"),
         )
         .top_left_with_margins_on(state.ids.window_r, 5.0, 5.0)
         .font_size(self.fonts.cyri.scale(18))
@@ -752,7 +772,7 @@ impl<'a> Widget for Interface<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.scrolling_combat_text"),
+                .get_msg("hud-settings-scrolling_combat_text"),
         )
         .right_from(state.ids.sct_show_radio, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -772,7 +792,7 @@ impl<'a> Widget for Interface<'a> {
             Text::new(
                 &self
                     .localized_strings
-                    .get("hud.settings.damage_accumulation_duration"),
+                    .get_msg("hud-settings-damage_accumulation_duration"),
             )
             .down_from(state.ids.sct_show_radio, 8.0)
             .right_from(state.ids.sct_show_radio, 10.0)
@@ -823,18 +843,22 @@ impl<'a> Widget for Interface<'a> {
                     !self.global_state.settings.interface.sct_inc_dmg,
                 ))
             }
-            Text::new(&self.localized_strings.get("hud.settings.incoming_damage"))
-                .right_from(state.ids.sct_show_inc_dmg_radio, 10.0)
-                .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .graphics_for(state.ids.sct_show_inc_dmg_radio)
-                .color(TEXT_COLOR)
-                .set(state.ids.sct_show_inc_dmg_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-incoming_damage"),
+            )
+            .right_from(state.ids.sct_show_inc_dmg_radio, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.sct_show_inc_dmg_radio)
+            .color(TEXT_COLOR)
+            .set(state.ids.sct_show_inc_dmg_text, ui);
             if self.global_state.settings.interface.sct_inc_dmg {
                 Text::new(
                     &self
                         .localized_strings
-                        .get("hud.settings.incoming_damage_accumulation_duration"),
+                        .get_msg("hud-settings-incoming_damage_accumulation_duration"),
                 )
                 .down_from(state.ids.sct_show_inc_dmg_radio, 8.0)
                 .right_from(state.ids.sct_show_inc_dmg_radio, 10.0)
@@ -895,7 +919,7 @@ impl<'a> Widget for Interface<'a> {
                     !self.global_state.settings.interface.sct_damage_rounding,
                 ))
             }
-            Text::new(&self.localized_strings.get("hud.settings.round_damage"))
+            Text::new(&self.localized_strings.get_msg("hud-settings-round_damage"))
                 .right_from(state.ids.sct_round_dmg_radio, 10.0)
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
@@ -905,7 +929,7 @@ impl<'a> Widget for Interface<'a> {
         }
 
         // Speech bubbles
-        Text::new(&self.localized_strings.get("hud.settings.speech_bubble"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-speech_bubble"))
             .down_from(
                 if self.global_state.settings.interface.sct {
                     state.ids.sct_round_dmg_radio
@@ -938,7 +962,7 @@ impl<'a> Widget for Interface<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.speech_bubble_self"),
+                .get_msg("hud-settings-speech_bubble_self"),
         )
         .right_from(state.ids.speech_bubble_self_button, 10.0)
         .font_size(self.fonts.cyri.scale(15))
@@ -963,7 +987,7 @@ impl<'a> Widget for Interface<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.speech_bubble_dark_mode"),
+                .get_msg("hud-settings-speech_bubble_dark_mode"),
         )
         .right_from(state.ids.speech_bubble_dark_mode_button, 10.0)
         .font_size(self.fonts.cyri.scale(15))
@@ -987,7 +1011,7 @@ impl<'a> Widget for Interface<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.speech_bubble_icon"),
+                .get_msg("hud-settings-speech_bubble_icon"),
         )
         .right_from(state.ids.speech_bubble_icon_button, 10.0)
         .font_size(self.fonts.cyri.scale(15))
@@ -997,12 +1021,16 @@ impl<'a> Widget for Interface<'a> {
 
         // Energybars Numbers
         // Hotbar text
-        Text::new(&self.localized_strings.get("hud.settings.energybar_numbers"))
-            .down_from(state.ids.speech_bubble_icon_button, 20.0)
-            .font_size(self.fonts.cyri.scale(18))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.bar_numbers_title, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-energybar_numbers"),
+        )
+        .down_from(state.ids.speech_bubble_icon_button, 20.0)
+        .font_size(self.fonts.cyri.scale(18))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.bar_numbers_title, ui);
 
         // None
         if Button::image(if let BarNumbers::Off = bar_values {
@@ -1027,7 +1055,7 @@ impl<'a> Widget for Interface<'a> {
         {
             events.push(ToggleBarNumbers(BarNumbers::Off))
         }
-        Text::new(&self.localized_strings.get("hud.settings.none"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-none"))
             .right_from(state.ids.show_bar_numbers_none_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -1058,7 +1086,7 @@ impl<'a> Widget for Interface<'a> {
         {
             events.push(ToggleBarNumbers(BarNumbers::Values))
         }
-        Text::new(&self.localized_strings.get("hud.settings.values"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-values"))
             .right_from(state.ids.show_bar_numbers_values_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -1089,7 +1117,7 @@ impl<'a> Widget for Interface<'a> {
         {
             events.push(ToggleBarNumbers(BarNumbers::Percent))
         }
-        Text::new(&self.localized_strings.get("hud.settings.percentages"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-percentages"))
             .right_from(state.ids.show_bar_numbers_percentage_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -1113,19 +1141,23 @@ impl<'a> Widget for Interface<'a> {
             events.push(ToggleAlwaysShowBars(always_show_bars));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.always_show_bars"))
-            .right_from(state.ids.always_show_bars_button, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.always_show_bars_button)
-            .color(TEXT_COLOR)
-            .set(state.ids.always_show_bars_label, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-always_show_bars"),
+        )
+        .right_from(state.ids.always_show_bars_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.always_show_bars_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.always_show_bars_label, ui);
 
         // Experience Numbers
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.experience_numbers"),
+                .get_msg("hud-settings-experience_numbers"),
         )
         .down_from(state.ids.always_show_bars_button, 20.0)
         .font_size(self.fonts.cyri.scale(18))
@@ -1154,7 +1186,7 @@ impl<'a> Widget for Interface<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.accumulate_experience"),
+                .get_msg("hud-settings-accumulate_experience"),
         )
         .right_from(state.ids.accum_experience_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -1169,7 +1201,11 @@ impl<'a> Widget for Interface<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.buff_pos_map_button, 12.0)
-            .label(&self.localized_strings.get("hud.settings.reset_interface"))
+            .label(
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-reset_interface"),
+            )
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)

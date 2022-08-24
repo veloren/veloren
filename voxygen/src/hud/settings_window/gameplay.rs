@@ -122,12 +122,16 @@ impl<'a> Widget for Gameplay<'a> {
         let display_clamp = self.global_state.settings.gameplay.camera_clamp_angle;
 
         // Mouse Pan Sensitivity
-        Text::new(&self.localized_strings.get("hud.settings.pan_sensitivity"))
-            .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.mouse_pan_label, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-setting-pan_sensitivity"),
+        )
+        .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.mouse_pan_label, ui);
 
         if let Some(new_val) = ImageSlider::discrete(
             display_pan,
@@ -154,12 +158,16 @@ impl<'a> Widget for Gameplay<'a> {
             .set(state.ids.mouse_pan_value, ui);
 
         // Mouse Zoom Sensitivity
-        Text::new(&self.localized_strings.get("hud.settings.zoom_sensitivity"))
-            .down_from(state.ids.mouse_pan_slider, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.mouse_zoom_label, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-zoom_sensitivity"),
+        )
+        .down_from(state.ids.mouse_pan_slider, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.mouse_zoom_label, ui);
 
         if let Some(new_val) = ImageSlider::discrete(
             display_zoom,
@@ -189,7 +197,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.camera_clamp_angle"),
+                .get_msg("hud-settings-camera_clamp_angle"),
         )
         .down_from(state.ids.mouse_zoom_slider, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -242,7 +250,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.invert_scroll_zoom"),
+                .get_msg("hud-settings-invert_scroll_zoom"),
         )
         .right_from(state.ids.mouse_zoom_invert_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -272,7 +280,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.invert_mouse_y_axis"),
+                .get_msg("hud-settings-invert_mouse_y_axis"),
         )
         .right_from(state.ids.mouse_y_invert_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -302,7 +310,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.invert_controller_y_axis"),
+                .get_msg("hud-settings-invert_controller_y_axis"),
         )
         .right_from(state.ids.controller_y_invert_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -332,7 +340,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.enable_mouse_smoothing"),
+                .get_msg("hud-settings-enable_mouse_smoothing"),
         )
         .right_from(state.ids.smooth_pan_toggle_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -345,7 +353,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.free_look_behavior"),
+                .get_msg("hud-settings-free_look_behavior"),
         )
         .down_from(state.ids.mouse_zoom_invert_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -355,9 +363,9 @@ impl<'a> Widget for Gameplay<'a> {
 
         let mode_label_list = [
             self.localized_strings
-                .get("hud.settings.press_behavior.toggle"),
+                .get_msg("hud-settings-press_behavior-toggle"),
             self.localized_strings
-                .get("hud.settings.press_behavior.hold"),
+                .get_msg("hud-settings-press_behavior-hold"),
         ];
 
         // Get which free look behavior is currently active
@@ -382,7 +390,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.auto_walk_behavior"),
+                .get_msg("hud-settings-auto_walk_behavior"),
         )
         .down_from(state.ids.mouse_zoom_invert_button, 10.0)
         .right_from(state.ids.free_look_behavior_text, 150.0)
@@ -412,7 +420,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.camera_clamp_behavior"),
+                .get_msg("hud-settings-camera_clamp_behavior"),
         )
         .down_from(state.ids.free_look_behavior_list, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -461,7 +469,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get("hud.settings.stop_auto_walk_on_input"),
+                .get_msg("hud-settings-stop_auto_walk_on_input"),
         )
         .right_from(state.ids.stop_auto_walk_on_input_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -488,7 +496,7 @@ impl<'a> Widget for Gameplay<'a> {
             ));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.auto_camera"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-auto_camera"))
             .right_from(state.ids.auto_camera_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -512,7 +520,7 @@ impl<'a> Widget for Gameplay<'a> {
             events.push(ChangeBowZoom(!self.global_state.settings.gameplay.bow_zoom));
         }
 
-        Text::new(&self.localized_strings.get("hud.settings.bow_zoom"))
+        Text::new(&self.localized_strings.get_msg("hud-settings-bow_zoom"))
             .right_from(state.ids.bow_zoom_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -526,7 +534,11 @@ impl<'a> Widget for Gameplay<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.camera_clamp_behavior_list, 12.0)
-            .label(&self.localized_strings.get("hud.settings.reset_gameplay"))
+            .label(
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-reset_gameplay"),
+            )
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)

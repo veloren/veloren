@@ -67,35 +67,35 @@ impl Screen {
         let buttons = Column::with_children(vec![
             neat_button(
                 &mut self.servers_button,
-                i18n.get("common.servers"),
+                i18n.get_msg("common-servers"),
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::ShowServers),
             ),
             // neat_button(
             //     &mut self.settings_button,
-            //     i18n.get("common.settings"),
+            //     i18n.get_msg("common-settings"),
             //     FILL_FRAC_ONE,
             //     button_style,
             //     None,
             // ),
             neat_button(
                 &mut self.language_select_button,
-                i18n.get("common.languages"),
+                i18n.get_msg("common-languages"),
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::OpenLanguageMenu),
             ),
             neat_button(
                 &mut self.credits_button,
-                i18n.get("main.credits"),
+                i18n.get_msg("main-credits"),
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::ShowCredits),
             ),
             neat_button(
                 &mut self.quit_button,
-                i18n.get("common.quit"),
+                i18n.get_msg("common-quit"),
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::Quit),
@@ -110,7 +110,7 @@ impl Screen {
             .height(Length::Fill)
             .align_y(Align::End);
 
-        let intro_text = i18n.get("main.login_process");
+        let intro_text = i18n.get_msg("main-login_process");
 
         let info_window = BackgroundContainer::new(
             CompoundGraphic::from_graphics(vec![
@@ -139,7 +139,7 @@ impl Screen {
                     Container::new(Text::new(error)).height(Length::Fill).into(),
                     Container::new(neat_button(
                         &mut self.error_okay_button,
-                        i18n.get("common.okay"),
+                        i18n.get_msg("common-okay"),
                         FILL_FRAC_ONE,
                         button_style,
                         Some(Message::CloseError),
@@ -238,7 +238,7 @@ impl LanguageSelectBanner {
             self.language_buttons = vec![Default::default(); language_metadatas.len()];
         }
 
-        let title = Text::new(i18n.get("main.login.select_language"))
+        let title = Text::new(i18n.get_msg("main-login-select_language"))
             .size(fonts.cyri.scale(35))
             .horizontal_alignment(iced::HorizontalAlignment::Center);
 
@@ -290,7 +290,7 @@ impl LanguageSelectBanner {
 
         let okay_button = Container::new(neat_button(
             &mut self.okay_button,
-            i18n.get("common.okay"),
+            i18n.get_msg("common-okay"),
             FILL_FRAC_TWO,
             button_style,
             Some(Message::OpenLanguageMenu),
@@ -363,7 +363,7 @@ impl LoginBanner {
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.username,
-                        &i18n.get("main.username"),
+                        &i18n.get_msg("main-username"),
                         &login_info.username,
                         Message::Username,
                     )
@@ -378,7 +378,7 @@ impl LoginBanner {
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.password,
-                        &i18n.get("main.password"),
+                        &i18n.get_msg("main-password"),
                         &login_info.password,
                         Message::Password,
                     )
@@ -394,7 +394,7 @@ impl LoginBanner {
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.server,
-                        &i18n.get("main.server"),
+                        &i18n.get_msg("main-server"),
                         &login_info.server,
                         Message::Server,
                     )
@@ -410,7 +410,7 @@ impl LoginBanner {
             Column::with_children(vec![
                 neat_button(
                     &mut self.multiplayer_button,
-                    i18n.get("common.multiplayer"),
+                    i18n.get_msg("common-multiplayer"),
                     FILL_FRAC_TWO,
                     button_style,
                     Some(Message::Multiplayer),
@@ -418,7 +418,7 @@ impl LoginBanner {
                 #[cfg(feature = "singleplayer")]
                 neat_button(
                     &mut self.singleplayer_button,
-                    i18n.get("common.singleplayer"),
+                    i18n.get_msg("common-singleplayer"),
                     FILL_FRAC_TWO,
                     button_style,
                     Some(Message::Singleplayer),

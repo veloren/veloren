@@ -159,7 +159,7 @@ impl<'a> Widget for Social<'a> {
         Rectangle::fill_with([212.0, 42.0], color::TRANSPARENT)
             .top_left_with_margins_on(state.ids.frame, 2.0, 44.0)
             .set(state.ids.title_align, ui);
-        Text::new(&self.localized_strings.get("hud.social"))
+        Text::new(&self.localized_strings.get_msg("hud-social"))
             .middle_of(state.ids.title_align)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
@@ -184,7 +184,7 @@ impl<'a> Widget for Social<'a> {
             .set(state.ids.scrollbar, ui);
 
         // Online Text
-        Text::new(&self.localized_strings.get("hud.social.online"))
+        Text::new(&self.localized_strings.get_msg("hud-social-online"))
             .bottom_left_with_margins_on(state.ids.frame, 18.0, 10.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
@@ -255,12 +255,12 @@ impl<'a> Widget for Social<'a> {
                 None => format!(
                     "{} [{}]",
                     alias.clone(),
-                    self.localized_strings.get("hud.group.in_menu")
+                    self.localized_strings.get_msg("hud-group-in_menu")
                 ), // character select or spectating
             };
             let acc_name_txt = format!(
                 "{}: {}",
-                &self.localized_strings.get("hud.social.account"),
+                &self.localized_strings.get_msg("hud-social-account"),
                 alias
             );
             // Player name widget
@@ -347,7 +347,7 @@ impl<'a> Widget for Social<'a> {
             })
             .flatten();
 
-        let invite_text = self.localized_strings.get("hud.group.invite");
+        let invite_text = self.localized_strings.get_msg("hud-group-invite");
         let invite_button = Button::image(self.imgs.button)
             .w_h(106.0, 26.0)
             .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
@@ -381,7 +381,7 @@ impl<'a> Widget for Social<'a> {
                 "{}/{} {}",
                 current_members + current_invites,
                 max_members,
-                &self.localized_strings.get("hud.group.members")
+                &self.localized_strings.get_msg("hud-group-members")
             );
             invite_button
                 .with_tooltip(

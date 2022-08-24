@@ -34,7 +34,7 @@ impl Screen {
         i18n: &Localization,
         button_style: style::button::Style,
     ) -> Element<Message> {
-        let title = Text::new(i18n.get("main.servers.select_server"))
+        let title = Text::new(i18n.get_msg("main-servers-select_server"))
             .size(fonts.cyri.scale(35))
             .width(Length::Fill)
             .horizontal_alignment(iced::HorizontalAlignment::Center);
@@ -42,7 +42,7 @@ impl Screen {
         let back_button = Container::new(
             Container::new(neat_button(
                 &mut self.back_button,
-                i18n.get("common.back"),
+                i18n.get_msg("common-back"),
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::Back),
@@ -55,7 +55,7 @@ impl Screen {
         let delete_button = Container::new(
             Container::new(neat_button(
                 &mut self.delete_button,
-                i18n.get("common.delete_server"),
+                i18n.get_msg("common-delete_server"),
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::DeleteServer),

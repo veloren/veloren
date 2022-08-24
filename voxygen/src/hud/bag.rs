@@ -822,9 +822,9 @@ impl<'a> Widget for Bag<'a> {
             .with_tooltip(
                 self.tooltip_manager,
                 &(match inventory.next_sort_order() {
-                    InventorySortOrder::Name => i18n.get("hud.bag.sort_by_name"),
-                    InventorySortOrder::Quality => i18n.get("hud.bag.sort_by_quality"),
-                    InventorySortOrder::Tag => i18n.get("hud.bag.sort_by_category"),
+                    InventorySortOrder::Name => i18n.get_msg("hud-bag-sort_by_name"),
+                    InventorySortOrder::Quality => i18n.get_msg("hudbag-sort_by_quality"),
+                    InventorySortOrder::Tag => i18n.get_msg("hud-bag-sort_by_category"),
                 }),
                 "",
                 &tooltip,
@@ -894,7 +894,7 @@ impl<'a> Widget for Bag<'a> {
                 } else {
                     let manager = &mut *self.tooltip_manager;
                     $slot_maker
-                        .with_tooltip(manager, &i18n.get($desc), "", &tooltip, color::WHITE)
+                        .with_tooltip(manager, &i18n.get_msg($desc), "", &tooltip, color::WHITE)
                         .set($slot_id, ui)
                 }
             };
@@ -974,18 +974,18 @@ impl<'a> Widget for Bag<'a> {
                     btn.down_from(state.ids.stat_icons[i.0 - 1], 7.0)
                 };
                 let tooltip_head = match i.1 {
-                    "Health" => i18n.get("hud.bag.health"),
-                    "Energy" => i18n.get("hud.bag.energy"),
-                    "Combat Rating" => i18n.get("hud.bag.combat_rating"),
-                    "Protection" => i18n.get("hud.bag.protection"),
-                    "Stun Resilience" => i18n.get("hud.bag.stun_res"),
-                    "Stealth" => i18n.get("hud.bag.stealth"),
+                    "Health" => i18n.get_msg("hud-bag-health"),
+                    "Energy" => i18n.get_msg("hud-bag-energy"),
+                    "Combat Rating" => i18n.get_msg("hud-bag-combat_rating"),
+                    "Protection" => i18n.get_msg("hud-bag-protection"),
+                    "Stun Resilience" => i18n.get_msg("hud-bag-stun_res"),
+                    "Stealth" => i18n.get_msg("hud-bag-stealth"),
                     _ => Cow::Borrowed(""),
                 };
                 let tooltip_txt = match i.1 {
-                    "Combat Rating" => i18n.get("hud.bag.combat_rating_desc"),
-                    "Protection" => i18n.get("hud.bag.protection_desc"),
-                    "Stun Resilience" => i18n.get("hud.bag.stun_res_desc"),
+                    "Combat Rating" => i18n.get_msg("hud-bag-combat_rating_desc"),
+                    "Protection" => i18n.get_msg("hud-bag-protection_desc"),
+                    "Stun Resilience" => i18n.get_msg("hud-bag-stun_res_desc"),
                     _ => Cow::Borrowed(""),
                 };
                 btn.with_tooltip(
@@ -1022,7 +1022,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.head_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.head");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-head");
 
             //  Necklace
             let item_slot = EquipSlot::Armor(ArmorSlot::Neck);
@@ -1033,7 +1033,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.neck_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.neck");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-neck");
 
             // Chest
             //Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
@@ -1045,7 +1045,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.chest_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.chest");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-chest");
 
             //  Shoulders
             let item_slot = EquipSlot::Armor(ArmorSlot::Shoulders);
@@ -1056,7 +1056,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.shoulders_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.shoulders");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-shoulders");
 
             // Hands
             let item_slot = EquipSlot::Armor(ArmorSlot::Hands);
@@ -1067,7 +1067,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.hands_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.hands");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-hands");
 
             // Belt
             let item_slot = EquipSlot::Armor(ArmorSlot::Belt);
@@ -1078,7 +1078,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.belt_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.belt");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-belt");
 
             // Legs
             let item_slot = EquipSlot::Armor(ArmorSlot::Legs);
@@ -1089,7 +1089,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.legs_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.legs");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-legs");
 
             // Ring
             let item_slot = EquipSlot::Armor(ArmorSlot::Ring1);
@@ -1100,7 +1100,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.ring1_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.ring");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-ring");
 
             // Ring 2
             let item_slot = EquipSlot::Armor(ArmorSlot::Ring2);
@@ -1111,7 +1111,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.ring2_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.ring");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-ring");
 
             // Back
             let item_slot = EquipSlot::Armor(ArmorSlot::Back);
@@ -1122,7 +1122,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.back_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.back");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-back");
 
             // Foot
             let item_slot = EquipSlot::Armor(ArmorSlot::Feet);
@@ -1133,7 +1133,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.feet_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.feet");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-feet");
 
             // Lantern
             let item_slot = EquipSlot::Lantern;
@@ -1144,7 +1144,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.lantern_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.lantern");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-lantern");
 
             // Glider
             let item_slot = EquipSlot::Glider;
@@ -1155,7 +1155,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.glider_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.glider");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-glider");
 
             // Tabard
             let item_slot = EquipSlot::Armor(ArmorSlot::Tabard);
@@ -1166,7 +1166,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.tabard_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.tabard");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-tabard");
 
             // Active Mainhand/Left-Slot
             let item_slot = EquipSlot::ActiveMainhand;
@@ -1177,7 +1177,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.active_mainhand_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.mainhand");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-mainhand");
 
             // Active Offhand/Right-Slot
             let item_slot = EquipSlot::ActiveOffhand;
@@ -1188,7 +1188,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.active_offhand_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.offhand");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-offhand");
 
             // Inactive Mainhand/Left-Slot
             let item_slot = EquipSlot::InactiveMainhand;
@@ -1199,7 +1199,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.inactive_mainhand_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.inactive_mainhand");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-inactive_mainhand");
 
             // Inactive Offhand/Right-Slot
             let item_slot = EquipSlot::InactiveOffhand;
@@ -1210,7 +1210,7 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot);
 
             let slot_id = state.ids.inactive_offhand_slot;
-            set_tooltip!(slot, slot_id, item_slot, "hud.bag.inactive_offhand");
+            set_tooltip!(slot, slot_id, item_slot, "hud-bag-inactive_offhand");
 
             if Button::image(self.imgs.swap_equipped_weapons_btn)
                 .hover_image(self.imgs.swap_equipped_weapons_btn_hover)
@@ -1220,7 +1220,7 @@ impl<'a> Widget for Bag<'a> {
                 .align_middle_y_of(state.ids.active_mainhand_slot)
                 .with_tooltip(
                     self.tooltip_manager,
-                    &i18n.get("hud.bag.swap_equipped_weapons_title"),
+                    &i18n.get_msg("hud-bag-swap_equipped_weapons_title"),
                     &(if let Some(key) = self
                         .global_state
                         .settings
@@ -1259,7 +1259,7 @@ impl<'a> Widget for Bag<'a> {
             .filled_slot(filled_slot);
 
         let slot_id = state.ids.bag1_slot;
-        set_tooltip!(slot, slot_id, item_slot, "hud.bag.bag");
+        set_tooltip!(slot, slot_id, item_slot, "hud-bag-bag");
 
         // Bag 2
         let item_slot = EquipSlot::Armor(ArmorSlot::Bag2);
@@ -1270,7 +1270,7 @@ impl<'a> Widget for Bag<'a> {
             .filled_slot(filled_slot);
 
         let slot_id = state.ids.bag2_slot;
-        set_tooltip!(slot, slot_id, item_slot, "hud.bag.bag");
+        set_tooltip!(slot, slot_id, item_slot, "hud-bag-bag");
 
         // Bag 3
         let item_slot = EquipSlot::Armor(ArmorSlot::Bag3);
@@ -1281,7 +1281,7 @@ impl<'a> Widget for Bag<'a> {
             .filled_slot(filled_slot);
 
         let slot_id = state.ids.bag3_slot;
-        set_tooltip!(slot, slot_id, item_slot, "hud.bag.bag");
+        set_tooltip!(slot, slot_id, item_slot, "hud-bag-bag");
 
         // Bag 4
         let item_slot = EquipSlot::Armor(ArmorSlot::Bag4);
@@ -1292,7 +1292,7 @@ impl<'a> Widget for Bag<'a> {
             .filled_slot(filled_slot);
 
         let slot_id = state.ids.bag4_slot;
-        set_tooltip!(slot, slot_id, item_slot, "hud.bag.bag");
+        set_tooltip!(slot, slot_id, item_slot, "hud-bag-bag");
 
         // Close button
         if Button::image(self.imgs.close_btn)

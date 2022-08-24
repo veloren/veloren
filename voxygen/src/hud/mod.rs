@@ -1640,13 +1640,13 @@ impl Hud {
                         .mid_top_with_margin_on(self.ids.player_rank_up, fontsize.1)
                         .set(self.ids.player_rank_up_txt_number, ui_widgets);
                     // Static "New Rank!" text
-                    Text::new(&i18n.get("hud.rank_up"))
+                    Text::new(&i18n.get_msg("hud-rank_up"))
                         .font_size(40)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                         .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
                         .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
-                    Text::new(&i18n.get("hud.rank_up"))
+                    Text::new(&i18n.get_msg("hud-rank_up"))
                         .font_size(40)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade))
@@ -1654,14 +1654,14 @@ impl Hud {
                         .set(self.ids.player_rank_up_txt_0, ui_widgets);
                     // Variable skilltree text
                     let skill = match display.skill_tree {
-                        General => i18n.get("common.weapons.general"),
-                        Weapon(ToolKind::Hammer) => i18n.get("common.weapons.hammer"),
-                        Weapon(ToolKind::Axe) => i18n.get("common.weapons.axe"),
-                        Weapon(ToolKind::Sword) => i18n.get("common.weapons.sword"),
-                        Weapon(ToolKind::Sceptre) => i18n.get("common.weapons.sceptre"),
-                        Weapon(ToolKind::Bow) => i18n.get("common.weapons.bow"),
-                        Weapon(ToolKind::Staff) => i18n.get("common.weapons.staff"),
-                        Weapon(ToolKind::Pick) => i18n.get("common.tool.mining"),
+                        General => i18n.get_msg("common-weapons-general"),
+                        Weapon(ToolKind::Hammer) => i18n.get_msg("common-weapons-hammer"),
+                        Weapon(ToolKind::Axe) => i18n.get_msg("common-weapons-axe"),
+                        Weapon(ToolKind::Sword) => i18n.get_msg("common-weapons-sword"),
+                        Weapon(ToolKind::Sceptre) => i18n.get_msg("common-weapons-sceptre"),
+                        Weapon(ToolKind::Bow) => i18n.get_msg("common-weapons-bow"),
+                        Weapon(ToolKind::Staff) => i18n.get_msg("common-weapons-staff"),
+                        Weapon(ToolKind::Pick) => i18n.get_msg("common-tool-mining"),
                         _ => Cow::Borrowed("Unknown"),
                     };
                     Text::new(&skill)
@@ -1720,7 +1720,7 @@ impl Hud {
                         1.0
                     };
 
-                    Text::new(&i18n.get("hud.sct.block"))
+                    Text::new(&i18n.get_msg("hud-sct-block"))
                         .font_size(font_size)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(0.0, 0.0, 0.0, fade))
@@ -1729,7 +1729,7 @@ impl Hud {
                             ui_widgets.win_h * (-0.3) + y - 3.0,
                         )
                         .set(player_sct_bg_id, ui_widgets);
-                    Text::new(&i18n.get("hud.sct.block"))
+                    Text::new(&i18n.get_msg("hud-sct-block"))
                         .font_size(font_size)
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(0.69, 0.82, 0.88, fade))
@@ -1823,7 +1823,7 @@ impl Hud {
                         pickup_failed_pulse: self.failed_entity_pickups.get(&entity).cloned(),
                     },
                     &self.fonts,
-                    vec![(GameInput::Interact, i18n.get("hud.pick_up").to_string())],
+                    vec![(GameInput::Interact, i18n.get_msg("hud-pick_up").to_string())],
                 )
                 .set(overitem_id, ui_widgets);
             }
@@ -1858,7 +1858,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        vec![(GameInput::Interact, i18n.get("hud.open").to_string())],
+                        vec![(GameInput::Interact, i18n.get_msg("hud-open").to_string())],
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -1872,13 +1872,13 @@ impl Hud {
                         &self.fonts,
                         match interaction {
                             Interaction::Collect => {
-                                vec![(GameInput::Interact, i18n.get("hud.collect").to_string())]
+                                vec![(GameInput::Interact, i18n.get_msg("hud-collect").to_string())]
                             },
                             Interaction::Craft(_) => {
-                                vec![(GameInput::Interact, i18n.get("hud.use").to_string())]
+                                vec![(GameInput::Interact, i18n.get_msg("hud-use").to_string())]
                             },
                             Interaction::Mine => {
-                                vec![(GameInput::Primary, i18n.get("hud.mine").to_string())]
+                                vec![(GameInput::Primary, i18n.get_msg("hud-mine").to_string())]
                             },
                         },
                     )
@@ -1895,7 +1895,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        vec![(GameInput::Interact, i18n.get("hud.use").to_string())],
+                        vec![(GameInput::Interact, i18n.get_msg("hud-use").to_string())],
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -1928,7 +1928,7 @@ impl Hud {
                     let over_pos = pos + Vec3::unit_z() * 1.5;
 
                     overitem::Overitem::new(
-                        i18n.get("hud.crafting.campfire"),
+                        i18n.get_msg("hud-crafting-campfire"),
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
@@ -1937,7 +1937,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        vec![(GameInput::Interact, i18n.get("hud.sit").to_string())],
+                        vec![(GameInput::Interact, i18n.get_msg("hud-sit").to_string())],
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -2100,8 +2100,8 @@ impl Hud {
                                     == Some(entity) =>
                         {
                             vec![
-                                (GameInput::Interact, i18n.get("hud.talk").to_string()),
-                                (GameInput::Trade, i18n.get("hud.trade").to_string()),
+                                (GameInput::Interact, i18n.get_msg("hud-talk").to_string()),
+                                (GameInput::Trade, i18n.get_msg("hud-trade").to_string()),
                             ]
                         },
                         Some(comp::Alignment::Owned(owner))
@@ -2111,7 +2111,7 @@ impl Hud {
                                 && is_mountable(body, bodies.get(client.entity()))
                                 && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
                         {
-                            vec![(GameInput::Mount, i18n.get("hud.mount").to_string())]
+                            vec![(GameInput::Mount, i18n.get_msg("hud-mount").to_string())]
                         },
                         _ => Vec::new(),
                     },
@@ -3306,14 +3306,14 @@ impl Hud {
 
         // Auto walk indicator
         if self.show.auto_walk {
-            Text::new(&i18n.get("hud.auto_walk_indicator"))
+            Text::new(&i18n.get_msg("hud-auto_walk_indicator"))
                 .color(TEXT_BG)
                 .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.auto_walk_bg, ui_widgets);
             indicator_offset += 30.0;
-            Text::new(&i18n.get("hud.auto_walk_indicator"))
+            Text::new(&i18n.get_msg("hud-auto_walk_indicator"))
                 .color(KILL_COLOR)
                 .top_left_with_margins_on(self.ids.auto_walk_bg, -1.0, -1.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -3763,7 +3763,7 @@ impl Hud {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .bottom_left_with_margins_on(ui_widgets.window, 350.0, 150.0)
-                        .label(&i18n.get("hud.tutorial_btn"))
+                        .label(&i18n.get_msg("hud-tutorial_btn"))
                         .label_font_id(self.fonts.cyri.conrod_id)
                         .label_font_size(self.fonts.cyri.scale(18))
                         .label_color(TEXT_COLOR)
@@ -3811,8 +3811,8 @@ impl Hud {
                 Intro::Show => {
                     if self.show.intro {
                         self.show.want_grab = false;
-                        let quest_headline = i18n.get("hud.temp_quest_headline");
-                        let quest_text = i18n.get("hud.temp_quest_text");
+                        let quest_headline = i18n.get_msg("hud-temp_quest_headline");
+                        let quest_text = i18n.get_msg("hud-temp_quest_text");
                         Image::new(self.imgs.quest_bg)
                             .w_h(404.0, 858.0)
                             .middle_of(ui_widgets.window)
@@ -3851,7 +3851,7 @@ impl Hud {
                             .hover_image(self.imgs.button_hover)
                             .press_image(self.imgs.button_press)
                             .mid_bottom_with_margin_on(self.ids.q_text_bg, -80.0)
-                            .label(&i18n.get("common.close"))
+                            .label(&i18n.get_msg("common-close"))
                             .label_font_id(self.fonts.cyri.conrod_id)
                             .label_font_size(self.fonts.cyri.scale(22))
                             .label_color(TEXT_COLOR)
@@ -3875,14 +3875,14 @@ impl Hud {
                                 )
                                 .color(Some(QUALITY_LEGENDARY))
                                 .set(self.ids.tut_arrow, ui_widgets);
-                            Text::new(&i18n.get("hud.tutorial_elements"))
+                            Text::new(&i18n.get_msg("hud-tutorial_elements"))
                                 .mid_top_with_margin_on(self.ids.tut_arrow, -50.0)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .font_size(self.fonts.cyri.scale(40))
                                 .color(BLACK)
                                 .floating(true)
                                 .set(self.ids.tut_arrow_txt_bg, ui_widgets);
-                            Text::new(&i18n.get("hud.tutorial_elements"))
+                            Text::new(&i18n.get_msg("hud-tutorial_elements"))
                                 .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .font_size(self.fonts.cyri.scale(40))
@@ -4584,69 +4584,75 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
 pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<str> {
     match buff {
         // Buffs
-        BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
-        BuffKind::Saturation { .. } => localized_strings.get("buff.title.saturation"),
-        BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
-        BuffKind::CampfireHeal { .. } => localized_strings.get("buff.title.campfire_heal"),
-        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.title.IncreaseMaxHealth"),
-        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.energyup"),
-        BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
-        BuffKind::ProtectingWard => localized_strings.get("buff.title.protectingward"),
-        BuffKind::Frenzied => localized_strings.get("buff.title.frenzied"),
-        BuffKind::Hastened => localized_strings.get("buff.title.hastened"),
+        BuffKind::Regeneration { .. } => localized_strings.get_msg("buff-title-heal"),
+        BuffKind::Saturation { .. } => localized_strings.get_msg("buff-title-saturation"),
+        BuffKind::Potion { .. } => localized_strings.get_msg("buff-title-potion"),
+        BuffKind::CampfireHeal { .. } => localized_strings.get_msg("buff-title-campfire_heal"),
+        BuffKind::IncreaseMaxHealth { .. } => {
+            localized_strings.get_msg("buff-title-IncreaseMaxHealth")
+        },
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get_msg("buff-title-energyup"),
+        BuffKind::Invulnerability => localized_strings.get_msg("buff-title-invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get_msg("buff-title-protectingward"),
+        BuffKind::Frenzied => localized_strings.get_msg("buff-title-frenzied"),
+        BuffKind::Hastened => localized_strings.get_msg("buff-title-hastened"),
         // Debuffs
-        BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
-        BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
-        BuffKind::Burning { .. } => localized_strings.get("buff.title.burn"),
-        BuffKind::Crippled { .. } => localized_strings.get("buff.title.crippled"),
-        BuffKind::Frozen { .. } => localized_strings.get("buff.title.frozen"),
-        BuffKind::Wet { .. } => localized_strings.get("buff.title.wet"),
-        BuffKind::Ensnared { .. } => localized_strings.get("buff.title.ensnared"),
-        BuffKind::Poisoned { .. } => localized_strings.get("buff.title.poisoned"),
+        BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-title-bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get_msg("buff-title-cursed"),
+        BuffKind::Burning { .. } => localized_strings.get_msg("buff-title-burn"),
+        BuffKind::Crippled { .. } => localized_strings.get_msg("buff-title-crippled"),
+        BuffKind::Frozen { .. } => localized_strings.get_msg("buff-title-frozen"),
+        BuffKind::Wet { .. } => localized_strings.get_msg("buff-title-wet"),
+        BuffKind::Ensnared { .. } => localized_strings.get_msg("buff-title-ensnared"),
+        BuffKind::Poisoned { .. } => localized_strings.get_msg("buff-title-poisoned"),
     }
 }
 
 pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localization) -> Cow<str> {
     match buff {
         // Buffs
-        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
-        BuffKind::Saturation { .. } => localized_strings.get("buff.desc.saturation"),
-        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
+        BuffKind::Regeneration { .. } => localized_strings.get_msg("buff-desc-heal"),
+        BuffKind::Saturation { .. } => localized_strings.get_msg("buff-desc-saturation"),
+        BuffKind::Potion { .. } => localized_strings.get_msg("buff-desc-potion"),
         BuffKind::CampfireHeal { .. } => {
             localized_strings.get_msg_ctx("buff-desc-campfire_heal", &i18n::fluent_args! {
                 "rate" => data.strength * 100.0
             })
         },
-        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.desc.IncreaseMaxHealth"),
-        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.desc.IncreaseMaxEnergy"),
-        BuffKind::Invulnerability => localized_strings.get("buff.desc.invulnerability"),
-        BuffKind::ProtectingWard => localized_strings.get("buff.desc.protectingward"),
-        BuffKind::Frenzied => localized_strings.get("buff.desc.frenzied"),
-        BuffKind::Hastened => localized_strings.get("buff.desc.hastened"),
+        BuffKind::IncreaseMaxHealth { .. } => {
+            localized_strings.get_msg("buff-desc-IncreaseMaxHealth")
+        },
+        BuffKind::IncreaseMaxEnergy { .. } => {
+            localized_strings.get_msg("buff-desc-IncreaseMaxEnergy")
+        },
+        BuffKind::Invulnerability => localized_strings.get_msg("buff-desc-invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get_msg("buff-desc-protectingward"),
+        BuffKind::Frenzied => localized_strings.get_msg("buff-desc-frenzied"),
+        BuffKind::Hastened => localized_strings.get_msg("buff-desc-hastened"),
         // Debuffs
-        BuffKind::Bleeding { .. } => localized_strings.get("buff.desc.bleed"),
-        BuffKind::Cursed { .. } => localized_strings.get("buff.desc.cursed"),
-        BuffKind::Burning { .. } => localized_strings.get("buff.desc.burn"),
-        BuffKind::Crippled { .. } => localized_strings.get("buff.desc.crippled"),
-        BuffKind::Frozen { .. } => localized_strings.get("buff.desc.frozen"),
-        BuffKind::Wet { .. } => localized_strings.get("buff.desc.wet"),
-        BuffKind::Ensnared { .. } => localized_strings.get("buff.desc.ensnared"),
-        BuffKind::Poisoned { .. } => localized_strings.get("buff.desc.poisoned"),
+        BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-desc-bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get_msg("buff-desc-cursed"),
+        BuffKind::Burning { .. } => localized_strings.get_msg("buff-desc-burn"),
+        BuffKind::Crippled { .. } => localized_strings.get_msg("buff-desc-crippled"),
+        BuffKind::Frozen { .. } => localized_strings.get_msg("buff-desc-frozen"),
+        BuffKind::Wet { .. } => localized_strings.get_msg("buff-desc-wet"),
+        BuffKind::Ensnared { .. } => localized_strings.get_msg("buff-desc-ensnared"),
+        BuffKind::Poisoned { .. } => localized_strings.get_msg("buff-desc-poisoned"),
     }
 }
 
 pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> Option<Cow<str>> {
     let i18n_key = match sprite {
         SpriteKind::Empty => return None,
-        SpriteKind::Anvil => "hud.crafting.anvil",
-        SpriteKind::Cauldron => "hud.crafting.cauldron",
-        SpriteKind::CookingPot => "hud.crafting.cooking_pot",
-        SpriteKind::CraftingBench => "hud.crafting.crafting_bench",
-        SpriteKind::Forge => "hud.crafting.forge",
-        SpriteKind::Loom => "hud.crafting.loom",
-        SpriteKind::SpinningWheel => "hud.crafting.spinning_wheel",
-        SpriteKind::TanningRack => "hud.crafting.tanning_rack",
-        SpriteKind::DismantlingBench => "hud.crafting.salvaging_station",
+        SpriteKind::Anvil => "hud-crafting-anvil",
+        SpriteKind::Cauldron => "hud-crafting-cauldron",
+        SpriteKind::CookingPot => "hud-crafting-cooking_pot",
+        SpriteKind::CraftingBench => "hud-crafting-crafting_bench",
+        SpriteKind::Forge => "hud-crafting-forge",
+        SpriteKind::Loom => "hud-crafting-loom",
+        SpriteKind::SpinningWheel => "hud-crafting-spinning_wheel",
+        SpriteKind::TanningRack => "hud-crafting-tanning_rack",
+        SpriteKind::DismantlingBench => "hud-crafting-salvaging_station",
         SpriteKind::ChestBuried
         | SpriteKind::Chest
         | SpriteKind::DungeonChest0
@@ -4654,10 +4660,10 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::DungeonChest2
         | SpriteKind::DungeonChest3
         | SpriteKind::DungeonChest4
-        | SpriteKind::DungeonChest5 => "common.sprite.chest",
+        | SpriteKind::DungeonChest5 => "common-sprite-chest",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
-    Some(localized_strings.get(i18n_key))
+    Some(localized_strings.get_msg(i18n_key))
 }
 
 pub fn get_buff_time(buff: BuffInfo) -> String {

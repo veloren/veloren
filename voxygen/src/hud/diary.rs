@@ -436,7 +436,7 @@ impl<'a> Widget for Diary<'a> {
         }
 
         // Title
-        Text::new(&self.localized_strings.get("hud.diary"))
+        Text::new(&self.localized_strings.get_msg("hud-diary"))
             .mid_top_with_margin_on(state.ids.frame, 3.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(29))
@@ -632,7 +632,7 @@ impl<'a> Widget for Diary<'a> {
                     };
 
                     let tooltip_txt = if locked {
-                        self.localized_strings.get("hud.skill.not_unlocked")
+                        self.localized_strings.get_msg("hud-skill-not_unlocked")
                     } else {
                         Cow::Borrowed("")
                     };
@@ -1334,7 +1334,7 @@ impl<'a> Diary<'a> {
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
-        let tree_title = &self.localized_strings.get("common.weapons.general");
+        let tree_title = &self.localized_strings.get_msg("common-weapons-general");
         Text::new(tree_title)
             .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
@@ -1440,8 +1440,8 @@ impl<'a> Diary<'a> {
             },
             // Bottom left skills
             SkillIcon::Descriptive {
-                title: "hud.skill.dodge_title",
-                desc: "hud.skill.dodge",
+                title: "hud-skill-dodge_title",
+                desc: "hud-skill-dodge",
                 image: self.imgs.skill_dodge_skill,
                 position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
                 id: state.ids.skill_general_roll_0,
@@ -1466,8 +1466,8 @@ impl<'a> Diary<'a> {
             },
             // Bottom right skills
             SkillIcon::Descriptive {
-                title: "hud.skill.climbing_title",
-                desc: "hud.skill.climbing",
+                title: "hud-skill-climbing_title",
+                desc: "hud-skill-climbing",
                 image: self.imgs.skill_climbing_skill,
                 position: MidTopWithMarginOn(state.ids.skills_bot_r[0], 3.0),
                 id: state.ids.skill_general_climb_0,
@@ -1485,8 +1485,8 @@ impl<'a> Diary<'a> {
                 id: state.ids.skill_general_climb_2,
             },
             SkillIcon::Descriptive {
-                title: "hud.skill.swim_title",
-                desc: "hud.skill.swim",
+                title: "hud-skill-swim_title",
+                desc: "hud-skill-swim",
                 image: self.imgs.skill_swim_skill,
                 position: MidTopWithMarginOn(state.ids.skills_bot_r[3], 3.0),
                 id: state.ids.skill_general_swim_0,
@@ -1511,7 +1511,7 @@ impl<'a> Diary<'a> {
         mut events: Vec<Event>,
     ) -> Vec<Event> {
         // Title text
-        let tree_title = &self.localized_strings.get("common.weapons.sword");
+        let tree_title = &self.localized_strings.get_msg("common-weapons-sword");
 
         Text::new(tree_title)
             .mid_top_with_margin_on(state.ids.content_align, 2.0)
@@ -1556,8 +1556,8 @@ impl<'a> Diary<'a> {
             //        3 0 4
             //        8 2 7
             SkillIcon::Descriptive {
-                title: "hud.skill.sw_trip_str_title",
-                desc: "hud.skill.sw_trip_str",
+                title: "hud-skill-sw_trip_str_title",
+                desc: "hud-skill-sw_trip_str",
                 image: self.imgs.twohsword_m1,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_sword_combo_0,
@@ -1588,8 +1588,8 @@ impl<'a> Diary<'a> {
             },
             // Top right skills
             SkillIcon::Descriptive {
-                title: "hud.skill.sw_dash_title",
-                desc: "hud.skill.sw_dash",
+                title: "hud-skill-sw_dash_title",
+                desc: "hud-skill-sw_dash",
                 image: self.imgs.twohsword_m2,
                 position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
                 id: state.ids.skill_sword_dash_0,
@@ -1682,7 +1682,7 @@ impl<'a> Diary<'a> {
         mut events: Vec<Event>,
     ) -> Vec<Event> {
         // Title text
-        let tree_title = &self.localized_strings.get("common.weapons.hammer");
+        let tree_title = &self.localized_strings.get_msg("common-weapons-hammer");
 
         Text::new(tree_title)
             .mid_top_with_margin_on(state.ids.content_align, 2.0)
@@ -1727,8 +1727,8 @@ impl<'a> Diary<'a> {
             //        3 0 4
             //        8 2 7
             SkillIcon::Descriptive {
-                title: "hud.skill.hmr_single_strike_title",
-                desc: "hud.skill.hmr_single_strike",
+                title: "hud-skill-hmr_single_strike_title",
+                desc: "hud-skill-hmr_single_strike",
                 image: self.imgs.twohhammer_m1,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_hammer_combo_0,
@@ -1759,8 +1759,8 @@ impl<'a> Diary<'a> {
             },
             // Top right skills
             SkillIcon::Descriptive {
-                title: "hud.skill.hmr_charged_melee_title",
-                desc: "hud.skill.hmr_charged_melee",
+                title: "hud-skill-hmr_charged_melee_title",
+                desc: "hud-skill-hmr_charged_melee",
                 image: self.imgs.hammergolf,
                 position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
                 id: state.ids.skill_hammer_charged_0,
@@ -1840,7 +1840,7 @@ impl<'a> Diary<'a> {
         mut events: Vec<Event>,
     ) -> Vec<Event> {
         // Title text
-        let tree_title = &self.localized_strings.get("common.weapons.axe");
+        let tree_title = &self.localized_strings.get_msg("common-weapons-axe");
 
         Text::new(tree_title)
             .mid_top_with_margin_on(state.ids.content_align, 2.0)
@@ -1885,8 +1885,8 @@ impl<'a> Diary<'a> {
             //        3 0 4
             //        8 2 7
             SkillIcon::Descriptive {
-                title: "hud.skill.axe_double_strike_title",
-                desc: "hud.skill.axe_double_strike",
+                title: "hud-skill-axe_double_strike_title",
+                desc: "hud-skill-axe_double_strike",
                 image: self.imgs.twohaxe_m1,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_axe_combo_0,
@@ -1917,8 +1917,8 @@ impl<'a> Diary<'a> {
             },
             // Top right skills
             SkillIcon::Descriptive {
-                title: "hud.skill.axe_spin_title",
-                desc: "hud.skill.axe_spin",
+                title: "hud-skill-axe_spin_title",
+                desc: "hud-skill-axe_spin",
                 image: self.imgs.axespin,
                 position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
                 id: state.ids.skill_axe_spin_0,
@@ -1998,7 +1998,7 @@ impl<'a> Diary<'a> {
         mut events: Vec<Event>,
     ) -> Vec<Event> {
         // Title text
-        let tree_title = &self.localized_strings.get("common.weapons.sceptre");
+        let tree_title = &self.localized_strings.get_msg("common-weapons-sceptre");
 
         Text::new(tree_title)
             .mid_top_with_margin_on(state.ids.content_align, 2.0)
@@ -2043,8 +2043,8 @@ impl<'a> Diary<'a> {
             //        3 0 4
             //        8 2 7
             SkillIcon::Descriptive {
-                title: "hud.skill.sc_lifesteal_title",
-                desc: "hud.skill.sc_lifesteal",
+                title: "hud-skill-sc_lifesteal_title",
+                desc: "hud-skill-sc_lifesteal",
                 image: self.imgs.skill_sceptre_lifesteal,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_sceptre_lifesteal_0,
@@ -2075,8 +2075,8 @@ impl<'a> Diary<'a> {
             },
             // Top right skills
             SkillIcon::Descriptive {
-                title: "hud.skill.sc_heal_title",
-                desc: "hud.skill.sc_heal",
+                title: "hud-skill-sc_heal_title",
+                desc: "hud-skill-sc_heal",
                 image: self.imgs.skill_sceptre_heal,
                 position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
                 id: state.ids.skill_sceptre_heal_0,
@@ -2150,7 +2150,7 @@ impl<'a> Diary<'a> {
         mut events: Vec<Event>,
     ) -> Vec<Event> {
         // Title text
-        let tree_title = &self.localized_strings.get("common.weapons.bow");
+        let tree_title = &self.localized_strings.get_msg("common-weapons-bow");
 
         Text::new(tree_title)
             .mid_top_with_margin_on(state.ids.content_align, 2.0)
@@ -2194,8 +2194,8 @@ impl<'a> Diary<'a> {
             //        3 0 4
             //        8 2 7
             SkillIcon::Descriptive {
-                title: "hud.skill.bow_charged_title",
-                desc: "hud.skill.bow_charged",
+                title: "hud-skill-bow_charged_title",
+                desc: "hud-skill-bow_charged",
                 image: self.imgs.bow_m1,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_bow_charged_0,
@@ -2232,8 +2232,8 @@ impl<'a> Diary<'a> {
             },
             // Top right skills
             SkillIcon::Descriptive {
-                title: "hud.skill.bow_repeater_title",
-                desc: "hud.skill.bow_repeater",
+                title: "hud-skill-bow_repeater_title",
+                desc: "hud-skill-bow_repeater",
                 image: self.imgs.bow_m2,
                 position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
                 id: state.ids.skill_bow_repeater_0,
@@ -2308,7 +2308,7 @@ impl<'a> Diary<'a> {
         mut events: Vec<Event>,
     ) -> Vec<Event> {
         // Title text
-        let tree_title = &self.localized_strings.get("common.weapons.staff");
+        let tree_title = &self.localized_strings.get_msg("common-weapons-staff");
 
         Text::new(tree_title)
             .mid_top_with_margin_on(state.ids.content_align, 2.0)
@@ -2354,8 +2354,8 @@ impl<'a> Diary<'a> {
             //        3 0 4
             //        8 2 7
             SkillIcon::Descriptive {
-                title: "hud.skill.st_fireball_title",
-                desc: "hud.skill.st_fireball",
+                title: "hud-skill-st_fireball_title",
+                desc: "hud-skill-st_fireball",
                 image: self.imgs.fireball,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_staff_basic_0,
@@ -2380,8 +2380,8 @@ impl<'a> Diary<'a> {
             },
             // Top right skills
             SkillIcon::Descriptive {
-                title: "hud.skill.st_flamethrower_title",
-                desc: "hud.skill.st_flamethrower",
+                title: "hud-skill-st_flamethrower_title",
+                desc: "hud-skill-st_flamethrower",
                 image: self.imgs.flamethrower,
                 position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
                 id: state.ids.skill_staff_beam_0,
@@ -2455,7 +2455,7 @@ impl<'a> Diary<'a> {
         mut events: Vec<Event>,
     ) -> Vec<Event> {
         // Title text
-        let tree_title = &self.localized_strings.get("common.tool.mining");
+        let tree_title = &self.localized_strings.get_msg("common-tool-mining");
 
         Text::new(tree_title)
             .mid_top_with_margin_on(state.ids.content_align, 2.0)
@@ -2501,8 +2501,8 @@ impl<'a> Diary<'a> {
             //        3 0 4
             //        8 2 7
             SkillIcon::Descriptive {
-                title: "hud.skill.pick_strike_title",
-                desc: "hud.skill.pick_strike",
+                title: "hud-skill-pick_strike_title",
+                desc: "hud-skill-pick_strike",
                 image: self.imgs.pickaxe,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_pick_m1,
@@ -2553,8 +2553,8 @@ impl<'a> Diary<'a> {
                         .position(*position)
                         .with_tooltip(
                             self.tooltip_manager,
-                            &self.localized_strings.get(title),
-                            &self.localized_strings.get(desc),
+                            &self.localized_strings.get_msg(title),
+                            &self.localized_strings.get_msg(desc),
                             diary_tooltip,
                             TEXT_COLOR,
                         )
@@ -2793,13 +2793,13 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
 fn general_skill_strings(skill: GeneralSkill) -> SkillStrings<'static> {
     match skill {
         GeneralSkill::HealthIncrease => SkillStrings::with_const(
-            "hud.skill.inc_health_title",
-            "hud.skill.inc_health",
+            "hud-skill-inc_health_title",
+            "hud-skill-inc_health",
             u32::from(HP_PER_LEVEL),
         ),
         GeneralSkill::EnergyIncrease => SkillStrings::with_const(
-            "hud.skill.inc_energy_title",
-            "hud.skill.inc_energy",
+            "hud-skill-inc_energy_title",
+            "hud-skill-inc_energy",
             u32::from(ENERGY_PER_LEVEL),
         ),
     }
@@ -2808,22 +2808,22 @@ fn general_skill_strings(skill: GeneralSkill) -> SkillStrings<'static> {
 fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
     match group {
         SkillGroupKind::Weapon(ToolKind::Sword) => {
-            SkillStrings::plain("hud.skill.unlck_sword_title", "hud.skill.unlck_sword")
+            SkillStrings::plain("hud-skill-unlck_sword_title", "hud-skill-unlck_sword")
         },
         SkillGroupKind::Weapon(ToolKind::Axe) => {
-            SkillStrings::plain("hud.skill.unlck_axe_title", "hud.skill.unlck_axe")
+            SkillStrings::plain("hud-skill-unlck_axe_title", "hud-skill-unlck_axe")
         },
         SkillGroupKind::Weapon(ToolKind::Hammer) => {
-            SkillStrings::plain("hud.skill.unlck_hammer_title", "hud.skill.unlck_hammer")
+            SkillStrings::plain("hud-skill-unlck_hammer_title", "hud-skill-unlck_hammer")
         },
         SkillGroupKind::Weapon(ToolKind::Bow) => {
-            SkillStrings::plain("hud.skill.unlck_bow_title", "hud.skill.unlck_bow")
+            SkillStrings::plain("hud-skill-unlck_bow_title", "hud-skill-unlck_bow")
         },
         SkillGroupKind::Weapon(ToolKind::Staff) => {
-            SkillStrings::plain("hud.skill.unlck_staff_title", "hud.skill.unlck_staff")
+            SkillStrings::plain("hud-skill-unlck_staff_title", "hud-skill-unlck_staff")
         },
         SkillGroupKind::Weapon(ToolKind::Sceptre) => {
-            SkillStrings::plain("hud.skill.unlck_sceptre_title", "hud.skill.unlck_sceptre")
+            SkillStrings::plain("hud-skill-unlck_sceptre_title", "hud-skill-unlck_sceptre")
         },
         SkillGroupKind::General
         | SkillGroupKind::Weapon(
@@ -2848,77 +2848,77 @@ fn sword_skill_strings(skill: SwordSkill) -> SkillStrings<'static> {
     match skill {
         // triple strike
         SwordSkill::TsCombo => SkillStrings::plain(
-            "hud.skill.sw_trip_str_combo_title",
-            "hud.skill.sw_trip_str_combo",
+            "hud-skill-sw_trip_str_combo_title",
+            "hud-skill-sw_trip_str_combo",
         ),
         SwordSkill::TsDamage => SkillStrings::plain(
-            "hud.skill.sw_trip_str_dmg_title",
-            "hud.skill.sw_trip_str_dmg",
+            "hud-skill-sw_trip_str_dmg_title",
+            "hud-skill-sw_trip_str_dmg",
         ),
         SwordSkill::TsSpeed => {
-            SkillStrings::plain("hud.skill.sw_trip_str_sp_title", "hud.skill.sw_trip_str_sp")
+            SkillStrings::plain("hud-skill-sw_trip_str_sp_title", "hud-skill-sw_trip_str_sp")
         },
         SwordSkill::TsRegen => SkillStrings::plain(
-            "hud.skill.sw_trip_str_reg_title",
-            "hud.skill.sw_trip_str_reg",
+            "hud-skill-sw_trip_str_reg_title",
+            "hud-skill-sw_trip_str_reg",
         ),
         // dash
         SwordSkill::DDamage => SkillStrings::with_mult(
-            "hud.skill.sw_dash_dmg_title",
-            "hud.skill.sw_dash_dmg",
+            "hud-skill-sw_dash_dmg_title",
+            "hud-skill-sw_dash_dmg",
             modifiers.dash.base_damage,
         ),
         SwordSkill::DDrain => SkillStrings::with_mult(
-            "hud.skill.sw_dash_drain_title",
-            "hud.skill.sw_dash_drain",
+            "hud-skill-sw_dash_drain_title",
+            "hud-skill-sw_dash_drain",
             modifiers.dash.energy_drain,
         ),
         SwordSkill::DCost => SkillStrings::with_mult(
-            "hud.skill.sw_dash_cost_title",
-            "hud.skill.sw_dash_cost",
+            "hud-skill-sw_dash_cost_title",
+            "hud-skill-sw_dash_cost",
             modifiers.dash.energy_cost,
         ),
         SwordSkill::DSpeed => SkillStrings::with_mult(
-            "hud.skill.sw_dash_speed_title",
-            "hud.skill.sw_dash_speed",
+            "hud-skill-sw_dash_speed_title",
+            "hud-skill-sw_dash_speed",
             modifiers.dash.forward_speed,
         ),
         SwordSkill::DChargeThrough => SkillStrings::plain(
-            "hud.skill.sw_dash_charge_through_title",
-            "hud.skill.sw_dash_charge_through",
+            "hud-skill-sw_dash_charge_through_title",
+            "hud-skill-sw_dash_charge_through",
         ),
         SwordSkill::DScaling => SkillStrings::with_mult(
-            "hud.skill.sw_dash_scale_title",
-            "hud.skill.sw_dash_scale",
+            "hud-skill-sw_dash_scale_title",
+            "hud-skill-sw_dash_scale",
             modifiers.dash.scaled_damage,
         ),
         // spin
         SwordSkill::UnlockSpin => {
-            SkillStrings::plain("hud.skill.sw_spin_title", "hud.skill.sw_spin")
+            SkillStrings::plain("hud-skill-sw_spin_title", "hud-skill-sw_spin")
         },
         SwordSkill::SDamage => SkillStrings::with_mult(
-            "hud.skill.sw_spin_dmg_title",
-            "hud.skill.sw_spin_dmg",
+            "hud-skill-sw_spin_dmg_title",
+            "hud-skill-sw_spin_dmg",
             modifiers.spin.base_damage,
         ),
         SwordSkill::SSpeed => SkillStrings::with_mult(
-            "hud.skill.sw_spin_spd_title",
-            "hud.skill.sw_spin_spd",
+            "hud-skill-sw_spin_spd_title",
+            "hud-skill-sw_spin_spd",
             modifiers.spin.swing_duration,
         ),
         SwordSkill::SCost => SkillStrings::with_mult(
-            "hud.skill.sw_spin_cost_title",
-            "hud.skill.sw_spin_cost",
+            "hud-skill-sw_spin_cost_title",
+            "hud-skill-sw_spin_cost",
             modifiers.spin.energy_cost,
         ),
         SwordSkill::SSpins => SkillStrings::with_const(
-            "hud.skill.sw_spin_spins_title",
-            "hud.skill.sw_spin_spins",
+            "hud-skill-sw_spin_spins_title",
+            "hud-skill-sw_spin_spins",
             modifiers.spin.num,
         ),
         // independent skills
         SwordSkill::InterruptingAttacks => {
-            SkillStrings::plain("hud.skill.sw_interrupt_title", "hud.skill.sw_interrupt")
+            SkillStrings::plain("hud-skill-sw_interrupt_title", "hud-skill-sw_interrupt")
         },
     }
 }
@@ -2928,68 +2928,68 @@ fn axe_skill_strings(skill: AxeSkill) -> SkillStrings<'static> {
     match skill {
         // Double strike upgrades
         AxeSkill::DsCombo => SkillStrings::plain(
-            "hud.skill.axe_double_strike_combo_title",
-            "hud.skill.axe_double_strike_combo",
+            "hud-skill-axe_double_strike_combo_title",
+            "hud-skill-axe_double_strike_combo",
         ),
         AxeSkill::DsDamage => SkillStrings::plain(
-            "hud.skill.axe_double_strike_damage_title",
-            "hud.skill.axe_double_strike_damage",
+            "hud-skill-axe_double_strike_damage_title",
+            "hud-skill-axe_double_strike_damage",
         ),
         AxeSkill::DsSpeed => SkillStrings::plain(
-            "hud.skill.axe_double_strike_speed_title",
-            "hud.skill.axe_double_strike_speed",
+            "hud-skill-axe_double_strike_speed_title",
+            "hud-skill-axe_double_strike_speed",
         ),
         AxeSkill::DsRegen => SkillStrings::plain(
-            "hud.skill.axe_double_strike_regen_title",
-            "hud.skill.axe_double_strike_regen",
+            "hud-skill-axe_double_strike_regen_title",
+            "hud-skill-axe_double_strike_regen",
         ),
         // Spin upgrades
         AxeSkill::SInfinite => SkillStrings::plain(
-            "hud.skill.axe_infinite_axe_spin_title",
-            "hud.skill.axe_infinite_axe_spin",
+            "hud-skill-axe_infinite_axe_spin_title",
+            "hud-skill-axe_infinite_axe_spin",
         ),
         AxeSkill::SHelicopter => SkillStrings::plain(
-            "hud.skill.axe_spin_helicopter_title",
-            "hud.skill.axe_spin_helicopter",
+            "hud-skill-axe_spin_helicopter_title",
+            "hud-skill-axe_spin_helicopter",
         ),
         AxeSkill::SDamage => SkillStrings::with_mult(
-            "hud.skill.axe_spin_damage_title",
-            "hud.skill.axe_spin_damage",
+            "hud-skill-axe_spin_damage_title",
+            "hud-skill-axe_spin_damage",
             modifiers.spin.base_damage,
         ),
         AxeSkill::SSpeed => SkillStrings::with_mult(
-            "hud.skill.axe_spin_speed_title",
-            "hud.skill.axe_spin_speed",
+            "hud-skill-axe_spin_speed_title",
+            "hud-skill-axe_spin_speed",
             modifiers.spin.swing_duration,
         ),
         AxeSkill::SCost => SkillStrings::with_mult(
-            "hud.skill.axe_spin_cost_title",
-            "hud.skill.axe_spin_cost",
+            "hud-skill-axe_spin_cost_title",
+            "hud-skill-axe_spin_cost",
             modifiers.spin.energy_cost,
         ),
         // Leap upgrades
         AxeSkill::UnlockLeap => SkillStrings::plain(
-            "hud.skill.axe_unlock_leap_title",
-            "hud.skill.axe_unlock_leap",
+            "hud-skill-axe_unlock_leap_title",
+            "hud-skill-axe_unlock_leap",
         ),
         AxeSkill::LDamage => SkillStrings::with_mult(
-            "hud.skill.axe_leap_damage_title",
-            "hud.skill.axe_leap_damage",
+            "hud-skill-axe_leap_damage_title",
+            "hud-skill-axe_leap_damage",
             modifiers.leap.base_damage,
         ),
         AxeSkill::LKnockback => SkillStrings::with_mult(
-            "hud.skill.axe_leap_knockback_title",
-            "hud.skill.axe_leap_knockback",
+            "hud-skill-axe_leap_knockback_title",
+            "hud-skill-axe_leap_knockback",
             modifiers.leap.knockback,
         ),
         AxeSkill::LCost => SkillStrings::with_mult(
-            "hud.skill.axe_leap_cost_title",
-            "hud.skill.axe_leap_cost",
+            "hud-skill-axe_leap_cost_title",
+            "hud-skill-axe_leap_cost",
             modifiers.leap.energy_cost,
         ),
         AxeSkill::LDistance => SkillStrings::with_mult(
-            "hud.skill.axe_leap_distance_title",
-            "hud.skill.axe_leap_distance",
+            "hud-skill-axe_leap_distance_title",
+            "hud-skill-axe_leap_distance",
             modifiers.leap.leap_strength,
         ),
     }
@@ -3000,71 +3000,71 @@ fn hammer_skill_strings(skill: HammerSkill) -> SkillStrings<'static> {
     // Single strike upgrades
     match skill {
         HammerSkill::SsKnockback => SkillStrings::with_mult(
-            "hud.skill.hmr_single_strike_knockback_title",
-            "hud.skill.hmr_single_strike_knockback",
+            "hud-skill-hmr_single_strike_knockback_title",
+            "hud-skill-hmr_single_strike_knockback",
             modifiers.single_strike.knockback,
         ),
         HammerSkill::SsDamage => SkillStrings::plain(
-            "hud.skill.hmr_single_strike_damage_title",
-            "hud.skill.hmr_single_strike_damage",
+            "hud-skill-hmr_single_strike_damage_title",
+            "hud-skill-hmr_single_strike_damage",
         ),
         HammerSkill::SsSpeed => SkillStrings::plain(
-            "hud.skill.hmr_single_strike_speed_title",
-            "hud.skill.hmr_single_strike_speed",
+            "hud-skill-hmr_single_strike_speed_title",
+            "hud-skill-hmr_single_strike_speed",
         ),
         HammerSkill::SsRegen => SkillStrings::plain(
-            "hud.skill.hmr_single_strike_regen_title",
-            "hud.skill.hmr_single_strike_regen",
+            "hud-skill-hmr_single_strike_regen_title",
+            "hud-skill-hmr_single_strike_regen",
         ),
         // Charged melee upgrades
         HammerSkill::CDamage => SkillStrings::with_mult(
-            "hud.skill.hmr_charged_melee_damage_title",
-            "hud.skill.hmr_charged_melee_damage",
+            "hud-skill-hmr_charged_melee_damage_title",
+            "hud-skill-hmr_charged_melee_damage",
             modifiers.charged.scaled_damage,
         ),
         HammerSkill::CKnockback => SkillStrings::with_mult(
-            "hud.skill.hmr_charged_melee_knockback_title",
-            "hud.skill.hmr_charged_melee_knockback",
+            "hud-kill-hmr_charged_melee_knockback_title",
+            "hud-skill-hmr_charged_melee_knockback",
             modifiers.charged.scaled_knockback,
         ),
         HammerSkill::CDrain => SkillStrings::with_mult(
-            "hud.skill.hmr_charged_melee_nrg_drain_title",
-            "hud.skill.hmr_charged_melee_nrg_drain",
+            "hud-skill-hmr_charged_melee_nrg_drain_title",
+            "hud-skill-hmr_charged_melee_nrg_drain",
             modifiers.charged.energy_drain,
         ),
         HammerSkill::CSpeed => SkillStrings::with_mult(
-            "hud.skill.hmr_charged_rate_title",
-            "hud.skill.hmr_charged_rate",
+            "hud-skill-hmr_charged_rate_title",
+            "hud-skill-hmr_charged_rate",
             modifiers.charged.charge_rate,
         ),
         // Leap upgrades
         HammerSkill::UnlockLeap => SkillStrings::plain(
-            "hud.skill.hmr_unlock_leap_title",
-            "hud.skill.hmr_unlock_leap",
+            "hud-skill-hmr_unlock_leap_title",
+            "hud-skill-hmr_unlock_leap",
         ),
         HammerSkill::LDamage => SkillStrings::with_mult(
-            "hud.skill.hmr_leap_damage_title",
-            "hud.skill.hmr_leap_damage",
+            "hud-skill-hmr_leap_damage_title",
+            "hud-skill-hmr_leap_damage",
             modifiers.leap.base_damage,
         ),
         HammerSkill::LCost => SkillStrings::with_mult(
-            "hud.skill.hmr_leap_cost_title",
-            "hud.skill.hmr_leap_cost",
+            "hud-skill-hmr_leap_cost_title",
+            "hud-skill-hmr_leap_cost",
             modifiers.leap.energy_cost,
         ),
         HammerSkill::LDistance => SkillStrings::with_mult(
-            "hud.skill.hmr_leap_distance_title",
-            "hud.skill.hmr_leap_distance",
+            "hud-skill-hmr_leap_distance_title",
+            "hud-skill-hmr_leap_distance",
             modifiers.leap.leap_strength,
         ),
         HammerSkill::LKnockback => SkillStrings::with_mult(
-            "hud.skill.hmr_leap_knockback_title",
-            "hud.skill.hmr_leap_knockback",
+            "hud-skill-hmr_leap_knockback_title",
+            "hud-skill-hmr_leap_knockback",
             modifiers.leap.knockback,
         ),
         HammerSkill::LRange => SkillStrings::with_const_float(
-            "hud.skill.hmr_leap_radius_title",
-            "hud.skill.hmr_leap_radius",
+            "hud-skill-hmr_leap_radius_title",
+            "hud-skill-hmr_leap_radius",
             modifiers.leap.range,
         ),
     }
@@ -3075,75 +3075,75 @@ fn bow_skill_strings(skill: BowSkill) -> SkillStrings<'static> {
     match skill {
         // Passives
         BowSkill::ProjSpeed => SkillStrings::with_mult(
-            "hud.skill.bow_projectile_speed_title",
-            "hud.skill.bow_projectile_speed",
+            "hud-skill-bow_projectile_speed_title",
+            "hud-skill-bow_projectile_speed",
             modifiers.universal.projectile_speed,
         ),
         // Charged upgrades
         BowSkill::CDamage => SkillStrings::with_mult(
-            "hud.skill.bow_charged_damage_title",
-            "hud.skill.bow_charged_damage",
+            "hud-skill-bow_charged_damage_title",
+            "hud-skill-bow_charged_damage",
             modifiers.charged.damage_scaling,
         ),
         BowSkill::CRegen => SkillStrings::with_mult(
-            "hud.skill.bow_charged_energy_regen_title",
-            "hud.skill.bow_charged_energy_regen",
+            "hud-skill-bow_charged_energy_regen_title",
+            "hud-skill-bow_charged_energy_regen",
             modifiers.charged.regen_scaling,
         ),
         BowSkill::CKnockback => SkillStrings::with_mult(
-            "hud.skill.bow_charged_knockback_title",
-            "hud.skill.bow_charged_knockback",
+            "hud-skill-bow_charged_knockback_title",
+            "hud-skill-bow_charged_knockback",
             modifiers.charged.knockback_scaling,
         ),
         BowSkill::CSpeed => SkillStrings::with_mult(
-            "hud.skill.bow_charged_speed_title",
-            "hud.skill.bow_charged_speed",
+            "hud-skill-bow_charged_speed_title",
+            "hud-skill-bow_charged_speed",
             modifiers.charged.charge_rate,
         ),
         BowSkill::CMove => SkillStrings::with_mult(
-            "hud.skill.bow_charged_move_title",
-            "hud.skill.bow_charged_move",
+            "hud-skill-bow_charged_move_title",
+            "hud-skill-bow_charged_move",
             modifiers.charged.move_speed,
         ),
         // Repeater upgrades
         BowSkill::RDamage => SkillStrings::with_mult(
-            "hud.skill.bow_repeater_damage_title",
-            "hud.skill.bow_repeater_damage",
+            "hud-skill-bow_repeater_damage_title",
+            "hud-skill-bow_repeater_damage",
             modifiers.repeater.power,
         ),
         BowSkill::RCost => SkillStrings::with_mult(
-            "hud.skill.bow_repeater_cost_title",
-            "hud.skill.bow_repeater_cost",
+            "hud-skill-bow_repeater_cost_title",
+            "hud-skill-bow_repeater_cost",
             modifiers.repeater.energy_cost,
         ),
         BowSkill::RSpeed => SkillStrings::with_mult(
-            "hud.skill.bow_repeater_speed_title",
-            "hud.skill.bow_repeater_speed",
+            "hud-skill-bow_repeater_speed_title",
+            "hud-skill-bow_repeater_speed",
             modifiers.repeater.max_speed,
         ),
         // Shotgun upgrades
         BowSkill::UnlockShotgun => SkillStrings::plain(
-            "hud.skill.bow_shotgun_unlock_title",
-            "hud.skill.bow_shotgun_unlock",
+            "hud-skill-bow_shotgun_unlock_title",
+            "hud-skill-bow_shotgun_unlock",
         ),
         BowSkill::SDamage => SkillStrings::with_mult(
-            "hud.skill.bow_shotgun_damage_title",
-            "hud.skill.bow_shotgun_damage",
+            "hud-skill-bow_shotgun_damage_title",
+            "hud-skill-bow_shotgun_damage",
             modifiers.shotgun.power,
         ),
         BowSkill::SCost => SkillStrings::with_mult(
-            "hud.skill.bow_shotgun_cost_title",
-            "hud.skill.bow_shotgun_cost",
+            "hud-skill-bow_shotgun_cost_title",
+            "hud-skill-bow_shotgun_cost",
             modifiers.shotgun.energy_cost,
         ),
         BowSkill::SArrows => SkillStrings::with_const(
-            "hud.skill.bow_shotgun_arrow_count_title",
-            "hud.skill.bow_shotgun_arrow_count",
+            "hud-skill-bow_shotgun_arrow_count_title",
+            "hud-skill-bow_shotgun_arrow_count",
             modifiers.shotgun.num_projectiles,
         ),
         BowSkill::SSpread => SkillStrings::with_mult(
-            "hud.skill.bow_shotgun_spread_title",
-            "hud.skill.bow_shotgun_spread",
+            "hud-skill-bow_shotgun_spread_title",
+            "hud-skill-bow_shotgun_spread",
             modifiers.shotgun.spread,
         ),
     }
@@ -3154,64 +3154,64 @@ fn staff_skill_strings(skill: StaffSkill) -> SkillStrings<'static> {
     match skill {
         // Basic ranged upgrades
         StaffSkill::BDamage => SkillStrings::with_mult(
-            "hud.skill.st_damage_title",
-            "hud.skill.st_damage",
+            "hud-skill-st_damage_title",
+            "hud-skill-st_damage",
             modifiers.fireball.power,
         ),
         StaffSkill::BRegen => SkillStrings::with_mult(
-            "hud.skill.st_energy_regen_title",
-            "hud.skill.st_energy_regen",
+            "hud-skill-st_energy_regen_title",
+            "hud-skill-st_energy_regen",
             modifiers.fireball.regen,
         ),
         StaffSkill::BRadius => SkillStrings::with_mult(
-            "hud.skill.st_explosion_radius_title",
-            "hud.skill.st_explosion_radius",
+            "hud-skill-st_explosion_radius_title",
+            "hud-skill-st_explosion_radius",
             modifiers.fireball.range,
         ),
         // Flamethrower upgrades
         StaffSkill::FDamage => SkillStrings::with_mult(
-            "hud.skill.st_flamethrower_damage_title",
-            "hud.skill.st_flamethrower_damage",
+            "hud-skill-st_flamethrower_damage_title",
+            "hud-skill-st_flamethrower_damage",
             modifiers.flamethrower.damage,
         ),
         StaffSkill::FRange => SkillStrings::with_mult(
-            "hud.skill.st_flamethrower_range_title",
-            "hud.skill.st_flamethrower_range",
+            "hud-skill-st_flamethrower_range_title",
+            "hud-skill-st_flamethrower_range",
             modifiers.flamethrower.range,
         ),
         StaffSkill::FDrain => SkillStrings::with_mult(
-            "hud.skill.st_energy_drain_title",
-            "hud.skill.st_energy_drain",
+            "hud-skill-st_energy_drain_title",
+            "hud-skill-st_energy_drain",
             modifiers.flamethrower.energy_drain,
         ),
         StaffSkill::FVelocity => SkillStrings::with_mult(
-            "hud.skill.st_flame_velocity_title",
-            "hud.skill.st_flame_velocity",
+            "hud-skill-st_flame_velocity_title",
+            "hud-skill-st_flame_velocity",
             modifiers.flamethrower.velocity,
         ),
         // Shockwave upgrades
         StaffSkill::UnlockShockwave => SkillStrings::plain(
-            "hud.skill.st_shockwave_unlock_title",
-            "hud.skill.st_shockwave_unlock",
+            "hud-skill-st_shockwave_unlock_title",
+            "hud-skill-st_shockwave_unlock",
         ),
         StaffSkill::SDamage => SkillStrings::with_mult(
-            "hud.skill.st_shockwave_damage_title",
-            "hud.skill.st_shockwave_damage",
+            "hud-skill-st_shockwave_damage_title",
+            "hud-skill-st_shockwave_damage",
             modifiers.shockwave.damage,
         ),
         StaffSkill::SKnockback => SkillStrings::with_mult(
-            "hud.skill.st_shockwave_knockback_title",
-            "hud.skill.st_shockwave_knockback",
+            "hud-skill-st_shockwave_knockback_title",
+            "hud-skill-st_shockwave_knockback",
             modifiers.shockwave.knockback,
         ),
         StaffSkill::SRange => SkillStrings::with_mult(
-            "hud.skill.st_shockwave_range_title",
-            "hud.skill.st_shockwave_range",
+            "hud-skill-st_shockwave_range_title",
+            "hud-skill-st_shockwave_range",
             modifiers.shockwave.duration,
         ),
         StaffSkill::SCost => SkillStrings::with_mult(
-            "hud.skill.st_shockwave_cost_title",
-            "hud.skill.st_shockwave_cost",
+            "hud-skill-st_shockwave_cost_title",
+            "hud-skill-st_shockwave_cost",
             modifiers.shockwave.energy_cost,
         ),
     }
@@ -3222,69 +3222,69 @@ fn sceptre_skill_strings(skill: SceptreSkill) -> SkillStrings<'static> {
     match skill {
         // Lifesteal beam upgrades
         SceptreSkill::LDamage => SkillStrings::with_mult(
-            "hud.skill.sc_lifesteal_damage_title",
-            "hud.skill.sc_lifesteal_damage",
+            "hud-skill-sc_lifesteal_damage_title",
+            "hud-skill-sc_lifesteal_damage",
             modifiers.beam.damage,
         ),
         SceptreSkill::LRange => SkillStrings::with_mult(
-            "hud.skill.sc_lifesteal_range_title",
-            "hud.skill.sc_lifesteal_range",
+            "hud-skill-sc_lifesteal_range_title",
+            "hud-skill-sc_lifesteal_range",
             modifiers.beam.range,
         ),
         SceptreSkill::LLifesteal => SkillStrings::with_mult(
-            "hud.skill.sc_lifesteal_lifesteal_title",
-            "hud.skill.sc_lifesteal_lifesteal",
+            "hud-skill-sc_lifesteal_lifesteal_title",
+            "hud-skill-sc_lifesteal_lifesteal",
             modifiers.beam.lifesteal,
         ),
         SceptreSkill::LRegen => SkillStrings::with_mult(
-            "hud.skill.sc_lifesteal_regen_title",
-            "hud.skill.sc_lifesteal_regen",
+            "hud-skill-sc_lifesteal_regen_title",
+            "hud-skill-sc_lifesteal_regen",
             modifiers.beam.energy_regen,
         ),
         // Healing aura upgrades
         SceptreSkill::HHeal => SkillStrings::with_mult(
-            "hud.skill.sc_heal_heal_title",
-            "hud.skill.sc_heal_heal",
+            "hud-skill-sc_heal_heal_title",
+            "hud-skill-sc_heal_heal",
             modifiers.healing_aura.strength,
         ),
         SceptreSkill::HRange => SkillStrings::with_mult(
-            "hud.skill.sc_heal_range_title",
-            "hud.skill.sc_heal_range",
+            "hud-skill-sc_heal_range_title",
+            "hud-skill-sc_heal_range",
             modifiers.healing_aura.range,
         ),
         SceptreSkill::HDuration => SkillStrings::with_mult(
-            "hud.skill.sc_heal_duration_title",
-            "hud.skill.sc_heal_duration",
+            "hud-skill-sc_heal_duration_title",
+            "hud-skill-sc_heal_duration",
             modifiers.healing_aura.duration,
         ),
         SceptreSkill::HCost => SkillStrings::with_mult(
-            "hud.skill.sc_heal_cost_title",
-            "hud.skill.sc_heal_cost",
+            "hud-skill-sc_heal_cost_title",
+            "hud-skill-sc_heal_cost",
             modifiers.healing_aura.energy_cost,
         ),
         // Warding aura upgrades
         SceptreSkill::UnlockAura => SkillStrings::plain(
-            "hud.skill.sc_wardaura_unlock_title",
-            "hud.skill.sc_wardaura_unlock",
+            "hud-skill-sc_wardaura_unlock_title",
+            "hud-skill-sc_wardaura_unlock",
         ),
         SceptreSkill::AStrength => SkillStrings::with_mult(
-            "hud.skill.sc_wardaura_strength_title",
-            "hud.skill.sc_wardaura_strength",
+            "hud-skill-sc_wardaura_strength_title",
+            "hud-skill-sc_wardaura_strength",
             modifiers.warding_aura.strength,
         ),
         SceptreSkill::ADuration => SkillStrings::with_mult(
-            "hud.skill.sc_wardaura_duration_title",
-            "hud.skill.sc_wardaura_duration",
+            "hud-skill-sc_wardaura_duration_title",
+            "hud-kill-sc_wardaura_duration",
             modifiers.warding_aura.duration,
         ),
         SceptreSkill::ARange => SkillStrings::with_mult(
-            "hud.skill.sc_wardaura_range_title",
-            "hud.skill.sc_wardaura_range",
+            "hud-skill-sc_wardaura_range_title",
+            "hud-skill-sc_wardaura_range",
             modifiers.warding_aura.range,
         ),
         SceptreSkill::ACost => SkillStrings::with_mult(
-            "hud.skill.sc_wardaura_cost_title",
-            "hud.skill.sc_wardaura_cost",
+            "hud-skill-sc_wardaura_cost_title",
+            "hud-skill-sc_wardaura_cost",
             modifiers.warding_aura.energy_cost,
         ),
     }
@@ -3294,18 +3294,18 @@ fn roll_skill_strings(skill: RollSkill) -> SkillStrings<'static> {
     let modifiers = SKILL_MODIFIERS.general_tree.roll;
     match skill {
         RollSkill::Cost => SkillStrings::with_mult(
-            "hud.skill.roll_energy_title",
-            "hud.skill.roll_energy",
+            "hud-skill-roll_energy_title",
+            "hud-skill-roll_energy",
             modifiers.energy_cost,
         ),
         RollSkill::Strength => SkillStrings::with_mult(
-            "hud.skill.roll_speed_title",
-            "hud.skill.roll_speed",
+            "hud-skill-roll_speed_title",
+            "hud-skill-roll_speed",
             modifiers.strength,
         ),
         RollSkill::Duration => SkillStrings::with_mult(
-            "hud.skill.roll_dur_title",
-            "hud.skill.roll_dur",
+            "hud-skill-roll_dur_title",
+            "hud-skill-roll_dur",
             modifiers.duration,
         ),
     }
@@ -3315,13 +3315,13 @@ fn climb_skill_strings(skill: ClimbSkill) -> SkillStrings<'static> {
     let modifiers = SKILL_MODIFIERS.general_tree.climb;
     match skill {
         ClimbSkill::Cost => SkillStrings::with_mult(
-            "hud.skill.climbing_cost_title",
-            "hud.skill.climbing_cost",
+            "hud-skill-climbing_cost_title",
+            "hud-skill-climbing_cost",
             modifiers.energy_cost,
         ),
         ClimbSkill::Speed => SkillStrings::with_mult(
-            "hud.skill.climbing_speed_title",
-            "hud.skill.climbing_speed",
+            "hud-skill-climbing_speed_title",
+            "hud-skill-climbing_speed",
             modifiers.speed,
         ),
     }
@@ -3331,8 +3331,8 @@ fn swim_skill_strings(skill: SwimSkill) -> SkillStrings<'static> {
     let modifiers = SKILL_MODIFIERS.general_tree.swim;
     match skill {
         SwimSkill::Speed => SkillStrings::with_mult(
-            "hud.skill.swim_speed_title",
-            "hud.skill.swim_speed",
+            "hud-skill-swim_speed_title",
+            "hud-skill-swim_speed",
             modifiers.speed,
         ),
     }
@@ -3342,18 +3342,18 @@ fn mining_skill_strings(skill: MiningSkill) -> SkillStrings<'static> {
     let modifiers = SKILL_MODIFIERS.mining_tree;
     match skill {
         MiningSkill::Speed => SkillStrings::with_mult(
-            "hud.skill.pick_strike_speed_title",
-            "hud.skill.pick_strike_speed",
+            "hud-skill-pick_strike_speed_title",
+            "hud-skill-pick_strike_speed",
             modifiers.speed,
         ),
         MiningSkill::OreGain => SkillStrings::with_const(
-            "hud.skill.pick_strike_oregain_title",
-            "hud.skill.pick_strike_oregain",
+            "hud-skill-pick_strike_oregain_title",
+            "hud-skill-pick_strike_oregain",
             (modifiers.ore_gain * 100.0).round() as u32,
         ),
         MiningSkill::GemGain => SkillStrings::with_const(
-            "hud.skill.pick_strike_gemgain_title",
-            "hud.skill.pick_strike_gemgain",
+            "hud-skill-pick_strike_gemgain_title",
+            "hud-skill-pick_strike_gemgain",
             (modifiers.gem_gain * 100.0).round() as u32,
         ),
     }
@@ -3419,12 +3419,12 @@ impl<'a> SkillStrings<'a> {
     ) -> (Cow<'loc, str>, Cow<'loc, str>) {
         match self {
             Self::Plain { title, desc } => {
-                let title = i18n.get(title);
+                let title = i18n.get_msg(title);
 
                 let args = i18n::fluent_args! {
                     "SP" => sp(i18n, skill_set, skill),
                 };
-                let desc = i18n.get_msg_ctx(&desc.replace('.', "-"), &args);
+                let desc = i18n.get_msg_ctx(desc, &args);
 
                 (title, desc)
             },
@@ -3433,12 +3433,12 @@ impl<'a> SkillStrings<'a> {
                 desc,
                 constant,
             } => {
-                let title = i18n.get(title);
+                let title = i18n.get_msg(title);
                 let args = i18n::fluent_args! {
                     "boost" => constant,
                     "SP" => sp(i18n, skill_set, skill),
                 };
-                let desc = i18n.get_msg_ctx(&desc.replace('.', "-"), &args);
+                let desc = i18n.get_msg_ctx(desc, &args);
 
                 (title, desc)
             },
@@ -3447,12 +3447,12 @@ impl<'a> SkillStrings<'a> {
                 desc,
                 constant,
             } => {
-                let title = i18n.get(title);
+                let title = i18n.get_msg(title);
                 let args = i18n::fluent_args! {
                     "boost" => constant,
                     "SP" => sp(i18n, skill_set, skill),
                 };
-                let desc = i18n.get_msg_ctx(&desc.replace('.', "-"), &args);
+                let desc = i18n.get_msg_ctx(desc, &args);
 
                 (title, desc)
             },
@@ -3463,13 +3463,13 @@ impl<'a> SkillStrings<'a> {
             } => {
                 let percentage = hud::multiplier_to_percentage(*multiplier).abs();
 
-                let title = i18n.get(title);
+                let title = i18n.get_msg(title);
 
                 let args = i18n::fluent_args! {
                     "boost" => format!("{percentage:.0}"),
                     "SP" => sp(i18n, skill_set, skill),
                 };
-                let desc = i18n.get_msg_ctx(&desc.replace('.', "-"), &args);
+                let desc = i18n.get_msg_ctx(desc, &args);
 
                 (title, desc)
             },

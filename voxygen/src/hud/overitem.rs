@@ -230,13 +230,13 @@ impl<'a> Widget for Overitem<'a> {
 
             let text = match collect_failed_data.reason {
                 HudCollectFailedReason::InventoryFull => {
-                    self.localized_strings.get("hud.inventory_full")
+                    self.localized_strings.get_msg("hud-inventory_full")
                 },
                 HudCollectFailedReason::LootOwned { owner, expiry_secs } => {
                     let owner_name = match owner {
                         HudLootOwner::Name(name) => Cow::Owned(name),
-                        HudLootOwner::Group => self.localized_strings.get("hud.another_group"),
-                        HudLootOwner::Unknown => self.localized_strings.get("hud.someone_else"),
+                        HudLootOwner::Group => self.localized_strings.get_msg("hud-another_group"),
+                        HudLootOwner::Unknown => self.localized_strings.get_msg("hud-someone_else"),
                     };
                     self.localized_strings.get_msg_ctx(
                         "hud-owned_by_for_secs",
