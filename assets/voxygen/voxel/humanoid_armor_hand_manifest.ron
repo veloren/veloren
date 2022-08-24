@@ -380,6 +380,16 @@
                 color: None
             )
         ),
+        "common.items.armor.cardinal.hand": (
+            left: (
+                vox_spec: ("armor.cardinal.hand", (-2.5, -2.5, -4.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.cardinal.hand", (-1.5, -2.5, -4.0)),
+                color: None
+            )
+        ),
         "common.items.armor.merchant.hand": (
             left: (
                 vox_spec: ("armor.merchant.hand", (-2.5, -2.0, -4.0)),

@@ -2018,6 +2018,31 @@
         "voxel.armor.misc.foot.jackalope",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
+    //Cardinal Set
+    Simple("common.items.armor.cardinal.chest"): VoxTrans(
+        "voxel.armor.cardinal.chest",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    Simple("common.items.armor.cardinal.pants"): VoxTrans(
+        "voxel.armor.cardinal.pants",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.cardinal.belt"): VoxTrans(
+        "voxel.armor.cardinal.belt",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.cardinal.foot"): VoxTrans(
+        "voxel.armor.cardinal.foot",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.cardinal.hand"): VoxTrans(
+        "voxel.armor.cardinal.hand",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.cardinal.shoulder"): VoxTrans(
+        "voxel.armor.cardinal.shoulder",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    ),
     //Twig Set
     Simple("common.items.armor.twigs.chest"): VoxTrans(
         "voxel.armor.twigs.chest",
@@ -2915,6 +2940,10 @@
         "voxel.armor.misc.neck.scratched",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
+    Simple("common.items.armor.misc.neck.abyssal_gorget"): VoxTrans(
+        "voxel.armor.misc.neck.abyssal_gorget",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
 
     // Tabards
     Simple("common.items.armor.misc.tabard.admin"): VoxTrans(
@@ -3484,6 +3513,14 @@
     ),
     Simple("common.items.log.wood"): VoxTrans(
         "voxel.sprite.wood.item.wood",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.abyssal_heart"): VoxTrans(
+        "voxel.sprite.crafting_ing.abyssal_heart",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.coral_branch"): VoxTrans(
+        "voxel.sprite.crafting_ing.coral_branch",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Gliders

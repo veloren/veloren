@@ -89,6 +89,7 @@ pub enum ParticleMode {
     WebStrand = 36,
     BlackSmoke = 37,
     Lightning = 38,
+    BarrelOrgan = 39,
 }
 
 impl ParticleMode {

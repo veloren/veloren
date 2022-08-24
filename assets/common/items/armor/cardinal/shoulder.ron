@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Cardinal's Shoulderguard",
+    description: "The other was lost in a vicious fight.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: Direct((
+            protection: Some(Normal(30.0)),
+            poise_resilience: Some(Normal(15.0)),
+            energy_max: Some(90),
+            energy_reward: Some(0.05),
+            crit_power: Some(0.24),
+            stealth: Some(0.0),
+        )),
+    )),
+    quality: Legendary,
+    tags: [
+    ],
+)

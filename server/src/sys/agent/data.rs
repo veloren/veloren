@@ -119,6 +119,9 @@ pub enum Tactic {
     Mandragora,
     WoodGolem,
     GnarlingChieftain,
+    OrganAura,
+    Dagon,
+    Cardinal,
 }
 
 #[derive(SystemData)]

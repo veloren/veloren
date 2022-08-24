@@ -1305,6 +1305,31 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    pub fn handle_organ_aura_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        _tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const ORGAN_AURA_DURATION: f32 = 34.75;
+        if attack_data.dist_sqrd < (7.0 * attack_data.min_attack_dist).powi(2) {
+            if agent.action_state.timer > ORGAN_AURA_DURATION {
+                agent.action_state.timer = 0.0;
+            } else if agent.action_state.timer < 1.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Primary));
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                agent.action_state.timer += read_data.dt.0;
+            }
+        } else {
+            agent.target = None;
+        }
+    }
+
     pub fn handle_theropod_attack(
         &self,
         agent: &mut Agent,
@@ -2307,6 +2332,205 @@ impl<'a> AgentData<'a> {
             Path::Partial,
             None,
         );
+    }
+
+    pub fn handle_cardinal_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const DESIRED_ENERGY_LEVEL: f32 = 50.0;
+        const DESIRED_COMBO_LEVEL: u32 = 8;
+        const MINION_SUMMON_THRESHOLD: f32 = 0.10;
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // Sets counter at start of combat, using `condition` to keep track of whether
+        // it was already intitialized
+        if !agent.action_state.condition {
+            agent.action_state.counter = 1.0 - MINION_SUMMON_THRESHOLD;
+            agent.action_state.condition = true;
+        }
+
+        if agent.action_state.counter > health_fraction {
+            // Summon minions at particular thresholds of health
+            controller.push_basic_input(InputKind::Ability(1));
+
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.counter -= MINION_SUMMON_THRESHOLD;
+            }
+        }
+        // Logic to use abilities
+        else if attack_data.dist_sqrd > attack_data.min_attack_dist.powi(2)
+            && entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                tgt_data.pos,
+                tgt_data.body,
+                read_data,
+            )
+        {
+            // If far enough away, and can see target, check which skill is appropriate to
+            // use
+            if self.energy.current() > DESIRED_ENERGY_LEVEL
+                && read_data
+                    .combos
+                    .get(*self.entity)
+                    .map_or(false, |c| c.counter() >= DESIRED_COMBO_LEVEL)
+                && !read_data.buffs.get(*self.entity).iter().any(|buff| {
+                    buff.iter_kind(BuffKind::Regeneration)
+                        .peekable()
+                        .peek()
+                        .is_some()
+                })
+            {
+                // If have enough energy and combo to use healing aura, do so
+                controller.push_basic_input(InputKind::Secondary);
+            } else if self
+                .skill_set
+                .has_skill(Skill::Sceptre(SceptreSkill::UnlockAura))
+                && self.energy.current() > DESIRED_ENERGY_LEVEL
+                && !read_data.buffs.get(*self.entity).iter().any(|buff| {
+                    buff.iter_kind(BuffKind::ProtectingWard)
+                        .peekable()
+                        .peek()
+                        .is_some()
+                })
+            {
+                // Use ward if target is far enough away, self is not buffed, and have
+                // sufficient energy
+                controller.push_basic_input(InputKind::Ability(0));
+            } else {
+                // If low on energy, use primary to attempt to regen energy
+                // Or if at desired energy level but not able/willing to ward, just attack
+                controller.push_basic_input(InputKind::Primary);
+            }
+        } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            if self.body.map_or(false, |b| b.is_humanoid())
+                && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+                && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
+            {
+                // Else roll away if can roll and have enough energy, and not using aura or in
+                // recover
+                controller.push_basic_input(InputKind::Roll);
+            } else if attack_data.angle < 15.0 {
+                controller.push_basic_input(InputKind::Primary);
+            }
+        }
+        // Logic to move. Intentionally kept separate from ability logic where possible
+        // so duplicated work is less necessary.
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            // Attempt to move away from target if too close
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+            }
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // Else attempt to circle target if neither too close nor too far
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if entities_have_line_of_sight(
+                    self.pos,
+                    self.body,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    read_data,
+                ) && attack_data.angle < 45.0
+                {
+                    controller.inputs.move_dir = bearing
+                        .xy()
+                        .rotated_z(rng.gen_range(0.5..1.57))
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero)
+                        * speed;
+                } else {
+                    // Unless cannot see target, then move towards them
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(bearing.z > 1.5, controller);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+            // Sometimes try to roll
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && !matches!(self.char_state, CharacterState::BasicAura(_))
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && rng.gen::<f32>() < 0.01
+            {
+                controller.push_basic_input(InputKind::Roll);
+            }
+        } else {
+            // If too far, move towards target
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_dagon_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        // if close to target, shoot dagon bombs and lay out sea urchins
+        if attack_data.angle < 70.0
+            && attack_data.dist_sqrd < (1.3 * attack_data.min_attack_dist).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            if agent.action_state.timer > 1.0 {
+                controller.push_basic_input(InputKind::Primary);
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                controller.push_basic_input(InputKind::Secondary);
+                agent.action_state.timer += read_data.dt.0;
+            }
+        } else if attack_data.angle < 30.0
+            && entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                tgt_data.pos,
+                tgt_data.body,
+                read_data,
+            )
+        {
+            // if in range, angle and sight, shoot dagon bombs at target
+            controller.push_basic_input(InputKind::Primary);
+        }
+        // chase
+        let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            Path::Separate
+        } else {
+            Path::Partial
+        };
+        self.path_toward_target(agent, controller, tgt_data.pos.0, read_data, path, None);
     }
 
     pub fn handle_deadwood(

@@ -242,6 +242,10 @@
             vox_spec: ("armor.mail.orichalcum.chest", (-7.0, -4.0, 1.0)),
             color: None
         ),
+        "common.items.armor.cardinal.chest": (
+            vox_spec: ("armor.cardinal.chest", (-7.0, -4.0, 1.0)),
+            color: None
+        ),
         "common.items.armor.merchant.chest": (
             vox_spec: ("armor.merchant.chest", (-7.0, -4.0, 1.0)),
             color: None

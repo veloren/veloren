@@ -1,0 +1,18 @@
+#![enable(implicit_some)]
+(
+    name: Name("Sea Cleric"),
+    body: RandomWith("danari"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.sea_chapel.sea_cleric"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.sea_chapel.sea_cleric"),
+            active_hands: InHands((Choice([
+                (1, ModularWeapon(tool: Sceptre, material: Ironwood, hands: None)),
+            ]), None)),
+        )),
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank4.fullskill"),
+    ],
+)

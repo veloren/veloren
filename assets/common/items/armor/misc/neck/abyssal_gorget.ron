@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Abyssal Gorget",
+    description: "Harnessed vigour of the tides",
+    kind: Armor((
+        kind: Neck,
+        stats: Direct((
+            protection: Some(Normal(2.0)),
+            energy_reward: Some(0.2),
+            crit_power: Some(0.1),
+            poise_resilience: Some(Normal(1.0)),
+        )),
+    )),
+    quality: Moderate,
+    tags: [
+
+    ],
+)

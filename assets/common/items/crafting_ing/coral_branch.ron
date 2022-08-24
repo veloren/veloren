@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Coral Branch",
+    description: "Treasure from the bottom of the sea.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Common,
+    tags: [],
+)

@@ -98,6 +98,8 @@ make_case_elim!(
         GnarlingTotemRed = 83,
         GnarlingTotemGreen = 84,
         GnarlingTotemWhite = 85,
+        DagonBomb = 86,
+        BarrelOrgan = 87,
     }
 );
 
@@ -108,7 +110,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 86] = [
+pub const ALL_OBJECTS: [Body; 88] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -195,6 +197,8 @@ pub const ALL_OBJECTS: [Body; 86] = [
     Body::GnarlingTotemRed,
     Body::GnarlingTotemWhite,
     Body::GnarlingTotemGreen,
+    Body::DagonBomb,
+    Body::BarrelOrgan,
 ];
 
 impl From<Body> for super::Body {
@@ -290,6 +294,8 @@ impl Body {
             Body::GnarlingTotemRed => "gnarling_totem_red",
             Body::GnarlingTotemGreen => "gnarling_totem_green",
             Body::GnarlingTotemWhite => "gnarling_totem_white",
+            Body::DagonBomb => "dagon_bomb",
+            Body::BarrelOrgan => "barrel_organ",
         }
     }
 
@@ -307,9 +313,12 @@ impl Body {
     pub fn density(&self) -> Density {
         let density = match self {
             Body::Anvil | Body::Cauldron => IRON_DENSITY,
-            Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow | Body::Dart => {
-                500.0
-            },
+            Body::Arrow
+            | Body::ArrowSnake
+            | Body::ArrowTurret
+            | Body::MultiArrow
+            | Body::Dart
+            | Body::DagonBomb => 500.0,
             Body::Bomb => 2000.0, // I have no idea what it's supposed to be
             Body::Crate => 300.0, // let's say it's a lot of wood and maybe some contents
             Body::Scarecrow => 900.0,
@@ -337,10 +346,10 @@ impl Body {
             | Body::BoltNature
             | Body::BoltIcicle
             | Body::SpitPoison => 1.0,
-            Body::Bomb => {
+            Body::Bomb | Body::DagonBomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
             },
-            Body::Campfire | Body::CampfireLit => 300.0,
+            Body::Campfire | Body::CampfireLit | Body::BarrelOrgan => 300.0,
             Body::Carpet
             | Body::CarpetHumanRound
             | Body::CarpetHumanSquare
@@ -420,6 +429,7 @@ impl Body {
             Body::GnarlingTotemRed | Body::GnarlingTotemGreen | Body::GnarlingTotemWhite => {
                 Vec3::new(0.8, 0.8, 1.4)
             },
+            Body::BarrelOrgan => Vec3::new(4.0, 2.0, 3.0),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

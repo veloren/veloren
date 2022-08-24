@@ -15,7 +15,9 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize, TERRAIN_CHUNK_BLOCKS_LG},
+    terrain::{
+        uniform_idx_as_vec2, BiomeKind, MapSizeLg, TerrainChunkSize, TERRAIN_CHUNK_BLOCKS_LG,
+    },
     vol::RectVolSize,
 };
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
@@ -111,6 +113,7 @@ impl Civs {
         info!(?initial_civ_count, "all civilisations created");
 
         let mut gnarling_enemies: Vec<Vec2<i32>> = start_locations.clone();
+        let mut chapel_site_enemies: Vec<Vec2<i32>> = start_locations.clone();
         let mut dungeon_enemies: Vec<Vec2<i32>> = start_locations.clone();
         let mut tree_enemies: Vec<Vec2<i32>> = start_locations.clone();
         let mut castle_enemies: Vec<Vec2<i32>> = Vec::new();
@@ -126,12 +129,14 @@ impl Civs {
                         }
                     },
                     32..=37 => (SiteKind::Gnarling, (&gnarling_enemies, 40)),
+                    38..=43 => (SiteKind::ChapelSite, (&chapel_site_enemies, 40)),
                     _ => (SiteKind::Dungeon, (&dungeon_enemies, 40)),
                 };
                 let loc = find_site_loc(&mut ctx, avoid, kind)?;
                 match kind {
                     SiteKind::Castle => {
                         gnarling_enemies.push(loc);
+                        chapel_site_enemies.push(loc);
                         dungeon_enemies.push(loc);
                         tree_enemies.push(loc);
                         castle_enemies.push(loc);
@@ -140,9 +145,17 @@ impl Civs {
                         castle_enemies.push(loc);
                         dungeon_enemies.push(loc);
                         gnarling_enemies.push(loc);
+                        chapel_site_enemies.push(loc);
+                    },
+                    SiteKind::ChapelSite => {
+                        castle_enemies.push(loc);
+                        dungeon_enemies.push(loc);
+                        gnarling_enemies.push(loc);
+                        chapel_site_enemies.push(loc);
                     },
                     SiteKind::Dungeon => {
                         gnarling_enemies.push(loc);
+                        chapel_site_enemies.push(loc);
                         dungeon_enemies.push(loc);
                         castle_enemies.push(loc);
                     },
@@ -171,6 +184,7 @@ impl Civs {
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::CliffTown => (32i32, 10.0),
                 SiteKind::DesertCity => (64i32, 25.0),
+                SiteKind::ChapelSite => (36i32, 10.0),
                 SiteKind::Tree => (12i32, 8.0),
                 SiteKind::GiantTree => (12i32, 8.0),
                 SiteKind::Gnarling => (16i32, 10.0),
@@ -271,6 +285,9 @@ impl Civs {
                         &mut rng,
                         wpos,
                     )),
+                    SiteKind::ChapelSite => WorldSite::chapel_site(
+                        site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
                 });
             sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];
@@ -1130,24 +1147,8 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
         }
         true
     }
-    let possible_terrain = if let Some(chunk) = sim.get(loc) {
-        !chunk.river.is_ocean()
-            && !chunk.river.is_lake()
-            && !chunk.river.is_river()
-            && !chunk.is_underwater()
-            && !matches!(
-                chunk.get_biome(),
-                common::terrain::BiomeKind::Lake | common::terrain::BiomeKind::Ocean
-            )
-            && sim
-                .get_gradient_approx(loc)
-                .map(|grad| grad < 1.0)
-                .unwrap_or(false)
-    } else {
-        false
-    };
     let not_occupied = check_chunk_occupation(sim, loc, site_kind.exclusion_radius());
-    possible_terrain && site_kind.is_suitable_loc(loc, sim) && not_occupied
+    site_kind.is_suitable_loc(loc, sim) && not_occupied
 }
 
 /// Attempt to search for a location that's suitable for site construction
@@ -1240,6 +1241,7 @@ pub enum SiteKind {
     Refactor,
     CliffTown,
     DesertCity,
+    ChapelSite,
     Tree,
     GiantTree,
     Gnarling,
@@ -1247,6 +1249,26 @@ pub enum SiteKind {
 
 impl SiteKind {
     pub fn is_suitable_loc(&self, loc: Vec2<i32>, sim: &WorldSim) -> bool {
+        let on_land = || -> bool {
+            if let Some(chunk) = sim.get(loc) {
+                !chunk.river.is_ocean()
+                    && !chunk.river.is_lake()
+                    && !chunk.river.is_river()
+                    && !chunk.is_underwater()
+                    && !matches!(
+                        chunk.get_biome(),
+                        common::terrain::BiomeKind::Lake | common::terrain::BiomeKind::Ocean
+                    )
+            } else {
+                false
+            }
+        };
+        let on_flat_terrain = || -> bool {
+            sim.get_gradient_approx(loc)
+                .map(|grad| grad < 1.0)
+                .unwrap_or(false)
+        };
+
         sim.get(loc).map_or(false, |chunk| {
             let suitable_for_town = |score_threshold: f32| -> bool {
                 const RESOURCE_RADIUS: i32 = 1;
@@ -1345,10 +1367,16 @@ impl SiteKind {
             };
             match self {
                 SiteKind::Gnarling => {
-                    (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75
+                    on_land()
+                        && on_flat_terrain()
+                        && (-0.3..0.4).contains(&chunk.temp)
+                        && chunk.tree_density > 0.75
                 },
                 SiteKind::GiantTree | SiteKind::Tree => {
-                    chunk.tree_density > 0.4 && (-0.3..0.4).contains(&chunk.temp)
+                    on_land()
+                        && on_flat_terrain()
+                        && chunk.tree_density > 0.4
+                        && (-0.3..0.4).contains(&chunk.temp)
                 },
                 SiteKind::CliffTown => {
                     (-0.6..0.4).contains(&chunk.temp)
@@ -1359,6 +1387,10 @@ impl SiteKind {
                     (0.9..1.0).contains(&chunk.temp)
                         && !chunk.near_cliffs()
                         && suitable_for_town(4.0)
+                },
+                SiteKind::ChapelSite => {
+                    matches!(chunk.get_biome(), BiomeKind::Ocean)
+                        && CONFIG.sea_level < chunk.alt + 1.0
                 },
                 SiteKind::Castle => {
                     if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {
@@ -1387,8 +1419,8 @@ impl SiteKind {
                     }
                     true
                 },
+                SiteKind::Dungeon => on_land(),
                 SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(6.7),
-                _ => true,
             }
         })
     }

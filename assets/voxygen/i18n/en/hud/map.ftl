@@ -31,4 +31,5 @@ hud-map-zoom_minimap_explanation =
     Zoom in the Minimap to see
     the area around you in higher detail
 hud-map-gnarling = Gnarling Fortification
+hud-map-chapel_site = Sea Chapel
 hud-map-placed_by = Placed by { $name }

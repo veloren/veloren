@@ -55,6 +55,7 @@ make_case_elim!(
         Deadwood = 13,
         Icedrake = 14,
         SeaCrocodile = 15,
+        Dagon = 16,
     }
 );
 
@@ -75,6 +76,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub maneater: SpeciesMeta,
     pub sandshark: SpeciesMeta,
     pub hakulaq: SpeciesMeta,
+    pub dagon: SpeciesMeta,
     pub lavadrake: SpeciesMeta,
     pub basilisk: SpeciesMeta,
     pub deadwood: SpeciesMeta,
@@ -99,6 +101,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Maneater => &self.maneater,
             Species::Sandshark => &self.sandshark,
             Species::Hakulaq => &self.hakulaq,
+            Species::Dagon => &self.dagon,
             Species::Lavadrake => &self.lavadrake,
             Species::Basilisk => &self.basilisk,
             Species::Deadwood => &self.deadwood,
@@ -107,7 +110,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 16] = [
+pub const ALL_SPECIES: [Species; 17] = [
     Species::Crocodile,
     Species::SeaCrocodile,
     Species::Alligator,
@@ -120,6 +123,7 @@ pub const ALL_SPECIES: [Species; 16] = [
     Species::Maneater,
     Species::Sandshark,
     Species::Hakulaq,
+    Species::Dagon,
     Species::Lavadrake,
     Species::Basilisk,
     Species::Deadwood,

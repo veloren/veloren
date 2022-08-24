@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Cardinal's Jeans",
+    description: "Pants with many experiences.",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct((
+            protection: Some(Normal(45.0)),
+            poise_resilience: Some(Normal(12.0)),
+            energy_max: Some(150.0),
+            energy_reward: Some(0.05),
+            crit_power: Some(0.24),
+            stealth: Some(0.00),
+        )),
+    )),
+    quality: Legendary,
+    tags: [
+    ],
+)

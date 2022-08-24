@@ -175,6 +175,7 @@ fn get_tool_kind(kind: &ToolKind) -> String {
         ToolKind::Farming => "Farming".to_string(),
         ToolKind::Pick => "Pick".to_string(),
         ToolKind::Natural => "Natural".to_string(),
+        ToolKind::Organ => "Organ".to_string(),
         ToolKind::Empty => "Empty".to_string(),
     }
 }

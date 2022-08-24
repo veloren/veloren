@@ -529,7 +529,6 @@ impl<'a, R: Rng> NameGen<'a, R> {
         end: &[&str],
     ) -> String {
         let mut name = String::new();
-
         name += start.choose(self.rng).unwrap();
         for _ in 0..self.approx_syllables.saturating_sub(2) {
             name += vowel.choose(self.rng).unwrap();
@@ -586,8 +585,8 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "d", "ph", "r", "st", "t", "s", "p", "th", "br", "tr", "m", "k", "cr", "phr", "dr",
             "pl", "ch", "l", "ap", "akr", "ak", "ar", "ath", "asp", "al", "aph", "aphr", "oph",
             "or", "ok", "on", "od", "oth", "om", "ep", "er", "em", "eph", "eth", "yps", "yph",
-            "ach", "amph", "yp", "ik", "is", "iph", "ith", "pr", "as", "asph", "ps", "b", "n", "z",
-            "x", "kr", "kt", "cht", "chr", "thr", "dr", "pr", "pl", "h", "in", "g", "sph",
+            "ach", "amph", "yp", "ik", "is", "iph", "ith", "pr", "as", "ps", "b", "n", "z", "x",
+            "kr", "kt", "cht", "chr", "thr", "dr", "pr", "pl", "h", "in", "g", "sph",
         ];
         let vowel = [
             "o", "e", "a", "i", "y", "eo", "ae", "ea", "oi", "io", "ia", "aeo",

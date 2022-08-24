@@ -1201,6 +1201,10 @@
                 keyword: "hakulaq",
                 generic: "Hakulaq"
             ),
+            dagon: (
+                keyword: "dagon",
+                generic: "Dagon"
+            ),
             lavadrake: (
                 keyword: "lavadrake",
                 generic: "Lava Drake"

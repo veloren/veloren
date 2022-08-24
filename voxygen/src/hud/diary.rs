@@ -2835,6 +2835,7 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
             | ToolKind::Farming
             | ToolKind::Pick
             | ToolKind::Natural
+            | ToolKind::Organ
             | ToolKind::Empty,
         ) => {
             tracing::warn!("Requesting title for unlocking unexpected skill group");

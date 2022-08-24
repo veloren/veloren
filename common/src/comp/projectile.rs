@@ -88,6 +88,12 @@ pub enum ProjectileConstructor {
         knockback: f32,
         min_falloff: f32,
     },
+    DagonBomb {
+        damage: f32,
+        radius: f32,
+        knockback: f32,
+        min_falloff: f32,
+    },
 }
 
 impl ProjectileConstructor {
@@ -457,6 +463,63 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
+            DagonBomb {
+                damage,
+                radius,
+                knockback,
+                min_falloff,
+            } => {
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let buff = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Buff(CombatBuff {
+                        kind: BuffKind::Burning,
+                        dur_secs: 5.0,
+                        strength: CombatBuffStrength::DamageFraction(0.2 * buff_strength),
+                        chance: 1.0,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(knockback)
+                    .with_effect(buff);
+                let explosion = Explosion {
+                    effects: vec![
+                        RadiusEffect::Attack(attack),
+                        RadiusEffect::TerrainDestruction(5.0),
+                    ],
+                    radius,
+                    reagent: Some(Reagent::Blue),
+                    min_falloff,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
         }
     }
 
@@ -525,6 +588,14 @@ impl ProjectileConstructor {
                 *radius *= range;
             },
             ExplodingPumpkin {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
+            DagonBomb {
                 ref mut damage,
                 ref mut radius,
                 ..

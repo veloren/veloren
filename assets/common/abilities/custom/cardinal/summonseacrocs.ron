@@ -1,0 +1,18 @@
+BasicSummon(
+    buildup_duration: 0.5,
+    cast_duration: 1.0,
+    recover_duration: 0.5,
+    summon_amount: 4,
+    summon_distance: (4, 4),
+    summon_info: (
+        body: QuadrupedLow((
+            species: SeaCrocodile,
+            body_type: Male,
+        )),
+        scale: None,
+        has_health: true,
+        loadout_config: None,
+        skillset_config: Some(Rank5),
+    ),
+    duration: None,
+)

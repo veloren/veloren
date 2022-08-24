@@ -235,6 +235,9 @@ impl Block {
                 | SpriteKind::EmeraldSmall
                 | SpriteKind::SapphireSmall => Some(3),
                 SpriteKind::Lantern => Some(24),
+                SpriteKind::SeashellLantern => Some(16),
+                SpriteKind::SeaDecorEmblem => Some(12),
+                SpriteKind::SeaDecorBlock => Some(10),
                 _ => None,
             },
         }
@@ -294,8 +297,16 @@ impl Block {
                 | SpriteKind::DungeonChest3
                 | SpriteKind::DungeonChest4
                 | SpriteKind::DungeonChest5
-                | SpriteKind::ChestBuried => None,
-                SpriteKind::EnsnaringVines | SpriteKind::EnsnaringWeb => Some(0.1),
+                | SpriteKind::ChestBuried
+                | SpriteKind::SeaDecorBlock
+                | SpriteKind::SeaDecorChain
+                | SpriteKind::SeaDecorWindowHor
+                | SpriteKind::SeaDecorWindowVer
+                | SpriteKind::Rope
+                | SpriteKind::GlassBarrier => None,
+                SpriteKind::EnsnaringVines | SpriteKind::EnsnaringWeb | SpriteKind::SeaUrchin => {
+                    Some(0.1)
+                },
                 _ => Some(0.25),
             }),
         }

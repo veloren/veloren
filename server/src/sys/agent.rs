@@ -944,6 +944,7 @@ impl<'a> AgentData<'a> {
                             "Quad Low Breathe" | "Quad Low Beam" | "Basilisk" => {
                                 Tactic::QuadLowBeam
                             },
+                            "Organ" => Tactic::OrganAura,
                             "Quad Low Tail" | "Husk Brute" => Tactic::TailSlap,
                             "Quad Low Quick" => Tactic::QuadLowQuick,
                             "Quad Low Basic" => Tactic::QuadLowBasic,
@@ -972,6 +973,8 @@ impl<'a> AgentData<'a> {
                             | "Gnarling Totem White" => Tactic::RadialTurret,
                             "Yeti" => Tactic::Yeti,
                             "Harvester" => Tactic::Harvester,
+                            "Cardinal" => Tactic::Cardinal,
+                            "Dagon" => Tactic::Dagon,
                             "Gnarling Dagger" => Tactic::SimpleBackstab,
                             "Gnarling Blowgun" => Tactic::ElevatedRanged,
                             "Deadwood" => Tactic::Deadwood,
@@ -1242,6 +1245,9 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::OrganAura => {
+                self.handle_organ_aura_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::Theropod => {
                 self.handle_theropod_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
@@ -1331,6 +1337,17 @@ impl<'a> AgentData<'a> {
             },
             Tactic::Harvester => {
                 self.handle_harvester_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::Cardinal => self.handle_cardinal_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::Dagon => {
+                self.handle_dagon_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::SimpleBackstab => {
                 self.handle_simple_backstab(agent, controller, &attack_data, tgt_data, read_data)

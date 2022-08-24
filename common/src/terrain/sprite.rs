@@ -215,6 +215,17 @@ make_case_elim!(
         Ironwood = 0xBC,
         Frostwood = 0xBD,
         Eldwood = 0xBE,
+        SeaUrchin = 0xBF,
+        GlassBarrier = 0xC0,
+        CoralChest = 0xC1,
+        SeaDecorChain = 0xC2,
+        SeaDecorBlock = 0xC3,
+        SeaDecorWindowHor = 0xC4,
+        SeaDecorWindowVer = 0xC5,
+        SeaDecorEmblem = 0xC6,
+        SeaDecorPillar = 0xC7,
+        SeashellLantern = 0xC8,
+        Rope = 0xC9,
     }
 );
 
@@ -237,6 +248,14 @@ impl SpriteKind {
             SpriteKind::DungeonChest3 => 1.09,
             SpriteKind::DungeonChest4 => 1.09,
             SpriteKind::DungeonChest5 => 1.09,
+            SpriteKind::CoralChest => 1.09,
+            SpriteKind::SeaDecorChain => 1.09,
+            SpriteKind::SeaDecorBlock => 1.00,
+            SpriteKind::SeaDecorWindowHor => 0.55,
+            SpriteKind::SeaDecorWindowVer => 1.09,
+            SpriteKind::SeaDecorPillar => 2.55,
+            SpriteKind::SeashellLantern => 2.09,
+            SpriteKind::Rope => 1.09,
             SpriteKind::StreetLamp => 2.65,
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,
@@ -290,6 +309,8 @@ impl SpriteKind {
             | SpriteKind::Window4
             | SpriteKind::DropGate
             | SpriteKind::WitchWindow
+            | SpriteKind::SeaUrchin
+            | SpriteKind::GlassBarrier
             | SpriteKind::Bomb => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
@@ -398,6 +419,7 @@ impl SpriteKind {
             SpriteKind::DungeonChest5 => table("common.loot_tables.dungeon.tier-5.chest"),
             SpriteKind::Chest => table("common.loot_tables.sprite.chest"),
             SpriteKind::ChestBuried => table("common.loot_tables.sprite.chest-buried"),
+            SpriteKind::CoralChest => table("common.loot_tables.dungeon.sea_chapel.chest_coral"),
             SpriteKind::Mud => table("common.loot_tables.sprite.mud"),
             SpriteKind::Crate => table("common.loot_tables.sprite.crate"),
             SpriteKind::Wood => item("common.items.log.wood"),
@@ -448,7 +470,8 @@ impl SpriteKind {
             | SpriteKind::Tin
             | SpriteKind::Silver
             | SpriteKind::Gold
-            | SpriteKind::SapphireSmall => Some(ToolKind::Pick),
+            | SpriteKind::SapphireSmall
+            | SpriteKind::GlassBarrier => Some(ToolKind::Pick),
             _ => None,
         }
     }
@@ -491,6 +514,9 @@ impl SpriteKind {
                 | SpriteKind::DungeonChest3
                 | SpriteKind::DungeonChest4
                 | SpriteKind::DungeonChest5
+                | SpriteKind::CoralChest
+                | SpriteKind::SeaDecorWindowVer
+                | SpriteKind::SeaDecorEmblem
                 | SpriteKind::DropGate
                 | SpriteKind::DropGateBottom
                 | SpriteKind::Door

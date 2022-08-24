@@ -735,6 +735,7 @@ impl Body {
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 1000,
                 object::Body::Crossbow => 80,
+                object::Body::BarrelOrgan => 500,
                 object::Body::HaniwaSentry => 60,
                 object::Body::SeaLantern => 100,
                 object::Body::GnarlingTotemGreen => 25,
@@ -766,6 +767,7 @@ impl Body {
                 quadruped_low::Species::Maneater => 130,
                 quadruped_low::Species::Sandshark => 110,
                 quadruped_low::Species::Hakulaq => 120,
+                quadruped_low::Species::Dagon => 1200,
                 quadruped_low::Species::Lavadrake => 160,
                 quadruped_low::Species::Basilisk => 200,
                 quadruped_low::Species::Deadwood => 120,
@@ -831,6 +833,7 @@ impl Body {
                     )
                 )
             },
+            BuffKind::ProtectingWard => matches!(self, Body::Object(object::Body::BarrelOrgan)),
             _ => false,
         }
     }

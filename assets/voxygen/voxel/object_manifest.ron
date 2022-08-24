@@ -19,6 +19,16 @@
             central: ("armor.empty"),
         )
     ),
+    DagonBomb: (
+        bone0: (
+            offset: (-5.5, -5.5, 0.0),
+            central: ("object.dagon_bomb"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     FireworkBlue: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
@@ -243,6 +253,16 @@
         bone0: (
             offset: (-9.0, -10.0, 0.0),
             central: ("object.campfire_lit"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    BarrelOrgan: (
+        bone0: (
+            offset: (-9.0, -10.0, 0.0),
+            central: ("sprite.misc.barrel_organ"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),

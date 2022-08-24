@@ -153,6 +153,21 @@ impl<'a> System<'a> for Sys {
                     });
                 }
                 if matches!(
+                    physics_state.on_ground.and_then(|b| b.get_sprite()),
+                    Some(SpriteKind::SeaUrchin)
+                ) {
+                    // If touching Sea Urchin apply Bleeding buff
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Bleeding,
+                            BuffData::new(1.0, Some(Duration::from_secs_f32(6.0))),
+                            Vec::new(),
+                            BuffSource::World,
+                        )),
+                    });
+                }
+                if matches!(
                     physics_state.in_fluid,
                     Some(Fluid::Liquid {
                         kind: LiquidKind::Lava,

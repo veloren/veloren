@@ -321,6 +321,11 @@
         secondary: "common.abilities.custom.turret.arrows",
         abilities: [],
     ),
+    Custom("Organ"): (
+        primary: "common.abilities.custom.organ.organaura",
+        secondary: "common.abilities.custom.organ.organaura",
+        abilities: [],
+    ),
     Custom("Haniwa Sentry"): (
         primary: "common.abilities.custom.turret.flamethrower",
         secondary: "common.abilities.custom.turret.flamethrower",
@@ -365,6 +370,20 @@
         abilities: [
             (None, "common.abilities.custom.harvester.ensnaringvines"),
             (None, "common.abilities.custom.harvester.explodingpumpkin"),
+        ],
+    ),
+    // TODO: Allow ability sets to expand other ability sets
+    Custom("Dagon"): (
+    primary: "common.abilities.custom.dagon.dagonbombs",
+    secondary: "common.abilities.custom.dagon.seaurchins",
+        abilities: [],
+    ),
+    Custom("Cardinal"): (
+        primary: "common.abilities.sceptre.lifestealbeam",
+        secondary: "common.abilities.sceptre.healingaura",
+        abilities: [
+            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
+            (None, "common.abilities.custom.cardinal.summonseacrocs"),
         ],
     ),
     Custom("Oni"): (

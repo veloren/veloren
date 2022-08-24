@@ -864,6 +864,151 @@ DungeonChest5: Some((
     ],
     wind_sway: 0.0,
 )),
+// Rope
+Rope: Some((
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.rope",
+            offset: (-5.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)),
+// Coral Chest
+CoralChest: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_coral",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Sea DecorChain
+SeaDecorChain: Some((
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.misc.sea_decor_chain",
+                offset: (-5.5, -5.5, -0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+)),
+// Sea DecorBlock
+SeaDecorBlock: Some((
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.misc.sea_decor_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)),
+// Sea DecorWindow Horizontal
+SeaDecorWindowHor: Some((
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_window_hor",
+            offset: (-5.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)),
+// Sea DecorWindow Vertical
+SeaDecorWindowVer: Some((
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_window_ver",
+            offset: (-5.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)),
+// Sea Decor Emblem
+SeaDecorEmblem: Some((
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_emblem",
+            offset: (-5.5, -5.5, -4.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)),
+// Sea Decor Pillar
+SeaDecorPillar: Some((
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-6",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-7",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)),
+// SeashellLantern
+SeashellLantern: Some((
+     variations: [
+         (
+            model: "voxygen.voxel.object.seashell_lantern",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)),
+// GlassBarrier
+GlassBarrier: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.glass_barrier",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Welwitch
 Welwitch: Some((
     variations: [
@@ -3611,6 +3756,17 @@ EnsnaringVines: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.misc.ensnaring_vines",
+            offset: (-5.0, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Sea Urchin
+SeaUrchin: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.sea_urchin",
             offset: (-5.0, -6.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
