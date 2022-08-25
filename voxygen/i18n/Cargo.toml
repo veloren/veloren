@@ -27,6 +27,10 @@ fluent-syntax = { git = "https://github.com/juliancoffee/fluent-rs.git", branch 
 name = "i18n-check"
 required-features = ["bin"]
 
+[[bin]]
+name = "i18n-csv"
+required-features = ["stat"]
+
 [features]
 bin = ["clap"]
 stat = []

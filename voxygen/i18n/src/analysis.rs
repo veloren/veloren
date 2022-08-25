@@ -30,13 +30,14 @@ fn keys_from_file(filepath: &Path) -> Vec<MsgId> {
             ResourceErr::parsing_error(errs, file.clone(), &content)
         )
     });
+
     let mut keys = Vec::new();
     for entry in ast.body {
         match entry {
             Entry::Message(m) => {
                 keys.push(MsgId {
                     key: m.id.name.to_owned(),
-                    file: Some(file.clone()),
+                    file: file.clone(),
                 });
             },
             Entry::Term(_)
@@ -79,7 +80,7 @@ fn keys(from: &Path, tree: &Walk) -> Vec<MsgId> {
 #[derive(Clone, Debug)]
 pub struct MsgId {
     pub key: String,
-    pub file: Option<String>,
+    pub file: String,
 }
 
 // TODO:
@@ -121,10 +122,7 @@ impl ReferenceLanguage {
             if let Some(key) = keys.iter().find(|MsgId { key, .. }| &ref_key.key == key) {
                 stats.up_to_date.push(key.clone());
             } else {
-                stats.not_found.push(MsgId {
-                    key: ref_key.key.clone(),
-                    file: None,
-                });
+                stats.not_found.push(ref_key.clone());
             }
         }
 

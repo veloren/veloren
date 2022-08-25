@@ -3,7 +3,7 @@ mod raw;
 
 use error::ResourceErr;
 
-#[cfg(any(feature = "bin", feature = "stat"))]
+#[cfg(any(feature = "bin", feature = "stat", test))]
 pub mod analysis;
 
 use fluent_bundle::{bundle::FluentBundle, FluentResource};
@@ -163,10 +163,6 @@ impl assets::Compound for Language {
 
         // Here go dragons
         for id in cache.load_dir::<raw::Resource>(path, true)?.ids() {
-            if id.ends_with("_manifest") {
-                continue;
-            }
-
             match cache.load(id) {
                 Ok(handle) => {
                     let source: &raw::Resource = &*handle.read();
@@ -518,63 +514,25 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
-    #[cfg(feature = "stat")]
-    // Generate translation stats
-    fn test_all_localizations() {
+    fn test_strict_all_localizations() {
         use analysis::{Language, ReferenceLanguage};
         use assets::find_root;
-        use std::{fs, io::Write, path::Path};
 
         let root = find_root().unwrap();
-        let output = root.join("translation_analysis.csv");
-        let mut f = fs::File::create(output).expect("couldn't write csv file");
-
-        writeln!(
-            f,
-            "country_code,file_name,translation_key,status,git_commit"
-        )
-        .unwrap();
-
         let i18n_directory = root.join("assets/voxygen/i18n");
         let reference = ReferenceLanguage::at(&i18n_directory.join(REFERENCE_LANG));
 
         let list = list_localizations();
-        let file = |filename: Option<String>| {
-            let file = filename
-                .as_ref()
-                .map(|s| Path::new(s))
-                .and_then(|p| p.file_name())
-                .and_then(|s| s.to_str())
-                .unwrap_or("None");
 
-            format!("{file}")
-        };
         for meta in list {
             let code = meta.language_identifier;
             let lang = Language {
                 code: code.clone(),
                 path: i18n_directory.join(code.clone()),
             };
-            let stats = reference.compare_with(&lang);
-            for key in stats.up_to_date {
-                let code = &code;
-                let filename = &file(key.file);
-                let key = &key.key;
-                writeln!(f, "{code},{filename},{key},UpToDate,None").unwrap();
-            }
-            for key in stats.not_found {
-                let code = &code;
-                let filename = &file(key.file);
-                let key = &key.key;
-                writeln!(f, "{code},{filename},{key},NotFound,None").unwrap();
-            }
-            for key in stats.unused {
-                let code = &code;
-                let filename = &file(key.file);
-                let key = &key.key;
-                writeln!(f, "{code},{filename},{key},Unused,None").unwrap();
-            }
+            // TODO: somewhere here should go check that all needed
+            // versions are given
+            reference.compare_with(&lang);
         }
     }
 }
