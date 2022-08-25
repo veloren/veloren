@@ -1487,7 +1487,7 @@ impl<'a> Widget for Crafting<'a> {
                 let station_name = match recipe.craft_sprite {
                     Some(SpriteKind::Anvil) => "hud-crafting-anvil",
                     Some(SpriteKind::Cauldron) => "hud-crafting-cauldron",
-                    Some(SpriteKind::CookingPot) => "hud.crafting-cooking_pot",
+                    Some(SpriteKind::CookingPot) => "hud-crafting-cooking_pot",
                     Some(SpriteKind::CraftingBench) => "hud-crafting-crafting_bench",
                     Some(SpriteKind::Forge) => "hud-crafting-forge",
                     Some(SpriteKind::Loom) => "hud-crafting-loom",
