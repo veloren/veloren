@@ -163,10 +163,6 @@ impl assets::Compound for Language {
 
         // Here go dragons
         for id in cache.load_dir::<raw::Resource>(path, true)?.ids() {
-            if id.ends_with("_manifest") {
-                continue;
-            }
-
             match cache.load(id) {
                 Ok(handle) => {
                     let source: &raw::Resource = &*handle.read();
@@ -518,7 +514,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     #[cfg(feature = "stat")]
     // Generate translation stats
     fn test_all_localizations() {

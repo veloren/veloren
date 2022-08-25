@@ -30,6 +30,7 @@ fn keys_from_file(filepath: &Path) -> Vec<MsgId> {
             ResourceErr::parsing_error(errs, file.clone(), &content)
         )
     });
+
     let mut keys = Vec::new();
     for entry in ast.body {
         match entry {
