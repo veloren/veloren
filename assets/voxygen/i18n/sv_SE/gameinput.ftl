@@ -65,4 +65,4 @@ gameinput-mapzoomout = Förminska kartan
 gameinput-greet = Hälsa
 gameinput-map-locationmarkerbutton = Placera en markör på kartan
 gameinput-spectatespeedboost = Övervakningshastighetsökning
-gameinput-spectateviewpoint = Övervakningssynpunkt
+gameinput-spectateviewpoint = Övervaka synpunkt
