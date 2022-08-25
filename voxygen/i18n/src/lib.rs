@@ -3,7 +3,7 @@ mod raw;
 
 use error::ResourceErr;
 
-#[cfg(any(feature = "bin", feature = "stat"))]
+#[cfg(any(feature = "bin", feature = "stat", test))]
 pub mod analysis;
 
 use fluent_bundle::{bundle::FluentBundle, FluentResource};
@@ -514,7 +514,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "stat")]
     fn test_strict_all_localizations() {
         use analysis::{Language, ReferenceLanguage};
         use assets::find_root;

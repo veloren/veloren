@@ -5,4 +5,4 @@ export VELOREN_ASSETS
 time cargo test \
     --package veloren-common-assets asset_tweak::tests \
     --features asset_tweak --lib &&
-time cargo test --features stat
+time cargo test
