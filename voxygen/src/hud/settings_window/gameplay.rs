@@ -125,7 +125,7 @@ impl<'a> Widget for Gameplay<'a> {
         Text::new(
             &self
                 .localized_strings
-                .get_msg("hud-setting-pan_sensitivity"),
+                .get_msg("hud-settings-pan_sensitivity"),
         )
         .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
         .font_size(self.fonts.cyri.scale(14))

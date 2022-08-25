@@ -456,7 +456,7 @@ impl<'a> Widget for Video<'a> {
                 .get_msg("hud-settings-present_mode-mailbox"),
             &self
                 .localized_strings
-                .get_msg("hud-settings-present_mode.immediate"),
+                .get_msg("hud-settings-present_mode-immediate"),
         ];
 
         // Get which present mode is currently active

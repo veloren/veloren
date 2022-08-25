@@ -823,7 +823,7 @@ impl<'a> Widget for Bag<'a> {
                 self.tooltip_manager,
                 &(match inventory.next_sort_order() {
                     InventorySortOrder::Name => i18n.get_msg("hud-bag-sort_by_name"),
-                    InventorySortOrder::Quality => i18n.get_msg("hudbag-sort_by_quality"),
+                    InventorySortOrder::Quality => i18n.get_msg("hud-bag-sort_by_quality"),
                     InventorySortOrder::Tag => i18n.get_msg("hud-bag-sort_by_category"),
                 }),
                 "",
