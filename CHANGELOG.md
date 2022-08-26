@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a setting to influence the gap between music track plays.
 - Added a Craft All button.
 - Server: Vacuum database on startup
+- SeaChapel, greek/latin inspired dungeon for ocean biome coasts
 
 ### Changed
 - Use fluent for translations
@@ -69,7 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the Polish translation
 - Setting for disabling flashing lights
 - Spectate mode for moderators.
-- SeaChapel, greek/latin inspired dungeon for ocean biome coasts 
 
 ### Changed
 
