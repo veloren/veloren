@@ -13,14 +13,14 @@ use common::{
     trade::{Good, SitePrices},
 };
 use conrod_core::image;
-use i18n::Localization;
+use i18n::{fluent_args, Localization};
 use std::{borrow::Cow, fmt::Write};
 
-pub fn price_desc(
+pub fn price_desc<'a>(
     prices: &Option<SitePrices>,
     item_definition_id: ItemDefinitionId<'_>,
-    i18n: &Localization,
-) -> Option<(String, String, f32)> {
+    i18n: &'a Localization,
+) -> Option<(Cow<'a, str>, Cow<'a, str>, f32)> {
     if let Some(prices) = prices {
         if let Some(materials) = TradePricing::get_materials(&item_definition_id) {
             let coinprice = prices.values.get(&Good::Coin).cloned().unwrap_or(1.0);
@@ -42,18 +42,16 @@ pub fn price_desc(
                 / prices.values.get(&Good::Coin).cloned().unwrap_or(1.0)
                 / (materials.len() as f32);
             let deal_goodness = deal_goodness.log(2.0);
-            let buy_string = format!(
-                "{} : {:0.1} {}",
-                i18n.get_msg("hud-trade-buy_price"),
-                buyprice / coinprice,
-                i18n.get_msg("hud-trade-coin"),
-            );
-            let sell_string = format!(
-                "{} : {:0.1} {}",
-                i18n.get_msg("hud-trade-sell_price"),
-                sellprice / coinprice,
-                i18n.get_msg("hud-trade-coin"),
-            );
+
+            let buy_string = i18n.get_msg_ctx("hud-trade-buy", &fluent_args! {
+                "coin_num" => buyprice / coinprice,
+                "coin_formatted" => format!("{:0.1}", buyprice / coinprice),
+            });
+            let sell_string = i18n.get_msg_ctx("hud-trade-sell", &fluent_args! {
+                "coin_num" => sellprice / coinprice,
+                "coin_formatted" => format!("{:0.1}", sellprice / coinprice),
+            });
+
             let deal_goodness = match deal_goodness {
                 x if x < -2.5 => 0.0,
                 x if x < -1.05 => 0.25,
