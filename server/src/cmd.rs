@@ -955,8 +955,14 @@ fn handle_time(
         Some("dusk") => {
             next_cycle(NaiveTime::from_hms(17, 0, 0).num_seconds_from_midnight() as f64)
         },
-        Some(n) => match n.parse() {
-            Ok(n) => n,
+        Some(n) => match n.parse::<f64>() {
+            Ok(n) => {
+                if n < 0.0{
+                    return Err(format!("{:?} is invalid, cannot be negative.", n));
+                }
+                // Seconds from next midnight
+                next_cycle(0.0) + n
+            },
             Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
                 // Relative to current day
                 Ok(time) => next_cycle(time.num_seconds_from_midnight() as f64),
@@ -966,8 +972,13 @@ fn handle_time(
                     .filter(|_| n.starts_with('u'))
                     .and_then(|n| n.trim_start_matches('u').parse::<u64>().ok())
                 {
-                    // Absolute time (i.e: since in-game epoch)
-                    Some(n) => n as f64,
+                    // Absolute time (i.e. from world epoch)
+                    Some(n) => {
+                        if (n as f64) < time_in_seconds {
+                            return Err(format!("{:?} is before the current time, time cannot go backwards.", n))
+                        }
+                        n as f64
+                    },
                     None => {
                         return Err(format!("{:?} is not a valid time.", n));
                     },
