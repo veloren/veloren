@@ -1114,7 +1114,7 @@ impl Structure for SeaChapel {
                 max: (center + (diameter / 6) - 1).with_z(base - (diameter / 8) + diameter + 1),
             })
             .clear();
-        // chapel tube1 glass barrier / gold door
+        // chapel tube1 gold window
         painter
             .aabb(Aabb {
                 min: Vec3::new(
@@ -1626,13 +1626,6 @@ impl Structure for SeaChapel {
                     .with_z(base - (diameter / 8) + diameter - (diameter / 8)),
             })
             .fill(white.clone());
-        //chapel floor2 glass barriers in tube
-        painter
-            .cylinder(Aabb {
-                min: (center - 4).with_z(base - (diameter / 8) + diameter - (diameter / 8)),
-                max: (center + 4).with_z(base - (diameter / 8) + diameter - (diameter / 8) + 2),
-            })
-            .fill(glass_barrier.clone());
         //chapel floor2 drawer and potion
         painter.sprite(
             (center - (diameter / 8)).with_z(base - (diameter / 8) + diameter - (diameter / 8)),
@@ -2633,6 +2626,20 @@ impl Structure for SeaChapel {
                 max: Vec3::new(
                     center_s2.x + 4,
                     center_s2.y + 4,
+                    base - (diameter / 8) + diameter + 1,
+                ),
+            })
+            .clear();
+        painter
+            .cylinder(Aabb {
+                min: Vec3::new(
+                    center_s2.x - 3,
+                    center_s2.y - 3,
+                    base - (diameter / 8) + diameter + 1,
+                ),
+                max: Vec3::new(
+                    center_s2.x + 3,
+                    center_s2.y + 3,
                     base - (diameter / 8) + diameter + 2,
                 ),
             })
@@ -2652,7 +2659,7 @@ impl Structure for SeaChapel {
                 ),
             })
             .fill(window_ver2.clone());
-        // coral chest
+        // chest
         painter.rotated_sprite(
             Vec3::new(
                 center_s2.x - 5,
@@ -3368,11 +3375,11 @@ impl Structure for SeaChapel {
                 ),
             })
             .fill(glass_barrier.clone());
-        // Holding Cell Villagers
-        let hc_villagers_pos = Vec3::new(center.x, center.y + (diameter / 3), base + 3);
-        for _ in 0..(5 + ((RandomField::new(0).get((hc_villagers_pos).with_z(base))) % 5)) {
+        // Holding Cell Prisoners
+        let prisoners_pos = Vec3::new(center.x, center.y + (diameter / 3), base + 3);
+        for _ in 0..(5 + ((RandomField::new(0).get((prisoners_pos).with_z(base))) % 5)) {
             painter.spawn(
-                EntityInfo::at(hc_villagers_pos.as_())
+                EntityInfo::at(prisoners_pos.as_())
                     .with_asset_expect("common.entity.village.villager", &mut rng),
             );
         }
@@ -4447,12 +4454,6 @@ impl Structure for SeaChapel {
                 .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4) + 2);
             let bldg_floor_potion_pos = (bldg_center - (bldg_diameter / 8))
                 .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4) + 3);
-            let bldg_floor_glass_barriers = Aabb {
-                min: (bldg_center - 4)
-                    .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4) + 2),
-                max: (bldg_center + 4)
-                    .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4) + 3),
-            };
             let bldg_floor2_wall = Aabb {
                 min: (bldg_center - 4).with_z(
                     base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10) + 1,
@@ -4508,9 +4509,6 @@ impl Structure for SeaChapel {
                     + (bldg_diameter / 4)
                     + (bldg_diameter / 7)
                     - 6,
-            );
-            let bldg_floor2_sea_cleric_pos = (bldg_center + 5).with_z(
-                base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10) + 2,
             );
             // bldg cellar Sea Crocodiles
             let bldg_cellar_sea_croc_pos = Vec3::new(
@@ -4632,9 +4630,6 @@ impl Structure for SeaChapel {
                     painter.aabb(bldg_room3_entry_clear2).clear();
                     painter.aabb(bldg_room3_entry_clear3).clear();
                     painter.aabb(bldg_room3_entry_clear4).clear();
-                    painter
-                        .cylinder(bldg_floor_glass_barriers)
-                        .fill(glass_barrier.clone());
                     painter.cylinder(bldg_floor2_wall).fill(white.clone());
                     painter
                         .aabb(bldg_floor2_glass_barriers)
@@ -4691,18 +4686,6 @@ impl Structure for SeaChapel {
                     {
                         painter.spawn(
                             EntityInfo::at(bldg_floor3_sea_cleric_pos.as_()).with_asset_expect(
-                                "common.entity.dungeon.sea_chapel.sea_cleric",
-                                &mut rng,
-                            ),
-                        )
-                    }
-                    // bldg floor2 Sea Clerics
-                    for _ in 0..(1
-                        + ((RandomField::new(0).get((bldg_floor2_sea_cleric_pos).with_z(base)))
-                            % 2))
-                    {
-                        painter.spawn(
-                            EntityInfo::at(bldg_floor2_sea_cleric_pos.as_()).with_asset_expect(
                                 "common.entity.dungeon.sea_chapel.sea_cleric",
                                 &mut rng,
                             ),
