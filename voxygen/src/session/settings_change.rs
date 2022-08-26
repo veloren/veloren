@@ -470,7 +470,13 @@ impl SettingsChange {
                             .renderer_mut()
                             .set_render_mode((*new_render_mode).clone())
                             .unwrap();
+                        session_state
+                            .client
+                            .borrow_mut()
+                            .set_flashing_lights_enabled((*new_render_mode).flashing_lights_enabled);
+                            
                         settings.graphics.render_mode = *new_render_mode;
+                        
                     },
                     Graphics::ChangeFullscreenMode(new_fullscreen_settings) => {
                         global_state
