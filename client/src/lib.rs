@@ -1773,27 +1773,10 @@ impl Client {
         // Lerp the clientside weather.
         self.weather.update(&mut self.state.weather_grid_mut());
 
-        // Lerp towards the target time of day - this ensures a smooth transition for
-        // large jumps in TimeOfDay such as when using /time
-        const DAY: f64 = 86400.0;
         if let Some(target_tod) = self.target_time_of_day {
             let mut tod = self.state.ecs_mut().write_resource::<TimeOfDay>();
-
-            // When the target time of day and time of day have a large discrepancy 
-            // (i.e two days), the linear interpolation causes brght flashing effects 
-            // in the sky. This will instantly set the time of day to the target 
-            // time of day for the client to avoid the flashing effect if flashing
-            // lights is disabled. 
-            if !self.flashing_lights_enabled && target_tod.0 - tod.0 >= DAY*2 {
-                tod.0 = target_tod.0;
-            } else { 
-                tod.0 = Lerp::lerp(tod.0, target_tod.0, dt.as_secs_f64());
-            }
-
-            if tod.0 >= target_tod.0 {
-                self.target_time_of_day = None;
-            }
-
+            tod.0 = target_tod.0;
+            self.target_time_of_day = None;
         }
 
         // 4) Tick the client's LocalState
