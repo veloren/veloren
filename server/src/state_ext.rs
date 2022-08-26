@@ -26,6 +26,7 @@ use common::{
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
+    ViewDistances,
 };
 use common_net::{
     msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
@@ -107,9 +108,14 @@ pub trait StateExt {
         index: &world::IndexOwned,
     ) -> EcsEntityBuilder;
     /// Insert common/default components for a new character joining the server
-    fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId);
+    fn initialize_character_data(
+        &mut self,
+        entity: EcsEntity,
+        character_id: CharacterId,
+        view_distances: ViewDistances,
+    );
     /// Insert common/default components for a new spectator joining the server
-    fn initialize_spectator_data(&mut self, entity: EcsEntity);
+    fn initialize_spectator_data(&mut self, entity: EcsEntity, view_distances: ViewDistances);
     /// Update the components associated with the entity's current character.
     /// Performed after loading component data from the database
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
@@ -488,10 +494,21 @@ impl StateExt for State {
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
-            .with(Presence::new(view_distance, PresenceKind::Spectator))
+            .with(Presence::new(
+                ViewDistances {
+                    terrain: view_distance,
+                    entity: view_distance,
+                },
+                PresenceKind::Spectator,
+            ))
     }
 
-    fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId) {
+    fn initialize_character_data(
+        &mut self,
+        entity: EcsEntity,
+        character_id: CharacterId,
+        view_distances: ViewDistances,
+    ) {
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
@@ -519,10 +536,9 @@ impl StateExt for State {
             // Make sure physics components are updated
             self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());
 
-            const INITIAL_VD: u32 = 5; //will be changed after login
             self.write_component_ignore_entity_dead(
                 entity,
-                Presence::new(INITIAL_VD, PresenceKind::Character(character_id)),
+                Presence::new(view_distances, PresenceKind::Character(character_id)),
             );
 
             // Tell the client its request was successful.
@@ -532,7 +548,7 @@ impl StateExt for State {
         }
     }
 
-    fn initialize_spectator_data(&mut self, entity: EcsEntity) {
+    fn initialize_spectator_data(&mut self, entity: EcsEntity, view_distances: ViewDistances) {
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
         if self.read_component_copied::<Uid>(entity).is_some() {
@@ -545,10 +561,9 @@ impl StateExt for State {
             // Make sure physics components are updated
             self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());
 
-            const INITIAL_VD: u32 = 5; //will be changed after login
             self.write_component_ignore_entity_dead(
                 entity,
-                Presence::new(INITIAL_VD, PresenceKind::Spectator),
+                Presence::new(view_distances, PresenceKind::Spectator),
             );
 
             // Tell the client its request was successful.

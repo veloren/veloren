@@ -33,8 +33,12 @@ impl<'a> System<'a> for Sys {
         // Sync changed chunks
         for chunk_key in &terrain_changes.modified_chunks {
             for (entity, presence, pos) in (&entities, &presences, &positions).join() {
-                if super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, presence.view_distance)
-                {
+                if super::terrain::chunk_in_vd(
+                    pos.0,
+                    *chunk_key,
+                    &terrain,
+                    presence.terrain_view_distance.current(),
+                ) {
                     chunk_send_emitter.emit(ChunkSendEntry {
                         entity,
                         chunk_key: *chunk_key,

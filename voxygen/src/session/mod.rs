@@ -351,12 +351,7 @@ impl SessionState {
                 client::Event::Notification(n) => {
                     self.hud.new_notification(n);
                 },
-                client::Event::SetViewDistance(vd) => {
-                    global_state.settings.graphics.view_distance = vd;
-                    global_state
-                        .settings
-                        .save_to_file_warn(&global_state.config_dir);
-                },
+                client::Event::SetViewDistance(_vd) => {},
                 client::Event::Outcome(outcome) => outcomes.push(outcome),
                 client::Event::CharacterCreated(_) => {},
                 client::Event::CharacterEdited(_) => {},
@@ -1702,7 +1697,11 @@ impl PlayState for SessionState {
                     // Only highlight if interactable
                     target_entity: self.interactable.and_then(Interactable::entity),
                     loaded_distance: client.loaded_distance(),
-                    view_distance: client.view_distance().unwrap_or(1),
+                    terrain_view_distance: client.view_distance().unwrap_or(1),
+                    entity_view_distance: client
+                        .view_distance()
+                        .unwrap_or(1)
+                        .min(global_state.settings.graphics.entity_view_distance),
                     tick: client.get_tick(),
                     gamma: global_state.settings.graphics.gamma,
                     exposure: global_state.settings.graphics.exposure,
@@ -1788,7 +1787,11 @@ impl PlayState for SessionState {
             // Only highlight if interactable
             target_entity: self.interactable.and_then(Interactable::entity),
             loaded_distance: client.loaded_distance(),
-            view_distance: client.view_distance().unwrap_or(1),
+            terrain_view_distance: client.view_distance().unwrap_or(1),
+            entity_view_distance: client
+                .view_distance()
+                .unwrap_or(1)
+                .min(settings.graphics.entity_view_distance),
             tick: client.get_tick(),
             gamma: settings.graphics.gamma,
             exposure: settings.graphics.exposure,

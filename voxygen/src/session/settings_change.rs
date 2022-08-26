@@ -70,7 +70,8 @@ pub enum Gameplay {
 }
 #[derive(Clone)]
 pub enum Graphics {
-    AdjustViewDistance(u32),
+    AdjustTerrainViewDistance(u32),
+    AdjustEntityViewDistance(u32),
     AdjustLodDistance(u32),
     AdjustLodDetail(u32),
     AdjustSpriteRenderDistance(u32),
@@ -147,7 +148,8 @@ pub enum Language {
 }
 #[derive(Clone)]
 pub enum Networking {
-    AdjustViewDistance(u32),
+    AdjustTerrainViewDistance(u32),
+    AdjustEntityViewDistance(u32),
     ChangePlayerPhysicsBehavior {
         server_authoritative: bool,
     },
@@ -155,6 +157,8 @@ pub enum Networking {
 
     #[cfg(feature = "discord")]
     ToggleDiscordIntegration(bool),
+    // TODO: reset option (ensure it handles the entity/terrain vd the same as graphics reset
+    // option)
 }
 
 #[derive(Clone)]
@@ -354,13 +358,11 @@ impl SettingsChange {
             },
             SettingsChange::Graphics(graphics_change) => {
                 match graphics_change {
-                    Graphics::AdjustViewDistance(view_distance) => {
-                        session_state
-                            .client
-                            .borrow_mut()
-                            .set_view_distance(view_distance);
-
-                        settings.graphics.view_distance = view_distance;
+                    Graphics::AdjustTerrainViewDistance(terrain_vd) => {
+                        adjust_terrain_view_distance(terrain_vd, settings, session_state)
+                    },
+                    Graphics::AdjustEntityViewDistance(entity_vd) => {
+                        adjust_entity_view_distance(entity_vd, settings, session_state)
                     },
                     Graphics::AdjustLodDistance(lod_distance) => {
                         session_state
@@ -433,10 +435,7 @@ impl SettingsChange {
                         settings.graphics = GraphicsSettings::default();
                         let graphics = &settings.graphics;
                         // View distance
-                        session_state
-                            .client
-                            .borrow_mut()
-                            .set_view_distance(graphics.view_distance);
+                        client_set_view_distance(settings, session_state);
                         // FOV
                         session_state.scene.camera_mut().set_fov_deg(graphics.fov);
                         session_state
@@ -604,12 +603,11 @@ impl SettingsChange {
                 },
             },
             SettingsChange::Networking(networking_change) => match networking_change {
-                Networking::AdjustViewDistance(view_distance) => {
-                    session_state
-                        .client
-                        .borrow_mut()
-                        .set_view_distance(view_distance);
-                    settings.graphics.view_distance = view_distance;
+                Networking::AdjustTerrainViewDistance(terrain_vd) => {
+                    adjust_terrain_view_distance(terrain_vd, settings, session_state)
+                },
+                Networking::AdjustEntityViewDistance(entity_vd) => {
+                    adjust_entity_view_distance(entity_vd, settings, session_state)
                 },
                 Networking::ChangePlayerPhysicsBehavior {
                     server_authoritative,
@@ -654,6 +652,39 @@ impl SettingsChange {
                 },
             },
         }
-        settings.save_to_file_warn(&global_state.config_dir);
+        global_state
+            .settings
+            .save_to_file_warn(&global_state.config_dir);
     }
+}
+
+use crate::settings::Settings;
+
+fn adjust_terrain_view_distance(
+    terrain_vd: u32,
+    settings: &mut Settings,
+    session_state: &mut SessionState,
+) {
+    settings.graphics.terrain_view_distance = terrain_vd;
+    client_set_view_distance(settings, session_state);
+}
+
+fn adjust_entity_view_distance(
+    entity_vd: u32,
+    settings: &mut Settings,
+    session_state: &mut SessionState,
+) {
+    settings.graphics.entity_view_distance = entity_vd;
+    client_set_view_distance(settings, session_state);
+}
+
+fn client_set_view_distance(settings: &Settings, session_state: &mut SessionState) {
+    let view_distances = common::ViewDistances {
+        terrain: settings.graphics.terrain_view_distance,
+        entity: settings.graphics.entity_view_distance,
+    };
+    session_state
+        .client
+        .borrow_mut()
+        .set_view_distances(view_distances);
 }

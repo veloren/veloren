@@ -17,6 +17,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
+use std::time::Instant;
 use tracing::{debug, trace, warn};
 use vek::*;
 
@@ -49,9 +50,10 @@ impl Sys {
         _terrain_persistence: &mut TerrainPersistenceData<'_>,
         maybe_player: &Option<&Player>,
         maybe_admin: &Option<&Admin>,
+        time_for_vd_changes: Instant,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
-        let presence = match maybe_presence {
+        let presence = match maybe_presence.as_deref_mut() {
             Some(g) => g,
             None => {
                 debug!(?entity, "client is not in_game, ignoring msg");
@@ -66,21 +68,15 @@ impl Sys {
                 client.send(ServerGeneral::ExitInGameSuccess)?;
                 *maybe_presence = None;
             },
-            ClientGeneral::SetViewDistance(view_distance) => {
-                presence.view_distance = settings
-                    .max_view_distance
-                    .map(|max| view_distance.min(max))
-                    .unwrap_or(view_distance);
+            ClientGeneral::SetViewDistance(view_distances) => {
+                let clamped_vds = view_distances.clamp(settings.max_view_distance);
 
-                //correct client if its VD is to high
-                if settings
-                    .max_view_distance
-                    .map(|max| view_distance > max)
-                    .unwrap_or(false)
-                {
-                    client.send(ServerGeneral::SetViewDistance(
-                        settings.max_view_distance.unwrap_or(0),
-                    ))?;
+                presence.terrain_view_distance.set_target(clamped_vds.terrain, time_for_vd_changes);
+                presence.entity_view_distance.set_target(clamped_vds.entity, time_for_vd_changes);
+
+                // Correct client if its requested VD is too high.
+                if view_distances.terrain != clamped_vds.terrain {
+                    client.send(ServerGeneral::SetViewDistance(clamped_vds.terrain))?;
                 }
             },
             ClientGeneral::ControllerInputs(inputs) => {
@@ -299,8 +295,8 @@ impl Sys {
             | ClientGeneral::CreateCharacter { .. }
             | ClientGeneral::EditCharacter { .. }
             | ClientGeneral::DeleteCharacter(_)
-            | ClientGeneral::Character(_)
-            | ClientGeneral::Spectate
+            | ClientGeneral::Character(_, _)
+            | ClientGeneral::Spectate(_)
             | ClientGeneral::TerrainChunkRequest { .. }
             | ClientGeneral::LodZoneRequest { .. }
             | ClientGeneral::ChatMsg(_)
@@ -378,6 +374,8 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = server_event_bus.emitter();
 
+        let time_for_vd_changes = Instant::now();
+
         for (entity, client, mut maybe_presence, player, maybe_admin) in (
             &entities,
             &mut clients,
@@ -387,12 +385,15 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            // If an `ExitInGame` message is received this is set to `None` allowing further
+            // ingame messages to be ignored.
+            let mut clearable_maybe_presence = maybe_presence.as_deref_mut();
             let _ = super::try_recv_all(client, 2, |client, msg| {
                 Self::handle_client_in_game_msg(
                     &mut server_emitter,
                     entity,
                     client,
-                    &mut maybe_presence.as_deref_mut(),
+                    &mut clearable_maybe_presence,
                     &terrain,
                     &can_build,
                     &is_rider,
@@ -410,9 +411,17 @@ impl<'a> System<'a> for Sys {
                     &mut terrain_persistence,
                     &player,
                     &maybe_admin,
+                    time_for_vd_changes,
                     msg,
                 )
             });
+
+            // Ensure deferred view distance changes are applied (if the
+            // requsite time has elapsed).
+            if let Some(presence) = maybe_presence {
+                presence.terrain_view_distance.update(time_for_vd_changes);
+                presence.entity_view_distance.update(time_for_vd_changes);
+            }
         }
     }
 }

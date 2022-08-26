@@ -4,6 +4,7 @@ use common::{
     comp,
     comp::{Skill, SkillGroupKind},
     terrain::block::Block,
+    ViewDistances,
 };
 use serde::{Deserialize, Serialize};
 use vek::*;
@@ -60,13 +61,13 @@ pub enum ClientGeneral {
         alias: String,
         body: comp::Body,
     },
-    Character(CharacterId),
-    Spectate,
+    Character(CharacterId, ViewDistances),
+    Spectate(ViewDistances),
     //Only in game
     ControllerInputs(Box<comp::ControllerInputs>),
     ControlEvent(comp::ControlEvent),
     ControlAction(comp::ControlAction),
-    SetViewDistance(u32),
+    SetViewDistance(ViewDistances),
     BreakBlock(Vec3<i32>),
     PlaceBlock(Vec3<i32>, Block),
     ExitInGame,
@@ -121,7 +122,7 @@ impl ClientMsg {
                         | ClientGeneral::DeleteCharacter(_) => {
                             c_type != ClientType::ChatOnly && presence.is_none()
                         },
-                        ClientGeneral::Character(_) | ClientGeneral::Spectate => {
+                        ClientGeneral::Character(_, _) | ClientGeneral::Spectate(_) => {
                             c_type == ClientType::Game && presence.is_none()
                         },
                         //Only in game

@@ -166,6 +166,10 @@ pub enum ServerGeneral {
     /// from an ingame state
     ExitInGameSuccess,
     InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
+    /// NOTE: The client can infer that entity view distance will be at most the
+    /// terrain view distance that we send here (and if lower it won't be
+    /// modified). So we just need to send the terrain VD back to the client
+    /// if corrections are made.
     SetViewDistance(u32),
     Outcomes(Vec<Outcome>),
     Knockback(Vec3<f32>),

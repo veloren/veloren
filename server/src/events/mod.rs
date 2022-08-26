@@ -140,8 +140,16 @@ impl Server {
                 ServerEvent::InitCharacterData {
                     entity,
                     character_id,
-                } => handle_initialize_character(self, entity, character_id),
-                ServerEvent::InitSpectator(entity) => handle_initialize_spectator(self, entity),
+                    requested_view_distances,
+                } => handle_initialize_character(
+                    self,
+                    entity,
+                    character_id,
+                    requested_view_distances,
+                ),
+                ServerEvent::InitSpectator(entity, requested_view_distances) => {
+                    handle_initialize_spectator(self, entity, requested_view_distances)
+                },
                 ServerEvent::UpdateCharacterData { entity, components } => {
                     let (
                         body,

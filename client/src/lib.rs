@@ -81,6 +81,8 @@ use tokio::runtime::Runtime;
 use tracing::{debug, error, trace, warn};
 use vek::*;
 
+pub const MAX_SELECTABLE_VIEW_DISTANCE: u32 = 65;
+
 const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 #[derive(Debug)]
@@ -248,6 +250,8 @@ pub struct Client {
     tick: u64,
     state: State,
 
+    server_view_distance_limit: Option<u32>,
+    /// Terrrain view distance
     view_distance: Option<u32>,
     lod_distance: f32,
     // TODO: move into voxygen
@@ -707,6 +711,7 @@ impl Client {
 
             tick: 0,
             state,
+            server_view_distance_limit: None,
             view_distance: None,
             lod_distance: 4.0,
             loaded_distance: 0.0,
@@ -803,8 +808,8 @@ impl Client {
                     | ClientGeneral::CreateCharacter { .. }
                     | ClientGeneral::EditCharacter { .. }
                     | ClientGeneral::DeleteCharacter(_)
-                    | ClientGeneral::Character(_)
-                    | ClientGeneral::Spectate => &mut self.character_screen_stream,
+                    | ClientGeneral::Character(_, _)
+                    | ClientGeneral::Spectate(_) => &mut self.character_screen_stream,
                     //Only in game
                     ClientGeneral::ControllerInputs(_)
                     | ClientGeneral::ControlEvent(_)
@@ -879,16 +884,22 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Character`.
-    pub fn request_character(&mut self, character_id: CharacterId) {
-        self.send_msg(ClientGeneral::Character(character_id));
+    pub fn request_character(
+        &mut self,
+        character_id: CharacterId,
+        view_distances: common::ViewDistances,
+    ) {
+        let view_distances = self.set_view_distances_local(view_distances);
+        self.send_msg(ClientGeneral::Character(character_id, view_distances));
 
         // Assume we are in_game unless server tells us otherwise
         self.presence = Some(PresenceKind::Character(character_id));
     }
 
     /// Request a state transition to `ClientState::Spectate`.
-    pub fn request_spectate(&mut self) {
-        self.send_msg(ClientGeneral::Spectate);
+    pub fn request_spectate(&mut self, view_distances: common::ViewDistances) {
+        let view_distances = self.set_view_distances_local(view_distances);
+        self.send_msg(ClientGeneral::Spectate(view_distances));
 
         self.presence = Some(PresenceKind::Spectator);
     }
@@ -942,10 +953,27 @@ impl Client {
         self.send_msg(ClientGeneral::ExitInGame);
     }
 
-    pub fn set_view_distance(&mut self, view_distance: u32) {
-        let view_distance = view_distance.max(1).min(65);
-        self.view_distance = Some(view_distance);
-        self.send_msg(ClientGeneral::SetViewDistance(view_distance));
+    pub fn set_view_distances(&mut self, view_distances: common::ViewDistances) {
+        let view_distances = self.set_view_distances_local(view_distances);
+        self.send_msg(ClientGeneral::SetViewDistance(view_distances));
+    }
+
+    /// Clamps provided view distances, locally sets the terrain view distance
+    /// in the client's properties and returns the clamped values for the
+    /// caller to send to the server.
+    fn set_view_distances_local(
+        &mut self,
+        view_distances: common::ViewDistances,
+    ) -> common::ViewDistances {
+        let view_distances = common::ViewDistances {
+            terrain: view_distances
+                .terrain
+                .max(1)
+                .min(MAX_SELECTABLE_VIEW_DISTANCE),
+            entity: view_distances.entity.max(1),
+        };
+        self.view_distance = Some(view_distances.terrain);
+        view_distances
     }
 
     pub fn set_lod_distance(&mut self, lod_distance: u32) {
@@ -1485,6 +1513,8 @@ impl Client {
     }
 
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
+
+    pub fn server_view_distance_limit(&self) -> Option<u32> { self.server_view_distance_limit }
 
     pub fn loaded_distance(&self) -> f32 { self.loaded_distance }
 
@@ -2254,6 +2284,9 @@ impl Client {
             ServerGeneral::SetViewDistance(vd) => {
                 self.view_distance = Some(vd);
                 frontend_events.push(Event::SetViewDistance(vd));
+                // If the server is correcting client vd selection we assume this is the max
+                // allowed view distance.
+                self.server_view_distance_limit = Some(vd);
             },
             ServerGeneral::Outcomes(outcomes) => {
                 frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
@@ -2348,18 +2381,10 @@ impl Client {
             ServerGeneral::CharacterEdited(character_id) => {
                 events.push(Event::CharacterEdited(character_id));
             },
-            ServerGeneral::CharacterSuccess => {
-                debug!("client is now in ingame state on server");
-                if let Some(vd) = self.view_distance {
-                    self.set_view_distance(vd);
-                }
-            },
+            ServerGeneral::CharacterSuccess => debug!("client is now in ingame state on server"),
             ServerGeneral::SpectatorSuccess(spawn_point) => {
-                if let Some(vd) = self.view_distance {
-                    events.push(Event::StartSpectate(spawn_point));
-                    debug!("client is now in ingame state on server");
-                    self.set_view_distance(vd);
-                }
+                events.push(Event::StartSpectate(spawn_point));
+                debug!("client is now in ingame state on server");
             },
             _ => unreachable!("Not a character_screen msg"),
         }

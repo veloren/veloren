@@ -8,11 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Setting for disabling flashing lights
+- Spectate mode for moderators.
 - Currently playing music track and artist now shows in the debug menu.
 - Added a setting to influence the gap between music track plays.
 - Added a Craft All button.
 - Server: Vacuum database on startup
-- SeaChapel, greek/latin inspired dungeon for ocean biome coasts
+- SeaChapel, greek/latin inspired dungeon for ocean biome coasts 
+- Entity view distance setting added (shown in graphics and network tabs). This setting controls
+  the distance at which entities are synced to the client and which entities are displayed in.
+  This is clamped to be no more than the current overall view distance setting.
+- View distance settings that are lowered by the server limit (or other factors) now display an
+  extra ghost slider cursor when set above the limit (instead of snapping back to the limit).
+  Limits on the view distance by the server no longer affect the settings saved on the client.
 
 ### Changed
 - Use fluent for translations
@@ -21,15 +29,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - /kill_npcs no longer leaves drops behind and also has bug causing it to not destroy entities
   fixed.
 - Default present mode changed to Fifo (aka 'Vsync capped').
+- Old "Entity View Distance" setting renamed to "Entity Detail Distance" (since this controls the
+  distance at which lower detail models are used for entities).
+- Present mode options renamed for clarity: Fifo -> 'Vsync capped', Mailbox -> 'Vsync uncapped',
+  Immediate -> 'Vsync off'.
 
 ### Removed
 
 ### Fixed
+- Fixed npc not handling interactions while fighting (especially merchants in trade)
+- Fixed bug where you would still be burning after dying in lava.
+- Workaround for rayon bug that caused lag spikes in slowjobs
 - Fixed crash due to zooming out very far
 - Client properly knows trade was cancelled when exiting to the character screen (and no longer
   tries to display the trade window when rejoining)
 - Cancel trades for an entity when it is deleted (note this doesn't effect trades between players
   since their entities are not removed).
+- Fixed bug where the view distance selection was not immediately applied to entity syncing when
+  first joining a server and when changing the view distance (previously this required moving to a
+  new chunk for the initial setting or subsequent change to apply).
 
 ## [0.13.0] - 2022-07-23
 
@@ -68,8 +86,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More varied ambient birdcalls
 - Cave biomes
 - Updated the Polish translation
-- Setting for disabling flashing lights
-- Spectate mode for moderators.
 
 ### Changed
 
@@ -113,9 +129,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Combat music now loops and ends properly
 - Modular weapons now have a selling price
 - Closing a subwindow now only regrabs the cursor if no other subwindow requires it.
-- Fixed npc not handling interactions while fighting (especially merchants in trade)
-- Fixed bug where you would still be burning after dying in lava.
-- Workaround for rayon bug that caused lag spikes in slowjobs
 
 ## [0.12.0] - 2022-02-19
 

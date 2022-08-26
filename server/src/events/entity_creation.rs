@@ -17,6 +17,7 @@ use common::{
     rtsim::RtSimEntity,
     uid::Uid,
     util::Dir,
+    ViewDistances,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
@@ -29,12 +30,29 @@ pub fn handle_initialize_character(
     server: &mut Server,
     entity: EcsEntity,
     character_id: CharacterId,
+    requested_view_distances: ViewDistances,
 ) {
-    server.state.initialize_character_data(entity, character_id);
+    let clamped_vds = requested_view_distances.clamp(server.settings().max_view_distance);
+    server
+        .state
+        .initialize_character_data(entity, character_id, clamped_vds);
+    // Correct client if its requested VD is too high.
+    if requested_view_distances.terrain != clamped_vds.terrain {
+        server.notify_client(entity, ServerGeneral::SetViewDistance(clamped_vds.terrain));
+    }
 }
 
-pub fn handle_initialize_spectator(server: &mut Server, entity: EcsEntity) {
-    server.state.initialize_spectator_data(entity);
+pub fn handle_initialize_spectator(
+    server: &mut Server,
+    entity: EcsEntity,
+    requested_view_distances: ViewDistances,
+) {
+    let clamped_vds = requested_view_distances.clamp(server.settings().max_view_distance);
+    server.state.initialize_spectator_data(entity, clamped_vds);
+    // Correct client if its requested VD is too high.
+    if requested_view_distances.terrain != clamped_vds.terrain {
+        server.notify_client(entity, ServerGeneral::SetViewDistance(clamped_vds.terrain));
+    }
     sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
 }
 

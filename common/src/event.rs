@@ -107,8 +107,9 @@ pub enum ServerEvent {
     InitCharacterData {
         entity: EcsEntity,
         character_id: CharacterId,
+        requested_view_distances: crate::ViewDistances,
     },
-    InitSpectator(EcsEntity),
+    InitSpectator(EcsEntity, crate::ViewDistances),
     UpdateCharacterData {
         entity: EcsEntity,
         components: (
