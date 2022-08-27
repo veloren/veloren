@@ -241,12 +241,19 @@ impl Rule for NpcAi {
                 });
                 
                 if let Some(home_id) = npc.home {
-                    if let Some((target, _)) = npc.target {
+                    if let Some((target, _)) = npc.goto {
                         // Walk to the current target
                         if target.xy().distance_squared(npc.wpos.xy()) < 4.0 {
-                            npc.target = None;
+                            npc.goto = None;
                         }
                     } else {
+                        // Walk slower when pathing in a site, and faster when between sites
+                        if npc.pathing.intersite_path.is_none() {
+                            npc.goto = Some((npc.goto.map_or(npc.wpos, |(wpos, _)| wpos), 0.7));
+                        } else {
+                            npc.goto = Some((npc.goto.map_or(npc.wpos, |(wpos, _)| wpos), 1.0));
+                        }
+
                         if let Some((ref mut path, site)) = npc.pathing.intrasite_path {
                             // If the npc walking in a site and want to reroll (because the path was
                             // exhausted.) to try to find a complete path.
@@ -256,6 +263,7 @@ impl Rule for NpcAi {
                                         .map(|path| (path, site));
                             }
                         }
+
                         if let Some((ref mut path, site)) = npc.pathing.intrasite_path {
                             if let Some(next_tile) = path.path.pop_front() {
                                 match &ctx.index.sites.get(site).kind {
@@ -268,7 +276,7 @@ impl Rule for NpcAi {
                                             ctx.world.sim().get_alt_approx(wpos).unwrap_or(0.0),
                                         );
 
-                                        npc.target = Some((wpos, 1.0));
+                                        npc.goto = Some((wpos, npc.goto.map_or(1.0, |(_, sf)| sf)));
                                     },
                                     _ => {},
                                 }
@@ -373,7 +381,7 @@ impl Rule for NpcAi {
                                     let wpos = wpos.as_::<f32>().with_z(
                                         ctx.world.sim().get_alt_approx(wpos).unwrap_or(0.0),
                                     );
-                                    npc.target = Some((wpos, 1.0));
+                                    npc.goto = Some((wpos, npc.goto.map_or(1.0, |(_, sf)| sf)));
                                     *progress += 1;
                                 }
                             } else {
@@ -417,14 +425,14 @@ impl Rule for NpcAi {
                     }
                 } else {
                     // TODO: Don't make homeless people walk around in circles
-                    npc.target = Some((
+                    npc.goto = Some((
                         npc.wpos
                             + Vec3::new(
                                 ctx.event.time.0.sin() as f32 * 16.0,
                                 ctx.event.time.0.cos() as f32 * 16.0,
                                 0.0,
                             ),
-                        1.0,
+                        0.7,
                     ));
                 }
             }

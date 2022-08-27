@@ -57,7 +57,8 @@ pub struct Npc {
 
     /// (wpos, speed_factor)
     #[serde(skip_serializing, skip_deserializing)]
-    pub target: Option<(Vec3<f32>, f32)>,
+    pub goto: Option<(Vec3<f32>, f32)>,
+    
     /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the server, loaded corresponds to being
     /// within a loaded chunk). When in loaded mode, the interactions of the NPC should not be simulated but should
     /// instead be derived from the game.
@@ -78,7 +79,7 @@ impl Npc {
             faction: None,
             pathing: Default::default(),
             current_site: None,
-            target: None,
+            goto: None,
             mode: NpcMode::Simulated,
         }
     }

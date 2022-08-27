@@ -254,8 +254,8 @@ impl<'a> System<'a> for Sys {
 
                     // Update entity state
                     if let Some(agent) = agent {
-                        agent.rtsim_controller.travel_to = npc.target.map(|(wpos, _)| wpos);
-                        agent.rtsim_controller.speed_factor = npc.target.map_or(1.0, |(_, sf)| sf);
+                        agent.rtsim_controller.travel_to = npc.goto.map(|(wpos, _)| wpos);
+                        agent.rtsim_controller.speed_factor = npc.goto.map_or(1.0, |(_, sf)| sf);
                         agent.rtsim_controller.heading_to =
                             npc.pathing.intersite_path.as_ref().and_then(|(path, _)| {
                                 Some(

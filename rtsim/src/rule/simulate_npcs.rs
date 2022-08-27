@@ -21,8 +21,8 @@ impl Rule for SimulateNpcs {
             {
                 let body = npc.get_body();
 
-                // Move NPCs if they have a target
-                if let Some((target, speed_factor)) = npc.target {
+                // Move NPCs if they have a target destination
+                if let Some((target, speed_factor)) = npc.goto {
                     let diff = target.xy() - npc.wpos.xy();
                     let dist2 = diff.magnitude_squared();
 
