@@ -483,6 +483,7 @@ pub enum CharacterAbility {
         block_strength: f32,
         parry_window: basic_block::ParryWindow,
         energy_cost: f32,
+        can_hold: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -846,6 +847,7 @@ impl CharacterAbility {
                 recover: false,
             },
             energy_cost: 2.5,
+            can_hold: true,
             meta: Default::default(),
         }
     }
@@ -946,6 +948,7 @@ impl CharacterAbility {
                 block_strength: _,
                 parry_window: _,
                 ref mut energy_cost,
+                can_hold: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2028,6 +2031,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 block_strength,
                 parry_window,
                 energy_cost,
+                can_hold,
                 meta: _,
             } => CharacterState::BasicBlock(basic_block::Data {
                 static_data: basic_block::StaticData {
@@ -2037,6 +2041,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     block_strength: *block_strength,
                     parry_window: *parry_window,
                     energy_cost: *energy_cost,
+                    can_hold: *can_hold,
                     ability_info,
                 },
                 timer: Duration::default(),

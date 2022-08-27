@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, InputKind, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         wielding,
@@ -32,6 +32,8 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// Energy consumed to initiate the block
     pub energy_cost: f32,
+    /// Whether block can be held
+    pub can_hold: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -64,13 +66,19 @@ impl CharacterBehavior for Data {
                     // Transitions to swing section of stage
                     update.character = CharacterState::BasicBlock(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Action,
+                        stage_section: if self.static_data.can_hold {
+                            StageSection::Action
+                        } else {
+                            StageSection::Recover
+                        },
                         ..*self
                     });
                 }
             },
             StageSection::Action => {
-                if input_is_pressed(data, InputKind::Block) {
+                if self.static_data.can_hold
+                    && input_is_pressed(data, self.static_data.ability_info.input)
+                {
                     // Block
                     update.character = CharacterState::BasicBlock(Data {
                         timer: tick_attack_or_default(data, self.timer, None),

@@ -1,13 +1,14 @@
 BasicBlock(
-    buildup_duration: 1.0,
-    recover_duration: 0.5,
+    buildup_duration: 0.25,
+    recover_duration: 0.25,
     max_angle: 45.0,
     block_strength: 0.8,
     parry_window: (
         buildup: true,
         recover: true,
     ),
-    energy_cost: 10.0,
+    energy_cost: 10,
+    can_hold: false,
     meta: (
         kind: Some(Sword(Parrying)),
     ),
