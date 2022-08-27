@@ -467,8 +467,10 @@ impl Body {
             Body::QuadrupedLow(body) => match body.species {
                 quadruped_low::Species::Asp => Vec3::new(2.0, 3.0, 1.7),
                 quadruped_low::Species::Crocodile => Vec3::new(1.0, 2.8, 1.3),
+                quadruped_low::Species::SeaCrocodile => Vec3::new(1.2, 4.5, 1.3),
                 quadruped_low::Species::Deadwood => Vec3::new(1.3, 1.3, 1.4),
                 quadruped_low::Species::Hakulaq => Vec3::new(1.8, 3.0, 2.0),
+                quadruped_low::Species::Dagon => Vec3::new(3.0, 6.0, 2.0),
                 quadruped_low::Species::Icedrake => Vec3::new(2.0, 5.5, 2.5),
                 quadruped_low::Species::Lavadrake => Vec3::new(2.0, 4.7, 2.5),
                 quadruped_low::Species::Maneater => Vec3::new(2.5, 3.7, 4.0),
