@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     terrain::BiomeKind,
-    trade::Good::{self, Territory, Terrain},
+    trade::Good::{self, Terrain, Territory},
 };
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
