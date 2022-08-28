@@ -548,6 +548,7 @@ image_ids! {
         skill_axe_leap_slash: "voxygen.element.skills.skill_axe_leap_slash",
         skill_bow_jump_burst: "voxygen.element.skills.skill_bow_jump_burst",
         skill_sceptre_aura: "voxygen.element.skills.sceptre_protection",
+        instrument: "voxygen.element.skills.music",
         missing_icon: "voxygen.element.missing_icon_grey",
 
         // Buttons

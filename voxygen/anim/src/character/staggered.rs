@@ -162,6 +162,12 @@ impl Animation for StaggeredAnimation {
 
                             next.control.position = Vec3::new(-11.0, 1.8, 4.0);
                         },
+                        Some(ToolKind::Instrument) => {
+                            next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
+                            next.hand_l.orientation = Quaternion::rotation_x(1.27);
+                            next.main.position = Vec3::new(-5.0, 5.0, 23.0);
+                            next.main.orientation = Quaternion::rotation_x(PI);
+                        },
                         _ => {},
                     }
                 },

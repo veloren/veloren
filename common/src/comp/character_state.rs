@@ -125,6 +125,8 @@ pub enum CharacterState {
     Wallrun(wallrun::Data),
     /// Ice skating or skiing
     Skate(skate::Data),
+    /// Play music instrument
+    Music(music::Data),
 }
 
 impl CharacterState {
@@ -147,6 +149,7 @@ impl CharacterState {
                 | CharacterState::BasicAura(_)
                 | CharacterState::SelfBuff(_)
                 | CharacterState::Blink(_)
+                | CharacterState::Music(_)
                 | CharacterState::BasicSummon(_)
                 | CharacterState::SpriteSummon(_)
                 | CharacterState::Roll(roll::Data {
@@ -240,6 +243,8 @@ impl CharacterState {
 
     pub fn is_skate(&self) -> bool { matches!(self, CharacterState::Skate(_)) }
 
+    pub fn is_music(&self) -> bool { matches!(self, CharacterState::Music(_)) }
+
     pub fn is_melee_dodge(&self) -> bool {
         matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
     }
@@ -278,6 +283,7 @@ impl CharacterState {
                 | CharacterState::SpriteSummon(_)
                 | CharacterState::UseItem(_)
                 | CharacterState::SpriteInteract(_)
+                | CharacterState::Music(_)
         )
     }
 
@@ -339,6 +345,7 @@ impl CharacterState {
             CharacterState::UseItem(data) => data.behavior(j, output_events),
             CharacterState::SpriteInteract(data) => data.behavior(j, output_events),
             CharacterState::Skate(data) => data.behavior(j, output_events),
+            CharacterState::Music(data) => data.behavior(j, output_events),
         }
     }
 
@@ -386,6 +393,7 @@ impl CharacterState {
             CharacterState::UseItem(data) => data.handle_event(j, output_events, action),
             CharacterState::SpriteInteract(data) => data.handle_event(j, output_events, action),
             CharacterState::Skate(data) => data.handle_event(j, output_events, action),
+            CharacterState::Music(data) => data.handle_event(j, output_events, action),
         }
     }
 

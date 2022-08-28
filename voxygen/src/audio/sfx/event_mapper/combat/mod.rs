@@ -152,6 +152,13 @@ impl CombatEventMapper {
                         CharacterAbilityType::from(character_state),
                         data.kind,
                     );
+                } else if character_state.is_music() {
+                    if let Some(ability_spec) = item
+                        .ability_spec()
+                        .map(|ability_spec| ability_spec.into_owned())
+                    {
+                        return SfxEvent::Music(data.kind, ability_spec);
+                    }
                 } else if let Some(wield_event) = match (
                     previous_state.weapon_drawn,
                     Self::weapon_drawn(character_state),

@@ -3,20 +3,20 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::{
-    comp::item::{Hands, ToolKind},
+    comp::item::{AbilitySpec, Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
 use core::f32::consts::PI;
 
 pub struct AlphaAnimation;
 
-type AlphaAnimationDependency = (
+type AlphaAnimationDependency<'a> = (
     (Option<Hands>, Option<Hands>),
     Option<StageSection>,
-    Option<AbilityInfo>,
+    (Option<AbilityInfo>, Option<&'a AbilitySpec>),
 );
 impl Animation for AlphaAnimation {
-    type Dependency<'a> = AlphaAnimationDependency;
+    type Dependency<'a> = AlphaAnimationDependency<'a>;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -25,7 +25,7 @@ impl Animation for AlphaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_alpha")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, stage_section, ability_info): Self::Dependency<'a>,
+        (hands, stage_section, (ability_info, active_tool_spec)): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -77,6 +77,53 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_y(0.0 + move1 * 0.0 + move2 * 0.0)
                     * Quaternion::rotation_z(0.0 + move1 * 1.5 + move2 * -2.5);
                 next.head.orientation = Quaternion::rotation_z(0.0 + move1 * -1.5 + move2 * 2.5);
+            },
+            // TODO: create Instrument SubToolKinds to distinguish instruments
+            Some(ToolKind::Instrument) => {
+                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                    match spec.as_str() {
+                        "Flute" => {
+                            let (move1, move2, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            next.head.position =
+                                Vec3::new(move2 * 0.1, s_a.head.0 + move2 * 0.2, s_a.head.1);
+                            next.chest.orientation = Quaternion::rotation_x(
+                                0.0 + move1 * 0.2 + move2 * -0.2 + move3 * 0.1,
+                            ) * Quaternion::rotation_y(
+                                0.0 + move1 * 0.0 + move2 * 0.0 + move3 * 0.0,
+                            ) * Quaternion::rotation_z(
+                                0.0 + move1 * 0.1 + move2 * -0.1 + move3 * 0.1,
+                            );
+                            next.head.orientation = Quaternion::rotation_z(
+                                0.0 + move1 * -0.1 + move2 * 0.1 + move3 * -0.2,
+                            );
+                        },
+                        _ => {
+                            let (move1, move2, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            next.head.position =
+                                Vec3::new(move2 * 1.0, s_a.head.0 + move2 * 1.0, s_a.head.1);
+                            next.chest.orientation = Quaternion::rotation_x(
+                                0.0 + move1 * 0.2 + move2 * -0.2 + move3 * 0.1,
+                            ) * Quaternion::rotation_y(
+                                0.0 + move1 * 0.0 + move2 * 0.0 + move3 * 0.0,
+                            ) * Quaternion::rotation_z(
+                                0.0 + move1 * 0.3 + move2 * -0.3 + move3 * 0.2,
+                            );
+                            next.head.orientation = Quaternion::rotation_z(
+                                0.0 + move1 * -0.1 + move2 * 0.1 + move3 * -0.2,
+                            );
+                        },
+                    }
+                }
             },
 
             Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
@@ -155,6 +202,205 @@ impl Animation for AlphaAnimation {
                             * Quaternion::rotation_z(
                                 s_a.ac.5 + move1 * -2.0 + move2 * -1.0 + move3 * 2.5,
                             )
+                },
+                Some(ToolKind::Instrument) => {
+                    if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                        match spec.as_str() {
+                            "Bass" => {
+                                next.hand_r.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                                next.hand_l.orientation = Quaternion::rotation_x(2.0)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(0.40);
+                                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                                next.hand_r.orientation = Quaternion::rotation_x(1.0)
+                                    * Quaternion::rotation_y(0.75)
+                                    * Quaternion::rotation_z(-0.40);
+                                next.main.position = Vec3::new(-4.0, 6.0, 14.0);
+                                next.main.orientation = Quaternion::rotation_x(0.1)
+                                    * Quaternion::rotation_y(3.0)
+                                    * Quaternion::rotation_z(PI / -3.0);
+
+                                let (move1, move2, move3) = match stage_section {
+                                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                    _ => (0.0, 0.0, 0.0),
+                                };
+                                next.hand_r.position = Vec3::new(
+                                    s_a.ahr.0 + move1 * 5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.1 + move1 * 8.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.2 + move1 * 1.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                                next.hand_l.position = Vec3::new(
+                                    s_a.ahl.0 + move1 * -5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahl.1 + move1 * 6.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahl.2 + move1 * 1.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                            },
+                            "Lute" => {
+                                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                                next.hand_l.orientation = Quaternion::rotation_x(2.0)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(0.40);
+                                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                                next.hand_r.orientation = Quaternion::rotation_x(1.0)
+                                    * Quaternion::rotation_y(0.75)
+                                    * Quaternion::rotation_z(-0.40);
+                                next.main.position = Vec3::new(-14.0, 6.0, 4.0);
+                                next.main.orientation = Quaternion::rotation_x(0.1)
+                                    * Quaternion::rotation_y(2.0)
+                                    * Quaternion::rotation_z(PI / -3.0);
+
+                                let (move1, move2, move3) = match stage_section {
+                                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                    _ => (0.0, 0.0, 0.0),
+                                };
+                                next.hand_r.position = Vec3::new(
+                                    s_a.ahr.0 + move1 * 5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.1 + move1 * 8.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.2 + move1 * 1.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                                next.hand_l.position = Vec3::new(
+                                    s_a.ahl.0 + move1 * -5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahl.1 + move1 * 6.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahl.2 + move1 * -6.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                            },
+                            "Sitar" => {
+                                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                                next.hand_l.orientation = Quaternion::rotation_x(2.0)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(0.40);
+                                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                                next.hand_r.orientation = Quaternion::rotation_x(1.0)
+                                    * Quaternion::rotation_y(0.75)
+                                    * Quaternion::rotation_z(-0.40);
+                                next.main.position = Vec3::new(-14.0, 6.0, 4.0);
+                                next.main.orientation = Quaternion::rotation_x(0.1)
+                                    * Quaternion::rotation_y(2.0)
+                                    * Quaternion::rotation_z(PI / -3.0);
+
+                                let (move1, move2, move3) = match stage_section {
+                                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                    _ => (0.0, 0.0, 0.0),
+                                };
+                                next.hand_r.position = Vec3::new(
+                                    s_a.ahr.0 + move1 * 5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.1 + move1 * 8.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.2 + move1 * 1.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                                next.hand_l.position = Vec3::new(
+                                    s_a.ahl.0 + move1 * -5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahl.1 + move1 * 6.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahl.2 + move1 * -6.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                            },
+                            "Flute" => {
+                                next.hand_l.position = Vec3::new(-4.0, 6.0, 4.5);
+                                next.hand_l.orientation = Quaternion::rotation_x(2.0)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(0.40);
+                                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                                next.hand_r.orientation = Quaternion::rotation_x(1.0)
+                                    * Quaternion::rotation_y(0.75)
+                                    * Quaternion::rotation_z(-0.40);
+                                next.main.position = Vec3::new(-2.5, 10.0, -12.0);
+                                next.main.orientation = Quaternion::rotation_x(3.5)
+                                    * Quaternion::rotation_y(PI)
+                                    * Quaternion::rotation_z(0.05);
+                                let (move1, move2, move3) = match stage_section {
+                                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                    _ => (0.0, 0.0, 0.0),
+                                };
+                                next.hand_r.position = Vec3::new(
+                                    s_a.ahr.0 + move1 * 5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.1 + move1 * 8.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.2 + move1 * 1.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                            },
+                            "Kalimba" => {
+                                next.hand_l.position = Vec3::new(-4.0, 6.0, 2.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(1.00)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(0.20);
+                                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                                next.hand_r.orientation = Quaternion::rotation_x(1.75)
+                                    * Quaternion::rotation_y(0.75)
+                                    * Quaternion::rotation_z(-0.40);
+                                next.main.position = Vec3::new(8.0, 12.0, -6.0);
+                                next.main.orientation = Quaternion::rotation_x(0.2)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(PI - 0.2);
+                                let (move1, move2, move3) = match stage_section {
+                                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                    _ => (0.0, 0.0, 0.0),
+                                };
+                                next.hand_r.position = Vec3::new(
+                                    s_a.ahr.0 + move1 * 5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.1 + move1 * 8.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.2 + move1 * 3.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                            },
+                            "Melodica" => {
+                                next.hand_l.position = Vec3::new(-3.0, 6.0, 3.5);
+                                next.hand_l.orientation = Quaternion::rotation_x(2.0)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(0.40);
+                                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                                next.hand_r.orientation = Quaternion::rotation_x(1.0)
+                                    * Quaternion::rotation_y(0.75)
+                                    * Quaternion::rotation_z(-0.40);
+                                next.main.position = Vec3::new(-1.0, 2.0, 15.0);
+                                next.main.orientation = Quaternion::rotation_x(0.3)
+                                    * Quaternion::rotation_y(PI)
+                                    * Quaternion::rotation_z(PI / -2.0);
+                                let (move1, move2, move3) = match stage_section {
+                                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                    _ => (0.0, 0.0, 0.0),
+                                };
+                                next.hand_r.position = Vec3::new(
+                                    s_a.ahr.0 + move1 * 5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.1 + move1 * 8.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.2 + move1 * 1.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                            },
+                            _ => {
+                                next.hand_l.position = Vec3::new(-4.0, 6.0, 2.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(1.00)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(0.20);
+                                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                                next.hand_r.orientation = Quaternion::rotation_x(1.75)
+                                    * Quaternion::rotation_y(0.75)
+                                    * Quaternion::rotation_z(-0.40);
+                                next.main.position = Vec3::new(8.0, 14.0, -6.0);
+                                next.main.orientation = Quaternion::rotation_x(0.2)
+                                    * Quaternion::rotation_y(-0.75)
+                                    * Quaternion::rotation_z(0.20);
+                                let (move1, move2, move3) = match stage_section {
+                                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                    _ => (0.0, 0.0, 0.0),
+                                };
+                                next.hand_r.position = Vec3::new(
+                                    s_a.ahr.0 + move1 * 5.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.1 + move1 * 8.0 + move2 * 0.0 + move3 * 0.0,
+                                    s_a.ahr.2 + move1 * 3.0 + move2 * 0.0 + move3 * 0.0,
+                                );
+                            },
+                        }
+                    }
                 },
                 Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
                     let (move1, move2, move3) = match stage_section {

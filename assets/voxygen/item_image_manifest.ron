@@ -1618,6 +1618,38 @@
         "voxel.weapon.tool.shovel_gold",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
+    Simple("common.items.tool.instruments.harp"): VoxTrans(
+        "voxel.weapon.tool.harp",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    Simple("common.items.tool.instruments.flute"): VoxTrans(
+        "voxel.weapon.tool.flute",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    Simple("common.items.tool.instruments.bass"): VoxTrans(
+        "voxel.weapon.tool.bass",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
+    ),
+    Simple("common.items.tool.instruments.perc"): VoxTrans(
+        "voxel.weapon.tool.perc",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 0.8,
+    ),
+    Simple("common.items.tool.instruments.kalimba"): VoxTrans(
+        "voxel.weapon.tool.kalimba",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 0.8,
+    ),
+    Simple("common.items.tool.instruments.melodica"): VoxTrans(
+        "voxel.weapon.tool.melodica",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 0.9,
+    ),
+    Simple("common.items.tool.instruments.lute"): VoxTrans(
+        "voxel.weapon.tool.lute",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+    ),
+    Simple("common.items.tool.instruments.sitar"): VoxTrans(
+        "voxel.weapon.tool.sitar",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.2,
+    ),
     // Picks
     Simple("common.items.tool.pickaxe_stone"): VoxTrans(
         "voxel.weapon.tool.pickaxe_green-0",

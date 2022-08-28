@@ -75,6 +75,7 @@ common-tool-debug = Debug
 common-tool-farming = Farming Tool
 common-tool-pick = Pickaxe
 common-tool-mining = Mining
+common-tool-instrument = Instrument
 common-kind-modular_component = Modular Component
 common-kind-modular_component_partial = Component
 common-kind-glider = Glider

@@ -1120,6 +1120,38 @@
         vox_spec: ("weapon.tool.shovel_gold", (-1.0, -2.5, -4.0)),
         color: None
     ),
+    Tool("common.items.tool.instruments.harp"): (
+        vox_spec: ("weapon.tool.harp", (-3.5, -7.0, 6.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.flute"): (
+        vox_spec: ("weapon.tool.flute", (-4.5, -4.5, 8.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.bass"): (
+        vox_spec: ("weapon.tool.bass", (-3.5, -6.0, 0.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.perc"): (
+        vox_spec: ("weapon.tool.perc", (-3.0, -6.0, 9.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.kalimba"): (
+        vox_spec: ("weapon.tool.kalimba", (-3.5, -7.0, 6.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.melodica"): (
+        vox_spec: ("weapon.tool.melodica", (-3.5, -4.5, 8.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.lute"): (
+        vox_spec: ("weapon.tool.lute", (-2.5, -6.0, 4.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.sitar"): (
+        vox_spec: ("weapon.tool.sitar", (-4.0, -6.0, 5.0)),
+        color: None
+    ),
     // Staves
     Modular(("common.items.modular.weapon.primary.staff.brand", "common.items.log.wood", Two)): (
         vox_spec: ("weapon.staff.brand.wood", (-1.0, -2.5, -4.0)),
