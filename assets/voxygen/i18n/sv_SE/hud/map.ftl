@@ -30,3 +30,5 @@ hud-map-toggle_minimap_voxel = Växla Minikartans Voxelvy
 hud-map-zoom_minimap_explanation =
     Zooma in Minikartan för att se
     området runtom dig i högre detalj
+hud-map-gnarling = Gnarlingsfästning
+hud-map-placed_by = Placerad av { $name }

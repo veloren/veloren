@@ -2,6 +2,7 @@ hud-crafting = Tillverkning
 hud-crafting-recipes = Recept
 hud-crafting-ingredients = Ingredienser:
 hud-crafting-craft = Tillverka
+hud-crafting-craft_all = Tillverka Alla
 hud-crafting-tool_cata = Kräver:
 hud-crafting-req_crafting_station = Kräver:
 hud-crafting-anvil = Städ
@@ -31,3 +32,14 @@ hud-crafting-dismantle_explanation =
     du kan återvinna.
     
     Dubbelklicka dem för att börja demontera.
+hud-crafting-modular_desc = Dra föremålsdelar hit för att tillverka ett vapen
+hud-crafting-mod_weap_prim_slot_title = Komponent för primärt vapen
+hud-crafting-mod_weap_prim_slot_desc = Placera en komponent för ett primärt vapen här (t.ex. ett svärdsblad, yxhuvud, eller båglemmar).
+hud-crafting-mod_weap_sec_slot_title = Komponent för sekundärt vapen
+hud-crafting-mod_weap_sec_slot_desc = Placera en komponent för ett sekundärt vapen här (e.g. ett svärdsfäste, båghandtag, eller stavkärna).
+hud-crafting-mod_comp_metal_prim_slot_title = Metalltacka
+hud-crafting-mod_comp_metal_prim_slot_desc = Placera en metalltacka här, endast vissa metaller kan användas för att tillverka vapen.
+hud-crafting-mod_comp_wood_prim_slot_title = Trä
+hud-crafting-mod_comp_wood_prim_slot_desc = Placera en träsort här, endast vissa träsorter kan användas för att tillverka vapen.
+hud-crafting-mod_comp_sec_slot_title = Djurmaterial
+hud-crafting-mod_comp_sec_slot_desc = Placera valfritt en tillverkningsingrediens från ett djur, endast vissa ingredienser kan användas för att förändra vapen.

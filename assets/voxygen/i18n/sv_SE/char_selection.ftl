@@ -3,6 +3,7 @@ char_selection-delete_permanently = Vill du radera rollpersonen permanent?
 char_selection-deleting_character = Raderar rollperson …
 char_selection-change_server = Byt server
 char_selection-enter_world = Öppna värld
+char_selection-spectate = Övervaka värld
 char_selection-logout = Logga ut
 char_selection-create_new_character = Skapa ny rollperson
 char_selection-creating_character = Skapar rollperson …
