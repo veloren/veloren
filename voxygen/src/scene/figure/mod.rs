@@ -912,7 +912,6 @@ impl FigureMgr {
             let (second_tool_kind, second_tool_hand, second_tool_spec) =
                 tool_info(EquipSlot::ActiveOffhand);
             let second_tool_spec = second_tool_spec.as_deref();
-
             let hands = (active_tool_hand, second_tool_hand);
 
             // If a mount exists, get its animated mounting transform and its position
@@ -1152,7 +1151,7 @@ impl FigureMgr {
                                 (
                                     hands,
                                     Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
+                                    (Some(s.static_data.ability_info), None),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -1332,7 +1331,7 @@ impl FigureMgr {
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (hands, None, None),
+                                (hands, None, (None, None)),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1590,7 +1589,7 @@ impl FigureMgr {
                                     (
                                         hands,
                                         Some(s.stage_section),
-                                        Some(s.static_data.ability_info),
+                                        (Some(s.static_data.ability_info), None),
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -1735,7 +1734,7 @@ impl FigureMgr {
                                 anim::character::SneakWieldAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
+                                        (active_tool_kind, active_tool_spec),
                                         second_tool_kind,
                                         hands,
                                         rel_vel,
@@ -1752,7 +1751,7 @@ impl FigureMgr {
                                 anim::character::WieldAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
+                                        (active_tool_kind, active_tool_spec),
                                         second_tool_kind,
                                         hands,
                                         // TODO: Update to use the quaternion.
@@ -1829,6 +1828,32 @@ impl FigureMgr {
                                 &target_base,
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Music(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Action => {
+                                    stage_time / s.static_data.play_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::character::AlphaAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    hands,
+                                    Some(s.stage_section),
+                                    (Some(s.static_data.ability_info), active_tool_spec),
+                                ),
+                                stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )

@@ -2,14 +2,14 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::comp::item::{AbilitySpec, Hands, ToolKind};
 use core::{f32::consts::PI, ops::Mul};
 
 pub struct SneakWieldAnimation;
 
 impl Animation for SneakWieldAnimation {
     type Dependency<'a> = (
-        Option<ToolKind>,
+        (Option<ToolKind>, Option<&'a AbilitySpec>),
         Option<ToolKind>,
         (Option<Hands>, Option<Hands>),
         Vec3<f32>,
@@ -25,9 +25,15 @@ impl Animation for SneakWieldAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_sneakwield")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (            active_tool_kind,
+        (
+            (active_tool_kind, active_tool_spec),
             second_tool_kind,
-            hands, velocity, orientation, last_ori, global_time): Self::Dependency<'a>,
+            hands,
+            velocity,
+            orientation,
+            last_ori,
+            global_time,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -282,6 +288,24 @@ impl Animation for SneakWieldAnimation {
                     next.control.orientation = Quaternion::rotation_x(speednorm * -0.5 + 0.8)
                         * Quaternion::rotation_y(s_a.bc.4)
                         * Quaternion::rotation_z(s_a.bc.5);
+                },
+                Some(ToolKind::Instrument) => {
+                    if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                        match spec.as_str() {
+                            "Perc" => {
+                                next.hand_l.position = Vec3::new(-7.0, 0.0, 3.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(1.27);
+                                next.main.position = Vec3::new(-5.0, -4.5, -5.0);
+                                next.main.orientation = Quaternion::rotation_x(5.5);
+                            },
+                            _ => {
+                                next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(1.27);
+                                next.main.position = Vec3::new(-5.0, 5.0, 23.0);
+                                next.main.orientation = Quaternion::rotation_x(PI);
+                            },
+                        }
+                    }
                 },
                 Some(ToolKind::Debug) => {
                     next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);

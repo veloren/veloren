@@ -2833,6 +2833,7 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
             | ToolKind::Blowgun
             | ToolKind::Debug
             | ToolKind::Farming
+            | ToolKind::Instrument
             | ToolKind::Pick
             | ToolKind::Natural
             | ToolKind::Organ

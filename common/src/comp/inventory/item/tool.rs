@@ -36,6 +36,9 @@ pub enum ToolKind {
     Natural,
     Organ,
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
+    /// Music Instruments
+    Instrument,
+    /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
 }
 
@@ -57,6 +60,7 @@ impl ToolKind {
             ToolKind::Farming => "farming",
             ToolKind::Pick => "pickaxe",
             ToolKind::Organ => "organ",
+            ToolKind::Instrument => "instrument",
             ToolKind::Empty => "empty",
         }
     }

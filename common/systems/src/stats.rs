@@ -185,6 +185,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::SpinMelee { .. }
                 | CharacterState::ComboMelee { .. }
                 | CharacterState::BasicRanged { .. }
+                | CharacterState::Music { .. }
                 | CharacterState::ChargedMelee { .. }
                 | CharacterState::ChargedRanged { .. }
                 | CharacterState::RepeaterRanged { .. }

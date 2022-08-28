@@ -3,15 +3,15 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::{
-    comp::item::{Hands, ToolKind},
+    comp::item::{AbilitySpec, Hands, ToolKind},
     util::Dir,
 };
 use core::{f32::consts::PI, ops::Mul};
 
 pub struct WieldAnimation;
 
-type WieldAnimationDependency = (
-    Option<ToolKind>,
+type WieldAnimationDependency<'a> = (
+    (Option<ToolKind>, Option<&'a AbilitySpec>),
     Option<ToolKind>,
     (Option<Hands>, Option<Hands>),
     Vec3<f32>,
@@ -21,7 +21,7 @@ type WieldAnimationDependency = (
     f32,
 );
 impl Animation for WieldAnimation {
-    type Dependency<'a> = WieldAnimationDependency;
+    type Dependency<'a> = WieldAnimationDependency<'a>;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -31,7 +31,7 @@ impl Animation for WieldAnimation {
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (
-            active_tool_kind,
+            (active_tool_kind, active_tool_spec),
             second_tool_kind,
             hands,
             orientation,
@@ -280,6 +280,194 @@ impl Animation for WieldAnimation {
                     next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
                         * Quaternion::rotation_y(0.6 + u_slow * 0.1)
                         * Quaternion::rotation_z(u_slowalt * 0.1);
+                },
+                Some(ToolKind::Instrument) => {
+                    if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                        match spec.as_str() {
+                            "Harp" => {
+                                if speed < 0.5 {
+                                    next.head.orientation = Quaternion::rotation_z(head_look.x)
+                                        * Quaternion::rotation_x(
+                                            0.0 + head_look.y.abs() + look_dir.z * 0.7,
+                                        );
+                                }
+                                next.hand_l.position = Vec3::new(0.0, 2.0, -4.0);
+                                next.hand_l.orientation =
+                                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI);
+                                next.hand_r.position = Vec3::new(-4.0, 2.0, 6.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                                next.main.position = Vec3::new(-2.0, 10.0, 12.0);
+                                next.main.orientation = Quaternion::rotation_y(PI);
+
+                                next.control.position = Vec3::new(-2.0 + slow * 0.5, 0.5, 0.8);
+                                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
+                                    * Quaternion::rotation_y(2.0 + u_slow * 0.1)
+                                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                            },
+                            "Flute" => {
+                                if speed < 0.5 {
+                                    next.head.orientation = Quaternion::rotation_z(head_look.x)
+                                        * Quaternion::rotation_x(
+                                            0.0 + head_look.y.abs() + look_dir.z * 0.7,
+                                        );
+                                }
+                                next.hand_l.position = Vec3::new(-1.0, 2.0, -2.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(2.5)
+                                    * Quaternion::rotation_y(0.9)
+                                    * Quaternion::rotation_z(PI);
+                                next.hand_r.position = Vec3::new(-4.0, 2.0, 6.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                                next.main.position = Vec3::new(12.0, 3.0, 4.0);
+                                next.main.orientation =
+                                    Quaternion::rotation_x(PI) * Quaternion::rotation_y(-1.2);
+
+                                next.control.position = Vec3::new(-2.0 + slow * 0.5, 0.5, 0.8);
+                                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
+                                    * Quaternion::rotation_y(2.0 + u_slow * 0.1)
+                                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                            },
+                            "Bass" => {
+                                if speed < 0.5 {
+                                    next.head.orientation = Quaternion::rotation_z(head_look.x)
+                                        * Quaternion::rotation_x(
+                                            0.0 + head_look.y.abs() + look_dir.z * 0.7,
+                                        );
+                                }
+                                next.hand_l.position = Vec3::new(-6.0, 5.0, -5.0);
+                                next.hand_l.orientation = Quaternion::rotation_x((PI / 2.0) + 0.3)
+                                    * Quaternion::rotation_y(0.7)
+                                    * Quaternion::rotation_y(0.25)
+                                    * Quaternion::rotation_z(PI);
+                                next.hand_r.position = Vec3::new(-2.0, 2.0, 6.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                                next.main.position = Vec3::new(-14.0, 4.0, -6.0);
+                                next.main.orientation = Quaternion::rotation_x(-0.2)
+                                    * Quaternion::rotation_y(1.2)
+                                    * Quaternion::rotation_z(-1.2);
+
+                                next.control.position = Vec3::new(-2.0 + slow * 0.5, 0.5, 0.8);
+                                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
+                                    * Quaternion::rotation_y(2.0 + u_slow * 0.1)
+                                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                            },
+                            "Perc" => {
+                                if speed < 0.5 {
+                                    next.head.orientation = Quaternion::rotation_z(head_look.x)
+                                        * Quaternion::rotation_x(
+                                            0.0 + head_look.y.abs() + look_dir.z * 0.7,
+                                        );
+                                }
+                                next.hand_l.position = Vec3::new(0.0, 2.0, -4.0);
+                                next.hand_l.orientation =
+                                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI);
+                                next.hand_r.position = Vec3::new(-4.0, 2.0, 6.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                                next.main.position = Vec3::new(-2.0, 10.0, 12.0);
+                                next.main.orientation = Quaternion::rotation_y(PI);
+
+                                next.control.position = Vec3::new(-2.0 + slow * 0.5, 0.5, 0.8);
+                                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
+                                    * Quaternion::rotation_y(2.0 + u_slow * 0.1)
+                                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                            },
+                            "Kalimba" => {
+                                if speed < 0.5 {
+                                    next.head.orientation = Quaternion::rotation_z(head_look.x)
+                                        * Quaternion::rotation_x(
+                                            0.0 + head_look.y.abs() + look_dir.z * 0.7,
+                                        );
+                                }
+                                next.hand_l.position = Vec3::new(-2.0, 2.0, -4.0);
+                                next.hand_l.orientation =
+                                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI);
+                                next.hand_r.position = Vec3::new(-4.0, 2.0, 6.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                                next.main.position = Vec3::new(-2.0, 7.0, 12.0);
+                                next.main.orientation =
+                                    Quaternion::rotation_y(PI) * Quaternion::rotation_z(PI);
+
+                                next.control.position = Vec3::new(-2.0 + slow * 0.5, 0.5, 0.8);
+                                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
+                                    * Quaternion::rotation_y(2.0 + u_slow * 0.1)
+                                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                            },
+                            "Lute" => {
+                                if speed < 0.5 {
+                                    next.head.orientation = Quaternion::rotation_z(head_look.x)
+                                        * Quaternion::rotation_x(
+                                            0.0 + head_look.y.abs() + look_dir.z * 0.7,
+                                        );
+                                }
+                                next.hand_l.position = Vec3::new(-2.0, 5.0, -5.0);
+                                next.hand_l.orientation = Quaternion::rotation_x((PI / 2.0) + 0.3)
+                                    * Quaternion::rotation_y(0.7)
+                                    * Quaternion::rotation_y(0.25)
+                                    * Quaternion::rotation_z(PI);
+                                next.hand_r.position = Vec3::new(-5.0, 2.0, 6.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                                next.main.position = Vec3::new(-2.0, 4.0, -12.0);
+                                next.main.orientation = Quaternion::rotation_x(0.0)
+                                    * Quaternion::rotation_y(0.2)
+                                    * Quaternion::rotation_z(-1.3);
+
+                                next.control.position = Vec3::new(-2.0 + slow * 0.5, 0.5, 0.8);
+                                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
+                                    * Quaternion::rotation_y(2.0 + u_slow * 0.1)
+                                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                            },
+                            "Melodica" => {
+                                if speed < 0.5 {
+                                    next.head.orientation = Quaternion::rotation_z(head_look.x)
+                                        * Quaternion::rotation_x(
+                                            0.0 + head_look.y.abs() + look_dir.z * 0.7,
+                                        );
+                                }
+                                next.hand_l.position = Vec3::new(-1.0, 3.0, -2.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(2.0)
+                                    * Quaternion::rotation_z(-0.5)
+                                    * Quaternion::rotation_y(0.4)
+                                    * Quaternion::rotation_z(PI);
+                                next.hand_r.position = Vec3::new(-4.0, 2.0, 6.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(1.2)
+                                    * Quaternion::rotation_y(-0.3)
+                                    * Quaternion::rotation_z(1.5);
+                                next.main.position = Vec3::new(-14.0, 3.0, -6.0);
+                                next.main.orientation = Quaternion::rotation_x(0.0)
+                                    * Quaternion::rotation_y(1.1)
+                                    * Quaternion::rotation_z(-1.5);
+
+                                next.control.position = Vec3::new(-2.0 + slow * 0.5, 0.5, 0.8);
+                                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
+                                    * Quaternion::rotation_y(2.0 + u_slow * 0.1)
+                                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                            },
+                            "Sitar" => {
+                                if speed < 0.5 {
+                                    next.head.orientation = Quaternion::rotation_z(head_look.x)
+                                        * Quaternion::rotation_x(
+                                            0.0 + head_look.y.abs() + look_dir.z * 0.7,
+                                        );
+                                }
+                                next.hand_l.position = Vec3::new(-1.0, 5.0, -2.5);
+                                next.hand_l.orientation = Quaternion::rotation_x((PI / 2.0) + 0.3)
+                                    * Quaternion::rotation_y(0.2)
+                                    * Quaternion::rotation_y(0.25)
+                                    * Quaternion::rotation_z(PI);
+                                next.hand_r.position = Vec3::new(-5.0, 2.0, 6.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                                next.main.position = Vec3::new(-2.0, 4.0, -12.0);
+                                next.main.orientation = Quaternion::rotation_x(0.0)
+                                    * Quaternion::rotation_y(0.2)
+                                    * Quaternion::rotation_z(-1.3);
+
+                                next.control.position = Vec3::new(-2.0 + slow * 0.5, 0.5, 0.8);
+                                next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
+                                    * Quaternion::rotation_y(2.0 + u_slow * 0.1)
+                                    * Quaternion::rotation_z(u_slowalt * 0.1);
+                            },
+                            _ => {},
+                        }
+                    }
                 },
                 _ => {},
             },

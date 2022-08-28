@@ -397,6 +397,15 @@
     // Picks
     Simple("common.items.tool.pickaxe_stone"): "voxel.weapon.tool.pickaxe_green-0",
     Simple("common.items.tool.pickaxe_steel"): "voxel.weapon.tool.pickaxe_green-1",
+    // Instruments
+    Simple("common.items.tool.instruments.bass"): "voxel.weapon.tool.bass",
+    Simple("common.items.tool.instruments.flute"): "voxel.weapon.tool.flute",
+    Simple("common.items.tool.instruments.harp"): "voxel.weapon.tool.harp",
+    Simple("common.items.tool.instruments.perc"): "voxel.weapon.tool.perc",
+    Simple("common.items.tool.instruments.kalimba"): "voxel.weapon.tool.kalimba",
+    Simple("common.items.tool.instruments.melodica"): "voxel.weapon.tool.melodica",
+    Simple("common.items.tool.instruments.lute"): "voxel.weapon.tool.lute",
+    Simple("common.items.tool.instruments.sitar"): "voxel.weapon.tool.sitar",
     // Other
     Simple("common.items.utility.coins"): "voxel.object.v-coin",
     Simple("common.items.utility.collar"): "voxel.object.collar",

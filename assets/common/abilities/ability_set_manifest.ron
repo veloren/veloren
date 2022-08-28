@@ -422,6 +422,46 @@
         secondary: "common.abilities.tool.golf_club.charged",
         abilities: [],
     ),
+    Custom("Bass"): (
+        primary: "common.abilities.music.bass",
+        secondary: "common.abilities.music.bass",
+        abilities: [],
+    ),
+    Custom("Flute"): (
+        primary: "common.abilities.music.flute",
+        secondary: "common.abilities.music.flute",
+        abilities: [],
+    ),
+    Custom("Harp"): (
+        primary: "common.abilities.music.harp",
+        secondary: "common.abilities.music.harp",
+        abilities: [],
+    ),
+    Custom("Perc"): (
+        primary: "common.abilities.music.perc",
+        secondary: "common.abilities.music.perc",
+        abilities: [],
+    ),
+    Custom("Kalimba"): (
+        primary: "common.abilities.music.kalimba",
+        secondary: "common.abilities.music.kalimba",
+        abilities: [],
+    ),
+    Custom("Melodica"): (
+        primary: "common.abilities.music.melodica",
+        secondary: "common.abilities.music.melodica",
+        abilities: [],
+    ),
+    Custom("Lute"): (
+        primary: "common.abilities.music.lute",
+        secondary: "common.abilities.music.lute",
+        abilities: [],
+    ),
+    Custom("Sitar"): (
+        primary: "common.abilities.music.sitar",
+        secondary: "common.abilities.music.sitar",
+        abilities: [],
+    ),
     Tool(Debug): (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",

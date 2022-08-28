@@ -526,6 +526,119 @@
         ),
 
         //
+        // Instruments
+        Wield(Instrument): (
+            files: [
+            "voxygen.audio.sfx.weapon.weapon_out",
+            ],
+            threshold: 0.5,
+        ),
+        Unwield(Instrument): (
+            files: [
+            "voxygen.audio.sfx.weapon.weapon_in",
+            ],
+            threshold: 0.5,
+        ),
+        Music(Instrument, Custom("Bass")): (
+            files: [
+            "voxygen.audio.sfx.instrument.bass.bass_c",
+            "voxygen.audio.sfx.instrument.bass.bass_g",
+            "voxygen.audio.sfx.instrument.bass.bass_d",
+            "voxygen.audio.sfx.instrument.bass.bass_a",
+            "voxygen.audio.sfx.instrument.bass.bass_e",
+            "voxygen.audio.sfx.instrument.bass.bass_c1",
+            ],
+            threshold: 0.5,
+            ),
+        Music(Instrument, Custom("Flute")): (
+            files: [
+            "voxygen.audio.sfx.instrument.flute.flute_c",
+            "voxygen.audio.sfx.instrument.flute.flute_g",
+            "voxygen.audio.sfx.instrument.flute.flute_d",
+            "voxygen.audio.sfx.instrument.flute.flute_a",
+            "voxygen.audio.sfx.instrument.flute.flute_e",
+            "voxygen.audio.sfx.instrument.flute.flute_c1",
+            ],
+            threshold: 0.5,
+            ),
+        Music(Instrument, Custom("Harp")): (
+            files: [
+            "voxygen.audio.sfx.instrument.harp.harp_c",
+            "voxygen.audio.sfx.instrument.harp.harp_g",
+            "voxygen.audio.sfx.instrument.harp.harp_d",
+            "voxygen.audio.sfx.instrument.harp.harp_a",
+            "voxygen.audio.sfx.instrument.harp.harp_e",
+            "voxygen.audio.sfx.instrument.harp.harp_c1",
+            ],
+            threshold: 0.5,
+            ),
+        Music(Instrument, Custom("Kalimba")): (
+            files: [
+            "voxygen.audio.sfx.instrument.kalimba.kalimba_c",
+            "voxygen.audio.sfx.instrument.kalimba.kalimba_g",
+            "voxygen.audio.sfx.instrument.kalimba.kalimba_d",
+            "voxygen.audio.sfx.instrument.kalimba.kalimba_a",
+            "voxygen.audio.sfx.instrument.kalimba.kalimba_e",
+            "voxygen.audio.sfx.instrument.kalimba.kalimba_c1",
+            ],
+            threshold: 0.5,
+            ),
+        Music(Instrument, Custom("Melodica")): (
+            files: [
+            "voxygen.audio.sfx.instrument.melodica.melodica_c",
+            "voxygen.audio.sfx.instrument.melodica.melodica_g",
+            "voxygen.audio.sfx.instrument.melodica.melodica_d",
+            "voxygen.audio.sfx.instrument.melodica.melodica_a",
+            "voxygen.audio.sfx.instrument.melodica.melodica_e",
+            "voxygen.audio.sfx.instrument.melodica.melodica_c1",
+            ],
+            threshold: 0.5,
+            ),
+        Music(Instrument, Custom("Lute")): (
+            files: [
+            "voxygen.audio.sfx.instrument.lute.lute_c",
+            "voxygen.audio.sfx.instrument.lute.lute_g",
+            "voxygen.audio.sfx.instrument.lute.lute_d",
+            "voxygen.audio.sfx.instrument.lute.lute_a",
+            "voxygen.audio.sfx.instrument.lute.lute_e",
+            "voxygen.audio.sfx.instrument.lute.lute_c1",
+            ],
+            threshold: 0.5,
+            ),
+        Music(Instrument, Custom("Sitar")): (
+            files: [
+            "voxygen.audio.sfx.instrument.sitar.sitar_c",
+            "voxygen.audio.sfx.instrument.sitar.sitar_g",
+            "voxygen.audio.sfx.instrument.sitar.sitar_d",
+            "voxygen.audio.sfx.instrument.sitar.sitar_a",
+            "voxygen.audio.sfx.instrument.sitar.sitar_e",
+            "voxygen.audio.sfx.instrument.sitar.sitar_c1",
+            ],
+            threshold: 0.5,
+            ),
+        Music(Instrument, Custom("Perc")): (
+            files: [
+            "voxygen.audio.sfx.instrument.perc.perc_c",
+            "voxygen.audio.sfx.instrument.perc.perc_g",
+            "voxygen.audio.sfx.instrument.perc.perc_d",
+            "voxygen.audio.sfx.instrument.perc.perc_d",
+            "voxygen.audio.sfx.instrument.perc.perc_d",
+            "voxygen.audio.sfx.instrument.perc.perc_d",
+            "voxygen.audio.sfx.instrument.perc.perc_d",
+            "voxygen.audio.sfx.instrument.perc.perc_d",
+            "voxygen.audio.sfx.instrument.perc.perc_d",
+            "voxygen.audio.sfx.instrument.perc.perc_a",
+            "voxygen.audio.sfx.instrument.perc.perc_e",
+            ],
+            threshold: 0.5,
+            ),
+        Inventory(CollectedTool(Instrument)): (
+            files: [
+            "voxygen.audio.sfx.inventory.add_item",
+            ],
+            threshold: 0.3,
+        ),
+        //
         // Dagger
         //
         Wield(Dagger): (

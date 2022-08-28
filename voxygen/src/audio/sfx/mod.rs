@@ -94,7 +94,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         beam, biped_large, biped_small, humanoid,
-        item::{ItemDefinitionId, ItemKind, ToolKind},
+        item::{AbilitySpec, ItemDefinitionId, ItemKind, ToolKind},
         object,
         poise::PoiseState,
         quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType, Health,
@@ -192,6 +192,7 @@ pub enum SfxEvent {
     GroundSlam,
     Utterance(UtteranceKind, VoiceKind),
     Lightning,
+    Music(ToolKind, AbilitySpec),
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
