@@ -3276,7 +3276,7 @@ fn sceptre_skill_strings(skill: SceptreSkill) -> SkillStrings<'static> {
         ),
         SceptreSkill::ADuration => SkillStrings::with_mult(
             "hud-skill-sc_wardaura_duration_title",
-            "hud-kill-sc_wardaura_duration",
+            "hud-skill-sc_wardaura_duration",
             modifiers.warding_aura.duration,
         ),
         SceptreSkill::ARange => SkillStrings::with_mult(
