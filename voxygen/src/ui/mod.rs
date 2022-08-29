@@ -854,7 +854,7 @@ impl Ui {
                         srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
 
                     // Cache graphic at particular resolution.
-                    let (uv_aabr, tex_id) = match graphic_cache.cache_res(
+                    let (uv_aabr, scale, tex_id) = match graphic_cache.cache_res(
                         renderer,
                         pool,
                         *graphic_id,
@@ -863,7 +863,7 @@ impl Ui {
                         *rotation,
                     ) {
                         // TODO: get dims from graphic_cache (or have it return floats directly)
-                        Some((aabr, tex_id)) => {
+                        Some(((aabr, scale), tex_id)) => {
                             let cache_dims = graphic_cache
                                 .get_tex(tex_id)
                                 .0
@@ -872,7 +872,7 @@ impl Ui {
                                 .map(|e| e as f32);
                             let min = Vec2::new(aabr.min.x as f32, aabr.max.y as f32) / cache_dims;
                             let max = Vec2::new(aabr.max.x as f32, aabr.min.y as f32) / cache_dims;
-                            (Aabr { min, max }, tex_id)
+                            (Aabr { min, max }, scale, tex_id)
                         },
                         None => continue,
                     };
@@ -897,10 +897,10 @@ impl Ui {
 
                     mesh.push_quad(create_ui_quad(gl_aabr, uv_aabr, color, match *rotation {
                         Rotation::None | Rotation::Cw90 | Rotation::Cw180 | Rotation::Cw270 => {
-                            UiMode::Image
+                            UiMode::Image { scale }
                         },
-                        Rotation::SourceNorth => UiMode::ImageSourceNorth,
-                        Rotation::TargetNorth => UiMode::ImageTargetNorth,
+                        Rotation::SourceNorth => UiMode::ImageSourceNorth { scale },
+                        Rotation::TargetNorth => UiMode::ImageTargetNorth { scale },
                     }));
                 },
                 PrimitiveKind::Text { .. } => {

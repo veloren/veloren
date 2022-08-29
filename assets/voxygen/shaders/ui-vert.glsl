@@ -6,7 +6,8 @@ layout(location = 0) in vec2 v_pos;
 layout(location = 1) in vec2 v_uv;
 layout(location = 2) in vec4 v_color;
 layout(location = 3) in vec2 v_center;
-layout(location = 4) in uint v_mode;
+layout(location = 4) in vec2 v_scale;
+layout(location = 5) in uint v_mode;
 
 layout (std140, set = 1, binding = 0)
 uniform u_locals {
@@ -17,10 +18,15 @@ layout(set = 2, binding = 0)
 uniform texture2D t_tex;
 layout(set = 2, binding = 1)
 uniform sampler s_tex;
+layout (std140, set = 2, binding = 2)
+uniform tex_locals {
+    uvec2 texture_size;
+};
 
 layout(location = 0) out vec2 f_uv;
 layout(location = 1) out vec4 f_color;
-layout(location = 2) flat out uint f_mode;
+layout(location = 2) flat out vec2 f_scale;
+layout(location = 3) flat out uint f_mode;
 
 void main() {
     f_color = v_color;
@@ -39,7 +45,7 @@ void main() {
         gl_Position = vec4(v_pos, 0.5, 1.0);
         vec2 look_at_dir = normalize(vec2(-view_mat[0][2], -view_mat[1][2]));
         // TODO: Consider cleaning up matrix to something more efficient (e.g. a mat3).
-        vec2 aspect_ratio = textureSize(sampler2D(t_tex, s_tex), 0).yx;
+        vec2 aspect_ratio = texture_size.yx;
         mat2 look_at = mat2(look_at_dir.y, look_at_dir.x, -look_at_dir.x, look_at_dir.y);
         vec2 v_centered = (v_uv - v_center) / aspect_ratio;
         vec2 v_rotated = look_at * v_centered;
@@ -60,5 +66,6 @@ void main() {
         gl_Position = vec4(v_pos, 0.5, 1.0);
     }
 
+    f_scale = v_scale;
     f_mode = v_mode;
 }

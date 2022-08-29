@@ -61,7 +61,6 @@ pub struct Id(u32);
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct TexId(usize);
 
-type Parameters = (Id, Vec2<u16>);
 // TODO replace with slab/slotmap
 type GraphicMap = HashMap<Id, Graphic>;
 
@@ -93,7 +92,7 @@ impl CachedDetails {
     fn info(
         &self,
         atlases: &[(SimpleAtlasAllocator, usize)],
-        dims: Vec2<u16>,
+        textures: &Slab<(Texture, UiTextureBindGroup)>,
     ) -> (usize, bool, Aabr<u16>) {
         match *self {
             CachedDetails::Atlas {
@@ -105,14 +104,16 @@ impl CachedDetails {
                 (index, valid, Aabr {
                     min: Vec2::zero(),
                     // Note texture should always match the cached dimensions
-                    max: dims,
+                    // TODO: Justify cast here?
+                    max: textures[index].0.get_dimensions().xy().map(|e| e as u16),
                 })
             },
             CachedDetails::Immutable { index } => {
                 (index, true, Aabr {
                     min: Vec2::zero(),
                     // Note texture should always match the cached dimensions
-                    max: dims,
+                    // TODO: Justify cast here?
+                    max: textures[index].0.get_dimensions().xy().map(|e| e as u16),
                 })
             },
         }
@@ -147,7 +148,7 @@ pub struct GraphicCache {
     atlases: Vec<(SimpleAtlasAllocator, usize)>,
     textures: Slab<(Texture, UiTextureBindGroup)>,
     // Stores the location of graphics rendered at a particular resolution and cached on the cpu
-    cache_map: HashMap<Parameters, CachedDetails>,
+    cache_map: HashMap<Id, CachedDetails>,
 
     keyed_jobs: KeyedJobs<(Id, Vec2<u16>), Option<(RgbaImage, Option<Rgba<f32>>)>>,
 }
@@ -237,17 +238,23 @@ impl GraphicCache {
         renderer: &mut Renderer,
         pool: Option<&SlowJobPool>,
         graphic_id: Id,
+        // TODO: if we aren't resizing here we can upload image earlier... (as long as this doesn't
+        // lead to uploading too much unused stuff). (cache_res name invalid)
         dims: Vec2<u16>,
         source: Aabr<f64>,
         rotation: Rotation,
-    ) -> Option<(Aabr<f64>, TexId)> {
+    ) -> Option<((Aabr<f64>, Vec2<f32>), TexId)> {
         let dims = match rotation {
+            // The image is placed into the atlas with no rotation, so we need to swap the
+            // dimensions here to get the resolution that the image will be displayed at but
+            // re-oriented into the "upright" space that the image is stored in and sampled from
+            // (this can be bit confusing initially / hard to explain).
             Rotation::Cw90 | Rotation::Cw270 => Vec2::new(dims.y, dims.x),
             Rotation::None | Rotation::Cw180 => dims,
             Rotation::SourceNorth => dims,
             Rotation::TargetNorth => dims,
         };
-        let key = (graphic_id, dims);
+        let key = graphic_id;
 
         // Rotate aabr according to requested rotation.
         let rotated_aabr = |Aabr { min, max }| match rotation {
@@ -264,7 +271,7 @@ impl GraphicCache {
         };
         // Scale aabr according to provided source rectangle.
         let scaled_aabr = |aabr: Aabr<_>| {
-            let size: Vec2<_> = aabr.size().into();
+            let size: Vec2<f64> = aabr.size().into();
             Aabr {
                 min: size.mul_add(source.min, aabr.min),
                 max: size.mul_add(source.max, aabr.min),
@@ -272,7 +279,19 @@ impl GraphicCache {
         };
         // Apply all transformations.
         // TODO: Verify rotation is being applied correctly.
-        let transformed_aabr = |aabr| rotated_aabr(scaled_aabr(aabr));
+        let transformed_aabr = |aabr| {
+            let scaled = scaled_aabr(aabr);
+            // Calculate how many displayed pixels there are for each pixel in the source
+            // image. We need this to calculate where to sample in the shader to
+            // retain crisp pixel borders when scaling the image.
+            // TODO: A bit hacky inserting this here, just to get things working initially
+            let scale = dims.map2(
+                Vec2::from(scaled.size()),
+                |screen_pixels, sample_pixels: f64| screen_pixels as f32 / sample_pixels as f32,
+            );
+            let transformed = rotated_aabr(scaled);
+            (transformed, scale)
+        };
 
         let Self {
             textures,
@@ -285,7 +304,7 @@ impl GraphicCache {
         let details = match cache_map.entry(key) {
             Entry::Occupied(details) => {
                 let details = details.get();
-                let (idx, valid, aabr) = details.info(atlases, dims);
+                let (idx, valid, aabr) = details.info(atlases, textures);
 
                 // Check if the cached version has been invalidated by replacing the underlying
                 // graphic
@@ -312,28 +331,33 @@ impl GraphicCache {
         let (image, border_color) =
             draw_graphic(graphic_map, graphic_id, dims, &mut self.keyed_jobs, pool)?;
 
+        // TODO: justify cast?
+        let image_dims = Vec2::<u32>::from(image.dimensions()).map(|e| e as u16);
+
         // Upload
         let atlas_size = atlas_size(renderer);
 
-        // Allocate space on the gpu
-        // Check size of graphic
-        // Graphics over a particular size are sent to their own textures
+        // Allocate space on the gpu.
+        //
+        // Graphics with a border color.
         let location = if let Some(border_color) = border_color {
             // Create a new immutable texture.
             let texture = create_image(renderer, image, border_color);
             // NOTE: All mutations happen only after the upload succeeds!
             let index = textures.insert(texture);
             CachedDetails::Immutable { index }
+        // Graphics over a particular size compared to the atlas size are sent
+        // to their own textures. Here we check for ones under that
+        // size.
         } else if atlas_size
-            .map2(dims, |a, d| a as f32 * ATLAS_CUTOFF_FRAC >= d as f32)
+            .map2(image_dims, |a, d| a as f32 * ATLAS_CUTOFF_FRAC >= d as f32)
             .reduce_and()
         {
             // Fit into an atlas
             let mut loc = None;
             for (atlas_idx, &mut (ref mut atlas, texture_idx)) in atlases.iter_mut().enumerate() {
-                let dims = dims.map(|e| e.max(1));
-                if let Some(rectangle) = atlas.allocate(size2(i32::from(dims.x), i32::from(dims.y)))
-                {
+                let clamped_dims = image_dims.map(|e| i32::from(e.max(1)));
+                if let Some(rectangle) = atlas.allocate(size2(clamped_dims.x, clamped_dims.y)) {
                     let aabr = aabr_from_alloc_rect(rectangle);
                     loc = Some(CachedDetails::Atlas {
                         atlas_idx,
@@ -350,9 +374,9 @@ impl GraphicCache {
                 // Create a new atlas
                 None => {
                     let (mut atlas, texture) = create_atlas_texture(renderer);
-                    let dims = dims.map(|e| e.max(1));
+                    let clamped_dims = image_dims.map(|e| i32::from(e.max(1)));
                     let aabr = atlas
-                        .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
+                        .allocate(size2(clamped_dims.x, clamped_dims.y))
                         .map(aabr_from_alloc_rect)
                         .unwrap();
                     // NOTE: All mutations happen only after the texture creation succeeds!
@@ -370,7 +394,7 @@ impl GraphicCache {
         } else {
             // Create a texture just for this
             let texture = {
-                let tex = renderer.create_dynamic_texture(dims.map(|e| e as u32));
+                let tex = renderer.create_dynamic_texture(image_dims.map(u32::from));
                 let bind = renderer.ui_bind_texture(&tex);
                 (tex, bind)
             };
@@ -381,7 +405,7 @@ impl GraphicCache {
                 Aabr {
                     min: Vec2::zero(),
                     // Note texture should always match the cached dimensions
-                    max: dims,
+                    max: image_dims,
                 },
                 &textures[index].0,
                 &image,
@@ -390,7 +414,7 @@ impl GraphicCache {
         };
 
         // Extract information from cache entry.
-        let (idx, _, aabr) = location.info(atlases, dims);
+        let (idx, _, aabr) = location.info(atlases, textures);
 
         // Insert into cached map
         details.insert(location);
@@ -419,14 +443,17 @@ fn draw_graphic(
                             // Render image at requested resolution
                             // TODO: Use source aabr.
                             Graphic::Image(ref image, border_color) => Some((
-                                resize_pixel_art(
+                                /*resize_pixel_art(
                                     &image.to_rgba8(),
                                     u32::from(dims.x),
                                     u32::from(dims.y),
-                                ),
+                                ),*/
+                                image.to_rgba8(),
                                 border_color,
                             )),
                             Graphic::Voxel(ref segment, trans, sample_strat) => {
+                                // TODO: how to decide on dimensions to render voxel models to?
+                                // (with resizing being done in shaders)
                                 Some((renderer::draw_vox(segment, dims, trans, sample_strat), None))
                             },
                             Graphic::Blank => None,
@@ -498,12 +525,12 @@ fn create_image(
     let tex = renderer
         .create_texture(
             &DynamicImage::ImageRgba8(image),
-            None,
-            //TODO: either use the desktop only border color or just emulate this
+            Some(wgpu::FilterMode::Linear),
+            // TODO: either use the desktop only border color or just emulate this
             // Some(border_color.into_array().into()),
             Some(wgpu::AddressMode::ClampToBorder),
         )
-        .expect("create_texture only panics is non ImageRbga8 is passed");
+        .expect("create_texture only panics if non ImageRbga8 is passed");
     let bind = renderer.ui_bind_texture(&tex);
 
     (tex, bind)

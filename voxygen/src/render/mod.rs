@@ -536,4 +536,7 @@ pub enum ExperimentalShader {
     SmearReflections,
     /// Apply the point shadows from cheap shadows on top of shadow mapping.
     PointShadowsWithShadowMapping,
+    /// Make the UI uses nearest neighbor filtering for scaling images instead
+    /// of trying to filter based on the coverage of the sampled pixels.
+    UiNearestScaling,
 }

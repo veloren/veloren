@@ -47,8 +47,12 @@ impl Renderer {
         self.layouts.ui.bind_locals(&self.device, locals)
     }
 
-    pub fn ui_bind_texture(&self, texture: &Texture) -> ui::TextureBindGroup {
-        self.layouts.ui.bind_texture(&self.device, texture)
+    pub fn ui_bind_texture(&mut self, texture: &Texture) -> ui::TextureBindGroup {
+        let tex_locals = ui::TexLocals::from(texture.get_dimensions().xy());
+        let tex_locals_consts = self.create_consts(&[tex_locals]);
+        self.layouts
+            .ui
+            .bind_texture(&self.device, texture, tex_locals_consts)
     }
 
     pub fn create_figure_bound_locals(

@@ -10,12 +10,17 @@ pub struct Vertex {
     uv: [f32; 2],
     color: [f32; 4],
     center: [f32; 2],
+    // Used calculating where to sample scaled images.
+    scale: [f32; 2],
     mode: u32,
 }
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 5] = wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Float32x4, 3 => Float32x2, 4 => Uint32];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 6] = wgpu::vertex_attr_array![
+            0 => Float32x2, 1 => Float32x2, 2 => Float32x4,
+            3 => Float32x2, 4 => Float32x2,    5 => Uint32,
+        ];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,
@@ -47,6 +52,20 @@ impl Default for Locals {
     fn default() -> Self { Self { pos: [0.0; 4] } }
 }
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct TexLocals {
+    texture_size: [u32; 2],
+}
+
+impl From<Vec2<u32>> for TexLocals {
+    fn from(texture_size: Vec2<u32>) -> Self {
+        Self {
+            texture_size: texture_size.into_array(),
+        }
+    }
+}
+
 /// Draw text from the text cache texture `tex` in the fragment shader.
 pub const MODE_TEXT: u32 = 0;
 /// Draw an image from the texture at `tex` in the fragment shader.
@@ -64,22 +83,44 @@ pub const MODE_IMAGE_SOURCE_NORTH: u32 = 3;
 /// FIXME: Make more principled.
 pub const MODE_IMAGE_TARGET_NORTH: u32 = 5;
 
+#[derive(Clone, Copy)]
 pub enum Mode {
     Text,
-    Image,
+    Image {
+        scale: Vec2<f32>,
+    },
     Geometry,
-    ImageSourceNorth,
-    ImageTargetNorth,
+    /// Draw an image from the texture at `tex` in the fragment shader, with the
+    /// source rectangle rotated to face north (TODO: detail on what "north"
+    /// means here).
+    ImageSourceNorth {
+        scale: Vec2<f32>,
+    },
+    /// Draw an image from the texture at `tex` in the fragment shader, with the
+    /// target rectangle rotated to face north. (TODO: detail on what "target"
+    /// means)
+    ImageTargetNorth {
+        scale: Vec2<f32>,
+    },
 }
 
 impl Mode {
     fn value(self) -> u32 {
         match self {
             Mode::Text => MODE_TEXT,
-            Mode::Image => MODE_IMAGE,
+            Mode::Image { .. } => MODE_IMAGE,
             Mode::Geometry => MODE_GEOMETRY,
-            Mode::ImageSourceNorth => MODE_IMAGE_SOURCE_NORTH,
-            Mode::ImageTargetNorth => MODE_IMAGE_TARGET_NORTH,
+            Mode::ImageSourceNorth { .. } => MODE_IMAGE_SOURCE_NORTH,
+            Mode::ImageTargetNorth { .. } => MODE_IMAGE_TARGET_NORTH,
+        }
+    }
+
+    /// Gets the scaling of the displayed image compared to the source.
+    fn scale(self) -> Vec2<f32> {
+        match self {
+            Mode::ImageSourceNorth { scale } | Mode::ImageTargetNorth { scale } => scale,
+            Mode::Image { scale } => scale,
+            Mode::Text | Mode::Geometry => Vec2::one(),
         }
     }
 }
@@ -137,6 +178,17 @@ impl UiLayout {
                         },
                         count: None,
                     },
+                    // tex_locals
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 2,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
                 ],
             }),
         }
@@ -158,7 +210,12 @@ impl UiLayout {
         }
     }
 
-    pub fn bind_texture(&self, device: &wgpu::Device, texture: &Texture) -> TextureBindGroup {
+    pub fn bind_texture(
+        &self,
+        device: &wgpu::Device,
+        texture: &Texture,
+        tex_locals: Consts<TexLocals>,
+    ) -> TextureBindGroup {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
             layout: &self.texture,
@@ -170,6 +227,10 @@ impl UiLayout {
                 wgpu::BindGroupEntry {
                     binding: 1,
                     resource: wgpu::BindingResource::Sampler(&texture.sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: tex_locals.buf().as_entire_binding(),
                 },
             ],
         });
@@ -268,17 +329,19 @@ pub fn create_quad_vert_gradient(
     let top_color = top_color.into_array();
     let bottom_color = bottom_color.into_array();
 
-    let center = if let Mode::ImageSourceNorth = mode {
+    let center = if let Mode::ImageSourceNorth { .. } = mode {
         uv_rect.center().into_array()
     } else {
         rect.center().into_array()
     };
+    let scale = mode.scale().into_array();
     let mode_val = mode.value();
     let v = |pos, uv, color| Vertex {
         pos,
         uv,
         center,
         color,
+        scale,
         mode: mode_val,
     };
     let aabr_to_lbrt = |aabr: Aabr<f32>| (aabr.min.x, aabr.min.y, aabr.max.x, aabr.max.y);
@@ -315,12 +378,14 @@ pub fn create_tri(
     mode: Mode,
 ) -> Tri<Vertex> {
     let center = [0.0, 0.0];
+    let scale = mode.scale().into_array();
     let mode_val = mode.value();
     let v = |pos, uv| Vertex {
         pos,
         uv,
         center,
         color: color.into_array(),
+        scale,
         mode: mode_val,
     };
     Tri::new(
