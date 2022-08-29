@@ -16,9 +16,14 @@ hud-trade-invite_sent = Trade request sent to { $playername }.
 hud-trade-result-completed = Trade completed successfully.
 hud-trade-result-declined = Trade declined.
 hud-trade-result-nospace = Not enough space to complete the trade.
-hud-trade-buy_price = Buy Price
-hud-trade-sell_price = Sell Price
-hud-trade-coin = coin(s)
+hud-trade-buy = Buy Price: { $coin_num ->
+    [one] one coin
+    *[other] { $coin_formatted } coins
+}
+hud-trade-sell = Sell Price: { $coin_num ->
+    [one] one coin.
+    *[other] { $coin_formatted } coins
+}
 hud-trade-tooltip_hint_1 = <Shift-Click to Add/Remove from trade.>
 hud-trade-tooltip_hint_2 = <Ctrl-Click to Auto-Balance with this.>
 hud-trade-your_offer = Your offer
