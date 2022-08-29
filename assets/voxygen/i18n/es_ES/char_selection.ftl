@@ -1,6 +1,6 @@
 char_selection-loading_characters = Cargando personajes...
-char_selection-delete_permanently = ¿Borrar permanentemente este Personaje?
-char_selection-deleting_character = Borrando Personaje...
+char_selection-delete_permanently = ¿Quieres eliminar permanentemente este Personaje?
+char_selection-deleting_character = Eliminando Personaje...
 char_selection-change_server = Cambiar de Servidor
 char_selection-enter_world = Entrar al Mundo
 char_selection-logout = Salir
@@ -19,4 +19,4 @@ char_selection-skin = Piel
 char_selection-eyeshape = Detalle de los Ojos
 char_selection-accessories = Accesorios
 char_selection-create_info_name = ¡Tu Personaje necesita un nombre!
-char_selection-version_mismatch = !Aviso! Este servidor esta ejecutando una versión diferente, posiblemente incompatible del juego. Por favor actualiza el juego.
+char_selection-version_mismatch = ¡AVISO! Este servidor esta ejecutando una versión diferente y probablemente incompatible del juego. Por favor, actualízalo.
