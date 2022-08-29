@@ -23,7 +23,7 @@
     ),
     Potions: (
         transport_effort: 0.1,
-        decay_rate: 0.2, // 3 years half-life
+        //decay_rate: 0.2, // 3 years half-life
     ),
     Stone: (
         transport_effort: 4.0,
