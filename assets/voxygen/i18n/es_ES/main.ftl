@@ -7,16 +7,16 @@ main-tip = Consejo:
 main-notice =
     ¡Bienvenido a la versión alfa de Veloren!
     
-    Antes de que te adentres en la diversión, por favor ten en cuenta un par de cosas:
+    Antes de que te adentres en el juego, por favor ten en cuenta un par de cosas:
     
-    - Esto es una alfa muy temprana. Espera errores, mecánicas de juego muy inacabadas, mecánicas sin pulir, y cosas que faltan.
+    - Esto es una alfa muy temprana. Espera errores, mecánicas de juego inacabadas, mecánicas sin pulir, y cosas que simplemente faltan.
     
-    - Si tienes críticas constructivas o reportes de error, puedes contactar con nosotros vía Reddit, GitLab, o nuestro servidor de Discord comunitario.
+    - Si tienes críticas constructivas o reportes de errores, puedes contactar con nosotros vía Reddit, GitLab, o por nuestro servidor de Discord.
     
     - Veloren se licencia bajo la licencia de código abierto GPL 3. Esto quiere decir que eres libre para jugar, modificar y redistribuir el juego tal y como desees (siempre y cuando tal trabajo se licencie también bajo la GPL 3).
     
     - Veloren es un proyecto comunitario sin ánimo de lucro, y todo aquel que trabaja en él es un voluntario.
-    Si te gusta lo que ves, ¡eres bienvenido de unirte a los equipos de desarrollo o arte!
+    Si te gusta lo que ves, ¡eres bienvenido a unirte a los equipos de desarrollo o arte!
     
     Gracias por tomarte el tiempo de leer esta noticia, ¡esperamos que disfrutes del juego!
     
@@ -68,27 +68,27 @@ main-credits-fonts = Fuentes
 main-credits-other_art = Otros Artistas
 main-credits-contributors = Colaboradores
 loading-tips =
-    .a0 = Pulsa '{ $gameinput-togglelantern }' para encender tu linterna.
-    .a1 = Pulsa '{ $gameinput-help }' para ver todos las atajos de teclado predeterminados.
+    .a0 = Pulsa '{ $gameinput-togglelantern }' para encender tu farol.
+    .a1 = Pulsa '{ $gameinput-help }' para ver todos los atajos de teclado.
     .a2 = Puedes escribir /say o /s para chatear con jugadores que estén a tu alrededor.
     .a3 = Puedes escribir /region o /r para chatear con jugadores que se encuentren a doscientos bloques a tu alrededor.
-    .a4 = Administradores pueden usar el comando /build para entrar en modo construcción
-    .a5 = Puedes escribir /group o /g para chatear con jugadores en tu grupo actual.
-    .a6 = Para enviar mensajes privados escribe /tell seguido del nombre y tu mensaje.
+    .a4 = Los administradores pueden usar el comando /build para entrar en el modo de construcción.
+    .a5 = Puedes escribir /group o /g para chatear con jugadores en tu grupo.
+    .a6 = Para enviar mensajes privados escribe /tell seguido del nombre del jugador y tu mensaje.
     .a7 = ¡Estate atento a la comida, cofres y otros botines esparcidos por el mundo!
-    .a8 = ¿Inventario lleno de comida? ¡Intenta elaborar mejor comida de ella!
-    .a9 = ¿Preguntándote que hacer? ¡Intenta hacer una de las mazmorras marcadas del mapa!
-    .a10 = No te olvides de ajustar los gráficos de tu sistema. Pulsa '{ $gameinput-settings }' para abrir la configuración.
+    .a8 = ¿Inventario lleno de comida? ¡Intenta procesarla para conseguir mejores alimentos!
+    .a9 = ¿Aburrido? ¡Intenta completar una de las mazmorras marcadas en el mapa!
+    .a10 = No te olvides de ajustar los gráficos. Pulsa '{ $gameinput-settings }' para abrir la configuración.
     .a11 = ¡Jugar con otros jugadores es divertido! Pulsa '{ $gameinput-social }' para ver quien esta en línea.
     .a12 = Pulsa '{ $gameinput-dance }' para bailar. ¡Fiesta!
     .a13 = Pulsa '{ $gameinput-glide }' para desplegar tu planeador y conquistar los cielos
     .a14 = Veloren se encuentra todavia en Pre-Alpha. ¡Hacemos todo lo posible para mejorar la experiencia de juego día a día!
     .a15 = Si quieres unirte al equipo de desarrollo o conversar con nosotros, únete a nuestro servidor de Discord.
-    .a16 = Puedes mostrar o ocultar tu total de salud en la barra de salud en ajustes.
-    .a17 = Siéntate cerca de una fogata (con la tecla '{ $gameinput-sit }') para recuperarte de tus heridas.
-    .a18 = ¿Necesitas más bolsas o mejores armaduras para continuar tu viaje? Pulsa '{ $gameinput-crafting }' para abrir el menú de elaboración.
-    .a19 = Pulsa '{ $gameinput-roll }' para rodar. Rodar puede se puede usar para moverte más rápido y esquivar los ataques.
-    .a20 = ¿Para que sirve este objeto? Buscar 'input:<item name>' en fabricación para ver que en que recetas se usa.
-    .a21 = ¿Eh mira eso? Toma un pantallazo pulsando '{ $gameinput-screenshot }'.
-    .a22 = Intenta saltar al rodar para pasar a través de las criaturas.
+    .a16 = Puedes mostrar o ocultar tu total de salud de la barra de salud en los ajustes.
+    .a17 = Siéntate cerca de una hoguera (con la tecla '{ $gameinput-sit }') para recuperarte de tus heridas.
+    .a18 = ¿Necesitas más bolsas de almacenamiento o mejores armaduras para continuar tu viaje? Pulsa '{ $gameinput-crafting }' para abrir el menú de elaboración.
+    .a19 = Pulsa '{ $gameinput-roll }' para rodar. Rodar te sirve para moverte más rápido y esquivar los ataques.
+    .a20 = ¿Para qué sirve este objeto? Busca 'input:<item name>' en fabricación para ver en qué recetas se usa.
+    .a21 = ¡Eh, mira eso! Toma un pantallazo pulsando '{ $gameinput-screenshot }'.
+    .a22 = Intenta saltar al rodar para pasar a través de los enemigos.
     .a23 = Para ver tus atributos, haz clic en el botón 'Atributos' del inventario.
