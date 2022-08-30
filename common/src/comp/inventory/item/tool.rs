@@ -34,7 +34,6 @@ pub enum ToolKind {
     /// Intended for invisible weapons (e.g. a creature using its claws or
     /// biting)
     Natural,
-    Organ,
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     /// Music Instruments
     Instrument,
@@ -59,7 +58,6 @@ impl ToolKind {
             ToolKind::Debug => "debug",
             ToolKind::Farming => "farming",
             ToolKind::Pick => "pickaxe",
-            ToolKind::Organ => "organ",
             ToolKind::Instrument => "instrument",
             ToolKind::Empty => "empty",
         }

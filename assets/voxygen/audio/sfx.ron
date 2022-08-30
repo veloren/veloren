@@ -450,7 +450,7 @@
             ],
             threshold: 0.2,
         ),
-        Attack(BasicAura, Organ): (
+        Attack(BasicAura, Instrument): (
             files: [
                 "voxygen.audio.sfx.abilities.barrel_organ",
             ],

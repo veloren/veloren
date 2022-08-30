@@ -2,7 +2,7 @@ ItemDef(
     name: "Organ Aura",
     description: "Motivational Tune",
     kind: Tool((
-        kind: Organ,
+        kind: Instrument,
         hands: Two,
         stats: (
             equip_time_secs: 0.0,

@@ -250,7 +250,6 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
         ToolKind::Shield => i18n.get_msg("common-weapons-shield"),
         ToolKind::Spear => i18n.get_msg("common-weapons-spear"),
         ToolKind::Blowgun => i18n.get_msg("common-weapons-blowgun"),
-        ToolKind::Organ => i18n.get_msg("common-weapons-organ"),
         ToolKind::Natural => i18n.get_msg("common-weapons-natural"),
         ToolKind::Debug => i18n.get_msg("common-tool-debug"),
         ToolKind::Farming => i18n.get_msg("common-tool-farming"),
