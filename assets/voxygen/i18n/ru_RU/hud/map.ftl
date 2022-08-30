@@ -35,4 +35,5 @@ hud-map-change_map_mode = Изменить режим карты
 hud-map-toggle_minimap_voxel = Подробная миникарта
 hud-map-zoom_minimap_explanation = Увеличьте миникарту, чтобы более детально рассмотреть область вокруг вас.
 hud-map-gnarling = Форт Гнарлингов
+hud-map-chapel_site = Морская часовня
 hud-map-placed_by = Метка установлена { $name }

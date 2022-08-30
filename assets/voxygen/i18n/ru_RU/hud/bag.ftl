@@ -18,17 +18,17 @@ hud-bag-legs = Ноги
 hud-bag-feet = Ступни
 hud-bag-mainhand = Правая рука
 hud-bag-offhand = Левая рука
-hud-bag-inactive_mainhand = Правая рука
-hud-bag-inactive_offhand = Левая рука
+hud-bag-inactive_mainhand = Неактивный слот правой руки
+hud-bag-inactive_offhand = Неактивный слот левой руки
 hud-bag-swap_equipped_weapons_title = Поменять местами экипированное оружие
 hud-bag-swap_equipped_weapons_desc = Нажмите { $key }
 hud-bag-bag = Рюкзак
 hud-bag-health = Здоровье
 hud-bag-energy = Энергия
-hud-bag-combat_rating = Боевой рейтинг
+hud-bag-combat_rating = Боевой Рейтинг
 hud-bag-protection = Защита
 hud-bag-stun_res = Устойчивость к оглушению
-hud-bag-stealth = Стелс
+hud-bag-stealth = Скрытность
 hud-bag-combat_rating_desc =
     Рассчитано с учетом вашего
     оборудования и здоровья.
