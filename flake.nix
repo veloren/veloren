@@ -10,6 +10,17 @@
         package = "veloren-voxygen";
         app = "veloren-voxygen";
       };
+      perCrateOverrides = {
+        veloren-voxygen = {
+          packageMetadata = _: {
+            features = rec {
+              release = ["default-publish"];
+              debug = release;
+              test = release;
+            };
+          };
+        };
+      };
       overrides = {
         crates = common: prev: let
           pkgs = common.pkgs;
@@ -31,7 +42,7 @@
 
           prettyRev = with sourceInfo; builtins.substring 0 8 rev + "/" + utils.dateTimeFormat lastModified;
 
-          tag = with sourceInfo;
+          tag =
             if sourceInfo ? tag
             then sourceInfo.tag
             else "";
@@ -61,15 +72,37 @@
             NIX_GIT_TAG = tag;
           };
           veloren-voxygen = oldAttrs: {
-            nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [pkgs.makeWrapper];
+            inherit version;
+
+            buildInputs =
+              (oldAttrs.buildInputs or [])
+              ++ (
+                with pkgs; [
+                  alsa-lib
+                  libxkbcommon
+                  udev
+                  xorg.libxcb
+                ]
+              );
+            nativeBuildInputs =
+              (oldAttrs.nativeBuildInputs or [])
+              ++ (with pkgs; [python3 makeWrapper]);
+
             VELOREN_USERDATA_STRATEGY = "system";
+            SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
+
+            dontUseCmakeConfigure = true;
+            doCheck = false;
+
             preConfigure = ''
+              ${oldAttrs.preConfigure or ""}
               substituteInPlace voxygen/src/audio/soundcache.rs \
                 --replace \
                 "../../../assets/voxygen/audio/null.ogg" \
                 "${./assets/voxygen/audio/null.ogg}"
             '';
             postInstall = ''
+              ${oldAttrs.postInstall or ""}
               if [ -f $out/bin/veloren-voxygen ]; then
                 wrapProgram $out/bin/veloren-voxygen \
                   --set VELOREN_ASSETS ${veloren-assets} \
@@ -81,6 +114,7 @@
             nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [pkgs.makeWrapper];
             VELOREN_USERDATA_STRATEGY = "system";
             postInstall = ''
+              ${oldAttrs.postInstall or ""}
               if [ -f $out/bin/veloren-server-cli ]; then
                 wrapProgram $out/bin/veloren-server-cli \
                   --set VELOREN_ASSETS ${veloren-assets}
