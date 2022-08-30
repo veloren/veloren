@@ -144,17 +144,21 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         ScatterConfig {
             kind: Cotton,
             water_mode: Ground,
-            permit: |b| matches!(b, BlockKind::Grass),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.temperate_temp, 0.7).min(close(
+                    close(col.temp, CONFIG.tropical_temp, 0.7).min(close(
                         col.humidity,
                         CONFIG.jungle_hum,
                         0.4,
                     )) * col.tree_density
-                        * MUSH_FACT
-                        * 75.0,
-                    Some((0.0, 256.0, 0.25)),
+                    * MUSH_FACT
+                    * 200.0
+                    * (!col.snow_cover) as i32 as f32 /* To prevent spawning in snow covered areas */
+                    * density_factor_by_altitude(-500.0 , col.alt, 500.0), /* To prevent
+                                                                            * spawning at high
+                                                                            * altitudes */
+                    Some((0.0, 128.0, 0.30)),
                 )
             },
         },
