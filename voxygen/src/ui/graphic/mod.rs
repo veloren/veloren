@@ -11,7 +11,6 @@ use common::{figure::Segment, slowjob::SlowJobPool};
 use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
-use pixel_art::resize_pixel_art;
 use slab::Slab;
 use std::{hash::Hash, sync::Arc};
 use tracing::warn;
@@ -184,7 +183,7 @@ impl GraphicCache {
 
         // Remove from caches
         // Maybe make this more efficient if replace graphic is used more often
-        self.cache_map.retain(|&(key_id, _key_dims), details| {
+        self.cache_map.retain(|&key_id, details| {
             // If the entry does not reference id, or it does but we can successfully
             // invalidate, retain the entry; otherwise, discard this entry completely.
             key_id != id

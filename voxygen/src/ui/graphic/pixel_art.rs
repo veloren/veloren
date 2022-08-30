@@ -11,10 +11,13 @@ const EPSILON: f32 = 0.0001;
 
 // Averaging colors with alpha such that when blending with the background color
 // the same color will be produced as when the individual colors were blended
-// with the background and then averaged
+// with the background and then averaged.
+//
 // Say we have two areas that we are combining to form a single pixel
 // A1 and A2 where these are the fraction of the area of the pixel each color
-// contributes to Then if the colors were opaque we would say that the final
+// contributes to.
+//
+// Then if the colors were opaque we would say that the final
 // color output color o3 is
 //     E1: o3 = A1 * o1 + A2 * o2
 // where o1 and o2 are the opaque colors of the two areas
@@ -30,7 +33,7 @@ const EPSILON: f32 = 0.0001;
 //     E6: c3 * a3 = A1 * c1 * a1 + A2 * c2 * a2
 //     E7: b * (1 - a3) = A1 * b * (1 - a1) + A2 * b * (1 - a2)
 // dropping b from E7 and solving for a3
-//     E8: a3 = 1 - A1 * (1 - a1) + A2 * (1 - a2)
+//     E8: a3 = 1 - A1 * (1 - a1) - A2 * (1 - a2)
 // we can now calculate the combined alpha value
 // and E6 can then be solved for c3
 //     E9: c3 = (A1 * c1 * a1 + A2 * c2 * a2) / a3

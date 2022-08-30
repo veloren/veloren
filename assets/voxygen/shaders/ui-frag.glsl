@@ -71,9 +71,10 @@ void downscale_params(float pos, float scale, out vec2 weights, out vec2 offsets
     // 4 pixels (within a single dimension) in the sampled texture. So we can't
     // perfectly compute the contribution of each covered pixel in the sampled
     // texture with only 2 samples (along each dimension). Thus, we fallback to
-    // an imperfect technique of of just sampling a 1 pixel length from the
-    // center on each side. An alternative would be to pre-compute mipmap
-    // levels that could be sampled from.
+    // an imperfect technique of just sampling a 1 pixel length from the center
+    // on each side of the nearest pixel edge. An alternative might be to
+    // pre-compute mipmap levels that could be sampled from, although this
+    // could interact poorly with the atlas.
     if (scale > (1.0 / 3.0)) {
         // Width of the fragment in terms of pixels in the sampled texture.
         float width = 1.0 / scale;
@@ -87,7 +88,7 @@ void downscale_params(float pos, float scale, out vec2 weights, out vec2 offsets
         offsets = vec2(split) + vec2(-right_sample_offset, left_sample_offset);
         weights = vec2(right_len, left_len) / width;
     } else {
-        offsets = pos + vec2(-1.0, 1.0);
+        offsets = round(pos) + vec2(-1.0, 1.0);
         // We split in the middle so weights for both sides are the same.
         weights = vec2(0.5);
     }
@@ -140,10 +141,6 @@ vec4 downscale_xy(vec2 uv_pixel, vec2 scale) {
     vec2 uv1 = vec2(offsets_x[1], offsets_y[0]) / texture_size;
     vec2 uv2 = vec2(offsets_x[0], offsets_y[1]) / texture_size;
     vec2 uv3 = vec2(offsets_x[1], offsets_y[1]) / texture_size;
-    uv0 = uv_pixel / texture_size;
-    uv1 = uv_pixel / texture_size;
-    uv2 = uv_pixel / texture_size;
-    uv3 = uv_pixel / texture_size;
     vec4 s0 = textureLod(sampler2D(t_tex, s_tex), uv0, 0);
     vec4 s1 = textureLod(sampler2D(t_tex, s_tex), uv1, 0);
     vec4 s2 = textureLod(sampler2D(t_tex, s_tex), uv2, 0);
@@ -189,7 +186,7 @@ void main() {
         
         // Convert to sampled pixel coordinates.
         vec2 uv_pixel = f_uv * texture_size;
-        vec4 image_color = vec4(1.0, 0, 0, 1);
+        vec4 image_color;
         #ifdef EXPERIMENTAL_UINEARESTSCALING
             vec2 uv = (floor(uv_pixel) + 0.5) / texture_size;
             image_color = textureLod(sampler2D(t_tex, s_tex), uv, 0);
@@ -208,6 +205,17 @@ void main() {
                 }
             }
         #endif
+
+        // un-premultiply alpha (TODO: we pretend all input images are
+        // premultiplied for now although they aren't all necessarily)
+        if (image_color.a > 0.001) {
+            image_color.rgb /= image_color.a;
+        } 
+
+        // TEMP: Use this to make map a solid color
+        if (texture_size.x != 1600) {
+            //image_color = vec4(0, 0, 1, 1);
+        }
 
         tgt_color = f_color * image_color;
     // 2D Geometry
