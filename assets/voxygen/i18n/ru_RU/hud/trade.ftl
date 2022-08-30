@@ -1,6 +1,6 @@
 hud-trade-trade_window = Торговля
 hud-trade-phase1_description =
-    Перетащите предметы, которые вы хотите обменять
+    Перетащите предметы, которые вы хотите обменять,
     в соответствующую область.
 hud-trade-phase2_description =
     Сделка теперь заблокирована, чтобы у вас было время
@@ -19,8 +19,8 @@ hud-trade-result-nospace = Недостаточно места для завер
 hud-trade-buy_price = Цена покупки
 hud-trade-sell_price = Цена продажи
 hud-trade-coin = Монеты
-hud-trade-tooltip_hint_1 = <Shift-Click чтобы Добавить/Удалить из сделки...>
+hud-trade-tooltip_hint_1 = <Shift-Click чтобы Добавить/Удалить из сделки.>
 hud-trade-tooltip_hint_2 = <Ctrl-Click для автоматической балансировки.>
 hud-trade-your_offer = Ваше предложение
 hud-trade-their_offer = Предложение скупщика
-hud-trade-amount_input = Выберете предмет
+hud-trade-amount_input = Выберите предмет

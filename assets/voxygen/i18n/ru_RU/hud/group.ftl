@@ -1,7 +1,7 @@
 hud-group = Группа
 hud-group-invite_to_join = [{ $name }] пригласил вас в свою группу!
 hud-group-invite_to_trade = [{ $name }] предлогает вам поторговать.
-hud-group-invite = Приглашение
+hud-group-invite = Пригласить
 hud-group-kick = Выгнать
 hud-group-assign_leader = Назначить лидером
 hud-group-leave = Покинуть группу

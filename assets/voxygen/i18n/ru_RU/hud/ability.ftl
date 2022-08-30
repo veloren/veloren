@@ -1,0 +1,14 @@
+common-abilities-debug-possess = Овладевающая Стрела
+    .desc = Стреляет ядовитой стрелой. Позволяет управлять вашей целью.
+common-abilities-sword-spin = Вихрь
+    .desc = Движение вперёд, вращая мечом.
+common-abilities-axe-leap = Прыжок с топором
+    .desc = Рубящий прыжок в место, куда направлен курсор.
+common-abilities-hammer-leap = Удар Смерти
+    .desc = Атака с областью эффекта и с отдачей. Прыжок в позицию курсора.
+common-abilities-bow-shotgun = Автомат
+    .desc = Запускает очередь стрел
+common-abilities-staff-fireshockwave = Кольцо Огня
+    .desc = Поджигает землю огненной ударной волной.
+common-abilities-sceptre-wardingaura = Защитная Аура
+    .desc = Защищает ваших союзников от вражеских атак.
