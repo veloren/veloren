@@ -684,9 +684,58 @@ impl Animation for ComboAnimation {
                             next.control.position +=
                                 Vec3::new(move2 * 12.0, move2 * 2.0, move2 * -1.0);
                         },
-                        2 => {},
                         _ => {},
                     }
+                },
+                Some("common.abilities.sword.parrying_counter") => {
+                    let (move1, move2, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.5), 0.0, 0.0),
+                        Some(StageSection::Action) => {
+                            (1.0, (anim_time.min(2.0 / 3.0) * 1.5).powi(2), 0.0)
+                        },
+                        Some(StageSection::Recover) => {
+                            (1.0, 1.0, (anim_time.min(0.5) * 2.0).powf(0.5))
+                        },
+                        _ => (0.0, 0.0, 0.0),
+                    };
+
+                    next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                    next.hand_l.orientation =
+                        Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                    next.hand_r.position =
+                        Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
+                    next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);
+                    next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                    next.control.orientation = Quaternion::rotation_x(s_a.sc.3)
+                        * Quaternion::rotation_z(move2 * -PI / 4.0);
+
+                    next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
+                    next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
+                    next.foot_l.orientation = Quaternion::identity();
+                    next.foot_r.orientation = Quaternion::identity();
+
+                    next.foot_r.position += Vec3::new(
+                        0.0,
+                        move1 * 4.0 - move3 * 4.0,
+                        (1.0 - (move1 - 0.5) * 2.0) * 2.0,
+                    );
+                    next.torso.position += Vec3::new(0.0, move1 * -2.0 + move3 * 2.0, 0.0);
+                    next.chest.position +=
+                        Vec3::new(0.0, move1 * 2.0 - move3 * 2.0, move1 * -3.0 + move3 * 3.0);
+                    next.shorts.orientation = Quaternion::rotation_x(move1 * 0.5 - move3 * 0.5);
+                    next.shorts.position += Vec3::new(0.0, move1 * 1.5 - move3 * 1.5, 0.0);
+                    next.control.orientation.rotate_y(move1 * -1.5);
+                    next.control.orientation.rotate_z(move1 * 0.8);
+
+                    next.chest.orientation = Quaternion::rotation_z(move2 * -0.7);
+                    next.head.orientation = Quaternion::rotation_z(move2 * 0.4);
+                    next.shorts.orientation.rotate_z(move2 * 0.5);
+                    next.belt.orientation = Quaternion::rotation_z(move2 * 0.1);
+                    next.control
+                        .orientation
+                        .rotate_z(move2 * -1.4 + move3 * -0.5);
+                    next.control.orientation.rotate_x(move2 * 0.5 + move3 * 0.2);
+                    next.control.position += Vec3::new(move2 * 7.0, 0.0, move2 * 6.0);
                 },
                 _ => {},
             }
