@@ -182,10 +182,16 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
-                        * col.tree_density
+                    close(col.temp, CONFIG.temperate_temp, 0.7).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.4,
+                    )) * col.tree_density
                         * MUSH_FACT
-                        * 600.0,
+                        * 600.0
+                        * density_factor_by_altitude(200.0, col.alt, 1000.0), /* To control
+                                                                               * spawning based
+                                                                               * on altitude */
                     Some((0.0, 100.0, 0.15)),
                 )
             },
