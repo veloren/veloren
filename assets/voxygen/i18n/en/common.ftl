@@ -70,7 +70,6 @@ common-weapons-staff_simple = Simple Staff
 common-weapons-axe_simple = Simple Axe
 common-weapons-bow_simple = Simple Bow
 common-weapons-unique = Unique
-common-weapons-organ = Organ
 common-tool-debug = Debug
 common-tool-farming = Farming Tool
 common-tool-pick = Pickaxe
