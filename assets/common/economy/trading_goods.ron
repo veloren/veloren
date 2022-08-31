@@ -1,0 +1,51 @@
+{
+    Armor: (
+        // decay_rate: 0.03, // 23 years half-life
+        transport_effort: 2.0, // 1 person can carry half a set of entry armor
+    ),
+    Terrain(Void): ( // any terrain
+        transport_effort: 0.0,
+        storable: false,
+    ),
+    Territory(Void): ( // any territory
+        transport_effort: 0.0,
+        storable: false,
+    ),
+    Transportation: (
+        storable: false,
+    ),
+    RoadSecurity: (
+        transport_effort: 0.0,
+        storable: false,
+    ),
+    Coin: (
+        transport_effort: 0.01,
+    ),
+    Potions: (
+        transport_effort: 0.1,
+        //decay_rate: 0.2, // 3 years half-life
+    ),
+    Stone: (
+        transport_effort: 4.0,
+    ),
+    Food: (
+        decay_rate: 0.2, // revisit
+    ),
+    Meat: (
+        decay_rate: 0.25, // revisit
+    ),
+    Flour: (
+        decay_rate: 0.1, // revisit
+    ),
+    Ingredients: (
+        decay_rate: 0.1, // revisit
+    ),
+    Tools: (
+        // TODO: Separate stone, metal, bone, wood
+        // decay_rate: 0.05, // 14 years half-life
+    ),
+    Wood: (
+        //decay_rate: 0.1, // 6 years half-life
+        //transport_effort: 0.05, // 2kg/40kg
+    ),
+}

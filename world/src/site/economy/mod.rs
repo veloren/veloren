@@ -22,6 +22,7 @@ pub use map_types::Labor;
 use map_types::{GoodIndex, GoodMap, LaborIndex, LaborMap, NaturalResources};
 mod context;
 pub use context::simulate_economy;
+mod cache;
 
 const INTER_SITE_TRADE: bool = true;
 const DAYS_PER_MONTH: f32 = 30.0;
@@ -1374,51 +1375,12 @@ fn good_list() -> impl Iterator<Item = GoodIndex> {
     (0..GoodIndex::LENGTH).map(GoodIndex::from_usize)
 }
 
-// cache in GoodMap ?
-fn transportation_effort(g: GoodIndex) -> f32 {
-    match Good::from(g) {
-        Terrain(_) | Territory(_) | RoadSecurity => 0.0,
-        Coin => 0.01,
-        Potions => 0.1,
+fn transportation_effort(g: GoodIndex) -> f32 { cache::cache().transport_effort[g] }
 
-        Armor => 2.0,
-        Stone => 4.0,
-
-        _ => 1.0,
-    }
-}
-
-fn decay_rate(g: GoodIndex) -> f32 {
-    match Good::from(g) {
-        Food => 0.2,
-        Flour => 0.1,
-        Meat => 0.25,
-        Ingredients => 0.1,
-        _ => 0.0,
-    }
-}
+fn decay_rate(g: GoodIndex) -> f32 { cache::cache().decay_rate[g] }
 
 /** you can't accumulate or save these options/resources for later */
-fn direct_use_goods() -> &'static [GoodIndex] {
-    lazy_static! {
-        static ref DIRECT_USE: [GoodIndex; 13] = [
-            GoodIndex::try_from(Transportation).unwrap_or_default(),
-            GoodIndex::try_from(Territory(BiomeKind::Grassland)).unwrap_or_default(),
-            GoodIndex::try_from(Territory(BiomeKind::Forest)).unwrap_or_default(),
-            GoodIndex::try_from(Territory(BiomeKind::Lake)).unwrap_or_default(),
-            GoodIndex::try_from(Territory(BiomeKind::Ocean)).unwrap_or_default(),
-            GoodIndex::try_from(Territory(BiomeKind::Mountain)).unwrap_or_default(),
-            GoodIndex::try_from(RoadSecurity).unwrap_or_default(),
-            GoodIndex::try_from(Terrain(BiomeKind::Grassland)).unwrap_or_default(),
-            GoodIndex::try_from(Terrain(BiomeKind::Forest)).unwrap_or_default(),
-            GoodIndex::try_from(Terrain(BiomeKind::Lake)).unwrap_or_default(),
-            GoodIndex::try_from(Terrain(BiomeKind::Ocean)).unwrap_or_default(),
-            GoodIndex::try_from(Terrain(BiomeKind::Mountain)).unwrap_or_default(),
-            GoodIndex::try_from(Terrain(BiomeKind::Desert)).unwrap_or_default(),
-        ];
-    }
-    &*DIRECT_USE
-}
+fn direct_use_goods() -> &'static [GoodIndex] { &cache::cache().direct_use_goods }
 
 pub struct GraphInfo {
     dummy: Economy,
