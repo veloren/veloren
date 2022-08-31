@@ -1,12 +1,27 @@
 use crate::{column::ColumnSample, sim::SimChunk, Canvas, CONFIG};
 use common::terrain::{Block, BlockKind, SpriteKind};
 use noise::NoiseFn;
+use num::traits::Pow;
 use rand::prelude::*;
 use std::f32;
 use vek::*;
 
 pub fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
+}
+
+/// Returns a decimal value between 0 and 1.  
+/// The density is maximum at the middle of the highest and the lowest allowed
+/// altitudes, and zero otherwise. Quadratic curve.
+///
+/// The formula used is:
+///
+/// ```latex
+/// \max\left(-\frac{4\left(x-u\right)\left(x-l\right)}{\left(u-l\right)^{2}},\ 0\right)
+/// ```
+pub fn density_factor_by_altitude(lower_limit: f32, altitude: f32, upper_limit: f32) -> f32 {
+    let maximum: f32 = (upper_limit - lower_limit).pow(2) / 4.0f32;
+    (-((altitude - lower_limit) * (altitude - upper_limit)) / maximum).max(0.0)
 }
 
 const MUSH_FACT: f32 = 1.0e-4; // To balance things around the mushroom spawning rate
