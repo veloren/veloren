@@ -16,6 +16,7 @@ use crate::{
     },
     GlobalState,
 };
+use conrod_core::widget::Line;
 use i18n::Localization;
 use std::borrow::Cow;
 
@@ -84,6 +85,7 @@ widget_ids! {
         // Poise-Bar
         poise_alignment,
         poise_filling,
+        poise_tick,
         poise_txt_alignment,
         poise_txt_bg,
         poise_txt,
@@ -481,6 +483,15 @@ impl<'a> Skillbar<'a> {
                 .color(Some(POISE_COLOR))
                 .top_left_with_margins_on(state.ids.poise_alignment, 0.0, 0.0)
                 .set(state.ids.poise_filling, ui);
+            Image::new(self.imgs.poise_tick)
+                .w_h(3.0, 10.0)
+                .color(Some(Color::Rgba(0.70, 0.90, 0.0, 1.0)))
+                .top_left_with_margins_on(
+                    state.ids.poise_alignment,
+                    0.0,
+                    319.0f64 * (self.poise.next_threshold() / self.poise.maximum()) as f64,
+                )
+                .set(state.ids.poise_tick, ui);
             Image::new(self.imgs.poise_frame)
                 .w_h(323.0, 16.0)
                 .color(Some(UI_HIGHLIGHT_0))
