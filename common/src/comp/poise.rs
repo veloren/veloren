@@ -151,6 +151,8 @@ impl Poise {
     // This value is chosen as anything smaller than this is more precise than our
     // units of poise.
     pub const POISE_EPSILON: f32 = 0.5 / Self::MAX_SCALED_POISE as f32;
+    /// The thresholds where poise changes to a different state
+    pub const POISE_THRESHOLDS: [f32; 4] = [50.0, 30.0, 15.0, 5.0];
     /// The amount poise is scaled by within this module
     const SCALING_FACTOR_FLOAT: f32 = 256.;
     const SCALING_FACTOR_INT: u32 = Self::SCALING_FACTOR_FLOAT as u32;
@@ -216,10 +218,10 @@ impl Poise {
     /// Defines the poise states based on current poise value
     pub fn poise_state(&self) -> PoiseState {
         match self.current() {
-            x if x > 50.0 => PoiseState::Normal,
-            x if x > 30.0 => PoiseState::Interrupted,
-            x if x > 15.0 => PoiseState::Stunned,
-            x if x > 5.0 => PoiseState::Dazed,
+            x if x > Self::POISE_THRESHOLDS[0] => PoiseState::Normal,
+            x if x > Self::POISE_THRESHOLDS[1] => PoiseState::Interrupted,
+            x if x > Self::POISE_THRESHOLDS[2] => PoiseState::Stunned,
+            x if x > Self::POISE_THRESHOLDS[3] => PoiseState::Dazed,
             _ => PoiseState::KnockedDown,
         }
     }
