@@ -31,4 +31,5 @@ hud-map-zoom_minimap_explanation =
     Zooma in Minikartan för att se
     området runtom dig i högre detalj
 hud-map-gnarling = Gnarlingsfästning
+hud-map-chapel_site = Sjökapell
 hud-map-placed_by = Placerad av { $name }
