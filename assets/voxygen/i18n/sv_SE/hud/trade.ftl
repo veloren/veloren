@@ -16,9 +16,14 @@ hud-trade-invite_sent = Bytesförfrågan har skickats till { $playername }.
 hud-trade-result-completed = Bytet har genomförts.
 hud-trade-result-declined = Bytet har avbrutits.
 hud-trade-result-nospace = Inte tillräckligt mycket utrymme för att genomföra bytet.
-hud-trade-buy_price = Köpepris
-hud-trade-sell_price = Försäljningspris
-hud-trade-coin = mynt
+hud-trade-buy = Buy Price: { $coin_num ->
+    [one] ett mynt
+    *[other] { $coin_formatted } mynt
+}
+hud-trade-sell = Sell Price: { $coin_num ->
+    [one] ett mynt.
+    *[other] { $coin_formatted } mynt
+}
 hud-trade-tooltip_hint_1 = <Shift-klicka för att lägga till/ta bort från byte.>
 hud-trade-tooltip_hint_2 = <Ctrl-klicka för att automatiskt balansera med detta.>
 hud-trade-your_offer = Ditt erbjudande

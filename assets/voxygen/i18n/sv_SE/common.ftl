@@ -74,6 +74,7 @@ common-tool-debug = Felsökning
 common-tool-farming = Jordbruksredskap
 common-tool-pick = Hacka
 common-tool-mining = Gruvgrävande
+common-weapons-instrument = Instrument
 common-kind-modular_component = Modulär komponent
 common-kind-modular_component_partial = Komponent
 common-kind-glider = Glidare
