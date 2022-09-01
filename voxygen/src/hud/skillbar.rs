@@ -468,11 +468,7 @@ impl<'a> Skillbar<'a> {
                 .set(state.ids.frame_energy, ui);
         }
         if show_poise && !self.health.is_dead {
-            let offset = if show_health || decayed_health > 0.0 {
-                70.0
-            } else {
-                1.0
-            };
+            let offset = 17.0;
             Image::new(self.imgs.poise_bg)
                 .w_h(323.0, 14.0)
                 .mid_top_with_margin_on(state.ids.frame, -offset)
