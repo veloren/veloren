@@ -2,7 +2,7 @@ ComboMelee2(
     strikes: [
         (
             melee_constructor: (
-                kind: Slash(
+                kind: Bash(
                     damage: 10,
                     poise: 20,
                     knockback: 0,
