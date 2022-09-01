@@ -339,6 +339,8 @@ image_ids! {
         decayed_bg: "voxygen.element.ui.skillbar.decayed_bg",
         energy_bg: "voxygen.element.ui.skillbar.energy_bg",
         energy_frame: "voxygen.element.ui.skillbar.energy_frame",
+        poise_bg: "voxygen.element.ui.skillbar.energy_bg",
+        poise_frame: "voxygen.element.ui.skillbar.energy_frame",
         m1_ico: "voxygen.element.ui.generic.icons.m1",
         m2_ico: "voxygen.element.ui.generic.icons.m2",
         m_scroll_ico: "voxygen.element.ui.generic.icons.m_scroll",

@@ -3,7 +3,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots, util, BarNumbers, HudInfo, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
-    LOW_HP_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
+    LOW_HP_COLOR, POISE_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
     game_input::GameInput,
@@ -24,7 +24,7 @@ use common::comp::{
     self,
     ability::AbilityInput,
     item::{ItemDesc, MaterialStatManifest},
-    Ability, ActiveAbilities, Body, Energy, Health, Inventory, SkillSet,
+    Ability, ActiveAbilities, Body, Energy, Health, Inventory, Poise, SkillSet,
 };
 use conrod_core::{
     color,
@@ -57,6 +57,8 @@ widget_ids! {
         frame_health,
         bg_energy,
         frame_energy,
+        bg_poise,
+        frame_poise,
         m1_ico,
         m2_ico,
         // Level
@@ -79,6 +81,12 @@ widget_ids! {
         energy_txt_alignment,
         energy_txt_bg,
         energy_txt,
+        // Poise-Bar
+        poise_alignment,
+        poise_filling,
+        poise_txt_alignment,
+        poise_txt_bg,
+        poise_txt,
         // Combo Counter
         combo_align,
         combo_bg,
@@ -251,6 +259,7 @@ pub struct Skillbar<'a> {
     health: &'a Health,
     inventory: &'a Inventory,
     energy: &'a Energy,
+    poise: &'a Poise,
     skillset: &'a SkillSet,
     active_abilities: Option<&'a ActiveAbilities>,
     body: &'a Body,
@@ -281,6 +290,7 @@ impl<'a> Skillbar<'a> {
         health: &'a Health,
         inventory: &'a Inventory,
         energy: &'a Energy,
+        poise: &'a Poise,
         skillset: &'a SkillSet,
         active_abilities: Option<&'a ActiveAbilities>,
         body: &'a Body,
@@ -306,6 +316,7 @@ impl<'a> Skillbar<'a> {
             health,
             inventory,
             energy,
+            poise,
             skillset,
             active_abilities,
             body,
@@ -365,16 +376,18 @@ impl<'a> Skillbar<'a> {
     }
 
     fn show_stat_bars(&self, state: &State, ui: &mut UiCell) {
-        let (hp_percentage, energy_percentage): (f64, f64) = if self.health.is_dead {
-            (0.0, 0.0)
-        } else {
-            let max_hp = f64::from(self.health.base_max().max(self.health.maximum()));
-            let current_hp = f64::from(self.health.current());
-            (
-                current_hp / max_hp * 100.0,
-                f64::from(self.energy.fraction() * 100.0),
-            )
-        };
+        let (hp_percentage, energy_percentage, poise_percentage): (f64, f64, f64) =
+            if self.health.is_dead {
+                (0.0, 0.0, 0.0)
+            } else {
+                let max_hp = f64::from(self.health.base_max().max(self.health.maximum()));
+                let current_hp = f64::from(self.health.current());
+                (
+                    current_hp / max_hp * 100.0,
+                    f64::from(self.energy.fraction() * 100.0),
+                    f64::from(self.poise.fraction() * 100.0),
+                )
+            };
 
         // Animation timer
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
@@ -384,6 +397,8 @@ impl<'a> Skillbar<'a> {
             || (self.health.current() - self.health.maximum()).abs() > Health::HEALTH_EPSILON;
         let show_energy = self.global_state.settings.interface.always_show_bars
             || (self.energy.current() - self.energy.maximum()).abs() > Energy::ENERGY_EPSILON;
+        let show_poise = self.global_state.settings.interface.always_show_bars
+            || (self.poise.current() - self.poise.maximum()).abs() > Poise::POISE_EPSILON;
         let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
 
         if show_health && !self.health.is_dead || decayed_health > 0.0 {
@@ -452,9 +467,36 @@ impl<'a> Skillbar<'a> {
                 .middle_of(state.ids.bg_energy)
                 .set(state.ids.frame_energy, ui);
         }
+        if show_poise && !self.health.is_dead {
+            let offset = if show_health || decayed_health > 0.0 {
+                70.0
+            } else {
+                1.0
+            };
+            Image::new(self.imgs.poise_bg)
+                .w_h(323.0, 14.0)
+                .mid_top_with_margin_on(state.ids.frame, -offset)
+                .set(state.ids.bg_poise, ui);
+            Rectangle::fill_with([319.0, 10.0], color::TRANSPARENT)
+                .top_left_with_margins_on(state.ids.bg_poise, 2.0, 2.0)
+                .set(state.ids.poise_alignment, ui);
+            Image::new(self.imgs.bar_content)
+                .w_h(319.0 * poise_percentage / 100.0, 10.0)
+                .color(Some(POISE_COLOR))
+                .top_left_with_margins_on(state.ids.poise_alignment, 0.0, 0.0)
+                .set(state.ids.poise_filling, ui);
+            Image::new(self.imgs.poise_frame)
+                .w_h(323.0, 16.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .middle_of(state.ids.bg_poise)
+                .set(state.ids.frame_poise, ui);
+        }
         // Bar Text
         let bar_text = if self.health.is_dead {
             Some((
+                self.localized_strings
+                    .get_msg("hud-group-dead")
+                    .into_owned(),
                 self.localized_strings
                     .get_msg("hud-group-dead")
                     .into_owned(),
@@ -475,16 +517,22 @@ impl<'a> Skillbar<'a> {
                     self.energy.current().round() as u32,
                     self.energy.maximum().round() as u32
                 ),
+                format!(
+                    "{}/{}",
+                    self.poise.current().round() as u32,
+                    self.poise.maximum().round() as u32
+                ),
             ))
         } else if let BarNumbers::Percent = bar_values {
             Some((
                 format!("{}%", hp_percentage as u32),
                 format!("{}%", energy_percentage as u32),
+                format!("{}%", poise_percentage as u32),
             ))
         } else {
             None
         };
-        if let Some((hp_txt, energy_txt)) = bar_text {
+        if let Some((hp_txt, energy_txt, poise_txt)) = bar_text {
             Text::new(&hp_txt)
                 .middle_of(state.ids.frame_health)
                 .font_size(self.fonts.cyri.scale(12))
@@ -510,6 +558,19 @@ impl<'a> Skillbar<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.energy_txt, ui);
+
+            Text::new(&poise_txt)
+                .middle_of(state.ids.frame_poise)
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.poise_txt_bg, ui);
+            Text::new(&poise_txt)
+                .bottom_left_with_margins_on(state.ids.poise_txt_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.poise_txt, ui);
         }
     }
 
