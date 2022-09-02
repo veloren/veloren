@@ -68,11 +68,11 @@
           '';
 
           configMoldLinker = ''
-            echo "
+            cat >>$CARGO_HOME/config.toml <<EOF
               [target.x86_64-unknown-linux-gnu]
               linker = "clang"
               rustflags = ["-C", "link-arg=-fuse-ld=${lib.getExe pkgs.mold}"]
-            " >> $CARGO_HOME/config.toml
+            EOF
           '';
         in {
           veloren-common = oldAttrs: {
