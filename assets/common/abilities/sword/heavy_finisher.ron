@@ -4,13 +4,13 @@ FinisherMelee(
     swing_duration: 0.1,
     recover_duration: 0.4,
     melee_constructor: (
-        kind: Slash(
+        kind: Bash(
             damage: 20,
             poise: 30,
             knockback: 0,
             energy_regen: 10,
         ),
-        scaled: Some(Slash(
+        scaled: Some(Bash(
             damage: 0,
             poise: 20,
             knockback: 0,
