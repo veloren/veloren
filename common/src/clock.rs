@@ -77,16 +77,21 @@ impl Clock {
     pub fn dt(&self) -> Duration { self.last_dt }
 
     pub fn get_stable_dt(&self) -> Duration {
-        let stable_dt = Duration::from_secs_f32(
-            self.last_dts
-                .iter()
-                .skip(self.last_dts.len() - NUMBER_OF_DELTAS_COMPARED)
-                .min()
-                .map_or(self.last_dt.as_secs_f32(), |t| t.into_inner()),
-        );
-        if self.last_dts.len() >= NUMBER_OF_DELTAS_COMPARED && self.last_dt > 2 * stable_dt {
-            tracing::trace!(?self.last_dt, ?self.total_tick_time, "lag spike detected, unusually slow tick");
-            stable_dt
+        if self.last_dts.len() >= NUMBER_OF_DELTAS_COMPARED {
+            // Take the median of the last few tick times
+            let mut dts = [0.0; NUMBER_OF_DELTAS_COMPARED];
+            for (i, dt) in self.last_dts.iter().rev().take(NUMBER_OF_DELTAS_COMPARED).enumerate() {
+                dts[i] = **dt;
+            }
+            dts.sort_by_key(|x| ordered_float::OrderedFloat(*x));
+            let stable_dt = Duration::from_secs_f32(dts[NUMBER_OF_DELTAS_COMPARED / 2]);
+
+            if self.last_dt > 2 * stable_dt {
+                tracing::trace!(?self.last_dt, ?self.total_tick_time, "lag spike detected, unusually slow tick");
+                stable_dt
+            } else {
+                self.last_dt
+            }
         } else {
             self.last_dt
         }
