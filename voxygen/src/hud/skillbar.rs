@@ -25,7 +25,7 @@ use common::comp::{
     self,
     ability::AbilityInput,
     item::{ItemDesc, MaterialStatManifest},
-    Ability, ActiveAbilities, Body, Energy, Health, Inventory, Poise, SkillSet,
+    Ability, ActiveAbilities, Body, Energy, Health, Inventory, Poise, PoiseState, SkillSet,
 };
 use conrod_core::{
     color,
@@ -482,6 +482,14 @@ impl<'a> Skillbar<'a> {
                 state.ids.poise_tick_4,
             ];
 
+            let poise_colour = match self.poise.poise_state() {
+                self::PoiseState::KnockedDown => BLACK,
+                self::PoiseState::Dazed => Color::Rgba(0.25, 0.0, 0.15, 1.0),
+                self::PoiseState::Stunned => Color::Rgba(0.40, 0.0, 0.30, 1.0),
+                self::PoiseState::Interrupted => Color::Rgba(0.55, 0.0, 0.45, 1.0),
+                _ => POISE_COLOR,
+            };
+
             Image::new(self.imgs.poise_bg)
                 .w_h(323.0, 14.0)
                 .mid_top_with_margin_on(state.ids.frame, -offset)
@@ -491,7 +499,7 @@ impl<'a> Skillbar<'a> {
                 .set(state.ids.poise_alignment, ui);
             Image::new(self.imgs.bar_content)
                 .w_h(319.0 * poise_percentage / 100.0, 10.0)
-                .color(Some(POISE_COLOR))
+                .color(Some(poise_colour))
                 .top_left_with_margins_on(state.ids.poise_alignment, 0.0, 0.0)
                 .set(state.ids.poise_filling, ui);
             for (i, threshold) in self::Poise::POISE_THRESHOLDS.iter().enumerate() {
