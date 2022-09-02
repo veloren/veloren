@@ -84,6 +84,8 @@
             NIX_GIT_TAG = tag;
           };
           veloren-voxygen-deps = oldAttrs: {
+            doCheck = false;
+
             postConfigure = ''
               ${oldAttrs.postConfigure or ""}
               ${configMoldLinker}
