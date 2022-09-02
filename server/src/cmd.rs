@@ -957,8 +957,8 @@ fn handle_time(
         },
         Some(n) => match n.parse::<f64>() {
             Ok(n) => {
-                if n < 0.0{
-                    return Err(format!("{:?} is invalid, cannot be negative.", n));
+                if n < 0.0 {
+                    return Err(format!("{} is invalid, cannot be negative.", n));
                 }
                 // Seconds from next midnight
                 next_cycle(0.0) + n
@@ -975,12 +975,15 @@ fn handle_time(
                     // Absolute time (i.e. from world epoch)
                     Some(n) => {
                         if (n as f64) < time_in_seconds {
-                            return Err(format!("{:?} is before the current time, time cannot go backwards.", n))
+                            return Err(format!(
+                                "{} is before the current time, time cannot go backwards.",
+                                n
+                            ));
                         }
                         n as f64
                     },
                     None => {
-                        return Err(format!("{:?} is not a valid time.", n));
+                        return Err(format!("{} is not a valid time.", n));
                     },
                 },
             },
