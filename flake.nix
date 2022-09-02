@@ -22,6 +22,10 @@
         };
       };
       overrides = {
+        cCompiler = common: {
+          cCompiler = common.pkgs.clang;
+          useCCompilerBintools = true;
+        };
         crates = common: prev: let
           pkgs = common.pkgs;
           lib = pkgs.lib;
