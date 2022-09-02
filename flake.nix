@@ -51,17 +51,6 @@
             then sourceInfo.tag
             else "";
 
-          # If gitTag has a tag (meaning the commit we are on is a *release*), use
-          # it as version, else: just use the prettified hash we have, if we don't
-          # have it the build fails.
-          # Must be in format f4987672/2020-12-10-12:00
-          version =
-            if tag != ""
-            then tag
-            else if prettyRev != ""
-            then prettyRev
-            else throw "Need a tag or pretty revision in order to determine version";
-
           veloren-assets = pkgs.runCommand "makeAssetsDir" {} ''
             mkdir $out
             ln -sf ${./assets} $out/assets
@@ -92,7 +81,26 @@
             '';
           };
           veloren-voxygen = oldAttrs: {
-            inherit version;
+            src = builtins.path {
+              name = "veloren-source";
+              path = toString ./.;
+              # filter out unnecessary paths
+              filter = path: type:
+                lib.all
+                (n: builtins.baseNameOf path != n)
+                [
+                  "flake.nix"
+                  "flake.lock"
+                  "nix"
+                  "assets"
+                  "README.md"
+                  "CONTRIBUTING.md"
+                  "CHANGELOG.md"
+                  "CODE_OF_CONDUCT.md"
+                  "clippy.toml"
+                  "server-cli"
+                ];
+            };
 
             buildInputs =
               (oldAttrs.buildInputs or [])
