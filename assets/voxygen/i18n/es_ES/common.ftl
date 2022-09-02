@@ -11,7 +11,7 @@ common-controls = Controles
 common-video = Gráficos
 common-sound = Sonido
 common-chat = Chat
-common-networking = Redes
+common-networking = Red
 common-resume = Reanudar
 common-characters = Personajes
 common-close = Cerrar
@@ -41,7 +41,7 @@ common-video_settings = Ajustes Gráficos
 common-sound_settings = Ajustes de Sonido
 common-language_settings = Ajustes de Idioma
 common-chat_settings = Ajustes de Chat
-common-networking_settings = Ajustes de Redes
+common-networking_settings = Ajustes de Red
 common-connection_lost =
     ¡Conexión perdida!
             ¿Se reinició el servidor?
@@ -70,7 +70,7 @@ common-weapons-staff_simple = Báculo Simple
 common-weapons-axe_simple = Hacha Simple
 common-weapons-bow_simple = Arco Simple
 common-weapons-unique = Único
-common-weapons-organ = Organ
+common-weapons-organ = Órgano
 common-tool-debug = Depuración
 common-tool-farming = Herramienta Agrícola
 common-tool-pick = Pico
