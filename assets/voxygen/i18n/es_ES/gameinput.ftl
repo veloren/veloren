@@ -64,5 +64,5 @@ gameinput-mapzoomin = Aumentar Zoom de Mapa
 gameinput-mapzoomout = Reducir Zoom de Mapa
 gameinput-greet = Saludar
 gameinput-map-locationmarkerbutton = Establecer un punto en el Mapa
-gameinput-spectatespeedboost = Ir más rápido en Modo Espectador.
-gameinput-spectateviewpoint = Espectear desde el Punto de Vista de una Entidad
+gameinput-spectatespeedboost = Ir más rápido en Modo Espectador
+gameinput-spectateviewpoint = Punto de vista del Modo Espectador
