@@ -3,7 +3,8 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots, util, BarNumbers, HudInfo, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
-    LOW_HP_COLOR, POISE_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
+    LOW_HP_COLOR, POISEBAR_TICK_COLOR, POISE_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR,
+    UI_HIGHLIGHT_0,
 };
 use crate::{
     game_input::GameInput,
@@ -84,7 +85,10 @@ widget_ids! {
         // Poise-Bar
         poise_alignment,
         poise_filling,
-        poise_tick,
+        poise_tick_1,  // TODO: Use a list instead
+        poise_tick_2,
+        poise_tick_3,
+        poise_tick_4,
         poise_txt_alignment,
         poise_txt_bg,
         poise_txt,
@@ -470,6 +474,14 @@ impl<'a> Skillbar<'a> {
         }
         if show_poise && !self.health.is_dead {
             let offset = 17.0;
+
+            let poise_ticks = [
+                state.ids.poise_tick_1,
+                state.ids.poise_tick_2,
+                state.ids.poise_tick_3,
+                state.ids.poise_tick_4,
+            ];
+
             Image::new(self.imgs.poise_bg)
                 .w_h(323.0, 14.0)
                 .mid_top_with_margin_on(state.ids.frame, -offset)
@@ -482,15 +494,17 @@ impl<'a> Skillbar<'a> {
                 .color(Some(POISE_COLOR))
                 .top_left_with_margins_on(state.ids.poise_alignment, 0.0, 0.0)
                 .set(state.ids.poise_filling, ui);
-            Image::new(self.imgs.poise_tick)
-                .w_h(3.0, 10.0)
-                .color(Some(Color::Rgba(0.70, 0.90, 0.0, 1.0)))
-                .top_left_with_margins_on(
-                    state.ids.poise_alignment,
-                    0.0,
-                    319.0f64 * (self.poise.next_threshold() / self.poise.maximum()) as f64,
-                )
-                .set(state.ids.poise_tick, ui);
+            for (i, threshold) in self::Poise::POISE_THRESHOLDS.iter().enumerate() {
+                Image::new(self.imgs.poise_tick)
+                    .w_h(3.0, 10.0)
+                    .color(Some(POISEBAR_TICK_COLOR))
+                    .top_left_with_margins_on(
+                        state.ids.poise_alignment,
+                        0.0,
+                        319.0f64 * (*threshold / self.poise.maximum()) as f64,
+                    )
+                    .set(poise_ticks[i], ui);
+            }
             Image::new(self.imgs.poise_frame)
                 .w_h(323.0, 16.0)
                 .color(Some(UI_HIGHLIGHT_0))
@@ -523,13 +537,13 @@ impl<'a> Skillbar<'a> {
                     self.energy.current().round() as u32,
                     self.energy.maximum().round() as u32
                 ),
-                format!(""), // Don't obscure the tick mark
+                String::new(), // Don't obscure the tick mark
             ))
         } else if let BarNumbers::Percent = bar_values {
             Some((
                 format!("{}%", hp_percentage as u32),
                 format!("{}%", energy_percentage as u32),
-                format!(""), // Don't obscure the tick mark
+                String::new(), // Don't obscure the tick mark
             ))
         } else {
             None

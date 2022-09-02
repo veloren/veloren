@@ -146,6 +146,7 @@ const STAMINA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 const ENEMY_HP_COLOR: Color = Color::Rgba(0.93, 0.1, 0.29, 1.0);
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const POISE_COLOR: Color = Color::Rgba(0.70, 0.0, 0.50, 1.0);
+const POISEBAR_TICK_COLOR: Color = Color::Rgba(0.70, 0.90, 0.0, 1.0);
 //const TRANSPARENT: Color = Color::Rgba(0.0, 0.0, 0.0, 0.0);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
