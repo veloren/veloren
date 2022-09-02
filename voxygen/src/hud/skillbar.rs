@@ -16,7 +16,6 @@ use crate::{
     },
     GlobalState,
 };
-use conrod_core::widget::Line;
 use i18n::Localization;
 use std::borrow::Cow;
 
