@@ -62,6 +62,14 @@
             mkdir $out
             ln -sf ${./assets} $out/assets
           '';
+
+          configMoldLinker = ''
+            echo "
+              [target.x86_64-unknown-linux-gnu]
+              linker = "clang"
+              rustflags = ["-C", "link-arg=-fuse-ld=${lib.getExe pkgs.mold}"]
+            " >> $CARGO_HOME/config.toml
+          '';
         in {
           veloren-common = oldAttrs: {
             # Disable `git-lfs` check here since we check it ourselves
@@ -70,6 +78,12 @@
             # Declare env values here so that `common/build.rs` sees them
             NIX_GIT_HASH = prettyRev;
             NIX_GIT_TAG = tag;
+          };
+          veloren-voxygen-deps = oldAttrs: {
+            postConfigure = ''
+              ${oldAttrs.postConfigure or ""}
+              ${configMoldLinker}
+            '';
           };
           veloren-voxygen = oldAttrs: {
             inherit version;
@@ -100,6 +114,10 @@
                 --replace \
                 "../../../assets/voxygen/audio/null.ogg" \
                 "${./assets/voxygen/audio/null.ogg}"
+            '';
+            postConfigure = ''
+              ${oldAttrs.postConfigure or ""}
+              ${configMoldLinker}
             '';
             postInstall = ''
               ${oldAttrs.postInstall or ""}
