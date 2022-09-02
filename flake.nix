@@ -63,6 +63,30 @@
               rustflags = ["-C", "link-arg=-fuse-ld=${lib.getExe pkgs.mold}"]
             EOF
           '';
+
+          pathsToIgnore = [
+            "flake.nix"
+            "flake.lock"
+            "nix"
+            "assets"
+            "README.md"
+            "CONTRIBUTING.md"
+            "CHANGELOG.md"
+            "CODE_OF_CONDUCT.md"
+            "clippy.toml"
+          ];
+          ignorePaths = path: type: let
+            split = lib.splitString "/" path;
+            actual = lib.drop 4 split;
+            _path = lib.concatStringsSep "/" actual;
+          in
+            lib.all (n: ! (lib.hasPrefix n _path)) pathsToIgnore;
+          filteredSource = builtins.path {
+            name = "veloren-source";
+            path = toString ./.;
+            # filter out unnecessary paths
+            filter = ignorePaths;
+          };
         in {
           veloren-common = oldAttrs: {
             # Disable `git-lfs` check here since we check it ourselves
@@ -81,26 +105,7 @@
             '';
           };
           veloren-voxygen = oldAttrs: {
-            src = builtins.path {
-              name = "veloren-source";
-              path = toString ./.;
-              # filter out unnecessary paths
-              filter = path: type:
-                lib.all
-                (n: builtins.baseNameOf path != n)
-                [
-                  "flake.nix"
-                  "flake.lock"
-                  "nix"
-                  "assets"
-                  "README.md"
-                  "CONTRIBUTING.md"
-                  "CHANGELOG.md"
-                  "CODE_OF_CONDUCT.md"
-                  "clippy.toml"
-                  "server-cli"
-                ];
-            };
+            src = filteredSource;
 
             buildInputs =
               (oldAttrs.buildInputs or [])
@@ -142,9 +147,25 @@
               fi
             '';
           };
+          veloren-server-cli-deps = oldAttrs: {
+            doCheck = false;
+
+            postConfigure = ''
+              ${oldAttrs.postConfigure or ""}
+              ${configMoldLinker}
+            '';
+          };
           veloren-server-cli = oldAttrs: {
-            nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [pkgs.makeWrapper];
+            src = filteredSource;
+
             VELOREN_USERDATA_STRATEGY = "system";
+
+            nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [pkgs.makeWrapper];
+
+            postConfigure = ''
+              ${oldAttrs.postConfigure or ""}
+              ${configMoldLinker}
+            '';
             postInstall = ''
               ${oldAttrs.postInstall or ""}
               if [ -f $out/bin/veloren-server-cli ]; then
