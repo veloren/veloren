@@ -523,17 +523,13 @@ impl<'a> Skillbar<'a> {
                     self.energy.current().round() as u32,
                     self.energy.maximum().round() as u32
                 ),
-                format!(
-                    "{}/{}",
-                    self.poise.current().round() as u32,
-                    self.poise.maximum().round() as u32
-                ),
+                format!(""), // Don't obscure the tick mark
             ))
         } else if let BarNumbers::Percent = bar_values {
             Some((
                 format!("{}%", hp_percentage as u32),
                 format!("{}%", energy_percentage as u32),
-                format!("{}%", poise_percentage as u32),
+                format!(""), // Don't obscure the tick mark
             ))
         } else {
             None
