@@ -1,17 +1,12 @@
+use crate::{data::npc::NpcMode, event::OnTick, RtState, Rule, RuleError};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use tracing::info;
 use vek::*;
-use crate::{
-    data::npc::NpcMode,
-    event::OnTick,
-    RtState, Rule, RuleError,
-};
 
 pub struct SimulateNpcs;
 
 impl Rule for SimulateNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
-
         rtstate.bind::<Self, OnTick>(|ctx| {
             let data = &mut *ctx.state.data_mut();
             for npc in data
@@ -28,14 +23,17 @@ impl Rule for SimulateNpcs {
 
                     if dist2 > 0.5f32.powi(2) {
                         npc.wpos += (diff
-                            * (body.max_speed_approx() * speed_factor * ctx.event.dt / dist2.sqrt())
-                                .min(1.0))
+                            * (body.max_speed_approx() * speed_factor * ctx.event.dt
+                                / dist2.sqrt())
+                            .min(1.0))
                         .with_z(0.0);
                     }
                 }
 
                 // Make sure NPCs remain on the surface
-                npc.wpos.z = ctx.world.sim()
+                npc.wpos.z = ctx
+                    .world
+                    .sim()
                     .get_alt_approx(npc.wpos.xy().map(|e| e as i32))
                     .unwrap_or(0.0);
             }

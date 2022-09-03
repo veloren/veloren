@@ -409,7 +409,10 @@ impl Scene {
                 // when zooming in the distance the camera travelles should be based on the
                 // final distance. This is to make sure the camera travelles the
                 // same distance when zooming in and out
-                let player_scale = client.state().read_component_copied::<comp::Scale>(client.entity()).map_or(1.0, |s| s.0);
+                let player_scale = client
+                    .state()
+                    .read_component_copied::<comp::Scale>(client.entity())
+                    .map_or(1.0, |s| s.0);
                 if delta < 0.0 {
                     self.camera.zoom_switch(
                         // Thank you Imbris for doing the math
@@ -418,7 +421,11 @@ impl Scene {
                         player_scale,
                     );
                 } else {
-                    self.camera.zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01), cap, player_scale);
+                    self.camera.zoom_switch(
+                        delta * (0.05 + self.camera.get_distance() * 0.01),
+                        cap,
+                        player_scale,
+                    );
                 }
                 true
             },
@@ -1477,15 +1484,19 @@ impl Scene {
 
                         // If this shape no longer matches, remove the old one
                         if let Some(shape_id) = hitboxes.get(&entity) {
-                            if self.debug.get_shape(*shape_id).map_or(false, |s| s != &shape) {
+                            if self
+                                .debug
+                                .get_shape(*shape_id)
+                                .map_or(false, |s| s != &shape)
+                            {
                                 self.debug.remove_shape(*shape_id);
                                 hitboxes.remove(&entity);
                             }
                         }
 
-                        let shape_id = hitboxes.entry(entity).or_insert_with(|| {
-                            self.debug.add_shape(shape)
-                        });
+                        let shape_id = hitboxes
+                            .entry(entity)
+                            .or_insert_with(|| self.debug.add_shape(shape));
                         let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min * scale, 0.0];
                         let color = if group == Some(&comp::group::ENEMY) {
                             [1.0, 0.0, 0.0, 0.5]

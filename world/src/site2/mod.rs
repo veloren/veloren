@@ -7,7 +7,8 @@ use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TILE_SIZE};
 pub use self::{
     gen::{aabr_with_z, Fill, Painter, Primitive, PrimitiveRef, Structure},
     plot::{Plot, PlotKind},
-    util::Dir, tile::TileKind,
+    tile::TileKind,
+    util::Dir,
 };
 use crate::{
     sim::Path,

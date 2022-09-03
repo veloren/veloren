@@ -628,12 +628,17 @@ impl Civs {
         }
     }
 
-    /// Return the direct track between two places, bool if the track should be reversed or not
+    /// Return the direct track between two places, bool if the track should be
+    /// reversed or not
     pub fn track_between(&self, a: Id<Site>, b: Id<Site>) -> Option<(Id<Track>, bool)> {
         self.track_map
             .get(&a)
             .and_then(|dests| Some((*dests.get(&b)?, false)))
-            .or_else(|| self.track_map.get(&b).and_then(|dests| Some((*dests.get(&a)?, true))))
+            .or_else(|| {
+                self.track_map
+                    .get(&b)
+                    .and_then(|dests| Some((*dests.get(&a)?, true)))
+            })
     }
 
     /// Return an iterator over a site's neighbors
@@ -663,8 +668,9 @@ impl Civs {
                 .sqrt()
         };
         let neighbors = |p: &Id<Site>| self.neighbors(*p);
-        let transition =
-            |a: &Id<Site>, b: &Id<Site>| self.tracks.get(self.track_between(*a, *b).unwrap().0).cost;
+        let transition = |a: &Id<Site>, b: &Id<Site>| {
+            self.tracks.get(self.track_between(*a, *b).unwrap().0).cost
+        };
         let satisfied = |p: &Id<Site>| *p == b;
         // We use this hasher (FxHasher64) because
         // (1) we don't care about DDOS attacks (ruling out SipHash);

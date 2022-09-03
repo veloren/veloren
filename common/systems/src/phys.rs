@@ -62,7 +62,13 @@ fn integrate_forces(
     // Aerodynamic/hydrodynamic forces
     if !rel_flow.0.is_approx_zero() {
         debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
-        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0, wings, scale.map_or(1.0, |s| s.0));
+        let impulse = dt.0
+            * body.aerodynamic_forces(
+                &rel_flow,
+                fluid_density.0,
+                wings,
+                scale.map_or(1.0, |s| s.0),
+            );
         debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
         if !impulse.is_approx_zero() {
             let new_v = vel.0 + impulse / mass.0;

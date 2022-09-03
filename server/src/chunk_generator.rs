@@ -1,9 +1,6 @@
-use crate::{
-    metrics::ChunkGenMetrics,
-    rtsim2::RtSim,
-};
 #[cfg(not(feature = "worldgen"))]
 use crate::test_world::{IndexOwned, World};
+use crate::{metrics::ChunkGenMetrics, rtsim2::RtSim};
 use common::{
     calendar::Calendar, generation::ChunkSupplement, resources::TimeOfDay, slowjob::SlowJobPool,
     terrain::TerrainChunk,
@@ -47,10 +44,8 @@ impl ChunkGenerator {
         key: Vec2<i32>,
         slowjob_pool: &SlowJobPool,
         world: Arc<World>,
-        #[cfg(feature = "worldgen")]
-        rtsim: &RtSim,
-        #[cfg(not(feature = "worldgen"))]
-        rtsim: &(),
+        #[cfg(feature = "worldgen")] rtsim: &RtSim,
+        #[cfg(not(feature = "worldgen"))] rtsim: &(),
         index: IndexOwned,
         time: (TimeOfDay, Calendar),
     ) {

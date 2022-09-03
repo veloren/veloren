@@ -49,11 +49,11 @@ use common::{
     generation::{ChunkSupplement, EntityInfo},
     lod,
     resources::TimeOfDay,
+    rtsim::ChunkResource,
     terrain::{
         Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
-    rtsim::ChunkResource,
 };
 use common_net::msg::{world_msg, WorldMapMsg};
 use enum_map::EnumMap;
@@ -492,17 +492,19 @@ impl World {
         // Finally, defragment to minimize space consumption.
         chunk.defragment();
 
-        // Before we finish, we check candidate rtsim resource blocks, deduplicating positions and only keeping those
-        // that actually do have resources. Although this looks potentially very expensive, only blocks that are rtsim
+        // Before we finish, we check candidate rtsim resource blocks, deduplicating
+        // positions and only keeping those that actually do have resources.
+        // Although this looks potentially very expensive, only blocks that are rtsim
         // resources (i.e: a relatively small number of sprites) are processed here.
         if let Some(rtsim_resources) = rtsim_resources {
             rtsim_resource_blocks.sort_unstable_by_key(|pos| pos.into_array());
             rtsim_resource_blocks.dedup();
             for wpos in rtsim_resource_blocks {
-                chunk.map(
-                    wpos - chunk_wpos2d.with_z(0),
-                    |block| if let Some(res) = block.get_rtsim_resource() {
-                        // Note: this represents the upper limit, not the actual number spanwed, so we increment this before deciding whether we're going to spawn the resource.
+                chunk.map(wpos - chunk_wpos2d.with_z(0), |block| {
+                    if let Some(res) = block.get_rtsim_resource() {
+                        // Note: this represents the upper limit, not the actual number spanwed, so
+                        // we increment this before deciding whether we're going to spawn the
+                        // resource.
                         supplement.rtsim_max_resources[res] += 1;
                         // Throw a dice to determine whether this resource should actually spawn
                         // TODO: Don't throw a dice, try to generate the *exact* correct number
@@ -513,11 +515,10 @@ impl World {
                         }
                     } else {
                         block
-                    },
-                );
+                    }
+                });
             }
         }
-
 
         Ok((chunk, supplement))
     }

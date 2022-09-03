@@ -1,10 +1,7 @@
 use crate::data::Faction;
-use vek::*;
 use rand::prelude::*;
-use world::{
-    World,
-    IndexRef,
-};
+use vek::*;
+use world::{IndexRef, World};
 
 impl Faction {
     pub fn generate(world: &World, index: IndexRef, rng: &mut impl Rng) -> Self {

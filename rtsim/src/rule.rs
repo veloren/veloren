@@ -1,9 +1,9 @@
+pub mod npc_ai;
 pub mod setup;
 pub mod simulate_npcs;
-pub mod npc_ai;
 
-use std::fmt;
 use super::RtState;
+use std::fmt;
 
 #[derive(Debug)]
 pub enum RuleError {
@@ -13,7 +13,9 @@ pub enum RuleError {
 impl fmt::Display for RuleError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::NoSuchRule(r) => write!(f, "tried to fetch rule state '{}' but it does not exist", r),
+            Self::NoSuchRule(r) => {
+                write!(f, "tried to fetch rule state '{}' but it does not exist", r)
+            },
         }
     }
 }

@@ -100,7 +100,11 @@ fn profession_extra_loadout(
 fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent::Mark> {
     match profession {
         Some(
-            Profession::Merchant | Profession::Farmer | Profession::Chef | Profession::Blacksmith | Profession::Alchemist,
+            Profession::Merchant
+            | Profession::Farmer
+            | Profession::Chef
+            | Profession::Blacksmith
+            | Profession::Alchemist,
         ) => Some(comp::agent::Mark::Merchant),
         Some(Profession::Guard) => Some(comp::agent::Mark::Guard),
         _ => None,

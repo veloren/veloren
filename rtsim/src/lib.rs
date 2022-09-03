@@ -10,15 +10,15 @@ pub use self::{
     event::{Event, EventCtx, OnTick},
     rule::{Rule, RuleError},
 };
-use common::resources::{Time, TimeOfDay};
-use world::{World, IndexRef};
 use anymap2::SendSyncAnyMap;
-use tracing::{info, error};
 use atomic_refcell::AtomicRefCell;
+use common::resources::{Time, TimeOfDay};
 use std::{
     any::type_name,
     ops::{Deref, DerefMut},
 };
+use tracing::{error, info};
+use world::{IndexRef, World};
 
 pub struct RtState {
     resources: SendSyncAnyMap,
@@ -36,7 +36,7 @@ impl RtState {
             rules: SendSyncAnyMap::new(),
             event_handlers: SendSyncAnyMap::new(),
         }
-            .with_resource(data);
+        .with_resource(data);
 
         this.start_default_rules();
 
@@ -58,7 +58,9 @@ impl RtState {
     pub fn start_rule<R: Rule>(&mut self) {
         info!("Initiating '{}' rule...", type_name::<R>());
         match R::start(self) {
-            Ok(rule) => { self.rules.insert::<RuleState<R>>(AtomicRefCell::new(rule)); },
+            Ok(rule) => {
+                self.rules.insert::<RuleState<R>>(AtomicRefCell::new(rule));
+            },
             Err(e) => error!("Error when initiating '{}' rule: {}", type_name::<R>(), e),
         }
     }
@@ -66,11 +68,19 @@ impl RtState {
     fn rule_mut<R: Rule>(&self) -> impl DerefMut<Target = R> + '_ {
         self.rules
             .get::<RuleState<R>>()
-            .unwrap_or_else(|| panic!("Tried to access rule '{}' but it does not exist", type_name::<R>()))
+            .unwrap_or_else(|| {
+                panic!(
+                    "Tried to access rule '{}' but it does not exist",
+                    type_name::<R>()
+                )
+            })
             .borrow_mut()
     }
 
-    pub fn bind<R: Rule, E: Event>(&mut self, mut f: impl FnMut(EventCtx<R, E>) + Send + Sync + 'static) {
+    pub fn bind<R: Rule, E: Event>(
+        &mut self,
+        mut f: impl FnMut(EventCtx<R, E>) + Send + Sync + 'static,
+    ) {
         let f = AtomicRefCell::new(f);
         self.event_handlers
             .entry::<EventHandlersOf<E>>()
@@ -87,33 +97,53 @@ impl RtState {
     }
 
     pub fn data(&self) -> impl Deref<Target = Data> + '_ { self.resource() }
+
     pub fn data_mut(&self) -> impl DerefMut<Target = Data> + '_ { self.resource_mut() }
 
     pub fn resource<R: Send + Sync + 'static>(&self) -> impl Deref<Target = R> + '_ {
         self.resources
             .get::<AtomicRefCell<R>>()
-            .unwrap_or_else(|| panic!("Tried to access resource '{}' but it does not exist", type_name::<R>()))
+            .unwrap_or_else(|| {
+                panic!(
+                    "Tried to access resource '{}' but it does not exist",
+                    type_name::<R>()
+                )
+            })
             .borrow()
     }
 
     pub fn resource_mut<R: Send + Sync + 'static>(&self) -> impl DerefMut<Target = R> + '_ {
         self.resources
             .get::<AtomicRefCell<R>>()
-            .unwrap_or_else(|| panic!("Tried to access resource '{}' but it does not exist", type_name::<R>()))
+            .unwrap_or_else(|| {
+                panic!(
+                    "Tried to access resource '{}' but it does not exist",
+                    type_name::<R>()
+                )
+            })
             .borrow_mut()
     }
 
     pub fn emit<E: Event>(&mut self, e: E, world: &World, index: IndexRef) {
         self.event_handlers
             .get::<EventHandlersOf<E>>()
-            .map(|handlers| handlers
-                .iter()
-                .for_each(|f| f(self, world, index, &e)));
+            .map(|handlers| handlers.iter().for_each(|f| f(self, world, index, &e)));
     }
 
-    pub fn tick(&mut self, world: &World, index: IndexRef, time_of_day: TimeOfDay, time: Time, dt: f32) {
+    pub fn tick(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        time_of_day: TimeOfDay,
+        time: Time,
+        dt: f32,
+    ) {
         self.data_mut().time_of_day = time_of_day;
-        let event = OnTick { time_of_day, time, dt };
+        let event = OnTick {
+            time_of_day,
+            time,
+            dt,
+        };
         self.emit(event, world, index);
     }
 }

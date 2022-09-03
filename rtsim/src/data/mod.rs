@@ -1,23 +1,26 @@
 pub mod faction;
+pub mod nature;
 pub mod npc;
 pub mod site;
-pub mod nature;
 
 pub use self::{
-    npc::{Npc, NpcId, Npcs},
-    site::{Site, SiteId, Sites},
     faction::{Faction, FactionId, Factions},
     nature::Nature,
+    npc::{Npc, NpcId, Npcs},
+    site::{Site, SiteId, Sites},
 };
 
 use common::resources::TimeOfDay;
-use enum_map::{EnumMap, EnumArray, enum_map};
-use serde::{Serialize, Deserialize, ser, de};
+use enum_map::{enum_map, EnumArray, EnumMap};
+use serde::{
+    de::{self, Error as _},
+    ser, Deserialize, Serialize,
+};
 use std::{
-    io::{Read, Write},
-    marker::PhantomData,
     cmp::PartialEq,
     fmt,
+    io::{Read, Write},
+    marker::PhantomData,
 };
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
@@ -54,11 +57,15 @@ fn rugged_ser_enum_map<
     V: From<i16> + PartialEq + Serialize,
     S: ser::Serializer,
     const DEFAULT: i16,
->(map: &EnumMap<K, V>, ser: S) -> Result<S::Ok, S::Error> {
-    ser.collect_map(map
-        .iter()
-        .filter(|(k, v)| v != &&V::from(DEFAULT))
-        .map(|(k, v)| (k, v)))
+>(
+    map: &EnumMap<K, V>,
+    ser: S,
+) -> Result<S::Ok, S::Error> {
+    ser.collect_map(
+        map.iter()
+            .filter(|(k, v)| v != &&V::from(DEFAULT))
+            .map(|(k, v)| (k, v)),
+    )
 }
 
 fn rugged_de_enum_map<
@@ -67,7 +74,9 @@ fn rugged_de_enum_map<
     V: From<i16> + Deserialize<'a>,
     D: de::Deserializer<'a>,
     const DEFAULT: i16,
->(mut de: D) -> Result<EnumMap<K, V>, D::Error> {
+>(
+    mut de: D,
+) -> Result<EnumMap<K, V>, D::Error> {
     struct Visitor<K, V, const DEFAULT: i16>(PhantomData<(K, V)>);
 
     impl<'de, K, V, const DEFAULT: i16> de::Visitor<'de> for Visitor<K, V, DEFAULT>

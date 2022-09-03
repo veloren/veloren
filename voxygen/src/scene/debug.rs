@@ -293,9 +293,7 @@ impl Debug {
         id
     }
 
-    pub fn get_shape(&self, id: DebugShapeId) -> Option<&DebugShape> {
-        self.shapes.get(&id)
-    }
+    pub fn get_shape(&self, id: DebugShapeId) -> Option<&DebugShape> { self.shapes.get(&id) }
 
     pub fn set_context(&mut self, id: DebugShapeId, pos: [f32; 4], color: [f32; 4], ori: [f32; 4]) {
         self.pending_locals.insert(id, (pos, color, ori));

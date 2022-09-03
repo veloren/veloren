@@ -10,7 +10,8 @@ use common::{
     path::Path,
     rtsim::{Profession, SiteId},
     store::Id,
-    terrain::TerrainChunkSize, vol::RectVolSize,
+    terrain::TerrainChunkSize,
+    vol::RectVolSize,
 };
 use fxhash::FxHasher64;
 use itertools::Itertools;
@@ -236,10 +237,12 @@ impl Rule for NpcAi {
             let data = &mut *ctx.state.data_mut();
             let mut dynamic_rng = rand::thread_rng();
             for npc in data.npcs.values_mut() {
-                npc.current_site = ctx.world.sim().get(npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_()).and_then(|chunk| {
-                    data.sites.world_site_map.get(chunk.sites.first()?).copied()
-                });
-                
+                npc.current_site = ctx
+                    .world
+                    .sim()
+                    .get(npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_())
+                    .and_then(|chunk| data.sites.world_site_map.get(chunk.sites.first()?).copied());
+
                 if let Some(home_id) = npc.home {
                     if let Some((target, _)) = npc.goto {
                         // Walk to the current target

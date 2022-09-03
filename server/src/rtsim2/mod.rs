@@ -4,33 +4,29 @@ pub mod tick;
 
 use common::{
     grid::Grid,
-    slowjob::SlowJobPool,
     rtsim::{ChunkResource, RtSimEntity, WorldSettings},
-    terrain::{TerrainChunk, Block},
+    slowjob::SlowJobPool,
+    terrain::{Block, TerrainChunk},
     vol::RectRasterableVol,
 };
 use common_ecs::{dispatch, System};
+use enum_map::EnumMap;
 use rtsim2::{
-    data::{
-        npc::NpcMode,
-        Data,
-        ReadError,
-    },
-    rule::Rule,
+    data::{npc::NpcMode, Data, ReadError},
     event::OnSetup,
+    rule::Rule,
     RtState,
 };
 use specs::{DispatcherBuilder, WorldExt};
 use std::{
+    error::Error,
     fs::{self, File},
+    io::{self, Write},
     path::PathBuf,
     sync::Arc,
     time::Instant,
-    io::{self, Write},
-    error::Error,
 };
-use enum_map::EnumMap;
-use tracing::{error, warn, info, debug};
+use tracing::{debug, error, info, warn};
 use vek::*;
 use world::{IndexRef, World};
 
@@ -41,7 +37,12 @@ pub struct RtSim {
 }
 
 impl RtSim {
-    pub fn new(settings: &WorldSettings, index: IndexRef, world: &World, data_dir: PathBuf) -> Result<Self, ron::Error> {
+    pub fn new(
+        settings: &WorldSettings,
+        index: IndexRef,
+        world: &World,
+        data_dir: PathBuf,
+    ) -> Result<Self, ron::Error> {
         let file_path = Self::get_file_path(data_dir);
 
         info!("Looking for rtsim data at {}...", file_path.display());
@@ -51,7 +52,10 @@ impl RtSim {
                     Ok(file) => {
                         info!("Rtsim data found. Attempting to load...");
                         match Data::from_reader(io::BufReader::new(file)) {
-                            Ok(data) => { info!("Rtsim data loaded."); break 'load data },
+                            Ok(data) => {
+                                info!("Rtsim data loaded.");
+                                break 'load data;
+                            },
                             Err(e) => {
                                 error!("Rtsim data failed to load: {}", e);
                                 let mut i = 0;
@@ -64,7 +68,10 @@ impl RtSim {
                                     });
                                     if !backup_path.exists() {
                                         fs::rename(&file_path, &backup_path)?;
-                                        warn!("Failed rtsim data was moved to {}", backup_path.display());
+                                        warn!(
+                                            "Failed rtsim data was moved to {}",
+                                            backup_path.display()
+                                        );
                                         info!("A fresh rtsim data will now be generated.");
                                         break;
                                     }
@@ -73,12 +80,16 @@ impl RtSim {
                             },
                         }
                     },
-                    Err(e) if e.kind() == io::ErrorKind::NotFound =>
-                        info!("No rtsim data found. Generating from world..."),
+                    Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                        info!("No rtsim data found. Generating from world...")
+                    },
                     Err(e) => return Err(e.into()),
                 }
             } else {
-                warn!("'RTSIM_NOLOAD' is set, skipping loading of rtsim state (old state will be overwritten).");
+                warn!(
+                    "'RTSIM_NOLOAD' is set, skipping loading of rtsim state (old state will be \
+                     overwritten)."
+                );
             }
 
             let data = Data::generate(settings, &world, index);
@@ -88,8 +99,10 @@ impl RtSim {
 
         let mut this = Self {
             last_saved: None,
-            state: RtState::new(data)
-                .with_resource(ChunkStates(Grid::populate_from(world.sim().get_size().as_(), |_| None))),
+            state: RtState::new(data).with_resource(ChunkStates(Grid::populate_from(
+                world.sim().get_size().as_(),
+                |_| None,
+            ))),
             file_path,
         };
 
@@ -123,8 +136,16 @@ impl RtSim {
         }
     }
 
-    pub fn hook_block_update(&mut self, world: &World, index: IndexRef, wpos: Vec3<i32>, old: Block, new: Block) {
-        self.state.emit(event::OnBlockChange { wpos, old, new }, world, index);
+    pub fn hook_block_update(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        wpos: Vec3<i32>,
+        old: Block,
+        new: Block,
+    ) {
+        self.state
+            .emit(event::OnBlockChange { wpos, old, new }, world, index);
     }
 
     pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
@@ -155,10 +176,8 @@ impl RtSim {
                     Ok(dir.join(tmp_file_name))
                 })
                 .unwrap_or_else(|| Ok(tmp_file_name.into()))
-                .and_then(|tmp_file_path| {
-                    Ok((File::create(&tmp_file_path)?, tmp_file_path))
-                })
-                .map_err(|e: io::Error| Box::new(e) as Box::<dyn Error>)
+                .and_then(|tmp_file_path| Ok((File::create(&tmp_file_path)?, tmp_file_path)))
+                .map_err(|e: io::Error| Box::new(e) as Box<dyn Error>)
                 .and_then(|(mut file, tmp_file_path)| {
                     debug!("Writing rtsim data to file...");
                     data.write_to(io::BufWriter::new(&mut file))?;
@@ -180,9 +199,7 @@ impl RtSim {
         self.state.data().nature.get_chunk_resources(key)
     }
 
-    pub fn state(&self) -> &RtState {
-        &self.state
-    }
+    pub fn state(&self) -> &RtState { &self.state }
 }
 
 struct ChunkStates(pub Grid<Option<LoadedChunkState>>);

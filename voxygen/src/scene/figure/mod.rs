@@ -776,7 +776,8 @@ impl FigureMgr {
             .enumerate()
         {
             // Velocity relative to the current ground
-            let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel) / scale.map_or(1.0, |s| s.0);
+            let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel)
+                / scale.map_or(1.0, |s| s.0);
 
             let look_dir = controller.map(|c| c.inputs.look_dir).unwrap_or_default();
             let is_viewpoint = scene_data.viewpoint_entity == entity;
@@ -809,8 +810,9 @@ impl FigureMgr {
             const MIN_PERFECT_RATE_DIST: f32 = 100.0;
 
             if (i as u64 + tick)
-                % ((((pos.0.distance_squared(focus_pos) / scale.map_or(1.0, |s| s.0)).powf(0.25) - MIN_PERFECT_RATE_DIST.sqrt())
-                    .max(0.0)
+                % ((((pos.0.distance_squared(focus_pos) / scale.map_or(1.0, |s| s.0)).powf(0.25)
+                    - MIN_PERFECT_RATE_DIST.sqrt())
+                .max(0.0)
                     / 3.0) as u64)
                     .saturating_add(1)
                 != 0
@@ -6707,8 +6709,10 @@ impl FigureMgr {
         } {
             let model_entry = model_entry?;
 
-            let figure_low_detail_distance = figure_lod_render_distance * scale.map_or(1.0, |s| s.0) * 0.75;
-            let figure_mid_detail_distance = figure_lod_render_distance * scale.map_or(1.0, |s| s.0) * 0.5;
+            let figure_low_detail_distance =
+                figure_lod_render_distance * scale.map_or(1.0, |s| s.0) * 0.75;
+            let figure_mid_detail_distance =
+                figure_lod_render_distance * scale.map_or(1.0, |s| s.0) * 0.5;
 
             let model = if pos.distance_squared(cam_pos) > figure_low_detail_distance.powi(2) {
                 model_entry.lod_model(2)

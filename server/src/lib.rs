@@ -83,7 +83,7 @@ use common::{
     rtsim::RtSimEntity,
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
-    terrain::{TerrainChunk, TerrainChunkSize, Block},
+    terrain::{Block, TerrainChunk, TerrainChunkSize},
     vol::RectRasterableVol,
 };
 use common_ecs::run_now;
@@ -565,7 +565,12 @@ impl Server {
         // Init rtsim, loading it from disk if possible
         #[cfg(feature = "worldgen")]
         {
-            match rtsim2::RtSim::new(&settings.world, index.as_index_ref(), &world, data_dir.to_owned()) {
+            match rtsim2::RtSim::new(
+                &settings.world,
+                index.as_index_ref(),
+                &world,
+                data_dir.to_owned(),
+            ) {
                 Ok(rtsim) => {
                     state.ecs_mut().insert(rtsim.state().data().time_of_day);
                     state.ecs_mut().insert(rtsim);
@@ -706,9 +711,15 @@ impl Server {
 
         let before_state_tick = Instant::now();
 
-        fn on_block_update(ecs: &specs::World, wpos: Vec3<i32>, old_block: Block, new_block: Block) {
+        fn on_block_update(
+            ecs: &specs::World,
+            wpos: Vec3<i32>,
+            old_block: Block,
+            new_block: Block,
+        ) {
             // When a resource block updates, inform rtsim
-            if old_block.get_rtsim_resource().is_some() || new_block.get_rtsim_resource().is_some() {
+            if old_block.get_rtsim_resource().is_some() || new_block.get_rtsim_resource().is_some()
+            {
                 ecs.write_resource::<rtsim2::RtSim>().hook_block_update(
                     &ecs.read_resource::<Arc<world::World>>(),
                     ecs.read_resource::<world::IndexOwned>().as_index_ref(),

@@ -1,7 +1,7 @@
 pub mod deplete_resources;
 
-use tracing::info;
 use rtsim2::RtState;
+use tracing::info;
 
 pub fn start_rules(rtstate: &mut RtState) {
     info!("Starting server rtsim rules...");

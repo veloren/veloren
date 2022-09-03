@@ -1,14 +1,11 @@
-use hashbrown::HashMap;
-use serde::{Serialize, Deserialize};
-use slotmap::HopSlotMap;
-use vek::*;
-use std::ops::{Deref, DerefMut};
-use common::{
-    uid::Uid,
-    store::Id,
-};
 use super::Actor;
 pub use common::rtsim::FactionId;
+use common::{store::Id, uid::Uid};
+use hashbrown::HashMap;
+use serde::{Deserialize, Serialize};
+use slotmap::HopSlotMap;
+use std::ops::{Deref, DerefMut};
+use vek::*;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Faction {
@@ -21,13 +18,12 @@ pub struct Factions {
 }
 
 impl Factions {
-    pub fn create(&mut self, faction: Faction) -> FactionId {
-        self.factions.insert(faction)
-    }
+    pub fn create(&mut self, faction: Faction) -> FactionId { self.factions.insert(faction) }
 }
 
 impl Deref for Factions {
     type Target = HopSlotMap<FactionId, Faction>;
+
     fn deref(&self) -> &Self::Target { &self.factions }
 }
 

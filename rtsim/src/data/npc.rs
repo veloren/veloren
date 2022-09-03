@@ -1,18 +1,20 @@
-use hashbrown::HashMap;
-use serde::{Serialize, Deserialize};
-use slotmap::HopSlotMap;
-use vek::*;
-use rand::prelude::*;
-use std::{ops::{Deref, DerefMut}, collections::VecDeque};
-use common::{
-    uid::Uid,
-    store::Id,
-    rtsim::{SiteId, FactionId, RtSimController},
-    comp,
-};
-use world::{util::RandomPerm, civ::Track};
-use world::site::Site as WorldSite;
 pub use common::rtsim::{NpcId, Profession};
+use common::{
+    comp,
+    rtsim::{FactionId, RtSimController, SiteId},
+    store::Id,
+    uid::Uid,
+};
+use hashbrown::HashMap;
+use rand::prelude::*;
+use serde::{Deserialize, Serialize};
+use slotmap::HopSlotMap;
+use std::{
+    collections::VecDeque,
+    ops::{Deref, DerefMut},
+};
+use vek::*;
+use world::{civ::Track, site::Site as WorldSite, util::RandomPerm};
 
 #[derive(Copy, Clone, Default)]
 pub enum NpcMode {
@@ -39,7 +41,6 @@ pub struct PathingMemory {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Npc {
     // Persisted state
-
     /// Represents the location of the NPC.
     pub seed: u32,
     pub wpos: Vec3<f32>,
@@ -58,17 +59,18 @@ pub struct Npc {
     /// (wpos, speed_factor)
     #[serde(skip_serializing, skip_deserializing)]
     pub goto: Option<(Vec3<f32>, f32)>,
-    
-    /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the server, loaded corresponds to being
-    /// within a loaded chunk). When in loaded mode, the interactions of the NPC should not be simulated but should
-    /// instead be derived from the game.
+
+    /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the
+    /// server, loaded corresponds to being within a loaded chunk). When in
+    /// loaded mode, the interactions of the NPC should not be simulated but
+    /// should instead be derived from the game.
     #[serde(skip_serializing, skip_deserializing)]
     pub mode: NpcMode,
 }
 
 impl Npc {
-    const PERM_SPECIES: u32 = 0;
     const PERM_BODY: u32 = 1;
+    const PERM_SPECIES: u32 = 0;
 
     pub fn new(seed: u32, wpos: Vec3<f32>) -> Self {
         Self {
@@ -115,13 +117,12 @@ pub struct Npcs {
 }
 
 impl Npcs {
-    pub fn create(&mut self, npc: Npc) -> NpcId {
-        self.npcs.insert(npc)
-    }
+    pub fn create(&mut self, npc: Npc) -> NpcId { self.npcs.insert(npc) }
 }
 
 impl Deref for Npcs {
     type Target = HopSlotMap<NpcId, Npc>;
+
     fn deref(&self) -> &Self::Target { &self.npcs }
 }
 

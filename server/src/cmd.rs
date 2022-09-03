@@ -1192,9 +1192,19 @@ fn handle_tp_npc(
 ) -> CmdResult<()> {
     use crate::rtsim2::RtSim;
     let pos = if let Some(id) = parse_cmd_args!(args, u32) {
-        // TODO: Take some other identifier than an integer to this command. 
-        server.state.ecs().read_resource::<RtSim>().state().data().npcs.values().nth(id as usize).ok_or(action.help_string())?.wpos
-    }  else {
+        // TODO: Take some other identifier than an integer to this command.
+        server
+            .state
+            .ecs()
+            .read_resource::<RtSim>()
+            .state()
+            .data()
+            .npcs
+            .values()
+            .nth(id as usize)
+            .ok_or(action.help_string())?
+            .wpos
+    } else {
         return Err(action.help_string());
     };
     position_mut(server, target, "target", |target_pos| {
@@ -3873,12 +3883,7 @@ fn handle_scale(
             .write_storage::<comp::Scale>()
             .insert(target, comp::Scale(scale));
         if reset_mass.unwrap_or(true) {
-            if let Some(body) = server
-                .state
-                .ecs()
-                .read_storage::<comp::Body>()
-                .get(target)
-            {
+            if let Some(body) = server.state.ecs().read_storage::<comp::Body>().get(target) {
                 let _ = server
                     .state
                     .ecs()

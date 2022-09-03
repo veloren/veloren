@@ -1012,8 +1012,11 @@ pub fn merchant_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder
-        .with_asset_expect("common.loadout.village.merchant", &mut thread_rng()), economy, |_| true)
+    trader_loadout(
+        loadout_builder.with_asset_expect("common.loadout.village.merchant", &mut thread_rng()),
+        economy,
+        |_| true,
+    )
 }
 
 pub fn trader_loadout(
@@ -1030,10 +1033,13 @@ pub fn trader_loadout(
     let mut bag4 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
     let slots = backpack.slots().len() + 4 * bag1.slots().len();
     let mut stockmap: HashMap<Good, f32> = economy
-        .map(|e| e.unconsumed_stock.clone()
-            .into_iter()
-            .filter(|(good, _)| permitted(*good))
-            .collect())
+        .map(|e| {
+            e.unconsumed_stock
+                .clone()
+                .into_iter()
+                .filter(|(good, _)| permitted(*good))
+                .collect()
+        })
         .unwrap_or_default();
     // modify stock for better gameplay
 

@@ -7,9 +7,8 @@ use crate::{
         skillset::SkillGroupKind,
         BuffKind, BuffSource, PhysicsState,
     },
-    // rtsim::RtSim,
-    sys::terrain::SAFE_ZONE_RADIUS,
     rtsim2,
+    sys::terrain::SAFE_ZONE_RADIUS,
     Server, SpawnPoint, StateExt,
 };
 use authc::Uuid;

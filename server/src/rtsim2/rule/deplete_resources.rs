@@ -1,13 +1,7 @@
-use tracing::info;
+use crate::rtsim2::{event::OnBlockChange, ChunkStates};
+use common::{terrain::TerrainChunk, vol::RectRasterableVol};
 use rtsim2::{RtState, Rule, RuleError};
-use crate::rtsim2::{
-    event::OnBlockChange,
-    ChunkStates,
-};
-use common::{
-    terrain::TerrainChunk,
-    vol::RectRasterableVol,
-};
+use tracing::info;
 
 pub struct DepleteResources;
 
@@ -16,7 +10,9 @@ impl Rule for DepleteResources {
         info!("Hello from the resource depletion rule!");
 
         rtstate.bind::<Self, OnBlockChange>(|ctx| {
-            let key = ctx.event.wpos
+            let key = ctx
+                .event
+                .wpos
                 .xy()
                 .map2(TerrainChunk::RECT_SIZE, |e, sz| e.div_euclid(sz as i32));
             if let Some(Some(chunk_state)) = ctx.state.resource_mut::<ChunkStates>().0.get(key) {
@@ -26,7 +22,8 @@ impl Rule for DepleteResources {
                     if chunk_state.max_res[res] > 0 {
                         chunk_res[res] = (chunk_res[res] * chunk_state.max_res[res] as f32 - 1.0)
                             .round()
-                            .max(0.0) / chunk_state.max_res[res] as f32;
+                            .max(0.0)
+                            / chunk_state.max_res[res] as f32;
                     }
                 }
                 // Add resources
@@ -34,11 +31,15 @@ impl Rule for DepleteResources {
                     if chunk_state.max_res[res] > 0 {
                         chunk_res[res] = (chunk_res[res] * chunk_state.max_res[res] as f32 + 1.0)
                             .round()
-                            .max(0.0) / chunk_state.max_res[res] as f32;
+                            .max(0.0)
+                            / chunk_state.max_res[res] as f32;
                     }
                 }
                 println!("Chunk resources = {:?}", chunk_res);
-                ctx.state.data_mut().nature.set_chunk_resources(key, chunk_res);
+                ctx.state
+                    .data_mut()
+                    .nature
+                    .set_chunk_resources(key, chunk_res);
             }
         });
 

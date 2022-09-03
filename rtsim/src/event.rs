@@ -1,6 +1,6 @@
+use super::{RtState, Rule};
 use common::resources::{Time, TimeOfDay};
-use world::{World, IndexRef};
-use super::{Rule, RtState};
+use world::{IndexRef, World};
 
 pub trait Event: Clone + 'static {}
 

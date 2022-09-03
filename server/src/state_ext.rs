@@ -5,9 +5,9 @@ use crate::{
     persistence::PersistedComponents,
     pet::restore_pet,
     presence::{Presence, RepositionOnChunkLoad},
+    rtsim2::RtSim,
     settings::Settings,
     sys::sentinel::DeletedEntities,
-    rtsim2::RtSim,
     wiring, BattleModeBuffer, SpawnPoint,
 };
 use common::{

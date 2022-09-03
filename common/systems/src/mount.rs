@@ -1,5 +1,5 @@
 use common::{
-    comp::{Body, Controller, InputKind, Ori, Pos, Vel, Scale},
+    comp::{Body, Controller, InputKind, Ori, Pos, Scale, Vel},
     link::Is,
     mounting::Mount,
     uid::UidAllocator,
@@ -69,8 +69,10 @@ impl<'a> System<'a> for Sys {
             let vel = velocities.get(entity).copied();
             if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
                 let mounter_body = bodies.get(rider);
-                let mounting_offset = body.map_or(Vec3::unit_z(), Body::mount_offset) * scales.get(entity).map_or(1.0, |s| s.0)
-                    + mounter_body.map_or(Vec3::zero(), Body::rider_offset) * scales.get(rider).map_or(1.0, |s| s.0);
+                let mounting_offset = body.map_or(Vec3::unit_z(), Body::mount_offset)
+                    * scales.get(entity).map_or(1.0, |s| s.0)
+                    + mounter_body.map_or(Vec3::zero(), Body::rider_offset)
+                        * scales.get(rider).map_or(1.0, |s| s.0);
                 let _ = positions.insert(rider, Pos(pos.0 + ori.to_quat() * mounting_offset));
                 let _ = orientations.insert(rider, ori);
                 let _ = velocities.insert(rider, vel);

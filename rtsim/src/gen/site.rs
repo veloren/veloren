@@ -1,14 +1,15 @@
-use crate::data::{Site, FactionId};
+use crate::data::{FactionId, Site};
 use common::store::Id;
 use vek::*;
-use world::{
-    site::Site as WorldSite,
-    World,
-    IndexRef,
-};
+use world::{site::Site as WorldSite, IndexRef, World};
 
 impl Site {
-    pub fn generate(world_site: Id<WorldSite>, world: &World, index: IndexRef, nearby_factions: &[(Vec2<i32>, FactionId)]) -> Self {
+    pub fn generate(
+        world_site: Id<WorldSite>,
+        world: &World,
+        index: IndexRef,
+        nearby_factions: &[(Vec2<i32>, FactionId)],
+    ) -> Self {
         let wpos = index.sites.get(world_site).get_origin();
 
         Self {

@@ -9,8 +9,9 @@ use common::{
     mounting::Mount,
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
+    rtsim::RtSimEntity,
     terrain::TerrainGrid,
-    uid::{Uid, UidAllocator}, rtsim::RtSimEntity,
+    uid::{Uid, UidAllocator},
 };
 use specs::{
     shred::ResourceId, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData,
@@ -154,7 +155,6 @@ pub struct ReadData<'a> {
     #[cfg(feature = "worldgen")]
     pub world: ReadExpect<'a, Arc<world::World>>,
     pub rtsim_entity: ReadStorage<'a, RtSimEntity>,
-    //pub rtsim_entities: ReadStorage<'a, RtSimEntity>,
     pub buffs: ReadStorage<'a, Buffs>,
     pub combos: ReadStorage<'a, Combo>,
     pub active_abilities: ReadStorage<'a, ActiveAbilities>,
