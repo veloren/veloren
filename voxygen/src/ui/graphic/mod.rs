@@ -13,7 +13,7 @@ use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
 use slab::Slab;
 use std::{hash::Hash, sync::Arc};
-use tracing::warn;
+use tracing::{error, warn};
 use vek::*;
 
 #[derive(Clone)]
@@ -25,6 +25,7 @@ pub enum Graphic {
     /// non-square (meaning if we want to display the whole map and render to a
     /// square, we may render out of bounds unless we perform proper
     /// clipping).
+    // TODO: probably convert this type to `RgbaImage`.
     Image(Arc<DynamicImage>, Option<Rgba<f32>>),
     // Note: none of the users keep this Arc currently
     Voxel(Arc<Segment>, Transform, SampleStrat),
@@ -60,9 +61,6 @@ pub struct Id(u32);
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct TexId(usize);
 
-// TODO replace with slab/slotmap
-type GraphicMap = HashMap<Id, Graphic>;
-
 enum CachedDetails {
     Atlas {
         // Index of the atlas this is cached in
@@ -93,6 +91,8 @@ impl CachedDetails {
         atlases: &[(SimpleAtlasAllocator, usize)],
         textures: &Slab<(Texture, UiTextureBindGroup)>,
     ) -> (usize, bool, Aabr<u16>) {
+        // NOTE: We don't accept images larger than u16::MAX (rejected in `cache_res`)
+        // (and probably would not be able to create a texture this large).
         match *self {
             CachedDetails::Atlas {
                 atlas_idx,
@@ -103,7 +103,6 @@ impl CachedDetails {
                 (index, valid, Aabr {
                     min: Vec2::zero(),
                     // Note texture should always match the cached dimensions
-                    // TODO: Justify cast here?
                     max: textures[index].0.get_dimensions().xy().map(|e| e as u16),
                 })
             },
@@ -111,7 +110,6 @@ impl CachedDetails {
                 (index, true, Aabr {
                     min: Vec2::zero(),
                     // Note texture should always match the cached dimensions
-                    // TODO: Justify cast here?
                     max: textures[index].0.get_dimensions().xy().map(|e| e as u16),
                 })
             },
@@ -139,17 +137,22 @@ impl CachedDetails {
 // Caches graphics, only deallocates when changing screen resolution (completely
 // cleared)
 pub struct GraphicCache {
-    graphic_map: GraphicMap,
-    // Next id to use when a new graphic is added
+    // TODO replace with slotmap
+    graphic_map: HashMap<Id, Graphic>,
+    /// Next id to use when a new graphic is added
     next_id: u32,
 
-    // Atlases with the index of their texture in the textures vec
+    /// Atlases with the index of their texture in the textures vec
     atlases: Vec<(SimpleAtlasAllocator, usize)>,
     textures: Slab<(Texture, UiTextureBindGroup)>,
-    // Stores the location of graphics rendered at a particular resolution and cached on the cpu
-    cache_map: HashMap<Id, CachedDetails>,
+    /// The location and details of graphics cached on the GPU.
+    ///
+    /// Graphic::Voxel images include the dimensions they were rasterized at in
+    /// the key. Other images are scaled as part of sampling them on the
+    /// GPU.
+    cache_map: HashMap<(Id, Option<Vec2<u16>>), CachedDetails>,
 
-    keyed_jobs: KeyedJobs<(Id, Vec2<u16>), Option<(RgbaImage, Option<Rgba<f32>>)>>,
+    keyed_jobs: KeyedJobs<(Id, Option<Vec2<u16>>), (RgbaImage, Option<Rgba<f32>>)>,
 }
 impl GraphicCache {
     pub fn new(renderer: &mut Renderer) -> Self {
@@ -183,7 +186,7 @@ impl GraphicCache {
 
         // Remove from caches
         // Maybe make this more efficient if replace graphic is used more often
-        self.cache_map.retain(|&key_id, details| {
+        self.cache_map.retain(|&(key_id, _), details| {
             // If the entry does not reference id, or it does but we can successfully
             // invalidate, retain the entry; otherwise, discard this entry completely.
             key_id != id
@@ -210,6 +213,8 @@ impl GraphicCache {
                     use common::vol::SizedVol;
                     let size = segment.size();
                     // TODO: HACK because they can be rotated arbitrarily, remove
+                    // (and they can be rasterized at arbitrary resolution)
+                    // (might need to return None here?)
                     Some((size.x, size.z))
                 },
                 Graphic::Blank => None,
@@ -238,22 +243,21 @@ impl GraphicCache {
         pool: Option<&SlowJobPool>,
         graphic_id: Id,
         // TODO: if we aren't resizing here we can upload image earlier... (as long as this doesn't
-        // lead to uploading too much unused stuff). (cache_res name invalid)
-        dims: Vec2<u16>,
+        // lead to uploading too much unused stuff).
+        requested_dims: Vec2<u16>,
         source: Aabr<f64>,
         rotation: Rotation,
     ) -> Option<((Aabr<f64>, Vec2<f32>), TexId)> {
-        let dims = match rotation {
-            // The image is placed into the atlas with no rotation, so we need to swap the
-            // dimensions here to get the resolution that the image will be displayed at but
-            // re-oriented into the "upright" space that the image is stored in and sampled from
-            // (this can be bit confusing initially / hard to explain).
-            Rotation::Cw90 | Rotation::Cw270 => Vec2::new(dims.y, dims.x),
-            Rotation::None | Rotation::Cw180 => dims,
-            Rotation::SourceNorth => dims,
-            Rotation::TargetNorth => dims,
+        let requested_dims_upright = match rotation {
+            // The image is stored on the GPU with no rotation, so we need to swap the dimensions
+            // here to get the resolution that the image will be displayed at but re-oriented into
+            // the "upright" space that the image is stored in and sampled from (this can be bit
+            // confusing initially / hard to explain).
+            Rotation::Cw90 | Rotation::Cw270 => requested_dims.yx(),
+            Rotation::None | Rotation::Cw180 => requested_dims,
+            Rotation::SourceNorth => requested_dims,
+            Rotation::TargetNorth => requested_dims,
         };
-        let key = graphic_id;
 
         // Rotate aabr according to requested rotation.
         let rotated_aabr = |Aabr { min, max }| match rotation {
@@ -283,8 +287,8 @@ impl GraphicCache {
             // Calculate how many displayed pixels there are for each pixel in the source
             // image. We need this to calculate where to sample in the shader to
             // retain crisp pixel borders when scaling the image.
-            // TODO: A bit hacky inserting this here, just to get things working initially
-            let scale = dims.map2(
+            // S-TODO: A bit hacky inserting this here, just to get things working initially
+            let scale = requested_dims_upright.map2(
                 Vec2::from(scaled.size()),
                 |screen_pixels, sample_pixels: f64| screen_pixels as f32 / sample_pixels as f32,
             );
@@ -300,6 +304,25 @@ impl GraphicCache {
             ..
         } = self;
 
+        let graphic = match graphic_map.get(&graphic_id) {
+            Some(g) => g,
+            None => {
+                warn!(
+                    ?graphic_id,
+                    "A graphic was requested via an id which is not in use"
+                );
+                return None;
+            },
+        };
+
+        let key = (
+            graphic_id,
+            // Dimensions only included in the key for voxel graphics which we rasterize at the
+            // size that they will be displayed at (other images are scaled when sampling them on
+            // the GPU).
+            matches!(graphic, Graphic::Voxel { .. }).then(|| requested_dims_upright),
+        );
+
         let details = match cache_map.entry(key) {
             Entry::Occupied(details) => {
                 let details = details.get();
@@ -309,8 +332,13 @@ impl GraphicCache {
                 // graphic
                 if !valid {
                     // Create image
-                    let (image, border) =
-                        draw_graphic(graphic_map, graphic_id, dims, &mut self.keyed_jobs, pool)?;
+                    let (image, border) = prepare_graphic(
+                        graphic,
+                        graphic_id,
+                        requested_dims_upright,
+                        &mut self.keyed_jobs,
+                        pool,
+                    )?;
                     // If the cache location is invalid, we know the underlying texture is mutable,
                     // so we should be able to replace the graphic.  However, we still want to make
                     // sure that we are not reusing textures for images that specify a border
@@ -325,13 +353,31 @@ impl GraphicCache {
             Entry::Vacant(details) => details,
         };
 
-        // Construct image in a threadpool
+        // Construct image in an optional threadpool.
+        let (image, border_color) = prepare_graphic(
+            graphic,
+            graphic_id,
+            requested_dims_upright,
+            &mut self.keyed_jobs,
+            pool,
+        )?;
 
-        let (image, border_color) =
-            draw_graphic(graphic_map, graphic_id, dims, &mut self.keyed_jobs, pool)?;
-
-        // TODO: justify cast?
-        let image_dims = Vec2::<u32>::from(image.dimensions()).map(|e| e as u16);
+        // Image sizes over u16::MAX are not supported (and we would probably not be
+        // able to create a texture large enough to hold them on the GPU anyway)!
+        let image_dims = match {
+            let (x, y) = image.dimensions();
+            (u16::try_from(x), u16::try_from(y))
+        } {
+            (Ok(x), Ok(y)) => Vec2::new(x, y),
+            _ => {
+                error!(
+                    "Image dimensions greater than u16::MAX are not supported! Supplied image \
+                     size: {:?}.",
+                    image.dimensions()
+                );
+                return None;
+            },
+        };
 
         // Upload
         let atlas_size = atlas_size(renderer);
@@ -422,52 +468,52 @@ impl GraphicCache {
     }
 }
 
-// Draw a graphic at the specified dimensions
-fn draw_graphic(
-    graphic_map: &GraphicMap,
+/// Prepare the graphic into the form that will be uploaded to the GPU.
+///
+/// For voxel graphics, draws the graphic at the specified dimensions.
+///
+/// Also pre-multiplies alpha in images so they can be linearly filtered on the
+/// GPU.
+fn prepare_graphic(
+    graphic: &Graphic,
     graphic_id: Id,
     dims: Vec2<u16>,
-    keyed_jobs: &mut KeyedJobs<(Id, Vec2<u16>), Option<(RgbaImage, Option<Rgba<f32>>)>>,
+    keyed_jobs: &mut KeyedJobs<(Id, Option<Vec2<u16>>), (RgbaImage, Option<Rgba<f32>>)>,
     pool: Option<&SlowJobPool>,
 ) -> Option<(RgbaImage, Option<Rgba<f32>>)> {
-    match graphic_map.get(&graphic_id) {
+    match graphic {
         // Short-circuit spawning a job on the threadpool for blank graphics
-        Some(Graphic::Blank) => None,
-        Some(inner) => {
-            keyed_jobs
-                .spawn(pool, (graphic_id, dims), || {
-                    let inner = inner.clone();
-                    move |_| {
-                        match inner {
-                            // Render image at requested resolution
-                            // TODO: Use source aabr.
-                            Graphic::Image(ref image, border_color) => Some((
-                                /*resize_pixel_art(
-                                    &image.to_rgba8(),
-                                    u32::from(dims.x),
-                                    u32::from(dims.y),
-                                ),*/
-                                image.to_rgba8(),
-                                border_color,
-                            )),
-                            Graphic::Voxel(ref segment, trans, sample_strat) => {
-                                // TODO: how to decide on dimensions to render voxel models to?
-                                // (with resizing being done in shaders)
-                                Some((renderer::draw_vox(segment, dims, trans, sample_strat), None))
-                            },
-                            Graphic::Blank => None,
-                        }
-                    }
-                })
-                .and_then(|(_, v)| v)
-        },
-        None => {
-            warn!(
-                ?graphic_id,
-                "A graphic was requested via an id which is not in use"
-            );
-            None
-        },
+        Graphic::Blank => None,
+        // Dimensions are only included in the key for Graphic::Voxel since otherwise we will
+        // resize on the GPU.
+        Graphic::Image(image, border_color) => keyed_jobs
+            .spawn(pool, (graphic_id, None), || {
+                let image = Arc::clone(image);
+                let border_color = *border_color;
+                move |_| {
+                    // Image will be rescaled when sampling from it on the GPU so we don't
+                    // need to resize it here.
+                    let mut image = image.to_rgba8();
+                    // TODO: could potentially do this when loading the image and for voxel
+                    // images maybe at some point in the `draw_vox` processing. Or we could
+                    // push it in the other direction and do conversion on the GPU.
+                    premultiply_alpha(&mut image);
+                    (image, border_color)
+                }
+            })
+            .map(|(_, v)| v),
+        Graphic::Voxel(segment, trans, sample_strat) => keyed_jobs
+            .spawn(pool, (graphic_id, Some(dims)), || {
+                let segment = Arc::clone(segment);
+                let (trans, sample_strat) = (*trans, *sample_strat);
+                move |_| {
+                    // Render voxel model at requested resolution
+                    let mut image = renderer::draw_vox(&segment, dims, trans, sample_strat);
+                    premultiply_alpha(&mut image);
+                    (image, None)
+                }
+            })
+            .map(|(_, v)| v),
     }
 }
 
@@ -483,7 +529,7 @@ fn create_atlas_texture(
     renderer: &mut Renderer,
 ) -> (SimpleAtlasAllocator, (Texture, UiTextureBindGroup)) {
     let size = atlas_size(renderer);
-    // Note: here we assume the atlas size is under i32::MAX
+    // Note: here we assume the max texture size is under i32::MAX.
     let atlas = SimpleAtlasAllocator::new(size2(size.x as i32, size.y as i32));
     let texture = {
         let tex = renderer.create_dynamic_texture(size);
@@ -496,6 +542,8 @@ fn create_atlas_texture(
 
 fn aabr_from_alloc_rect(rect: guillotiere::Rectangle) -> Aabr<u16> {
     let (min, max) = (rect.min, rect.max);
+    // Note: here we assume the max texture size (and thus the maximum size of the
+    // atlas) is under `u16::MAX`.
     Aabr {
         min: Vec2::new(min.x as u16, min.y as u16),
         max: Vec2::new(max.x as u16, max.y as u16),
@@ -503,7 +551,7 @@ fn aabr_from_alloc_rect(rect: guillotiere::Rectangle) -> Aabr<u16> {
 }
 
 fn upload_image(renderer: &mut Renderer, aabr: Aabr<u16>, tex: &Texture, image: &RgbaImage) {
-    let aabr = aabr.map(|e| e as u32);
+    let aabr = aabr.map(u32::from);
     let offset = aabr.min.into_array();
     let size = aabr.size().into_array();
     renderer.update_texture(
@@ -533,4 +581,28 @@ fn create_image(
     let bind = renderer.ui_bind_texture(&tex);
 
     (tex, bind)
+}
+
+fn premultiply_alpha(image: &mut RgbaImage) {
+    // S-TODO: temp remove me
+    // TODO: check with minimap
+    // TODO: log image size
+    // TODO: benchmark
+    common_base::prof_span!("premultiply_alpha");
+    tracing::error!("{:?}", image.dimensions());
+    use common::util::{linear_to_srgba, srgba_to_linear};
+    image.pixels_mut().for_each(|pixel| {
+        let alpha = pixel.0[3];
+        if alpha == 0 && pixel.0 != [0; 4] {
+            pixel.0 = [0; 4];
+        } else if alpha != 255 {
+            // Convert to linear, multiply color components by alpha, and convert back to
+            // non-linear.
+            let linear = srgba_to_linear(Rgba::from(pixel.0).map(|e: u8| e as f32 / 255.0));
+            let premultiplied = Rgba::from_translucent(Rgb::from(linear) * linear.a, linear.a);
+            pixel.0 = linear_to_srgba(premultiplied)
+                .map(|e| (e * 255.0) as u8)
+                .into_array();
+        }
+    })
 }

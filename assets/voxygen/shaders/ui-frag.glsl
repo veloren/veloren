@@ -148,7 +148,7 @@ vec4 downscale_xy(vec2 uv_pixel, vec2 scale) {
     vec4 s01 = s0 * weights_x[0] + s1 * weights_x[1];
     vec4 s23 = s2 * weights_x[0] + s3 * weights_x[1];
     // Useful to visualize things below the limit where downscaling is supposed
-    // to be accurate.
+    // to be perfectly accurate.
     /*if (scale.x < (1.0 / 3.0)) {
         return vec4(1, 0, 0, 1);
     }*/
@@ -206,16 +206,11 @@ void main() {
             }
         #endif
 
-        // un-premultiply alpha (TODO: we pretend all input images are
-        // premultiplied for now although they aren't all necessarily)
+        // un-premultiply alpha (linear filtering above requires alpha to be
+        // pre-multiplied)
         if (image_color.a > 0.001) {
             image_color.rgb /= image_color.a;
         } 
-
-        // TEMP: Use this to make map a solid color
-        if (texture_size.x != 1600) {
-            //image_color = vec4(0, 0, 1, 1);
-        }
 
         tgt_color = f_color * image_color;
     // 2D Geometry

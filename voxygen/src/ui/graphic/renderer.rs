@@ -14,7 +14,7 @@ pub enum SampleStrat {
     PixelCoverage,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Transform {
     pub ori: Quaternion<f32>,
     pub offset: Vec3<f32>,
