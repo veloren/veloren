@@ -165,6 +165,15 @@
     };
     wrapWithAssets = system: old: let
       pkgs = inputs.nci.inputs.nixpkgs.legacyPackages.${system};
+      runtimeLibs = with pkgs; [
+        xorg.libX11
+        xorg.libXcursor
+        xorg.libXrandr
+        xorg.libXi
+        vulkan-loader
+        vulkan-extension-layer
+        shaderc.lib
+      ];
       assets = pkgs.runCommand "veloren-assets" {} ''
         mkdir $out
         ln -sf ${./assets} $out/assets
@@ -181,7 +190,9 @@
           rm -rf $out/bin
           mkdir $out/bin
           ln -sf ${old}/bin/* $out/bin/
-          wrapProgram $out/bin/* --set VELOREN_ASSETS ${assets}
+          wrapProgram $out/bin/* \
+            ${lib.optionalString (old.pname == "veloren-voxygen") "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeLibs}"} \
+            --set VELOREN_ASSETS ${assets}
         '';
     in
       wrapped;
