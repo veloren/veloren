@@ -30,12 +30,12 @@ lazy_static::lazy_static! {
     pub static ref DISPLAY_VERSION: String = if GIT_TAG.is_empty() {
         format!("{}-{}", VELOREN_VERSION_STAGE, *GIT_DATE)
     } else {
-        format!("{}-{}", VELOREN_VERSION_STAGE, GIT_TAG)
+        format!("{}-{}", VELOREN_VERSION_STAGE, GIT_TAG.as_str())
     };
     pub static ref DISPLAY_VERSION_LONG: String = if GIT_TAG.is_empty() {
         format!("{} ({})", DISPLAY_VERSION.as_str(), *GIT_HASH)
     } else {
-        format!("{} ({})", DISPLAY_VERSION.as_str(), GIT_VERSION)
+        format!("{} ({})", DISPLAY_VERSION.as_str(), GIT_VERSION.as_str())
     };
 }
 
