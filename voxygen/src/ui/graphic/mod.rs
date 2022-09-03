@@ -584,25 +584,36 @@ fn create_image(
 }
 
 fn premultiply_alpha(image: &mut RgbaImage) {
+    use fast_srgb8::{f32x4_to_srgb8, srgb8_to_f32};
     // S-TODO: temp remove me
-    // TODO: check with minimap
-    // TODO: log image size
-    // TODO: benchmark
-    common_base::prof_span!("premultiply_alpha");
+    // TODO: benchmark (29 ns per pixel)
     tracing::error!("{:?}", image.dimensions());
+    common_base::prof_span!("premultiply_alpha");
     use common::util::{linear_to_srgba, srgba_to_linear};
     image.pixels_mut().for_each(|pixel| {
         let alpha = pixel.0[3];
-        if alpha == 0 && pixel.0 != [0; 4] {
+        // With fast path checks, longest image was 16 ms with current assets.
+        // Without longest is 60 ms. (but not the same image!)
+        if alpha == 0 {
             pixel.0 = [0; 4];
         } else if alpha != 255 {
             // Convert to linear, multiply color components by alpha, and convert back to
             // non-linear.
-            let linear = srgba_to_linear(Rgba::from(pixel.0).map(|e: u8| e as f32 / 255.0));
-            let premultiplied = Rgba::from_translucent(Rgb::from(linear) * linear.a, linear.a);
-            pixel.0 = linear_to_srgba(premultiplied)
-                .map(|e| (e * 255.0) as u8)
-                .into_array();
+            let linear = Rgba::new(
+                srgb8_to_f32(pixel.0[0]),
+                srgb8_to_f32(pixel.0[1]),
+                srgb8_to_f32(pixel.0[2]),
+                alpha as f32 / 255.0,
+            );
+            let converted = fast_srgb8::f32x4_to_srgb8([
+                linear.r * linear.a,
+                linear.g * linear.a,
+                linear.b * linear.a,
+                0.0,
+            ]);
+            pixel.0[0] = converted[0];
+            pixel.0[1] = converted[1];
+            pixel.0[2] = converted[2];
         }
     })
 }

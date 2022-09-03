@@ -5,6 +5,7 @@
 #![feature(
     array_methods,
     array_zip,
+    array_from_fn,
     drain_filter,
     once_cell,
     trait_alias,
