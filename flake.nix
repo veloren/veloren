@@ -170,6 +170,7 @@
         xorg.libXcursor
         xorg.libXrandr
         xorg.libXi
+        xorg.libxcb
         vulkan-loader
         vulkan-extension-layer
         shaderc.lib
