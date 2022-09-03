@@ -8,7 +8,7 @@ use crate::{
 };
 use conrod_core::{
     color,
-    position::Relative,
+    position::{Align, Relative},
     widget::{self, Button, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -342,7 +342,7 @@ impl<'a> Widget for Sound<'a> {
                 .localized_strings
                 .get_msg("hud-settings-ambience_volume"),
         )
-        .down_from(state.ids.sfx_volume_slider, 10.0)
+        .down_from(state.ids.sfx_volume_muted, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
@@ -356,7 +356,7 @@ impl<'a> Widget for Sound<'a> {
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.ambience_volume_text, 10.0)
+        .right_from(state.ids.ambience_volume_muted, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
@@ -391,7 +391,7 @@ impl<'a> Widget for Sound<'a> {
 
         // Music spacing
         Text::new(&self.localized_strings.get_msg("hud-settings-music_spacing"))
-            .down_from(state.ids.ambience_volume_slider, 10.0)
+            .down_from(state.ids.ambience_volume_muted, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
@@ -406,6 +406,7 @@ impl<'a> Widget for Sound<'a> {
         )
         .w_h(104.0, 22.0)
         .down_from(state.ids.music_spacing_text, 10.0)
+        .x_align_to(state.ids.ambience_volume_slider, Align::Start)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
@@ -457,6 +458,7 @@ impl<'a> Widget for Sound<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.music_spacing_slider, 12.0)
+            .x_align_to(state.ids.ambience_volume_text, Align::Start)
             .label(&self.localized_strings.get_msg("hud-settings-reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
