@@ -3,8 +3,9 @@
 
   inputs.nci.url = "github:yusdacra/nix-cargo-integration";
 
-  outputs = inputs:
-    inputs.nci.lib.makeOutputs {
+  outputs = inputs: let
+    lib = inputs.nci.inputs.nixpkgs.lib;
+    outputs = inputs.nci.lib.makeOutputs {
       root = ./.;
       defaultOutputs = {
         package = "veloren-voxygen";
@@ -44,17 +45,15 @@
               }
             else (throw "Can't get revision because the git tree is dirty");
 
-          prettyRev = with sourceInfo; builtins.substring 0 8 rev + "/" + utils.dateTimeFormat lastModified;
+          prettyRev = with sourceInfo;
+            builtins.substring 0 8 rev
+            + "/"
+            + utils.dateTimeFormat lastModified;
 
           tag =
             if sourceInfo ? tag
             then sourceInfo.tag
             else "";
-
-          veloren-assets = pkgs.runCommand "makeAssetsDir" {} ''
-            mkdir $out
-            ln -sf ${./assets} $out/assets
-          '';
 
           configMoldLinker = ''
             cat >>$CARGO_HOME/config.toml <<EOF
@@ -140,11 +139,8 @@
             '';
             postInstall = ''
               ${oldAttrs.postInstall or ""}
-              if [ -f $out/bin/veloren-voxygen ]; then
-                wrapProgram $out/bin/veloren-voxygen \
-                  --set VELOREN_ASSETS ${veloren-assets} \
-                  --set LD_LIBRARY_PATH ${lib.makeLibraryPath common.runtimeLibs}
-              fi
+              wrapProgram $out/bin/veloren-voxygen \
+                --set LD_LIBRARY_PATH ${lib.makeLibraryPath common.runtimeLibs}
             '';
           };
           veloren-server-cli-deps = oldAttrs: {
@@ -160,7 +156,9 @@
 
             VELOREN_USERDATA_STRATEGY = "system";
 
-            nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [pkgs.makeWrapper];
+            nativeBuildInputs =
+              (oldAttrs.nativeBuildInputs or [])
+              ++ [pkgs.makeWrapper];
 
             postConfigure = ''
               ${oldAttrs.postConfigure or ""}
@@ -168,13 +166,59 @@
             '';
             postInstall = ''
               ${oldAttrs.postInstall or ""}
-              if [ -f $out/bin/veloren-server-cli ]; then
-                wrapProgram $out/bin/veloren-server-cli \
-                  --set VELOREN_ASSETS ${veloren-assets}
-              fi
             '';
           };
         };
       };
+    };
+    wrapWithAssets = system: old: let
+      pkgs = inputs.nci.inputs.nixpkgs.legacyPackages.${system};
+      assets = pkgs.runCommand "veloren-assets" {} ''
+        mkdir $out
+        ln -sf ${./assets} $out/assets
+      '';
+      wrapped =
+        pkgs.runCommand "${old.name}-wrapped"
+        {
+          inherit (old) pname version meta;
+          nativeBuildInputs = [pkgs.makeWrapper];
+        }
+        ''
+          mkdir -p $out
+          ln -sf ${old}/* $out/
+          rm -rf $out/bin
+          mkdir $out/bin
+          ln -sf ${old}/bin/* $out/bin/
+          wrapProgram $out/bin/* --set VELOREN_ASSETS ${assets}
+        '';
+    in
+      wrapped;
+  in
+    outputs
+    // rec {
+      apps =
+        lib.mapAttrs
+        (system: _: rec {
+          default = veloren;
+          veloren = {
+            type = "app";
+            program = lib.getExe packages.${system}.veloren-voxygen;
+          };
+          veloren-server = {
+            type = "app";
+            program = lib.getExe packages.${system}.veloren-server-cli;
+          };
+        })
+        outputs.apps;
+      packages =
+        lib.mapAttrs
+        (system: pkgs: rec {
+          default = veloren-voxygen;
+          veloren-voxygen = wrapWithAssets system pkgs.veloren-voxygen;
+          veloren-voxygen-debug = wrapWithAssets system pkgs.veloren-voxygen-debug;
+          veloren-server-cli = wrapWithAssets system pkgs.veloren-server-cli;
+          veloren-server-cli-debug = wrapWithAssets system pkgs.veloren-server-cli-debug;
+        })
+        outputs.packages;
     };
 }
