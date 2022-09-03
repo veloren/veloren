@@ -31,30 +31,6 @@
           pkgs = common.pkgs;
           lib = pkgs.lib;
 
-          gitLfsCheckFile = ./assets/voxygen/background/bg_main.jpg;
-          utils = import ./nix/utils.nix {inherit pkgs;};
-
-          sourceInfo =
-            if inputs.self.sourceInfo ? rev
-            then
-              inputs.self.sourceInfo
-              // {
-                # Tag would have to be set manually for stable releases flake
-                # because there's currently no way to get the tag via the interface.
-                # tag = v0.9.0;
-              }
-            else (throw "Can't get revision because the git tree is dirty");
-
-          prettyRev = with sourceInfo;
-            builtins.substring 0 8 rev
-            + "/"
-            + utils.dateTimeFormat lastModified;
-
-          tag =
-            if sourceInfo ? tag
-            then sourceInfo.tag
-            else "";
-
           configMoldLinker = ''
             cat >>$CARGO_HOME/config.toml <<EOF
               [target.x86_64-unknown-linux-gnu]
@@ -90,10 +66,12 @@
           veloren-common = oldAttrs: {
             # Disable `git-lfs` check here since we check it ourselves
             # We have to include the command output here, otherwise Nix won't run it
-            DISABLE_GIT_LFS_CHECK = utils.isGitLfsSetup gitLfsCheckFile;
-            # Declare env values here so that `common/build.rs` sees them
-            NIX_GIT_HASH = prettyRev;
-            NIX_GIT_TAG = tag;
+            DISABLE_GIT_LFS_CHECK = true;
+            # We don't add in any information here because otherwise anything
+            # that depends on common will be recompiled. Ideally we should have
+            # a way to pass these in a wrapper, at runtime, rather than build time.
+            NIX_GIT_HASH = "";
+            NIX_GIT_TAG = "";
           };
           veloren-voxygen-deps = oldAttrs: {
             doCheck = false;
@@ -181,6 +159,24 @@
       assets = pkgs.runCommand "veloren-assets" {} ''
         mkdir $out
         ln -sf ${./assets} $out/assets
+        # check if LFS was setup properly
+        checkFile="$out/assets/voxygen/background/bg_main.jpg"
+        result="$(${pkgs.file}/bin/file --mime-type $checkFile)"
+        if [ "$result" = "$checkFile: image/jpeg" ]; then
+          echo "Git LFS seems to be setup properly."
+        else
+          echo "
+            Git Large File Storage (git-lfs) has not been set up correctly.
+            Most common reasons:
+              - git-lfs was not installed before cloning this repository.
+              - This repository was not cloned from the primary GitLab mirror.
+              - The GitHub mirror does not support LFS.
+            See the book at https://book.veloren.net/ for details.
+            Run 'nix-shell -p git git-lfs --run \"git lfs install --local && git lfs fetch && git lfs checkout\"'
+            or 'nix shell nixpkgs#git-lfs nixpkgs#git -c sh -c \"git lfs install --local && git lfs fetch && git lfs checkout\"'.
+          "
+          false
+        fi
       '';
       wrapped =
         pkgs.runCommand "${old.name}-wrapped"
