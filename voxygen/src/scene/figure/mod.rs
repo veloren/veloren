@@ -42,6 +42,7 @@ use common::{
     states::{equipping, idle, utils::StageSection, wielding},
     terrain::{Block, TerrainChunk, TerrainGrid},
     uid::UidAllocator,
+    util::Dir,
     vol::{ReadVol, RectRasterableVol},
 };
 use common_base::span;
@@ -922,6 +923,12 @@ impl FigureMgr {
                     .and_then(|a| a.ability_id(inventory))
             });
 
+            let move_dir = {
+                let ori = ori * *Dir::default();
+                let theta = vel.0.y.atan2(vel.0.x) - ori.y.atan2(ori.x);
+                anim::vek::Vec2::unit_y().rotated_z(theta)
+            };
+
             // If a mount exists, get its animated mounting transform and its position
             let mount_transform_pos = (|| -> Option<_> {
                 let mount = is_rider?.mount;
@@ -1731,6 +1738,7 @@ impl FigureMgr {
                                         Some(stage_section),
                                         Some(s.static_data.ability_info),
                                         current_strike,
+                                        move_dir,
                                     ),
                                     progress,
                                     &mut state_animation_rate,
