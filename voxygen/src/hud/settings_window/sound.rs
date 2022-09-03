@@ -154,7 +154,8 @@ impl<'a> Widget for Sound<'a> {
         )
         .w_h(24.0, 25.0)
         .down_from(state.ids.master_volume_text, 10.0)
-        .press_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
         .set(state.ids.master_volume_muted, ui);
         if master_muted != self.global_state.settings.audio.master_volume.muted {
             events.push(MuteMasterVolume(master_muted));
@@ -219,7 +220,8 @@ impl<'a> Widget for Sound<'a> {
         )
         .w_h(24.0, 25.0)
         .down_from(state.ids.inactive_master_volume_text, 10.0)
-        .press_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
         .set(state.ids.inactive_master_volume_muted, ui);
         if inactive_master_muted
             != self
@@ -274,7 +276,8 @@ impl<'a> Widget for Sound<'a> {
         )
         .w_h(24.0, 25.0)
         .down_from(state.ids.music_volume_text, 10.0)
-        .press_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
         .set(state.ids.music_volume_muted, ui);
         if music_muted != self.global_state.settings.audio.music_volume.muted {
             events.push(MuteMusicVolume(music_muted));
@@ -326,7 +329,8 @@ impl<'a> Widget for Sound<'a> {
         )
         .w_h(24.0, 25.0)
         .down_from(state.ids.sfx_volume_text, 10.0)
-        .press_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
         .set(state.ids.sfx_volume_muted, ui);
         if sfx_muted != self.global_state.settings.audio.sfx_volume.muted {
             events.push(MuteSfxVolume(sfx_muted));
@@ -378,7 +382,8 @@ impl<'a> Widget for Sound<'a> {
         )
         .w_h(24.0, 25.0)
         .down_from(state.ids.ambience_volume_text, 10.0)
-        .press_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
         .set(state.ids.ambience_volume_muted, ui);
         if ambience_muted != self.global_state.settings.audio.ambience_volume.muted {
             events.push(MuteAmbienceVolume(ambience_muted));
