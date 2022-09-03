@@ -180,6 +180,7 @@ impl Controls {
         bg_img: widget::image::Handle,
         i18n: LocalizationHandle,
         settings: &Settings,
+        server: Option<String>,
     ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
@@ -201,7 +202,7 @@ impl Controls {
         let login_info = LoginInfo {
             username: settings.networking.username.clone(),
             password: String::new(),
-            server: settings.networking.default_server.clone(),
+            server: server.unwrap_or_else(|| settings.networking.default_server.clone()),
         };
         let selected_server_index = settings
             .networking
@@ -517,7 +518,7 @@ pub struct MainMenuUi {
 }
 
 impl MainMenuUi {
-    pub fn new(global_state: &mut GlobalState) -> Self {
+    pub fn new(global_state: &mut GlobalState, server: Option<String>) -> Self {
         // Load language
         let i18n = &global_state.i18n.read();
         // TODO: don't add default font twice
@@ -541,6 +542,7 @@ impl MainMenuUi {
             ui.add_graphic(Graphic::Image(bg_img, None)),
             global_state.i18n,
             &global_state.settings,
+            server,
         );
 
         Self { ui, controls }
