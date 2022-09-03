@@ -164,6 +164,8 @@
         vulkan-loader
         vulkan-extension-layer
         shaderc.lib
+        udev
+        alsa-lib
       ];
       assets = pkgs.runCommand "veloren-assets" {} ''
         mkdir $out
