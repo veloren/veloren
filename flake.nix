@@ -137,11 +137,6 @@
               ${oldAttrs.postConfigure or ""}
               ${configMoldLinker}
             '';
-            postInstall = ''
-              ${oldAttrs.postInstall or ""}
-              wrapProgram $out/bin/veloren-voxygen \
-                --set LD_LIBRARY_PATH ${lib.makeLibraryPath common.runtimeLibs}
-            '';
           };
           veloren-server-cli-deps = oldAttrs: {
             doCheck = false;
@@ -163,9 +158,6 @@
             postConfigure = ''
               ${oldAttrs.postConfigure or ""}
               ${configMoldLinker}
-            '';
-            postInstall = ''
-              ${oldAttrs.postInstall or ""}
             '';
           };
         };
