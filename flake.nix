@@ -155,6 +155,8 @@
               (oldAttrs.nativeBuildInputs or [])
               ++ [pkgs.makeWrapper];
 
+            doCheck = false;
+
             postConfigure = ''
               ${oldAttrs.postConfigure or ""}
               ${configMoldLinker}
