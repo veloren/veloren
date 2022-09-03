@@ -9,9 +9,9 @@
       sourceInfo = inputs.self.sourceInfo;
       dateTimeFormat = import ./nix/dateTimeFormat.nix;
       dateTime = dateTimeFormat sourceInfo.lastModified;
-      rev = sourceInfo.rev or "dirty";
+      shortRev = sourceInfo.shortRev or "dirty";
     in {
-      prettyRev = (builtins.substring 0 8 rev) + "/" + dateTime;
+      prettyRev = shortRev + "/" + dateTime;
       tag = "";
     };
     outputs = inputs.nci.lib.makeOutputs {
