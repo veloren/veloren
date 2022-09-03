@@ -559,8 +559,10 @@ image_ids! {
         // Mute Buttons
         button_mute: "voxygen.element.ui.generic.buttons.mute_btn",
         button_mute_hover: "voxygen.element.ui.generic.buttons.mute_btn_hover",
+        button_mute_press: "voxygen.element.ui.generic.buttons.mute_btn_press",
         button_muted: "voxygen.element.ui.generic.buttons.muted_btn",
         button_muted_hover: "voxygen.element.ui.generic.buttons.muted_btn_hover",
+        button_muted_press: "voxygen.element.ui.generic.buttons.muted_btn_press",
 
 
         // Enemy Healthbar
