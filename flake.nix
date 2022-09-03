@@ -5,6 +5,7 @@
 
   outputs = inputs: let
     lib = inputs.nci.inputs.nixpkgs.lib;
+
     git = let
       sourceInfo = inputs.self.sourceInfo;
       dateTimeFormat = import ./nix/dateTimeFormat.nix;
@@ -14,7 +15,86 @@
       prettyRev = shortRev + "/" + dateTime;
       tag = "";
     };
-    outputs = inputs.nci.lib.makeOutputs {
+
+    filteredSource = let
+      pathsToIgnore = [
+        "flake.nix"
+        "flake.lock"
+        "nix"
+        "assets"
+        "README.md"
+        "CONTRIBUTING.md"
+        "CHANGELOG.md"
+        "CODE_OF_CONDUCT.md"
+        "clippy.toml"
+      ];
+      ignorePaths = path: type: let
+        split = lib.splitString "/" path;
+        actual = lib.drop 4 split;
+        _path = lib.concatStringsSep "/" actual;
+      in
+        lib.all (n: ! (lib.hasPrefix n _path)) pathsToIgnore;
+    in
+      builtins.path {
+        name = "veloren-source";
+        path = toString ./.;
+        # filter out unnecessary paths
+        filter = ignorePaths;
+      };
+
+    wrapWithAssets = common: _: old: let
+      pkgs = common.pkgs;
+      runtimeLibs = with pkgs; [
+        xorg.libX11
+        xorg.libXi
+        xorg.libxcb
+        xorg.libXcursor
+        xorg.libXrandr
+        libxkbcommon
+        shaderc.lib
+        udev
+        alsa-lib
+        vulkan-loader
+      ];
+      assets = pkgs.runCommand "veloren-assets" {} ''
+        mkdir $out
+        ln -sf ${./assets} $out/assets
+        # check if LFS was setup properly
+        checkFile="$out/assets/voxygen/background/bg_main.jpg"
+        result="$(${pkgs.file}/bin/file --mime-type $checkFile)"
+        if [ "$result" = "$checkFile: image/jpeg" ]; then
+          echo "Git LFS seems to be setup properly."
+        else
+          echo "
+            Git Large File Storage (git-lfs) has not been set up correctly.
+            Most common reasons:
+              - git-lfs was not installed before cloning this repository.
+              - This repository was not cloned from the primary GitLab mirror.
+              - The GitHub mirror does not support LFS.
+            See the book at https://book.veloren.net/ for details.
+            Run 'nix-shell -p git git-lfs --run \"git lfs install --local && git lfs fetch && git lfs checkout\"'
+            or 'nix shell nixpkgs#git-lfs nixpkgs#git -c sh -c \"git lfs install --local && git lfs fetch && git lfs checkout\"'.
+          "
+          false
+        fi
+      '';
+      wrapped =
+        common.internal.nci-pkgs.utils.wrapDerivation old
+        {nativeBuildInputs = [pkgs.makeWrapper];}
+        ''
+          rm -rf $out/bin
+          mkdir $out/bin
+          ln -sf ${old}/bin/* $out/bin/
+          wrapProgram $out/bin/* \
+            ${lib.optionalString (old.pname == "veloren-voxygen") "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeLibs}"} \
+            --set VELOREN_ASSETS ${assets} \
+            --set VELOREN_GIT_VERSION "${git.prettyRev}" \
+            --set VELOREN_GIT_TAG "${git.tag}"
+        '';
+    in
+      wrapped;
+  in
+    inputs.nci.lib.makeOutputs {
       root = ./.;
       defaultOutputs = {
         package = "veloren-voxygen";
@@ -29,7 +109,9 @@
               test = release;
             };
           };
+          wrapper = wrapWithAssets;
         };
+        veloren-server-cli.wrapper = wrapWithAssets;
       };
       overrides = {
         cCompiler = common: {
@@ -47,30 +129,6 @@
               rustflags = ["-C", "link-arg=-fuse-ld=${lib.getExe pkgs.mold}"]
             EOF
           '';
-
-          pathsToIgnore = [
-            "flake.nix"
-            "flake.lock"
-            "nix"
-            "assets"
-            "README.md"
-            "CONTRIBUTING.md"
-            "CHANGELOG.md"
-            "CODE_OF_CONDUCT.md"
-            "clippy.toml"
-          ];
-          ignorePaths = path: type: let
-            split = lib.splitString "/" path;
-            actual = lib.drop 4 split;
-            _path = lib.concatStringsSep "/" actual;
-          in
-            lib.all (n: ! (lib.hasPrefix n _path)) pathsToIgnore;
-          filteredSource = builtins.path {
-            name = "veloren-source";
-            path = toString ./.;
-            # filter out unnecessary paths
-            filter = ignorePaths;
-          };
         in {
           veloren-common = oldAttrs: {
             # Disable `git-lfs` check here since we check it ourselves
@@ -147,90 +205,5 @@
           };
         };
       };
-    };
-    wrapWithAssets = system: old: let
-      pkgs = inputs.nci.inputs.nixpkgs.legacyPackages.${system};
-      runtimeLibs = with pkgs; [
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXrandr
-        xorg.libXi
-        xorg.libxcb
-        libxkbcommon
-        vulkan-loader
-        vulkan-extension-layer
-        shaderc.lib
-        udev
-        alsa-lib
-      ];
-      assets = pkgs.runCommand "veloren-assets" {} ''
-        mkdir $out
-        ln -sf ${./assets} $out/assets
-        # check if LFS was setup properly
-        checkFile="$out/assets/voxygen/background/bg_main.jpg"
-        result="$(${pkgs.file}/bin/file --mime-type $checkFile)"
-        if [ "$result" = "$checkFile: image/jpeg" ]; then
-          echo "Git LFS seems to be setup properly."
-        else
-          echo "
-            Git Large File Storage (git-lfs) has not been set up correctly.
-            Most common reasons:
-              - git-lfs was not installed before cloning this repository.
-              - This repository was not cloned from the primary GitLab mirror.
-              - The GitHub mirror does not support LFS.
-            See the book at https://book.veloren.net/ for details.
-            Run 'nix-shell -p git git-lfs --run \"git lfs install --local && git lfs fetch && git lfs checkout\"'
-            or 'nix shell nixpkgs#git-lfs nixpkgs#git -c sh -c \"git lfs install --local && git lfs fetch && git lfs checkout\"'.
-          "
-          false
-        fi
-      '';
-      wrapped =
-        pkgs.runCommand "${old.name}-wrapped"
-        {
-          inherit (old) pname version meta;
-          nativeBuildInputs = [pkgs.makeWrapper];
-        }
-        ''
-          mkdir -p $out
-          ln -sf ${old}/* $out/
-          rm -rf $out/bin
-          mkdir $out/bin
-          ln -sf ${old}/bin/* $out/bin/
-          wrapProgram $out/bin/* \
-            ${lib.optionalString (old.pname == "veloren-voxygen") "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeLibs}"} \
-            --set VELOREN_ASSETS ${assets} \
-            --set VELOREN_GIT_VERSION "${git.prettyRev}" \
-            --set VELOREN_GIT_TAG "${git.tag}"
-        '';
-    in
-      wrapped;
-  in
-    outputs
-    // rec {
-      apps =
-        lib.mapAttrs
-        (system: _: rec {
-          default = veloren;
-          veloren = {
-            type = "app";
-            program = lib.getExe packages.${system}.veloren-voxygen;
-          };
-          veloren-server = {
-            type = "app";
-            program = lib.getExe packages.${system}.veloren-server-cli;
-          };
-        })
-        outputs.apps;
-      packages =
-        lib.mapAttrs
-        (system: pkgs: rec {
-          default = veloren-voxygen;
-          veloren-voxygen = wrapWithAssets system pkgs.veloren-voxygen;
-          veloren-voxygen-debug = wrapWithAssets system pkgs.veloren-voxygen-debug;
-          veloren-server-cli = wrapWithAssets system pkgs.veloren-server-cli;
-          veloren-server-cli-debug = wrapWithAssets system pkgs.veloren-server-cli-debug;
-        })
-        outputs.packages;
     };
 }
