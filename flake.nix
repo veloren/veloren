@@ -105,7 +105,7 @@
               );
             nativeBuildInputs =
               (oldAttrs.nativeBuildInputs or [])
-              ++ (with pkgs; [python3 makeWrapper]);
+              ++ (with pkgs; [python3]);
 
             VELOREN_USERDATA_STRATEGY = "system";
             SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
@@ -137,10 +137,6 @@
             src = filteredSource;
 
             VELOREN_USERDATA_STRATEGY = "system";
-
-            nativeBuildInputs =
-              (oldAttrs.nativeBuildInputs or [])
-              ++ [pkgs.makeWrapper];
 
             doCheck = false;
 
