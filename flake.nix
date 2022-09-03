@@ -5,6 +5,15 @@
 
   outputs = inputs: let
     lib = inputs.nci.inputs.nixpkgs.lib;
+    git = let
+      sourceInfo = inputs.self.sourceInfo;
+      dateTimeFormat = import ./nix/dateTimeFormat.nix;
+      dateTime = dateTimeFormat sourceInfo.lastModified;
+      rev = sourceInfo.rev or "dirty";
+    in {
+      prettyRev = (builtins.substring 0 8 rev) + "/" + dateTime;
+      tag = "";
+    };
     outputs = inputs.nci.lib.makeOutputs {
       root = ./.;
       defaultOutputs = {
@@ -68,8 +77,8 @@
             # We have to include the command output here, otherwise Nix won't run it
             DISABLE_GIT_LFS_CHECK = true;
             # We don't add in any information here because otherwise anything
-            # that depends on common will be recompiled. Ideally we should have
-            # a way to pass these in a wrapper, at runtime, rather than build time.
+            # that depends on common will be recompiled. We will set these in
+            # our wrapper instead.
             NIX_GIT_HASH = "";
             NIX_GIT_TAG = "";
           };
@@ -192,7 +201,9 @@
           ln -sf ${old}/bin/* $out/bin/
           wrapProgram $out/bin/* \
             ${lib.optionalString (old.pname == "veloren-voxygen") "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeLibs}"} \
-            --set VELOREN_ASSETS ${assets}
+            --set VELOREN_ASSETS ${assets} \
+            --set VELOREN_GIT_VERSION "${git.prettyRev}" \
+            --set VELOREN_GIT_TAG "${git.tag}"
         '';
     in
       wrapped;
