@@ -30,8 +30,11 @@ main-login_process =
     Puedes crear una cuenta en
     
     https://veloren.net/account/.
+
+
 main-login-server_not_found = Servidor no encontrado
 main-login-authentication_error = Error de autenticación al servidor
+main-login-internal_error = Error interno en el cliente (lo más probable es que se haya borrado el personaje)
 main-login-failed_auth_server_url_invalid = Fallo al conectar con el servidor de Autenticación
 main-login-insecure_auth_scheme = El esquema HTTP no esta soportado. ¡Es inseguro! Para propósitos de desarrollo, HTTP esta permitido para 'localhost' o versiones de depuración
 main-login-server_full = El servidor está lleno
@@ -58,10 +61,10 @@ main-servers-singleplayer_error = Fallo al conectar con el servidor interno: { $
 main-servers-network_error = Red de Servidor/Error de socket: { $raw_error }
 main-servers-participant_error = Desconexión de Participante/error protocolo: { $raw_error }
 main-servers-stream_error = Conexión de cliente/compression/error (de)serialización: { $raw_error }
-main-servers-database_error = Error servidor base de datos: { $raw_error }
-main-servers-persistence_error = Error servidor persistente (Probablemente datos Asset/Personaje): { $raw_error }
-main-servers-other_error = Error servidor general: { $raw_error }
-main-credits = Creditos
+main-servers-database_error = Error en la base de datos del servidor: { $raw_error }
+main-servers-persistence_error = Error de persistencia del servidor  (Probablemente datos de Asset/Personaje): { $raw_error }
+main-servers-other_error = Error general del servidor : { $raw_error }
+main-credits = Créditos
 main-credits-created_by = creado por
 main-credits-music = Música
 main-credits-fonts = Fuentes
@@ -70,8 +73,8 @@ main-credits-contributors = Colaboradores
 loading-tips =
     .a0 = Pulsa '{ $gameinput-togglelantern }' para encender tu farol.
     .a1 = Pulsa '{ $gameinput-help }' para ver todos los atajos de teclado.
-    .a2 = Puedes escribir /say o /s para chatear con jugadores que estén a tu alrededor.
-    .a3 = Puedes escribir /region o /r para chatear con jugadores que se encuentren a doscientos bloques a tu alrededor.
+    .a2 = Puedes emplear el comando /say o /s para chatear con jugadores que se encuentren justo a tu lado.
+    .a3 = Puedes emplear el comando /region o /r para chatear con jugadores que se encuentren a menos de 200 bloques de tu alrededor.
     .a4 = Los administradores pueden usar el comando /build para entrar en el modo de construcción.
     .a5 = Puedes escribir /group o /g para chatear con jugadores en tu grupo.
     .a6 = Para enviar mensajes privados escribe /tell seguido del nombre del jugador y tu mensaje.

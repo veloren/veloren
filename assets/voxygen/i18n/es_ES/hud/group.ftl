@@ -9,5 +9,5 @@ hud-group-dead = Muerto
 hud-group-out_of_range = Fuera de Alcance
 hud-group-add_friend = Agregar a Amigos
 hud-group-link_group = Conectar Grupos
-hud-group-in_menu = En el Menu
+hud-group-in_menu = En el Menú
 hud-group-members = Miembros del Grupo
