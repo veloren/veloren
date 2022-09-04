@@ -96,7 +96,7 @@ pub use self::{
     last::Last,
     location::{MapMarker, MapMarkerChange, MapMarkerUpdate, Waypoint, WaypointArea},
     loot_owner::LootOwner,
-    melee::{Melee, MeleeConstructor},
+    melee::{Melee, MeleeConstructor, MeleeConstructorKind},
     misc::Object,
     ori::Ori,
     pet::Pet,

@@ -1,13 +1,13 @@
 DashMelee(
     energy_cost: 10,
     melee_constructor: (
-        kind: Slash(
+        kind: Stab(
             damage: 4,
             poise: 0,
             knockback: 0,
             energy_regen: 5,
         ),
-        scaled: Some(Slash(
+        scaled: Some(Stab(
             damage: 12,
             poise: 0,
             knockback: 0,
@@ -18,7 +18,7 @@ DashMelee(
     ),
     energy_drain: 20,
     forward_speed: 3,
-    buildup_duration: 0.5,
+    buildup_duration: 0.2,
     charge_duration: 1.0,
     swing_duration: 0.1,
     recover_duration: 1.0,

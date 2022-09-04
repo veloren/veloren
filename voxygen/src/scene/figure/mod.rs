@@ -1445,6 +1445,7 @@ impl FigureMgr {
                                 &target_base,
                                 (
                                     hands,
+                                    ability_id,
                                     time,
                                     Some(s.stage_section),
                                     Some(s.static_data.ability_info),
