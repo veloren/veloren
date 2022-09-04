@@ -317,24 +317,37 @@ lazy_static! {
     static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
         let mut component_pool = HashMap::new();
 
-        // Load recipe book (done to check that material is valid for a particular component)
+        // Load recipe book
+        // (done to check that material is valid for a particular component)
         use crate::recipe::ComponentKey;
         let recipes = recipe::default_component_recipe_book().read();
         let ability_map = &AbilityMap::load().read();
         let msm = &MaterialStatManifest::load().read();
 
-        recipes
-            .iter()
-            .for_each(|(ComponentKey { toolkind, material, .. }, recipe)| {
+        recipes.iter().for_each(
+            |(
+                ComponentKey {
+                    toolkind, material, ..
+                },
+                recipe,
+            )| {
                 let component = recipe.item_output(ability_map, msm);
-                let hand_restriction = if let ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { hand_restriction, .. }) = &*component.kind() {
-                    *hand_restriction
-                } else {
-                    return;
-                };
-                let entry = component_pool.entry((*toolkind, String::from(material))).or_insert(Vec::new());
+                let hand_restriction =
+                    if let ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent {
+                        hand_restriction,
+                        ..
+                    }) = &*component.kind()
+                    {
+                        *hand_restriction
+                    } else {
+                        return;
+                    };
+                let entry = component_pool
+                    .entry((*toolkind, String::from(material)))
+                    .or_insert(Vec::new());
                 entry.push((component, hand_restriction));
-            });
+            },
+        );
 
         component_pool
     };
@@ -352,7 +365,12 @@ lazy_static! {
                     .filter_map(|comp| Some(comp.item_definition_id().itemdef_id()?.to_owned()))
                     .filter_map(|id| Arc::<ItemDef>::load_cloned(&id).ok())
                     .for_each(|comp_def| {
-                        if let ItemKind::ModularComponent(ModularComponent::ToolSecondaryComponent { hand_restriction, .. }) = comp_def.kind {
+                        if let ItemKind::ModularComponent(
+                            ModularComponent::ToolSecondaryComponent {
+                                hand_restriction, ..
+                            },
+                        ) = comp_def.kind
+                        {
                             let entry = component_pool.entry(toolkind).or_insert(Vec::new());
                             entry.push((Arc::clone(&comp_def), hand_restriction));
                         }
@@ -371,14 +389,41 @@ pub enum ModularWeaponCreationError {
     SecondaryComponentNotFound,
 }
 
+/// Generate all primary components for specific tool and material.
+///
+/// Read [random_weapon_primary_component] for more.
+pub fn generate_weapon_primary_components(
+    tool: ToolKind,
+    material: Material,
+    hand_restriction: Option<Hands>,
+) -> Result<Vec<(Item, Option<Hands>)>, ModularWeaponCreationError> {
+    if let Some(material_id) = material.asset_identifier() {
+        // Loads default ability map and material stat manifest for later use
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
+
+        Ok(PRIMARY_COMPONENT_POOL
+            .get(&(tool, material_id.to_owned()))
+            .into_iter()
+            .flatten()
+            .filter(|(_comp, hand)| {
+                hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
+            })
+            .map(|(c, h)| (c.duplicate(ability_map, msm), hand_restriction.or(*h)))
+            .collect())
+    } else {
+        Err(ModularWeaponCreationError::MaterialNotFound)
+    }
+}
+
 /// Creates a random modular weapon primary component when provided with a
 /// toolkind, material, and optionally the handedness
 ///
-/// Note: The component produced is not necessarily restricted to that
+/// NOTE: The component produced is not necessarily restricted to that
 /// handedness, but rather is able to produce a weapon of that handedness
 /// depending on what secondary component is used
 ///
-/// Returns the comptabile handednesses that can be used with provided
+/// Returns the compatible handednesses that can be used with provided
 /// restriction and generated component (useful for cases where no restriction
 /// was passed in, but generated component has a restriction)
 pub fn random_weapon_primary_component(
@@ -387,7 +432,7 @@ pub fn random_weapon_primary_component(
     hand_restriction: Option<Hands>,
     mut rng: &mut impl Rng,
 ) -> Result<(Item, Option<Hands>), ModularWeaponCreationError> {
-    let result = (|| {
+    let result = {
         if let Some(material_id) = material.asset_identifier() {
             // Loads default ability map and material stat manifest for later use
             let ability_map = &AbilityMap::load().read();
@@ -397,9 +442,8 @@ pub fn random_weapon_primary_component(
                 .get(&(tool, material_id.to_owned()))
                 .into_iter()
                 .flatten()
-                .filter(|(_comp, hand)| match (hand_restriction, hand) {
-                    (Some(restriction), Some(hand)) => restriction == *hand,
-                    (None, _) | (_, None) => true,
+                .filter(|(_comp, hand)| {
+                    hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
                 })
                 .collect::<Vec<_>>();
 
@@ -411,7 +455,8 @@ pub fn random_weapon_primary_component(
         } else {
             Err(ModularWeaponCreationError::MaterialNotFound)
         }
-    })();
+    };
+
     if let Err(err) = &result {
         let error_str = format!(
             "Failed to synthesize a primary component for a modular {tool:?} made of {material:?} \
@@ -422,6 +467,48 @@ pub fn random_weapon_primary_component(
     result
 }
 
+pub fn generate_weapons(
+    tool: ToolKind,
+    material: Material,
+    hand_restriction: Option<Hands>,
+) -> Result<Vec<Item>, ModularWeaponCreationError> {
+    // Loads default ability map and material stat manifest for later use
+    let ability_map = &AbilityMap::load().read();
+    let msm = &MaterialStatManifest::load().read();
+
+    let primaries = generate_weapon_primary_components(tool, material, hand_restriction)?;
+    let mut weapons = Vec::new();
+
+    // TODO: should we always ignore handness?
+    // We seems to do so in `random_weapon`
+    for (comp, _hand) in primaries {
+        let secondaries = SECONDARY_COMPONENT_POOL
+            .get(&tool)
+            .into_iter()
+            .flatten()
+            .filter(|(_def, hand)| {
+                hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
+            });
+
+        for (def, _hand) in secondaries {
+            let secondary = Item::new_from_item_base(
+                ItemBase::Simple(Arc::clone(def)),
+                Vec::new(),
+                ability_map,
+                msm,
+            );
+            weapons.push(Item::new_from_item_base(
+                ItemBase::Modular(ModularBase::Tool),
+                vec![comp.duplicate(ability_map, msm), secondary],
+                ability_map,
+                msm,
+            ));
+        }
+    }
+
+    Ok(weapons)
+}
+
 /// Creates a random modular weapon when provided with a toolkind, material, and
 /// optionally the handedness
 pub fn random_weapon(
@@ -430,7 +517,7 @@ pub fn random_weapon(
     hand_restriction: Option<Hands>,
     mut rng: &mut impl Rng,
 ) -> Result<Item, ModularWeaponCreationError> {
-    let result = (|| {
+    let result = {
         // Loads default ability map and material stat manifest for later use
         let ability_map = &AbilityMap::load().read();
         let msm = &MaterialStatManifest::load().read();
@@ -442,9 +529,8 @@ pub fn random_weapon(
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| match (hand_restriction, hand) {
-                (Some(restriction), Some(hand)) => restriction == *hand,
-                (None, _) | (_, None) => true,
+            .filter(|(_def, hand)| {
+                hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
             })
             .collect::<Vec<_>>();
 
@@ -453,6 +539,7 @@ pub fn random_weapon(
                 .choose(&mut rng)
                 .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
                 .0;
+
             Item::new_from_item_base(
                 ItemBase::Simple(Arc::clone(def)),
                 Vec::new(),
@@ -468,7 +555,7 @@ pub fn random_weapon(
             ability_map,
             msm,
         ))
-    })();
+    };
     if let Err(err) = &result {
         let error_str = format!(
             "Failed to synthesize a modular {tool:?} made of {material:?} that had a hand \
