@@ -687,16 +687,16 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.1.10"
+version = "3.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3124f3f75ce09e22d1410043e1e24f2ecc44fad3afe4f08408f1f7663d68da2b"
+checksum = "23b71c3ce99b7611011217b366d923f1d0a7e07a92bb2dbf1e84508c673ca3bd"
 dependencies = [
  "atty",
  "bitflags",
  "clap_derive",
  "clap_lex",
  "indexmap",
- "lazy_static",
+ "once_cell",
  "strsim 0.10.0",
  "termcolor",
  "textwrap 0.15.0",
@@ -704,9 +704,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "3.1.7"
+version = "3.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3aab4734e083b809aaf5794e14e756d1c798d2c69c7f7de7a09a2f5214993c1"
+checksum = "ea0c8bce528c4be4da13ea6fead8965e95b6073585a2f05204bd8f4119f82a65"
 dependencies = [
  "heck 0.4.0",
  "proc-macro-error",
@@ -717,9 +717,9 @@ dependencies = [
 
 [[package]]
 name = "clap_lex"
-version = "0.1.1"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "189ddd3b5d32a70b35e7686054371742a937b0d99128e76dde6340210e966669"
+checksum = "2850f2f5a82cbf437dd5af4d49848fbdfc27c157c3d010345776f952765261c5"
 dependencies = [
  "os_str_bytes",
 ]
@@ -4016,9 +4016,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.10.0"
+version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87f3e037eac156d1775da914196f0f37741a274155e34a0b7e427c35d2a2ecb9"
+checksum = "2f7254b99e31cad77da24b08ebf628882739a608578bb1bcdfc1f9c21260d7c0"
 
 [[package]]
 name = "oorandom"
@@ -6501,7 +6501,7 @@ dependencies = [
  "async-channel",
  "authc",
  "byteorder",
- "clap 3.1.10",
+ "clap 3.2.20",
  "hashbrown 0.12.0",
  "image",
  "num 0.4.0",
@@ -6688,7 +6688,7 @@ dependencies = [
  "bincode",
  "bitflags",
  "bytes",
- "clap 3.1.10",
+ "clap 3.2.20",
  "criterion",
  "crossbeam-channel",
  "futures-core",
@@ -6811,7 +6811,7 @@ name = "veloren-server-cli"
 version = "0.13.0"
 dependencies = [
  "ansi-parser",
- "clap 3.1.10",
+ "clap 3.2.20",
  "crossterm 0.23.2",
  "lazy_static",
  "mimalloc",
@@ -6840,6 +6840,7 @@ dependencies = [
  "bytemuck",
  "chrono",
  "chumsky",
+ "clap 3.2.20",
  "cmake",
  "conrod_core",
  "conrod_winit",
@@ -6962,7 +6963,7 @@ dependencies = [
 name = "veloren-voxygen-i18n"
 version = "0.13.0"
 dependencies = [
- "clap 3.1.10",
+ "clap 3.2.20",
  "deunicode",
  "fluent",
  "fluent-bundle",
@@ -6983,7 +6984,7 @@ dependencies = [
  "arr_macro",
  "bincode",
  "bitvec",
- "clap 3.1.10",
+ "clap 3.2.20",
  "criterion",
  "csv",
  "deflate",

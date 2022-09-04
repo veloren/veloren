@@ -2,6 +2,8 @@
 #![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
+mod cli;
+
 #[cfg(all(
     target_os = "windows",
     not(feature = "tracy-memory"),
@@ -182,6 +184,10 @@ fn main() {
         default_hook(panic_info);
     }));
 
+    // Process CLI arguments
+    use clap::Parser;
+    let args = cli::Args::parse();
+
     // Setup tokio runtime
     use common::consts::MIN_RECOMMENDED_TOKIO_THREADS;
     use std::sync::{
@@ -317,5 +323,5 @@ fn main() {
         discord,
     };
 
-    run::run(global_state, event_loop);
+    run::run(global_state, event_loop, args.server);
 }

@@ -91,6 +91,9 @@ gilrs = {version = "0.8.0", features = ["serde-serialize"]}
 # Singleplayer
 server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = ["worldgen"] }
 
+# CLI
+clap = { version = "3.2.20", features = ["derive"] }
+
 # Utility
 assets_manager = {version = "0.8", features = ["ab_glyph"]}
 backtrace = "0.3.40"

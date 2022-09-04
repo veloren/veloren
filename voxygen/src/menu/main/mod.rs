@@ -54,9 +54,9 @@ pub struct MainMenuState {
 
 impl MainMenuState {
     /// Create a new `MainMenuState`.
-    pub fn new(global_state: &mut GlobalState) -> Self {
+    pub fn new(global_state: &mut GlobalState, server: Option<String>) -> Self {
         Self {
-            main_menu_ui: MainMenuUi::new(global_state),
+            main_menu_ui: MainMenuUi::new(global_state, server),
             init: InitState::None,
             scene: Scene::new(global_state.window.renderer_mut()),
         }
