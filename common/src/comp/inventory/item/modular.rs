@@ -479,9 +479,7 @@ pub fn generate_weapons(
     let primaries = generate_weapon_primary_components(tool, material, hand_restriction)?;
     let mut weapons = Vec::new();
 
-    // TODO: should we always ignore handness?
-    // We seems to do so in `random_weapon`
-    for (comp, _hand) in primaries {
+    for (comp, comp_hand) in primaries {
         let secondaries = SECONDARY_COMPONENT_POOL
             .get(&tool)
             .into_iter()
@@ -490,7 +488,12 @@ pub fn generate_weapons(
                 hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
             });
 
-        for (def, _hand) in secondaries {
+        for (def, hand) in secondaries {
+            if comp_hand.is_some() && hand.is_some() && comp_hand != *hand {
+                // if handedness of components incompatible, skip
+                continue;
+            }
+
             let secondary = Item::new_from_item_base(
                 ItemBase::Simple(Arc::clone(def)),
                 Vec::new(),
