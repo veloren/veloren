@@ -2,7 +2,7 @@ ComboMelee2(
     strikes: [
         (
             melee_constructor: (
-                kind: Slash(
+                kind: Stab(
                     damage: 10,
                     poise: 0,
                     knockback: 0,
@@ -19,7 +19,7 @@ ComboMelee2(
         ),
         (
             melee_constructor: (
-                kind: Slash(
+                kind: Stab(
                     damage: 14,
                     poise: 0,
                     knockback: 0,
@@ -32,40 +32,6 @@ ComboMelee2(
             swing_duration: 0.1,
             hit_timing: 0.5,
             recover_duration: 0.3,
-            ori_modifier: 0.6,
-        ),
-        (
-            melee_constructor: (
-                kind: Slash(
-                    damage: 9,
-                    poise: 0,
-                    knockback: 0,
-                    energy_regen: 10,
-                ),
-                range: 3.0,
-                angle: 45.0,
-            ),
-            buildup_duration: 0.2,
-            swing_duration: 0.05,
-            hit_timing: 0.5,
-            recover_duration: 0.1,
-            ori_modifier: 0.6,
-        ),
-        (
-            melee_constructor: (
-                kind: Slash(
-                    damage: 12,
-                    poise: 0,
-                    knockback: 0,
-                    energy_regen: 10,
-                ),
-                range: 3.0,
-                angle: 45.0,
-            ),
-            buildup_duration: 0.2,
-            swing_duration: 0.05,
-            hit_timing: 0.5,
-            recover_duration: 0.4,
             ori_modifier: 0.6,
         ),
     ],
