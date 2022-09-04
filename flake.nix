@@ -27,6 +27,7 @@
         "CHANGELOG.md"
         "CODE_OF_CONDUCT.md"
         "clippy.toml"
+        ".cargo"
       ];
       ignorePaths = path: type: let
         split = lib.splitString "/" path;
@@ -114,19 +115,16 @@
         veloren-server-cli.wrapper = wrapWithAssets;
       };
       overrides = {
-        cCompiler = common: {
-          cCompiler = common.pkgs.clang;
-          useCCompilerBintools = true;
-        };
+        cCompiler = common: common.pkgs.clang;
         crates = common: prev: let
           pkgs = common.pkgs;
-          lib = pkgs.lib;
 
           configMoldLinker = ''
+            touch $CARGO_HOME/config.toml
             cat >>$CARGO_HOME/config.toml <<EOF
               [target.x86_64-unknown-linux-gnu]
               linker = "clang"
-              rustflags = ["-C", "link-arg=-fuse-ld=${lib.getExe pkgs.mold}"]
+              rustflags = ["-C", "link-arg=-fuse-ld=mold"]
             EOF
           '';
         in {
@@ -142,6 +140,10 @@
           };
           veloren-voxygen-deps = oldAttrs: {
             doCheck = false;
+
+            nativeBuildInputs =
+              (oldAttrs.nativeBuildInputs or [])
+              ++ [pkgs.mold];
 
             postConfigure = ''
               ${oldAttrs.postConfigure or ""}
@@ -163,7 +165,7 @@
               );
             nativeBuildInputs =
               (oldAttrs.nativeBuildInputs or [])
-              ++ (with pkgs; [python3]);
+              ++ (with pkgs; [python3 pkg-config mold]);
 
             VELOREN_USERDATA_STRATEGY = "system";
             SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
