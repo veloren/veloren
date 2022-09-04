@@ -1539,7 +1539,7 @@ impl<'a> AgentData<'a> {
             self.vel.0,
             pathing_pos,
             TraversalConfig {
-                min_tgt_dist: 1.25,
+                min_tgt_dist: 0.25,
                 ..self.traversal_config
             },
         ) {
