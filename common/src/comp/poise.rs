@@ -54,7 +54,9 @@ pub struct Poise {
     /// Rate of poise regeneration per tick. Starts at zero and accelerates.
     pub regen_rate: f32,
     /// Time that entity was last in a poise state
-    last_stun_time: Option<Time>,
+    pub last_stun_time: Option<Time>,
+    /// The previous poise state
+    pub previous_state: PoiseState,
     /// Next threshold for the poise change
     next_threshold: f32,
 }
@@ -148,7 +150,7 @@ impl Poise {
     const MAX_SCALED_POISE: u32 = Self::MAX_POISE as u32 * Self::SCALING_FACTOR_INT;
     /// The amount of time after being in a poise state before you can take
     /// poise damage again
-    const POISE_BUFFER_TIME: f64 = 1.0;
+    pub const POISE_BUFFER_TIME: f64 = 1.0;
     /// Used when comparisons to poise are needed outside this module.
     // This value is chosen as anything smaller than this is more precise than our
     // units of poise.
@@ -195,6 +197,7 @@ impl Poise {
             regen_rate: 0.0,
             last_stun_time: None,
             next_threshold: self::Poise::POISE_THRESHOLDS[0],
+            previous_state: PoiseState::Normal,
         }
     }
 
@@ -202,6 +205,9 @@ impl Poise {
         match self.last_stun_time {
             Some(last_time) if last_time.0 + Poise::POISE_BUFFER_TIME > change.time.0 => {},
             _ => {
+                // if self.previous_state != self.poise_state() {
+                self.previous_state = self.poise_state();
+                // };
                 self.current = (((self.current() + change.amount)
                     .clamp(0.0, f32::from(Self::MAX_POISE))
                     * Self::SCALING_FACTOR_FLOAT) as u32)
