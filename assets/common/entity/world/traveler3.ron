@@ -28,7 +28,6 @@
                 (2, Item("common.items.weapons.axe.parashu")),
                 (2, Item("common.items.weapons.bow.sagitta")),
                 (2, Item("common.items.weapons.staff.laevateinn")),
-                (1, Item("common.items.weapons.sceptre.root_evil")),
                 (1, Item("common.items.weapons.sceptre.caduceus")),
             ]), None)),
         )),

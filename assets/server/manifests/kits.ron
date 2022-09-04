@@ -74,25 +74,6 @@
         (Item("common.items.armor.misc.ring.gold"), 2),
         (Item("common.items.armor.cultist.ring"), 2),
     ],
-    "endgame": [
-        // Cultist weapons
-        (Item("common.items.weapons.hammer.cultist_purp_2h-0"),1),
-        (Item("common.items.weapons.staff.cultist_staff"),1),
-        (Item("common.items.weapons.sword.cultist"),1),
-        (Item("common.items.weapons.bow.velorite"),1),
-        (Item("common.items.weapons.axe.malachite_axe-0"),1),
-        (Item("common.items.weapons.sceptre.sceptre_velorite_0"),1),
-
-        // Legendaries
-        (Item("common.items.weapons.hammer.mjolnir"),1),
-        (Item("common.items.weapons.staff.laevateinn"),1),
-        (Item("common.items.weapons.sword.caladbolg"),1),
-        (Item("common.items.weapons.bow.sagitta"),1),
-        (Item("common.items.weapons.axe.parashu"),1),
-        (Item("common.items.weapons.sceptre.caduceus"),1),
-        (Item("common.items.weapons.sceptre.root_evil"),1),
-
-    ],
     "tier-5": [
          // Hide
         (Item("common.items.armor.hide.dragonscale.back"), 1),
@@ -128,6 +109,14 @@
         (ModularWeapon(tool: Bow, material: Eldwood),1),
         (ModularWeapon(tool: Staff, material: Eldwood),1),
         (ModularWeapon(tool: Sceptre, material: Eldwood),1),
+
+        // Legendaries
+        (Item("common.items.weapons.hammer.mjolnir"),1),
+        (Item("common.items.weapons.staff.laevateinn"),1),
+        (Item("common.items.weapons.sword.caladbolg"),1),
+        (Item("common.items.weapons.bow.sagitta"),1),
+        (Item("common.items.weapons.axe.parashu"),1),
+        (Item("common.items.weapons.sceptre.caduceus"),1),
 
         // Potion Kit
         (Item("common.items.consumable.potion_med"), 100),
@@ -337,6 +326,14 @@
         (Item("common.items.armor.ferocious.back"),1),
     ],
     "cultist": [
+        // Cultist weapons
+        (Item("common.items.weapons.hammer.cultist_purp_2h-0"),1),
+        (Item("common.items.weapons.staff.cultist_staff"),1),
+        (Item("common.items.weapons.sword.cultist"),1),
+        (Item("common.items.weapons.bow.velorite"),1),
+        (Item("common.items.weapons.axe.malachite_axe-0"),1),
+        (Item("common.items.weapons.sceptre.sceptre_velorite_0"),1),
+        // Clothes
         (Item("common.items.armor.cultist.chest"), 1),
         (Item("common.items.armor.cultist.pants"), 1),
         (Item("common.items.armor.cultist.hand"), 1),
