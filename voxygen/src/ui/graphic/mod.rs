@@ -585,35 +585,55 @@ fn create_image(
 
 fn premultiply_alpha(image: &mut RgbaImage) {
     use fast_srgb8::{f32x4_to_srgb8, srgb8_to_f32};
-    // S-TODO: temp remove me
-    // TODO: benchmark (29 ns per pixel)
-    tracing::error!("{:?}", image.dimensions());
-    common_base::prof_span!("premultiply_alpha");
-    use common::util::{linear_to_srgba, srgba_to_linear};
-    image.pixels_mut().for_each(|pixel| {
-        let alpha = pixel.0[3];
-        // With fast path checks, longest image was 16 ms with current assets.
-        // Without longest is 60 ms. (but not the same image!)
+    // TODO: Apparently it is possible for ImageBuffer raw vec to have more pixels
+    // than the dimensions of the actual image (I don't think we actually have
+    // this occuring but we should probably fix other spots that use the raw
+    // buffer). See:
+    // https://github.com/image-rs/image/blob/a1ce569afd476e881acafdf9e7a5bce294d0db9a/src/buffer.rs#L664
+    let dims = image.dimensions();
+    let image_buffer_len = dims.0 as usize * dims.1 as usize * 4;
+    let (arrays, end) = image[..image_buffer_len].as_chunks_mut::<{ 4 * 4 }>();
+    // Rgba8 has 4 bytes per pixel they should be no remainder when dividing by 4.
+    let (end, _) = end.as_chunks_mut::<4>();
+    end.iter_mut().for_each(|pixel| {
+        let alpha = pixel[3];
         if alpha == 0 {
-            pixel.0 = [0; 4];
+            *pixel = [0; 4];
         } else if alpha != 255 {
-            // Convert to linear, multiply color components by alpha, and convert back to
-            // non-linear.
-            let linear = Rgba::new(
-                srgb8_to_f32(pixel.0[0]),
-                srgb8_to_f32(pixel.0[1]),
-                srgb8_to_f32(pixel.0[2]),
-                alpha as f32 / 255.0,
-            );
-            let converted = fast_srgb8::f32x4_to_srgb8([
-                linear.r * linear.a,
-                linear.g * linear.a,
-                linear.b * linear.a,
-                0.0,
-            ]);
-            pixel.0[0] = converted[0];
-            pixel.0[1] = converted[1];
-            pixel.0[2] = converted[2];
+            let linear_alpha = alpha as f32 / 255.0;
+            let [r, g, b] = core::array::from_fn(|i| srgb8_to_f32(pixel[i]) * linear_alpha);
+            let srgb8 = f32x4_to_srgb8([r, g, b, 0.0]);
+            (pixel[0], pixel[1], pixel[3]) = (srgb8[0], srgb8[1], srgb8[3]);
+        }
+    });
+    arrays.iter_mut().for_each(|pixelx4| {
+        use core::simd::{f32x4, u8x4, Simd};
+        let alpha = Simd::from_array([pixelx4[3], pixelx4[7], pixelx4[11], pixelx4[15]]);
+        if alpha == Simd::splat(0) {
+            *pixelx4 = [0; 16];
+        } else if alpha != Simd::splat(255) {
+            let linear_simd = |array: [u8; 4]| Simd::from_array(array.map(srgb8_to_f32));
+            // Pack rgb components from the 4th pixel into the the last position for each of
+            // the other 3 pixels.
+            let a = linear_simd([pixelx4[0], pixelx4[1], pixelx4[2], pixelx4[12]]);
+            let b = linear_simd([pixelx4[4], pixelx4[5], pixelx4[6], pixelx4[13]]);
+            let c = linear_simd([pixelx4[8], pixelx4[9], pixelx4[10], pixelx4[14]]);
+            let linear_alpha = alpha.cast::<f32>() * Simd::splat(1.0 / 255.0);
+
+            // Multiply by alpha and then convert back into srgb8.
+            let premultiply = |x: f32x4, i| {
+                let mut a = f32x4::splat(linear_alpha[i]);
+                a[3] = linear_alpha[3];
+                u8x4::from_array(f32x4_to_srgb8((x * a).to_array()))
+            };
+            let pa = premultiply(a, 0);
+            let pb = premultiply(b, 1);
+            let pc = premultiply(c, 2);
+
+            (pixelx4[0], pixelx4[1], pixelx4[2]) = (pa[0], pa[1], pa[2]);
+            (pixelx4[4], pixelx4[5], pixelx4[6]) = (pb[0], pb[1], pb[2]);
+            (pixelx4[8], pixelx4[9], pixelx4[10]) = (pc[0], pc[1], pc[2]);
+            (pixelx4[12], pixelx4[13], pixelx4[14]) = (pa[3], pb[3], pc[3]);
         }
     })
 }

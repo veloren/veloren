@@ -13,6 +13,7 @@
     map_try_insert,
     slice_as_chunks,
     let_chains
+    portable_simd
 )]
 #![recursion_limit = "2048"]
 
