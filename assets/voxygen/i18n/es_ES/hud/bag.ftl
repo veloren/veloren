@@ -27,10 +27,11 @@ hud-bag-health = Salud
 hud-bag-energy = Energía
 hud-bag-combat_rating = Puntuación de Combate
 hud-bag-protection = Protección
-hud-bag-stun_res = Resistencia a Aturdimiento
+hud-bag-stun_res = Resistencia al Aturdimiento
+hud-bag-stealth = Sigilo
 hud-bag-combat_rating_desc =
     Calculado por tu
-    equipamiento y salud
+    equipamiento y salud.
 hud-bag-protection_desc = Reducción de daño por armadura.
 hud-bag-stun_res_desc =
     Resistencia a ser aturdido por golpes consecutivos.
