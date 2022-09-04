@@ -53,6 +53,9 @@ image_ids_ice! {
         selection: "voxygen.element.ui.generic.frames.selection",
         selection_hover: "voxygen.element.ui.generic.frames.selection_hover",
         selection_press: "voxygen.element.ui.generic.frames.selection_press",
+        unlock: "voxygen.element.ui.generic.buttons.unlock",
+        unlock_hover: "voxygen.element.ui.generic.buttons.unlock_hover",
+        unlock_press: "voxygen.element.ui.generic.buttons.unlock_press",
     }
 }
 
@@ -137,6 +140,10 @@ struct Controls {
     alpha: String,
     credits: Credits,
 
+    // If a server address was provided via cli argument we hide the server list button and replace
+    // the server field with a plain label (with a button to exit this mode and freely edit the
+    // field).
+    server_field_locked: bool,
     selected_server_index: Option<usize>,
     login_info: LoginInfo,
 
@@ -157,6 +164,7 @@ enum Message {
     #[cfg(feature = "singleplayer")]
     Singleplayer,
     Multiplayer,
+    UnlockServerField,
     LanguageChanged(usize),
     OpenLanguageMenu,
     Username(String),
@@ -199,6 +207,7 @@ impl Controls {
             };
         //};
 
+        let server_field_locked = server.is_some();
         let login_info = LoginInfo {
             username: settings.networking.username.clone(),
             password: String::new(),
@@ -224,6 +233,7 @@ impl Controls {
             alpha,
             credits,
 
+            server_field_locked,
             selected_server_index,
             login_info,
 
@@ -292,6 +302,7 @@ impl Controls {
             Screen::Login { screen, error } => screen.view(
                 &self.fonts,
                 &self.imgs,
+                self.server_field_locked,
                 &self.login_info,
                 error.as_deref(),
                 &self.i18n.read(),
@@ -387,6 +398,7 @@ impl Controls {
                     server_address: self.login_info.server.clone(),
                 });
             },
+            Message::UnlockServerField => self.server_field_locked = false,
             Message::Username(new_value) => self.login_info.username = new_value,
             Message::LanguageChanged(new_value) => {
                 events.push(Event::ChangeLanguage(language_metadatas.remove(new_value)));
@@ -496,7 +508,12 @@ impl Controls {
                 screen.banner.password.move_cursor_to_end();
             } else if screen.banner.password.is_focused() {
                 screen.banner.password = text_input::State::new();
-                screen.banner.server = text_input::State::focused();
+                // Skip focusing server field if it isn't editable!
+                if self.server_field_locked {
+                    screen.banner.username = text_input::State::focused();
+                } else {
+                    screen.banner.server = text_input::State::focused();
+                }
                 screen.banner.server.move_cursor_to_end();
             } else if screen.banner.server.is_focused() {
                 screen.banner.server = text_input::State::new();

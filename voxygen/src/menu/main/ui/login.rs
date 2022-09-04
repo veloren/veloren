@@ -6,7 +6,7 @@ use crate::ui::{
         style,
         widget::{
             compound_graphic::{CompoundGraphic, Graphic},
-            BackgroundContainer, Image, Padding,
+            AspectRatioContainer, BackgroundContainer, Image, Padding,
         },
         Element,
     },
@@ -55,6 +55,7 @@ impl Screen {
         &mut self,
         fonts: &Fonts,
         imgs: &Imgs,
+        server_field_locked: bool,
         login_info: &LoginInfo,
         error: Option<&str>,
         i18n: &Localization,
@@ -64,14 +65,19 @@ impl Screen {
         button_style: style::button::Style,
         version: &str,
     ) -> Element<Message> {
-        let buttons = Column::with_children(vec![
-            neat_button(
+        let mut buttons = Vec::new();
+        // If the server field is locked, we don't want to show the server selection
+        // list!
+        if !server_field_locked {
+            buttons.push(neat_button(
                 &mut self.servers_button,
                 i18n.get_msg("common-servers"),
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::ShowServers),
-            ),
+            ))
+        }
+        buttons.extend([
             // neat_button(
             //     &mut self.settings_button,
             //     i18n.get_msg("common-settings"),
@@ -100,15 +106,17 @@ impl Screen {
                 button_style,
                 Some(Message::Quit),
             ),
-        ])
-        .width(Length::Fill)
-        .max_width(100)
-        .spacing(5);
+        ]);
 
-        let buttons = Container::new(buttons)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .align_y(Align::End);
+        let buttons = Container::new(
+            Column::with_children(buttons)
+                .width(Length::Fill)
+                .max_width(100)
+                .spacing(5),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_y(Align::End);
 
         let intro_text = i18n.get_msg("main-login_process");
 
@@ -173,8 +181,14 @@ impl Screen {
                 button_style,
             )
         } else {
-            self.banner
-                .view(fonts, imgs, login_info, i18n, button_style)
+            self.banner.view(
+                fonts,
+                imgs,
+                server_field_locked,
+                login_info,
+                i18n,
+                button_style,
+            )
         };
 
         let central_column = Container::new(central_content)
@@ -330,6 +344,8 @@ pub struct LoginBanner {
     multiplayer_button: button::State,
     #[cfg(feature = "singleplayer")]
     singleplayer_button: button::State,
+
+    unlock_server_field_button: button::State,
 }
 
 impl LoginBanner {
@@ -342,6 +358,8 @@ impl LoginBanner {
             multiplayer_button: Default::default(),
             #[cfg(feature = "singleplayer")]
             singleplayer_button: Default::default(),
+
+            unlock_server_field_button: Default::default(),
         }
     }
 
@@ -349,11 +367,55 @@ impl LoginBanner {
         &mut self,
         fonts: &Fonts,
         imgs: &Imgs,
+        server_field_locked: bool,
         login_info: &LoginInfo,
         i18n: &Localization,
         button_style: style::button::Style,
     ) -> Element<Message> {
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
+
+        let server_field: Element<Message> = if server_field_locked {
+            let unlock_style = style::button::Style::new(imgs.unlock)
+                .hover_image(imgs.unlock_hover)
+                .press_image(imgs.unlock_press);
+
+            let unlock_button = Button::new(
+                &mut self.unlock_server_field_button,
+                Space::new(Length::Fill, Length::Fill),
+            )
+            .style(unlock_style)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .on_press(Message::UnlockServerField);
+
+            let container = AspectRatioContainer::new(unlock_button);
+            let container = match unlock_style.active().0 {
+                Some((img, _)) => container.ratio_of_image(img),
+                None => container,
+            };
+
+            Row::with_children(vec![
+                Text::new(&login_info.server)
+                    .size(input_text_size)
+                    .width(Length::Fill)
+                    .height(Length::Shrink)
+                    .into(),
+                container.into(),
+            ])
+            .align_items(Align::Center)
+            .height(Length::Fill)
+            .into()
+        } else {
+            TextInput::new(
+                &mut self.server,
+                &i18n.get_msg("main-server"),
+                &login_info.server,
+                Message::Server,
+            )
+            .size(input_text_size)
+            .on_submit(Message::Multiplayer)
+            .into()
+        };
 
         let banner_content = Column::with_children(vec![
             Column::with_children(vec![
@@ -392,16 +454,9 @@ impl LoginBanner {
                     Image::new(imgs.input_bg)
                         .width(Length::Units(INPUT_WIDTH))
                         .fix_aspect_ratio(),
-                    TextInput::new(
-                        &mut self.server,
-                        &i18n.get_msg("main-server"),
-                        &login_info.server,
-                        Message::Server,
-                    )
-                    .size(input_text_size)
-                    .on_submit(Message::Multiplayer),
+                    server_field,
                 )
-                .padding(Padding::new().horizontal(7).top(5))
+                .padding(Padding::new().horizontal(7).vertical(5))
                 .into(),
             ])
             .spacing(5)
