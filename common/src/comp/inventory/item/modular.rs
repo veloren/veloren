@@ -389,6 +389,16 @@ pub enum ModularWeaponCreationError {
     SecondaryComponentNotFound,
 }
 
+/// Check if hand restrictions are compatible.
+///
+/// If at least on of them is omitted, check is passed.
+fn compatible_handndess(a: Option<Hands>, b: Option<Hands>) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => a == b,
+        _ => true,
+    }
+}
+
 /// Generate all primary components for specific tool and material.
 ///
 /// Read [random_weapon_primary_component] for more.
@@ -406,9 +416,7 @@ pub fn generate_weapon_primary_components(
             .get(&(tool, material_id.to_owned()))
             .into_iter()
             .flatten()
-            .filter(|(_comp, hand)| {
-                hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
-            })
+            .filter(|(_comp, hand)| compatible_handndess(hand_restriction, *hand))
             .map(|(c, h)| (c.duplicate(ability_map, msm), hand_restriction.or(*h)))
             .collect())
     } else {
@@ -442,9 +450,7 @@ pub fn random_weapon_primary_component(
                 .get(&(tool, material_id.to_owned()))
                 .into_iter()
                 .flatten()
-                .filter(|(_comp, hand)| {
-                    hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
-                })
+                .filter(|(_comp, hand)| compatible_handndess(hand_restriction, *hand))
                 .collect::<Vec<_>>();
 
             let (comp, hand) = primary_components
@@ -484,16 +490,10 @@ pub fn generate_weapons(
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| {
-                hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
-            });
+            .filter(|(_def, hand)| compatible_handndess(hand_restriction, *hand))
+            .filter(|(_def, hand)| compatible_handndess(comp_hand, *hand));
 
-        for (def, hand) in secondaries {
-            if comp_hand.is_some() && hand.is_some() && comp_hand != *hand {
-                // if handedness of components incompatible, skip
-                continue;
-            }
-
+        for (def, _hand) in secondaries {
             let secondary = Item::new_from_item_base(
                 ItemBase::Simple(Arc::clone(def)),
                 Vec::new(),
@@ -532,9 +532,7 @@ pub fn random_weapon(
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| {
-                hand_restriction == *hand || hand_restriction.is_none() || hand.is_none()
-            })
+            .filter(|(_def, hand)| compatible_handndess(hand_restriction, *hand))
             .collect::<Vec<_>>();
 
         let secondary_component = {
