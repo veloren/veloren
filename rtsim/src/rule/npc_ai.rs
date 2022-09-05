@@ -1,9 +1,12 @@
 use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use crate::{
-    data::{npc::{PathData, PathingMemory, Npc, Task, TaskState, Controller, CONTINUE, FINISH}, Sites},
+    data::{
+        npc::{Controller, Npc, NpcId, PathData, PathingMemory, Task, TaskState, CONTINUE, FINISH},
+        Sites,
+    },
     event::OnTick,
-    RtState, Rule, RuleError, EventCtx,
+    EventCtx, RtState, Rule, RuleError,
 };
 use common::{
     astar::{Astar, PathResult},
@@ -16,6 +19,11 @@ use common::{
 use fxhash::FxHasher64;
 use itertools::Itertools;
 use rand::prelude::*;
+use std::{
+    any::{Any, TypeId},
+    marker::PhantomData,
+    ops::ControlFlow,
+};
 use vek::*;
 use world::{
     civ::{self, Track},
@@ -23,24 +31,9 @@ use world::{
     site2::{self, TileKind},
     IndexRef, World,
 };
-use std::{
-    ops::ControlFlow,
-    marker::PhantomData,
-    any::{Any, TypeId},
-};
 
 pub struct NpcAi;
 
-const NEIGHBOURS: &[Vec2<i32>] = &[
-    Vec2::new(1, 0),
-    Vec2::new(0, 1),
-    Vec2::new(-1, 0),
-    Vec2::new(0, -1),
-    Vec2::new(1, 1),
-    Vec2::new(-1, 1),
-    Vec2::new(-1, -1),
-    Vec2::new(1, -1),
-];
 const CARDINALS: &[Vec2<i32>] = &[
     Vec2::new(1, 0),
     Vec2::new(0, 1),
@@ -51,7 +44,7 @@ const CARDINALS: &[Vec2<i32>] = &[
 fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathResult<Vec2<i32>> {
     let heuristic = |tile: &Vec2<i32>| tile.as_::<f32>().distance(end.as_());
     let mut astar = Astar::new(
-        250,
+        1000,
         start,
         &heuristic,
         BuildHasherDefault::<FxHasher64>::default(),
@@ -63,9 +56,9 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
         let b_tile = site.tiles.get(*b);
 
         let terrain = match &b_tile.kind {
-            TileKind::Empty => 5.0,
-            TileKind::Hazard(_) => 20.0,
-            TileKind::Field => 12.0,
+            TileKind::Empty => 3.0,
+            TileKind::Hazard(_) => 50.0,
+            TileKind::Field => 8.0,
             TileKind::Plaza | TileKind::Road { .. } => 1.0,
 
             TileKind::Building
@@ -74,7 +67,7 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             | TileKind::Tower(_)
             | TileKind::Keep(_)
             | TileKind::Gate
-            | TileKind::GnarlingFortification => 20.0,
+            | TileKind::GnarlingFortification => 5.0,
         };
         let is_door_tile = |plot: Id<site2::Plot>, tile: Vec2<i32>| match site.plot(plot).kind() {
             site2::PlotKind::House(house) => house.door_tile == tile,
@@ -85,27 +78,27 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             a_tile
                 .plot
                 .and_then(|plot| is_door_tile(plot, *a).then(|| 1.0))
-                .unwrap_or(f32::INFINITY)
+                .unwrap_or(10000.0)
         } else if b_tile.is_building() && a_tile.is_road() {
             b_tile
                 .plot
                 .and_then(|plot| is_door_tile(plot, *b).then(|| 1.0))
-                .unwrap_or(f32::INFINITY)
+                .unwrap_or(10000.0)
         } else if (a_tile.is_building() || b_tile.is_building()) && a_tile.plot != b_tile.plot {
-            f32::INFINITY
+            10000.0
         } else {
             1.0
         };
 
-        distance * terrain * building
+        distance * terrain + building
     };
 
     astar.poll(
-        250,
+        1000,
         heuristic,
-        |&tile| NEIGHBOURS.iter().map(move |c| tile + *c),
+        |&tile| CARDINALS.iter().map(move |c| tile + *c),
         transition,
-        |tile| *tile == end,
+        |tile| *tile == end || site.tiles.get_known(*tile).is_none(),
     )
 }
 
@@ -183,20 +176,20 @@ fn path_town(
             }
 
             // We pop the first element of the path
-            fn pop_first<T>(mut queue: VecDeque<T>) -> VecDeque<T> {
-                queue.pop_front();
-                queue
-            }
+            // fn pop_first<T>(mut queue: VecDeque<T>) -> VecDeque<T> {
+            //     queue.pop_front();
+            //     queue
+            // }
 
             match path_in_site(start, end, site) {
                 PathResult::Path(p) => Some(PathData {
                     end,
-                    path: pop_first(p.nodes.into()),
+                    path: p.nodes.into(), //pop_first(p.nodes.into()),
                     repoll: false,
                 }),
                 PathResult::Exhausted(p) => Some(PathData {
                     end,
-                    path: pop_first(p.nodes.into()),
+                    path: p.nodes.into(), //pop_first(p.nodes.into()),
                     repoll: true,
                 }),
                 PathResult::None(_) | PathResult::Pending => None,
@@ -244,7 +237,10 @@ impl Rule for NpcAi {
             let npc_ids = ctx.state.data().npcs.keys().collect::<Vec<_>>();
 
             for npc_id in npc_ids {
-                let mut task_state = ctx.state.data_mut().npcs[npc_id].task_state.take().unwrap_or_default();
+                let mut task_state = ctx.state.data_mut().npcs[npc_id]
+                    .task_state
+                    .take()
+                    .unwrap_or_default();
 
                 let (controller, task_state) = {
                     let data = &*ctx.state.data();
@@ -256,40 +252,81 @@ impl Rule for NpcAi {
                         if matches!(npc.profession, Some(Profession::Adventurer(_))) {
                             if let Some(home) = npc.home {
                                 // Travel between random nearby sites
-                                let task = generate(move |(npc, ctx): &(&Npc, &EventCtx<_, _>)| {
-                                    let tgt_site = ctx.state.data().sites
-                                        .iter()
-                                        .filter(|(site_id, site)| npc
-                                            .current_site
-                                            .map_or(true, |cs| *site_id != cs) && thread_rng().gen_bool(0.25))
-                                        .min_by_key(|(_, site)| site.wpos.as_().distance(npc.wpos.xy()) as i32)
-                                        .map(|(site_id, _)| site_id)
-                                        .unwrap_or(home);
+                                let task = generate(
+                                    move |(_, npc, ctx): &(NpcId, &Npc, &EventCtx<_, _>)| {
+                                        // Choose a random site that's fairly close by
+                                        let tgt_site = ctx
+                                            .state
+                                            .data()
+                                            .sites
+                                            .iter()
+                                            .filter(|(site_id, site)| {
+                                                site.faction.is_some()
+                                                    && npc
+                                                        .current_site
+                                                        .map_or(true, |cs| *site_id != cs)
+                                                    && thread_rng().gen_bool(0.25)
+                                            })
+                                            .min_by_key(|(_, site)| {
+                                                site.wpos.as_().distance(npc.wpos.xy()) as i32
+                                            })
+                                            .map(|(site_id, _)| site_id)
+                                            .unwrap_or(home);
 
-                                    TravelToSite(tgt_site)
-                                })
-                                    .repeat();
+                                        let wpos = ctx
+                                            .state
+                                            .data()
+                                            .sites
+                                            .get(tgt_site)
+                                            .map_or(npc.wpos.xy(), |site| site.wpos.as_());
 
-                                task_state.perform(task, &(&*npc, &ctx), &mut controller)?;
+                                        TravelTo {
+                                            wpos,
+                                            use_paths: true,
+                                        }
+                                    },
+                                )
+                                .repeat();
+
+                                task_state.perform(
+                                    task,
+                                    &(npc_id, &*npc, &ctx),
+                                    &mut controller,
+                                )?;
                             }
                         } else {
-                            controller.goto = None;
-
                             // // Choose a random plaza in the npcs home site (which should be the
                             // // current here) to go to.
-                            // if let Some(home_id) =
-                            //     data.sites.get(home_id).and_then(|site| site.world_site)
-                            // {
-                            //     npc.pathing.intrasite_path =
-                            //         path_town(npc.wpos, home_id, ctx.index, |site| {
-                            //             Some(
-                            //                 site.plots
-                            //                     [site.plazas().choose(&mut dynamic_rng)?]
-                            //                 .root_tile(),
-                            //             )
-                            //         })
-                            //         .map(|path| (path, home_id));
-                            // }
+                            let task =
+                                generate(move |(_, npc, ctx): &(NpcId, &Npc, &EventCtx<_, _>)| {
+                                    let data = ctx.state.data();
+                                    let site2 =
+                                        npc.home.and_then(|home| data.sites.get(home)).and_then(
+                                            |home| match &ctx.index.sites.get(home.world_site?).kind
+                                            {
+                                                SiteKind::Refactor(site2)
+                                                | SiteKind::CliffTown(site2)
+                                                | SiteKind::DesertCity(site2) => Some(site2),
+                                                _ => None,
+                                            },
+                                        );
+
+                                    let wpos = site2
+                                        .and_then(|site2| {
+                                            let plaza = &site2.plots
+                                                [site2.plazas().choose(&mut thread_rng())?];
+                                            Some(site2.tile_center_wpos(plaza.root_tile()).as_())
+                                        })
+                                        .unwrap_or(npc.wpos.xy());
+
+                                    TravelTo {
+                                        wpos,
+                                        use_paths: true,
+                                    }
+                                })
+                                .repeat();
+
+                            task_state.perform(task, &(npc_id, &*npc, &ctx), &mut controller)?;
                         }
                     };
 
@@ -315,10 +352,11 @@ impl<F, T> PartialEq for Generate<F, T> {
 pub fn generate<F, T>(f: F) -> Generate<F, T> { Generate(f, PhantomData) }
 
 impl<F, T: Task> Task for Generate<F, T>
-    where F: Clone + Send + Sync + 'static + for<'a> Fn(&T::Ctx<'a>) -> T
+where
+    F: Clone + Send + Sync + 'static + for<'a> Fn(&T::Ctx<'a>) -> T,
 {
-    type State = (T::State, T);
     type Ctx<'a> = T::Ctx<'a>;
+    type State = (T::State, T);
 
     fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State {
         let task = (self.0)(ctx);
@@ -336,30 +374,53 @@ impl<F, T: Task> Task for Generate<F, T>
 }
 
 #[derive(Clone, PartialEq)]
-struct Goto(Vec2<f32>, f32);
+pub struct Goto {
+    wpos: Vec2<f32>,
+    speed_factor: f32,
+    finish_dist: f32,
+}
+
+pub fn goto(wpos: Vec2<f32>) -> Goto {
+    Goto {
+        wpos,
+        speed_factor: 1.0,
+        finish_dist: 1.0,
+    }
+}
 
 impl Task for Goto {
-    type State = (Vec2<f32>, f32);
     type Ctx<'a> = (&'a Npc, &'a EventCtx<'a, NpcAi, OnTick>);
+    type State = ();
 
-    fn begin<'a>(&self, (_npc, _ctx): &Self::Ctx<'a>) -> Self::State { (self.0, self.1) }
+    fn begin<'a>(&self, (_npc, _ctx): &Self::Ctx<'a>) -> Self::State {}
 
     fn run<'a>(
         &self,
-        (tgt, speed_factor): &mut Self::State,
+        (): &mut Self::State,
         (npc, ctx): &Self::Ctx<'a>,
         controller: &mut Controller,
     ) -> ControlFlow<()> {
-        if npc.wpos.xy().distance_squared(*tgt) < 2f32.powi(2) {
+        if npc.wpos.xy().distance_squared(self.wpos) < self.finish_dist.powi(2) {
             controller.goto = None;
             FINISH
         } else {
-            let dist = npc.wpos.xy().distance(*tgt);
+            let dist = npc.wpos.xy().distance(self.wpos);
             let step = dist.min(32.0);
-            let next_tgt = npc.wpos.xy() + (*tgt - npc.wpos.xy()) / dist * step;
+            let next_tgt = npc.wpos.xy() + (self.wpos - npc.wpos.xy()) / dist * step;
 
-            if npc.goto.map_or(true, |(tgt, _)| tgt.xy().distance_squared(next_tgt) > (step * 0.5).powi(2)) || npc.wpos.xy().distance_squared(next_tgt) < (step * 0.5).powi(2) {
-                controller.goto = Some((next_tgt.with_z(ctx.world.sim().get_alt_approx(next_tgt.map(|e| e as i32)).unwrap_or(0.0)), *speed_factor));
+            if npc.goto.map_or(true, |(tgt, _)| {
+                tgt.xy().distance_squared(next_tgt) > (step * 0.5).powi(2)
+            }) || npc.wpos.xy().distance_squared(next_tgt) < (step * 0.5).powi(2)
+            {
+                controller.goto = Some((
+                    next_tgt.with_z(
+                        ctx.world
+                            .sim()
+                            .get_alt_approx(next_tgt.map(|e| e as i32))
+                            .unwrap_or(0.0),
+                    ),
+                    self.speed_factor,
+                ));
             }
             CONTINUE
         }
@@ -367,181 +428,172 @@ impl Task for Goto {
 }
 
 #[derive(Clone, PartialEq)]
-struct TravelToSite(SiteId);
+pub struct TravelTo {
+    wpos: Vec2<f32>,
+    use_paths: bool,
+}
 
-impl Task for TravelToSite {
-    type State = (PathingMemory, TaskState);
-    type Ctx<'a> = (&'a Npc, &'a EventCtx<'a, NpcAi, OnTick>);
+pub enum TravelStage {
+    Goto(Vec2<f32>),
+    SiteToSite {
+        path: PathData<(Id<Track>, bool), SiteId>,
+        progress: usize,
+    },
+    IntraSite {
+        path: PathData<Vec2<i32>, Vec2<i32>>,
+        site: Id<WorldSite>,
+    },
+}
 
-    fn begin<'a>(&self, (npc, ctx): &Self::Ctx<'a>) -> Self::State {
-        (PathingMemory::default(), TaskState::default())
+impl Task for TravelTo {
+    type Ctx<'a> = (NpcId, &'a Npc, &'a EventCtx<'a, NpcAi, OnTick>);
+    type State = (VecDeque<TravelStage>, TaskState);
+
+    fn begin<'a>(&self, (_npc_id, npc, ctx): &Self::Ctx<'a>) -> Self::State {
+        if self.use_paths {
+            let a = npc.wpos.xy();
+            let b = self.wpos;
+
+            let data = ctx.state.data();
+            let nearest_in_dir = |wpos: Vec2<f32>, end: Vec2<f32>| {
+                let dist = wpos.distance(end);
+                data.sites
+                    .iter()
+                    // TODO: faction.is_some() is currently used as a proxy for whether the site likely has paths, don't do this
+                    .filter(|(site_id, site)| site.faction.is_some() && end.distance(site.wpos.as_()) < dist * 1.2)
+                    .min_by_key(|(_, site)| site.wpos.as_().distance(wpos) as i32)
+            };
+            if let Some((site_a, site_b)) = nearest_in_dir(a, b).zip(nearest_in_dir(b, a)) {
+                if site_a.0 != site_b.0 {
+                    if let Some((path, progress)) =
+                        path_towns(site_a.0, site_b.0, &ctx.state.data().sites, ctx.world)
+                    {
+                        return (
+                            [
+                                TravelStage::Goto(site_a.1.wpos.as_()),
+                                TravelStage::SiteToSite { path, progress },
+                                TravelStage::Goto(b),
+                            ]
+                            .into_iter()
+                            .collect(),
+                            TaskState::default(),
+                        );
+                    }
+                }
+            }
+        }
+        (
+            [TravelStage::Goto(self.wpos)].into_iter().collect(),
+            TaskState::default(),
+        )
     }
 
     fn run<'a>(
         &self,
-        (pathing, task_state): &mut Self::State,
-        (npc, ctx): &Self::Ctx<'a>,
+        (stages, task_state): &mut Self::State,
+        (npc_id, npc, ctx): &Self::Ctx<'a>,
         controller: &mut Controller,
     ) -> ControlFlow<()> {
-        if let Some(current_site) = npc.current_site {
-            if pathing.intersite_path.is_none() {
-                pathing.intersite_path = path_towns(
-                    current_site,
-                    self.0,
-                    &ctx.state.data().sites,
-                    ctx.world,
-                );
-                if pathing.intersite_path.is_none() {
-                    return FINISH;
-                }
-            }
-        }
-
-        if let Some((ref mut path, site)) = pathing.intrasite_path {
-            // If the npc walking in a site and want to reroll (because the path was
-            // exhausted.) to try to find a complete path.
-            if path.repoll {
-                pathing.intrasite_path =
-                    path_town(npc.wpos, site, ctx.index, |_| Some(path.end))
-                        .map(|path| (path, site));
-            }
-        }
-
-        if let Some((ref mut path, site)) = pathing.intrasite_path {
-            if let Some(next_tile) = path.path.front() {
-                match &ctx.index.sites.get(site).kind {
-                    SiteKind::Refactor(site)
-                    | SiteKind::CliffTown(site)
-                    | SiteKind::DesertCity(site) => {
-                        // Set the target to the next node in the path.
-                        let wpos = site.tile_center_wpos(*next_tile);
-                        task_state.perform(Goto(wpos.map(|e| e as f32 + 0.5), 1.0), &(npc, ctx), controller)?;
-                        path.path.pop_front();
-                        return CONTINUE;
-                    },
-                    _ => {},
-                }
-            } else {
-                // If the path is empty, we're done.
-                pathing.intrasite_path = None;
-            }
-        }
-
-        if let Some((path, progress)) = {
-            if let Some((path, progress)) = &mut pathing.intersite_path {
-                if let Some((track_id, _)) = path.path.front() {
-                    let track = ctx.world.civs().tracks.get(*track_id);
-                    if *progress >= track.path().len() {
-                        if path.repoll {
-                            // Repoll if last path wasn't complete.
-                            pathing.intersite_path = path_towns(
-                                npc.current_site.unwrap(),
-                                path.end,
-                                &ctx.state.data().sites,
-                                ctx.world,
-                            );
-                        } else {
-                            // Otherwise just take the next in the calculated path.
-                            path.path.pop_front();
-                            *progress = 0;
-                        }
-                    }
-                }
-            }
-            &mut pathing.intersite_path
-        } {
-            if let Some((track_id, reversed)) = path.path.front() {
-                let track = ctx.world.civs().tracks.get(*track_id);
-                let get_progress = |progress: usize| {
-                    if *reversed {
-                        track.path().len().wrapping_sub(progress + 1)
-                    } else {
-                        progress
-                    }
-                };
-
-                let transform_path_pos = |chunk_pos| {
-                    let chunk_wpos = TerrainChunkSize::center_wpos(chunk_pos);
-                    if let Some(pathdata) =
-                        ctx.world.sim().get_nearest_path(chunk_wpos)
-                    {
-                        pathdata.1.map(|e| e as i32)
-                    } else {
-                        chunk_wpos
-                    }
-                };
-
-                // Loop through and skip nodes that are inside a site, and use intra
-                // site path finding there instead.
-                let walk_path = if let Some(chunk_pos) =
-                    track.path().nodes.get(get_progress(*progress))
-                {
-                    if let Some((wpos, site_id, site)) =
-                        ctx.world.sim().get(*chunk_pos).and_then(|chunk| {
-                            let site_id = *chunk.sites.first()?;
-                            let wpos = transform_path_pos(*chunk_pos);
-                            match &ctx.index.sites.get(site_id).kind {
-                                SiteKind::Refactor(site)
-                                | SiteKind::CliffTown(site)
-                                | SiteKind::DesertCity(site) => {
-                                    Some((wpos, site_id, site))
-                                },
-                                _ => None,
-                            }
-                        })
-                    {
-                        if pathing.intrasite_path.is_none() {
-                            let end = site.wpos_tile_pos(wpos);
-                            pathing.intrasite_path =
-                                path_town(npc.wpos, site_id, ctx.index, |_| {
-                                    Some(end)
-                                })
-                                .map(|path| (path, site_id));
-                        }
-                        if site.wpos_tile(wpos).is_obstacle() {
-                            *progress += 1;
-                            pathing.intrasite_path = None;
-                            false
-                        } else {
-                            true
-                        }
-                    } else {
-                        true
-                    }
-                } else {
-                    false
-                };
-
-                if walk_path {
-                    // Find the next wpos on the path.
-                    // NOTE: Consider not having this big gap between current
-                    // position and next. For better path finding. Maybe that would
-                    // mean having a float for progress.
-                    let wpos = transform_path_pos(
-                        track.path().nodes[get_progress(*progress)],
-                    );
-                    task_state.perform(Goto(wpos.map(|e| e as f32 + 0.5), 0.8), &(npc, ctx), controller)?;
-                    *progress += 1;
-                    return CONTINUE;
-                }
-            } else {
-                pathing.intersite_path = None;
-            }
-        }
-
-        let world_site = |site_id: SiteId| {
-            let id = ctx.state.data().sites.get(site_id).and_then(|site| site.world_site)?;
-            ctx.world.civs().sites.recreate_id(id.id())
+        let get_site2 = |site| match &ctx.index.sites.get(site).kind {
+            SiteKind::Refactor(site2)
+            | SiteKind::CliffTown(site2)
+            | SiteKind::DesertCity(site2) => Some(site2),
+            _ => None,
         };
 
-        if let Some(site_wpos) = world_site(self.0)
-            .map(|home| TerrainChunkSize::center_wpos(ctx.world.civs().sites.get(home).center))
-        {
-            if site_wpos.map(|e| e as f32 + 0.5).distance_squared(npc.wpos.xy()) < 16f32.powi(2) {
-                FINISH
-            } else {
-                task_state.perform(Goto(site_wpos.map(|e| e as f32 + 0.5), 0.8), &(npc, ctx), controller)
+        if let Some(stage) = stages.front_mut() {
+            match stage {
+                TravelStage::Goto(wpos) => {
+                    task_state.perform(goto(*wpos), &(npc, ctx), controller)?;
+                    stages.pop_front();
+                },
+                TravelStage::IntraSite { path, site } => {
+                    if npc
+                        .current_site
+                        .and_then(|site| ctx.state.data().sites.get(site)?.world_site)
+                        == Some(*site)
+                    {
+                        if let Some(next_tile) = path.path.front() {
+                            task_state.perform(
+                                Goto {
+                                    wpos: get_site2(*site)
+                                        .expect(
+                                            "intrasite path should only be started on a site2 site",
+                                        )
+                                        .tile_center_wpos(*next_tile)
+                                        .as_()
+                                        + 0.5,
+                                    speed_factor: 0.6,
+                                    finish_dist: 1.0,
+                                },
+                                &(npc, ctx),
+                                controller,
+                            )?;
+                            path.path.pop_front();
+                            return CONTINUE;
+                        }
+                    }
+                    task_state.perform(goto(self.wpos), &(npc, ctx), controller)?;
+                    stages.pop_front();
+                },
+                TravelStage::SiteToSite { path, progress } => {
+                    if let Some((track_id, reversed)) = path.path.front() {
+                        let track = ctx.world.civs().tracks.get(*track_id);
+                        if *progress >= track.path().len() {
+                            // We finished this track section, move to the next one
+                            path.path.pop_front();
+                            *progress = 0;
+                        } else {
+                            let next_node_idx = if *reversed {
+                                track.path().len().saturating_sub(*progress + 1)
+                            } else {
+                                *progress
+                            };
+                            let next_node = track.path().nodes[next_node_idx];
+
+                            let transform_path_pos = |chunk_pos| {
+                                let chunk_wpos = TerrainChunkSize::center_wpos(chunk_pos);
+                                if let Some(pathdata) = ctx.world.sim().get_nearest_path(chunk_wpos)
+                                {
+                                    pathdata.1.map(|e| e as i32)
+                                } else {
+                                    chunk_wpos
+                                }
+                            };
+
+                            task_state.perform(
+                                Goto {
+                                    wpos: transform_path_pos(next_node).as_() + 0.5,
+                                    speed_factor: 1.0,
+                                    finish_dist: 10.0,
+                                },
+                                &(npc, ctx),
+                                controller,
+                            )?;
+                            *progress += 1;
+                        }
+                    } else {
+                        stages.pop_front();
+                    }
+                },
             }
+
+            if !matches!(stages.front(), Some(TravelStage::IntraSite { .. })) {
+                let data = ctx.state.data();
+                if let Some((site2, site)) = npc
+                    .current_site
+                    .and_then(|current_site| data.sites.get(current_site))
+                    .and_then(|site| site.world_site)
+                    .and_then(|site| Some((get_site2(site)?, site)))
+                {
+                    let end = site2.wpos_tile_pos(self.wpos.as_());
+                    if let Some(path) = path_town(npc.wpos, site, ctx.index, |_| Some(end)) {
+                        stages.push_front(TravelStage::IntraSite { path, site });
+                    }
+                }
+            }
+
+            CONTINUE
         } else {
             FINISH
         }

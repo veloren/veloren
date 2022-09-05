@@ -25,9 +25,7 @@ impl Default for TileGrid {
 }
 
 impl TileGrid {
-    pub fn get(&self, tpos: Vec2<i32>) -> &Tile {
-        static EMPTY: Tile = Tile::empty();
-
+    pub fn get_known(&self, tpos: Vec2<i32>) -> Option<&Tile> {
         let tpos = tpos + TILE_RADIUS as i32;
         self.zones
             .get(tpos.map(|e| e.div_euclid(ZONE_SIZE as i32)))
@@ -36,7 +34,11 @@ impl TileGrid {
                     .get(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
             })
             .and_then(|tile| tile.as_ref())
-            .unwrap_or(&EMPTY)
+    }
+
+    pub fn get(&self, tpos: Vec2<i32>) -> &Tile {
+        static EMPTY: Tile = Tile::empty();
+        self.get_known(tpos).unwrap_or(&EMPTY)
     }
 
     // WILL NOT EXPAND BOUNDS!

@@ -10,9 +10,9 @@ use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::{
-    collections::VecDeque,
-    ops::{Deref, DerefMut, ControlFlow},
     any::Any,
+    collections::VecDeque,
+    ops::{ControlFlow, Deref, DerefMut},
 };
 use vek::*;
 use world::{civ::Track, site::Site as WorldSite, util::RandomPerm};
@@ -57,31 +57,37 @@ pub trait Task: PartialEq + Clone + Send + Sync + 'static {
 
     fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State;
 
-    fn run<'a>(&self, state: &mut Self::State, ctx: &Self::Ctx<'a>, controller: &mut Controller) -> ControlFlow<()>;
+    fn run<'a>(
+        &self,
+        state: &mut Self::State,
+        ctx: &Self::Ctx<'a>,
+        controller: &mut Controller,
+    ) -> ControlFlow<()>;
 
-    fn then<B: Task>(self, other: B) -> Then<Self, B> {
-        Then(self, other)
-    }
+    fn then<B: Task>(self, other: B) -> Then<Self, B> { Then(self, other) }
 
-    fn repeat(self) -> Repeat<Self> {
-        Repeat(self)
-    }
+    fn repeat(self) -> Repeat<Self> { Repeat(self) }
 }
 
 #[derive(Clone, PartialEq)]
 pub struct Then<A, B>(A, B);
 
 impl<A: Task, B> Task for Then<A, B>
-    where B: for<'a> Task<Ctx<'a> = A::Ctx<'a>>
+where
+    B: for<'a> Task<Ctx<'a> = A::Ctx<'a>>,
 {
-    type State = Result<A::State, B::State>; // TODO: Use `Either` instead
+    // TODO: Use `Either` instead
     type Ctx<'a> = A::Ctx<'a>;
+    type State = Result<A::State, B::State>;
 
-    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State {
-        Ok(self.0.begin(ctx))
-    }
+    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State { Ok(self.0.begin(ctx)) }
 
-    fn run<'a>(&self, state: &mut Self::State, ctx: &Self::Ctx<'a>, controller: &mut Controller) -> ControlFlow<()> {
+    fn run<'a>(
+        &self,
+        state: &mut Self::State,
+        ctx: &Self::Ctx<'a>,
+        controller: &mut Controller,
+    ) -> ControlFlow<()> {
         match state {
             Ok(a_state) => {
                 self.0.run(a_state, ctx, controller)?;
@@ -97,14 +103,17 @@ impl<A: Task, B> Task for Then<A, B>
 pub struct Repeat<A>(A);
 
 impl<A: Task> Task for Repeat<A> {
-    type State = A::State;
     type Ctx<'a> = A::Ctx<'a>;
+    type State = A::State;
 
-    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State {
-        self.0.begin(ctx)
-    }
+    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State { self.0.begin(ctx) }
 
-    fn run<'a>(&self, state: &mut Self::State, ctx: &Self::Ctx<'a>, controller: &mut Controller) -> ControlFlow<()> {
+    fn run<'a>(
+        &self,
+        state: &mut Self::State,
+        ctx: &Self::Ctx<'a>,
+        controller: &mut Controller,
+    ) -> ControlFlow<()> {
         self.0.run(state, ctx, controller)?;
         *state = self.0.begin(ctx);
         CONTINUE
@@ -120,13 +129,12 @@ impl TaskState {
     ) -> ControlFlow<()> {
         type StateOf<T> = (T, <T as Task>::State);
 
-        let mut state = if let Some(state) = self.state
-            .take()
-            .and_then(|state| state
+        let mut state = if let Some(state) = self.state.take().and_then(|state| {
+            state
                 .downcast::<StateOf<T>>()
                 .ok()
-                .filter(|state| state.0 == task))
-        {
+                .filter(|state| state.0 == task)
+        }) {
             state
         } else {
             let mut state = task.begin(ctx);
@@ -157,7 +165,6 @@ pub struct Npc {
     pub faction: Option<FactionId>,
 
     // Unpersisted state
-
     #[serde(skip_serializing, skip_deserializing)]
     pub current_site: Option<SiteId>,
 

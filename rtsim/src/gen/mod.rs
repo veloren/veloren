@@ -77,13 +77,13 @@ impl Data {
                     Npc::new(rng.gen(), rand_wpos(&mut rng))
                         .with_faction(site.faction)
                         .with_home(site_id)
-                        .with_profession(match rng.gen_range(0..17) {
-                            // 0 => Profession::Hunter,
-                            // 1 => Profession::Blacksmith,
-                            // 2 => Profession::Chef,
-                            // 3 => Profession::Alchemist,
-                            // 5..=10 => Profession::Farmer,
-                            // 11..=15 => Profession::Guard,
+                        .with_profession(match rng.gen_range(0..20) {
+                            0 => Profession::Hunter,
+                            1 => Profession::Blacksmith,
+                            2 => Profession::Chef,
+                            3 => Profession::Alchemist,
+                            5..=10 => Profession::Farmer,
+                            11..=15 => Profession::Guard,
                             _ => Profession::Adventurer(rng.gen_range(0..=3)),
                         }),
                 );

@@ -262,11 +262,13 @@ impl<'a> System<'a> for Sys {
                         agent.rtsim_controller.speed_factor = npc.goto.map_or(1.0, |(_, sf)| sf);
                         // TODO:
                         // agent.rtsim_controller.heading_to =
-                        //     npc.pathing.intersite_path.as_ref().and_then(|(path, _)| {
+                        //     npc.pathing.intersite_path.as_ref().
+                        // and_then(|(path, _)| {
                         //         Some(
                         //             index
                         //                 .sites
-                        //                 .get(data.sites.get(path.end)?.world_site?)
+                        //                 
+                        // .get(data.sites.get(path.end)?.world_site?)
                         //                 .name()
                         //                 .to_string(),
                         //         )
