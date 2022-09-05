@@ -788,6 +788,7 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
         | BuffKind::Saturation
         | BuffKind::Potion
         | BuffKind::CampfireHeal
+        | BuffKind::EnergyRegen
         | BuffKind::IncreaseMaxEnergy
         | BuffKind::IncreaseMaxHealth
         | BuffKind::Invulnerability

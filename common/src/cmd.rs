@@ -141,6 +141,7 @@ lazy_static! {
             BuffKind::Cursed => "cursed",
             BuffKind::Potion => "potion",
             BuffKind::CampfireHeal => "campfire_heal",
+            BuffKind::EnergyRegen => "energy_regen",
             BuffKind::IncreaseMaxEnergy => "increase_max_energy",
             BuffKind::IncreaseMaxHealth => "increase_max_health",
             BuffKind::Invulnerability => "invulnerability",
@@ -154,7 +155,9 @@ lazy_static! {
             BuffKind::Hastened => "hastened",
         };
         let mut buff_parser = HashMap::new();
-        BuffKind::iter().for_each(|kind| {buff_parser.insert(string_from_buff(kind).to_string(), kind);});
+        for kind in BuffKind::iter() {
+            buff_parser.insert(string_from_buff(kind).to_string(), kind);
+        }
         buff_parser
     };
 

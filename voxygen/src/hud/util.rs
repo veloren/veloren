@@ -21,51 +21,43 @@ pub fn price_desc<'a>(
     item_definition_id: ItemDefinitionId<'_>,
     i18n: &'a Localization,
 ) -> Option<(Cow<'a, str>, Cow<'a, str>, f32)> {
-    if let Some(prices) = prices {
-        if let Some(materials) = TradePricing::get_materials(&item_definition_id) {
-            let coinprice = prices.values.get(&Good::Coin).cloned().unwrap_or(1.0);
-            let buyprice: f32 = materials
-                .iter()
-                .map(|e| prices.values.get(&e.1).cloned().unwrap_or_default() * e.0)
-                .sum();
-            let sellprice: f32 = materials
-                .iter()
-                .map(|e| {
-                    prices.values.get(&e.1).cloned().unwrap_or_default() * e.0 * e.1.trade_margin()
-                })
-                .sum();
+    let prices = prices.as_ref()?;
+    let materials = TradePricing::get_materials(&item_definition_id)?;
+    let coinprice = prices.values.get(&Good::Coin).cloned().unwrap_or(1.0);
+    let buyprice: f32 = materials
+        .iter()
+        .map(|e| prices.values.get(&e.1).cloned().unwrap_or_default() * e.0)
+        .sum();
+    let sellprice: f32 = materials
+        .iter()
+        .map(|e| prices.values.get(&e.1).cloned().unwrap_or_default() * e.0 * e.1.trade_margin())
+        .sum();
 
-            let deal_goodness: f32 = materials
-                .iter()
-                .map(|e| prices.values.get(&e.1).cloned().unwrap_or(0.0))
-                .sum::<f32>()
-                / prices.values.get(&Good::Coin).cloned().unwrap_or(1.0)
-                / (materials.len() as f32);
-            let deal_goodness = deal_goodness.log(2.0);
+    let deal_goodness: f32 = materials
+        .iter()
+        .map(|e| prices.values.get(&e.1).cloned().unwrap_or(0.0))
+        .sum::<f32>()
+        / prices.values.get(&Good::Coin).cloned().unwrap_or(1.0)
+        / (materials.len() as f32);
+    let deal_goodness = deal_goodness.log(2.0);
 
-            let buy_string = i18n.get_msg_ctx("hud-trade-buy", &fluent_args! {
-                "coin_num" => buyprice / coinprice,
-                "coin_formatted" => format!("{:0.1}", buyprice / coinprice),
-            });
-            let sell_string = i18n.get_msg_ctx("hud-trade-sell", &fluent_args! {
-                "coin_num" => sellprice / coinprice,
-                "coin_formatted" => format!("{:0.1}", sellprice / coinprice),
-            });
+    let buy_string = i18n.get_msg_ctx("hud-trade-buy", &fluent_args! {
+        "coin_num" => buyprice / coinprice,
+        "coin_formatted" => format!("{:0.1}", buyprice / coinprice),
+    });
+    let sell_string = i18n.get_msg_ctx("hud-trade-sell", &fluent_args! {
+        "coin_num" => sellprice / coinprice,
+        "coin_formatted" => format!("{:0.1}", sellprice / coinprice),
+    });
 
-            let deal_goodness = match deal_goodness {
-                x if x < -2.5 => 0.0,
-                x if x < -1.05 => 0.25,
-                x if x < -0.95 => 0.5,
-                x if x < 0.0 => 0.75,
-                _ => 1.0,
-            };
-            Some((buy_string, sell_string, deal_goodness))
-        } else {
-            None
-        }
-    } else {
-        None
-    }
+    let deal_goodness = match deal_goodness {
+        x if x < -2.5 => 0.0,
+        x if x < -1.05 => 0.25,
+        x if x < -0.95 => 0.5,
+        x if x < 0.0 => 0.75,
+        _ => 1.0,
+    };
+    Some((buy_string, sell_string, deal_goodness))
 }
 
 pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
@@ -126,6 +118,21 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
     }
 }
 
+pub fn line_count(item: &dyn ItemDesc, msm: &MaterialStatManifest, i18n: &Localization) -> usize {
+    match &*item.kind() {
+        ItemKind::Consumable { effects, .. } => {
+            let descs = consumable_desc(effects, i18n);
+            let mut lines = 0;
+            for desc in descs {
+                lines += desc.matches('\n').count() + 1;
+            }
+
+            lines
+        },
+        _ => stats_count(item, msm),
+    }
+}
+
 /// Takes N `effects` and returns N effect descriptions
 /// If effect isn't intended to have description, returns empty string
 ///
@@ -149,6 +156,11 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                     .get_msg_ctx("buff-stat-health", &i18n::fluent_args! {
                         "str_total" => format_float(str_total),
                     }),
+                BuffKind::EnergyRegen => {
+                    i18n.get_msg_ctx("buff-stat-energy_regen", &i18n::fluent_args! {
+                        "str_total" => format_float(str_total),
+                    })
+                },
                 BuffKind::IncreaseMaxEnergy => {
                     i18n.get_msg_ctx("buff-stat-increase_max_energy", &i18n::fluent_args! {
                         "strength" => format_float(strength),
@@ -178,11 +190,10 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
 
             let dur_desc = if let Some(dur_secs) = dur_secs {
                 match buff.kind {
-                    BuffKind::Saturation | BuffKind::Regeneration => {
-                        i18n.get_msg_ctx("buff-text-over_seconds", &i18n::fluent_args! {
+                    BuffKind::Saturation | BuffKind::Regeneration | BuffKind::EnergyRegen => i18n
+                        .get_msg_ctx("buff-text-over_seconds", &i18n::fluent_args! {
                             "dur_secs" => dur_secs
-                        })
-                    },
+                        }),
                     BuffKind::IncreaseMaxEnergy
                     | BuffKind::IncreaseMaxHealth
                     | BuffKind::Invulnerability => {
@@ -204,7 +215,9 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                     | BuffKind::Poisoned
                     | BuffKind::Hastened => Cow::Borrowed(""),
                 }
-            } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
+            } else if let BuffKind::Saturation | BuffKind::Regeneration | BuffKind::EnergyRegen =
+                buff.kind
+            {
                 i18n.get_msg("buff-text-every_second")
             } else {
                 Cow::Borrowed("")
