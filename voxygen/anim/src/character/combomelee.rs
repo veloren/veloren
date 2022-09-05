@@ -86,22 +86,15 @@ impl Animation for ComboAnimation {
                                     * Quaternion::rotation_z(move2alt * -1.5);
                         },
                         1 => {
-                            next.chest
-                                .orientation
-                                .rotate_z(move1 * -0.2 + move2alt * 1.4);
-                            next.head
-                                .orientation
-                                .rotate_z(move1 * 0.1 + move2alt * -0.4);
-                            next.belt
-                                .orientation
-                                .rotate_z(move1 * 0.1 + move2alt * -0.4);
-                            next.shorts
-                                .orientation
-                                .rotate_z(move1 * 0.2 + move2alt * -0.8);
-                            next.control.position += Vec3::new(move2 * -25.0, 0.0, move2 * 10.0);
-                            next.control.orientation.rotate_x(move2alt * 0.4);
-                            next.control.orientation.rotate_y(move2 * -0.6);
-                            next.control.orientation.rotate_z(move2alt * 3.0);
+                            next.control.orientation.rotate_x(move1 * 3.2);
+                            next.control.orientation.rotate_z(move1 * 1.0);
+
+                            next.chest.orientation.rotate_z(move2 * 1.4);
+                            next.head.orientation.rotate_z(move2 * -0.6);
+                            next.shorts.orientation.rotate_z(move2 * -0.8);
+                            next.belt.orientation.rotate_z(move2 * -0.3);
+                            next.control.orientation.rotate_z(move2 * 1.5);
+                            next.control.position += Vec3::new(move2 * -27.0, 0.0, move2 * 5.0);
                         },
                         _ => {},
                     }
