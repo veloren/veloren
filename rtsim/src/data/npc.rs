@@ -11,7 +11,8 @@ use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::{
     collections::VecDeque,
-    ops::{Deref, DerefMut},
+    ops::{Deref, DerefMut, ControlFlow},
+    any::Any,
 };
 use vek::*;
 use world::{civ::Track, site::Site as WorldSite, util::RandomPerm};
@@ -38,7 +39,113 @@ pub struct PathingMemory {
     pub intersite_path: Option<(PathData<(Id<Track>, bool), SiteId>, usize)>,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+pub struct Controller {
+    pub goto: Option<(Vec3<f32>, f32)>,
+}
+
+#[derive(Default)]
+pub struct TaskState {
+    state: Option<Box<dyn Any + Send + Sync>>,
+}
+
+pub const CONTINUE: ControlFlow<()> = ControlFlow::Break(());
+pub const FINISH: ControlFlow<()> = ControlFlow::Continue(());
+
+pub trait Task: PartialEq + Clone + Send + Sync + 'static {
+    type State: Send + Sync;
+    type Ctx<'a>;
+
+    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State;
+
+    fn run<'a>(&self, state: &mut Self::State, ctx: &Self::Ctx<'a>, controller: &mut Controller) -> ControlFlow<()>;
+
+    fn then<B: Task>(self, other: B) -> Then<Self, B> {
+        Then(self, other)
+    }
+
+    fn repeat(self) -> Repeat<Self> {
+        Repeat(self)
+    }
+}
+
+#[derive(Clone, PartialEq)]
+pub struct Then<A, B>(A, B);
+
+impl<A: Task, B> Task for Then<A, B>
+    where B: for<'a> Task<Ctx<'a> = A::Ctx<'a>>
+{
+    type State = Result<A::State, B::State>; // TODO: Use `Either` instead
+    type Ctx<'a> = A::Ctx<'a>;
+
+    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State {
+        Ok(self.0.begin(ctx))
+    }
+
+    fn run<'a>(&self, state: &mut Self::State, ctx: &Self::Ctx<'a>, controller: &mut Controller) -> ControlFlow<()> {
+        match state {
+            Ok(a_state) => {
+                self.0.run(a_state, ctx, controller)?;
+                *state = Err(self.1.begin(ctx));
+                CONTINUE
+            },
+            Err(b_state) => self.1.run(b_state, ctx, controller),
+        }
+    }
+}
+
+#[derive(Clone, PartialEq)]
+pub struct Repeat<A>(A);
+
+impl<A: Task> Task for Repeat<A> {
+    type State = A::State;
+    type Ctx<'a> = A::Ctx<'a>;
+
+    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State {
+        self.0.begin(ctx)
+    }
+
+    fn run<'a>(&self, state: &mut Self::State, ctx: &Self::Ctx<'a>, controller: &mut Controller) -> ControlFlow<()> {
+        self.0.run(state, ctx, controller)?;
+        *state = self.0.begin(ctx);
+        CONTINUE
+    }
+}
+
+impl TaskState {
+    pub fn perform<'a, T: Task>(
+        &mut self,
+        task: T,
+        ctx: &T::Ctx<'a>,
+        controller: &mut Controller,
+    ) -> ControlFlow<()> {
+        type StateOf<T> = (T, <T as Task>::State);
+
+        let mut state = if let Some(state) = self.state
+            .take()
+            .and_then(|state| state
+                .downcast::<StateOf<T>>()
+                .ok()
+                .filter(|state| state.0 == task))
+        {
+            state
+        } else {
+            let mut state = task.begin(ctx);
+            Box::new((task, state))
+        };
+
+        let res = state.0.run(&mut state.1, ctx, controller);
+
+        self.state = if matches!(res, ControlFlow::Break(())) {
+            Some(state)
+        } else {
+            None
+        };
+
+        res
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct Npc {
     // Persisted state
     /// Represents the location of the NPC.
@@ -50,8 +157,6 @@ pub struct Npc {
     pub faction: Option<FactionId>,
 
     // Unpersisted state
-    #[serde(skip_serializing, skip_deserializing)]
-    pub pathing: PathingMemory,
 
     #[serde(skip_serializing, skip_deserializing)]
     pub current_site: Option<SiteId>,
@@ -66,6 +171,26 @@ pub struct Npc {
     /// should instead be derived from the game.
     #[serde(skip_serializing, skip_deserializing)]
     pub mode: NpcMode,
+
+    #[serde(skip_serializing, skip_deserializing)]
+    pub task_state: Option<TaskState>,
+}
+
+impl Clone for Npc {
+    fn clone(&self) -> Self {
+        Self {
+            seed: self.seed,
+            wpos: self.wpos,
+            profession: self.profession.clone(),
+            home: self.home,
+            faction: self.faction,
+            // Not persisted
+            current_site: Default::default(),
+            goto: Default::default(),
+            mode: Default::default(),
+            task_state: Default::default(),
+        }
+    }
 }
 
 impl Npc {
@@ -79,10 +204,10 @@ impl Npc {
             profession: None,
             home: None,
             faction: None,
-            pathing: Default::default(),
             current_site: None,
             goto: None,
             mode: NpcMode::Simulated,
+            task_state: Default::default(),
         }
     }
 
