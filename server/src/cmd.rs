@@ -1944,49 +1944,70 @@ where
         if target_inventory.free_slots() < count {
             return Err("Inventory doesn't have enough slots".to_owned());
         }
-        let mut rng = thread_rng();
-        for (item_id, quantity) in kit {
-            let mut item = match &item_id {
-                KitSpec::Item(item_id) => Item::new_from_asset(item_id)
-                    .map_err(|_| format!("Unknown item: {:#?}", item_id))?,
-                KitSpec::ModularWeapon { tool, material } => {
-                    comp::item::modular::random_weapon(*tool, *material, None, &mut rng)
-                        .map_err(|err| format!("{:#?}", err))?
-                },
-            };
-            let mut res = Ok(());
 
-            // Either push stack or push one by one.
-            if item.is_stackable() {
-                // FIXME: in theory, this can fail,
-                // but we don't have stack sizes yet.
-                let _ = item.set_amount(quantity);
-                res = target_inventory.push(item);
+        for (item_id, quantity) in kit {
+            push_item(item_id, quantity, server, &mut |item| {
+                let res = target_inventory.push(item);
                 let _ = target_inv_update.insert(
                     target,
                     comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
                 );
-            } else {
-                let ability_map = server.state.ecs().read_resource::<AbilityMap>();
-                let msm = server.state.ecs().read_resource::<MaterialStatManifest>();
-                for _ in 0..quantity {
-                    res = target_inventory.push(item.duplicate(&ability_map, &msm));
-                    let _ = target_inv_update.insert(
-                        target,
-                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
-                    );
-                }
-            }
-            // I think it's possible to pick-up item during this loop
-            // and fail into case where you had space but now you don't?
-            if res.is_err() {
-                return Err("Can't fit item to inventory".to_owned());
-            }
+
+                res
+            })?;
         }
+
         Ok(())
     } else {
         Err("Could not get inventory".to_string())
     }
+}
+
+fn push_item(
+    item_id: KitSpec,
+    quantity: u32,
+    server: &Server,
+    push: &mut dyn FnMut(Item) -> Result<(), Item>,
+) -> CmdResult<()> {
+    let items = match &item_id {
+        KitSpec::Item(item_id) => vec![
+            Item::new_from_asset(item_id).map_err(|_| format!("Unknown item: {:#?}", item_id))?,
+        ],
+        KitSpec::ModularWeapon { tool, material } => {
+            comp::item::modular::generate_weapons(*tool, *material, None)
+                .map_err(|err| format!("{:#?}", err))?
+        },
+    };
+
+    let mut res = Ok(());
+    for mut item in items {
+        // Either push stack or push one by one.
+        if item.is_stackable() {
+            // FIXME: in theory, this can fail,
+            // but we don't have stack sizes yet.
+            let _ = item.set_amount(quantity);
+            res = push(item);
+        } else {
+            let ability_map = server.state.ecs().read_resource::<AbilityMap>();
+            let msm = server.state.ecs().read_resource::<MaterialStatManifest>();
+
+            for _ in 0..quantity {
+                res = push(item.duplicate(&ability_map, &msm));
+
+                if res.is_err() {
+                    break;
+                }
+            }
+        }
+
+        // I think it's possible to pick-up item during this loop
+        // and fail into case where you had space but now you don't?
+        if res.is_err() {
+            return Err("Can't fit item to inventory".to_owned());
+        }
+    }
+
+    Ok(())
 }
 
 fn handle_object(
