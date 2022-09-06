@@ -10,6 +10,8 @@ common-abilities-staff-fireshockwave = Ring of Fire
     .desc = Ignites the ground with fiery shockwave.
 common-abilities-sceptre-wardingaura = Warding Aura
     .desc = Wards your allies against enemy attacks.
+
+# Sword abilities
 common-abilities-sword-balanced_combo = Balanced Stance
     .desc = This stance has few downsides, but is not particularly special.
 common-abilities-sword-balanced_thrust = Sword Thrust

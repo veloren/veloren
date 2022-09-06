@@ -419,8 +419,8 @@ impl<W: Positionable> Position for W {
     fn position(self, request: PositionSpecifier) -> Self {
         match request {
             // Place the widget near other widget with the given margins
-            PositionSpecifier::TopLeftWithMarginsOn(other, top, right) => {
-                self.top_left_with_margins_on(other, top, right)
+            PositionSpecifier::TopLeftWithMarginsOn(other, top, left) => {
+                self.top_left_with_margins_on(other, top, left)
             },
             PositionSpecifier::TopRightWithMarginsOn(other, top, right) => {
                 self.top_right_with_margins_on(other, top, right)

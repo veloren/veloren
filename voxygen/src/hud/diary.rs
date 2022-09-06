@@ -45,6 +45,7 @@ use common::{
     },
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
+use inline_tweak::tweak;
 use std::borrow::Cow;
 
 const ART_SIZE: [f64; 2] = [320.0, 320.0];
@@ -79,7 +80,9 @@ widget_ids! {
         skills_top_r[],
         skills_bot_l[],
         skills_bot_r[],
-        sword_render,
+        skills[],
+        skill_lock_imgs[],
+        sword_bg,
         axe_render,
         skill_axe_combo_0,
         skill_axe_combo_1,
@@ -1310,6 +1313,11 @@ enum SkillIcon<'a> {
         position: PositionSpecifier,
         id: widget::Id,
     },
+    Ability {
+        skill: Skill,
+        ability_id: &'a str,
+        position: PositionSpecifier,
+    },
 }
 
 impl<'a> Diary<'a> {
@@ -1485,7 +1493,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -1506,36 +1514,179 @@ impl<'a> Diary<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.tree_title_txt, ui);
 
-        // Number of skills per rectangle per weapon, start counting at 0
-        // Maximum of 9 skills/8 indices
-        let skills_top_l = 5;
-        let skills_top_r = 7;
-        let skills_bot_l = 5;
-        let skills_bot_r = 1;
-
-        self.setup_state_for_skill_icons(
-            state,
-            ui,
-            skills_top_l,
-            skills_top_r,
-            skills_bot_l,
-            skills_bot_r,
-        );
-
         // Sword
-        Image::new(animate_by_pulse(
-            &self
-                .item_imgs
-                .img_ids_or_not_found_img(ItemKey::Simple("example_sword".to_string())),
-            self.pulse,
-        ))
-        .wh(ART_SIZE)
-        .middle_of(state.ids.content_align)
-        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.ids.sword_render, ui);
-        let skill_buttons = &[];
+        Image::new(self.imgs.sword_bg)
+            .wh([tweak!(1000.0), tweak!(600.0)])
+            .mid_top_with_margin_on(state.ids.content_align, tweak!(80.0))
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .set(state.ids.sword_bg, ui);
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        use PositionSpecifier::TopLeftWithMarginsOn;
+        let skill_buttons = &[
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::BalancedFinisher),
+                ability_id: "common.abilities.sword.balanced_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(489.0), tweak!(462.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::OffensiveCombo),
+                ability_id: "common.abilities.sword.offensive_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(389.0), tweak!(313.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::OffensiveFinisher),
+                ability_id: "common.abilities.sword.offensive_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(489.0), tweak!(265.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::OffensiveAdvance),
+                ability_id: "common.abilities.sword.offensive_advance",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(489.0), tweak!(361.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingCombo),
+                ability_id: "common.abilities.sword.crippling_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(289.0), tweak!(164.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingFinisher),
+                ability_id: "common.abilities.sword.crippling_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(193.0), tweak!(164.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingStrike),
+                ability_id: "common.abilities.sword.crippling_strike",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(97.0), tweak!(164.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingGouge),
+                ability_id: "common.abilities.sword.crippling_gouge",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(2.0), tweak!(164.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingCombo),
+                ability_id: "common.abilities.sword.cleaving_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(289.0), tweak!(15.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingFinisher),
+                ability_id: "common.abilities.sword.cleaving_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(193.0), tweak!(15.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingSpin),
+                ability_id: "common.abilities.sword.cleaving_spin",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(97.0), tweak!(15.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingDive),
+                ability_id: "common.abilities.sword.cleaving_dive",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(2.0), tweak!(15.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveCombo),
+                ability_id: "common.abilities.sword.defensive_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(389.0), tweak!(611.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveBulwark),
+                ability_id: "common.abilities.sword.defensive_bulwark",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(489.0), tweak!(659.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveRetreat),
+                ability_id: "common.abilities.sword.defensive_retreat",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(489.0), tweak!(563.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ParryingCombo),
+                ability_id: "common.abilities.sword.parrying_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(289.0), tweak!(760.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ParryingParry),
+                ability_id: "common.abilities.sword.parrying_parry",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(193.0), tweak!(760.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ParryingRiposte),
+                ability_id: "common.abilities.sword.parrying_riposte",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(97.0), tweak!(760.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ParryingCounter),
+                ability_id: "common.abilities.sword.parrying_counter",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(2.0), tweak!(760.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyCombo),
+                ability_id: "common.abilities.sword.heavy_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(289.0), tweak!(909.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyFinisher),
+                ability_id: "common.abilities.sword.heavy_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(193.0), tweak!(909.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyPommelStrike),
+                ability_id: "common.abilities.sword.heavy_pommelstrike",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(97.0), tweak!(909.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyFortitude),
+                ability_id: "common.abilities.sword.heavy_fortitude",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(2.0), tweak!(909.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::MobilityCombo),
+                ability_id: "common.abilities.sword.mobility_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(289.0), tweak!(462.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::MobilityFeint),
+                ability_id: "common.abilities.sword.mobility_feint",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(289.0), tweak!(313.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::MobilityAgility),
+                ability_id: "common.abilities.sword.mobility_agility",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(289.0), tweak!(611.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ReachingCombo),
+                ability_id: "common.abilities.sword.reaching_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(141.0), tweak!(462.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ReachingCharge),
+                ability_id: "common.abilities.sword.reaching_charge",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(2.0), tweak!(367.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ReachingFlurry),
+                ability_id: "common.abilities.sword.reaching_flurry",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(2.0), tweak!(462.0)),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ReachingSkewer),
+                ability_id: "common.abilities.sword.reaching_skewer",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, tweak!(2.0), tweak!(558.0)),
+            },
+        ];
+
+        state.update(|s| {
+            s.ids
+                .skills
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+        state.update(|s| {
+            s.ids
+                .skill_lock_imgs
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -1693,7 +1844,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -1851,7 +2002,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2003,7 +2154,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2161,7 +2312,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2308,7 +2459,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2392,7 +2543,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2402,8 +2553,9 @@ impl<'a> Diary<'a> {
         ui: &mut UiCell,
         events: &mut Vec<Event>,
         diary_tooltip: &Tooltip,
+        state: &mut State<DiaryState>,
     ) {
-        for icon in icons {
+        for (i, icon) in icons.iter().enumerate() {
             match icon {
                 SkillIcon::Descriptive {
                     title,
@@ -2438,6 +2590,20 @@ impl<'a> Diary<'a> {
                     ui,
                     events,
                     diary_tooltip,
+                ),
+                SkillIcon::Ability {
+                    skill,
+                    ability_id,
+                    position,
+                } => self.create_unlock_ability_button(
+                    *skill,
+                    ability_id,
+                    *position,
+                    i,
+                    ui,
+                    events,
+                    diary_tooltip,
+                    state,
                 ),
             }
         }
@@ -2624,6 +2790,59 @@ impl<'a> Diary<'a> {
                 TEXT_COLOR,
             )
             .set(widget_id, ui);
+
+        if button.was_clicked() {
+            events.push(Event::UnlockSkill(skill));
+        };
+    }
+
+    fn create_unlock_ability_button(
+        &mut self,
+        skill: Skill,
+        ability_id: &str,
+        position: PositionSpecifier,
+        widget_index: usize,
+        ui: &mut UiCell,
+        events: &mut Vec<Event>,
+        diary_tooltip: &Tooltip,
+        state: &mut State<DiaryState>,
+    ) {
+        let locked = !self.skill_set.prerequisites_met(skill);
+        let owned = self.skill_set.has_skill(skill);
+        let image_color = if owned {
+            TEXT_COLOR
+        } else {
+            Color::Rgba(0.41, 0.41, 0.41, 0.7)
+        };
+
+        let (title, description) = util::ability_description(ability_id, self.localized_strings);
+
+        let sp_cost = sp(self.localized_strings, self.skill_set, skill);
+
+        let description = format!("{description}\n{sp_cost}");
+
+        let button = Button::image(util::ability_image(self.imgs, ability_id))
+            .w_h(76.0, 76.0)
+            .position(position)
+            .image_color(image_color)
+            .with_tooltip(
+                self.tooltip_manager,
+                &title,
+                &description,
+                diary_tooltip,
+                TEXT_COLOR,
+            )
+            .set(state.ids.skills[widget_index], ui);
+
+        // Lock Image
+        if locked {
+            Image::new(self.imgs.lock)
+                .w_h(76.0, 76.0)
+                .middle_of(state.ids.skills[widget_index])
+                .graphics_for(state.ids.skills[widget_index])
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
+                .set(state.ids.skill_lock_imgs[widget_index], ui);
+        }
 
         if button.was_clicked() {
             events.push(Event::UnlockSkill(skill));
