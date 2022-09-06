@@ -13,6 +13,7 @@ use veloren_common::{
         self,
         item::{
             armor::{ArmorKind, Protection},
+            modular::{generate_weapon_primary_components, generate_weapons},
             tool::{Hands, Tool, ToolKind},
             Item, MaterialStatManifest,
         },
@@ -320,21 +321,21 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
 
         let mut table = vec![entry];
 
-        // Keep converting loot table lootspecs into non-loot table lootspecs until no
-        // more loot tables
+        // Keep converting loot table lootspecs into non-loot table lootspecs
+        // until no more loot tables
         while table
             .iter()
             .any(|(_, loot_spec)| matches!(loot_spec, LootSpec::LootTable(_)))
         {
-            // Partition table of loot specs into a table of items and nothings, and another
-            // table of loot tables
+            // Partition table of loot specs into a table of items and
+            // nothings, and another table of loot tables
             let (sub_tables, main_table): (Vec<_>, Vec<_>) = table
                 .into_iter()
                 .partition(|(_, loot_spec)| matches!(loot_spec, LootSpec::LootTable(_)));
             table = main_table;
 
-            // Change table of loot tables to only contain the string that loads the loot
-            // table
+            // Change table of loot tables to only contain the string that
+            // loads the loot table
             let sub_tables = sub_tables.iter().filter_map(|(chance, loot_spec)| {
                 if let LootSpec::LootTable(loot_table) = loot_spec {
                     Some((chance, loot_table))
@@ -342,10 +343,11 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                     None
                 }
             });
+
             for (chance, loot_table) in sub_tables {
                 let loot_table = Lottery::<LootSpec<String>>::load_expect(loot_table).read();
-                // Converts from lottery's weight addition for each consecutive entry to keep
-                // the weights as they are in the ron file
+                // Converts from lottery's weight addition for each consecutive
+                // entry to keep the weights as they are in the ron file
                 let loot_table: Vec<_> = loot_table
                     .iter()
                     .enumerate()
@@ -365,8 +367,8 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                     .iter()
                     .map(|(chance, item)| (chance / weights_sum, item));
                 for (sub_chance, &item) in loot_table {
-                    // Multiplies normalized entry within each loot table by the chance for the loot
-                    // table to drop in the above table
+                    // Multiplies normalized entry within each loot table by
+                    // the chance for the loot table to drop in the above table
                     let entry = (chance * sub_chance, item.clone());
                     table.push(entry);
                 }
@@ -387,39 +389,90 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                 .div(10_f32.powi(2))
                 .to_string();
 
-            let (item_asset, quantity) = match item {
-                LootSpec::Item(item) => (Some(item), "1".to_string()),
+            let item_name = |asset| Item::new_from_asset_expect(asset).name().into_owned();
+
+            match item {
+                LootSpec::Item(item) => {
+                    wtr.write_record(&[
+                        name.clone(),
+                        asset_path.to_owned(),
+                        percent_chance,
+                        item_name(item),
+                        "1".to_owned(),
+                    ])?;
+                },
                 LootSpec::ItemQuantity(item, lower, upper) => {
-                    // Tab needed so excel doesn't think it is a date...
-                    (Some(item), format!("{}-{}\t", lower, upper))
+                    wtr.write_record(&[
+                        name.clone(),
+                        asset_path.to_owned(),
+                        percent_chance,
+                        item_name(item),
+                        // Tab needed so excel doesn't think it is a date...
+                        format!("{lower}-{upper}\t"),
+                    ])?;
                 },
-                LootSpec::ModularWeapon { .. } => {
-                    // TODO: Figure out how modular weapons should work here
-                    (None, String::from("1"))
+                LootSpec::Nothing => {
+                    wtr.write_record(&[
+                        name.clone(),
+                        asset_path.to_owned(),
+                        percent_chance,
+                        "Nothing".to_owned(),
+                        // Tab needed so excel doesn't think it is a date...
+                        "-".to_owned(),
+                    ])?;
                 },
-                LootSpec::ModularWeaponPrimaryComponent { .. } => {
-                    // TODO: Figure out how modular weapon components should work here
-                    (None, String::from("1"))
+                LootSpec::ModularWeapon {
+                    tool,
+                    material,
+                    hands,
+                } => {
+                    let weapons = generate_weapons(*tool, *material, *hands)
+                        .expect("failed to generate modular weapons");
+
+                    let chance = chance / weapons.len() as f32;
+                    let percent_chance = chance
+                        .mul(10_f32.powi(4))
+                        .round()
+                        .div(10_f32.powi(2))
+                        .to_string();
+
+                    for weapon in weapons {
+                        wtr.write_record(&[
+                            name.clone(),
+                            asset_path.to_owned(),
+                            percent_chance.clone(),
+                            weapon.name().into_owned(),
+                            "1".to_owned(),
+                        ])?;
+                    }
                 },
-                LootSpec::LootTable(_) => panic!("Shouldn't exist"),
-                LootSpec::Nothing => (None, "-".to_string()),
-            };
+                LootSpec::ModularWeaponPrimaryComponent {
+                    tool,
+                    material,
+                    hands,
+                } => {
+                    let comps = generate_weapon_primary_components(*tool, *material, *hands)
+                        .expect("failed to generate modular weapons");
 
-            let item = item_asset.map(|asset| Item::new_from_asset_expect(asset));
+                    let chance = chance / comps.len() as f32;
+                    let percent_chance = chance
+                        .mul(10_f32.powi(4))
+                        .round()
+                        .div(10_f32.powi(2))
+                        .to_string();
 
-            let item_name = if let Some(item) = &item {
-                item.name().into_owned()
-            } else {
-                String::from("Nothing")
-            };
-
-            wtr.write_record(&[
-                name.clone(),
-                asset_path.to_string(),
-                percent_chance,
-                item_name.to_string(),
-                quantity,
-            ])?
+                    for (comp, _hands) in comps {
+                        wtr.write_record(&[
+                            name.clone(),
+                            asset_path.to_owned(),
+                            percent_chance.clone(),
+                            comp.name().into_owned(),
+                            "1".to_owned(),
+                        ])?;
+                    }
+                },
+                LootSpec::LootTable(_) => unreachable!(),
+            }
         }
 
         Ok(())
