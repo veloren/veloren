@@ -183,23 +183,23 @@
     ),
     (Salamander, Female): (
         upper: (
-            offset: (-9.5, 0.0, -2.0),
+            offset: (-6.5, 0.0, -2.0),
             central: ("npc.salamander.female.head_upper"),
         ),
         lower: (
-            offset: (-4.5, -1.5, -3.0),
+            offset: (-4.5, -2.0, -3.0),
             central: ("npc.salamander.female.head_lower"),
         ),
         jaw: (
-            offset: (-6.5, 0.0, -2.0),
+            offset: (-6.5, 0.0, -3.5,),
             central: ("npc.salamander.female.jaw"),
         ),
         chest: (
-            offset: (-8.5, -8.5, -3.0),
+            offset: (-6.5, -8.5, -3.0),
             central: ("npc.salamander.female.chest"),
         ),
         tail_rear: (
-            offset: (-6.5, -13.0, -2.5),
+            offset: (-3.5, -13.0, -2.5),
             central: ("npc.salamander.female.tail_rear"),
         ),
 		tail_front: (
@@ -414,6 +414,110 @@
 		tail_front: (
             offset: (-2.5, -15.0, -4.5),
             central: ("npc.rocksnapper.male.tail_front"),
+        ),
+    ),
+    (Rootsnapper, Male): (
+        upper: (
+            offset: (-3.5, -3.5, 3.0),
+            central: ("npc.rootsnapper.male.head_upper"),
+        ),
+        lower: (
+            offset: (-3.5, -4.0, 0.5),
+            central: ("npc.rootsnapper.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, 3.0, 5.0),
+            central: ("npc.rootsnapper.male.jaw"),
+        ),
+        chest: (
+            offset: (-12.5, -17.0, -17.5),
+            central: ("npc.rootsnapper.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-1.5, -5.0, -2.5),
+            central: ("npc.rootsnapper.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-2.5, -12.0, -5.5),
+            central: ("npc.rootsnapper.male.tail_front"),
+        ),
+    ),
+    (Rootsnapper, Female): (
+        upper: (
+            offset: (-3.5, -3.5, 3.0),
+            central: ("npc.rootsnapper.male.head_upper"),
+        ),
+        lower: (
+            offset: (-3.5, -4.0, 0.5),
+            central: ("npc.rootsnapper.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, 3.0, 5.0),
+            central: ("npc.rootsnapper.male.jaw"),
+        ),
+        chest: (
+            offset: (-12.5, -17.0, -17.5),
+            central: ("npc.rootsnapper.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-1.5, -5.0, -2.5),
+            central: ("npc.rootsnapper.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-2.5, -12.0, -5.5),
+            central: ("npc.rootsnapper.male.tail_front"),
+        ),
+    ),
+    (Reefsnapper, Male): (
+        upper: (
+            offset: (-3.5, 1.5, -4.0),
+            central: ("npc.reefsnapper.male.head_upper"),
+        ),
+        lower: (
+            offset: (-3.5, -1.0, -6.0),
+            central: ("npc.reefsnapper.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.5, 7.0, -5.0),
+            central: ("npc.reefsnapper.male.jaw"),
+        ),
+        chest: (
+            offset: (-13.5, -15.0, -15.5),
+            central: ("npc.reefsnapper.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-3.5, -8.0, -5.5),
+            central: ("npc.reefsnapper.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-4.5, -15.0, -7.5),
+            central: ("npc.reefsnapper.male.tail_front"),
+        ),
+    ),
+    (Reefsnapper, Female): (
+        upper: (
+            offset: (-3.5, 1.5, -4.0),
+            central: ("npc.reefsnapper.male.head_upper"),
+        ),
+        lower: (
+            offset: (-3.5, -1.0, -6.0),
+            central: ("npc.reefsnapper.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.5, 7.0, -5.0),
+            central: ("npc.reefsnapper.male.jaw"),
+        ),
+        chest: (
+            offset: (-13.5, -15.0, -15.5),
+            central: ("npc.reefsnapper.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-3.5, -8.0, -5.5),
+            central: ("npc.reefsnapper.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-4.5, -15.0, -7.5),
+            central: ("npc.reefsnapper.male.tail_front"),
         ),
     ),
     (Pangolin, Male): (

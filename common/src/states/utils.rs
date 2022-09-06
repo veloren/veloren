@@ -43,7 +43,6 @@ impl Body {
                 quadruped_small::Species::Fungome => 70.0,
                 quadruped_small::Species::Goat => 80.0,
                 quadruped_small::Species::Raccoon => 100.0,
-                quadruped_small::Species::Dodarock => 80.0,
                 quadruped_small::Species::Frog => 150.0,
                 quadruped_small::Species::Porcupine => 100.0,
                 quadruped_small::Species::Beaver => 100.0,
@@ -122,6 +121,8 @@ impl Body {
                 quadruped_low::Species::Asp => 110.0,
                 quadruped_low::Species::Tortoise => 60.0,
                 quadruped_low::Species::Rocksnapper => 70.0,
+                quadruped_low::Species::Rootsnapper => 70.0,
+                quadruped_low::Species::Reefsnapper => 70.0,
                 quadruped_low::Species::Pangolin => 90.0,
                 quadruped_low::Species::Maneater => 80.0,
                 quadruped_low::Species::Sandshark => 160.0,
@@ -192,12 +193,14 @@ impl Body {
                 theropod::Species::Archaeos => 2.3,
                 theropod::Species::Odonto => 2.3,
                 theropod::Species::Ntouka => 2.3,
+                theropod::Species::Dodarock => 2.0,
                 _ => 2.5,
             },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Asp => 2.2,
                 quadruped_low::Species::Tortoise => 1.5,
                 quadruped_low::Species::Rocksnapper => 1.8,
+                quadruped_low::Species::Rootsnapper => 1.8,
                 quadruped_low::Species::Lavadrake => 1.7,
                 quadruped_low::Species::Icedrake => 1.7,
                 _ => 2.0,
@@ -226,6 +229,7 @@ impl Body {
                 | theropod::Species::Snowraptor
                 | theropod::Species::Sunlizard
                 | theropod::Species::Woodraptor
+                | theropod::Species::Dodarock
                 | theropod::Species::Yale => Some(200.0 * self.mass().0),
                 _ => Some(100.0 * self.mass().0),
             },

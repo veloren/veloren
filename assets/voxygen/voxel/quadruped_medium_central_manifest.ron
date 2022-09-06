@@ -61,15 +61,15 @@
     ),
     (Saber, Male): (
         head: (
-            offset: (-5.5, 0.0, -6.5),
+            offset: (-6.5, 0.5, -6.5),
             central: ("npc.saber.male.head"),
         ),
         neck: (
-            offset: (-4.0, -2.0, -4.0),
+            offset: (-4.0, 1.0, -3.0),
             central: ("npc.saber.male.neck"),
         ),
         jaw: (
-            offset: (-2.5, 0.0, -1.5),
+            offset: (-2.5, 2.0, -1.5),
             central: ("npc.saber.male.jaw"),
         ),
         torso_front: (
@@ -77,29 +77,29 @@
             central: ("npc.saber.male.torso_front"),
         ),
         torso_back: (
-            offset: (-5.0, -12.0, -5.0),
+            offset: (-5.0, -11.5, -8.0),
             central: ("npc.saber.male.torso_back"),
         ),
         ears: (
-            offset: (-5.5, -1.0, 0.0),
+            offset: (-5.0, -2.0, 0.0),
             central: ("npc.saber.male.ears"),
         ),
         tail: (
-            offset: (-2.0, -8.0, -5.0),
+            offset: (-2.0, -7.0, -6.0),
             central: ("npc.saber.male.tail"),
         ),
     ),
     (Saber, Female): (
         head: (
-            offset: (-5.5, 0.0, -6.5),
+            offset: (-6.5, 0.5, -6.5),
             central: ("npc.saber.male.head"),
         ),
         neck: (
-            offset: (-4.0, -2.0, -4.0),
+            offset: (-4.0, 1.0, -3.0),
             central: ("npc.saber.male.neck"),
         ),
         jaw: (
-            offset: (-2.5, 0.0, -1.5),
+            offset: (-2.5, 2.0, -1.5),
             central: ("npc.saber.male.jaw"),
         ),
         torso_front: (
@@ -107,15 +107,15 @@
             central: ("npc.saber.male.torso_front"),
         ),
         torso_back: (
-            offset: (-5.0, -12.0, -5.0),
+            offset: (-5.0, -11.5, -8.0),
             central: ("npc.saber.male.torso_back"),
         ),
         ears: (
-            offset: (-5.5, -1.0, 0.0),
+            offset: (-5.0, -2.0, 0.0),
             central: ("npc.saber.male.ears"),
         ),
         tail: (
-            offset: (-2.0, -8.0, -5.0),
+            offset: (-2.0, -7.0, -6.0),
             central: ("npc.saber.male.tail"),
         ),
     ),

@@ -170,80 +170,139 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cockatrice, _) => (2.5, 16.0),
                 (Roc, _) => (2.5, 27.5),
                 (FlameWyvern, _) => (2.5, 20.5),
+                (CloudWyvern, _) => (2.5, 20.5),
+                (FrostWyvern, _) => (2.5, 20.5),
+                (SeaWyvern, _) => (2.5, 20.5),
+                (WealdWyvern, _) => (2.5, 20.5),
             },
             neck: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.5, -5.5),
                 (Cockatrice, _) => (5.0, -1.5),
                 (Roc, _) => (9.5, -1.5),
                 (FlameWyvern, _) => (11.0, -0.5),
+                (CloudWyvern, _) => (11.0, -0.5),
+                (FrostWyvern, _) => (11.0, -0.5),
+                (SeaWyvern, _) => (11.0, -0.5),
+                (WealdWyvern, _) => (11.0, -0.5),
             },
             head: match (body.species, body.body_type) {
                 (Phoenix, _) => (6.0, 12.0),
                 (Cockatrice, _) => (8.0, 4.5),
                 (Roc, _) => (17.0, -3.5),
                 (FlameWyvern, _) => (10.0, -1.5),
+                (CloudWyvern, _) => (10.0, -1.5),
+                (FrostWyvern, _) => (10.0, -1.5),
+                (SeaWyvern, _) => (10.0, -1.5),
+                (WealdWyvern, _) => (10.0, -1.5),
             },
             beak: match (body.species, body.body_type) {
                 (Phoenix, _) => (5.0, 3.0),
                 (Cockatrice, _) => (2.0, -3.0),
                 (Roc, _) => (0.0, -3.0),
-                (FlameWyvern, _) => (-1.0, 2.0),
+                (FlameWyvern, _) => (-3.0, 2.0),
+                (CloudWyvern, _) => (-3.0, 2.0),
+                (FrostWyvern, _) => (-3.0, 2.0),
+                (SeaWyvern, _) => (-3.0, 2.0),
+                (WealdWyvern, _) => (-3.0, 2.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Phoenix, _) => (-9.5, -1.0),
                 (Cockatrice, _) => (-5.0, -2.5),
                 (Roc, _) => (-7.5, -3.5),
                 (FlameWyvern, _) => (-10.0, -5.0),
+                (CloudWyvern, _) => (-10.0, -5.0),
+                (FrostWyvern, _) => (-10.0, -5.0),
+                (SeaWyvern, _) => (-10.0, -5.0),
+                (WealdWyvern, _) => (-10.0, -5.0),
             },
             tail_rear: match (body.species, body.body_type) {
                 (Phoenix, _) => (-11.0, 0.0),
                 (Cockatrice, _) => (-8.0, -3.0),
                 (Roc, _) => (-8.0, -3.0),
                 (FlameWyvern, _) => (-11.0, -1.0),
+                (CloudWyvern, _) => (-11.0, -1.0),
+                (FrostWyvern, _) => (-11.0, -1.0),
+                (SeaWyvern, _) => (-11.0, -1.0),
+                (WealdWyvern, _) => (-11.0, -1.0),
             },
             wing_in: match (body.species, body.body_type) {
                 (Phoenix, _) => (3.0, 2.5, 2.0),
                 (Cockatrice, _) => (3.5, 7.0, 3.5),
                 (Roc, _) => (5.5, 7.5, -1.0),
-                (FlameWyvern, _) => (5.5, 5.0, -2.0),
+                (FlameWyvern, _) => (6.5, 5.0, -2.0),
+                (CloudWyvern, _) => (4.5, 5.0, -4.0),
+                (FrostWyvern, _) => (6.5, 5.0, -2.0),
+                (SeaWyvern, _) => (6.5, 5.0, -2.0),
+                (WealdWyvern, _) => (5.0, 5.0, -2.0),
             },
             wing_mid: match (body.species, body.body_type) {
                 (Phoenix, _) => (10.0, 1.0, 0.0),
                 (Cockatrice, _) => (6.0, 0.0, 0.0),
                 (Roc, _) => (12.0, 1.0, -0.5),
                 (FlameWyvern, _) => (19.0, 15.0, -1.0),
+                (CloudWyvern, _) => (19.0, 15.0, -1.0),
+                (FrostWyvern, _) => (19.0, 15.0, -1.0),
+                (SeaWyvern, _) => (19.0, 15.0, -1.0),
+                (WealdWyvern, _) => (19.0, 15.0, -1.0),
             },
             wing_out: match (body.species, body.body_type) {
                 (Phoenix, _) => (7.0, 2.0, 1.5),
                 (Cockatrice, _) => (4.0, -1.0, 1.0),
                 (Roc, _) => (10.0, -2.0, 0.0),
-                (FlameWyvern, _) => (16.0, -3.0, 0.0),
+                (FlameWyvern, _) => (10.0, -3.0, 0.0),
+                (CloudWyvern, _) => (10.0, -3.0, 0.0),
+                (FrostWyvern, _) => (10.0, -3.0, 0.0),
+                (SeaWyvern, _) => (10.0, -3.0, 0.0),
+                (WealdWyvern, _) => (16.0, -3.0, 0.0),
             },
             leg: match (body.species, body.body_type) {
                 (Phoenix, _) => (4.0, 1.5, 12.0),
                 (Cockatrice, _) => (3.5, 2.5, 13.0),
                 (Roc, _) => (5.5, -1.5, 17.5),
-                (FlameWyvern, _) => (5.5, -2.0, 15.5),
+                (FlameWyvern, _) => (5.5, 2.0, 15.5),
+                (CloudWyvern, _) => (5.5, 2.0, 15.5),
+                (FrostWyvern, _) => (5.5, 2.0, 15.5),
+                (SeaWyvern, _) => (5.5, 2.0, 15.5),
+                (WealdWyvern, _) => (5.5, 2.0, 15.5),
             },
             foot: match (body.species, body.body_type) {
                 (Phoenix, _) => (0.5, -0.5, -2.5),
                 (Cockatrice, _) => (0.5, -3.0, -3.0),
                 (Roc, _) => (2.5, -2.5, -5.5),
                 (FlameWyvern, _) => (0.5, 0.0, -3.5),
+                (CloudWyvern, _) => (0.5, 0.0, -3.5),
+                (FrostWyvern, _) => (0.5, 0.0, -3.5),
+                (SeaWyvern, _) => (0.5, 0.0, -3.5),
+                (WealdWyvern, _) => (0.5, 0.0, -3.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Phoenix, _) => (1.0),
                 (Cockatrice, _) => (1.0),
                 (Roc, _) => (1.0),
-                (FlameWyvern, _) => (1.0),
+                (FlameWyvern, _)
+                | (CloudWyvern, _)
+                | (FrostWyvern, _)
+                | (SeaWyvern, _)
+                | (WealdWyvern, _) => (1.0),
             },
             feed: match (body.species, body.body_type) {
                 (Phoenix, _) => (-0.65),
                 (Cockatrice, _) => (-0.5),
                 (Roc, _) => (-0.4),
-                (FlameWyvern, _) => (-0.65),
+                (FlameWyvern, _)
+                | (CloudWyvern, _)
+                | (FrostWyvern, _)
+                | (SeaWyvern, _)
+                | (WealdWyvern, _) => (-0.65),
             },
-            wyvern: matches!((body.species, body.body_type), (FlameWyvern, _)),
+            wyvern: matches!(
+                (body.species, body.body_type),
+                (FlameWyvern, _)
+                    | (CloudWyvern, _)
+                    | (FrostWyvern, _)
+                    | (SeaWyvern, _)
+                    | (WealdWyvern, _)
+            ),
         }
     }
 }

@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("dodarock"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.quad_small.dodarock"),
+    loot: LootTable("common.loot_tables.creature.theropod.dodarock"),
     inventory: (
         loadout: FromBody,
     ),

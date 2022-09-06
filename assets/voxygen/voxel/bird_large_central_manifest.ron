@@ -157,54 +157,262 @@
     ),
     (FlameWyvern, Male): (
         head: (
-            offset: (-5.5, -5.0, 0.0),
+            offset: (-7.5, -5.0, 0.0),
             central: ("npc.wyvern_flame.male.head"),
         ),
         beak: (
-            offset: (-2.5, 0.0, -5.0),
+            offset: (-6.5, 0.0, -7.0),
             central: ("npc.wyvern_flame.male.beak"),
         ),
         neck: (
-            offset: (-2.5, 0.0, -3.5),
+            offset: (-3.5, 0.0, -5.0),
             central: ("npc.wyvern_flame.male.neck"),
         ),
         chest: (
-            offset: (-6.5, -12.0, -9.0),
+            offset: (-8.5, -12.0, -10.0),
             central: ("npc.wyvern_flame.male.chest"),
         ),
         tail_front: (
-            offset: (-2.5, -12.0, -7.0),
+            offset: (-3.5, -12.0, -8.5),
             central: ("npc.wyvern_flame.male.tail_front"),
         ),
         tail_rear: (
-            offset: (-4.5, -29.0, -8.0),
+            offset: (-5.5, -27.0, -8.0),
             central: ("npc.wyvern_flame.male.tail_rear"),
         )
     ),
     (FlameWyvern, Female): (
         head: (
-            offset: (-5.5, -5.0, 0.0),
+            offset: (-7.5, -5.0, 0.0),
             central: ("npc.wyvern_flame.male.head"),
         ),
         beak: (
-            offset: (-2.5, 0.0, -5.0),
+            offset: (-6.5, 0.0, -7.0),
             central: ("npc.wyvern_flame.male.beak"),
         ),
         neck: (
-            offset: (-2.5, 0.0, -3.5),
+            offset: (-3.5, 0.0, -5.0),
             central: ("npc.wyvern_flame.male.neck"),
         ),
         chest: (
-            offset: (-6.5, -12.0, -9.0),
+            offset: (-8.5, -12.0, -10.0),
             central: ("npc.wyvern_flame.male.chest"),
         ),
         tail_front: (
-            offset: (-2.5, -12.0, -7.0),
+            offset: (-3.5, -12.0, -8.5),
             central: ("npc.wyvern_flame.male.tail_front"),
         ),
         tail_rear: (
-            offset: (-4.5, -29.0, -8.0),
+            offset: (-5.5, -27.0, -8.0),
             central: ("npc.wyvern_flame.male.tail_rear"),
+        )
+    ),
+    (CloudWyvern, Male): (
+        head: (
+            offset: (-3.5, -5.0, 0.0),
+            central: ("npc.wyvern_cloud.male.head"),
+        ),
+        beak: (
+            offset: (-2.5, 0.0, -6.0),
+            central: ("npc.wyvern_cloud.male.beak"),
+        ),
+        neck: (
+            offset: (-2.5, 0.0, -5.0),
+            central: ("npc.wyvern_cloud.male.neck"),
+        ),
+        chest: (
+            offset: (-6.5, -12.0, -10.0),
+            central: ("npc.wyvern_cloud.male.chest"),
+        ),
+        tail_front: (
+            offset: (-10.5, -14.0, -7.5),
+            central: ("npc.wyvern_cloud.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-11.5, -29.0, -7.0),
+            central: ("npc.wyvern_cloud.male.tail_rear"),
+        )
+    ),
+    (CloudWyvern, Female): (
+        head: (
+            offset: (-3.5, -5.0, 0.0),
+            central: ("npc.wyvern_cloud.male.head"),
+        ),
+        beak: (
+            offset: (-2.5, 0.0, -6.0),
+            central: ("npc.wyvern_cloud.male.beak"),
+        ),
+        neck: (
+            offset: (-2.5, 0.0, -5.0),
+            central: ("npc.wyvern_cloud.male.neck"),
+        ),
+        chest: (
+            offset: (-6.5, -12.0, -10.0),
+            central: ("npc.wyvern_cloud.male.chest"),
+        ),
+        tail_front: (
+            offset: (-10.5, -14.0, -7.5),
+            central: ("npc.wyvern_cloud.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-11.5, -29.0, -7.0),
+            central: ("npc.wyvern_cloud.male.tail_rear"),
+        )
+    ),
+    (FrostWyvern, Male): (
+        head: (
+            offset: (-15.5, -5.0, 0.0),
+            central: ("npc.wyvern_frost.male.head"),
+        ),
+        beak: (
+            offset: (-2.5, 1.0, -5.0),
+            central: ("npc.wyvern_frost.male.beak"),
+        ),
+        neck: (
+            offset: (-3.5, 0.0, -5.0),
+            central: ("npc.wyvern_frost.male.neck"),
+        ),
+        chest: (
+            offset: (-6.5, -12.0, -10.0),
+            central: ("npc.wyvern_frost.male.chest"),
+        ),
+        tail_front: (
+            offset: (-3.5, -12.0, -7.5),
+            central: ("npc.wyvern_frost.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-8.5, -26.0, -7.0),
+            central: ("npc.wyvern_frost.male.tail_rear"),
+        )
+    ),
+    (FrostWyvern, Female): (
+        head: (
+            offset: (-15.5, -5.0, 0.0),
+            central: ("npc.wyvern_frost.male.head"),
+        ),
+        beak: (
+            offset: (-2.5, 1.0, -5.0),
+            central: ("npc.wyvern_frost.male.beak"),
+        ),
+        neck: (
+            offset: (-3.5, 0.0, -5.0),
+            central: ("npc.wyvern_frost.male.neck"),
+        ),
+        chest: (
+            offset: (-6.5, -12.0, -10.0),
+            central: ("npc.wyvern_frost.male.chest"),
+        ),
+        tail_front: (
+            offset: (-3.5, -12.0, -7.5),
+            central: ("npc.wyvern_frost.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-8.5, -26.0, -7.0),
+            central: ("npc.wyvern_frost.male.tail_rear"),
+        )
+    ),
+    (SeaWyvern, Male): (
+        head: (
+            offset: (-3.5, -2.0, 4.0),
+            central: ("npc.wyvern_sea.male.head"),
+        ),
+        beak: (
+            offset: (-3.5, 3.0, -3.0),
+            central: ("npc.wyvern_sea.male.beak"),
+        ),
+        neck: (
+            offset: (-3.5, -2.0, -6.0),
+            central: ("npc.wyvern_sea.male.neck"),
+        ),
+        chest: (
+            offset: (-6.5, -12.0, -10.0),
+            central: ("npc.wyvern_sea.male.chest"),
+        ),
+        tail_front: (
+            offset: (-2.5, -13.0, -4.5),
+            central: ("npc.wyvern_sea.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-10.5, -39.0, -4.0),
+            central: ("npc.wyvern_sea.male.tail_rear"),
+        )
+    ),
+    (SeaWyvern, Female): (
+        head: (
+            offset: (-3.5, -2.0, 4.0),
+            central: ("npc.wyvern_sea.male.head"),
+        ),
+        beak: (
+            offset: (-3.5, 3.0, -3.0),
+            central: ("npc.wyvern_sea.male.beak"),
+        ),
+        neck: (
+            offset: (-3.5, -2.0, -6.0),
+            central: ("npc.wyvern_sea.male.neck"),
+        ),
+        chest: (
+            offset: (-6.5, -12.0, -10.0),
+            central: ("npc.wyvern_sea.male.chest"),
+        ),
+        tail_front: (
+            offset: (-2.5, -13.0, -4.5),
+            central: ("npc.wyvern_sea.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-10.5, -39.0, -4.0),
+            central: ("npc.wyvern_sea.male.tail_rear"),
+        )
+    ),
+    (WealdWyvern, Male): (
+        head: (
+            offset: (-4.5, -7.0, 0.0),
+            central: ("npc.wyvern_weald.male.head"),
+        ),
+        beak: (
+            offset: (-2.5, 1.0, -9.0),
+            central: ("npc.wyvern_weald.male.beak"),
+        ),
+        neck: (
+            offset: (-2.5, 0.0, -2.0),
+            central: ("npc.wyvern_weald.male.neck"),
+        ),
+        chest: (
+            offset: (-6.5, -12.0, -10.0),
+            central: ("npc.wyvern_weald.male.chest"),
+        ),
+        tail_front: (
+            offset: (-2.5, -12.0, -6.5),
+            central: ("npc.wyvern_weald.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-10.5, -34.0, -6.0),
+            central: ("npc.wyvern_weald.male.tail_rear"),
+        )
+    ),
+    (WealdWyvern, Female): (
+        head: (
+            offset: (-4.5, -7.0, 0.0),
+            central: ("npc.wyvern_weald.male.head"),
+        ),
+        beak: (
+            offset: (-2.5, 1.0, -9.0),
+            central: ("npc.wyvern_weald.male.beak"),
+        ),
+        neck: (
+            offset: (-2.5, 0.0, -2.0),
+            central: ("npc.wyvern_weald.male.neck"),
+        ),
+        chest: (
+            offset: (-6.5, -12.0, -10.0),
+            central: ("npc.wyvern_weald.male.chest"),
+        ),
+        tail_front: (
+            offset: (-2.5, -12.0, -6.5),
+            central: ("npc.wyvern_weald.male.tail_front"),
+        ),
+        tail_rear: (
+            offset: (-10.5, -34.0, -6.0),
+            central: ("npc.wyvern_weald.male.tail_rear"),
         )
     ),
 })

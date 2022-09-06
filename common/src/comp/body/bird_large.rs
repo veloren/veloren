@@ -38,6 +38,10 @@ make_case_elim!(
         Cockatrice = 1,
         Roc = 2,
         FlameWyvern = 3,
+        CloudWyvern = 4,
+        FrostWyvern = 5,
+        SeaWyvern = 6,
+        WealdWyvern = 7,
     }
 );
 
@@ -50,6 +54,10 @@ pub struct AllSpecies<SpeciesMeta> {
     pub cockatrice: SpeciesMeta,
     pub roc: SpeciesMeta,
     pub wyvern_flame: SpeciesMeta,
+    pub wyvern_cloud: SpeciesMeta,
+    pub wyvern_frost: SpeciesMeta,
+    pub wyvern_sea: SpeciesMeta,
+    pub wyvern_weald: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -62,15 +70,23 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Cockatrice => &self.cockatrice,
             Species::Roc => &self.roc,
             Species::FlameWyvern => &self.wyvern_flame,
+            Species::CloudWyvern => &self.wyvern_cloud,
+            Species::FrostWyvern => &self.wyvern_frost,
+            Species::SeaWyvern => &self.wyvern_sea,
+            Species::WealdWyvern => &self.wyvern_weald,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 4] = [
+pub const ALL_SPECIES: [Species; 8] = [
     Species::Phoenix,
     Species::Cockatrice,
     Species::Roc,
     Species::FlameWyvern,
+    Species::CloudWyvern,
+    Species::FrostWyvern,
+    Species::SeaWyvern,
+    Species::WealdWyvern,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

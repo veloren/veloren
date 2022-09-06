@@ -756,9 +756,17 @@ fn default_main_tool(body: &Body) -> Item {
             )),
         },
         Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {
-            (bird_large::Species::Cockatrice | bird_large::Species::FlameWyvern, _) => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.birdlargebreathe"),
-            ),
+            (
+                bird_large::Species::Cockatrice
+                | bird_large::Species::FlameWyvern
+                | bird_large::Species::CloudWyvern
+                | bird_large::Species::FrostWyvern
+                | bird_large::Species::SeaWyvern
+                | bird_large::Species::WealdWyvern,
+                _,
+            ) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.birdlargebreathe",
+            )),
             (bird_large::Species::Phoenix, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.birdlargefire",
             )),
@@ -892,6 +900,8 @@ impl LoadoutBuilder {
                 | quadruped_low::Species::Lavadrake
                 | quadruped_low::Species::Maneater
                 | quadruped_low::Species::Rocksnapper
+                | quadruped_low::Species::Rootsnapper
+                | quadruped_low::Species::Reefsnapper
                 | quadruped_low::Species::Sandshark => {
                     Some("common.items.npc_armor.quadruped_low.generic")
                 },

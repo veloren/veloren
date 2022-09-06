@@ -69,19 +69,19 @@
     ),
     (Saber, Male): (
         leg_fl: (
-            offset: (-2.0, -6.0, -4.5),
+            offset: (-2.0, -10.0, -4.5),
             lateral: ("npc.saber.male.leg_fr"),
         ),
         leg_fr: (
-            offset: (-2.0, -6.0, -4.5),
+            offset: (-2.0, -10.0, -4.5),
             lateral: ("npc.saber.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -3.0, -4.0),
+            offset: (-2.0, -5.0, -4.0),
             lateral: ("npc.saber.male.leg_br"),
         ),
         leg_br: (
-            offset: (-2.0, -3.0, -4.0),
+            offset: (-2.0, -5.0, -4.0),
             lateral: ("npc.saber.male.leg_br"),
         ),
         foot_fl: (
@@ -103,19 +103,19 @@
     ),
     (Saber, Female): (
         leg_fl: (
-            offset: (-2.0, -6.0, -4.5),
+            offset: (-2.0, -10.0, -4.5),
             lateral: ("npc.saber.male.leg_fr"),
         ),
         leg_fr: (
-            offset: (-2.0, -6.0, -4.5),
+            offset: (-2.0, -10.0, -4.5),
             lateral: ("npc.saber.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -3.0, -4.0),
+            offset: (-2.0, -5.0, -4.0),
             lateral: ("npc.saber.male.leg_br"),
         ),
         leg_br: (
-            offset: (-2.0, -3.0, -4.0),
+            offset: (-2.0, -5.0, -4.0),
             lateral: ("npc.saber.male.leg_br"),
         ),
         foot_fl: (
