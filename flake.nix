@@ -5,6 +5,7 @@
 
   outputs = inputs: let
     lib = inputs.nci.inputs.nixpkgs.lib;
+    ncl = inputs.nci.lib.nci-lib;
 
     git = let
       sourceInfo = inputs.self.sourceInfo;
@@ -114,6 +115,7 @@
         };
         veloren-server-cli.wrapper = wrapWithAssets;
       };
+      disableVendoredCrateOverrides = true;
       overrides = {
         cCompiler = common: common.pkgs.clang;
         crates = common: prev: let
@@ -127,7 +129,7 @@
               rustflags = ["-C", "link-arg=-fuse-ld=mold"]
             EOF
           '';
-        in {
+        in rec {
           veloren-common = oldAttrs: {
             # Disable `git-lfs` check here since we check it ourselves
             # We have to include the command output here, otherwise Nix won't run it
@@ -139,64 +141,47 @@
             NIX_GIT_TAG = "";
           };
           veloren-voxygen-deps = oldAttrs: {
-            doCheck = false;
-
+            buildInputs = ncl.addBuildInputs prev (
+              with pkgs; [
+                alsa-lib
+                libxkbcommon
+                udev
+                xorg.libxcb
+              ]
+            );
             nativeBuildInputs =
-              (oldAttrs.nativeBuildInputs or [])
-              ++ [pkgs.mold];
+              ncl.addNativeBuildInputs prev (with pkgs; [python3 pkg-config mold]);
 
-            postConfigure = ''
-              ${oldAttrs.postConfigure or ""}
-              ${configMoldLinker}
-            '';
-          };
-          veloren-voxygen = oldAttrs: {
-            src = filteredSource;
-
-            buildInputs =
-              (oldAttrs.buildInputs or [])
-              ++ (
-                with pkgs; [
-                  alsa-lib
-                  libxkbcommon
-                  udev
-                  xorg.libxcb
-                ]
-              );
-            nativeBuildInputs =
-              (oldAttrs.nativeBuildInputs or [])
-              ++ (with pkgs; [python3 pkg-config mold]);
-
-            VELOREN_USERDATA_STRATEGY = "system";
             SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
 
-            dontUseCmakeConfigure = true;
             doCheck = false;
 
-            preConfigure = ''
-              ${oldAttrs.preConfigure or ""}
-              substituteInPlace voxygen/src/audio/soundcache.rs \
-                --replace \
-                "../../../assets/voxygen/audio/null.ogg" \
-                "${./assets/voxygen/audio/null.ogg}"
-            '';
             postConfigure = ''
               ${oldAttrs.postConfigure or ""}
               ${configMoldLinker}
             '';
           };
+          veloren-voxygen = prev:
+            ncl.computeOverridesResult prev [
+              veloren-voxygen-deps
+              (oldAttrs: {
+                src = filteredSource;
+
+                VELOREN_USERDATA_STRATEGY = "system";
+
+                dontUseCmakeConfigure = true;
+
+                preConfigure = ''
+                  ${oldAttrs.preConfigure or ""}
+                  substituteInPlace voxygen/src/audio/soundcache.rs \
+                    --replace \
+                    "../../../assets/voxygen/audio/null.ogg" \
+                    "${./assets/voxygen/audio/null.ogg}"
+                '';
+              })
+            ];
           veloren-server-cli-deps = oldAttrs: {
-            doCheck = false;
-
-            postConfigure = ''
-              ${oldAttrs.postConfigure or ""}
-              ${configMoldLinker}
-            '';
-          };
-          veloren-server-cli = oldAttrs: {
-            src = filteredSource;
-
-            VELOREN_USERDATA_STRATEGY = "system";
+            nativeBuildInputs = ncl.addNativeBuildInputs prev [pkgs.mold];
 
             doCheck = false;
 
@@ -205,6 +190,15 @@
               ${configMoldLinker}
             '';
           };
+          veloren-server-cli = prev:
+            ncl.computeOverridesResult prev [
+              veloren-server-cli-deps
+              (oldAttrs: {
+                src = filteredSource;
+
+                VELOREN_USERDATA_STRATEGY = "system";
+              })
+            ];
         };
       };
     };
