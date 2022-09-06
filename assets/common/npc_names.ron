@@ -718,10 +718,6 @@
                 keyword: "quokka",
                 generic: "Quokka"
             ),
-            dodarock: (
-                keyword: "dodarock",
-                generic: "Dodarock"
-            ),
             holladon: (
                 keyword: "holladon",
                 generic: "Holladon"
@@ -989,7 +985,11 @@
             ntouka: (
                 keyword: "ntouka",
                 generic: "Ntouka"
-            )
+            ),
+            dodarock: (
+                keyword: "dodarock",
+                generic: "Dodarock"
+            ),
         )
     ),
     dragon: (
@@ -1143,6 +1143,22 @@
                 keyword: "wyvern_flame",
                 generic: "Flame Wyvern"
             ),
+            wyvern_cloud: (
+                keyword: "wyvern_cloud",
+                generic: "Cloud Wyvern"
+            ),
+            wyvern_frost: (
+                keyword: "wyvern_frost",
+                generic: "Frost Wyvern"
+            ),
+            wyvern_sea: (
+                keyword: "wyvern_sea",
+                generic: "Sea Wyvern"
+            ),
+            wyvern_weald: (
+                keyword: "wyvern_weald",
+                generic: "Weald Wyvern"
+            ),
         )
     ),
     quadruped_low: (
@@ -1184,6 +1200,14 @@
             rocksnapper: (
                 keyword: "rocksnapper",
                 generic: "Rock Snapper"
+            ),
+            rootsnapper: (
+                keyword: "rootsnapper",
+                generic: "Root Snapper"
+            ),
+            reefsnapper: (
+                keyword: "reefsnapper",
+                generic: "Reef Snapper"
             ),
             pangolin: (
                 keyword: "pangolin",

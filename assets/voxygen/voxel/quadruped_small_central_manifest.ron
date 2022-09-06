@@ -279,34 +279,6 @@
             central: ("npc.quokka.male.tail"),
         ),
     ),
-    (Dodarock, Male):(
-        head: (
-            offset: (-4.5, 0.0, -2.5),
-            central: ("npc.dodarock.male.head"),
-        ),
-        chest: (
-            offset: (-4.5, -8.0, -4.5),
-            central: ("npc.dodarock.male.chest"),
-        ),
-        tail: (
-            offset: (-1.5, -7.5, -2.5),
-            central: ("armor.empty"),
-        ),
-    ),
-    (Dodarock, Female):(
-        head: (
-            offset: (-4.5, 0.0, -2.5),
-            central: ("npc.dodarock.male.head"),
-        ),
-        chest: (
-            offset: (-4.5, -8.0, -4.5),
-            central: ("npc.dodarock.male.chest"),
-        ),
-        tail: (
-            offset: (-1.5, -7.5, -2.5),
-            central: ("armor.empty"),
-        ),
-    ),
     (Holladon, Male):(
         head: (
             offset: (-3.5, 0.0, -4.0),

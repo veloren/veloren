@@ -57,11 +57,7 @@ impl Skeleton for QuadrupedSmallSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.leg_br)),
             make_bone(chest_mat * Mat4::<f32>::from(self.tail)),
         ];
-        use comp::quadruped_small::Species::*;
-        let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
-            (Dodarock, _) => (head_mat, self.chest.orientation * self.head.orientation),
-            _ => (chest_mat, self.chest.orientation),
-        };
+        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
         let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
             .homogenized()
             .xyz();
@@ -139,7 +135,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Batfox, _) => (5.0, 1.0),
                 (Raccoon, _) => (5.0, 2.0),
                 (Quokka, _) => (6.0, 2.0),
-                (Dodarock, _) => (6.0, -2.0),
                 (Holladon, _) => (7.0, 1.0),
                 (Hyena, _) => (7.5, 2.0),
                 (Rabbit, _) => (4.0, 3.0),
@@ -169,7 +164,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Batfox, _) => (-2.0, 6.0),
                 (Raccoon, _) => (0.0, 5.5),
                 (Quokka, _) => (2.0, 6.5),
-                (Dodarock, _) => (-2.0, 9.0),
                 (Holladon, _) => (-2.0, 9.0),
                 (Hyena, _) => (-2.0, 9.0),
                 (Rabbit, _) => (-2.0, 6.0),
@@ -199,7 +193,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Batfox, _) => (3.0, 4.0, -0.5),
                 (Raccoon, _) => (4.0, 4.0, -0.0),
                 (Quokka, _) => (3.0, 4.0, -1.0),
-                (Dodarock, _) => (5.0, 5.0, -2.5),
                 (Holladon, _) => (5.0, 4.0, -2.5),
                 (Hyena, _) => (2.5, 5.0, -4.0),
                 (Rabbit, _) => (3.0, 3.0, -3.0),
@@ -229,7 +222,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Batfox, _) => (3.5, -2.0, -0.5),
                 (Raccoon, _) => (4.5, -3.0, 0.5),
                 (Quokka, _) => (4.0, -4.0, -1.0),
-                (Dodarock, _) => (3.5, -3.0, -4.0),
                 (Holladon, _) => (4.0, -2.0, -3.0),
                 (Hyena, _) => (3.0, -5.0, -2.5),
                 (Rabbit, _) => (3.5, -2.0, -1.0),
@@ -259,7 +251,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Batfox, _) => (0.0, 5.0),
                 (Raccoon, _) => (-4.0, 1.0),
                 (Quokka, _) => (-6.0, 1.0),
-                (Dodarock, _) => (0.0, 5.0),
                 (Holladon, _) => (-1.0, 4.0),
                 (Hyena, _) => (-7.0, 0.0),
                 (Rabbit, _) => (-4.0, -0.0),
@@ -286,7 +277,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Skunk, _) => (0.72),
                 (Cat, _) => (0.67),
                 (Batfox, _) => (0.9),
-                (Dodarock, _) => (0.95),
                 (Holladon, _) => (1.12),
                 (Rabbit, _) => (0.56),
                 (Frog, _) => (0.56),
@@ -339,7 +329,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Skunk, _) => (0.9),
                 (Cat, _) => (0.8),
                 (Quokka, _) => (0.9),
-                (Dodarock, _) => (0.9),
                 (Holladon, _) => (0.7),
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (0.8),
@@ -360,7 +349,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Batfox, _) => (1.1),
                 (Raccoon, _) => (1.1),
                 (Quokka, _) => (1.3),
-                (Dodarock, _) => (0.9),
                 (Holladon, _) => (0.7),
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (2.5),
@@ -382,7 +370,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Skunk, _) => (0.8),
                 (Batfox, _) => (0.7),
                 (Raccoon, _) => (0.8),
-                (Dodarock, _) => (0.7),
                 (Rabbit, _) => (1.2),
                 (Truffler, _) => (0.6),
                 (Frog, _) => (0.7),
@@ -416,7 +403,6 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Batfox, _) => (0.0, -4.0, -3.0),
         (Raccoon, _) => (0.0, -4.0, -2.5),
         (Quokka, _) => (0.0, -3.0, -3.5),
-        (Dodarock, _) => (0.0, 0.0, 2.5),
         (Holladon, _) => (0.0, -2.0, -2.5),
         (Hyena, _) => (0.0, -4.0, -3.5),
         (Rabbit, _) => (0.0, -4.0, -3.5),

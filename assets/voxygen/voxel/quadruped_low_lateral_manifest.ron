@@ -135,7 +135,7 @@
             lateral: ("npc.salamander.female.foot_fr", false),
         ),
         back_left: (
-            offset: (-8.0, 0.0, -3.0),
+            offset: (-7.5, 0.0, -3.0),
             lateral: ("npc.salamander.female.foot_br", false),
         ),
         back_right: (
@@ -285,6 +285,78 @@
         back_right: (
             offset: (0.0, -6.0, -9.0),
             lateral: ("npc.rocksnapper.male.foot_br", false),
+        ),
+    ),
+    (Rootsnapper, Male): (
+        front_left: (
+            offset: (-12.0, -1.0, -10.0),
+            lateral: ("npc.rootsnapper.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, -1.0, -10.0),
+            lateral: ("npc.rootsnapper.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-11.0, -5.0, -9.0),
+            lateral: ("npc.rootsnapper.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -5.0, -9.0),
+            lateral: ("npc.rootsnapper.male.foot_br", false),
+        ),
+    ),
+    (Rootsnapper, Female): (
+        front_left: (
+            offset: (-12.0, -1.0, -10.0),
+            lateral: ("npc.rootsnapper.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, -1.0, -10.0),
+            lateral: ("npc.rootsnapper.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-11.0, -5.0, -9.0),
+            lateral: ("npc.rootsnapper.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -5.0, -9.0),
+            lateral: ("npc.rootsnapper.male.foot_br", false),
+        ),
+    ),
+    (Reefsnapper, Male): (
+        front_left: (
+            offset: (-12.0, 0.0, -10.0),
+            lateral: ("npc.reefsnapper.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (-3.0, 0.0, -10.0),
+            lateral: ("npc.reefsnapper.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-11.0, -7.0, -9.0),
+            lateral: ("npc.reefsnapper.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -7.0, -9.0),
+            lateral: ("npc.reefsnapper.male.foot_br", false),
+        ),
+    ),
+    (Reefsnapper, Female): (
+        front_left: (
+            offset: (-12.0, 0.0, -10.0),
+            lateral: ("npc.reefsnapper.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (-3.0, 0.0, -10.0),
+            lateral: ("npc.reefsnapper.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-11.0, -7.0, -9.0),
+            lateral: ("npc.reefsnapper.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -7.0, -9.0),
+            lateral: ("npc.reefsnapper.male.foot_br", false),
         ),
     ),
     (Pangolin, Male): (

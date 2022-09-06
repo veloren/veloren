@@ -419,6 +419,66 @@
             central: ("npc.yale.male.tail_back"),
         ),
     ),
+    (Dodarock, Male): (
+        head: (
+            offset: (-3.5, -1.0, -3.5),
+            central: ("npc.dodarock.male.head"),
+        ),
+        jaw: (
+            offset: (-5.5, -1.0, -3.0),
+            central: ("npc.dodarock.male.jaw"),
+        ),
+        neck: (
+            offset: (-2.5, -1.0, -5.0),
+            central: ("npc.dodarock.male.neck"),
+        ),
+        chest_front: (
+            offset: (-4.5, -1.0, -6.0),
+            central: ("npc.dodarock.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-4.5, -1.0, -5.0),
+            central: ("npc.dodarock.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-2.5, -1.0, -1.0),
+            central: ("npc.dodarock.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-4.5, -1.0, -2.5),
+            central: ("npc.dodarock.male.tail_back"),
+        ),
+    ),
+    (Dodarock, Female): (
+        head: (
+            offset: (-3.5, -1.0, -3.5),
+            central: ("npc.dodarock.male.head"),
+        ),
+        jaw: (
+            offset: (-5.5, -1.0, -3.0),
+            central: ("npc.dodarock.male.jaw"),
+        ),
+        neck: (
+            offset: (-2.5, -1.0, -5.0),
+            central: ("npc.dodarock.male.neck"),
+        ),
+        chest_front: (
+            offset: (-4.5, -1.0, -6.0),
+            central: ("npc.dodarock.male.chest_front"),
+        ),
+        chest_back: (
+            offset: (-4.5, -1.0, -5.0),
+            central: ("npc.dodarock.male.chest_back"),
+        ),
+        tail_front: (
+            offset: (-2.5, -1.0, -1.0),
+            central: ("npc.dodarock.male.tail_front"),
+        ),
+        tail_back: (
+            offset: (-4.5, -1.0, -2.5),
+            central: ("npc.dodarock.male.tail_back"),
+        ),
+    ),
     (Ntouka, Male): (
         head: (
             offset: (-11.5, -8.0, -5.0),

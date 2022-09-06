@@ -45,7 +45,7 @@ pub enum Species {
     Batfox = 7,
     Raccoon = 8,
     Quokka = 9,
-    Dodarock = 10,
+    Goat = 10,
     Holladon = 11,
     Hyena = 12,
     Rabbit = 13,
@@ -61,7 +61,6 @@ pub enum Species {
     Beaver = 23,
     Hare = 24,
     Dog = 25,
-    Goat = 26,
 }
 
 /// Data representing per-species generic data.
@@ -79,7 +78,6 @@ pub struct AllSpecies<SpeciesMeta> {
     pub batfox: SpeciesMeta,
     pub raccoon: SpeciesMeta,
     pub quokka: SpeciesMeta,
-    pub dodarock: SpeciesMeta,
     pub holladon: SpeciesMeta,
     pub hyena: SpeciesMeta,
     pub rabbit: SpeciesMeta,
@@ -114,7 +112,6 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Batfox => &self.batfox,
             Species::Raccoon => &self.raccoon,
             Species::Quokka => &self.quokka,
-            Species::Dodarock => &self.dodarock,
             Species::Holladon => &self.holladon,
             Species::Hyena => &self.hyena,
             Species::Rabbit => &self.rabbit,
@@ -135,7 +132,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 27] = [
+pub const ALL_SPECIES: [Species; 26] = [
     Species::Pig,
     Species::Fox,
     Species::Sheep,
@@ -146,7 +143,6 @@ pub const ALL_SPECIES: [Species; 27] = [
     Species::Batfox,
     Species::Raccoon,
     Species::Quokka,
-    Species::Dodarock,
     Species::Holladon,
     Species::Hyena,
     Species::Rabbit,
