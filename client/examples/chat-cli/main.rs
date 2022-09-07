@@ -51,18 +51,19 @@ fn main() {
 
     // Create a client.
     let mut client = runtime
-        .block_on(Client::new(addr, runtime2, &mut None))
+        .block_on(Client::new(
+            addr,
+            runtime2,
+            &mut None,
+            &username,
+            &password,
+            |provider| provider == "https://auth.veloren.net",
+        ))
         .expect("Failed to create client instance");
 
     println!("Server info: {:?}", client.server_info());
 
     println!("Players online: {:?}", client.players().collect::<Vec<_>>());
-
-    runtime
-        .block_on(client.register(username, password, |provider| {
-            provider == "https://auth.veloren.net"
-        }))
-        .unwrap();
 
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {

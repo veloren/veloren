@@ -275,6 +275,9 @@ impl Client {
         runtime: Arc<Runtime>,
         // TODO: refactor to avoid needing to use this out parameter
         mismatched_server_info: &mut Option<ServerInfo>,
+        username: &str,
+        password: &str,
+        auth_trusted: impl FnMut(&str) -> bool,
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), &runtime);
 
@@ -317,14 +320,23 @@ impl Client {
                 common::util::GIT_HASH.to_string(),
                 common::util::GIT_DATE.to_string(),
             );
-
-            // Pass the server info back to the caller to ensure they can access it even
-            // if this function errors.
-            mem::swap(mismatched_server_info, &mut Some(server_info.clone()));
         }
+        // Pass the server info back to the caller to ensure they can access it even
+        // if this function errors.
+        mem::swap(mismatched_server_info, &mut Some(server_info.clone()));
         debug!("Auth Server: {:?}", server_info.auth_provider);
 
         ping_stream.send(PingMsg::Ping)?;
+
+        // Register client
+        Self::register(
+            username,
+            password,
+            auth_trusted,
+            &server_info,
+            &mut register_stream,
+        )
+        .await?;
 
         // Wait for initial sync
         let mut ping_interval = tokio::time::interval(Duration::from_secs(1));
@@ -632,7 +644,7 @@ impl Client {
                 let map_bounds = Vec2::new(sea_level, max_height);
                 debug!("Done preparing image...");
 
-                Ok((
+                (
                     state,
                     lod_base,
                     lod_alt,
@@ -644,16 +656,15 @@ impl Client {
                     component_recipe_book,
                     max_group_size,
                     client_timeout,
-                ))
+                )
             },
-            ServerInit::TooManyPlayers => Err(Error::TooManyPlayers),
-        }?;
+        };
         ping_stream.send(PingMsg::Ping)?;
 
         debug!("Initial sync done");
 
         Ok(Self {
-            registered: false,
+            registered: true,
             presence: None,
             runtime,
             server_info,
@@ -722,14 +733,15 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Registered`.
-    pub async fn register(
-        &mut self,
-        username: String,
-        password: String,
+    async fn register(
+        username: &str,
+        password: &str,
         mut auth_trusted: impl FnMut(&str) -> bool,
+        server_info: &ServerInfo,
+        register_stream: &mut Stream,
     ) -> Result<(), Error> {
         // Authentication
-        let token_or_username = match &self.server_info.auth_provider {
+        let token_or_username = match &server_info.auth_provider {
             Some(addr) => {
                 // Query whether this is a trusted auth server
                 if auth_trusted(addr) {
@@ -749,26 +761,29 @@ impl Client {
                     };
 
                     Ok(authc::AuthClient::new(scheme, authority)?
-                        .sign_in(&username, &password)
+                        .sign_in(username, password)
                         .await?
                         .serialize())
                 } else {
                     Err(Error::AuthServerNotTrusted)
                 }
             },
-            None => Ok(username),
+            None => Ok(username.to_owned()),
         }?;
 
-        self.send_msg_err(ClientRegister { token_or_username })?;
+        debug!("Registering client...");
 
-        match self.register_stream.recv::<ServerRegisterAnswer>().await? {
+        register_stream.send(ClientRegister { token_or_username })?;
+
+        match register_stream.recv::<ServerRegisterAnswer>().await? {
             Err(RegisterError::AuthError(err)) => Err(Error::AuthErr(err)),
             Err(RegisterError::InvalidCharacter) => Err(Error::InvalidCharacter),
             Err(RegisterError::NotOnWhitelist) => Err(Error::NotOnWhitelist),
             Err(RegisterError::Kicked(err)) => Err(Error::Kicked(err)),
             Err(RegisterError::Banned(reason)) => Err(Error::Banned(reason)),
+            Err(RegisterError::TooManyPlayers) => Err(Error::TooManyPlayers),
             Ok(()) => {
-                self.registered = true;
+                debug!("Client registered successfully.");
                 Ok(())
             },
         }
@@ -2917,6 +2932,9 @@ mod tests {
 
         let runtime = Arc::new(Runtime::new().unwrap());
         let runtime2 = Arc::clone(&runtime);
+        let username = "Foo";
+        let password = "Bar";
+        let auth_server = "auth.veloren.net";
         let veloren_client: Result<Client, Error> = runtime.block_on(Client::new(
             ConnectionArgs::Tcp {
                 hostname: "127.0.0.1:9000".to_owned(),
@@ -2924,18 +2942,12 @@ mod tests {
             },
             runtime2,
             &mut None,
+            username,
+            password,
+            |suggestion: &str| suggestion == auth_server,
         ));
 
         let _ = veloren_client.map(|mut client| {
-            //register
-            let username: String = "Foo".to_string();
-            let password: String = "Bar".to_string();
-            let auth_server: String = "auth.veloren.net".to_string();
-            let _result: Result<(), Error> =
-                runtime.block_on(client.register(username, password, |suggestion: &str| {
-                    suggestion == auth_server
-                }));
-
             //clock
             let mut clock = Clock::new(Duration::from_secs_f64(SPT));
 

@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     calendar::Calendar,
-    comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Pos, Vel},
+    comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Vel},
     event::EventBus,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
@@ -40,6 +40,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, RegionSubscription>,
+        ReadStorage<'a, Player>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
         WriteStorage<'a, Last<Pos>>,
@@ -70,6 +71,7 @@ impl<'a> System<'a> for Sys {
             velocities,
             orientations,
             subscriptions,
+            players,
             presences,
             clients,
             mut last_pos,
@@ -88,7 +90,6 @@ impl<'a> System<'a> for Sys {
         let uids = &tracked_storages.uid;
         let colliders = &tracked_storages.collider;
         let inventories = &tracked_storages.inventory;
-        let players = &tracked_storages.player;
         let is_rider = &tracked_storages.is_rider;
 
         // To send entity updates

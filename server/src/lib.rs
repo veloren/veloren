@@ -67,7 +67,7 @@ use crate::{
     presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
     rtsim::RtSim,
     state_ext::StateExt,
-    sys::sentinel::{DeletedEntities, TrackedStorages},
+    sys::sentinel::DeletedEntities,
 };
 use censor::Censor;
 #[cfg(not(feature = "worldgen"))]
@@ -79,7 +79,6 @@ use common::{
     cmd::ServerChatCommand,
     comp,
     event::{EventBus, ServerEvent},
-    recipe::{default_component_recipe_book, default_recipe_book},
     resources::{BattleMode, Time, TimeOfDay},
     rtsim::RtSimEntity,
     slowjob::SlowJobPool,
@@ -88,9 +87,7 @@ use common::{
 };
 use common_ecs::run_now;
 use common_net::{
-    msg::{
-        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
-    },
+    msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerMsg},
     sync::WorldSyncExt,
 };
 use common_state::{BuildAreas, State};
@@ -103,7 +100,7 @@ use persistence::{
 };
 use prometheus::Registry;
 use prometheus_hyper::Server as PrometheusServer;
-use specs::{join::Join, Builder, Entity as EcsEntity, Entity, SystemData, WorldExt};
+use specs::{join::Join, Builder, Entity as EcsEntity, Entity, WorldExt};
 use std::{
     i32,
     ops::{Deref, DerefMut},
@@ -201,7 +198,6 @@ pub struct Server {
     state: State,
     world: Arc<World>,
     index: IndexOwned,
-    map: WorldMapMsg,
 
     connection_handler: ConnectionHandler,
 
@@ -387,6 +383,8 @@ impl Server {
             pois: Vec::new(),
         };
 
+        state.ecs_mut().insert(map);
+
         #[cfg(feature = "worldgen")]
         let spawn_point = SpawnPoint({
             let index = index.as_index_ref();
@@ -562,8 +560,6 @@ impl Server {
             state,
             world,
             index,
-            map,
-
             connection_handler,
             runtime,
 
@@ -629,9 +625,6 @@ impl Server {
 
     /// Get a reference to the server's world.
     pub fn world(&self) -> &World { &self.world }
-
-    /// Get a reference to the server's world map.
-    pub fn map(&self) -> &WorldMapMsg { &self.map }
 
     /// Execute a single server tick, handle input and update the game state by
     /// the given duration.
@@ -1029,19 +1022,7 @@ impl Server {
             .map(|mut t| t.maintain());
     }
 
-    fn initialize_client(
-        &mut self,
-        client: connection_handler::IncomingClient,
-    ) -> Result<Option<Entity>, Error> {
-        if self.settings().max_players <= self.state.ecs().read_storage::<Client>().join().count() {
-            trace!(
-                ?client.participant,
-                "to many players, wont allow participant to connect"
-            );
-            client.send(ServerInit::TooManyPlayers)?;
-            return Ok(None);
-        }
-
+    fn initialize_client(&mut self, client: connection_handler::IncomingClient) -> Entity {
         let entity = self
             .state
             .ecs_mut()
@@ -1053,43 +1034,7 @@ impl Server {
             .read_resource::<metrics::PlayerMetrics>()
             .clients_connected
             .inc();
-        // Send client all the tracked components currently attached to its entity as
-        // well as synced resources (currently only `TimeOfDay`)
-        debug!("Starting initial sync with client.");
-        self.state
-            .ecs()
-            .read_storage::<Client>()
-            .get(entity)
-            .expect(
-                "We just created this entity with a Client component using build(), and we have \
-                 &mut access to the ecs so it can't have been deleted yet.",
-            )
-            .send(ServerInit::GameSync {
-                // Send client their entity
-                entity_package: TrackedStorages::fetch(self.state.ecs())
-                    .create_entity_package(entity, None, None, None)
-                    .expect(
-                        "We just created this entity as marked() (using create_entity_synced) so \
-                         it definitely has a uid",
-                    ),
-                time_of_day: *self.state.ecs().read_resource(),
-                max_group_size: self.settings().max_player_group_size,
-                client_timeout: self.settings().client_timeout,
-                world_map: self.map.clone(),
-                recipe_book: default_recipe_book().cloned(),
-                component_recipe_book: default_component_recipe_book().cloned(),
-                material_stats: (&*self
-                    .state
-                    .ecs()
-                    .read_resource::<comp::item::MaterialStatManifest>())
-                    .clone(),
-                ability_map: (&*self
-                    .state
-                    .ecs()
-                    .read_resource::<comp::item::tool::AbilityMap>())
-                    .clone(),
-            })?;
-        Ok(Some(entity))
+        entity
     }
 
     /// Disconnects all clients if requested by either an admin command or
@@ -1155,16 +1100,8 @@ impl Server {
         }
 
         while let Ok(incoming) = self.connection_handler.client_receiver.try_recv() {
-            match self.initialize_client(incoming) {
-                Ok(None) => (),
-                Ok(Some(entity)) => {
-                    frontend_events.push(Event::ClientConnected { entity });
-                    debug!("Done initial sync with client.");
-                },
-                Err(e) => {
-                    debug!(?e, "failed initializing a new client");
-                },
-            }
+            let entity = self.initialize_client(incoming);
+            frontend_events.push(Event::ClientConnected { entity });
         }
     }
 

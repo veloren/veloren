@@ -77,17 +77,13 @@ impl ClientInit {
                     connection_args.clone(),
                     Arc::clone(&runtime2),
                     &mut mismatched_server_info,
+                    &username,
+                    &password,
+                    trust_fn,
                 )
                 .await
                 {
-                    Ok(mut client) => {
-                        if let Err(e) = client.register(username, password, trust_fn).await {
-                            last_err = Some(Error::ClientError {
-                                error: e,
-                                mismatched_server_info: None,
-                            });
-                            break 'tries;
-                        }
+                    Ok(client) => {
                         let _ = tx.send(Msg::Done(Ok(client)));
                         tokio::task::block_in_place(move || drop(runtime2));
                         return;

@@ -55,7 +55,6 @@ pub struct ServerInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(clippy::large_enum_variant)]
 pub enum ServerInit {
-    TooManyPlayers,
     GameSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,
         time_of_day: TimeOfDay,
@@ -275,6 +274,7 @@ pub enum RegisterError {
     Kicked(String),
     InvalidCharacter,
     NotOnWhitelist,
+    TooManyPlayers,
     //TODO: InvalidAlias,
 }
 

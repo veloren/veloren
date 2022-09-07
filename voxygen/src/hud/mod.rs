@@ -1278,7 +1278,6 @@ impl Hud {
             let bodies = ecs.read_storage::<comp::Body>();
             let items = ecs.read_storage::<Item>();
             let inventories = ecs.read_storage::<comp::Inventory>();
-            let players = ecs.read_storage::<comp::Player>();
             let msm = ecs.read_resource::<MaterialStatManifest>();
             let entities = ecs.entities();
             let me = info.viewpoint_entity;
@@ -1978,7 +1977,6 @@ impl Hud {
                 &mut hp_floater_lists,
                 &uids,
                 &inventories,
-                players.maybe(),
                 poises.maybe(),
                 (alignments.maybe(), is_mount.maybe()),
             )
@@ -2002,7 +2000,6 @@ impl Hud {
                         hpfl,
                         uid,
                         inventory,
-                        player,
                         poise,
                         (alignment, is_mount),
                     )| {
@@ -2013,7 +2010,8 @@ impl Hud {
                         // TODO: once the site2 rework lands and merchants have dedicated stalls or
                         // buildings, they no longer need to be emphasized via the higher overhead
                         // text radius relative to other NPCs
-                        let is_merchant = stats.name == "Merchant" && player.is_none();
+                        let is_merchant =
+                            stats.name == "Merchant" && client.player_list().get(uid).is_none();
                         let dist_sqr = pos.distance_squared(player_pos);
                         // Determine whether to display nametag and healthbar based on whether the
                         // entity has been damaged, is targeted/selected, or is in your group

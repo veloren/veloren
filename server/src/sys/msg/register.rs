@@ -2,17 +2,20 @@ use crate::{
     client::Client,
     login_provider::{LoginProvider, PendingLogin},
     metrics::PlayerMetrics,
+    sys::sentinel::TrackedStorages,
     EditableSettings, Settings,
 };
 use common::{
-    comp::{Admin, Player, Stats},
+    comp::{self, Admin, Player, Stats},
     event::{EventBus, ServerEvent},
+    recipe::{default_component_recipe_book, default_recipe_book},
+    resources::TimeOfDay,
     uid::{Uid, UidAllocator},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{
     CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo, PlayerListUpdate, RegisterError,
-    ServerGeneral,
+    ServerGeneral, ServerInit, WorldMapMsg,
 };
 use hashbrown::HashMap;
 use plugin_api::Health;
@@ -20,7 +23,7 @@ use specs::{
     shred::ResourceId, storage::StorageEntry, Entities, Join, Read, ReadExpect, ReadStorage,
     SystemData, World, WriteExpect, WriteStorage,
 };
-use tracing::trace;
+use tracing::{debug, trace};
 
 #[cfg(feature = "plugins")]
 use {common_state::plugin::memory_manager::EcsWorld, common_state::plugin::PluginMgr};
@@ -40,6 +43,11 @@ pub struct ReadData<'a> {
     player_metrics: ReadExpect<'a, PlayerMetrics>,
     settings: ReadExpect<'a, Settings>,
     editable_settings: ReadExpect<'a, EditableSettings>,
+    time_of_day: Read<'a, TimeOfDay>,
+    material_stats: ReadExpect<'a, comp::item::MaterialStatManifest>,
+    ability_map: ReadExpect<'a, comp::item::tool::AbilityMap>,
+    map: ReadExpect<'a, WorldMapMsg>,
+    trackers: TrackedStorages<'a>,
     _healths: ReadStorage<'a, Health>, // used by plugin feature
     _plugin_mgr: ReadPlugin<'a>,       // used by plugin feature
     _uid_allocator: Read<'a, UidAllocator>, // used by plugin feature
@@ -107,6 +115,8 @@ impl<'a> System<'a> for Sys {
 
         let mut finished_pending = vec![];
         let mut retries = vec![];
+        let mut player_count = player_list.len();
+        let max_players = read_data.settings.max_players;
         for (entity, client, pending) in
             (&read_data.entities, &read_data.clients, &mut pending_logins).join()
         {
@@ -129,6 +139,7 @@ impl<'a> System<'a> for Sys {
                     &*read_data.editable_settings.admins,
                     &*read_data.editable_settings.whitelist,
                     &*read_data.editable_settings.banlist,
+                    player_count >= max_players,
                 ) {
                     None => return Ok(()),
                     Some(r) => {
@@ -190,6 +201,7 @@ impl<'a> System<'a> for Sys {
                 if let Ok(StorageEntry::Vacant(v)) = players.entry(entity) {
                     // Add Player component to this client, if the entity exists.
                     v.insert(player);
+                    player_count += 1;
                     read_data.player_metrics.players_connected.inc();
 
                     // Give the Admin component to the player if their name exists in
@@ -202,6 +214,31 @@ impl<'a> System<'a> for Sys {
 
                     // Tell the client its request was successful.
                     client.send(Ok(()))?;
+
+                    // Send client all the tracked components currently attached to its entity as
+                    // well as synced resources (currently only `TimeOfDay`)
+                    debug!("Starting initial sync with client.");
+                    client.send(ServerInit::GameSync {
+                        // Send client their entity
+                        entity_package:
+                            read_data.trackers
+                            .create_entity_package(entity, None, None, None)
+                            // NOTE: We are apparently okay with crashing if a uid is removed from
+                            // a non-logged-in player without removing the whole thing.
+                            .expect(
+                                "We created this entity as marked() (using create_entity_synced) so \
+                                 it definitely has a uid",
+                            ),
+                        time_of_day: *read_data.time_of_day,
+                        max_group_size: read_data.settings.max_player_group_size,
+                        client_timeout: read_data.settings.client_timeout,
+                        world_map: (&*read_data.map).clone(),
+                        recipe_book: default_recipe_book().cloned(),
+                        component_recipe_book: default_component_recipe_book().cloned(),
+                        material_stats: (&*read_data.material_stats).clone(),
+                        ability_map: (&*read_data.ability_map).clone(),
+                    })?;
+                    debug!("Done initial sync with client.");
 
                     // Send initial player list
                     client.send(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(

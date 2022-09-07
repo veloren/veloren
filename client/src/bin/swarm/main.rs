@@ -108,15 +108,17 @@ fn run_client(
         hostname: "localhost".into(),
     };
     let runtime_clone = Arc::clone(&runtime);
-    let mut client = runtime
-        .block_on(Client::new(addr, runtime_clone, &mut None))
-        .expect("Failed to connect to the server");
-
-    // Login
     // NOTE: use a no-auth server
-    runtime
-        .block_on(client.register(username.clone(), String::new(), |_| false))
-        .expect("Failed to log in");
+    let mut client = runtime
+        .block_on(Client::new(
+            addr,
+            runtime_clone,
+            &mut None,
+            &username,
+            "",
+            |_| false,
+        ))
+        .expect("Failed to connect to the server");
 
     let mut clock = common::clock::Clock::new(Duration::from_secs_f32(1.0 / 30.0));
 

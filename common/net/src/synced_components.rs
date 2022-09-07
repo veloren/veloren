@@ -42,9 +42,6 @@ macro_rules! synced_components {
             shockwave: Shockwave,
             beam_segment: BeamSegment,
             alignment: Alignment,
-            // TODO: evaluate if this is used on the client,
-            // and if so what it is used for
-            player: Player,
             // TODO: change this to `SyncFrom::ClientEntity` and sync the bare minimum
             // from other entities (e.g. just keys needed to show appearance
             // based on their loadout). Also, it looks like this actually has
@@ -210,10 +207,6 @@ impl NetSync for Alignment {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
-impl NetSync for Player {
-    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
-}
-
 impl NetSync for Inventory {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
@@ -222,7 +215,7 @@ impl NetSync for SkillSet {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
-// These are synced only from the client's own  entity.
+// These are synced only from the client's own entity.
 
 impl NetSync for Combo {
     const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
