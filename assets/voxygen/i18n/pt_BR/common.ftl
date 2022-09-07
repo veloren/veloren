@@ -106,3 +106,5 @@ common-material-stone = Pedra
 common-material-cloth = Tecido
 common-material-hide = Couro
 common-sprite-chest = Baú
+common-networking = Rede
+common-networking_settings = Configurações de Rede
