@@ -42,7 +42,7 @@ use rand_distr::Distribution;
 use specs::{
     join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
 };
-use std::{collections::HashMap, iter, time::Duration};
+use std::{collections::HashMap, iter, ops::Mul, time::Duration};
 use tracing::{debug, error};
 use vek::{Vec2, Vec3};
 
@@ -1224,8 +1224,9 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
     }
 }
 
-pub fn handle_parry_hook(server: &Server, defender: EcsEntity, _attacker: Option<EcsEntity>) {
+pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<EcsEntity>) {
     let ecs = &server.state.ecs();
+    let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
     // Reset character state of defender
     if let Some(mut char_state) = ecs
         .write_storage::<comp::CharacterState>()
@@ -1247,7 +1248,36 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, _attacker: Option
         const PARRY_REWARD: f32 = 5.0;
         energy.change_by(PARRY_REWARD);
     }
-    // TODO: Some penalties for attacker
+
+    if let Some(attacker) = attacker {
+        if let Some(char_state) = ecs.read_storage::<comp::CharacterState>().get(attacker) {
+            // By having a duration twice as long as either the recovery duration or 0.5 s,
+            // causes recover duration to effectively be either doubled or increased by 0.5
+            // s when a buff is applied that halves their attack speed.
+            let duration = char_state
+                .durations()
+                .and_then(|durs| durs.recover)
+                .map_or(0.5, |dur| dur.as_secs_f32())
+                .max(0.5)
+                .mul(2.0);
+            let data = buff::BuffData::new(1.0, Some(Duration::from_secs_f32(duration)));
+            let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
+                BuffSource::Character { by: *uid }
+            } else {
+                BuffSource::World
+            };
+            let buff = buff::Buff::new(
+                BuffKind::Parried,
+                data,
+                vec![buff::BuffCategory::Physical],
+                source,
+            );
+            server_eventbus.emit_now(ServerEvent::Buff {
+                entity: attacker,
+                buff_change: buff::BuffChange::Add(buff),
+            });
+        }
+    }
 }
 
 pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_range: Option<f32>) {

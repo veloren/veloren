@@ -18,6 +18,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// The minimum vertical speed the state needed
+    pub vertical_speed: f32,
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
     /// What key is used to press ability
@@ -35,11 +37,17 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
+    /// The maximum negative vertical velocity achieved during the state
+    pub max_vertical_speed: f32,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        if let CharacterState::DiveMelee(c) = &mut update.character {
+            c.max_vertical_speed = c.max_vertical_speed.max(-data.vel.0.z);
+        }
 
         match self.stage_section {
             StageSection::Movement => {
@@ -67,11 +75,13 @@ impl CharacterBehavior for Data {
                     // Attack
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
                     let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let scaling = self.max_vertical_speed / self.static_data.vertical_speed;
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
+                            .handle_scaling(scaling)
                             .create_melee(crit_data, buff_strength),
                     );
 

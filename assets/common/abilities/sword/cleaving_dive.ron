@@ -6,11 +6,17 @@ DiveMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Slash(
-            damage: 30,
+            damage: 20,
             poise: 0,
             knockback: 0,
             energy_regen: 10,
         ),
+        scaled: Some(Slash(
+            damage: 10,
+            poise: 0,
+            knockback: 0,
+            energy_regen: 10,
+        )),
         range: 6.0,
         angle: 15.0,
         multi_target: true,

@@ -13,7 +13,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::Duration};
 use strum::Display;
 
 /// Data returned from character behavior fn's to Character Behavior System.
@@ -571,6 +571,199 @@ impl CharacterState {
             CharacterState::RapidMelee(data) => Some(data.stage_section),
         }
     }
+
+    pub fn durations(&self) -> Option<DurationsInfo> {
+        match &self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Skate(_) => None,
+            CharacterState::Glide(_) => None,
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Roll(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(_) => None,
+            CharacterState::ComboMelee(data) => {
+                let stage_index = data.stage_index();
+                let stage = data.static_data.stage_data[stage_index];
+                Some(DurationsInfo {
+                    buildup: Some(stage.base_buildup_duration),
+                    action: Some(stage.base_swing_duration),
+                    recover: Some(stage.base_recover_duration),
+                    ..Default::default()
+                })
+            },
+            CharacterState::ComboMelee2(data) => {
+                let strike = data.strike_data();
+                Some(DurationsInfo {
+                    buildup: Some(strike.buildup_duration),
+                    action: Some(strike.swing_duration),
+                    recover: Some(strike.recover_duration),
+                    ..Default::default()
+                })
+            },
+            CharacterState::BasicMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::BasicRanged(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Boost(data) => Some(DurationsInfo {
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::DashMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                charge: Some(data.static_data.charge_duration),
+                ..Default::default()
+            }),
+            CharacterState::LeapMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::SpinMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::ChargedMelee(data) => Some(DurationsInfo {
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                charge: Some(data.static_data.charge_duration),
+                ..Default::default()
+            }),
+            CharacterState::ChargedRanged(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                charge: Some(data.static_data.charge_duration),
+                ..Default::default()
+            }),
+            CharacterState::RepeaterRanged(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.shoot_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Shockwave(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::BasicBeam(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::BasicAura(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Blink(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::BasicSummon(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::SelfBuff(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::SpriteSummon(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::UseItem(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.use_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::SpriteInteract(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.use_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::FinisherMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Music(data) => Some(DurationsInfo {
+                action: Some(data.static_data.play_duration),
+                ..Default::default()
+            }),
+            CharacterState::DiveMelee(data) => Some(DurationsInfo {
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::RiposteMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::RapidMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+        }
+    }
+}
+
+#[derive(Default, Copy, Clone)]
+pub struct DurationsInfo {
+    pub buildup: Option<Duration>,
+    pub action: Option<Duration>,
+    pub recover: Option<Duration>,
+    pub movement: Option<Duration>,
+    pub charge: Option<Duration>,
 }
 
 impl Default for CharacterState {

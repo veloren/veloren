@@ -64,6 +64,9 @@ buff-desc-ensnared = Vines grasp at your legs, impeding your movement.
 ## Fortitude
 buff-title-fortitude = Fortitude
 buff-desc-fortitude = You can withstand staggers.
+## Parried
+buff-title-parried = Parried
+buff-desc-parried = You were parried and now are slow to recover.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

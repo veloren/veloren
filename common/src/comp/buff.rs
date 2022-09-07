@@ -87,6 +87,10 @@ pub enum BuffKind {
     /// Drain stamina to a creature over time
     /// Strength should be the energy per second of the debuff
     Poisoned,
+    /// Results from having an attack parried.
+    /// Causes your attack speed to be slower to emulate the recover duration of
+    /// an ability being lengthened.
+    Parried,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -113,7 +117,8 @@ impl BuffKind {
             | BuffKind::Frozen
             | BuffKind::Wet
             | BuffKind::Ensnared
-            | BuffKind::Poisoned => false,
+            | BuffKind::Poisoned
+            | BuffKind::Parried => false,
         }
     }
 
@@ -390,6 +395,7 @@ impl Buff {
                 vec![BuffEffect::PoiseReduction(data.strength)],
                 data.duration,
             ),
+            BuffKind::Parried => (vec![BuffEffect::AttackSpeed(0.5)], data.duration),
         };
         Buff {
             kind,

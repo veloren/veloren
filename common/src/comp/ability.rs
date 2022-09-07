@@ -2507,19 +2507,21 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 melee_constructor,
                 energy_cost: _,
-                vertical_speed: _,
+                vertical_speed,
                 meta: _,
             } => CharacterState::DiveMelee(dive_melee::Data {
                 static_data: dive_melee::StaticData {
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
+                    vertical_speed: *vertical_speed,
                     melee_constructor: *melee_constructor,
                     ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Movement,
                 exhausted: false,
+                max_vertical_speed: 0.0,
             }),
             CharacterAbility::RiposteMelee {
                 energy_cost: _,
@@ -2598,9 +2600,13 @@ pub enum SwordStance {
 bitflags::bitflags! {
     #[derive(Default, Serialize, Deserialize)]
     pub struct Capability: u8 {
+        // Allows rolls to interrupt the ability at any point, not just during buildup
         const ROLL_INTERRUPT  = 0b00000001;
+        // Allows blocking to interrupt the ability at any point
         const BLOCK_INTERRUPT = 0b00000010;
+        // When the ability is in the buyildup section, it counts as a parry
         const BUILDUP_PARRIES = 0b00000100;
+        // When in the ability, an entity only receives half as much poise damage
         const POISE_RESISTANT = 0b00001000;
     }
 }

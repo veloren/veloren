@@ -162,14 +162,7 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.4);
 
-        // Index should be `self.stage - 1`, however in cases of client-server desync
-        // this can cause panics. This ensures that `self.stage - 1` is valid, and if it
-        // isn't, index of 0 is used, which is always safe.
-        let stage_index = self
-            .static_data
-            .stage_data
-            .get(self.stage as usize - 1)
-            .map_or(0, |_| self.stage as usize - 1);
+        let stage_index = self.stage_index();
 
         let speed_modifier = 1.0
             + self.static_data.max_speed_increase
@@ -369,6 +362,19 @@ impl CharacterBehavior for Data {
         handle_interrupts(data, &mut update, None);
 
         update
+    }
+}
+
+impl Data {
+    /// Index should be `self.stage - 1`, however in cases of client-server desync
+    /// this can cause panics. This ensures that `self.stage - 1` is valid, and if it
+    /// isn't, index of 0 is used, which is always safe.
+    pub fn stage_index(&self) -> usize {
+        self
+            .static_data
+            .stage_data
+            .get(self.stage as usize - 1)
+            .map_or(0, |_| self.stage as usize - 1)
     }
 }
 

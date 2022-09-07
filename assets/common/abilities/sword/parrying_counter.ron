@@ -10,6 +10,7 @@ ComboMelee2(
                 ),
                 range: 6.0,
                 angle: 5.0,
+                damage_effect: Some(BuildupsVulnerable),
             ),
             buildup_duration: 0.05,
             swing_duration: 0.1,

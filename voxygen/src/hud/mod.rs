@@ -4621,6 +4621,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Wet => imgs.debuff_wet_0,
         BuffKind::Ensnared => imgs.debuff_ensnared_0,
         BuffKind::Poisoned => imgs.debuff_poisoned_0,
+        // TODO: Get unique icon
+        BuffKind::Parried => imgs.debuff_crippled_0,
     }
 }
 
@@ -4652,6 +4654,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Wet { .. } => localized_strings.get_msg("buff-title-wet"),
         BuffKind::Ensnared { .. } => localized_strings.get_msg("buff-title-ensnared"),
         BuffKind::Poisoned { .. } => localized_strings.get_msg("buff-title-poisoned"),
+        BuffKind::Parried { .. } => localized_strings.get_msg("buff-title-parried"),
     }
 }
 
@@ -4687,6 +4690,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Wet { .. } => localized_strings.get_msg("buff-desc-wet"),
         BuffKind::Ensnared { .. } => localized_strings.get_msg("buff-desc-ensnared"),
         BuffKind::Poisoned { .. } => localized_strings.get_msg("buff-desc-poisoned"),
+        BuffKind::Parried { .. } => localized_strings.get_msg("buff-desc-parried"),
     }
 }
 

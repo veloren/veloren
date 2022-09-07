@@ -122,8 +122,7 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.7);
         handle_interrupts(data, &mut update, Some(ability_input));
 
-        let strike_data =
-            self.static_data.strikes[self.completed_strikes % self.static_data.strikes.len()];
+        let strike_data = self.strike_data();
 
         match self.stage_section {
             Some(StageSection::Buildup) => {
@@ -149,10 +148,8 @@ impl CharacterBehavior for Data {
                 }
                 if input_is_pressed(data, ability_input) {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
-                        // Only allow next strike if attack is a stance or has multiple strikes that
-                        // have not finished yet
-                        c.start_next_strike = c.static_data.is_stance
-                            || (c.completed_strikes + 1) < c.static_data.strikes.len();
+                        // Only have the next strike skip the recover period of this strike if not every strike in the combo is complete yet
+                        c.start_next_strike = (c.completed_strikes + 1) < c.static_data.strikes.len();
                     }
                 }
                 if self.timer.as_secs_f32()
@@ -248,6 +245,12 @@ impl CharacterBehavior for Data {
         }
 
         update
+    }
+}
+
+impl Data {
+    pub fn strike_data(&self) -> &Strike<Duration> {
+        &self.static_data.strikes[self.completed_strikes % self.static_data.strikes.len()]
     }
 }
 

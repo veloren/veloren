@@ -12,6 +12,7 @@ use crate::{
     },
     event::ServerEvent,
     outcome::Outcome,
+    states::utils::StageSection,
     uid::{Uid, UidAllocator},
     util::Dir,
 };
@@ -441,6 +442,16 @@ impl Attack {
                                 }
                             }
                         },
+                        CombatEffect::BuildupsVulnerable => {
+                            if target.char_state.map_or(false, |cs| {
+                                matches!(cs.stage_section(), Some(StageSection::Buildup))
+                            }) {
+                                emit(ServerEvent::HealthChange {
+                                    entity: target.entity,
+                                    change,
+                                });
+                            }
+                        },
                     }
                 }
             }
@@ -605,6 +616,8 @@ impl Attack {
                             }
                         }
                     },
+                    // Only has an effect when attached to a damage
+                    CombatEffect::BuildupsVulnerable => {},
                 }
             }
         }
@@ -738,6 +751,11 @@ pub enum CombatEffect {
     Combo(i32),
     // If the attack kills the target, reset the melee attack
     ResetMelee,
+    // If the attack hits the target while they are in the buildup portion of a character state,
+    // deal double damage Only has an effect when attached to a damage, otherwise does nothing
+    // if only attached to the attack TODO: Maybe try to make it do something if tied to
+    // attack, not sure if it should double count in that instance?
+    BuildupsVulnerable,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
