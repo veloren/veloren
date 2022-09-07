@@ -13,6 +13,7 @@ mod settings;
 mod tui;
 
 use common::comp::body::humanoid::Body;
+use common_net::msg::ServerInfo;
 use settings::Settings;
 use tui::Cmd;
 
@@ -46,31 +47,47 @@ pub fn main() {
 pub struct BotClient {
     settings: Settings,
     runtime: Arc<Runtime>,
-    menu_client: Client,
+    server_info: ServerInfo,
     bot_clients: HashMap<String, Client>,
     clock: Clock,
 }
 
-pub fn make_client(runtime: &Arc<Runtime>, server: &str) -> Client {
+pub fn make_client(
+    runtime: &Arc<Runtime>,
+    server: &str,
+    server_info: &mut Option<ServerInfo>,
+    username: &str,
+    password: &str,
+) -> Option<Client> {
     let runtime_clone = Arc::clone(runtime);
     let addr = ConnectionArgs::Tcp {
         prefer_ipv6: false,
         hostname: server.to_owned(),
     };
     runtime
-        .block_on(Client::new(addr, runtime_clone, &mut None))
-        .expect("Failed to connect to server")
+        .block_on(Client::new(
+            addr,
+            runtime_clone,
+            server_info,
+            username,
+            password,
+            |_| true,
+        ))
+        .ok()
 }
 
 impl BotClient {
     pub fn new(settings: Settings) -> BotClient {
         let runtime = Arc::new(Runtime::new().unwrap());
-        let menu_client: Client = make_client(&runtime, &settings.server);
+        let mut server_info = None;
+        // Don't care if we connect, just trying to grab the server info.
+        let _ = make_client(&runtime, &settings.server, &mut server_info, "", "");
+        let server_info = server_info.expect("Failed to connect to server.");
         let clock = Clock::new(Duration::from_secs_f64(1.0 / 60.0));
         BotClient {
             settings,
             runtime,
-            menu_client,
+            server_info,
             bot_clients: HashMap::new(),
             clock,
         }
@@ -106,7 +123,7 @@ impl BotClient {
             None => vec![prefix.to_string()],
         };
         info!("usernames: {:?}", usernames);
-        if let Some(auth_addr) = self.menu_client.server_info().auth_provider.as_ref() {
+        if let Some(auth_addr) = self.server_info.auth_provider.as_ref() {
             let (scheme, authority) = auth_addr.split_once("://").expect("invalid auth url");
             let scheme = scheme
                 .parse::<authc::Scheme>()
@@ -156,20 +173,16 @@ impl BotClient {
         for cred in creds.iter() {
             let runtime = Arc::clone(&self.runtime);
 
-            let server = self.settings.server.clone();
+            let server = &self.settings.server;
+            // TODO: log the clients in in parallel instead of in series
             let client = self
                 .bot_clients
                 .entry(cred.username.clone())
-                .or_insert_with(|| make_client(&runtime, &server));
+                .or_insert_with(|| {
+                    make_client(&runtime, server, &mut None, &cred.username, &cred.password)
+                        .expect("Failed to connect to server")
+                });
 
-            // TODO: log the clients in in parallel instead of in series
-            if let Err(e) = runtime.block_on(client.register(
-                cred.username.clone(),
-                cred.password.clone(),
-                |_| true,
-            )) {
-                warn!("error logging in {:?}: {:?}", cred.username, e);
-            }
             let body = BotClient::create_default_body();
             client.create_character(
                 cred.username.clone(),

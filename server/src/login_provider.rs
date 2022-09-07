@@ -97,7 +97,7 @@ impl LoginProvider {
         PendingLogin { pending_r }
     }
 
-    pub fn login(
+    pub(crate) fn login(
         &mut self,
         pending: &mut PendingLogin,
         #[cfg(feature = "plugins")] world: &EcsWorld,
@@ -105,6 +105,7 @@ impl LoginProvider {
         admins: &HashMap<Uuid, AdminRecord>,
         whitelist: &HashMap<Uuid, WhitelistRecord>,
         banlist: &HashMap<Uuid, BanEntry>,
+        player_count_exceeded: bool,
     ) -> Option<Result<(String, Uuid), RegisterError>> {
         match pending.pending_r.try_recv() {
             Ok(Err(e)) => Some(Err(e)),
@@ -135,6 +136,11 @@ impl LoginProvider {
                 // or their name is in the whitelist.
                 if admin.is_none() && !whitelist.is_empty() && !whitelist.contains_key(&uuid) {
                     return Some(Err(RegisterError::NotOnWhitelist));
+                }
+
+                // non-admins can only join if the player count has not been exceeded.
+                if admin.is_none() && player_count_exceeded {
+                    return Some(Err(RegisterError::TooManyPlayers));
                 }
 
                 #[cfg(feature = "plugins")]

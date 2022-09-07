@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed bug where the view distance selection was not immediately applied to entity syncing when
   first joining a server and when changing the view distance (previously this required moving to a
   new chunk for the initial setting or subsequent change to apply).
+- Moderators and admins are no longer blocked from logging in when there are too many players.
 
 ## [0.13.0] - 2022-07-23
 
