@@ -1248,7 +1248,7 @@ impl<'a> Widget for ItemTooltip<'a> {
         let frame_h = ICON_SIZE[1] + V_PAD;
 
         // Stats
-        let stats_count = util::stats_count(self.item, self.msm);
+        let stats_count = util::line_count(self.item, self.msm, self.localized_strings);
         let stat_h = if stats_count > 0 {
             widget::Text::new("placeholder")
                 .with_style(self.style.desc)
@@ -1294,7 +1294,8 @@ impl<'a> Widget for ItemTooltip<'a> {
             0.0
         };
 
-        let height = frame_h + stat_h + desc_h + price_h + V_PAD + 5.0; // extra padding to fit frame top padding
+        // extra padding to fit frame top padding
+        let height = frame_h + stat_h + desc_h + price_h + V_PAD + 5.0;
         Dimension::Absolute(height)
     }
 }

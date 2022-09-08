@@ -27,6 +27,9 @@ pub enum BuffKind {
     /// Applied when sitting at a campfire
     /// Strength is fraction of health restored per second
     CampfireHeal,
+    /// Restores energy/time for some period
+    /// Strength should be the healing per second
+    EnergyRegen,
     /// Raises maximum energy
     /// Strength should be 10x the effect to max energy
     IncreaseMaxEnergy,
@@ -91,6 +94,7 @@ impl BuffKind {
             | BuffKind::Potion
             | BuffKind::CampfireHeal
             | BuffKind::Frenzied
+            | BuffKind::EnergyRegen
             | BuffKind::IncreaseMaxEnergy
             | BuffKind::IncreaseMaxHealth
             | BuffKind::Invulnerability
@@ -279,6 +283,14 @@ impl Buff {
                 ],
                 data.duration,
             ),
+            BuffKind::EnergyRegen => (
+                vec![BuffEffect::EnergyChangeOverTime {
+                    rate: data.strength,
+                    accumulated: 0.0,
+                    kind: ModifierKind::Additive,
+                }],
+                data.duration,
+            ),
             BuffKind::IncreaseMaxEnergy => (
                 vec![BuffEffect::MaxEnergyModifier {
                     value: data.strength,
@@ -296,9 +308,9 @@ impl Buff {
             BuffKind::Invulnerability => (vec![BuffEffect::DamageReduction(1.0)], data.duration),
             BuffKind::ProtectingWard => (
                 vec![BuffEffect::DamageReduction(
-                    // Causes non-linearity in effect strength, but necessary to allow for tool
-                    // power and other things to affect the strength. 0.5 also still provides 50%
-                    // damage reduction.
+                    // Causes non-linearity in effect strength, but necessary
+                    // to allow for tool power and other things to affect the
+                    // strength. 0.5 also still provides 50% damage reduction.
                     nn_scaling(data.strength),
                 )],
                 data.duration,

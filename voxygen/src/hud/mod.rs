@@ -4562,6 +4562,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Saturation { .. } => imgs.buff_saturation_0,
         BuffKind::Potion { .. } => imgs.buff_potion_0,
         BuffKind::CampfireHeal { .. } => imgs.buff_campfire_heal_0,
+        BuffKind::EnergyRegen { .. } => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxEnergy { .. } => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
@@ -4587,10 +4588,13 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Saturation { .. } => localized_strings.get_msg("buff-title-saturation"),
         BuffKind::Potion { .. } => localized_strings.get_msg("buff-title-potion"),
         BuffKind::CampfireHeal { .. } => localized_strings.get_msg("buff-title-campfire_heal"),
+        BuffKind::EnergyRegen { .. } => localized_strings.get_msg("buff-title-energy_regen"),
         BuffKind::IncreaseMaxHealth { .. } => {
-            localized_strings.get_msg("buff-title-IncreaseMaxHealth")
+            localized_strings.get_msg("buff-title-increase_max_health")
         },
-        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get_msg("buff-title-energyup"),
+        BuffKind::IncreaseMaxEnergy { .. } => {
+            localized_strings.get_msg("buff-title-increase_max_energy")
+        },
         BuffKind::Invulnerability => localized_strings.get_msg("buff-title-invulnerability"),
         BuffKind::ProtectingWard => localized_strings.get_msg("buff-title-protectingward"),
         BuffKind::Frenzied => localized_strings.get_msg("buff-title-frenzied"),
@@ -4618,11 +4622,12 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
                 "rate" => data.strength * 100.0
             })
         },
+        BuffKind::EnergyRegen { .. } => localized_strings.get_msg("buff-desc-energy_regen"),
         BuffKind::IncreaseMaxHealth { .. } => {
-            localized_strings.get_msg("buff-desc-IncreaseMaxHealth")
+            localized_strings.get_msg("buff-desc-increase_max_health")
         },
         BuffKind::IncreaseMaxEnergy { .. } => {
-            localized_strings.get_msg("buff-desc-IncreaseMaxEnergy")
+            localized_strings.get_msg("buff-desc-increase_max_energy")
         },
         BuffKind::Invulnerability => localized_strings.get_msg("buff-desc-invulnerability"),
         BuffKind::ProtectingWard => localized_strings.get_msg("buff-desc-protectingward"),

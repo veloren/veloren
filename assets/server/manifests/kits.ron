@@ -5,6 +5,7 @@
         (Item("common.items.debug.admin_sword"),1),
         (Item("common.items.debug.velorite_bow_debug"), 1),
         (Item("common.items.debug.admin"),1),
+        (Item("common.items.debug.golden_cheese"),100),
     ],
     "consumables": [
         (Item("common.items.consumable.potion_big"), 100),

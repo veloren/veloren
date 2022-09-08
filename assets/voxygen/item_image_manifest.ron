@@ -3189,6 +3189,11 @@
         "voxel.sprite.food.salad_tomato",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
+    // Admin consumables
+    Simple("common.items.debug.golden_cheese"): VoxTrans(
+        "voxel.object.item_cheese",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
     // Throwables
     Simple("common.items.utility.bomb"): VoxTrans(
         "voxel.object.bomb",
