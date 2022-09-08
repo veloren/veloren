@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::{
-    comp::item::{Hands, ToolKind},
+    comp::item::Hands,
     states::utils::{AbilityInfo, StageSection},
 };
 use core::f32::consts::PI;
@@ -26,35 +26,42 @@ impl Animation for ComboAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_combo")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, ability_id, stage_section, ability_info, current_strike, move_dir): Self::Dependency<'a>,
+        (_hands, ability_id, stage_section, _ability_info, current_strike, move_dir): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
+
+        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+        next.main.orientation = Quaternion::rotation_z(0.0);
+        next.main_weapon_trail = true;
+        let multi_strike_pullback = 1.0
+            - if matches!(stage_section, Some(StageSection::Recover)) {
+                anim_time.powi(4)
+            } else {
+                0.0
+            };
+
         for strike in 0..=current_strike {
-            next.main.position = Vec3::new(0.0, 0.0, 0.0);
-            next.main.orientation = Quaternion::rotation_z(0.0);
             match ability_id {
                 Some("common.abilities.sword.balanced_combo") => {
-                    next.main_weapon_trail = true;
-                    next.off_weapon_trail = true;
-                    let (move1, move2, move3, move2alt) = if strike == current_strike {
+                    let (move1, move2, move2alt) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
+                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                             Some(StageSection::Action) => {
-                                (1.0, anim_time.powi(2), 0.0, anim_time.powf(0.25))
+                                (1.0, anim_time.powi(2), anim_time.powf(0.25))
                             },
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 1.0),
-                            _ => (0.0, 0.0, 0.0, 0.0),
+                            Some(StageSection::Recover) => (1.0, 1.0, 1.0),
+                            _ => (0.0, 0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0, 1.0)
+                        (1.0, 1.0, 1.0)
                     };
-                    let pullback = 1.0 - move3;
-                    let move2 = move2 * pullback;
-                    let move2alt = move2alt * pullback;
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
+                    let move2alt = move2alt * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -100,22 +107,18 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.offensive_combo") => {
-                    let (move1, move2, move3) = if strike == current_strike {
+                    let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                            Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                            _ => (0.0, 0.0, 0.0),
+                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                            Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                            Some(StageSection::Recover) => (1.0, 1.0),
+                            _ => (0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0)
+                        (1.0, 1.0)
                     };
-
-                    if move2 > 0.0 {
-                        next.main_weapon_trail = true;
-                    } else {
-                        next.main_weapon_trail = false;
-                    }
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -198,12 +201,14 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.offensive_advance") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                        _ => (0.0, 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -228,26 +233,20 @@ impl Animation for ComboAnimation {
                     next.shorts.orientation.rotate_z(move2 * 1.2);
                     next.control.orientation.rotate_z(move2 * -3.5);
                     next.control.position += Vec3::new(move2 * 9.0, move2 * 4.0, 0.0);
-
-                    next.chest.orientation.rotate_z(move3 * 0.7);
-                    next.head.orientation.rotate_z(move3 * -0.4);
-                    next.belt.orientation.rotate_z(move3 * -0.2);
-                    next.shorts.orientation.rotate_z(move3 * -0.5);
-                    next.control.orientation.rotate_z(move3 * 0.4);
-                    next.control.orientation.rotate_x(move3 * 1.4);
-                    next.control.position += Vec3::new(move3 * -9.0, 0.0, 0.0);
                 },
                 Some("common.abilities.sword.crippling_combo") => {
-                    let (move1, move2, move3) = if strike == current_strike {
+                    let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                            Some(StageSection::Action) => (1.0, anim_time, 0.0),
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                            _ => (0.0, 0.0, 0.0),
+                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                            Some(StageSection::Action) => (1.0, anim_time),
+                            Some(StageSection::Recover) => (1.0, 1.0),
+                            _ => (0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0)
+                        (1.0, 1.0)
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -299,12 +298,14 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.crippling_gouge") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                        _ => (0.0, 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -331,15 +332,19 @@ impl Animation for ComboAnimation {
                     next.control.position += Vec3::new(0.0, move2 * 6.0, move2 * -3.0);
                 },
                 Some("common.abilities.sword.crippling_strike") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                        _ => (0.0, 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
 
                     let move2alt = move2.min(0.5) * 2.0;
                     let move2 = (move2.max(0.5) - 0.5) * 2.0;
+
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
+                    let move2alt = move2alt * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -374,16 +379,20 @@ impl Animation for ComboAnimation {
                     next.control.position += Vec3::new(move2 * 14.0, move2 * 3.0, move2 * 6.0);
                 },
                 Some("common.abilities.sword.cleaving_combo") => {
-                    let (move1, move2, move3) = if strike == current_strike {
+                    let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                            Some(StageSection::Action) => (1.0, anim_time.powf(0.5), 0.0),
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                            _ => (0.0, 0.0, 0.0),
+                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                            Some(StageSection::Action) => (1.0, anim_time.powf(0.5)),
+                            Some(StageSection::Recover) => (1.0, 1.0),
+                            _ => (0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0)
+                        (1.0, 1.0)
                     };
+                    let move2_slow = move2.powf(0.5);
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
+                    let move2_slow = move2_slow * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -438,7 +447,7 @@ impl Animation for ComboAnimation {
                         1 => {
                             next.chest.position += Vec3::new(0.0, move1 * 5.0, 0.0);
                             next.foot_l.position +=
-                                Vec3::new(0.0, move1 * 3.0 + move2.powf(0.5) * 6.0, 0.0);
+                                Vec3::new(0.0, move1 * 3.0 + move2_slow * 6.0, 0.0);
                             next.foot_r.position += Vec3::new(0.0, move1 * -2.0, 0.0);
                             next.foot_r.orientation.rotate_x(move1 * -0.2);
                             next.shorts.orientation.rotate_z(move1 * -0.8);
@@ -460,14 +469,18 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.cleaving_spin") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                        _ => (0.0, 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
 
+                    let move2_no_pullback = move2;
                     let move2_pre = move2.min(0.3) * 10.0 / 3.0;
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
+                    let move2_pre = move2_pre * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -490,7 +503,7 @@ impl Animation for ComboAnimation {
 
                     next.control.orientation.rotate_y(move2_pre * -1.6);
                     next.control.position += Vec3::new(0.0, 0.0, move2_pre * 4.0);
-                    next.torso.orientation.rotate_z(move2 * -6.0);
+                    next.torso.orientation.rotate_z(move2_no_pullback * -6.0);
                     next.chest.orientation.rotate_z(move2 * -2.0);
                     next.head.orientation.rotate_z(move2 * 1.3);
                     next.belt.orientation.rotate_z(move2 * 0.6);
@@ -500,16 +513,18 @@ impl Animation for ComboAnimation {
                     next.control.position += Vec3::new(move2 * 14.0, 0.0, 0.0);
                 },
                 Some("common.abilities.sword.defensive_combo") => {
-                    let (move1, move2, move3) = if strike == current_strike {
+                    let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                            Some(StageSection::Action) => (1.0, anim_time.powf(0.5), 0.0),
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                            _ => (0.0, 0.0, 0.0),
+                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                            Some(StageSection::Action) => (1.0, anim_time.powf(0.5)),
+                            Some(StageSection::Recover) => (1.0, 1.0),
+                            _ => (0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0)
+                        (1.0, 1.0)
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -559,14 +574,14 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.defensive_retreat") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(2)),
-                        _ => (0.0, 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
-
-                    let move2_pre = move2.min(0.3) * 10.0 / 3.0;
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -587,27 +602,27 @@ impl Animation for ComboAnimation {
                     next.head.orientation.rotate_z(move2 * 0.9);
                     next.belt.orientation.rotate_z(move2 * 0.4);
                     next.shorts.orientation.rotate_z(move2 * 1.0);
+                    next.control.orientation.rotate_y(move2 * -1.6);
                     next.control
                         .orientation
-                        .rotate_y(move2 * -1.6 + move3 * 1.6);
-                    next.control
-                        .orientation
-                        .rotate_z(move1 * 0.3 + move2 * -1.5 + move3 * -0.4);
-                    next.control.position += Vec3::new(move2 * 12.0 + move3 * -12.0, 0.0, 0.0);
+                        .rotate_z(move1 * 0.3 + move2 * -1.5);
+                    next.control.position += Vec3::new(move2 * 12.0, 0.0, 0.0);
                 },
                 Some("common.abilities.sword.parrying_combo") => {
-                    let (move1, move2, move3) = if strike == current_strike {
+                    let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => (anim_time.powf(0.5), 0.0, 0.0),
+                            Some(StageSection::Buildup) => (anim_time.powf(0.5), 0.0),
                             Some(StageSection::Action) => {
-                                (1.0, (anim_time.min(2.0 / 3.0) * 1.5).powi(2), 0.0)
+                                (1.0, (anim_time.min(2.0 / 3.0) * 1.5).powi(2))
                             },
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                            _ => (0.0, 0.0, 0.0),
+                            Some(StageSection::Recover) => (1.0, 1.0),
+                            _ => (0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0)
+                        (1.0, 1.0)
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -660,16 +675,16 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.parrying_counter") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.5), 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.5), 0.0),
                         Some(StageSection::Action) => {
-                            (1.0, (anim_time.min(2.0 / 3.0) * 1.5).powi(2), 0.0)
+                            (1.0, (anim_time.min(2.0 / 3.0) * 1.5).powi(2))
                         },
-                        Some(StageSection::Recover) => {
-                            (1.0, 1.0, (anim_time.min(0.5) * 2.0).powf(0.5))
-                        },
-                        _ => (0.0, 0.0, 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -686,16 +701,12 @@ impl Animation for ComboAnimation {
                     next.foot_l.orientation = Quaternion::identity();
                     next.foot_r.orientation = Quaternion::identity();
 
-                    next.foot_r.position += Vec3::new(
-                        0.0,
-                        move1 * 4.0 - move3 * 4.0,
-                        (1.0 - (move1 - 0.5) * 2.0) * 2.0,
-                    );
-                    next.torso.position += Vec3::new(0.0, move1 * -2.0 + move3 * 2.0, 0.0);
-                    next.chest.position +=
-                        Vec3::new(0.0, move1 * 2.0 - move3 * 2.0, move1 * -3.0 + move3 * 3.0);
-                    next.shorts.orientation = Quaternion::rotation_x(move1 * 0.5 - move3 * 0.5);
-                    next.shorts.position += Vec3::new(0.0, move1 * 1.5 - move3 * 1.5, 0.0);
+                    next.foot_r.position +=
+                        Vec3::new(0.0, move1 * 4.0, (1.0 - (move1 - 0.5) * 2.0) * 2.0);
+                    next.torso.position += Vec3::new(0.0, move1 * -2.0, 0.0);
+                    next.chest.position += Vec3::new(0.0, move1 * 2.0, move1 * -3.0);
+                    next.shorts.orientation = Quaternion::rotation_x(move1 * 0.5);
+                    next.shorts.position += Vec3::new(0.0, move1 * 1.5, 0.0);
                     next.control.orientation.rotate_y(move1 * -1.5);
                     next.control.orientation.rotate_z(move1 * 0.8);
 
@@ -703,27 +714,25 @@ impl Animation for ComboAnimation {
                     next.head.orientation = Quaternion::rotation_z(move2 * 0.4);
                     next.shorts.orientation.rotate_z(move2 * 0.5);
                     next.belt.orientation = Quaternion::rotation_z(move2 * 0.1);
-                    next.control
-                        .orientation
-                        .rotate_z(move2 * -1.4 + move3 * -0.5);
-                    next.control.orientation.rotate_x(move2 * 0.5 + move3 * 0.2);
+                    next.control.orientation.rotate_z(move2 * -1.4);
+                    next.control.orientation.rotate_x(move2 * 0.5);
                     next.control.position += Vec3::new(move2 * 7.0, 0.0, move2 * 6.0);
                 },
                 Some("common.abilities.sword.heavy_combo") => {
-                    let (move1, move2, move3) = if strike == current_strike {
+                    let (move1, move2) = if strike == current_strike {
                         match stage_section {
                             Some(StageSection::Buildup) => {
-                                (((anim_time.max(0.4) - 0.4) * 1.5).powf(0.5), 0.0, 0.0)
+                                (((anim_time.max(0.4) - 0.4) * 1.5).powf(0.5), 0.0)
                             },
-                            Some(StageSection::Action) => {
-                                (1.0, (anim_time.min(0.4) * 2.5).powi(2), 0.0)
-                            },
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                            _ => (0.0, 0.0, 0.0),
+                            Some(StageSection::Action) => (1.0, (anim_time.min(0.4) * 2.5).powi(2)),
+                            Some(StageSection::Recover) => (1.0, 1.0),
+                            _ => (0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0)
+                        (1.0, 1.0)
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -777,12 +786,14 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.heavy_pommelstrike") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                        _ => (0.0, 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -809,22 +820,18 @@ impl Animation for ComboAnimation {
                     next.control.orientation.rotate_z(move2 * 0.4);
                 },
                 Some("common.abilities.sword.mobility_combo") => {
-                    let (move1, move2, move3) = if strike == current_strike {
+                    let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                            Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                            _ => (0.0, 0.0, 0.0),
+                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                            Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                            Some(StageSection::Recover) => (1.0, 1.0),
+                            _ => (0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0)
+                        (1.0, 1.0)
                     };
-
-                    if move2 > 0.0 {
-                        next.main_weapon_trail = true;
-                    } else {
-                        next.main_weapon_trail = false;
-                    }
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -903,12 +910,14 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.mobility_feint") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                        _ => (0.0, 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -952,22 +961,18 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.reaching_combo") => {
-                    let (move1, move2, move3) = if strike == current_strike {
+                    let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                            Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                            _ => (0.0, 0.0, 0.0),
+                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                            Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                            Some(StageSection::Recover) => (1.0, 1.0),
+                            _ => (0.0, 0.0),
                         }
                     } else {
-                        (1.0, 1.0, 0.0)
+                        (1.0, 1.0)
                     };
-
-                    if move2 > 0.0 {
-                        next.main_weapon_trail = true;
-                    } else {
-                        next.main_weapon_trail = false;
-                    }
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     match strike {
                         0 => {
@@ -1019,12 +1024,14 @@ impl Animation for ComboAnimation {
                     }
                 },
                 Some("common.abilities.sword.reaching_skewer") => {
-                    let (move1, move2, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-                        _ => (0.0, 0.0, 0.0),
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
                     };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =

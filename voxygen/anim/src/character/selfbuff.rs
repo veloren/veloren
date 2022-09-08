@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use core::f32::consts::PI;
 
 pub struct SelfBuffAnimation;
 impl Animation for SelfBuffAnimation {
@@ -35,6 +34,9 @@ impl Animation for SelfBuffAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
@@ -70,6 +72,9 @@ impl Animation for SelfBuffAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
@@ -101,6 +106,9 @@ impl Animation for SelfBuffAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =

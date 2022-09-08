@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use core::f32::consts::PI;
 use std::ops::{Mul, Sub};
 
 pub struct RapidMeleeAnimation;
@@ -27,6 +26,7 @@ impl Animation for RapidMeleeAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
+        next.main_weapon_trail = true;
 
         match ability_id {
             Some("common.abilities.sword.reaching_flurry") => {
@@ -41,8 +41,9 @@ impl Animation for RapidMeleeAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 1.0),
                     _ => (0.0, 0.0, 0.0, 0.0),
                 };
-
-                let move2_slow = move2.powi(4);
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =

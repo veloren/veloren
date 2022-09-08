@@ -26,7 +26,7 @@ impl Animation for BetaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_beta")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, ability_id, _velocity, _global_time, stage_section, ability_info): Self::Dependency<
+        (hands, _ability_id, _velocity, _global_time, stage_section, ability_info): Self::Dependency<
             'a,
         >,
         anim_time: f32,

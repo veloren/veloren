@@ -28,6 +28,8 @@ impl Animation for FinisherMeleeAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
+        next.main_weapon_trail = true;
+
         match ability_id {
             Some("common.abilities.sword.balanced_finisher") => {
                 let (move1, move2, move3) = match stage_section {
@@ -36,6 +38,9 @@ impl Animation for FinisherMeleeAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
@@ -65,6 +70,9 @@ impl Animation for FinisherMeleeAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
@@ -111,6 +119,12 @@ impl Animation for FinisherMeleeAnimation {
                 let move1alt1 = move1.min(0.5) * 2.0;
                 let move1alt2 = (move1.max(0.5) - 0.5) * 2.0;
 
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move1alt1 = move1alt1 * pullback;
+                let move1alt2 = move1alt2 * pullback;
+                let move2 = move2 * pullback;
+
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation = Quaternion::rotation_x(s_a.shl.3 + move1alt2 * PI)
                     * Quaternion::rotation_y(s_a.shl.4);
@@ -149,6 +163,13 @@ impl Animation for FinisherMeleeAnimation {
                     _ => (0.0, 0.0, 0.0),
                 };
 
+                let move2_fast = move2.powf(0.25);
+
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+                let move2_fast = move2_fast * pullback;
+
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
@@ -170,7 +191,7 @@ impl Animation for FinisherMeleeAnimation {
                 next.head.orientation.rotate_z(move2 * 0.5);
                 next.belt.orientation.rotate_z(move2 * 0.3);
                 next.shorts.orientation.rotate_z(move2 * 0.7);
-                next.control.orientation.rotate_x(move2.powf(0.25) * -2.8);
+                next.control.orientation.rotate_x(move2_fast * -2.8);
                 next.control.position += Vec3::new(move2 * 12.0, 0.0, move2 * -10.0);
             },
             Some("common.abilities.sword.heavy_finisher") => {
@@ -181,12 +202,19 @@ impl Animation for FinisherMeleeAnimation {
                     _ => (0.0, 0.0, 0.0),
                 };
 
+                let move1_fast = move1.powf(0.5);
+
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move1_fast = move1_fast * pullback;
+                let move2 = move2 * pullback;
+
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
                 next.hand_r.position = Vec3::new(
-                    -s_a.sc.0 + 6.0 + move1.powf(0.5) * -12.0,
-                    -4.0 + move1.powf(0.5) * 3.0,
+                    -s_a.sc.0 + 6.0 + move1_fast * -12.0,
+                    -4.0 + move1_fast * 3.0,
                     -2.0,
                 );
                 next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);

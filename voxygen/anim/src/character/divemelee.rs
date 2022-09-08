@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use core::f32::consts::PI;
 
 pub struct DiveMeleeAnimation;
 impl Animation for DiveMeleeAnimation {
@@ -23,11 +22,11 @@ impl Animation for DiveMeleeAnimation {
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
-        next.main_weapon_trail = true;
-        next.off_weapon_trail = true;
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
+        next.main_weapon_trail = true;
+
         let ground_dist = ground_dist.clamp(0.0, 0.5) * 2.0;
         let ground_dist = if ground_dist.is_nan() {
             0.0
@@ -48,6 +47,10 @@ impl Animation for DiveMeleeAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0, 0.0),
                 };
+                let pullback = 1.0 - move4;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+                let move3 = move3 * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =

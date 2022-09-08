@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use core::f32::consts::PI;
 
 pub struct RiposteMeleeAnimation;
 impl Animation for RiposteMeleeAnimation {
@@ -26,6 +25,7 @@ impl Animation for RiposteMeleeAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
+        next.main_weapon_trail = true;
 
         match ability_id {
             Some("common.abilities.sword.parrying_riposte") => {
@@ -37,6 +37,11 @@ impl Animation for RiposteMeleeAnimation {
                 };
 
                 let move2_slow = move2.powi(4);
+
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+                let move2_slow = move2_slow * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
@@ -64,12 +69,9 @@ impl Animation for RiposteMeleeAnimation {
                 next.control.orientation.rotate_y(move2 * -4.0);
                 next.control
                     .orientation
-                    .rotate_z(move2_slow * -3.0 + move2.powf(0.25) * 1.0);
+                    .rotate_z(move2_slow * -3.0 + move2 * 1.0);
                 next.control.position +=
                     Vec3::new(move2_slow * 11.0, move2_slow * -4.0, move2_slow * -6.0);
-                // next.control.orientation.rotate_y(move2.min(0.5) * 2.0 *
-                // -2.4); next.control.orientation.
-                // rotate_x((move2.max(0.5) - 0.5) * 2.0 * 1.8);
             },
             _ => {},
         }

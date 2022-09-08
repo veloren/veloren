@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 7,
+                    damage: 12,
                     poise: 0,
                     knockback: 0,
                     energy_regen: 10,
@@ -20,7 +20,7 @@ ComboMelee2(
         ),
     ],
     is_stance: false,
-    energy_cost_per_strike: 20,
+    energy_cost_per_strike: 10,
     meta: (
         kind: Some(Sword(Cleaving)),
     ),
