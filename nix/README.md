@@ -190,11 +190,10 @@ Modify the relevant `rev` field in `flake.lock` to what you need - you can use `
 
 ## Formatting
 
-Use [nixpkgs-fmt](https://github.com/nix-community/nixpkgs-fmt) to format files.
+Use [alejandra](https://github.com/kamadorueda/alejandra) to format files.
 
 To format every Nix file:
 ```shell
-nixpkgs-fmt flake.nix nix/*.nix
-# or
-nixpkgs-fmt **/**.nix
+# From repository root
+alejandra .
 ```
