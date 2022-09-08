@@ -31,7 +31,6 @@ use common::{
 use common_base::{prof_span, span};
 use core::{f32, fmt::Debug, marker::PhantomData, time::Duration};
 use crossbeam_channel as channel;
-use enum_iterator::IntoEnumIterator;
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use serde::Deserialize;
@@ -196,7 +195,7 @@ impl TryFrom<HashMap<SpriteKind, Option<SpriteConfig<String>>>> for SpriteSpec {
         mut map: HashMap<SpriteKind, Option<SpriteConfig<String>>>,
     ) -> Result<Self, Self::Error> {
         let mut array = [(); 256].map(|()| None);
-        let sprites_missing = SpriteKind::into_enum_iter()
+        let sprites_missing = enum_iterator::all::<SpriteKind>()
             .filter(|kind| match map.remove(kind) {
                 Some(config) => {
                     array[*kind as usize] = config;
@@ -454,7 +453,7 @@ impl SpriteRenderContext {
             );
             let mut sprite_mesh = Mesh::new();
             // NOTE: Tracks the start vertex of the next model to be meshed.
-            let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
+            let sprite_data: HashMap<(SpriteKind, usize), _> = enum_iterator::all::<SpriteKind>()
                 .filter_map(|kind| Some((kind, sprite_config.get(kind)?)))
                 .flat_map(|(kind, sprite_config)| {
                     sprite_config.variations.iter().enumerate().map(
