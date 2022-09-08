@@ -394,3 +394,44 @@ pub fn create_tri(
         v([tri[2][0], tri[2][1]], [uv_tri[2][0], uv_tri[2][1]]),
     )
 }
+
+// Steps:
+// 1. Upload new image via `Device::create_buffer_init`, with `MAP_WRITE` flag
+//    to avoid staging buffer.
+// 2. Run compute pipeline to multiply by alpha reading from this buffer and
+//    writing to the final texture (this may be in an atlas or an independent
+//    texture if the image is over a certain size threshold).
+//
+// Info needed in compute shader:
+// * source buffer
+// * target texture
+// * image dimensions
+// * position in the target texture
+// (what is the overhead of compute call? at some point we may be better off
+// converting small images on the cpu)
+pub struct PremultiplyAlphaPipeline {
+    pub pipeline: wgpu::RenderPipeline,
+}
+
+impl PremultiplyAlphaPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        module: &wgpu::ShaderModule,
+        layout: &PremultiplAlphaLayout,
+    ) -> Self {
+        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("Premultiply alpha pipeline layout"),
+            push_constant_ranges: &[],
+            bind_group_layouts: &[layout],
+        });
+
+        let pipeline = device.create_compute_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Premultiply alpha pipeline"),
+            layout: Some(&pipeline_layout),
+            module,
+            entry_point: "main",
+        });
+
+        Self { pipeline }
+    }
+}
