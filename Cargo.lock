@@ -5640,8 +5640,7 @@ dependencies = [
 [[package]]
 name = "shaderc"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80e6fe602a861622769530a23bc40bfba31adbf186d0c8412e83f5519c5d6bee"
+source = "git+https://github.com/pythonesque/shaderc-rs?rev=f2605a02062834019bedff911aee2fd2998c49f9#f2605a02062834019bedff911aee2fd2998c49f9"
 dependencies = [
  "libc",
  "shaderc-sys",
@@ -5650,8 +5649,7 @@ dependencies = [
 [[package]]
 name = "shaderc-sys"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3794498651f8173d0afbc0bb8aca45ced111098227e755dde4c0ef2888c8d0bf"
+source = "git+https://github.com/pythonesque/shaderc-rs?rev=f2605a02062834019bedff911aee2fd2998c49f9#f2605a02062834019bedff911aee2fd2998c49f9"
 dependencies = [
  "cmake",
  "libc",
@@ -7806,7 +7804,7 @@ dependencies = [
 [[package]]
 name = "wgpu"
 version = "0.8.0"
-source = "git+https://github.com/gfx-rs/wgpu.git?rev=a92b8549a8e2cb9dac781bafc5ed32828f3caf46#a92b8549a8e2cb9dac781bafc5ed32828f3caf46"
+source = "git+https://github.com/pythonesque/wgpu.git?rev=179ea209374a92837cde252f1d9ee01f628cae08#179ea209374a92837cde252f1d9ee01f628cae08"
 dependencies = [
  "arrayvec 0.5.2",
  "js-sys",
@@ -7826,7 +7824,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core"
 version = "0.8.0"
-source = "git+https://github.com/gfx-rs/wgpu.git?rev=a92b8549a8e2cb9dac781bafc5ed32828f3caf46#a92b8549a8e2cb9dac781bafc5ed32828f3caf46"
+source = "git+https://github.com/pythonesque/wgpu.git?rev=179ea209374a92837cde252f1d9ee01f628cae08#179ea209374a92837cde252f1d9ee01f628cae08"
 dependencies = [
  "arrayvec 0.5.2",
  "bitflags",
@@ -7866,7 +7864,7 @@ dependencies = [
 [[package]]
 name = "wgpu-types"
 version = "0.8.0"
-source = "git+https://github.com/gfx-rs/wgpu.git?rev=a92b8549a8e2cb9dac781bafc5ed32828f3caf46#a92b8549a8e2cb9dac781bafc5ed32828f3caf46"
+source = "git+https://github.com/pythonesque/wgpu.git?rev=179ea209374a92837cde252f1d9ee01f628cae08#179ea209374a92837cde252f1d9ee01f628cae08"
 dependencies = [
  "bitflags",
  "serde",

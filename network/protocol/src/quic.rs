@@ -18,7 +18,7 @@ use tracing::info;
 #[cfg(feature = "trace_pedantic")]
 use tracing::trace;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum QuicDataFormatStream {
     Main,
     Reliable(Sid),

@@ -554,7 +554,7 @@ impl SpriteRenderContext {
             }
         });
 
-        let init = core::lazy::OnceCell::new();
+        let init = core::cell::OnceCell::new();
         let mut join_handle = Some(join_handle);
         let mut closure = move |renderer: &mut Renderer| {
             // The second unwrap can only fail if the sprite meshing thread panics, which

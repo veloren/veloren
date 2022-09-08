@@ -700,7 +700,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         );
 
                         let mut diff_text = |text: String, color, id_index| {
-                            widget::Text::new(&*text)
+                            widget::Text::new(&text)
                                 .align_middle_y_of(state.ids.stats[id_index])
                                 .right_from(state.ids.stats[id_index], H_PAD)
                                 .graphics_for(id)
@@ -905,7 +905,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             util::option_comparison(&armor_stats.stealth, &equipped_stats.stealth);
 
                         let mut diff_text = |text: String, color, id_index| {
-                            widget::Text::new(&*text)
+                            widget::Text::new(&text)
                                 .align_middle_y_of(state.ids.stats[id_index])
                                 .right_from(state.ids.stats[id_index], H_PAD)
                                 .graphics_for(id)

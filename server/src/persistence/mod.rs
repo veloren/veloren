@@ -63,12 +63,12 @@ impl VelorenConnection {
         let settings = database_settings
             .read()
             .expect("DatabaseSettings RwLock was poisoned");
-        if self.sql_log_mode == (*settings).sql_log_mode {
+        if self.sql_log_mode == settings.sql_log_mode {
             return;
         }
 
-        set_log_mode(&mut self.connection, (*settings).sql_log_mode);
-        self.sql_log_mode = (*settings).sql_log_mode;
+        set_log_mode(&mut self.connection, settings.sql_log_mode);
+        self.sql_log_mode = settings.sql_log_mode;
 
         info!(
             "SQL log mode for connection changed to {:?}",
@@ -106,13 +106,13 @@ pub struct DatabaseSettings {
     pub sql_log_mode: SqlLogMode,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ConnectionMode {
     ReadOnly,
     ReadWrite,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SqlLogMode {
     /// Logging is disabled
     Disabled,
@@ -199,10 +199,8 @@ pub(crate) fn establish_connection(
     settings: &DatabaseSettings,
     connection_mode: ConnectionMode,
 ) -> VelorenConnection {
-    fs::create_dir_all(&settings.db_dir).expect(&*format!(
-        "Failed to create saves directory: {:?}",
-        &settings.db_dir
-    ));
+    fs::create_dir_all(&settings.db_dir)
+        .unwrap_or_else(|_| panic!("Failed to create saves directory: {:?}", &settings.db_dir));
 
     let open_flags = OpenFlags::SQLITE_OPEN_PRIVATE_CACHE
         | OpenFlags::SQLITE_OPEN_NO_MUTEX

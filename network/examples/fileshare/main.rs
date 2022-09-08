@@ -34,7 +34,7 @@ fn main() {
                 .long("trace")
                 .takes_value(true)
                 .default_value("warn")
-                .possible_values(&["trace", "debug", "info", "warn", "error"])
+                .possible_values(["trace", "debug", "info", "warn", "error"])
                 .help("set trace level, not this has a performance impact!"),
         )
         .get_matches();

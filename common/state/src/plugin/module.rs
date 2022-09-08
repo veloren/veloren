@@ -37,7 +37,7 @@ impl PluginModule {
         // We are creating an enironnement
         let store = Store::new(&engine);
         // We are compiling the WASM file in the previously generated environement
-        let module = Module::new(&store, &wasm_data).expect("Can't compile");
+        let module = Module::new(&store, wasm_data).expect("Can't compile");
 
         // This is the function imported into the wasm environement
         fn raw_emit_actions(env: &HostFunctionEnvironement, ptr: i64, len: i64) {
@@ -79,7 +79,7 @@ impl PluginModule {
 
         // Create an instance (Code execution environement)
         let instance = Instance::new(&module, &import_object)
-            .map_err(PluginModuleError::InstantiationError)?;
+            .map_err(|err| PluginModuleError::InstantiationError(Box::new(err)))?;
         Ok(Self {
             memory_manager,
             ecs,

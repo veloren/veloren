@@ -703,8 +703,10 @@ impl StateExt for State {
         msg: &str,
     ) -> bool {
         let mut automod = self.ecs().write_resource::<AutoMod>();
-        let Some(client) = self.ecs().read_storage::<Client>().get(entity) else { return true };
-        let Some(player) = self.ecs().read_storage::<Player>().get(entity) else { return true };
+        let client = self.ecs().read_storage::<Client>();
+        let player = self.ecs().read_storage::<Player>();
+        let Some(client) = client.get(entity) else { return true };
+        let Some(player) = player.get(entity) else { return true };
 
         match automod.validate_chat_msg(
             player.uuid(),

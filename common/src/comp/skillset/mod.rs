@@ -232,7 +232,7 @@ impl SkillGroup {
 /// Contains all of a player's skill groups and skills. Provides methods for
 /// manipulating assigned skills and skill groups including unlocking skills,
 /// refunding skills etc.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SkillSet {
     skill_groups: HashMap<SkillGroupKind, SkillGroup>,
     skills: HashMap<Skill, u16>,
@@ -567,7 +567,7 @@ pub enum SpRewardError {
     Overflow,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize)]
 pub enum SkillsPersistenceError {
     HashMismatch,
     DeserializationFailure,

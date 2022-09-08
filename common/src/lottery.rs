@@ -76,7 +76,7 @@ impl<T> Lottery<T> {
     pub fn total(&self) -> f32 { self.total }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum LootSpec<T: AsRef<str>> {
     /// Asset specifier
     Item(T),

@@ -210,7 +210,7 @@ impl TagExampleInfo for Material {
     fn exemplar_identifier(&self) -> Option<&str> { self.asset_identifier() }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ItemTag {
     /// Used to indicate that an item is composed of this material
     Material(Material),
@@ -559,7 +559,7 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                 ability_map.get_ability_set(key)
             };
             let abilities = if let Some(set_key) = item.ability_spec() {
-                if let Some(set) = ability_map.get_ability_set(&*set_key) {
+                if let Some(set) = ability_map.get_ability_set(&set_key) {
                     set.clone().modified_by_tool(tool)
                 } else {
                     error!(

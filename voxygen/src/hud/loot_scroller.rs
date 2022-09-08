@@ -312,7 +312,7 @@ impl<'a> Widget for LootScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let quality_col = get_quality_col(&*item);
+                let quality_col = get_quality_col(item);
 
                 Image::new(self.imgs.pixel)
                     .color(Some(shade_color(quality_col.alpha(0.7))))
@@ -327,7 +327,7 @@ impl<'a> Widget for LootScroller<'a> {
                     .set(state.ids.message_icon_frames[i], ui);
 
                 Image::new(animate_by_pulse(
-                    &self.item_imgs.img_ids_or_not_found_img((&*item).into()),
+                    &self.item_imgs.img_ids_or_not_found_img(item.into()),
                     self.pulse,
                 ))
                 .color(Some(shade_color(color::hsla(0.0, 0.0, 1.0, 1.0))))
@@ -335,7 +335,7 @@ impl<'a> Widget for LootScroller<'a> {
                 .middle_of(state.ids.message_icon_bgs[i])
                 .with_item_tooltip(
                     self.item_tooltip_manager,
-                    core::iter::once(&*item as &dyn ItemDesc),
+                    core::iter::once(item as &dyn ItemDesc),
                     &None,
                     &item_tooltip,
                 )

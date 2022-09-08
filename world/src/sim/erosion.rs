@@ -838,7 +838,7 @@ fn erode(
             // TODO: Figure out how to switch between single-receiver and multi-receiver
             // drainage, as the former is much less computationally costly.
             // let area = get_drainage(map_size_lg, &newh, &dh, boundary_len);
-            let area = get_multi_drainage(map_size_lg, &mstack, &mrec, &*mwrec, boundary_len);
+            let area = get_multi_drainage(map_size_lg, &mstack, &mrec, &mwrec, boundary_len);
             debug!("Got flux...");
             (dh, newh, maxh, mrec, mstack, mwrec, area)
         },
@@ -1864,7 +1864,7 @@ pub fn get_lakes<F: Float>(
     let mut indirection_ = vec![0u32; indirection.len()];
     // First, find all the lakes.
     let mut lake_roots = Vec::with_capacity(downhill.len()); // Test
-    (&*downhill)
+    (*downhill)
         .iter()
         .enumerate()
         .filter(|(_, &dh_idx)| dh_idx < 0)
@@ -2160,7 +2160,7 @@ pub fn get_lakes<F: Float>(
     let mut filling_queue = Vec::with_capacity(downhill.len());
 
     let mut newh = Vec::with_capacity(downhill.len());
-    (&*boundary)
+    (*boundary)
         .iter()
         .chain(pass_flows_sorted.iter())
         .for_each(|&chunk_idx| {

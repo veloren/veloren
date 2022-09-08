@@ -154,7 +154,7 @@ impl Site {
             }
             max_cost
         };
-        let path = Astar::new(MAX_ITERS, a, &heuristic, DefaultHashBuilder::default())
+        let path = Astar::new(MAX_ITERS, a, heuristic, DefaultHashBuilder::default())
             .poll(
                 MAX_ITERS,
                 &heuristic,

@@ -6,12 +6,12 @@ use crate::comp::inventory::{
     loadout::LoadoutSlotId,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum SlotError {
     InventoryFull,
 }
 
-#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Slot {
     Inventory(InvSlotId),
     Equip(EquipSlot),

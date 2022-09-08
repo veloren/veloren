@@ -8,7 +8,7 @@ use std::collections::HashSet;
 
 pub const MAX_CHAT_TABS: usize = 5;
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ChatFilter {
     //messages
     pub message_all: bool,

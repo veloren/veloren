@@ -59,7 +59,9 @@ winit = {version = "0.25.0", features = ["serde"]}
 wgpu = { version = "=0.8.0", features = ["trace", "cross"] }
 wgpu-profiler = { git = "https://github.com/Imberflur/wgpu-profiler", tag = "wgpu-0.8" }
 bytemuck = { version="1.4", features=["derive"] }
-shaderc = "0.8.0"
+# shaderc = "0.8.0"
+# Working around a current bug in shaderc that causes it to use the system installation even if we specify compile from source
+shaderc = { git = "https://github.com/pythonesque/shaderc-rs", rev = "f2605a02062834019bedff911aee2fd2998c49f9" }
 # cmake crate used by shaderc, newer version 0.1.46 uses a new cmake command that is not available in our CI cmake version
 # see https://github.com/alexcrichton/cmake-rs/issues/131
 cmake = "=0.1.45"

@@ -159,7 +159,7 @@ impl MusicChannel {
 
 /// AmbientChannelTags are used for non-positional sfx. Currently the only use
 /// is for wind.
-#[derive(Debug, PartialEq, Clone, Copy, Deserialize, EnumIter)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, EnumIter)]
 pub enum AmbientChannelTag {
     Wind,
     Rain,

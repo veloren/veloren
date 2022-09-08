@@ -5,7 +5,7 @@ use std::{collections::HashMap, time::Instant};
 /// measuring the level of threads a unit of code ran on. Use Rayon when it ran
 /// on their threadpool. Use Exact when you know on how many threads your code
 /// ran on exactly.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ParMode {
     None, /* Job is not running at all */
     Single,
@@ -14,7 +14,7 @@ pub enum ParMode {
 }
 
 //TODO: make use of the phase of a system for advanced scheduling and logging
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Phase {
     Create,
     Review,
@@ -22,7 +22,7 @@ pub enum Phase {
 }
 
 //TODO: make use of the origin of the system for better logging
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Origin {
     Common,
     Client,

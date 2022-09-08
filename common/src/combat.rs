@@ -901,7 +901,7 @@ pub struct Knockback {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum KnockbackDir {
     Away,
     Towards,

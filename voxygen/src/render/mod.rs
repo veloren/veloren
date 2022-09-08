@@ -68,7 +68,7 @@ pub trait Vertex: Clone + bytemuck::Pod {
 
 use serde::{Deserialize, Serialize};
 /// Anti-aliasing modes
-#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum AaMode {
     /// Fast approximate antialiasing.
     ///
@@ -102,7 +102,7 @@ impl Default for AaMode {
 }
 
 /// Cloud modes
-#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum CloudMode {
     /// No clouds. As cheap as it gets.
     None,
@@ -132,7 +132,7 @@ impl Default for CloudMode {
 }
 
 /// Fluid modes
-#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum FluidMode {
     /// "Cheap" water.  This water implements no waves, no reflections, no
     /// diffraction, and no light attenuation through water.  As a result,
@@ -163,7 +163,7 @@ impl Default for FluidMode {
 }
 
 /// Lighting modes
-#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum LightingMode {
     /// Ashikhmin-Shirley BRDF lighting model.  Attempts to generate a
     /// physically plausible (to some extent) lighting distribution.
@@ -251,7 +251,7 @@ impl Default for UpscaleMode {
 
 /// Present modes
 /// See https://docs.rs/wgpu/0.7.0/wgpu/enum.PresentMode.html
-#[derive(Default, PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum PresentMode {
     Mailbox,
     Immediate,

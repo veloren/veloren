@@ -17,7 +17,7 @@ fn main() {
         // Note: It will compare commits. As long as the commits do not diverge from the
         // server no version change will be detected.
         match Command::new("git")
-            .args(&[
+            .args([
                 "log",
                 "-n",
                 "1",
@@ -40,7 +40,7 @@ fn main() {
         // Note: It will compare commits. As long as the commits do not diverge from the
         // server no version change will be detected.
         match Command::new("git")
-            .args(&["describe", "--exact-match", "--tags", "HEAD"])
+            .args(["describe", "--exact-match", "--tags", "HEAD"])
             .output()
         {
             Ok(output) => match String::from_utf8(output.stdout) {

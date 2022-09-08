@@ -103,7 +103,7 @@ impl SessionState {
         let mut scene = Scene::new(
             global_state.window.renderer_mut(),
             &mut global_state.lazy_init,
-            &*client.borrow(),
+            &client.borrow(),
             &global_state.settings,
         );
         scene
@@ -186,7 +186,7 @@ impl SessionState {
         // All this camera code is just to determine if it's underwater for the sfx
         // filter
         let camera = self.scene.camera_mut();
-        camera.compute_dependents(&*client.state().terrain());
+        camera.compute_dependents(&client.state().terrain());
         let camera::Dependents { cam_pos, .. } = self.scene.camera().dependents();
         let focus_pos = self.scene.camera().get_focus_pos();
         let focus_off = focus_pos.map(|e| e.trunc());
@@ -474,7 +474,7 @@ impl PlayState for SessionState {
             }
 
             // Compute camera data
-            camera.compute_dependents(&*client.state().terrain());
+            camera.compute_dependents(&client.state().terrain());
             let camera::Dependents {
                 cam_pos, cam_dir, ..
             } = self.scene.camera().dependents();
@@ -1195,7 +1195,7 @@ impl PlayState for SessionState {
             // Recompute dependents just in case some input modified the camera
             self.scene
                 .camera_mut()
-                .compute_dependents(&*self.client.borrow().state().terrain());
+                .compute_dependents(&self.client.borrow().state().terrain());
 
             // Generate debug info, if needed
             // (it iterates through enough data that we might

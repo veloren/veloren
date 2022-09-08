@@ -13,7 +13,7 @@ pub enum PluginError {
 
 #[derive(Debug)]
 pub enum PluginModuleError {
-    InstantiationError(InstantiationError),
+    InstantiationError(Box<InstantiationError>),
     MemoryAllocation(MemoryAllocationError),
     MemoryUninit(ExportError),
     FindFunction(ExportError),

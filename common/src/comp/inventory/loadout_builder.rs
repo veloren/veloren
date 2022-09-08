@@ -798,7 +798,7 @@ fn default_main_tool(body: &Body) -> Item {
 #[derive(Clone)]
 pub struct LoadoutBuilder(Loadout);
 
-#[derive(Copy, Clone, PartialEq, Deserialize, Serialize, Debug, EnumIter)]
+#[derive(Copy, Clone, PartialEq, Eq, Deserialize, Serialize, Debug, EnumIter)]
 pub enum Preset {
     HuskSummon,
 }
@@ -1083,7 +1083,7 @@ impl LoadoutBuilder {
         // Panic if item doesn't correspond to slot
         assert!(
             item.as_ref()
-                .map_or(true, |item| equip_slot.can_hold(&*item.kind()))
+                .map_or(true, |item| equip_slot.can_hold(&item.kind()))
         );
 
         self.0.swap(equip_slot, item);

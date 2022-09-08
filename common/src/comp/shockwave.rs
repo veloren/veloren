@@ -35,7 +35,7 @@ impl std::ops::Deref for Shockwave {
     fn deref(&self) -> &Properties { &self.properties }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ShockwaveHitEntities {
     pub hit_entities: Vec<Uid>,
 }
@@ -44,7 +44,7 @@ impl Component for ShockwaveHitEntities {
     type Storage = specs::DenseVecStorage<Self>;
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     Ground,
     Fire,

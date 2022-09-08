@@ -87,7 +87,7 @@ mod tests {
 
     impl<V> MyMap<V> {
         pub fn iter(&self) -> impl Iterator<Item = (MyIndex, &V)> + '_ {
-            (&self.0).iter().enumerate().map(|(i, v)| (MyIndex(i), v))
+            self.0.iter().enumerate().map(|(i, v)| (MyIndex(i), v))
         }
     }
 

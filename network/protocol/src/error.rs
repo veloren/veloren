@@ -1,7 +1,7 @@
 /// All possible Errors that can happen during Handshake [`InitProtocol`]
 ///
 /// [`InitProtocol`]: crate::InitProtocol
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum InitProtocolError<E: std::fmt::Debug + Send> {
     Custom(E),
     /// expected Handshake, didn't get handshake
@@ -13,7 +13,7 @@ pub enum InitProtocolError<E: std::fmt::Debug + Send> {
 }
 
 /// When you return closed you must stay closed!
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ProtocolError<E: std::fmt::Debug + Send> {
     /// Custom Error on the underlying I/O,
     /// e.g. the TCP, UDP or MPSC connection is dropped by the OS

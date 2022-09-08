@@ -70,7 +70,7 @@ pub enum AuraTarget {
     All,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Specifier {
     WardingAura,
     HealingAura,

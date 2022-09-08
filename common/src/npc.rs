@@ -7,7 +7,7 @@ use rand::seq::SliceRandom;
 use serde::Deserialize;
 use std::str::FromStr;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum NpcKind {
     Humanoid,
     Wolf,

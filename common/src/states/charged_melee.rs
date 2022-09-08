@@ -181,7 +181,7 @@ impl CharacterBehavior for Data {
 }
 
 /// Used to specify a particular effect for frontend purposes
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     GroundCleave,
 }

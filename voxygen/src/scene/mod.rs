@@ -604,7 +604,7 @@ impl Scene {
         };
 
         // Compute camera matrices.
-        self.camera.compute_dependents(&*scene_data.state.terrain());
+        self.camera.compute_dependents(&scene_data.state.terrain());
         let camera::Dependents {
             view_mat,
             view_mat_inv,

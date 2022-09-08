@@ -4,7 +4,7 @@ use vek::Vec2;
 /// This component exists in order to fix a bug that caused entities
 /// such as campfires to duplicate because the chunk was double-loaded.
 /// See https://gitlab.com/veloren/veloren/-/merge_requests/1543
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Anchor {
     /// An entity with an Entity Anchor will be destroyed when its anchor Entity
     /// no longer exists

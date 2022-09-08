@@ -36,7 +36,7 @@ fn main() {
                 .short('m')
                 .long("mode")
                 .takes_value(true)
-                .possible_values(&["server", "client", "both"])
+                .possible_values(["server", "client", "both"])
                 .default_value("both")
                 .help(
                     "choose whether you want to start the server or client or both needed for \
@@ -63,7 +63,7 @@ fn main() {
                 .long("protocol")
                 .takes_value(true)
                 .default_value("tcp")
-                .possible_values(&["tcp", "udp", "mpsc"])
+                .possible_values(["tcp", "udp", "mpsc"])
                 .help(
                     "underlying protocol used for this test, mpsc can only combined with mode=both",
                 ),
@@ -74,7 +74,7 @@ fn main() {
                 .long("trace")
                 .takes_value(true)
                 .default_value("warn")
-                .possible_values(&["trace", "debug", "info", "warn", "error"])
+                .possible_values(["trace", "debug", "info", "warn", "error"])
                 .help("set trace level, not this has a performance impact!"),
         )
         .get_matches();

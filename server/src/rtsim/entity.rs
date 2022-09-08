@@ -88,7 +88,7 @@ impl Entity {
                             .into()
                     },
                     _ => {
-                        let species = *(&comp::humanoid::ALL_SPECIES)
+                        let species = *comp::humanoid::ALL_SPECIES
                             .choose(&mut self.rng(PERM_SPECIES))
                             .unwrap();
                         comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
@@ -102,7 +102,7 @@ impl Entity {
             | RtSimEntityKind::Alchemist
             | RtSimEntityKind::Blacksmith
             | RtSimEntityKind::Merchant => {
-                let species = *(&comp::humanoid::ALL_SPECIES)
+                let species = *comp::humanoid::ALL_SPECIES
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
                 comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()

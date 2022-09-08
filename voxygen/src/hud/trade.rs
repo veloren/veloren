@@ -228,13 +228,9 @@ impl<'a> Trade<'a> {
             .unwrap_or_else(|| format!("Player {}", who));
 
         let offer_header = if ours {
-            self.localized_strings
-                .get_msg("hud-trade-your_offer")
-                .to_owned()
+            self.localized_strings.get_msg("hud-trade-your_offer")
         } else {
-            self.localized_strings
-                .get_msg("hud-trade-their_offer")
-                .to_owned()
+            self.localized_strings.get_msg("hud-trade-their_offer")
         };
 
         Text::new(&offer_header)

@@ -109,14 +109,14 @@ impl<V> IndexMut<GoodIndex> for GoodMap<V> {
 
 impl<V> GoodMap<V> {
     pub fn iter(&self) -> impl Iterator<Item = (GoodIndex, &V)> + '_ {
-        (&self.data)
+        self.data
             .iter()
             .enumerate()
             .map(|(idx, v)| (GoodIndex { idx }, v))
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (GoodIndex, &mut V)> + '_ {
-        (&mut self.data)
+        self.data
             .iter_mut()
             .enumerate()
             .map(|(idx, v)| (GoodIndex { idx }, v))
@@ -206,7 +206,7 @@ impl<V: Default + Copy + PartialEq + fmt::Debug> fmt::Debug for LaborMap<V> {
             .entries(
                 self.iter()
                     .filter(|i| *i.1 != V::default())
-                    .map(|i| (i.0, &*i.1)),
+                    .map(|i| (i.0, i.1)),
             )
             .finish()
     }
@@ -226,14 +226,14 @@ impl<V> IndexMut<LaborIndex> for LaborMap<V> {
 
 impl<V> LaborMap<V> {
     pub fn iter(&self) -> impl Iterator<Item = (LaborIndex, &V)> + '_ {
-        (&self.data)
+        self.data
             .iter()
             .enumerate()
             .map(|(idx, v)| (LaborIndex::from_usize(idx), v))
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (LaborIndex, &mut V)> + '_ {
-        (&mut self.data)
+        self.data
             .iter_mut()
             .enumerate()
             .map(|(idx, v)| (LaborIndex::from_usize(idx), v))

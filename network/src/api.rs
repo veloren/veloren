@@ -121,7 +121,7 @@ pub enum NetworkConnectError {
 }
 
 /// Error type thrown by [`Participants`](Participant) methods
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ParticipantError {
     ///Participant was closed by remote side
     ParticipantDisconnected,

@@ -459,7 +459,7 @@ impl EqualitySet {
         let canonical_itemname = self
             .equivalence_class
             .get(item_name)
-            .map_or(item_name, |i| &*i);
+            .map_or(item_name, |i| i);
 
         canonical_itemname
     }

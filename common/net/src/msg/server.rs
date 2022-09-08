@@ -267,7 +267,7 @@ pub enum DisconnectReason {
     Kicked(String),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RegisterError {
     AuthError(String),
     Banned(String),

@@ -208,7 +208,7 @@ impl BloomPipelines {
         let upsample_pipeline = create_pipeline(
             "Bloom upsample pipeline",
             upsample_fs_module,
-            (!bloom_config.uniform_blur).then(|| wgpu::BlendState {
+            (!bloom_config.uniform_blur).then_some(wgpu::BlendState {
                 color: wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::One,
                     dst_factor: wgpu::BlendFactor::One,

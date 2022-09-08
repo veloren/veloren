@@ -33,7 +33,7 @@ pub enum SlotKind {
 
 pub type SlotManager = slot::SlotManager<SlotKind>;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct InventorySlot {
     pub slot: InvSlotId,
     pub entity: EcsEntity,
@@ -74,7 +74,7 @@ impl SlotKey<Inventory, ItemImgs> for EquipSlot {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TradeSlot {
     pub index: usize,
     pub quantity: u32,
@@ -115,7 +115,7 @@ impl SlotKey<Inventory, ItemImgs> for TradeSlot {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum HotbarImage {
     Item(ItemKey),
     Ability(String),
@@ -203,7 +203,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AbilitySlot {
     Slot(usize),
     Ability(AuxiliaryAbility),

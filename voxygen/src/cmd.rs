@@ -85,7 +85,7 @@ impl FromStr for ClientChatCommand {
     fn from_str(keyword: &str) -> Result<ClientChatCommand, ()> {
         Self::iter()
             .map(|c| (c.keyword(), c))
-            .find_map(|(kwd, command)| (kwd == keyword).then(|| command))
+            .find_map(|(kwd, command)| (kwd == keyword).then_some(command))
             .ok_or(())
     }
 }

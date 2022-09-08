@@ -3,7 +3,7 @@ use crate::uid::Uid;
 use serde::{Deserialize, Serialize};
 use specs::Component;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Object {
     Bomb {
         owner: Option<Uid>,

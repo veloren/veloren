@@ -540,7 +540,7 @@ impl<'a> PhysicsData<'a> {
             .join()
         {
             let vol = match collider {
-                Collider::Voxel { id } => voxel_colliders_manifest.colliders.get(&*id),
+                Collider::Voxel { id } => voxel_colliders_manifest.colliders.get(id),
                 Collider::Volume(vol) => Some(&**vol),
                 _ => None,
             };

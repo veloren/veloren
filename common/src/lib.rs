@@ -5,9 +5,7 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     associated_type_defaults,
-    bool_to_option,
     fundamental,
-    label_break_value,
     option_zip,
     trait_alias,
     type_alias_impl_trait,

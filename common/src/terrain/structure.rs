@@ -12,7 +12,7 @@ use vek::*;
 
 make_case_elim!(
     structure_block,
-    #[derive(Copy, Clone, PartialEq, Debug, Deserialize)]
+    #[derive(Copy, Clone, PartialEq, Eq, Debug, Deserialize)]
     #[repr(u8)]
     pub enum StructureBlock {
         None = 0,

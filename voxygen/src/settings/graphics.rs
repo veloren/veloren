@@ -2,7 +2,7 @@ use crate::{render::RenderMode, window::FullScreenSettings};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Fps {
     Max(u32),
     Unlimited,

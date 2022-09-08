@@ -167,7 +167,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Reddragon, _) => (6.0, -2.0, -10.5),
             },
             height: match (body.species, body.body_type) {
-                (Reddragon, _) => (1.0),
+                (Reddragon, _) => 1.0,
             },
         }
     }

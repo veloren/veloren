@@ -86,7 +86,7 @@ impl CharacterLoader {
                 // This connection -must- remain read-only to avoid lock contention with the
                 // CharacterUpdater thread.
                 let mut conn =
-                    establish_connection(&*settings.read().unwrap(), ConnectionMode::ReadOnly);
+                    establish_connection(&settings.read().unwrap(), ConnectionMode::ReadOnly);
 
                 for request in internal_rx {
                     conn.update_log_mode(&settings);

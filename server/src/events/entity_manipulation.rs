@@ -278,7 +278,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     let entry = damage_contributors
                         .entry(DamageContrib::Group(*group))
                         .or_insert((0, 0.0));
-                    (*entry).0 += damage;
+                    entry.0 += damage;
                 },
             }
         }

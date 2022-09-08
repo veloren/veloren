@@ -326,7 +326,7 @@ impl From<MovementAbility> for Ability {
     }
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum AuxiliaryAbility {
     MainWeapon(usize),
     OffWeapon(usize),

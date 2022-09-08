@@ -1199,7 +1199,7 @@ pub enum ForcedMovement {
     },
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MovementDirection {
     Look,
     Move,
@@ -1253,7 +1253,7 @@ impl AbilityInfo {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HandInfo {
     TwoHanded,
     MainHand,

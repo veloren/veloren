@@ -352,7 +352,7 @@ pub enum Event {
     ChangeSection(DiarySection),
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum DiarySection {
     SkillTrees,
     AbilitySelection,

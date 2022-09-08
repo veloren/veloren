@@ -1370,7 +1370,7 @@ pub enum FullscreenMode {
 impl Default for FullscreenMode {
     fn default() -> Self { FullscreenMode::Borderless }
 }
-#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct FullScreenSettings {
     pub enabled: bool,

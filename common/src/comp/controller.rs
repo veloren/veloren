@@ -17,7 +17,7 @@ use specs::Component;
 use std::collections::BTreeMap;
 use vek::*;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InventoryEvent {
     Pickup(Uid),
     Swap(InvSlotId, InvSlotId),
@@ -31,7 +31,7 @@ pub enum InventoryEvent {
     },
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InventoryAction {
     Swap(EquipSlot, Slot),
     Drop(EquipSlot),
@@ -40,7 +40,7 @@ pub enum InventoryAction {
     Collect(Vec3<i32>),
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InventoryManip {
     Pickup(Uid),
     Collect(Vec3<i32>),
@@ -93,7 +93,7 @@ impl From<InventoryEvent> for InventoryManip {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CraftEvent {
     Simple {
         recipe: String,
@@ -115,7 +115,7 @@ pub enum CraftEvent {
     },
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GroupManip {
     Leave,
     Kick(Uid),
@@ -136,7 +136,7 @@ pub enum UtteranceKind {
      * sounds */
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ControlEvent {
     //ToggleLantern,
     EnableLantern,
@@ -230,7 +230,7 @@ pub struct InputAttr {
     pub target_entity: Option<Uid>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Climb {
     Up,
     Down,

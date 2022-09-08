@@ -195,7 +195,7 @@ impl<'a> Crafting<'a> {
     }
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, PartialEq)]
+#[derive(Copy, Clone, Debug, EnumIter, PartialEq, Eq)]
 pub enum CraftingTab {
     All,
     Tool,
@@ -1343,22 +1343,30 @@ impl<'a> Widget for Crafting<'a> {
             // Craft button
             if Button::image(self.imgs.button)
                 .w_h(105.0, 25.0)
-                .hover_image(
-                    can_perform
-                        .then_some(self.imgs.button_hover)
-                        .unwrap_or(self.imgs.button),
-                )
-                .press_image(
-                    can_perform
-                        .then_some(self.imgs.button_press)
-                        .unwrap_or(self.imgs.button),
-                )
+                .hover_image(if can_perform {
+                    self.imgs.button_hover
+                } else {
+                    self.imgs.button
+                })
+                .press_image(if can_perform {
+                    self.imgs.button_press
+                } else {
+                    self.imgs.button
+                })
                 .label(&self.localized_strings.get_msg("hud-crafting-craft"))
                 .label_y(conrod_core::position::Relative::Scalar(1.0))
-                .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
+                .label_color(if can_perform {
+                    TEXT_COLOR
+                } else {
+                    TEXT_GRAY_COLOR
+                })
                 .label_font_size(self.fonts.cyri.scale(12))
                 .label_font_id(self.fonts.cyri.conrod_id)
-                .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
+                .image_color(if can_perform {
+                    TEXT_COLOR
+                } else {
+                    TEXT_GRAY_COLOR
+                })
                 .bottom_left_with_margins_on(state.ids.align_ing, -31.0, 15.0)
                 .parent(state.ids.window_frame)
                 .set(state.ids.btn_craft, ui)
@@ -1396,30 +1404,30 @@ impl<'a> Widget for Crafting<'a> {
             let can_perform_all = can_perform && matches!(recipe_kind, RecipeKind::Simple);
             if Button::image(self.imgs.button)
                 .w_h(105.0, 25.0)
-                .hover_image(
-                    can_perform
-                        .then_some(self.imgs.button_hover)
-                        .unwrap_or(self.imgs.button),
-                )
-                .press_image(
-                    can_perform
-                        .then_some(self.imgs.button_press)
-                        .unwrap_or(self.imgs.button),
-                )
+                .hover_image(if can_perform {
+                    self.imgs.button_hover
+                } else {
+                    self.imgs.button
+                })
+                .press_image(if can_perform {
+                    self.imgs.button_press
+                } else {
+                    self.imgs.button
+                })
                 .label(&self.localized_strings.get_msg("hud-crafting-craft_all"))
                 .label_y(conrod_core::position::Relative::Scalar(1.0))
-                .label_color(
-                    can_perform_all
-                        .then_some(TEXT_COLOR)
-                        .unwrap_or(TEXT_GRAY_COLOR),
-                )
+                .label_color(if can_perform_all {
+                    TEXT_COLOR
+                } else {
+                    TEXT_GRAY_COLOR
+                })
                 .label_font_size(self.fonts.cyri.scale(12))
                 .label_font_id(self.fonts.cyri.conrod_id)
-                .image_color(
-                    can_perform_all
-                        .then_some(TEXT_COLOR)
-                        .unwrap_or(TEXT_GRAY_COLOR),
-                )
+                .image_color(if can_perform_all {
+                    TEXT_COLOR
+                } else {
+                    TEXT_GRAY_COLOR
+                })
                 .bottom_right_with_margins_on(state.ids.align_ing, -31.0, 15.0)
                 .parent(state.ids.window_frame)
                 .set(state.ids.btn_craft_all, ui)
@@ -1670,7 +1678,7 @@ impl<'a> Widget for Crafting<'a> {
 
                     // Grey color for images and text if their amount is too low to craft the
                     // item
-                    let item_count_in_inventory = self.inventory.item_count(&*item_def);
+                    let item_count_in_inventory = self.inventory.item_count(&item_def);
                     let col = if item_count_in_inventory >= u64::from(amount.max(1)) {
                         TEXT_COLOR
                     } else {

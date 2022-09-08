@@ -175,7 +175,7 @@ impl CharacterBehavior for Data {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MovementBehavior {
     Stationary,
     ForwardGround,
@@ -183,7 +183,7 @@ pub enum MovementBehavior {
     Walking,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     CultistVortex,
 }

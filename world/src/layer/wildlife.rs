@@ -392,7 +392,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                                 .and_then(|pack| {
                                     (dynamic_rng.gen::<f32>() < density * col_sample.spawn_rate
                                         && col_sample.gradient < Some(1.3))
-                                    .then(|| pack)
+                                    .then_some(pack)
                                 })
                         })
                         .flatten()
