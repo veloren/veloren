@@ -1,9 +1,9 @@
 use crate::util::math::close;
-use enum_iterator::IntoEnumIterator;
+use enum_iterator::Sequence;
 use std::ops::Range;
 use vek::Vec2;
 
-#[derive(Copy, Clone, Debug, IntoEnumIterator)]
+#[derive(Copy, Clone, Debug, Sequence)]
 pub enum ForestKind {
     Palm,
     Acacia,

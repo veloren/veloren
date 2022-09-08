@@ -7,5 +7,5 @@ edition = "2021"
 [dependencies]
 find_folder = {version = "0.3.0"}
 libloading = {version = "0.7"}
-notify = {version = "5.0.0-pre.13"}
+notify = {version = "5.0.0"}
 tracing = "0.1"
