@@ -115,6 +115,10 @@ systems = ["x86_64-linux"]
 name = "veloren-nix"
 key = "veloren-nix.cachix.org-1:zokfKJqVsNV6kI/oJdLF6TYBdNPYGSb+diMVQPn/5Rc="
 
+[workspace.metadata.nix.crateOverride.veloren-network]
+buildInputs = ["openssl"]
+nativeBuildInputs = ["pkg-config"]
+
 [patch.crates-io]
 vek = { git = "https://github.com/yoanlcq/vek.git", rev = "84d5cb65841d46599a986c5477341bea4456be26" }
 # patch wgpu so we can use wgpu-profiler crate
