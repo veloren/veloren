@@ -13,16 +13,10 @@ pub const GIT_TAG_BUILD: &str = include_str!(concat!(env!("OUT_DIR"), "/gittag")
 pub const VELOREN_VERSION_STAGE: &str = "Pre-Alpha";
 
 lazy_static::lazy_static! {
-    pub static ref GIT_VERSION: String = if GIT_VERSION_BUILD.is_empty() {
-        std::env::var("VELOREN_GIT_VERSION").expect("failed to get git version")
-    } else {
-        GIT_VERSION_BUILD.to_string()
-    };
-    pub static ref GIT_TAG: String = if GIT_TAG_BUILD.is_empty() {
-        std::env::var("VELOREN_GIT_TAG").expect("failed to get git tag")
-    } else {
-        GIT_TAG_BUILD.to_string()
-    };
+    pub static ref GIT_VERSION: String =
+        std::env::var("VELOREN_GIT_VERSION").unwrap_or_else(|_| GIT_VERSION_BUILD.to_string());
+    pub static ref GIT_TAG: String =
+        std::env::var("VELOREN_GIT_TAG").unwrap_or_else(|_| GIT_TAG_BUILD.to_string());
     pub static ref GIT_HASH: &'static str = GIT_VERSION.split('/').next().expect("failed to retrieve git_hash!");
     static ref GIT_DATETIME: &'static str = GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_datetime!");
     pub static ref GIT_DATE: String = GIT_DATETIME.split('-').take(3).collect::<Vec<&str>>().join("-");
