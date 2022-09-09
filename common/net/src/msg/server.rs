@@ -245,6 +245,13 @@ pub struct PlayerInfo {
     pub uuid: Uuid,
 }
 
+/// used for localisation, filled by client and used by i18n code
+#[derive(Clone)]
+pub enum ChatTypeContext {
+    PlayerAlias { you: bool, info: PlayerInfo },
+    Raw(String),
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterInfo {
     pub name: String,

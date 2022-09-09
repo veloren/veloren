@@ -21,7 +21,7 @@ use common::{
     character::{CharacterId, CharacterItem},
     comp::{
         self,
-        chat::{KillSource, KillType},
+        chat::KillSource,
         controller::CraftEvent,
         group,
         inventory::item::{modular, tool, ItemKind},
@@ -56,9 +56,9 @@ use common_net::{
     msg::{
         self,
         world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
-        ClientGeneral, ClientMsg, ClientRegister, ClientType, DisconnectReason, InviteAnswer,
-        Notification, PingMsg, PlayerInfo, PlayerListUpdate, PresenceKind, RegisterError,
-        ServerGeneral, ServerInit, ServerRegisterAnswer,
+        ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, ClientType, DisconnectReason,
+        InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate, PresenceKind,
+        RegisterError, ServerGeneral, ServerInit, ServerRegisterAnswer,
     },
     sync::WorldSyncExt,
 };
@@ -2641,11 +2641,11 @@ impl Client {
         }
     }
 
-    /// Format a message for the client (voxygen chat box or chat-cli)
-    pub fn format_message(&self, msg: &comp::ChatMsg, character_name: bool) -> String {
-        let comp::ChatMsg {
-            chat_type, message, ..
-        } = &msg;
+    /// Get important information from client that is necessary for message
+    /// localisation
+    pub fn lockup_msg_context(&self, msg: &comp::ChatMsg) -> HashMap<&str, ChatTypeContext> {
+        let mut result = HashMap::new();
+        let comp::ChatMsg { chat_type, .. } = &msg;
         let name_of_uid = |uid| {
             let ecs = self.state.ecs();
             (
@@ -2658,190 +2658,59 @@ impl Client {
         };
         let alias_of_uid = |uid| {
             self.player_list.get(uid).map_or(
-                name_of_uid(uid).unwrap_or_else(|| "<?>".to_string()),
-                |player_info| {
-                    if player_info.is_moderator {
-                        format!(
-                            "MOD - {}",
-                            self.personalize_alias(*uid, player_info.player_alias.clone())
-                        )
-                    } else {
-                        self.personalize_alias(*uid, player_info.player_alias.clone())
-                    }
+                ChatTypeContext::Raw(name_of_uid(uid).unwrap_or_else(|| "<?>".to_string())),
+                |player_info| ChatTypeContext::PlayerAlias {
+                    you: self.uid().expect("Client doesn't have a Uid!!!") == *uid,
+                    info: player_info.clone(),
                 },
             )
         };
-        let message_format = |uid, message, group| {
-            let alias = alias_of_uid(uid);
-            let name = if character_name {
-                name_of_uid(uid)
-            } else {
-                None
-            };
-            match (group, name) {
-                (Some(group), None) => format!("({}) [{}]: {}", group, alias, message),
-                (None, None) => format!("[{}]: {}", alias, message),
-                (Some(group), Some(name)) => {
-                    format!("({}) [{}] {}: {}", group, alias, name, message)
-                },
-                (None, Some(name)) => format!("[{}] {}: {}", alias, name, message),
-            }
-        };
         match chat_type {
-            // For ChatType::{Online, Offline, Kill} these message strings are localized
-            // in voxygen/src/hud/chat.rs before being formatted here.
-            // Kill messages are generated in server/src/events/entity_manipulation.rs
-            // fn handle_destroy
-            comp::ChatType::Online(uid) => {
-                // Default message formats if no localized message string is set by hud
-                // Needed for cli clients that don't set localization info
-                if message.is_empty() {
-                    format!("[{}] came online", alias_of_uid(uid))
-                } else {
-                    message.replace("{name}", &alias_of_uid(uid))
-                }
+            comp::ChatType::Online(uid) | comp::ChatType::Offline(uid) => {
+                result.insert("player", alias_of_uid(uid));
             },
-            comp::ChatType::Offline(uid) => {
-                // Default message formats if no localized message string is set by hud
-                // Needed for cli clients that don't set localization info
-                if message.is_empty() {
-                    format!("[{}] went offline", alias_of_uid(uid))
-                } else {
-                    message.replace("{name}", &alias_of_uid(uid))
-                }
-            },
-            comp::ChatType::CommandError => message.to_string(),
-            comp::ChatType::CommandInfo => message.to_string(),
-            comp::ChatType::FactionMeta(_) => message.to_string(),
-            comp::ChatType::GroupMeta(_) => message.to_string(),
+            comp::ChatType::CommandError => (),
+            comp::ChatType::CommandInfo => (),
+            comp::ChatType::FactionMeta(_) => (),
+            comp::ChatType::GroupMeta(_) => (),
             comp::ChatType::Kill(kill_source, victim) => {
-                // Default message formats if no localized message string is set by hud
-                // Needed for cli clients that don't set localization info
-                if message.is_empty() {
-                    match kill_source {
-                        KillSource::Player(attacker_uid, KillType::Buff(buff_kind)) => format!(
-                            "[{}] died of {} caused by [{}]",
-                            alias_of_uid(victim),
-                            format!("{:?}", buff_kind).to_lowercase().as_str(),
-                            alias_of_uid(attacker_uid)
-                        ),
-                        KillSource::Player(attacker_uid, KillType::Melee) => format!(
-                            "[{}] killed [{}]",
-                            alias_of_uid(attacker_uid),
-                            alias_of_uid(victim)
-                        ),
-                        KillSource::Player(attacker_uid, KillType::Projectile) => format!(
-                            "[{}] shot [{}]",
-                            alias_of_uid(attacker_uid),
-                            alias_of_uid(victim)
-                        ),
-                        KillSource::Player(attacker_uid, KillType::Explosion) => format!(
-                            "[{}] blew up [{}]",
-                            alias_of_uid(attacker_uid),
-                            alias_of_uid(victim)
-                        ),
-                        KillSource::Player(attacker_uid, KillType::Energy) => format!(
-                            "[{}] used magic to kill [{}]",
-                            alias_of_uid(attacker_uid),
-                            alias_of_uid(victim)
-                        ),
-                        KillSource::Player(attacker_uid, KillType::Other) => format!(
-                            "[{}] killed [{}]",
-                            alias_of_uid(attacker_uid),
-                            alias_of_uid(victim)
-                        ),
-                        KillSource::NonExistent(KillType::Buff(buff_kind)) => format!(
-                            "[{}] died of {}",
-                            alias_of_uid(victim),
-                            format!("{:?}", buff_kind).to_lowercase().as_str()
-                        ),
-                        KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => format!(
-                            "[{}] died of {} caused by {}",
-                            alias_of_uid(victim),
-                            format!("{:?}", buff_kind).to_lowercase().as_str(),
-                            attacker_name
-                        ),
-                        KillSource::NonPlayer(attacker_name, KillType::Melee) => {
-                            format!("{} killed [{}]", attacker_name, alias_of_uid(victim))
-                        },
-                        KillSource::NonPlayer(attacker_name, KillType::Projectile) => {
-                            format!("{} shot [{}]", attacker_name, alias_of_uid(victim))
-                        },
-                        KillSource::NonPlayer(attacker_name, KillType::Explosion) => {
-                            format!("{} blew up [{}]", attacker_name, alias_of_uid(victim))
-                        },
-                        KillSource::NonPlayer(attacker_name, KillType::Energy) => format!(
-                            "{} used magic to kill [{}]",
-                            attacker_name,
-                            alias_of_uid(victim)
-                        ),
-                        KillSource::NonPlayer(attacker_name, KillType::Other) => {
-                            format!("{} killed [{}]", attacker_name, alias_of_uid(victim))
-                        },
-                        KillSource::Environment(environment) => {
-                            format!("[{}] died in {}", alias_of_uid(victim), environment)
-                        },
-                        KillSource::FallDamage => {
-                            format!("[{}] died from fall damage", alias_of_uid(victim))
-                        },
-                        KillSource::Suicide => {
-                            format!("[{}] died from self-inflicted wounds", alias_of_uid(victim))
-                        },
-                        KillSource::NonExistent(_) => format!("[{}] died", alias_of_uid(victim)),
-                        KillSource::Other => format!("[{}] died", alias_of_uid(victim)),
-                    }
-                } else {
-                    match kill_source {
-                        KillSource::Player(attacker_uid, _) => message
-                            .replace("{attacker}", &alias_of_uid(attacker_uid))
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::NonExistent(KillType::Buff(_)) => {
-                            message.replace("{victim}", &alias_of_uid(victim))
-                        },
-                        KillSource::NonPlayer(attacker_name, _) => message
-                            .replace("{attacker}", attacker_name)
-                            .replace("{victim}", &alias_of_uid(victim)),
-                        KillSource::Environment(environment) => message
-                            .replace("{name}", &alias_of_uid(victim))
-                            .replace("{environment}", environment),
-                        KillSource::FallDamage => message.replace("{name}", &alias_of_uid(victim)),
-                        KillSource::Suicide => message.replace("{name}", &alias_of_uid(victim)),
-                        KillSource::NonExistent(_) => {
-                            message.replace("{name}", &alias_of_uid(victim))
-                        },
-                        KillSource::Other => message.replace("{name}", &alias_of_uid(victim)),
-                    }
-                }
+                result.insert("victim", alias_of_uid(victim));
+                match kill_source {
+                    KillSource::Player(attacker_uid, _) => {
+                        result.insert("attacker", alias_of_uid(attacker_uid));
+                    },
+                    KillSource::NonPlayer(attacker_name, _) => {
+                        result.insert("attacker_name", ChatTypeContext::Raw(attacker_name.clone()));
+                    },
+                    KillSource::Environment(environment) => {
+                        result.insert("environment", ChatTypeContext::Raw(environment.clone()));
+                    },
+                    KillSource::FallDamage => (),
+                    KillSource::Suicide => (),
+                    KillSource::NonExistent(_) => (),
+                    KillSource::Other => (),
+                };
             },
-            comp::ChatType::Tell(from, to) => {
-                let from_alias = alias_of_uid(from);
-                let to_alias = alias_of_uid(to);
-                if Some(*from) == self.uid() {
-                    format!("To [{}]: {}", to_alias, message)
-                } else {
-                    format!("From [{}]: {}", from_alias, message)
-                }
+            comp::ChatType::Tell(from, to) | comp::ChatType::NpcTell(from, to, _) => {
+                result.insert("from", alias_of_uid(from));
+                result.insert("to", alias_of_uid(to));
             },
-            comp::ChatType::Say(uid) => message_format(uid, message, None),
-            comp::ChatType::Group(uid, s) => message_format(uid, message, Some(s)),
-            comp::ChatType::Faction(uid, s) => message_format(uid, message, Some(s)),
-            comp::ChatType::Region(uid) => message_format(uid, message, None),
-            comp::ChatType::World(uid) => message_format(uid, message, None),
+            comp::ChatType::Say(uid)
+            | comp::ChatType::Region(uid)
+            | comp::ChatType::World(uid)
+            | comp::ChatType::NpcSay(uid, _) => {
+                result.insert("from", alias_of_uid(uid));
+            },
+            comp::ChatType::Group(uid, s) | comp::ChatType::Faction(uid, s) => {
+                result.insert("from", alias_of_uid(uid));
+                result.insert("group_name", ChatTypeContext::Raw(s.clone()));
+            },
             // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and should be filtered
             // by server (due to not having a Pos) for chat-cli
-            comp::ChatType::Npc(_uid, _r) => "".to_string(),
-            comp::ChatType::NpcSay(uid, _r) => message_format(uid, message, None),
-            comp::ChatType::NpcTell(from, to, _r) => {
-                let from_alias = alias_of_uid(from);
-                let to_alias = alias_of_uid(to);
-                if Some(*from) == self.uid() {
-                    format!("To [{}]: {}", to_alias, message)
-                } else {
-                    format!("From [{}]: {}", from_alias, message)
-                }
-            },
-            comp::ChatType::Meta => message.to_string(),
-        }
+            comp::ChatType::Npc(_uid, _r) => (),
+            comp::ChatType::Meta => (),
+        };
+        result
     }
 
     /// Execute a single client tick:

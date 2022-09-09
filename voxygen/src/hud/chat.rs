@@ -9,6 +9,7 @@ use common::comp::{
     group::Role,
     BuffKind, ChatMode, ChatMsg, ChatType,
 };
+use common_net::msg::{ChatTypeContext, PlayerInfo};
 use conrod_core::{
     color,
     input::Key,
@@ -422,39 +423,12 @@ impl<'a> Widget for Chat<'a> {
             .messages
             .iter()
             .map(|m| {
-                let mut message = m.clone();
-                if let Some(template_key) = get_chat_template_key(&message.chat_type) {
-                    // FIXME (i18n death messages):
-                    // Death message is half localized in voxygen, half in client.
-                    // Make this not.
-                    message.message = self
-                        .localized_strings
-                        .get_msg_ctx(template_key, &i18n::fluent_args! {
-                            "attacker" => "{attacker}",
-                            "name" => "{name}",
-                            "died_of_buff" => "{died_of_buff}",
-                            "victim" => "{victim}",
-                            "environment" => "{environment}",
-                        })
-                        .into_owned();
-
-                    if let ChatType::Kill(kill_source, _) = &message.chat_type {
-                        match kill_source {
-                            KillSource::Player(_, KillType::Buff(buffkind))
-                            | KillSource::NonExistent(KillType::Buff(buffkind))
-                            | KillSource::NonPlayer(_, KillType::Buff(buffkind)) => {
-                                message.message = insert_killing_buff(
-                                    *buffkind,
-                                    self.localized_strings,
-                                    &message.message,
-                                );
-                            },
-                            _ => {},
-                        }
-                    }
-                }
-                message.message = self.client.format_message(&message, show_char_name);
-                message
+                internationalisate_chat_message(
+                    m.clone(),
+                    &self.client,
+                    &self.localized_strings,
+                    show_char_name,
+                )
             })
             .filter(|m| {
                 if let Some(chat_tab) = current_chat_tab {
@@ -686,6 +660,80 @@ impl<'a> Widget for Chat<'a> {
         }
         events
     }
+}
+
+fn internationalisate_chat_message(
+    mut msg: ChatMsg,
+    client: &Client,
+    localized_strings: &Localization,
+    show_char_name: bool,
+) -> ChatMsg {
+    if let Some(template_key) = get_chat_template_key(&msg.chat_type) {
+        // FIXME (i18n death messages):
+        // Death message is half localized in voxygen, half in client.
+        // Make this not.
+        msg.message = localized_strings
+            .get_msg_ctx(template_key, &i18n::fluent_args! {
+                "attacker" => "{attacker}",
+                "name" => "{name}",
+                "died_of_buff" => "{died_of_buff}",
+                "victim" => "{victim}",
+                "environment" => "{environment}",
+            })
+            .into_owned();
+
+        if let ChatType::Kill(kill_source, _) = &msg.chat_type {
+            match kill_source {
+                KillSource::Player(_, KillType::Buff(buffkind))
+                | KillSource::NonExistent(KillType::Buff(buffkind))
+                | KillSource::NonPlayer(_, KillType::Buff(buffkind)) => {
+                    msg.message = insert_killing_buff(*buffkind, localized_strings, &msg.message);
+                },
+                _ => {},
+            }
+        }
+    }
+    let info = client.lockup_msg_context(&msg);
+    let gen_alias = |you, info: PlayerInfo| {
+        let mod_str = if info.is_moderator { "MOD - " } else { "" };
+        let you_str = if you { "You" } else { &info.player_alias };
+        format!("{}{}", mod_str, you_str)
+    };
+    let message_format = |you, info: PlayerInfo, message: &str, group: Option<&String>| {
+        let alias = gen_alias(you, info.clone());
+        let name = if show_char_name {
+            info.character.map(|c| c.name)
+        } else {
+            None
+        };
+        match (group, name) {
+            (Some(group), None) => format!("({}) [{}]: {}", group, alias, message),
+            (None, None) => format!("[{}]: {}", alias, message),
+            (Some(group), Some(name)) => {
+                format!("({}) [{}] {}: {}", group, alias, name, message)
+            },
+            (None, Some(name)) => format!("[{}] {}: {}", alias, name, message),
+        }
+    };
+    if let Some(ChatTypeContext::PlayerAlias { you, info }) = info.get("from").cloned() {
+        msg.message = match &msg.chat_type {
+            ChatType::Say(_) => message_format(you, info, &msg.message, None),
+            ChatType::Group(_, s) => message_format(you, info, &msg.message, Some(s)),
+            ChatType::Faction(_, s) => message_format(you, info, &msg.message, Some(s)),
+            ChatType::Region(_) => message_format(you, info, &msg.message, None),
+            ChatType::World(_) => message_format(you, info, &msg.message, None),
+            ChatType::NpcSay(_, _r) => message_format(you, info, &msg.message, None),
+            _ => msg.message,
+        };
+    }
+    for (name, datum) in info.into_iter() {
+        let replacement = match datum {
+            ChatTypeContext::PlayerAlias { you, info } => gen_alias(you, info),
+            ChatTypeContext::Raw(text) => text,
+        };
+        msg.message = msg.message.replace(&format!("{{{}}}", name), &replacement);
+    }
+    msg
 }
 
 fn do_tab_completion(cursor: usize, input: &str, word: &str) -> (String, usize) {
