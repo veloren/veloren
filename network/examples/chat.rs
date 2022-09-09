@@ -8,7 +8,7 @@ use std::{sync::Arc, thread, time::Duration};
 use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::RwLock};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises};
+use veloren_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
 
 ///This example contains a simple chatserver, that allows to send messages
 /// between participants, it's neither pretty nor perfect, but it should show
@@ -106,26 +106,20 @@ fn main() {
 
 fn server(address: ListenAddr) {
     let r = Arc::new(Runtime::new().unwrap());
-    let server = Network::new(Pid::new(), &r);
-    let server = Arc::new(server);
+    let mut server = Network::new(Pid::new(), &r);
     let participants = Arc::new(RwLock::new(Vec::new()));
     r.block_on(async {
         server.listen(address).await.unwrap();
         loop {
-            let p1 = Arc::new(server.connected().await.unwrap());
-            let server1 = server.clone();
-            participants.write().await.push(p1.clone());
-            tokio::spawn(client_connection(server1, p1, participants.clone()));
+            let mut p1 = server.connected().await.unwrap();
+            let s1 = p1.opened().await.unwrap();
+            participants.write().await.push(p1);
+            tokio::spawn(client_connection(s1, participants.clone()));
         }
     });
 }
 
-async fn client_connection(
-    _network: Arc<Network>,
-    participant: Arc<Participant>,
-    participants: Arc<RwLock<Vec<Arc<Participant>>>>,
-) {
-    let mut s1 = participant.opened().await.unwrap();
+async fn client_connection(mut s1: Stream, participants: Arc<RwLock<Vec<Participant>>>) {
     let username = s1.recv::<String>().await.unwrap();
     println!("[{}] connected", username);
     loop {
@@ -141,7 +135,7 @@ async fn client_connection(
                         .await
                     {
                         Err(_) => info!("error talking to client, //TODO drop it"),
-                        Ok(mut s) => s.send((username.clone(), msg.clone())).unwrap(),
+                        Ok(s) => s.send((username.clone(), msg.clone())).unwrap(),
                     };
                 }
             },
@@ -156,7 +150,7 @@ fn client(address: ConnectAddr) {
 
     r.block_on(async {
         let p1 = client.connect(address.clone()).await.unwrap(); //remote representation of p1
-        let mut s1 = p1
+        let s1 = p1
             .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
             .await
             .unwrap(); //remote representation of s1
@@ -188,7 +182,7 @@ fn client(address: ConnectAddr) {
 // receiving i open and close a stream per message. this can be done easier but
 // this allows me to be quite lazy on the server side and just get a list of
 // all participants and send to them...
-async fn read_messages(participant: Participant) {
+async fn read_messages(mut participant: Participant) {
     while let Ok(mut s) = participant.opened().await {
         let (username, message) = s.recv::<(String, String)>().await.unwrap();
         println!("[{}]: {}", username, message);

@@ -7,7 +7,9 @@ use common::{
     },
     resources::{DeltaTime, GameMode, Time},
     skillset_builder::SkillSetBuilder,
-    terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainGrid},
+    terrain::{
+        Block, BlockKind, MapSizeLg, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainGrid,
+    },
 };
 use common_ecs::{dispatch, System};
 use common_net::sync::WorldSyncExt;
@@ -24,12 +26,24 @@ const MILLIS_PER_SEC: f64 = 1_000.0;
 pub const DT: Duration = Duration::from_millis(DT_MILLIS);
 pub const DT_F64: f64 = DT_MILLIS as f64 / MILLIS_PER_SEC;
 
+const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
+    if let Ok(map_size_lg) = MapSizeLg::new(Vec2 { x: 10, y: 10 }) {
+        map_size_lg
+    } else {
+        panic!("Default world chunk size does not satisfy required invariants.");
+    };
+
 pub fn setup() -> State {
-    let mut state = State::new(GameMode::Server);
+    let pools = State::pools(GameMode::Server);
+    let mut state = State::new(
+        GameMode::Server,
+        pools,
+        DEFAULT_WORLD_CHUNKS_LG,
+        Arc::new(TerrainChunk::water(0)),
+    );
     state.ecs_mut().insert(MaterialStatManifest::with_empty());
     state.ecs_mut().read_resource::<Time>();
     state.ecs_mut().read_resource::<DeltaTime>();
-    state.ecs_mut().insert(TerrainGrid::new());
     for x in 0..2 {
         for y in 0..2 {
             generate_chunk(&mut state, Vec2::new(x, y));

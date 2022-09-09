@@ -67,9 +67,9 @@ pub enum ParticipantEvent {
 pub struct Participant {
     local_pid: Pid,
     remote_pid: Pid,
-    a2b_open_stream_s: Mutex<mpsc::UnboundedSender<A2bStreamOpen>>,
-    b2a_stream_opened_r: Mutex<mpsc::UnboundedReceiver<Stream>>,
-    b2a_event_r: Mutex<mpsc::UnboundedReceiver<ParticipantEvent>>,
+    a2b_open_stream_s: mpsc::UnboundedSender<A2bStreamOpen>,
+    b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
+    b2a_event_r: mpsc::UnboundedReceiver<ParticipantEvent>,
     b2a_bandwidth_stats_r: watch::Receiver<f32>,
     a2s_disconnect_s: A2sDisconnect,
 }
@@ -171,7 +171,7 @@ pub struct StreamParams {
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
 /// let runtime = Runtime::new().unwrap();
-/// let network = Network::new(Pid::new(), &runtime);
+/// let mut network = Network::new(Pid::new(), &runtime);
 /// runtime.block_on(async{
 ///     # //setup pseudo database!
 ///     # let database = Network::new(Pid::new(), &runtime);
@@ -195,9 +195,9 @@ pub struct StreamParams {
 pub struct Network {
     local_pid: Pid,
     participant_disconnect_sender: Arc<Mutex<HashMap<Pid, A2sDisconnect>>>,
-    listen_sender: Mutex<mpsc::UnboundedSender<(ListenAddr, oneshot::Sender<io::Result<()>>)>>,
-    connect_sender: Mutex<mpsc::UnboundedSender<A2sConnect>>,
-    connected_receiver: Mutex<mpsc::UnboundedReceiver<Participant>>,
+    listen_sender: mpsc::UnboundedSender<(ListenAddr, oneshot::Sender<io::Result<()>>)>,
+    connect_sender: mpsc::UnboundedSender<A2sConnect>,
+    connected_receiver: mpsc::UnboundedReceiver<Participant>,
     shutdown_network_s: Option<oneshot::Sender<oneshot::Sender<()>>>,
 }
 
@@ -300,9 +300,9 @@ impl Network {
         Self {
             local_pid: participant_id,
             participant_disconnect_sender,
-            listen_sender: Mutex::new(listen_sender),
-            connect_sender: Mutex::new(connect_sender),
-            connected_receiver: Mutex::new(connected_receiver),
+            listen_sender,
+            connect_sender,
+            connected_receiver,
             shutdown_network_s: Some(shutdown_network_s),
         }
     }
@@ -322,7 +322,7 @@ impl Network {
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network
     ///         .listen(ListenAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
@@ -342,10 +342,7 @@ impl Network {
     pub async fn listen(&self, address: ListenAddr) -> Result<(), NetworkError> {
         let (s2a_result_s, s2a_result_r) = oneshot::channel::<io::Result<()>>();
         debug!(?address, "listening on address");
-        self.listen_sender
-            .lock()
-            .await
-            .send((address, s2a_result_s))?;
+        self.listen_sender.send((address, s2a_result_s))?;
         match s2a_result_r.await? {
             //waiting guarantees that we either listened successfully or get an error like port in
             // use
@@ -401,10 +398,7 @@ impl Network {
         let (pid_sender, pid_receiver) =
             oneshot::channel::<Result<Participant, NetworkConnectError>>();
         debug!(?address, "Connect to address");
-        self.connect_sender
-            .lock()
-            .await
-            .send((address, pid_sender))?;
+        self.connect_sender.send((address, pid_sender))?;
         let participant = match pid_receiver.await? {
             Ok(p) => p,
             Err(e) => return Err(NetworkError::ConnectFailed(e)),
@@ -431,7 +425,7 @@ impl Network {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network
@@ -454,11 +448,9 @@ impl Network {
     /// [`listen`]: crate::api::Network::listen
     /// [`ListenAddr`]: crate::api::ListenAddr
     #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
-    pub async fn connected(&self) -> Result<Participant, NetworkError> {
+    pub async fn connected(&mut self) -> Result<Participant, NetworkError> {
         let participant = self
             .connected_receiver
-            .lock()
-            .await
             .recv()
             .await
             .ok_or(NetworkError::NetworkClosed)?;
@@ -536,9 +528,9 @@ impl Participant {
         Self {
             local_pid,
             remote_pid,
-            a2b_open_stream_s: Mutex::new(a2b_open_stream_s),
-            b2a_stream_opened_r: Mutex::new(b2a_stream_opened_r),
-            b2a_event_r: Mutex::new(b2a_event_r),
+            a2b_open_stream_s,
+            b2a_stream_opened_r,
+            b2a_event_r,
             b2a_bandwidth_stats_r,
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
@@ -600,12 +592,10 @@ impl Participant {
     ) -> Result<Stream, ParticipantError> {
         debug_assert!(prio <= network_protocol::HIGHEST_PRIO, "invalid prio");
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel::<Stream>();
-        if let Err(e) = self.a2b_open_stream_s.lock().await.send((
-            prio,
-            promises,
-            bandwidth,
-            p2a_return_stream_s,
-        )) {
+        if let Err(e) =
+            self.a2b_open_stream_s
+                .send((prio, promises, bandwidth, p2a_return_stream_s))
+        {
             debug!(?e, "bParticipant is already closed, notifying");
             return Err(ParticipantError::ParticipantDisconnected);
         }
@@ -638,11 +628,11 @@ impl Participant {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
     /// // Note: It's quite unusual to actively connect, but then wait on a stream to be connected, usually the Application taking initiative want's to also create the first Stream.
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
-    /// # let remote = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
+    /// # let mut remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     # remote.listen(ListenAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
-    ///     let p1 = network.connect(ConnectAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
+    ///     let mut p1 = network.connect(ConnectAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
     ///     # p2.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     let _s1 = p1.opened().await?;
@@ -657,8 +647,8 @@ impl Participant {
     /// [`connected`]: Network::connected
     /// [`open`]: Participant::open
     #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
-    pub async fn opened(&self) -> Result<Stream, ParticipantError> {
-        match self.b2a_stream_opened_r.lock().await.recv().await {
+    pub async fn opened(&mut self) -> Result<Stream, ParticipantError> {
+        match self.b2a_stream_opened_r.recv().await {
             Some(stream) => {
                 let sid = stream.sid;
                 debug!(?sid, "Receive opened stream");
@@ -694,8 +684,8 @@ impl Participant {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
-    /// # let remote = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
+    /// # let mut remote = Network::new(Pid::new(), &runtime);
     /// let err = runtime.block_on(async {
     ///     network
     ///         .listen(ListenAddr::Tcp("127.0.0.1:2030".parse().unwrap()))
@@ -779,11 +769,11 @@ impl Participant {
     /// // Create a Network, connect on port 2040 and wait for the other side to open a stream
     /// // Note: It's quite unusual to actively connect, but then wait on a stream to be connected, usually the Application taking initiative want's to also create the first Stream.
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
-    /// # let remote = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
+    /// # let mut remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     # remote.listen(ListenAddr::Tcp("127.0.0.1:2040".parse().unwrap())).await?;
-    ///     let p1 = network.connect(ConnectAddr::Tcp("127.0.0.1:2040".parse().unwrap())).await?;
+    ///     let mut p1 = network.connect(ConnectAddr::Tcp("127.0.0.1:2040".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
     ///     let event = p1.fetch_event().await?;
     ///     drop(network);
@@ -794,8 +784,8 @@ impl Participant {
     /// ```
     ///
     /// [`ParticipantEvent`]: crate::api::ParticipantEvent
-    pub async fn fetch_event(&self) -> Result<ParticipantEvent, ParticipantError> {
-        match self.b2a_event_r.lock().await.recv().await {
+    pub async fn fetch_event(&mut self) -> Result<ParticipantEvent, ParticipantError> {
+        match self.b2a_event_r.recv().await {
             Some(event) => Ok(event),
             None => {
                 debug!("event_receiver failed, closing participant");
@@ -811,16 +801,13 @@ impl Participant {
     ///
     /// [`ParticipantEvent`]: crate::api::ParticipantEvent
     /// [`fetch_event`]: Participant::fetch_event
-    pub fn try_fetch_event(&self) -> Result<Option<ParticipantEvent>, ParticipantError> {
-        match &mut self.b2a_event_r.try_lock() {
-            Ok(b2a_event_r) => match b2a_event_r.try_recv() {
-                Ok(event) => Ok(Some(event)),
-                Err(mpsc::error::TryRecvError::Empty) => Ok(None),
-                Err(mpsc::error::TryRecvError::Disconnected) => {
-                    Err(ParticipantError::ParticipantDisconnected)
-                },
+    pub fn try_fetch_event(&mut self) -> Result<Option<ParticipantEvent>, ParticipantError> {
+        match self.b2a_event_r.try_recv() {
+            Ok(event) => Ok(Some(event)),
+            Err(mpsc::error::TryRecvError::Empty) => Ok(None),
+            Err(mpsc::error::TryRecvError::Disconnected) => {
+                Err(ParticipantError::ParticipantDisconnected)
             },
-            Err(_) => Ok(None),
         }
     }
 
@@ -892,14 +879,14 @@ impl Stream {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ListenAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ConnectAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # // keep it alive
     ///     # let _stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
-    ///     let participant_a = network.connected().await?;
+    ///     let mut participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Send  Message
     ///     stream_a.send("Hello World")?;
@@ -914,7 +901,7 @@ impl Stream {
     /// [`recv`]: Stream::recv
     /// [`Serialized`]: Serialize
     #[inline]
-    pub fn send<M: Serialize>(&mut self, msg: M) -> Result<(), StreamError> {
+    pub fn send<M: Serialize>(&self, msg: M) -> Result<(), StreamError> {
         self.send_raw_move(Message::serialize(&msg, self.params()))
     }
 
@@ -933,7 +920,7 @@ impl Stream {
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
     /// # let remote1 = Network::new(Pid::new(), &runtime);
     /// # let remote2 = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
@@ -943,8 +930,8 @@ impl Stream {
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
     ///     # remote1_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # remote2_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
-    ///     let participant_a = network.connected().await?;
-    ///     let participant_b = network.connected().await?;
+    ///     let mut participant_a = network.connected().await?;
+    ///     let mut participant_b = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     let mut stream_b = participant_b.opened().await?;
     ///
@@ -966,7 +953,7 @@ impl Stream {
     /// [`compress`]: lz_fear::raw::compress2
     /// [`Message::serialize`]: crate::message::Message::serialize
     #[inline]
-    pub fn send_raw(&mut self, message: &Message) -> Result<(), StreamError> {
+    pub fn send_raw(&self, message: &Message) -> Result<(), StreamError> {
         self.send_raw_move(Message {
             data: message.data.clone(),
             #[cfg(feature = "compression")]
@@ -974,7 +961,7 @@ impl Stream {
         })
     }
 
-    fn send_raw_move(&mut self, message: Message) -> Result<(), StreamError> {
+    fn send_raw_move(&self, message: Message) -> Result<(), StreamError> {
         if self.send_closed.load(Ordering::Relaxed) {
             return Err(StreamError::StreamClosed);
         }
@@ -1002,14 +989,14 @@ impl Stream {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ListenAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ConnectAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
-    ///     let participant_a = network.connected().await?;
+    ///     let mut participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Recv  Message
     ///     println!("{}", stream_a.recv::<String>().await?);
@@ -1036,14 +1023,14 @@ impl Stream {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2230` and wait for a Stream to be opened, then listen on it
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ListenAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ConnectAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
-    ///     let participant_a = network.connected().await?;
+    ///     let mut participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Recv  Message
     ///     let msg = stream_a.recv_raw().await?;
@@ -1092,7 +1079,7 @@ impl Stream {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2240` and wait for a Stream to be opened, then listen on it
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), &runtime);
+    /// let mut network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ListenAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
@@ -1100,7 +1087,7 @@ impl Stream {
     ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
     ///     # std::thread::sleep(std::time::Duration::from_secs(1));
-    ///     let participant_a = network.connected().await?;
+    ///     let mut participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Try Recv  Message
     ///     println!("{:?}", stream_a.try_recv::<String>()?);

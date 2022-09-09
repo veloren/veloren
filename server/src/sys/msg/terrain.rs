@@ -11,8 +11,8 @@ use common::{
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use rayon::iter::ParallelIterator;
-use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, Write};
+use rayon::prelude::*;
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace};
 
 /// This system will handle new messages from clients
@@ -29,7 +29,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, Vec<ChunkRequest>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
-        ReadStorage<'a, Client>,
+        WriteStorage<'a, Client>,
     );
 
     const NAME: &'static str = "msg::terrain";
@@ -48,17 +48,19 @@ impl<'a> System<'a> for Sys {
             mut chunk_requests,
             positions,
             presences,
-            clients,
+            mut clients,
         ): Self::SystemData,
     ) {
         job.cpu_stats.measure(ParMode::Rayon);
-        let mut new_chunk_requests = (&entities, &clients, (&presences).maybe())
-            .par_join()
+        let mut new_chunk_requests = (&entities, &mut clients, (&presences).maybe())
+            .join()
+            // NOTE: Required because Specs has very poor work splitting for sparse joins.
+            .par_bridge()
             .map_init(
                 || (chunk_send_bus.emitter(), server_event_bus.emitter()),
                 |(chunk_send_emitter, server_emitter), (entity, client, maybe_presence)| {
                     let mut chunk_requests = Vec::new();
-                    let _ = super::try_recv_all(client, 5, |_, msg| {
+                    let _ = super::try_recv_all(client, 5, |client, msg| {
                         let presence = match maybe_presence {
                             Some(g) => g,
                             None => {

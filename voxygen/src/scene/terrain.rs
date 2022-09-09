@@ -889,8 +889,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 neighbours &= scene_data
                                     .state
                                     .terrain()
-                                    .get_key(pos + Vec2::new(i, j))
-                                    .is_some();
+                                    .contains_key_real(pos + Vec2::new(i, j));
                             }
                         }
 
@@ -978,8 +977,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             neighbours &= scene_data
                                 .state
                                 .terrain()
-                                .get_key(neighbour_chunk_pos + Vec2::new(i, j))
-                                .is_some();
+                                .contains_key_real(neighbour_chunk_pos + Vec2::new(i, j));
                         }
                     }
                     if neighbours {

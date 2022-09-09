@@ -11,7 +11,7 @@ async fn stream_msg(s1_a: Arc<Mutex<Stream>>, s1_b: Arc<Mutex<Stream>>, data: &[
     let mut s1_b = s1_b.lock().await;
     let m = Message::serialize(&data, s1_b.params());
     std::thread::spawn(move || {
-        let mut s1_a = s1_a.try_lock().unwrap();
+        let s1_a = s1_a.try_lock().unwrap();
         for _ in 0..cnt {
             s1_a.send_raw(&m).unwrap();
         }
@@ -130,11 +130,11 @@ pub fn network_participant_stream(
 ) {
     let runtime = Runtime::new().unwrap();
     let (n_a, p1_a, s1_a, n_b, p1_b, s1_b) = runtime.block_on(async {
-        let n_a = Network::new(Pid::fake(0), &runtime);
+        let mut n_a = Network::new(Pid::fake(0), &runtime);
         let n_b = Network::new(Pid::fake(1), &runtime);
 
         n_a.listen(addr.0).await.unwrap();
-        let p1_b = n_b.connect(addr.1).await.unwrap();
+        let mut p1_b = n_b.connect(addr.1).await.unwrap();
         let p1_a = n_a.connected().await.unwrap();
 
         let s1_a = p1_a.open(4, Promises::empty(), 0).await.unwrap();

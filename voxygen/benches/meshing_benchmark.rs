@@ -14,7 +14,6 @@ const GEN_SIZE: i32 = 4;
 pub fn criterion_benchmark(c: &mut Criterion) {
     let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
     // Generate chunks here to test
-    let mut terrain = TerrainGrid::new().unwrap();
     let (world, index) = World::generate(
         42,
         sim::WorldOpts {
@@ -27,6 +26,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         },
         &pool,
     );
+    let mut terrain = TerrainGrid::new(
+        world.sim().map_size_lg(),
+        Arc::new(world.sim().generate_oob_chunk()),
+    )
+    .unwrap();
     let index = index.as_index_ref();
     (0..GEN_SIZE)
         .flat_map(|x| (0..GEN_SIZE).map(move |y| Vec2::new(x, y)))

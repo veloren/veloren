@@ -1,5 +1,5 @@
 use crate::commands::{Command, FileInfo, LocalCommand, RemoteInfo};
-use futures_util::{FutureExt, StreamExt};
+use futures_util::StreamExt;
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 use tokio::{
     fs, join,
@@ -15,49 +15,65 @@ struct ControlChannels {
     command_receiver: mpsc::UnboundedReceiver<LocalCommand>,
 }
 
-pub struct Server {
-    run_channels: Option<ControlChannels>,
-    network: Network,
+struct Shared {
     served: RwLock<Vec<FileInfo>>,
     remotes: RwLock<HashMap<Pid, Arc<Mutex<RemoteInfo>>>>,
     receiving_files: Mutex<HashMap<u32, Option<String>>>,
+}
+
+pub struct Server {
+    run_channels: ControlChannels,
+    server: Network,
+    client: Network,
+    shared: Shared,
 }
 
 impl Server {
     pub fn new(runtime: Arc<Runtime>) -> (Self, mpsc::UnboundedSender<LocalCommand>) {
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
 
-        let network = Network::new(Pid::new(), &runtime);
+        let server = Network::new(Pid::new(), &runtime);
+        let client = Network::new(Pid::new(), &runtime);
 
-        let run_channels = Some(ControlChannels { command_receiver });
+        let run_channels = ControlChannels { command_receiver };
         (
             Server {
                 run_channels,
-                network,
-                served: RwLock::new(vec![]),
-                remotes: RwLock::new(HashMap::new()),
-                receiving_files: Mutex::new(HashMap::new()),
+                server,
+                client,
+                shared: Shared {
+                    served: RwLock::new(vec![]),
+                    remotes: RwLock::new(HashMap::new()),
+                    receiving_files: Mutex::new(HashMap::new()),
+                },
             },
             command_sender,
         )
     }
 
-    pub async fn run(mut self, address: ListenAddr) {
-        let run_channels = self.run_channels.take().unwrap();
+    pub async fn run(self, address: ListenAddr) {
+        let run_channels = self.run_channels;
 
-        self.network.listen(address).await.unwrap();
+        self.server.listen(address).await.unwrap();
 
         join!(
-            self.command_manager(run_channels.command_receiver,),
-            self.connect_manager(),
+            self.shared
+                .command_manager(self.client, run_channels.command_receiver),
+            self.shared.connect_manager(self.server),
         );
     }
+}
 
-    async fn command_manager(&self, command_receiver: mpsc::UnboundedReceiver<LocalCommand>) {
+impl Shared {
+    async fn command_manager(
+        &self,
+        client: Network,
+        command_receiver: mpsc::UnboundedReceiver<LocalCommand>,
+    ) {
         trace!("Start command_manager");
         let command_receiver = UnboundedReceiverStream::new(command_receiver);
         command_receiver
-            .for_each_concurrent(None, async move |cmd| {
+            .for_each_concurrent(None, |cmd| async {
                 match cmd {
                     LocalCommand::Shutdown => println!("Shutting down service"),
                     LocalCommand::Disconnect => {
@@ -66,7 +82,7 @@ impl Server {
                     },
                     LocalCommand::Connect(addr) => {
                         println!("Trying to connect to: {:?}", &addr);
-                        match self.network.connect(addr.clone()).await {
+                        match client.connect(addr.clone()).await {
                             Ok(p) => self.loop_participant(p).await,
                             Err(e) => println!("Failed to connect to {:?}, err: {:?}", &addr, e),
                         }
@@ -89,7 +105,7 @@ impl Server {
                     LocalCommand::Get(id, path) => {
                         // i dont know the owner, just broadcast, i am laaaazyyy
                         for ri in self.remotes.read().await.values() {
-                            let mut ri = ri.lock().await;
+                            let ri = ri.lock().await;
                             if ri.get_info(id).is_some() {
                                 //found provider, send request.
                                 self.receiving_files.lock().await.insert(id, path.clone());
@@ -105,20 +121,20 @@ impl Server {
         trace!("Stop command_manager");
     }
 
-    async fn connect_manager(&self) {
+    async fn connect_manager(&self, network: Network) {
         trace!("Start connect_manager");
-        let iter = futures_util::stream::unfold((), |_| {
-            self.network.connected().map(|r| r.ok().map(|v| (v, ())))
+        let iter = futures_util::stream::unfold(network, async move |mut network| {
+            network.connected().await.ok().map(|v| (v, network))
         });
 
-        iter.for_each_concurrent(/* limit */ None, async move |participant| {
+        iter.for_each_concurrent(/* limit */ None, |participant| async {
             self.loop_participant(participant).await;
         })
         .await;
         trace!("Stop connect_manager");
     }
 
-    async fn loop_participant(&self, p: Participant) {
+    async fn loop_participant(&self, mut p: Participant) {
         if let (Ok(cmd_out), Ok(file_out), Ok(cmd_in), Ok(file_in)) = (
             p.open(3, Promises::ORDERED | Promises::CONSISTENCY, 0)
                 .await,

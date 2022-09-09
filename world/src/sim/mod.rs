@@ -47,7 +47,7 @@ use common::{
     store::Id,
     terrain::{
         map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, MapSizeLg,
-        TerrainChunkSize,
+        TerrainChunk, TerrainChunkSize,
     },
     vol::RectVolSize,
 };
@@ -67,6 +67,7 @@ use std::{
     io::{BufReader, BufWriter},
     ops::{Add, Div, Mul, Neg, Sub},
     path::PathBuf,
+    sync::Arc,
 };
 use tracing::{debug, warn};
 use vek::*;
@@ -1590,6 +1591,10 @@ impl WorldSim {
 
     pub fn get_size(&self) -> Vec2<u32> { self.map_size_lg().chunks().map(u32::from) }
 
+    pub fn generate_oob_chunk(&self) -> TerrainChunk {
+        TerrainChunk::water(CONFIG.sea_level as i32)
+    }
+
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
     pub fn get_map(&self, index: IndexRef, calendar: Option<&Calendar>) -> WorldMapMsg {
@@ -1684,13 +1689,13 @@ impl WorldSim {
         );
         WorldMapMsg {
             dimensions_lg: self.map_size_lg().vec(),
-            sea_level: CONFIG.sea_level,
             max_height: self.max_height,
             rgba: Grid::from_raw(self.get_size().map(|e| e as i32), v),
             alt: Grid::from_raw(self.get_size().map(|e| e as i32), alts),
             horizons,
             sites: Vec::new(), // Will be substituted later
             pois: Vec::new(),  // Will be substituted later
+            default_chunk: Arc::new(self.generate_oob_chunk()),
         }
     }
 

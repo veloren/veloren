@@ -7,7 +7,8 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ClientGeneral;
-use specs::{Entities, Join, Read, ReadStorage};
+use rayon::prelude::*;
+use specs::{Entities, Join, ParJoin, Read, ReadStorage, WriteStorage};
 use tracing::{debug, error, warn};
 
 impl Sys {
@@ -70,7 +71,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
         ReadStorage<'a, Player>,
-        ReadStorage<'a, Client>,
+        WriteStorage<'a, Client>,
     );
 
     const NAME: &'static str = "msg::general";
@@ -79,27 +80,30 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, server_event_bus, time, uids, chat_modes, players, clients): Self::SystemData,
+        (entities, server_event_bus, time, uids, chat_modes, players, mut clients): Self::SystemData,
     ) {
-        let mut server_emitter = server_event_bus.emitter();
+        (&entities, &mut clients, players.maybe())
+            .par_join()
+            .for_each_init(
+                || server_event_bus.emitter(),
+                |server_emitter, (entity, client, player)| {
+                    let res = super::try_recv_all(client, 3, |client, msg| {
+                        Self::handle_general_msg(
+                            server_emitter,
+                            entity,
+                            client,
+                            player,
+                            &uids,
+                            &chat_modes,
+                            msg,
+                        )
+                    });
 
-        for (entity, client, player) in (&entities, &clients, players.maybe()).join() {
-            let res = super::try_recv_all(client, 3, |client, msg| {
-                Self::handle_general_msg(
-                    &mut server_emitter,
-                    entity,
-                    client,
-                    player,
-                    &uids,
-                    &chat_modes,
-                    msg,
-                )
-            });
-
-            if let Ok(1_u64..=u64::MAX) = res {
-                // Update client ping.
-                *client.last_ping.lock().unwrap() = time.0
-            }
-        }
+                    if let Ok(1_u64..=u64::MAX) = res {
+                        // Update client ping.
+                        client.last_ping = time.0
+                    }
+                },
+            );
     }
 }

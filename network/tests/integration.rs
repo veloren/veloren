@@ -10,7 +10,7 @@ use veloren_network::{ConnectAddr, ListenAddr, Network, ParticipantEvent, Pid, P
 #[test]
 fn stream_simple() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
@@ -20,7 +20,7 @@ fn stream_simple() {
 #[test]
 fn stream_try_recv() {
     let (_, _) = helper::setup(false, 0);
-    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(4242u32).unwrap();
     std::thread::sleep(SLEEP_EXTERNAL);
@@ -31,7 +31,7 @@ fn stream_try_recv() {
 #[test]
 fn stream_simple_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
@@ -45,7 +45,7 @@ fn stream_simple_3msg() {
 #[test]
 fn stream_simple_mpsc() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(mpsc());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(mpsc());
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
@@ -55,7 +55,7 @@ fn stream_simple_mpsc() {
 #[test]
 fn stream_simple_mpsc_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(mpsc());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(mpsc());
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
@@ -69,7 +69,7 @@ fn stream_simple_mpsc_3msg() {
 #[test]
 fn stream_simple_quic() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(quic());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(quic());
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
@@ -79,7 +79,7 @@ fn stream_simple_quic() {
 #[test]
 fn stream_simple_quic_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(quic());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(quic());
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
@@ -94,7 +94,7 @@ fn stream_simple_quic_3msg() {
 #[ignore]
 fn stream_simple_udp() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(udp());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(udp());
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
@@ -105,7 +105,7 @@ fn stream_simple_udp() {
 #[ignore]
 fn stream_simple_udp_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(udp());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(udp());
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
@@ -184,7 +184,7 @@ fn api_stream_send_main() -> Result<(), Box<dyn std::error::Error>> {
     let network = Network::new(Pid::new(), &r);
     let remote = Network::new(Pid::new(), &r);
     r.block_on(async {
-        let network = network;
+        let mut network = network;
         let remote = remote;
         network
             .listen(ListenAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
@@ -196,8 +196,8 @@ fn api_stream_send_main() -> Result<(), Box<dyn std::error::Error>> {
         let _stream_p = remote_p
             .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
             .await?;
-        let participant_a = network.connected().await?;
-        let mut stream_a = participant_a.opened().await?;
+        let mut participant_a = network.connected().await?;
+        let stream_a = participant_a.opened().await?;
         //Send  Message
         stream_a.send("Hello World")?;
         Ok(())
@@ -213,7 +213,7 @@ fn api_stream_recv_main() -> Result<(), Box<dyn std::error::Error>> {
     let network = Network::new(Pid::new(), &r);
     let remote = Network::new(Pid::new(), &r);
     r.block_on(async {
-        let network = network;
+        let mut network = network;
         let remote = remote;
         network
             .listen(ListenAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
@@ -221,11 +221,11 @@ fn api_stream_recv_main() -> Result<(), Box<dyn std::error::Error>> {
         let remote_p = remote
             .connect(ConnectAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
-        let mut stream_p = remote_p
+        let stream_p = remote_p
             .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
             .await?;
         stream_p.send("Hello World")?;
-        let participant_a = network.connected().await?;
+        let mut participant_a = network.connected().await?;
         let mut stream_a = participant_a.opened().await?;
         //Send  Message
         assert_eq!("Hello World".to_string(), stream_a.recv::<String>().await?);
@@ -236,7 +236,7 @@ fn api_stream_recv_main() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn wrong_parse() {
     let (_, _) = helper::setup(false, 0);
-    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(1337).unwrap();
     match r.block_on(s1_b.recv::<String>()) {
@@ -249,7 +249,7 @@ fn wrong_parse() {
 #[test]
 fn multiple_try_recv() {
     let (_, _) = helper::setup(false, 0);
-    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send("asd").unwrap();
     s1_a.send(11u32).unwrap();
@@ -295,9 +295,9 @@ fn listen_on_ipv6_doesnt_block_ipv4() {
         ))),
     );
 
-    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcpv6);
+    let (_r, _n_a, _p_a, s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcpv6);
     std::thread::sleep(SLEEP_EXTERNAL);
-    let (_r2, _n_a2, _p_a2, mut s1_a2, _n_b2, _p_b2, mut s1_b2) = network_participant_stream(tcpv4);
+    let (_r2, _n_a2, _p_a2, s1_a2, _n_b2, _p_b2, mut s1_b2) = network_participant_stream(tcpv4);
 
     s1_a.send(42u32).unwrap();
     s1_a2.send(1337u32).unwrap();
@@ -313,7 +313,7 @@ fn listen_on_ipv6_doesnt_block_ipv4() {
 fn check_correct_channel_events() {
     let (_, _) = helper::setup(false, 0);
     let con_addr = tcp();
-    let (r, _n_a, p_a, _, _n_b, p_b, _) = network_participant_stream(con_addr.clone());
+    let (r, _n_a, mut p_a, _, _n_b, mut p_b, _) = network_participant_stream(con_addr.clone());
 
     let event_a = r.block_on(p_a.fetch_event()).unwrap();
     let event_b = r.block_on(p_b.fetch_event()).unwrap();

@@ -78,14 +78,14 @@ impl Message {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2300` and wait for a Stream to be opened, then listen on it
     /// # let runtime = Runtime::new().unwrap();
-    /// # let network = Network::new(Pid::new(), &runtime);
+    /// # let mut network = Network::new(Pid::new(), &runtime);
     /// # let remote = Network::new(Pid::new(), &runtime);
     /// # runtime.block_on(async {
     ///     # network.listen(ListenAddr::Tcp("127.0.0.1:2300".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ConnectAddr::Tcp("127.0.0.1:2300".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
-    ///     # let participant_a = network.connected().await?;
+    ///     # let mut participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Recv  Message
     ///     let msg = stream_a.recv_raw().await?;

@@ -32,7 +32,13 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use common_state::TerrainChanges;
 use comp::Behavior;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect, WriteStorage};
+use core::cmp::Reverse;
+use itertools::Itertools;
+use rayon::{iter::Either, prelude::*};
+use specs::{
+    storage::GenericReadStorage, Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage,
+    Write, WriteExpect, WriteStorage,
+};
 use std::sync::Arc;
 use vek::*;
 
@@ -162,7 +168,7 @@ impl<'a> System<'a> for Sys {
             let chunk = Arc::new(chunk);
 
             // Add to list of chunks to send to nearby players.
-            new_chunks.push((key, Arc::clone(&chunk)));
+            new_chunks.push(key);
 
             // TODO: code duplication for chunk insertion between here and state.rs
             // Insert the chunk into terrain changes
@@ -223,7 +229,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Insert a safezone if chunk contains the spawn position
-            if server_settings.gameplay.safe_spawn && is_spawn_chunk(key, *spawn_point, &terrain) {
+            if server_settings.gameplay.safe_spawn && is_spawn_chunk(key, *spawn_point) {
                 server_emitter.emit(ServerEvent::CreateSafezone {
                     range: Some(SAFE_ZONE_RADIUS),
                     pos: Pos(spawn_point.0),
@@ -231,93 +237,167 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        let mut repositioned = Vec::new();
-        for (entity, pos, _) in (&entities, &mut positions, &reposition_on_load).join() {
-            // If an entity is marked as needing repositioning once the chunk loads (e.g.
-            // from having just logged in), reposition them.
-
-            let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
-            if let Some(chunk) = terrain.get_key(chunk_pos) {
-                pos.0 = terrain
-                    .try_find_space(pos.0.as_::<i32>())
+        // TODO: Consider putting this in another system since this forces us to take
+        // positions by write rather than read access.
+        let repositioned = (&entities, &mut positions, (&mut force_update).maybe(), reposition_on_load.mask())
+            // TODO: Consider using par_bridge() because Rayon has very poor work splitting for
+            // sparse joins.
+            .par_join()
+            .filter_map(|(entity, pos, force_update, _)| {
+                // NOTE: We use regular as casts rather than as_ because we want to saturate on
+                // overflow.
+                let entity_pos = pos.0.map(|x| x as i32);
+                // If an entity is marked as needing repositioning once the chunk loads (e.g.
+                // from having just logged in), reposition them.
+                let chunk_pos = TerrainGrid::chunk_key(entity_pos);
+                let chunk = terrain.get_key(chunk_pos)?;
+                let new_pos = terrain
+                    .try_find_space(entity_pos)
                     .map(|x| x.as_::<f32>())
-                    .unwrap_or_else(|| chunk.find_accessible_pos(pos.0.xy().as_::<i32>(), false));
-                repositioned.push(entity);
-                force_update
-                    .get_mut(entity)
-                    .map(|force_update| force_update.update());
-                let _ = waypoints.insert(entity, Waypoint::new(pos.0, *time));
-            }
-        }
-        for entity in repositioned {
+                    .unwrap_or_else(|| chunk.find_accessible_pos(entity_pos.xy(), false));
+                pos.0 = new_pos;
+                force_update.map(|force_update| force_update.update());
+                Some((entity, new_pos))
+            })
+            .collect::<Vec<_>>();
+
+        for (entity, new_pos) in repositioned {
+            let _ = waypoints.insert(entity, Waypoint::new(new_pos, *time));
             reposition_on_load.remove(entity);
         }
 
-        // Send the chunk to all nearby players.
-        use rayon::iter::{IntoParallelIterator, ParallelIterator};
-        new_chunks.into_par_iter().for_each_init(
-            || chunk_send_bus.emitter(),
-            |chunk_send_emitter, (key, _chunk)| {
-                (&entities, &presences, &positions, &clients)
-                    .join()
-                    .for_each(|(entity, presence, pos, _client)| {
-                        let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
-                        // Subtract 2 from the offset before computing squared magnitude
-                        // 1 since chunks need neighbors to be meshed
-                        // 1 to act as a buffer if the player moves in that direction
-                        let adjusted_dist_sqr = (chunk_pos - key)
-                            .map(|e: i32| (e.unsigned_abs()).saturating_sub(2))
-                            .magnitude_squared();
+        let max_view_distance = server_settings.max_view_distance.unwrap_or(u32::MAX);
+        let (presences_position_entities, presences_positions) = prepare_player_presences(
+            &world,
+            max_view_distance,
+            &entities,
+            &positions,
+            &presences,
+            &clients,
+        );
+        let real_max_view_distance = convert_to_loaded_vd(u32::MAX, max_view_distance);
 
-                        if adjusted_dist_sqr <= presence.terrain_view_distance.current().pow(2) {
-                            chunk_send_emitter.emit(ChunkSendEntry {
-                                entity,
-                                chunk_key: key,
-                            });
-                        }
+        // Send the chunks to all nearby players.
+        new_chunks.par_iter().for_each_init(
+            || chunk_send_bus.emitter(),
+            |chunk_send_emitter, chunk_key| {
+                // We only have to check players inside the maximum view distance of the server
+                // of our own position.
+                //
+                // We start by partitioning by X, finding only entities in chunks within the X
+                // range of us.  These are guaranteed in bounds due to restrictions on max view
+                // distance (namely: the square of any chunk coordinate plus the max view
+                // distance along both axes must fit in an i32).
+                let min_chunk_x = chunk_key.x - real_max_view_distance;
+                let max_chunk_x = chunk_key.x + real_max_view_distance;
+                let start = presences_position_entities
+                    .partition_point(|((pos, _), _)| i32::from(pos.x) < min_chunk_x);
+                // NOTE: We *could* just scan forward until we hit the end, but this way we save
+                // a comparison in the inner loop, since also needs to check the
+                // list length.  We could also save some time by starting from
+                // start rather than end, but the hope is that this way the
+                // compiler (and machine) can reorder things so both ends are
+                // fetched in parallel; since the vast majority of the time both fetched
+                // elements should already be in cache, this should not use any
+                // extra memory bandwidth.
+                //
+                // TODO: Benchmark and figure out whether this is better in practice than just
+                // scanning forward.
+                let end = presences_position_entities
+                    .partition_point(|((pos, _), _)| i32::from(pos.x) < max_chunk_x);
+                let interior = &presences_position_entities[start..end];
+                interior
+                    .iter()
+                    .filter(|((player_chunk_pos, player_vd_sqr), _)| {
+                        chunk_in_vd(*player_chunk_pos, *player_vd_sqr, *chunk_key)
+                    })
+                    .for_each(|(_, entity)| {
+                        chunk_send_emitter.emit(ChunkSendEntry {
+                            entity: *entity,
+                            chunk_key: *chunk_key,
+                        });
                     });
             },
         );
 
+        let tick = (tick.0 % 16) as i32;
+
         // Remove chunks that are too far from players.
-        let mut chunks_to_remove = Vec::new();
-        terrain
-            .iter()
-            .map(|(k, _)| k)
+        //
+        // Note that all chunks involved here (both terrain chunks and pending chunks)
+        // are guaranteed in bounds.  This simplifies the rest of the logic
+        // here.
+        let chunks_to_remove = terrain
+            .par_keys()
+            .copied()
+            // There may be lots of pending chunks, so don't check them all.  This should be okay
+            // as long as we're maintaining a reasonable tick rate.
+            .chain(chunk_generator.par_pending_chunks())
             // Don't check every chunk every tick (spread over 16 ticks)
-            .filter(|k| k.x.unsigned_abs() % 4 + (k.y.unsigned_abs() % 4) * 4 == (tick.0 % 16) as u32)
-            // There shouldn't be to many pending chunks so we will just check them all
-            .chain(chunk_generator.pending_chunks())
-            .for_each(|chunk_key| {
-                let mut should_drop = true;
+            //
+            // TODO: Investigate whether we can add support for performing this filtering directly
+            // within hashbrown (basically, specify we want to iterate through just buckets with
+            // hashes in a particular range).  This could provide significiant speedups since we
+            // could avoid having to iterate through a bunch of buckets we don't care about.
+            //
+            // TODO: Make the percentage of the buckets that we go through adjust dynamically
+            // depending on the current number of chunks.  In the worst case, we might want to scan
+            // just 1/256 of the chunks each tick, for example.
+            .filter(|k| k.x % 4 + (k.y % 4) * 4 == tick)
+            .filter(|&chunk_key| {
+                // We only have to check players inside the maximum view distance of the server of
+                // our own position.
+                //
+                // We start by partitioning by X, finding only entities in chunks within the X
+                // range of us.  These are guaranteed in bounds due to restrictions on max view
+                // distance (namely: the square of any chunk coordinate plus the max view distance
+                // along both axes must fit in an i32).
+                let min_chunk_x = chunk_key.x - real_max_view_distance;
+                let max_chunk_x = chunk_key.x + real_max_view_distance;
+                let start = presences_positions
+                    .partition_point(|(pos, _)| i32::from(pos.x) < min_chunk_x);
+                // NOTE: We *could* just scan forward until we hit the end, but this way we save a
+                // comparison in the inner loop, since also needs to check the list length.  We
+                // could also save some time by starting from start rather than end, but the hope
+                // is that this way the compiler (and machine) can reorder things so both ends are
+                // fetched in parallel; since the vast majority of the time both fetched elements
+                // should already be in cache, this should not use any extra memory bandwidth.
+                //
+                // TODO: Benchmark and figure out whether this is better in practice than just
+                // scanning forward.
+                let end = presences_positions
+                    .partition_point(|(pos, _)| i32::from(pos.x) < max_chunk_x);
+                let interior = &presences_positions[start..end];
+                !interior.iter().any(|&(player_chunk_pos, player_vd_sqr)| {
+                    chunk_in_vd(player_chunk_pos, player_vd_sqr, chunk_key)
+                })
+            })
+            .collect::<Vec<_>>();
 
-                // For each player with a position, calculate the distance.
-                for (presence, pos) in (&presences, &positions).join() {
-                    if chunk_in_vd(pos.0, chunk_key, &terrain, presence.terrain_view_distance.current()) {
-                        should_drop = false;
-                        break;
-                    }
+        let chunks_to_remove = chunks_to_remove
+            .into_iter()
+            .filter_map(|key| {
+                // Register the unloading of this chunk from terrain persistence
+                #[cfg(feature = "persistent_world")]
+                if let Some(terrain_persistence) = _terrain_persistence.as_mut() {
+                    terrain_persistence.unload_chunk(key);
                 }
 
-                if should_drop {
-                    chunks_to_remove.push(chunk_key);
-                }
+                chunk_generator.cancel_if_pending(key);
+
+                // TODO: code duplication for chunk insertion between here and state.rs
+                terrain.remove(key).map(|chunk| {
+                    terrain_changes.removed_chunks.insert(key);
+                    rtsim.hook_unload_chunk(key);
+                    chunk
+                })
+            })
+            .collect::<Vec<_>>();
+        if !chunks_to_remove.is_empty() {
+            // Drop chunks in a background thread.
+            slow_jobs.spawn("CHUNK_DROP", move || {
+                drop(chunks_to_remove);
             });
-
-        for key in chunks_to_remove {
-            // Register the unloading of this chunk from terrain persistence
-            #[cfg(feature = "persistent_world")]
-            if let Some(terrain_persistence) = _terrain_persistence.as_mut() {
-                terrain_persistence.unload_chunk(key);
-            }
-
-            // TODO: code duplication for chunk insertion between here and state.rs
-            if terrain.remove(key).is_some() {
-                terrain_changes.removed_chunks.insert(key);
-                rtsim.hook_unload_chunk(key);
-            }
-
-            chunk_generator.cancel_if_pending(key);
         }
     }
 }
@@ -467,26 +547,173 @@ impl NpcData {
     }
 }
 
-pub fn chunk_in_vd(
-    player_pos: Vec3<f32>,
-    chunk_pos: Vec2<i32>,
-    terrain: &TerrainGrid,
-    vd: u32,
-) -> bool {
+pub fn convert_to_loaded_vd(vd: u32, max_view_distance: u32) -> i32 {
+    // Hardcoded max VD to prevent stupid view distances from creating overflows.
+    // This must be a value ≤
+    // √(i32::MAX - 2 * ((1 << (MAX_WORLD_BLOCKS_LG - TERRAIN_CHUNK_BLOCKS_LG) - 1)²
+    // - 1)) / 2
+    //
+    // since otherwise we could end up overflowing.  Since it is a requirement that
+    // each dimension (in chunks) has to fit in a i16, we can derive √((1<<31)-1
+    // - 2*((1<<15)-1)^2) / 2 ≥ 1 << 7 as the absolute limit.
+    //
+    // TODO: Make this more official and use it elsewhere.
+    const MAX_VD: u32 = 1 << 7;
+
     // This fuzzy threshold prevents chunks rapidly unloading and reloading when
     // players move over a chunk border.
     const UNLOAD_THRESHOLD: u32 = 2;
 
-    let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
-
-    let adjusted_dist_sqr = (player_chunk_pos - chunk_pos)
-        .map(|e: i32| e.unsigned_abs())
-        .magnitude_squared();
-
-    adjusted_dist_sqr <= (vd.max(crate::MIN_VD) + UNLOAD_THRESHOLD).pow(2)
+    // NOTE: This cast is safe for the reasons mentioned above.
+    (vd.max(crate::MIN_VD)
+        .min(max_view_distance)
+        .saturating_add(UNLOAD_THRESHOLD))
+    .min(MAX_VD) as i32
 }
 
-fn is_spawn_chunk(chunk_pos: Vec2<i32>, spawn_pos: SpawnPoint, terrain: &TerrainGrid) -> bool {
-    let spawn_chunk_pos = terrain.pos_key(spawn_pos.0.map(|e| e as i32));
+/// Returns: ((player_chunk_pos, player_vd_squared), entity, is_client)
+fn prepare_for_vd_check(
+    world_aabr_in_chunks: &Aabr<i32>,
+    max_view_distance: u32,
+    entity: Entity,
+    presence: &Presence,
+    pos: &Pos,
+    client: Option<u32>,
+) -> Option<((Vec2<i16>, i32), Entity, bool)> {
+    let is_client = client.is_some();
+    let pos = pos.0;
+    let vd = presence.terrain_view_distance.current();
+
+    // NOTE: We use regular as casts rather than as_ because we want to saturate on
+    // overflow.
+    let player_pos = pos.map(|x| x as i32);
+    let player_chunk_pos = TerrainGrid::chunk_key(player_pos);
+    let player_vd = convert_to_loaded_vd(vd, max_view_distance);
+
+    // We filter out positions that are *clearly* way out of range from
+    // consideration. This is pretty easy to do, and means we don't have to
+    // perform expensive overflow checks elsewhere (otherwise, a player
+    // sufficiently far off the map could cause chunks they were nowhere near to
+    // stay loaded, parallel universes style).
+    //
+    // One could also imagine snapping a player to the part of the map nearest to
+    // them. We don't currently do this in case we rely elsewhere on players
+    // always being near the chunks they're keeping loaded, but it would allow
+    // us to use u32 exclusively so it's tempting.
+    let player_aabr_in_chunks = Aabr {
+        min: player_chunk_pos - player_vd,
+        max: player_chunk_pos + player_vd,
+    };
+
+    (world_aabr_in_chunks.max.x >= player_aabr_in_chunks.min.x &&
+     world_aabr_in_chunks.min.x <= player_aabr_in_chunks.max.x &&
+     world_aabr_in_chunks.max.y >= player_aabr_in_chunks.min.y &&
+     world_aabr_in_chunks.min.y <= player_aabr_in_chunks.max.y)
+        // The cast to i32 here is definitely safe thanks to MAX_VD limiting us to fit
+        // within i32^2.
+        //
+        // The cast from each coordinate to i16 should also be correct here.  This is because valid
+        // world chunk coordinates are no greater than 1 << 14 - 1; since we verified that the
+        // player is within world bounds modulo player_vd, which is guaranteed to never let us
+        // overflow an i16 when added to a u14, safety of the cast follows.
+        .then(|| ((player_chunk_pos.as_::<i16>(), player_vd.pow(2) as i32), entity, is_client))
+}
+
+pub fn prepare_player_presences<'a, P>(
+    world: &World,
+    max_view_distance: u32,
+    entities: &Entities<'a>,
+    positions: P,
+    presences: &ReadStorage<'a, Presence>,
+    clients: &ReadStorage<'a, Client>,
+) -> (Vec<((Vec2<i16>, i32), Entity)>, Vec<(Vec2<i16>, i32)>)
+where
+    P: GenericReadStorage<Component = Pos> + Join<Type = &'a Pos>,
+{
+    // We start by collecting presences and positions from players, because they are
+    // very sparse in the entity list and therefore iterating over them for each
+    // chunk can be quite slow.
+    let world_aabr_in_chunks = Aabr {
+        min: Vec2::zero(),
+        // NOTE: Cast is correct because chunk coordinates must fit in an i32 (actually, i16).
+        max: world
+            .sim()
+            .get_size()
+            .map(|x| x.saturating_sub(1))
+            .as_::<i32>(),
+    };
+
+    let (mut presences_positions_entities, mut presences_positions): (Vec<_>, Vec<_>) =
+        (entities, presences, positions, clients.mask().maybe())
+            .join()
+            .filter_map(|(entity, presence, position, client)| {
+                prepare_for_vd_check(
+                    &world_aabr_in_chunks,
+                    max_view_distance,
+                    entity,
+                    presence,
+                    position,
+                    client,
+                )
+            })
+            .partition_map(|(player_data, entity, is_client)| {
+                // For chunks with clients, we need to record their entity, because they might
+                // be used for insertion.  These elements fit in 8 bytes, so
+                // this should be pretty cache-friendly.
+                if is_client {
+                    Either::Left((player_data, entity))
+                } else {
+                    // For chunks without clients, we only need to record the position and view
+                    // distance.  These elements fit in 4 bytes, which is even cache-friendlier.
+                    Either::Right(player_data)
+                }
+            });
+
+    // We sort the presence lists by X position, so we can efficiently filter out
+    // players nowhere near the chunk.  This is basically a poor substitute for
+    // the effects of a proper KDTree, but a proper KDTree has too much overhead
+    // to be worth using for such a short list (~ 1000 players at most).  We
+    // also sort by y and reverse view distance; this will become important later.
+    presences_positions_entities
+        .sort_unstable_by_key(|&((pos, vd2), _)| (pos.x, pos.y, Reverse(vd2)));
+    presences_positions.sort_unstable_by_key(|&(pos, vd2)| (pos.x, pos.y, Reverse(vd2)));
+    // For the vast majority of chunks (present and pending ones), we'll only ever
+    // need the position and view distance.  So we extend it with these from the
+    // list of client chunks, and then do some further work to improve
+    // performance (taking advantage of the fact that they don't require
+    // entities).
+    presences_positions.extend(
+        presences_positions_entities
+            .iter()
+            .map(|&(player_data, _)| player_data),
+    );
+    // Since both lists were previously sorted, we use stable sort over unstable
+    // sort, as it's faster in that case (theoretically a proper merge operation
+    // would be ideal, but it's not worth pulling in a library for).
+    presences_positions.sort_by_key(|&(pos, vd2)| (pos.x, pos.y, Reverse(vd2)));
+    // Now that the list is sorted, we deduplicate players in the same chunk (this
+    // is why we need to sort y as well as x; dedup only works if the list is
+    // sorted by the element we use to dedup).  Importantly, we can then use
+    // only the *first* element as a substitute for all the players in the
+    // chunk, because we *also* sorted from greatest to lowest view
+    // distance, and dedup_by removes all but the first matching element.  In the
+    // common case where a few chunks are very crowded, this further reduces the
+    // work required per chunk.
+    presences_positions.dedup_by_key(|&mut (pos, _)| pos);
+
+    (presences_positions_entities, presences_positions)
+}
+
+pub fn chunk_in_vd(player_chunk_pos: Vec2<i16>, player_vd_sqr: i32, chunk_pos: Vec2<i32>) -> bool {
+    // NOTE: Guaranteed in bounds as long as prepare_player_presences prepared the
+    // player_chunk_pos and player_vd_sqr.
+    let adjusted_dist_sqr = (player_chunk_pos.as_::<i32>() - chunk_pos).magnitude_squared();
+
+    adjusted_dist_sqr <= player_vd_sqr
+}
+
+fn is_spawn_chunk(chunk_pos: Vec2<i32>, spawn_pos: SpawnPoint) -> bool {
+    // FIXME: Ensure spawn_pos doesn't overflow before performing this cast.
+    let spawn_chunk_pos = TerrainGrid::chunk_key(spawn_pos.0.map(|e| e as i32));
     chunk_pos == spawn_chunk_pos
 }

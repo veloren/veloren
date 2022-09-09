@@ -42,6 +42,8 @@ impl World {
     #[inline(always)]
     pub const fn map_size_lg(&self) -> MapSizeLg { DEFAULT_WORLD_CHUNKS_LG }
 
+    pub fn generate_oob_chunk(&self) -> TerrainChunk { TerrainChunk::water(0) }
+
     pub fn generate_chunk(
         &self,
         _index: IndexRef,

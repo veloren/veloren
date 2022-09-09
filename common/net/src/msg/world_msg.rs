@@ -1,6 +1,6 @@
-use common::{grid::Grid, trade::Good};
+use common::{grid::Grid, terrain::TerrainChunk, trade::Good};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,8 +26,6 @@ pub struct WorldMapMsg {
     ///
     /// NOTE: Invariant: chunk count fits in a u16.
     pub dimensions_lg: Vec2<u32>,
-    /// Sea level (used to provide a base altitude).
-    pub sea_level: f32,
     /// Max height (used to scale altitudes).
     pub max_height: f32,
     /// RGB+A; the alpha channel is currently unused, but will be used in the
@@ -124,6 +122,10 @@ pub struct WorldMapMsg {
     pub horizons: [(Vec<u8>, Vec<u8>); 2],
     pub sites: Vec<SiteInfo>,
     pub pois: Vec<PoiInfo>,
+    /// Default chunk (representing the ocean outside the map bounds).  Sea
+    /// level (used to provide a base altitude) is the lower bound of this
+    /// chunk.
+    pub default_chunk: Arc<TerrainChunk>,
 }
 
 pub type SiteId = common::trade::SiteId;

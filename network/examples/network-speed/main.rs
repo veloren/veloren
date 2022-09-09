@@ -129,7 +129,7 @@ fn main() {
 
 fn server(address: ListenAddr, runtime: Arc<Runtime>) {
     let registry = Arc::new(Registry::new());
-    let server = Network::new_with_registry(Pid::new(), &runtime, &registry);
+    let mut server = Network::new_with_registry(Pid::new(), &runtime, &registry);
     runtime.spawn(Server::run(
         Arc::clone(&registry),
         SocketAddr::from(([0; 4], 59112)),
@@ -140,7 +140,7 @@ fn server(address: ListenAddr, runtime: Arc<Runtime>) {
     loop {
         info!("----");
         info!("Waiting for participant to connect");
-        let p1 = runtime.block_on(server.connected()).unwrap(); //remote representation of p1
+        let mut p1 = runtime.block_on(server.connected()).unwrap(); //remote representation of p1
         let mut s1 = runtime.block_on(p1.opened()).unwrap(); //remote representation of s1
         runtime.block_on(async {
             let mut last = Instant::now();
@@ -169,7 +169,7 @@ fn client(address: ConnectAddr, runtime: Arc<Runtime>) {
     ));
 
     let p1 = runtime.block_on(client.connect(address)).unwrap(); //remote representation of p1
-    let mut s1 = runtime
+    let s1 = runtime
         .block_on(p1.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0))
         .unwrap(); //remote representation of s1
     let mut last = Instant::now();

@@ -13,7 +13,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::sync::{atomic::Ordering, Arc};
 use tracing::debug;
 
@@ -221,7 +221,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, CharacterLoader>,
         WriteExpect<'a, CharacterUpdater>,
         ReadStorage<'a, Uid>,
-        ReadStorage<'a, Client>,
+        WriteStorage<'a, Client>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Admin>,
         ReadStorage<'a, Presence>,
@@ -242,7 +242,7 @@ impl<'a> System<'a> for Sys {
             character_loader,
             mut character_updater,
             uids,
-            clients,
+            mut clients,
             players,
             admins,
             presences,
@@ -253,7 +253,7 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client) in (&entities, &clients).join() {
+        for (entity, client) in (&entities, &mut clients).join() {
             let _ = super::try_recv_all(client, 1, |client, msg| {
                 Self::handle_client_character_screen_msg(
                     &mut server_emitter,
