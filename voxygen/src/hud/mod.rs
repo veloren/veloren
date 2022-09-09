@@ -4126,6 +4126,13 @@ impl Hud {
 
             // Press key while not typing
             WinEvent::InputUpdate(key, state) if !self.typing() => {
+                let gs_audio = &global_state.settings.audio;
+                let mut toggle_mute = |audio: Audio| {
+                    self.events
+                        .push(Event::SettingsChange(SettingsChange::Audio(audio)));
+                    true
+                };
+
                 let matching_key = match key {
                     GameInput::Command if state => {
                         self.force_chat_input = Some("/".to_owned());
@@ -4189,14 +4196,22 @@ impl Hud {
                     GameInput::MapZoomOut if state => {
                         handle_map_zoom(0.5, self.world_map.1, &self.show, global_state)
                     },
+                    GameInput::MuteMaster if state => {
+                        toggle_mute(Audio::MuteMasterVolume(!gs_audio.master_volume.muted))
+                    },
+                    GameInput::MuteInactiveMaster if state => {
+                        toggle_mute(Audio::MuteInactiveMasterVolume(
+                            !gs_audio.inactive_master_volume_perc.muted,
+                        ))
+                    },
                     GameInput::MuteMusic if state => {
-                        self.events
-                            .push(Event::SettingsChange(SettingsChange::Audio(
-                                Audio::MuteMusicVolume(
-                                    !global_state.settings.audio.music_volume.muted,
-                                ),
-                            )));
-                        true
+                        toggle_mute(Audio::MuteMusicVolume(!gs_audio.music_volume.muted))
+                    },
+                    GameInput::MuteSfx if state => {
+                        toggle_mute(Audio::MuteSfxVolume(!gs_audio.sfx_volume.muted))
+                    },
+                    GameInput::MuteAmbience if state => {
+                        toggle_mute(Audio::MuteAmbienceVolume(!gs_audio.ambience_volume.muted))
                     },
                     // Skillbar
                     input => {

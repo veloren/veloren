@@ -191,7 +191,11 @@ impl ControlSettings {
             GameInput::MapSetMarker => Some(KeyMouse::Mouse(MouseButton::Middle)),
             GameInput::SpectateSpeedBoost => Some(KeyMouse::Key(VirtualKeyCode::LControl)),
             GameInput::SpectateViewpoint => Some(KeyMouse::Mouse(MouseButton::Middle)),
+            GameInput::MuteMaster => Some(KeyMouse::Key(VirtualKeyCode::Mute)),
+            GameInput::MuteInactiveMaster => None,
             GameInput::MuteMusic => Some(KeyMouse::Key(VirtualKeyCode::F8)),
+            GameInput::MuteSfx => None,
+            GameInput::MuteAmbience => None,
         }
     }
 }
