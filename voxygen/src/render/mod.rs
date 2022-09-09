@@ -482,4 +482,6 @@ pub enum ExperimentalShader {
     NoRainbows,
     /// Make objects appear wet when appropriate.
     Wetness,
+    /// An attempt at better anti-aliasing (requires FXAA).
+    BetterAA,
 }

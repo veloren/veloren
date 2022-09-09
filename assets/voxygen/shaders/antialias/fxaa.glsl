@@ -124,8 +124,14 @@ vec4 aa_apply(texture2D tex, sampler smplr, vec2 fragCoord, vec2 resolution) {
     mediump vec2 v_rgbSE;
     mediump vec2 v_rgbM;
 
-    vec2 scaled_fc = fragCoord * FXAA_SCALE;
-    vec2 scaled_res = resolution * FXAA_SCALE;
+    #ifdef EXPERIMENTAL_BETTERAA
+        float fxaa_scale = textureSize(sampler2D(tex, smplr), 0).x / 900.0;
+    #else
+        float fxaa_scale = FXAA_SCALE;
+    #endif
+
+    vec2 scaled_fc = fragCoord * fxaa_scale;
+    vec2 scaled_res = resolution * fxaa_scale;
 
     //compute the texture coords
     texcoords(scaled_fc, scaled_res, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);

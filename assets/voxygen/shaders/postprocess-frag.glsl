@@ -22,6 +22,7 @@
 #include <srgb.glsl>
 #include <cloud.glsl>
 #include <random.glsl>
+#include <lod.glsl>
 
 layout(set = 1, binding = 0)
 uniform texture2D t_src_color;
@@ -42,6 +43,34 @@ uniform texture2D t_src_bloom;
 #endif
 
 layout(location = 0) out vec4 tgt_color;
+
+#ifdef EXPERIMENTAL_BETTERAA
+    vec4 clever_aa_apply(texture2D tex, sampler smplr, vec2 fragCoord, vec2 resolution) {
+        uvec2 src_sz = textureSize(sampler2D(tex, smplr), 0).xy;
+        /* vec4 interp = texture(sampler2D(tex, smplr), fragCoord / resolution); */
+        /* vec4 interp = textureBicubic(tex, smplr, fragCoord * src_sz / resolution); */
+        vec4 interp = aa_apply(tex, smplr, fragCoord, resolution);
+        vec4 original = texelFetch(sampler2D(tex, smplr), ivec2(fragCoord / resolution * src_sz), 0);
+
+        vec4 closest = vec4(0.0);
+        float closest_dist = 100000.0;
+        for (int i = -1; i < 2; i ++) {
+            for (int j = -1; j < 2; j ++) {
+                ivec2 rpos = ivec2(i, j);
+
+                vec4 texel = texelFetch(sampler2D(tex, smplr), ivec2(fragCoord / resolution * src_sz) + rpos, 0);
+
+                float dist = distance(interp.rgb, texel.rgb);
+                if (dist < closest_dist) {
+                    closest = texel;
+                    closest_dist = dist;
+                }
+            }
+        }
+
+        return mix(closest, interp, 0.0);
+    }
+#endif
 
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -209,7 +238,12 @@ void main() {
         }
     #endif
 
-    vec4 aa_color = aa_apply(t_src_color, s_src_color, sample_uv * screen_res.xy, screen_res.xy);
+    #ifdef EXPERIMENTAL_BETTERAA
+        vec4 aa_color = clever_aa_apply(t_src_color, s_src_color, sample_uv * screen_res.xy, screen_res.xy);
+    #else
+        vec4 aa_color = aa_apply(t_src_color, s_src_color, sample_uv * screen_res.xy, screen_res.xy);
+    #endif
+
 
     #ifdef EXPERIMENTAL_SOBEL
         vec3 s[8];
