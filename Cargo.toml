@@ -20,6 +20,7 @@ members = [
     "server-cli",
     "voxygen",
     "voxygen/anim",
+    "voxygen/chat-i18n",
     "voxygen/i18n",
     "voxygen/egui",
     "world",

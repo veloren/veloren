@@ -2643,8 +2643,13 @@ impl Client {
 
     /// Get important information from client that is necessary for message
     /// localisation
-    pub fn lockup_msg_context(&self, msg: &comp::ChatMsg) -> HashMap<&str, ChatTypeContext> {
-        let mut result = HashMap::new();
+    ///
+    /// Note: it uses the suffix `name` e.g. in `attacker_name` if Context is Raw, otherwise it returns just `attacker`
+    pub fn lockup_msg_context(
+        &self,
+        msg: &comp::ChatMsg,
+    ) -> std::collections::HashMap<&'static str, ChatTypeContext> {
+        let mut result = std::collections::HashMap::new();
         let comp::ChatMsg { chat_type, .. } = &msg;
         let name_of_uid = |uid| {
             let ecs = self.state.ecs();

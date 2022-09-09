@@ -7,7 +7,7 @@ edition = "2021"
 [features]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
-bin_bot = ["common-ecs", "serde", "ron", "clap", "structopt", "rustyline", "common-frontend", "async-channel"]
+bin_bot = ["common-ecs", "serde", "ron", "clap", "structopt", "rustyline", "common-frontend", "async-channel", "voxygen-chat-i18n", "voxygen-i18n"]
 tracy = ["common-base/tracy"]
 tick_network = []
 
@@ -37,6 +37,8 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253
 #bot only
 async-channel = { version = "1.6", optional = true }
 common-ecs = { package = "veloren-common-ecs", path = "../common/ecs", optional = true }
+voxygen-chat-i18n = { package = "veloren-voxygen-chat-i18n", path = "../voxygen/chat-i18n", optional = true }
+voxygen-i18n = { package = "veloren-voxygen-i18n", path = "../voxygen/i18n", optional = true }
 serde = { version = "1.0", features = [ "rc", "derive" ], optional = true }
 ron = { version = "0.8", default-features = false, optional = true }
 clap = { version = "3.1.8", optional = true, features = ["color", "std"] }
