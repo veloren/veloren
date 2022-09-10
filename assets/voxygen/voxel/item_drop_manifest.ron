@@ -406,6 +406,7 @@
     Simple("common.items.tool.instruments.melodica"): "voxel.weapon.tool.melodica",
     Simple("common.items.tool.instruments.lute"): "voxel.weapon.tool.lute",
     Simple("common.items.tool.instruments.sitar"): "voxel.weapon.tool.sitar",
+    Simple("common.items.tool.instruments.guitar"): "voxel.weapon.tool.guitar",
     // Other
     Simple("common.items.utility.coins"): "voxel.object.v-coin",
     Simple("common.items.utility.collar"): "voxel.object.collar",

@@ -450,12 +450,6 @@
             ],
             threshold: 0.2,
         ),
-        Attack(BasicAura, Instrument): (
-            files: [
-                "voxygen.audio.sfx.abilities.barrel_organ",
-            ],
-            threshold: 34.75,
-        ),
         //Attack(BasicRanged, Staff): (
         //    files: [
         //        "voxygen.audio.sfx.abilities.staff_channeling",
@@ -527,6 +521,14 @@
 
         //
         // Instruments
+        // NPC Organ
+        Attack(BasicAura, Instrument): (
+            files: [
+                "voxygen.audio.sfx.abilities.barrel_organ",
+            ],
+            threshold: 34.75,
+        ),
+        // Player Instruments
         Wield(Instrument): (
             files: [
             "voxygen.audio.sfx.weapon.weapon_out",
@@ -613,6 +615,23 @@
             "voxygen.audio.sfx.instrument.sitar.sitar_a",
             "voxygen.audio.sfx.instrument.sitar.sitar_e",
             "voxygen.audio.sfx.instrument.sitar.sitar_c1",
+            ],
+            threshold: 0.5,
+            ),
+        Music(Instrument, Custom("Guitar")): (
+            files: [
+            "voxygen.audio.sfx.instrument.guitar.guitar_c",
+            "voxygen.audio.sfx.instrument.guitar.guitar_g",
+            "voxygen.audio.sfx.instrument.guitar.guitar_d",
+            "voxygen.audio.sfx.instrument.guitar.guitar_a",
+            "voxygen.audio.sfx.instrument.guitar.guitar_e",
+            "voxygen.audio.sfx.instrument.guitar.guitar_c1",
+            "voxygen.audio.sfx.instrument.guitar.guitar_ac1a",
+            "voxygen.audio.sfx.instrument.guitar.guitar_c1d1c1",
+            "voxygen.audio.sfx.instrument.guitar.guitar_cdc",
+            "voxygen.audio.sfx.instrument.guitar.guitar_ded",
+            "voxygen.audio.sfx.instrument.guitar.guitar_ege",
+            "voxygen.audio.sfx.instrument.guitar.guitar_gag",
             ],
             threshold: 0.5,
             ),

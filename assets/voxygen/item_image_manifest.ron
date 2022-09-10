@@ -1646,6 +1646,10 @@
         "voxel.weapon.tool.lute",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
+    Simple("common.items.tool.instruments.guitar"): VoxTrans(
+        "voxel.weapon.tool.guitar",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
+    ),
     Simple("common.items.tool.instruments.sitar"): VoxTrans(
         "voxel.weapon.tool.sitar",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.2,

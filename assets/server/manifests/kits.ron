@@ -378,4 +378,15 @@
         (Item("common.items.armor.merchant.pants"),1),
         (Item("common.items.armor.merchant.shoulder"),1),
     ],
+    "instruments": [
+        (Item("common.items.tool.instruments.bass"),1),
+        (Item("common.items.tool.instruments.flute"),1),
+        (Item("common.items.tool.instruments.guitar"),1),
+        (Item("common.items.tool.instruments.harp"),1),
+        (Item("common.items.tool.instruments.kalimba"),1),
+        (Item("common.items.tool.instruments.lute"),1),
+        (Item("common.items.tool.instruments.melodica"),1),
+        (Item("common.items.tool.instruments.sitar"),1),
+        (Item("common.items.tool.instruments.perc"),1),
+    ],
 })
