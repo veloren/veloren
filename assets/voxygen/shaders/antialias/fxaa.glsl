@@ -1,5 +1,3 @@
-const float FXAA_SCALE = 1.25;
-
 /**
 Basic FXAA implementation based on the code on geeks3d.com with the
 modification that the texture2DLod stuff was removed since it's
@@ -129,11 +127,7 @@ vec4 aa_apply(
     mediump vec2 v_rgbSE;
     mediump vec2 v_rgbM;
 
-    #ifdef EXPERIMENTAL_BETTERAA
-        float fxaa_scale = textureSize(sampler2D(tex, smplr), 0).x / 1000.0;
-    #else
-        float fxaa_scale = FXAA_SCALE;
-    #endif
+    float fxaa_scale = textureSize(sampler2D(tex, smplr), 0).x * 1.25 / resolution.x;
 
     vec2 scaled_fc = fragCoord * fxaa_scale;
     vec2 scaled_res = resolution * fxaa_scale;

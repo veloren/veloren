@@ -943,7 +943,7 @@ impl<'a> Widget for Video<'a> {
 
         let upscale_factors = [
             // Upscaling
-            0.01, 0.025, 0.1, 0.15, 0.2, 0.25, 0.35, 0.5, 0.65, 0.75, 0.85, 1.0,
+            0.1, 0.15, 0.2, 0.25, 0.35, 0.5, 0.65, 0.75, 0.85, 1.0,
             // Downscaling (equivalent to SSAA)
             1.25, 1.5, 1.75, 2.0,
         ];
@@ -956,7 +956,7 @@ impl<'a> Widget for Video<'a> {
         if let Some(clicked) = DropDownList::new(
             &upscale_factors
                 .iter()
-                .map(|factor| format!("{n:.*}", 2, n = factor))
+                .map(|factor| format!("{n:.*}", 3, n = factor))
                 .collect::<Vec<String>>(),
             selected,
         )
