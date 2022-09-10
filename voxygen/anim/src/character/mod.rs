@@ -15,6 +15,7 @@ pub mod idle;
 pub mod jump;
 pub mod leapmelee;
 pub mod mount;
+pub mod music;
 pub mod repeater;
 pub mod roll;
 pub mod run;
@@ -41,7 +42,7 @@ pub use self::{
     chargeswing::ChargeswingAnimation, climb::ClimbAnimation, collect::CollectAnimation,
     consume::ConsumeAnimation, dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, leapmelee::LeapAnimation, mount::MountAnimation,
+    jump::JumpAnimation, leapmelee::LeapAnimation, mount::MountAnimation, music::MusicAnimation,
     repeater::RepeaterAnimation, roll::RollAnimation, run::RunAnimation,
     shockwave::ShockwaveAnimation, shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation,
     sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation, spin::SpinAnimation,

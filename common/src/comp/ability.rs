@@ -614,9 +614,7 @@ pub enum CharacterAbility {
         sparseness: f64,
     },
     Music {
-        buildup_duration: f32,
         play_duration: f32,
-        recover_duration: f32,
         ori_modifier: f32,
     },
 }
@@ -1073,14 +1071,10 @@ impl CharacterAbility {
                 *outer_dist *= stats.range;
             },
             Music {
-                ref mut buildup_duration,
                 ref mut play_duration,
-                ref mut recover_duration,
                 ori_modifier: _,
             } => {
-                *buildup_duration /= stats.speed;
                 *play_duration /= stats.speed;
-                *recover_duration /= stats.speed;
             },
         }
         self
@@ -2228,20 +2222,16 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 achieved_radius: summon_distance.0.floor() as i32 - 1,
             }),
             CharacterAbility::Music {
-                buildup_duration,
                 play_duration,
-                recover_duration,
                 ori_modifier,
             } => CharacterState::Music(music::Data {
                 static_data: music::StaticData {
-                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     play_duration: Duration::from_secs_f32(*play_duration),
-                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     ori_modifier: *ori_modifier,
                     ability_info,
                 },
                 timer: Duration::default(),
-                stage_section: StageSection::Buildup,
+                stage_section: StageSection::Action,
                 exhausted: false,
             }),
         }

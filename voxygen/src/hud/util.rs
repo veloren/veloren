@@ -370,6 +370,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.music.kalimba" => imgs.instrument,
         "common.abilities.music.melodica" => imgs.instrument,
         "common.abilities.music.lute" => imgs.instrument,
+        "common.abilities.music.guitar" => imgs.instrument,
         "common.abilities.music.sitar" => imgs.instrument,
         _ => imgs.not_found,
     }

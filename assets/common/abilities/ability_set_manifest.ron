@@ -457,6 +457,11 @@
         secondary: "common.abilities.music.lute",
         abilities: [],
     ),
+    Custom("Guitar"): (
+        primary: "common.abilities.music.guitar",
+        secondary: "common.abilities.music.guitar",
+        abilities: [],
+    ),
     Custom("Sitar"): (
         primary: "common.abilities.music.sitar",
         secondary: "common.abilities.music.sitar",
