@@ -22,22 +22,28 @@
 #include <srgb.glsl>
 #include <cloud.glsl>
 #include <random.glsl>
+#include <lod.glsl>
 
 layout(set = 1, binding = 0)
 uniform texture2D t_src_color;
 layout(set = 1, binding = 1)
 uniform sampler s_src_color;
 
+layout(set = 1, binding = 2)
+uniform texture2D t_src_depth;
+layout(set = 1, binding = 3)
+uniform sampler s_src_depth;
+
 layout(location = 0) in vec2 uv;
 
-layout (std140, set = 1, binding = 2)
+layout (std140, set = 1, binding = 4)
 uniform u_locals {
     mat4 proj_mat_inv;
     mat4 view_mat_inv;
 };
 
 #ifdef BLOOM_FACTOR
-layout(set = 1, binding = 3)
+layout(set = 1, binding = 5)
 uniform texture2D t_src_bloom;
 #endif
 
@@ -156,7 +162,7 @@ vec3 _illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitte
 
 #ifdef EXPERIMENTAL_SOBEL
 vec3 aa_sample(vec2 uv, vec2 off) {
-    return aa_apply(t_src_color, s_src_color, uv * screen_res.xy + off, screen_res.xy).rgb;
+    return aa_apply(t_src_color, s_src_color, t_src_depth, s_src_depth, uv * screen_res.xy + off, screen_res.xy).rgb;
 }
 #endif
 
@@ -209,7 +215,8 @@ void main() {
         }
     #endif
 
-    vec4 aa_color = aa_apply(t_src_color, s_src_color, sample_uv * screen_res.xy, screen_res.xy);
+    vec4 aa_color = aa_apply(t_src_color, s_src_color, t_src_depth, s_src_depth, sample_uv * screen_res.xy, screen_res.xy);
+
 
     #ifdef EXPERIMENTAL_SOBEL
         vec3 s[8];

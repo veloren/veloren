@@ -28,8 +28,8 @@ use super::{
         ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
-    AaMode, AddressMode, FilterMode, OtherModes, PipelineModes, RenderError, RenderMode,
-    ShadowMapMode, ShadowMode, Vertex,
+    AddressMode, FilterMode, OtherModes, PipelineModes, RenderError, RenderMode, ShadowMapMode,
+    ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle, ReloadWatcher};
 use common_base::span;
@@ -798,12 +798,8 @@ impl Renderer {
         let upscaled = Vec2::<u32>::from(size)
             .map(|e| (e as f32 * other_modes.upscale_mode.factor) as u32)
             .into_tuple();
-        let (width, height, sample_count) = match pipeline_modes.aa {
-            AaMode::None | AaMode::Fxaa => (upscaled.0, upscaled.1, 1),
-            AaMode::MsaaX4 => (upscaled.0, upscaled.1, 4),
-            AaMode::MsaaX8 => (upscaled.0, upscaled.1, 8),
-            AaMode::MsaaX16 => (upscaled.0, upscaled.1, 16),
-        };
+        let (width, height) = upscaled;
+        let sample_count = pipeline_modes.aa.samples();
         let levels = 1;
 
         let color_view = |width, height| {

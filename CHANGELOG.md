@@ -14,13 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a setting to influence the gap between music track plays.
 - Added a Craft All button.
 - Server: Vacuum database on startup
-- SeaChapel, greek/latin inspired dungeon for ocean biome coasts 
+- SeaChapel, greek/latin inspired dungeon for ocean biome coasts
 - Entity view distance setting added (shown in graphics and network tabs). This setting controls
   the distance at which entities are synced to the client and which entities are displayed in.
   This is clamped to be no more than the current overall view distance setting.
 - View distance settings that are lowered by the server limit (or other factors) now display an
   extra ghost slider cursor when set above the limit (instead of snapping back to the limit).
   Limits on the view distance by the server no longer affect the settings saved on the client.
+- HQX upscaling shader for people playing on low internal resolutions
 
 ### Changed
 - Use fluent for translations
@@ -49,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first joining a server and when changing the view distance (previously this required moving to a
   new chunk for the initial setting or subsequent change to apply).
 - Moderators and admins are no longer blocked from logging in when there are too many players.
+- FXAA now behaves correctly at non-1.0x internal resolutions
 
 ## [0.13.0] - 2022-07-23
 

@@ -103,12 +103,7 @@ impl RainOcclusionFigurePipeline {
                 bind_group_layouts: &[&global_layout.globals, &figure_layout.locals],
             });
 
-        let samples = match aa_mode {
-            AaMode::None | AaMode::Fxaa => 1,
-            AaMode::MsaaX4 => 4,
-            AaMode::MsaaX8 => 8,
-            AaMode::MsaaX16 => 16,
-        };
+        let samples = aa_mode.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Rain occlusion figure pipeline"),
@@ -176,12 +171,7 @@ impl RainOcclusionPipeline {
                 bind_group_layouts: &[&global_layout.globals, &terrain_layout.locals],
             });
 
-        let samples = match aa_mode {
-            AaMode::None | AaMode::Fxaa => 1,
-            AaMode::MsaaX4 => 4,
-            AaMode::MsaaX8 => 8,
-            AaMode::MsaaX16 => 16,
-        };
+        let samples = aa_mode.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Rain occlusion pipeline"),

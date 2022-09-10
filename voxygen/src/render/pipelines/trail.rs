@@ -69,12 +69,7 @@ impl TrailPipeline {
                 bind_group_layouts: &[&global_layout.globals, &global_layout.shadow_textures],
             });
 
-        let samples = match aa_mode {
-            AaMode::None | AaMode::Fxaa => 1,
-            AaMode::MsaaX4 => 4,
-            AaMode::MsaaX8 => 8,
-            AaMode::MsaaX16 => 16,
-        };
+        let samples = aa_mode.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Trail pipeline"),
