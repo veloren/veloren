@@ -5,11 +5,13 @@ use super::{
 };
 use crate::{
     game_input::GameInput,
-    hud::{get_buff_image, get_buff_info},
+    hud::BuffIcon,
     settings::{ControlSettings, InterfaceSettings},
     ui::{fonts::Fonts, Ingameable},
 };
-use common::comp::{Buffs, Energy, Health, SpeechBubble, SpeechBubbleType};
+use common::comp::{
+    Buffs, CharacterState, Energy, Health, Inventory, SpeechBubble, SpeechBubbleType,
+};
 use conrod_core::{
     color,
     position::Align,
@@ -69,6 +71,8 @@ pub struct Info<'a> {
     pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
     pub combat_rating: f32,
+    pub inventory: &'a Inventory,
+    pub char_state: &'a CharacterState,
 }
 
 /// Determines whether to show the healthbar
@@ -198,6 +202,8 @@ impl<'a> Widget for Overhead<'a> {
             buffs,
             energy,
             combat_rating,
+            inventory,
+            char_state,
         }) = self.info
         {
             // Used to set healthbar colours based on hp_percentage
@@ -227,7 +233,8 @@ impl<'a> Widget for Overhead<'a> {
             };
             // Buffs
             // Alignment
-            let buff_count = buffs.kinds.len().min(11);
+            let buff_icons = BuffIcon::icons_vec(buffs, char_state, Some(inventory));
+            let buff_count = buff_icons.len().min(11);
             Rectangle::fill_with([168.0, 100.0], color::TRANSPARENT)
                 .x_y(-1.0, name_y + 60.0)
                 .parent(id)
@@ -252,18 +259,18 @@ impl<'a> Widget for Overhead<'a> {
                     .iter()
                     .copied()
                     .zip(state.ids.buff_timers.iter().copied())
-                    .zip(buffs.iter_active().map(get_buff_info))
+                    .zip(buff_icons.iter())
                     .enumerate()
                     .for_each(|(i, ((id, timer_id), buff))| {
                         // Limit displayed buffs
-                        let max_duration = buff.data.duration;
+                        let max_duration = buff.kind.max_duration();
                         let current_duration = buff.dur;
                         let duration_percentage = current_duration.map_or(1000.0, |cur| {
                             max_duration.map_or(1000.0, |max| {
                                 cur.as_secs_f32() / max.as_secs_f32() * 1000.0
                             })
                         }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                        let buff_img = get_buff_image(buff.kind, self.imgs);
+                        let buff_img = buff.kind.image(self.imgs);
                         let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
                         // Sort buffs into rows of 5 slots
                         let x = i % 5;

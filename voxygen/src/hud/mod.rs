@@ -120,6 +120,7 @@ use rand::Rng;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::{
     borrow::Cow,
+    cmp::Ordering,
     collections::VecDeque,
     sync::Arc,
     time::{Duration, Instant},
@@ -449,11 +450,152 @@ impl<W: Positionable> Position for W {
 }
 
 #[derive(Clone, Copy)]
-pub struct BuffInfo {
-    kind: BuffKind,
-    data: BuffData,
+pub enum BuffIconKind<'a> {
+    Buff { kind: BuffKind, data: BuffData },
+    Ability { ability_id: &'a str },
+}
+
+impl<'a> BuffIconKind<'a> {
+    pub fn image(&self, imgs: &Imgs) -> conrod_core::image::Id {
+        match self {
+            Self::Buff { kind, .. } => get_buff_image(*kind, imgs),
+            Self::Ability { ability_id, .. } => util::ability_image(imgs, ability_id),
+        }
+    }
+
+    pub fn max_duration(&self) -> Option<Duration> {
+        match self {
+            Self::Buff { data, .. } => data.duration,
+            Self::Ability { .. } => None,
+        }
+    }
+
+    pub fn title_description<'b>(
+        &self,
+        localized_strings: &'b Localization,
+    ) -> (Cow<'b, str>, Cow<'b, str>) {
+        match self {
+            Self::Buff { kind, data } => (
+                get_buff_title(*kind, localized_strings),
+                get_buff_desc(*kind, *data, localized_strings),
+            ),
+            Self::Ability { ability_id } => {
+                util::ability_description(ability_id, localized_strings)
+            },
+        }
+    }
+}
+
+impl<'a> PartialOrd for BuffIconKind<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self, other) {
+            (
+                BuffIconKind::Buff { kind, .. },
+                BuffIconKind::Buff {
+                    kind: other_kind, ..
+                },
+            ) => Some(kind.cmp(other_kind)),
+            (BuffIconKind::Buff { .. }, BuffIconKind::Ability { .. }) => Some(Ordering::Greater),
+            (BuffIconKind::Ability { .. }, BuffIconKind::Buff { .. }) => Some(Ordering::Less),
+            (
+                BuffIconKind::Ability { ability_id },
+                BuffIconKind::Ability {
+                    ability_id: other_id,
+                },
+            ) => Some(ability_id.cmp(other_id)),
+        }
+    }
+}
+
+impl<'a> Ord for BuffIconKind<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // We know this is safe since we can look at the partialord implementation and
+        // see that every variant is wrapped in Some
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl<'a> PartialEq for BuffIconKind<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                BuffIconKind::Buff { kind, .. },
+                BuffIconKind::Buff {
+                    kind: other_kind, ..
+                },
+            ) => kind == other_kind,
+            (
+                BuffIconKind::Ability { ability_id },
+                BuffIconKind::Ability {
+                    ability_id: other_id,
+                },
+            ) => ability_id == other_id,
+            _ => false,
+        }
+    }
+}
+
+impl<'a> Eq for BuffIconKind<'a> {}
+
+#[derive(Clone, Copy)]
+pub struct BuffIcon<'a> {
+    kind: BuffIconKind<'a>,
     is_buff: bool,
     dur: Option<Duration>,
+}
+
+impl<'a> BuffIcon<'a> {
+    pub fn get_buff_time(&self) -> String {
+        if let Some(dur) = self.dur {
+            format!("{:.0}s", dur.as_secs_f32())
+        } else {
+            "".to_string()
+        }
+    }
+
+    pub fn icons_vec(
+        buffs: &comp::Buffs,
+        char_state: &comp::CharacterState,
+        inv: Option<&'a comp::Inventory>,
+    ) -> Vec<Self> {
+        buffs
+            .iter_active()
+            .map(BuffIcon::from_buff)
+            .chain(BuffIcon::from_char_state(char_state, inv).into_iter())
+            .collect::<Vec<_>>()
+    }
+
+    fn from_char_state(
+        char_state: &comp::CharacterState,
+        inv: Option<&'a comp::Inventory>,
+    ) -> Option<Self> {
+        let ability_id = || {
+            char_state
+                .ability_info()
+                .and_then(|info| info.ability)
+                .and_then(|ability| ability.ability_id(inv))
+        };
+        use comp::CharacterState::*;
+        match char_state {
+            ComboMelee2(data) if data.static_data.is_stance => ability_id().map(|id| BuffIcon {
+                kind: BuffIconKind::Ability { ability_id: id },
+                is_buff: true,
+                dur: None,
+            }),
+            _ => None,
+        }
+    }
+
+    fn from_buff(buff: &comp::Buff) -> Self {
+        Self {
+            kind: BuffIconKind::Buff {
+                kind: buff.kind,
+                data: buff.data,
+            },
+            is_buff: buff.kind.is_buff(),
+            dur: buff.time,
+        }
+    }
 }
 
 pub struct ExpFloater {
@@ -1290,6 +1432,7 @@ impl Hud {
             let poises = ecs.read_storage::<comp::Poise>();
             let alignments = ecs.read_storage::<comp::Alignment>();
             let is_mount = ecs.read_storage::<Is<Mount>>();
+            let char_states = ecs.read_storage::<comp::CharacterState>();
 
             // Check if there was a persistence load error of the skillset, and if so
             // display a dialog prompt
@@ -1980,7 +2123,7 @@ impl Hud {
                 &uids,
                 &inventories,
                 poises.maybe(),
-                (alignments.maybe(), is_mount.maybe()),
+                (alignments.maybe(), is_mount.maybe(), &char_states),
             )
                 .join()
                 .filter(|t| {
@@ -2003,7 +2146,7 @@ impl Hud {
                         uid,
                         inventory,
                         poise,
-                        (alignment, is_mount),
+                        (alignment, is_mount, char_state),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2054,6 +2197,8 @@ impl Hud {
                             } else {
                                 0.0
                             },
+                            inventory,
+                            char_state,
                         });
                         // Only render bubble if nearby or if its me and setting is on
                         let bubble = if (dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) && !is_me)
@@ -2598,6 +2743,7 @@ impl Hud {
         let stats = ecs.read_storage::<comp::Stats>();
         let skill_sets = ecs.read_storage::<comp::SkillSet>();
         let buffs = ecs.read_storage::<comp::Buffs>();
+        let char_states = ecs.read_storage::<comp::CharacterState>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
         if let (Some(player_stats), Some(skill_set)) = (stats.get(entity), skill_sets.get(entity)) {
             match Buttons::new(
@@ -2881,10 +3027,12 @@ impl Hud {
         }
 
         // Buffs
-        if let (Some(player_buffs), Some(health), Some(energy)) = (
+        if let (Some(player_buffs), Some(health), Some(energy), Some(char_state), Some(inventory)) = (
             buffs.get(info.viewpoint_entity),
             healths.get(entity),
             energies.get(entity),
+            char_states.get(entity),
+            inventories.get(entity),
         ) {
             for event in BuffsBar::new(
                 &self.imgs,
@@ -2893,10 +3041,12 @@ impl Hud {
                 tooltip_manager,
                 i18n,
                 player_buffs,
+                char_state,
                 self.pulse,
                 global_state,
                 health,
                 energy,
+                inventory,
             )
             .set(self.ids.buffs, ui_widgets)
             {
@@ -4548,15 +4698,6 @@ pub fn get_quality_col<I: ItemDesc + ?Sized>(item: &I) -> Color {
         Quality::Debug => QUALITY_DEBUG,
     }
 }
-// Get info about applied buffs
-fn get_buff_info(buff: &comp::Buff) -> BuffInfo {
-    BuffInfo {
-        kind: buff.kind,
-        data: buff.data,
-        is_buff: buff.kind.is_buff(),
-        dur: buff.time,
-    }
-}
 
 fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
     Some(match input {
@@ -4719,14 +4860,6 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(localized_strings.get_msg(i18n_key))
-}
-
-pub fn get_buff_time(buff: BuffInfo) -> String {
-    if let Some(dur) = buff.dur {
-        format!("{:.0}s", dur.as_secs_f32())
-    } else {
-        "".to_string()
-    }
 }
 
 pub fn angle_of_attack_text(

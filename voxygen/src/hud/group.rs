@@ -8,7 +8,7 @@ use super::{
 
 use crate::{
     game_input::GameInput,
-    hud,
+    hud::BuffIcon,
     settings::Settings,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
@@ -355,6 +355,9 @@ impl<'a> Widget for Group<'a> {
             let uid_allocator = client_state.ecs().read_resource::<UidAllocator>();
             let bodies = client_state.ecs().read_storage::<common::comp::Body>();
             let poises = client_state.ecs().read_storage::<common::comp::Poise>();
+            let char_states = client_state
+                .ecs()
+                .read_storage::<common::comp::CharacterState>();
 
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;
@@ -370,6 +373,7 @@ impl<'a> Widget for Group<'a> {
                 let is_leader = uid == leader;
                 let body = entity.and_then(|entity| bodies.get(entity));
                 let poise = entity.and_then(|entity| poises.get(entity));
+                let char_state = entity.and_then(|entity| char_states.get(entity));
 
                 if let (
                     Some(stats),
@@ -379,8 +383,10 @@ impl<'a> Widget for Group<'a> {
                     Some(energy),
                     Some(body),
                     Some(poise),
-                ) = (stats, skill_set, inventory, health, energy, body, poise)
-                {
+                    Some(char_state),
+                ) = (
+                    stats, skill_set, inventory, health, energy, body, poise, char_state,
+                ) {
                     let combat_rating = combat::combat_rating(
                         inventory, health, energy, poise, skill_set, *body, self.msm,
                     );
@@ -499,8 +505,9 @@ impl<'a> Widget for Group<'a> {
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
                         .set(state.ids.member_energy[i], ui);
                     if let Some(buffs) = buffs {
+                        let buff_icons = BuffIcon::icons_vec(buffs, char_state, Some(inventory));
                         // Limit displayed buffs to 11
-                        let buff_count = buffs.kinds.len().min(11);
+                        let buff_count = buff_icons.len().min(11);
                         total_buff_count += buff_count;
                         let gen = &mut ui.widget_id_generator();
                         if state.ids.buffs.len() < total_buff_count {
@@ -520,9 +527,9 @@ impl<'a> Widget for Group<'a> {
                             .copied()
                             .zip(state.ids.buff_timers.iter().copied())
                             .skip(total_buff_count - buff_count)
-                            .zip(buffs.iter_active().map(hud::get_buff_info))
+                            .zip(buff_icons.iter())
                             .for_each(|((id, timer_id), buff)| {
-                                let max_duration = buff.data.duration;
+                                let max_duration = buff.kind.max_duration();
                                 let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
                                 let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
                                 let current_duration = buff.dur;
@@ -531,7 +538,7 @@ impl<'a> Widget for Group<'a> {
                                         cur.as_secs_f32() / max.as_secs_f32() * 1000.0
                                     })
                                 }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                                let buff_img = hud::get_buff_image(buff.kind, self.imgs);
+                                let buff_img = buff.kind.image(self.imgs);
                                 let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);
                                 let buff_widget = if let Some(id) = prev_id {
                                     buff_widget.right_from(id, 1.0)
@@ -555,10 +562,9 @@ impl<'a> Widget for Group<'a> {
                                     )
                                     .set(id, ui);
                                 // Create Buff tooltip
-                                let title = hud::get_buff_title(buff.kind, localized_strings);
-                                let desc_txt =
-                                    hud::get_buff_desc(buff.kind, buff.data, localized_strings);
-                                let remaining_time = hud::get_buff_time(buff);
+                                let (title, desc_txt) =
+                                    buff.kind.title_description(localized_strings);
+                                let remaining_time = buff.get_buff_time();
                                 let desc = format!("{}\n\n{}", desc_txt, remaining_time);
                                 Image::new(match duration_percentage as u64 {
                                     875..=1000 => self.imgs.nothing, // 8/8
