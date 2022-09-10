@@ -93,8 +93,25 @@ pub enum AaMode {
     /// also struggle in the future with deferred shading, so they may be
     /// removed in the future.
     MsaaX16,
+    /// Fast upscaling re-aliasing.
+    ///
+    /// Screen-space technique that attempts to reconstruct lines and edges
+    /// in the original image. Useless at internal resolutions higher than 1.0x,
+    /// but potentially very effective at much lower internal resolutions.
+    Hqx,
     #[serde(other)]
     None,
+}
+
+impl AaMode {
+    pub fn samples(&self) -> u32 {
+        match self {
+            AaMode::None | AaMode::Fxaa | AaMode::Hqx => 1,
+            AaMode::MsaaX4 => 4,
+            AaMode::MsaaX8 => 8,
+            AaMode::MsaaX16 => 16,
+        }
+    }
 }
 
 impl Default for AaMode {

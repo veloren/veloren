@@ -247,6 +247,7 @@ impl ShaderModules {
                 AaMode::MsaaX4 => "antialias.msaa-x4",
                 AaMode::MsaaX8 => "antialias.msaa-x8",
                 AaMode::MsaaX16 => "antialias.msaa-x16",
+                AaMode::Hqx => "antialias.hqx",
             })
             .unwrap();
 

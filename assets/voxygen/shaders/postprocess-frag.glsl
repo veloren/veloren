@@ -29,9 +29,14 @@ uniform texture2D t_src_color;
 layout(set = 1, binding = 1)
 uniform sampler s_src_color;
 
+layout(set = 1, binding = 2)
+uniform texture2D t_src_depth;
+layout(set = 1, binding = 3)
+uniform sampler s_src_depth;
+
 layout(location = 0) in vec2 uv;
 
-layout (std140, set = 1, binding = 2)
+layout (std140, set = 1, binding = 4)
 uniform u_locals {
     mat4 proj_mat_inv;
     mat4 view_mat_inv;
@@ -45,22 +50,111 @@ uniform texture2D t_src_bloom;
 layout(location = 0) out vec4 tgt_color;
 
 #ifdef EXPERIMENTAL_BETTERAA
-    vec4 clever_aa_apply(texture2D tex, sampler smplr, vec2 fragCoord, vec2 resolution) {
+    vec3 wpos_at(vec2 uv) {
+        float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x - 0.0001;
+        vec4 clip_space = vec4((uv * 2.0 - 1.0) * vec2(1, -1), buf_depth, 1.0);
+        mat4 all_mat_inv = view_mat_inv * proj_mat_inv;
+        vec4 view_space = all_mat_inv * clip_space;
+        view_space /= view_space.w;
+        if (buf_depth == 0.0) {
+            vec3 direction = normalize(view_space.xyz);
+            return direction.xyz * 524288.0625 + cam_pos.xyz;
+        } else {
+            return view_space.xyz;
+        }
+    }
+
+    float depth_at(vec2 uv) {
+        float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x;
+        return 1.0 / buf_depth;
+    }
+
+    float weighted_lerp(float x, float a, float b) {
+        return pow(x, b / a);
+        /* return x; */
+        float xx = b * x - a * (1.0 - x);
+        return sign(xx) * (1.0 - 1.0 / (1.0 + abs(xx))) * 0.5 + 0.5;
+    }
+
+    float vmax(vec3 v) {
+        return max(v.x, max(v.y, v.z));
+    }
+
+    float vmax_but_one(vec3 v) {
+        float m = max(v.x, max(v.y, v.z));
+        if (v.x == m)
+            return max(v.y, v.z);
+        else if (v.y == m)
+            return max(v.x, v.z);
+        else
+            return max(v.x, v.y);
+    }
+
+    vec4 better_aa_apply(texture2D tex, sampler smplr, vec2 fragCoord, vec2 resolution) {
         uvec2 src_sz = textureSize(sampler2D(tex, smplr), 0).xy;
-        /* vec4 interp = texture(sampler2D(tex, smplr), fragCoord / resolution); */
-        /* vec4 interp = textureBicubic(tex, smplr, fragCoord * src_sz / resolution); */
-        vec4 interp = aa_apply(tex, smplr, fragCoord, resolution);
+
+        vec3 wpos = wpos_at(fragCoord / resolution);
+        float dist = distance(cam_pos.xyz, wpos);
+        vec3 dir = normalize(wpos - cam_pos.xyz);
+
+        // vec4 interp = texelFetch(sampler2D(tex, smplr), ivec2(fragCoord / resolution * src_sz), 0);
+        // vec4 interp = texture(sampler2D(tex, smplr), fragCoord / resolution);
+        // vec4 interp = textureBicubic(tex, smplr, fragCoord * src_sz / resolution);
+        vec4 interp = aa_apply(tex, smplr, t_src_depth, s_src_depth, fragCoord, resolution);
         vec4 original = texelFetch(sampler2D(tex, smplr), ivec2(fragCoord / resolution * src_sz), 0);
 
+        // GRID
+        /* if (mod(fragCoord.x, resolution.x / src_sz.x) < 0.9) { return vec4(0.0, 0.0, 0.0, 0.0); } */
+        /* if (mod(fragCoord.y, resolution.y / src_sz.y) < 0.9) { return vec4(0.0, 0.0, 0.0, 0.0); } */
+
+        vec2 pos = fragCoord;// - 0.5 * src_sz;
+
+        // vec4 t00 = texelFetch(sampler2D(tex, smplr), ivec2(pos / resolution * src_sz + ivec2(0, 0)), 0);
+        // vec4 t10 = texelFetch(sampler2D(tex, smplr), ivec2(pos / resolution * src_sz + ivec2(1, 0)), 0);
+        // vec4 t01 = texelFetch(sampler2D(tex, smplr), ivec2(pos / resolution * src_sz + ivec2(0, 1)), 0);
+        // vec4 t11 = texelFetch(sampler2D(tex, smplr), ivec2(pos / resolution * src_sz + ivec2(1, 1)), 0);
+        vec3 w00 = wpos_at(floor(pos / resolution * vec2(src_sz) + ivec2(0, 0)) / vec2(src_sz));
+        vec3 w10 = wpos_at(floor(pos / resolution * vec2(src_sz) + ivec2(1, 0)) / vec2(src_sz));
+        vec3 w01 = wpos_at(floor(pos / resolution * vec2(src_sz) + ivec2(0, 1)) / vec2(src_sz));
+        vec3 w11 = wpos_at(floor(pos / resolution * vec2(src_sz) + ivec2(1, 1)) / vec2(src_sz));
+        float d00 = distance(w00, cam_pos.xyz);
+        float d10 = distance(w10, cam_pos.xyz);
+        float d01 = distance(w01, cam_pos.xyz);
+        float d11 = distance(w11, cam_pos.xyz);
+
+        vec2 px_fact = fract(pos / (resolution / vec2(src_sz)));
+        // vec4 t0 = mix(t00, t10, weighted_lerp(px_fact.x, d00, d10));
+        // vec4 t1 = mix(t01, t11, weighted_lerp(px_fact.x, d01, d11));
+        vec3 w0 = (w00 * d00 * (1 - px_fact.x) + w10 * d10 * px_fact.x) / (d00 * (1 - px_fact.x) + d10 * px_fact.x);
+        vec3 w1 = (w01 * d01 * (1 - px_fact.x) + w11 * d11 * px_fact.x) / (d01 * (1 - px_fact.x) + d11 * px_fact.x);
+        float d0 = mix(d00, d10, px_fact.x);
+        float d1 = mix(d01, d11, px_fact.x);
+
+        float d_lerped = mix(d0, d1, px_fact.y);
+        vec3 wpos_lerped = (w0 * d0 * (1 - px_fact.y) + w1 * d1 * px_fact.y) / (d0 * (1 - px_fact.y) + d1 * px_fact.y) + vec3(
+            dir.y > 0.0 ? 0.0 : 0.5,
+            dir.x > 0.0 ? 0.5 : 0.0,
+            0.5
+        );//mix(w0, w1, weighted_lerp(px_fact.y, 0.1 / d0, 0.1 / d1)) + 0.5;
+
+        // vec4 interp = mix(t0, t1, weighted_lerp(px_fact.y, d0, d1));
+
+        /*
         vec4 closest = vec4(0.0);
         float closest_dist = 100000.0;
         for (int i = -1; i < 2; i ++) {
             for (int j = -1; j < 2; j ++) {
                 ivec2 rpos = ivec2(i, j);
 
+                //float l = length(normalize(vec2(rpos)) - factor);
+
                 vec4 texel = texelFetch(sampler2D(tex, smplr), ivec2(fragCoord / resolution * src_sz) + rpos, 0);
 
-                float dist = distance(interp.rgb, texel.rgb);
+                float fov = 70.0;
+                float texel_at_dist = dist / resolution.x * fov;
+                vec3 diff = mod(wpos * texel_at_dist, vec3(1.0)) - 0.5;
+
+                float dist = distance(interp.rgb, texel.rgb);// * 0.0 + (rpos.y - diff.z) * 1.0;// * (1.0 + l * 0.5);
                 if (dist < closest_dist) {
                     closest = texel;
                     closest_dist = dist;
@@ -68,7 +162,85 @@ layout(location = 0) out vec4 tgt_color;
             }
         }
 
-        return mix(closest, interp, 0.0);
+        return closest;//interp;
+        */
+        /*
+        ivec2 closest = ivec2(0);
+        vec3 closest_wpos = vec3(0);
+        float closest_dist = 100000.0;
+        for (int i = -1; i < 2; i ++) {
+            for (int j = -1; j < 2; j ++) {
+                ivec2 rpos = ivec2(i, j);
+                vec3 wpos = wpos_at(((fragCoord / resolution * vec2(src_sz)) + rpos) / vec2(src_sz));
+                float dist = distance(cam_pos.xyz, wpos);
+                if (dist < closest_dist) {
+                    closest = rpos;
+                    closest_wpos = wpos;
+                    closest_dist = dist;
+                }
+            }
+        }
+
+        float fov = 70.0;
+        vec2 texel_at_dist = src_sz / (fov * closest_dist);
+        vec3 diff = fract(closest_wpos) * 2.0 - 1.0;
+
+        vec2 rpos = vec2(diff.y * dir.x, -diff.z * -abs(dir.x))
+            //+ vec2(diff.x * -dir.y, diff.z * abs(dir.y))
+            //+ vec2(diff.z * -dir.z * 0, diff.x * abs(dir.z))
+        ;
+
+        vec4 texel = texelFetch(sampler2D(tex, smplr), ivec2(fragCoord / resolution * src_sz + closest + rpos), 0);
+
+        return texel;
+        */
+
+        float original_dist = dist;
+        vec4 closest_texel = vec4(0);
+        vec3 closest_wpos = vec3(0);
+        float closest_dist = 100000.0;
+        vec4 weighted_sum = vec4(0.0);
+        float weighted_total = 0.0;
+        for (int i = -1; i < 2; i ++) {
+            for (int j = -1; j < 2; j ++) {
+                ivec2 rpos = ivec2(i, j);
+                vec3 wpos = wpos_at(floor(fragCoord / resolution * vec2(src_sz) + rpos - 1) / vec2(src_sz));
+                float tdist = distance(cam_pos.xyz, wpos);
+
+                //float fov = 1.2;
+                //float texel_at_dist = src_sz.x / (fov * tdist);
+
+                vec4 texel = texelFetch(sampler2D(tex, smplr), ivec2(fragCoord / resolution * src_sz) + rpos, 0);
+                //texel = texture(sampler2D(tex, smplr), floor(fragCoord / resolution * vec2(src_sz) + rpos) / vec2(src_sz));
+
+                float texel_dist;
+                if (true && false) {
+                    texel_dist = distance(wpos + fract(wpos_lerped * 2.0) / 2.0, wpos_lerped);
+                } else if (original_dist < 15.0 || true) {
+                    texel_dist = distance(interp.rgb, texel.rgb);
+                } else {
+                    texel_dist = length(mod(wpos, vec3(1.0)) - 0.5);
+                }
+
+                if (texel_dist < closest_dist) {
+                    closest_texel = texel;
+                    closest_wpos = wpos;
+                    closest_dist = texel_dist;
+                }
+
+                //float weight = 1.0 / distance(interp.rgb, texel.rgb);
+                float weight = 1.0 / distance(wpos, wpos_lerped);
+
+                weighted_sum += texel * weight;
+                weighted_total += weight;
+            }
+        }
+
+        //return vec4(px_fact.xy, 1.0, 1.0);
+        //return mod(10.0 * d_lerped, 1.0).xxxx;
+        //return mod(wpos_lerped, 1.0).xyzx;
+        //return weighted_sum / weighted_total;
+        return closest_texel;
     }
 #endif
 
@@ -185,7 +357,7 @@ vec3 _illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitte
 
 #ifdef EXPERIMENTAL_SOBEL
 vec3 aa_sample(vec2 uv, vec2 off) {
-    return aa_apply(t_src_color, s_src_color, uv * screen_res.xy + off, screen_res.xy).rgb;
+    return aa_apply(t_src_color, s_src_color, t_src_depth, s_src_depth, uv * screen_res.xy + off, screen_res.xy).rgb;
 }
 #endif
 
@@ -239,9 +411,9 @@ void main() {
     #endif
 
     #ifdef EXPERIMENTAL_BETTERAA
-        vec4 aa_color = clever_aa_apply(t_src_color, s_src_color, sample_uv * screen_res.xy, screen_res.xy);
+        vec4 aa_color = better_aa_apply(t_src_color, s_src_color, sample_uv * screen_res.xy, screen_res.xy);
     #else
-        vec4 aa_color = aa_apply(t_src_color, s_src_color, sample_uv * screen_res.xy, screen_res.xy);
+        vec4 aa_color = aa_apply(t_src_color, s_src_color, t_src_depth, s_src_depth, sample_uv * screen_res.xy, screen_res.xy);
     #endif
 
 

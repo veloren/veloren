@@ -41,6 +41,7 @@ impl assets::Compound for Shaders {
             "antialias.msaa-x4",
             "antialias.msaa-x8",
             "antialias.msaa-x16",
+            "antialias.hqx",
             "include.cloud.none",
             "include.cloud.regular",
             "figure-vert",
