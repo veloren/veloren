@@ -43,7 +43,7 @@ uniform u_locals {
 };
 
 #ifdef BLOOM_FACTOR
-layout(set = 1, binding = 3)
+layout(set = 1, binding = 5)
 uniform texture2D t_src_bloom;
 #endif
 
