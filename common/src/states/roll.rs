@@ -7,9 +7,7 @@ use crate::{
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
-        idle,
         utils::*,
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -134,30 +132,16 @@ impl CharacterBehavior for Data {
                                 c.stage = stage;
                             }
                         } else {
-                            update.character = CharacterState::Wielding(wielding::Data {
-                                is_sneaking: self.is_sneaking,
-                            });
+                            end_ability(data, &mut update);
                         }
                     } else {
-                        update.character = if self.was_wielded {
-                            CharacterState::Wielding(wielding::Data {
-                                is_sneaking: self.is_sneaking,
-                            })
-                        } else {
-                            CharacterState::Idle(idle::Data {
-                                is_sneaking: self.is_sneaking,
-                                footwear: None,
-                            })
-                        }
+                        end_ability(data, &mut update);
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Idle(idle::Data {
-                    is_sneaking: self.is_sneaking,
-                    footwear: None,
-                });
+                end_ability(data, &mut update);
             },
         }
 

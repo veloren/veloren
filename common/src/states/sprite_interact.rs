@@ -4,7 +4,6 @@ use crate::{
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
-        idle, wielding,
     },
     terrain::SpriteKind,
     util::Dir,
@@ -98,22 +97,12 @@ impl CharacterBehavior for Data {
                     let inv_manip = InventoryManip::Collect(self.static_data.sprite_pos);
                     output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
                     // Done
-
-                    update.character = if self.static_data.was_wielded {
-                        CharacterState::Wielding(wielding::Data {
-                            is_sneaking: self.static_data.was_sneak,
-                        })
-                    } else {
-                        CharacterState::Idle(idle::Data {
-                            is_sneaking: self.static_data.was_sneak,
-                            footwear: None,
-                        })
-                    }
+                    end_ability(data, &mut update);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Idle(idle::Data::default());
+                end_ability(data, &mut update);
             },
         }
 

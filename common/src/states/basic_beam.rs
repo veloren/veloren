@@ -11,7 +11,6 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
     terrain::Block,
     uid::Uid,
@@ -206,15 +205,14 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    update.character =
-                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                    end_ability(data, &mut update);
                     // Make sure attack component is removed
                     data.updater.remove::<beam::Beam>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                end_ability(data, &mut update);
                 // Make sure attack component is removed
                 data.updater.remove::<beam::Beam>(data.entity);
             },

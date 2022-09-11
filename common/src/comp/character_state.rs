@@ -180,6 +180,16 @@ impl CharacterState {
         )
     }
 
+    pub fn was_wielded(&self) -> bool {
+        match self {
+            CharacterState::Roll(data) => data.was_wielded,
+            CharacterState::Stunned(data) => data.was_wielded,
+            CharacterState::SpriteInteract(data) => data.static_data.was_wielded,
+            CharacterState::UseItem(data) => data.static_data.was_wielded,
+            _ => false,
+        }
+    }
+
     pub fn is_stealthy(&self) -> bool {
         matches!(
             self,

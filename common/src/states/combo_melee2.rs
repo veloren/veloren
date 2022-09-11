@@ -6,7 +6,6 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -207,8 +206,7 @@ impl CharacterBehavior for Data {
                         }
                     } else {
                         // Return to wielding
-                        update.character =
-                            CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                        end_ability(data, &mut update);
                         // Make sure attack component is removed
                         data.updater.remove::<Melee>(data.entity);
                     }
@@ -216,7 +214,7 @@ impl CharacterBehavior for Data {
             },
             Some(_) => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                end_ability(data, &mut update);
                 // Make sure attack component is removed
                 data.updater.remove::<Melee>(data.entity);
             },
@@ -227,8 +225,7 @@ impl CharacterBehavior for Data {
                     }
                 } else {
                     // Done
-                    update.character =
-                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                    end_ability(data, &mut update);
                     // Make sure melee component is removed
                     data.updater.remove::<Melee>(data.entity);
                 }
@@ -238,7 +235,7 @@ impl CharacterBehavior for Data {
 
                 if input_is_pressed(data, ability_input) {
                     next_strike(&mut update)
-                } else {
+                } else if !input_is_pressed(data, self.static_data.ability_info.input) {
                     attempt_input(data, output_events, &mut update);
                 }
             },

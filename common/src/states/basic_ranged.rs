@@ -7,7 +7,6 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
     util::Dir,
 };
@@ -127,14 +126,13 @@ impl CharacterBehavior for Data {
                     if input_is_pressed(data, self.static_data.ability_info.input) {
                         reset_state(self, data, output_events, &mut update);
                     } else {
-                        update.character =
-                            CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                        end_ability(data, &mut update);
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                end_ability(data, &mut update);
             },
         }
 

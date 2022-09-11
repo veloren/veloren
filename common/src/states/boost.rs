@@ -3,7 +3,6 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -56,7 +55,7 @@ impl CharacterBehavior for Data {
                         .0
                         .magnitude()
                         .min(self.static_data.max_exit_velocity);
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                end_ability(data, &mut update);
             }
         }
 

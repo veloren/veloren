@@ -1282,6 +1282,7 @@ pub struct AbilityInfo {
     pub input_attr: Option<InputAttr>,
     pub ability_meta: AbilityMeta,
     pub ability: Option<Ability>,
+    return_ability: Option<InputKind>,
 }
 
 impl AbilityInfo {
@@ -1306,6 +1307,19 @@ impl AbilityInfo {
             .zip(data.active_abilities)
             .map(|(i, a)| a.get_ability(i, data.inventory, Some(data.skill_set)));
 
+        let return_ability = {
+            let should_return = match data.character {
+                CharacterState::ComboMelee2(data) => data.static_data.is_stance,
+                _ => false,
+            };
+            if should_return {
+                data.character.ability_info().map(|info| info.input)
+            } else {
+                None
+            }
+        };
+
+
         Self {
             tool,
             hand,
@@ -1313,7 +1327,20 @@ impl AbilityInfo {
             input_attr: data.controller.queued_inputs.get(&input).copied(),
             ability_meta,
             ability,
+            return_ability,
         }
+    }
+}
+
+pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
+    if let Some(return_ability) = data.character.ability_info().and_then(|info| info.return_ability) {
+        handle_ability(data, update, return_ability);
+    } else if data.character.is_wield() || data.character.was_wielded() {
+        update.character =
+            CharacterState::Wielding(wielding::Data { is_sneaking: data.character.is_stealthy() });
+    } else {
+        update.character =
+            CharacterState::Idle(idle::Data { is_sneaking: data.character.is_stealthy(), footwear: None });
     }
 }
 
