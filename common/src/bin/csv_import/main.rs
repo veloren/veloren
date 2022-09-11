@@ -4,7 +4,7 @@
 use hashbrown::HashMap;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::Serialize;
-use std::{error::Error, fs::File, io::Write, str::FromStr};
+use std::{error::Error, fs::File, io::Write};
 use structopt::StructOpt;
 
 use veloren_common::{
@@ -13,16 +13,15 @@ use veloren_common::{
         self,
         item::{
             armor::{ArmorKind, Protection, StatsSource},
-            tool::{AbilitySpec, Hands, Stats, ToolKind},
-            ItemDefinitionId, ItemKind, ItemTag, Material, Quality,
+            tool::{AbilitySpec, Hands, Stats},
+            ItemDefinitionId, ItemKind, ItemTag, Quality,
         },
     },
-    lottery::LootSpec,
 };
 
 #[derive(StructOpt)]
 struct Cli {
-    /// Available arguments: "armor-stats", "weapon-stats", "loot-table"
+    /// Available arguments: "armor-stats", "weapon-stats"
     function: String,
 }
 
@@ -463,132 +462,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
-    let mut rdr = csv::Reader::from_path("loot_table.csv")?;
-
-    let headers: HashMap<String, usize> = rdr
-        .headers()
-        .expect("Failed to read CSV headers")
-        .iter()
-        .enumerate()
-        .map(|(i, x)| (x.to_string(), i))
-        .collect();
-
-    let mut items = Vec::<(f32, LootSpec<String>)>::new();
-
-    let get_tool_kind = |tool: String| match tool.as_str() {
-        "Sword" => Some(ToolKind::Sword),
-        "Axe" => Some(ToolKind::Axe),
-        "Hammer" => Some(ToolKind::Hammer),
-        "Bow" => Some(ToolKind::Bow),
-        "Staff" => Some(ToolKind::Staff),
-        "Sceptre" => Some(ToolKind::Sceptre),
-        "Dagger" => Some(ToolKind::Dagger),
-        "Shield" => Some(ToolKind::Shield),
-        "Spear" => Some(ToolKind::Spear),
-        "Debug" => Some(ToolKind::Debug),
-        "Farming" => Some(ToolKind::Farming),
-        "Pick" => Some(ToolKind::Pick),
-        "Natural" => Some(ToolKind::Natural),
-        "Empty" => Some(ToolKind::Empty),
-        _ => None,
-    };
-
-    let get_tool_hands = |hands: String| match hands.as_str() {
-        "One" | "one" | "1" => Some(Hands::One),
-        "Two" | "two" | "2" => Some(Hands::Two),
-        _ => None,
-    };
-
-    for ref record in rdr.records().flatten() {
-        let item = match record.get(headers["Kind"]).expect("No loot specifier") {
-            "Item" => {
-                if let (Some(Ok(lower)), Some(Ok(upper))) = (
-                    record
-                        .get(headers["Lower Amount or Material"])
-                        .map(|a| a.parse()),
-                    record
-                        .get(headers["Upper Amount or Hands"])
-                        .map(|a| a.parse()),
-                ) {
-                    LootSpec::ItemQuantity(
-                        record.get(headers["Item"]).expect("No item").to_string(),
-                        lower,
-                        upper,
-                    )
-                } else {
-                    LootSpec::Item(record.get(headers["Item"]).expect("No item").to_string())
-                }
-            },
-            "LootTable" => LootSpec::LootTable(
-                record
-                    .get(headers["Item"])
-                    .expect("No loot table")
-                    .to_string(),
-            ),
-            "Nothing" => LootSpec::Nothing,
-            "Modular Weapon" => LootSpec::ModularWeapon {
-                tool: get_tool_kind(record.get(headers["Item"]).expect("No tool").to_string())
-                    .expect("Invalid tool kind"),
-                material: Material::from_str(
-                    record
-                        .get(headers["Lower Amount or Material"])
-                        .expect("No material"),
-                )
-                .expect("Invalid material type"),
-                hands: get_tool_hands(
-                    record
-                        .get(headers["Upper Amount or Hands"])
-                        .expect("No hands")
-                        .to_string(),
-                ),
-            },
-            "Modular Weapon Primary Component" => LootSpec::ModularWeaponPrimaryComponent {
-                tool: get_tool_kind(record.get(headers["Item"]).expect("No tool").to_string())
-                    .expect("Invalid tool kind"),
-                material: Material::from_str(
-                    record
-                        .get(headers["Lower Amount or Material"])
-                        .expect("No material"),
-                )
-                .expect("Invalid material type"),
-                hands: get_tool_hands(
-                    record
-                        .get(headers["Upper Amount or Hands"])
-                        .expect("No hands")
-                        .to_string(),
-                ),
-            },
-            a => panic!(
-                "Loot specifier kind must be either \"Item\", \"LootTable\", or \"Nothing\"\n{}",
-                a
-            ),
-        };
-        let chance: f32 = record
-            .get(headers["Relative Chance"])
-            .expect("No chance for item in entry")
-            .parse()
-            .expect("Not an f32 for chance in entry");
-        items.push((chance, item));
-    }
-
-    let pretty_config = PrettyConfig::new().depth_limit(4).decimal_floats(true);
-
-    let mut path = ASSETS_PATH.clone();
-    path.push("common");
-    path.push("loot_tables");
-    for part in loot_table.split('.') {
-        path.push(part);
-    }
-    path.set_extension("ron");
-
-    let path_str = path.to_str().expect("File path not unicode?!");
-    let mut writer = File::create(path_str)?;
-    write!(writer, "{}", to_string_pretty(&items, pretty_config)?)?;
-
-    Ok(())
-}
-
 fn main() {
     let args = Cli::from_args();
     if args.function.eq_ignore_ascii_case("armor-stats") {
@@ -648,40 +521,6 @@ Would you like to continue? (y/n)
             == *"y"
         {
             if let Err(e) = weapon_stats() {
-                println!("Error: {}\n", e)
-            }
-        }
-    } else if args.function.eq_ignore_ascii_case("loot-table") {
-        let loot_table_name = get_input(
-            "Specify the name of the loot table to import from csv. Adds loot table to the \
-             directory: assets.common.loot_tables.\n",
-        );
-        if get_input(
-            "
--------------------------------------------------------------------------------
-|                                 DISCLAIMER                                  |
--------------------------------------------------------------------------------
-|                                                                             |
-|   This script will wreck the RON file for a loot table if it messes up.     |
-|   You might want to save a back up of the loot table or be prepared to      |
-|   use `git checkout HEAD -- ../assets/common/loot_tables/*` if needed.      |
-|   If this script does mess up your files, please fix it. Otherwise your     |
-|   files will be yeeted away and you will get a bonk on the head.            |
-|                                                                             |
--------------------------------------------------------------------------------
-
-In order for this script to work, you need to have first run the csv exporter.
-Once you have loot_table.csv you can make changes to item drops and their drop
-chance in your preferred editor. Save the csv file and then run this script
-to import your changes back to RON.
-
-Would you like to continue? (y/n)
-> ",
-        )
-        .to_lowercase()
-            == *"y"
-        {
-            if let Err(e) = loot_table(&loot_table_name) {
                 println!("Error: {}\n", e)
             }
         }
