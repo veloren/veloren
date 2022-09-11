@@ -1381,9 +1381,14 @@ impl CharacterAbility {
     pub fn contextualize(mut self, data: &JoinData) -> Self {
         if let Some(ability_info) = data.character.ability_info() {
             if let Some(AbilityKind::Sword(old_stance)) = ability_info.ability_meta.kind {
-                if matches!(self.ability_meta().kind, Some(AbilityKind::Sword(new_stance)) if old_stance == new_stance)
-                {
-                    const ENERGY_REDUCTION: f32 = 0.75;
+                if let Some(AbilityKind::Sword(new_stance)) = self.ability_meta().kind {
+                    let energy_reduction = if old_stance == new_stance {
+                        0.75
+                    } else if old_stance == SwordStance::Balanced {
+                        1.0
+                    } else {
+                        1.5
+                    };
                     use CharacterAbility::*;
                     match &mut self {
                         BasicMelee { energy_cost, .. }
@@ -1401,7 +1406,7 @@ impl CharacterAbility {
                         | DiveMelee { energy_cost, .. }
                         | RiposteMelee { energy_cost, .. }
                         | RapidMelee { energy_cost, .. } => {
-                            *energy_cost *= ENERGY_REDUCTION;
+                            *energy_cost *= energy_reduction;
                         },
                         _ => {},
                     }
