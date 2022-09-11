@@ -1232,22 +1232,27 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
         .write_storage::<comp::CharacterState>()
         .get_mut(defender)
     {
+        let should_return = char_state
+            .ability_info()
+            .and_then(|info| info.return_ability)
+            .is_some();
+
         match &mut *char_state {
             CharacterState::RiposteMelee(c) => {
                 c.stage_section = StageSection::Action;
                 c.timer = Duration::default();
             },
-            char_state => {
+            CharacterState::BasicBlock(c) if should_return => {
+                c.timer = c.static_data.recover_duration;
+                c.stage_section = StageSection::Recover;
+            },
+            char_state @ CharacterState::BasicBlock(_) => {
                 *char_state =
                     CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
             },
+            _char_state => {},
         }
     };
-    // Reward some energy to defender for successful parry
-    if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(defender) {
-        const PARRY_REWARD: f32 = 5.0;
-        energy.change_by(PARRY_REWARD);
-    }
 
     if let Some(attacker) = attacker {
         if let Some(char_state) = ecs.read_storage::<comp::CharacterState>().get(attacker) {

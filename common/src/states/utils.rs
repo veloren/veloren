@@ -1288,7 +1288,7 @@ pub struct AbilityInfo {
     pub input_attr: Option<InputAttr>,
     pub ability_meta: AbilityMeta,
     pub ability: Option<Ability>,
-    return_ability: Option<InputKind>,
+    pub return_ability: Option<InputKind>,
 }
 
 impl AbilityInfo {
