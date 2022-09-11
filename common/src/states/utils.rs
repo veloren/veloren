@@ -1203,6 +1203,10 @@ pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {
     data.controller.queued_inputs.contains_key(&input)
 }
 
+pub fn input_just_pressed(update: &StateUpdate, input: InputKind) -> bool {
+    update.queued_inputs.contains_key(&input)
+}
+
 /// Checked `Duration` addition. Computes `timer` + `dt`, applying relevant stat
 /// attack modifiers and `other_modifiers`, returning None if overflow occurred.
 pub fn checked_tick_attack(
@@ -1307,18 +1311,11 @@ impl AbilityInfo {
             .zip(data.active_abilities)
             .map(|(i, a)| a.get_ability(i, data.inventory, Some(data.skill_set)));
 
-        let return_ability = {
-            let should_return = match data.character {
-                CharacterState::ComboMelee2(data) => data.static_data.is_stance,
-                _ => false,
-            };
-            if should_return {
-                data.character.ability_info().map(|info| info.input)
-            } else {
-                None
-            }
+        let return_ability = if data.character.should_be_returned_to() {
+            data.character.ability_info().map(|info| info.input)
+        } else {
+            None
         };
-
 
         Self {
             tool,
@@ -1333,7 +1330,8 @@ impl AbilityInfo {
 }
 
 pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
-    if let Some(return_ability) = data.character.ability_info().and_then(|info| info.return_ability) {
+    // If an ability has a return ability specified, and is not itself an ability that should be returned to (to prevent bouncing between two abilities), return to the specified ability, otherwise return to wield or idle depending on whether or not leaving a wield state
+    if let Some(return_ability) = (!data.character.should_be_returned_to()).then_some(data.character.ability_info().and_then(|info| info.return_ability)).flatten() {
         handle_ability(data, update, return_ability);
     } else if data.character.is_wield() || data.character.was_wielded() {
         update.character =

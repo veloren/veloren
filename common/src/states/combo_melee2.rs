@@ -1,15 +1,17 @@
 use crate::{
     comp::{
         character_state::OutputEvents, tool::Stats, CharacterState, InputKind, Melee,
-        MeleeConstructor, StateUpdate,
+        MeleeConstructor, StateUpdate, InputAttr
     },
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
+    uid::Uid,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use vek::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -241,6 +243,26 @@ impl CharacterBehavior for Data {
             },
         }
 
+        update
+    }
+
+    fn start_input(
+        &self,
+        data: &JoinData,
+        input: InputKind,
+        target_entity: Option<Uid>,
+        select_pos: Option<Vec3<f32>>,
+    ) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+
+        if matches!(data.character, CharacterState::ComboMelee2(data) if data.static_data.ability_info.input == input && input != InputKind::Primary) {
+            end_ability(data, &mut update);
+        } else {
+            update.queued_inputs.insert(input, InputAttr {
+                select_pos,
+                target_entity,
+            });
+        }
         update
     }
 }

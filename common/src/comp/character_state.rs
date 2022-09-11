@@ -765,6 +765,15 @@ impl CharacterState {
             }),
         }
     }
+
+    // Determines if a character state should be returned to when using another
+    // ability from that character state
+    pub fn should_be_returned_to(&self) -> bool {
+        match self {
+            CharacterState::ComboMelee2(data) => data.static_data.is_stance,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Default, Copy, Clone)]
