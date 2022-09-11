@@ -972,7 +972,7 @@ pub fn handle_jump(
         .is_some()
 }
 
-fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) {
+fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) -> bool {
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
             .active_abilities
@@ -992,8 +992,10 @@ fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKin
                 AbilityInfo::from_input(data, from_offhand, input, ability.ability_meta()),
                 data,
             ));
+            return true;
         }
     }
+    false
 }
 
 pub fn handle_input(
@@ -1004,7 +1006,7 @@ pub fn handle_input(
 ) {
     match input {
         InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
-            handle_ability(data, update, input)
+            handle_ability(data, update, input);
         },
         InputKind::Roll => handle_dodge_input(data, update),
         InputKind::Jump => {
@@ -1330,15 +1332,20 @@ impl AbilityInfo {
 }
 
 pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
-    // If an ability has a return ability specified, and is not itself an ability that should be returned to (to prevent bouncing between two abilities), return to the specified ability, otherwise return to wield or idle depending on whether or not leaving a wield state
-    if let Some(return_ability) = (!data.character.should_be_returned_to()).then_some(data.character.ability_info().and_then(|info| info.return_ability)).flatten() {
-        handle_ability(data, update, return_ability);
-    } else if data.character.is_wield() || data.character.was_wielded() {
-        update.character =
-            CharacterState::Wielding(wielding::Data { is_sneaking: data.character.is_stealthy() });
+    // If an ability has a return ability specified, and is not itself an ability that should be returned to (to prevent bouncing between two abilities), attempt to return to the specified ability, otherwise return to wield or idle depending on whether or not leaving a wield state
+    let returned = if let Some(return_ability) = (!data.character.should_be_returned_to()).then_some(data.character.ability_info().and_then(|info| info.return_ability)).flatten() {
+        handle_ability(data, update, return_ability)
     } else {
-        update.character =
-            CharacterState::Idle(idle::Data { is_sneaking: data.character.is_stealthy(), footwear: None });
+        false
+    };
+    if !returned {
+        if data.character.is_wield() || data.character.was_wielded() {
+            update.character =
+                CharacterState::Wielding(wielding::Data { is_sneaking: data.character.is_stealthy() });
+        } else {
+            update.character =
+                CharacterState::Idle(idle::Data { is_sneaking: data.character.is_stealthy(), footwear: None });
+        }
     }
 }
 
