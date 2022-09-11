@@ -255,7 +255,7 @@ impl CharacterBehavior for Data {
     ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        if matches!(data.character, CharacterState::ComboMelee2(data) if data.static_data.ability_info.input == input && input != InputKind::Primary) {
+        if matches!(data.character, CharacterState::ComboMelee2(data) if data.static_data.ability_info.input == input && input != InputKind::Primary && data.stage_section.is_none()) {
             end_ability(data, &mut update);
         } else {
             update.queued_inputs.insert(input, InputAttr {
