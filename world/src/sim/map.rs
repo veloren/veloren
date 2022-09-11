@@ -202,7 +202,7 @@ pub fn sample_pos(
         let downhill_pos = downhill_wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
         NEIGHBOR_DELTA
             .iter()
-            .zip((&mut connections).iter_mut())
+            .zip(connections.iter_mut())
             .filter(|&(&offset, _)| downhill_pos - pos == Vec2::from(offset))
             .for_each(|(_, connection)| {
                 has_connections = true;

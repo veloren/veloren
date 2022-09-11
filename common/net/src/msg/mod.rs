@@ -22,7 +22,7 @@ pub use self::{
 use common::character::CharacterId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PresenceKind {
     Spectator,
     Character(CharacterId),
@@ -36,7 +36,7 @@ impl PresenceKind {
     pub fn controlling_char(&self) -> bool { matches!(self, Self::Character(_) | Self::Possessor) }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PingMsg {
     Ping,
     Pong,

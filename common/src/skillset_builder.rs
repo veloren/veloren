@@ -9,7 +9,7 @@ use tracing::warn;
 /// `SkillSetBuilder` preset. Consider using loading from assets, when possible.
 /// When you're adding new enum variant,
 /// handle it in [`with_preset`](SkillSetBuilder::with_preset) method
-#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub enum Preset {
     Rank1,
     Rank2,

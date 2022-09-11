@@ -35,7 +35,7 @@ impl Armor {
 }
 
 /// longitudinal and lateral friction, only meaningful for footwear
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Friction {
     Normal,
     Ski,

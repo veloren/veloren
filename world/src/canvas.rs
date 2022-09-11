@@ -218,7 +218,7 @@ impl<'a> Canvas<'a> {
             for z in (structure.get_bounds().min.z..structure.get_bounds().max.z).rev() {
                 if let Ok(sblock) = structure.get(rpos2d.with_z(z)) {
                     let mut add_snow = false;
-                    let _ = canvas.map(wpos2d.with_z(origin.z + z), |block| {
+                    canvas.map(wpos2d.with_z(origin.z + z), |block| {
                         if let Some(new_block) = block_from_structure(
                             info.index,
                             *sblock,
@@ -242,7 +242,7 @@ impl<'a> Canvas<'a> {
                     });
 
                     if add_snow {
-                        let _ = canvas.set(
+                        canvas.set(
                             wpos2d.with_z(origin.z + z + 1),
                             Block::new(BlockKind::Snow, Rgb::new(210, 210, 255)),
                         );

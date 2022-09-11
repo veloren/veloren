@@ -34,7 +34,7 @@ impl std::ops::Deref for BeamSegment {
     fn deref(&self) -> &Properties { &self.properties }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Beam {
     pub hit_entities: Vec<Uid>,
     pub tick_dur: Duration,
@@ -45,7 +45,7 @@ impl Component for Beam {
     type Storage = specs::DenseVecStorage<Self>;
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     Flamethrower,
     LifestealBeam,

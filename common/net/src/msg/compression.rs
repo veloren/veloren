@@ -36,7 +36,7 @@ impl<T: Serialize> CompressedData<T> {
 
             let buf = Vec::with_capacity(uncompressed.len() / 10);
             let mut encoder = DeflateEncoder::new(buf, Compression::new(level));
-            encoder.write_all(&*uncompressed).expect(EXPECT_MSG);
+            encoder.write_all(&uncompressed).expect(EXPECT_MSG);
             let compressed = encoder.finish().expect(EXPECT_MSG);
             CompressedData {
                 data: compressed,
@@ -60,9 +60,9 @@ impl<T: for<'a> Deserialize<'a>> CompressedData<T> {
             flate2::read::DeflateDecoder::new(&*self.data)
                 .read_to_end(&mut uncompressed)
                 .ok()?;
-            bincode::deserialize(&*uncompressed).ok()
+            bincode::deserialize(&uncompressed).ok()
         } else {
-            bincode::deserialize(&*self.data).ok()
+            bincode::deserialize(&self.data).ok()
         }
     }
 }
@@ -237,7 +237,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
                 CompressionType::Rle,
                 FilterType::Up,
             );
-            png.write_image(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
                 .ok()?;
             indices[i] = buf.len();
             Some(())
@@ -253,7 +253,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
                 FilterType::Sub,
             );
             png.write_image(
-                &*ws.3.as_raw(),
+                ws.3.as_raw(),
                 ws.3.width(),
                 ws.3.height(),
                 image::ColorType::Rgb8,
@@ -513,7 +513,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
                 CompressionType::Rle,
                 FilterType::Up,
             );
-            png.write_image(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
                 .ok()?;
             indices[i] = buf.len();
             Some(())

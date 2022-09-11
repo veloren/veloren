@@ -577,7 +577,7 @@ pub enum Event {
 // TODO: Maybe replace this with bitflags.
 // `map` is not here because it currently is displayed over the top of other
 // open windows.
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum Windows {
     Settings, // Display settings window.
     None,
@@ -630,7 +630,7 @@ pub enum PressBehavior {
     #[serde(other)]
     Toggle = 0,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ChatTab {
     pub label: String,
     pub filter: ChatFilter,
@@ -1798,9 +1798,9 @@ impl Hud {
                 };
 
             self.failed_block_pickups
-                .retain(|_, t| pulse - (*t).pulse < overitem::PICKUP_FAILED_FADE_OUT_TIME);
+                .retain(|_, t| pulse - t.pulse < overitem::PICKUP_FAILED_FADE_OUT_TIME);
             self.failed_entity_pickups
-                .retain(|_, t| pulse - (*t).pulse < overitem::PICKUP_FAILED_FADE_OUT_TIME);
+                .retain(|_, t| pulse - t.pulse < overitem::PICKUP_FAILED_FADE_OUT_TIME);
 
             // Render overitem: name, etc.
             for (entity, pos, item, distance) in (&entities, &pos, &items)
@@ -2061,7 +2061,7 @@ impl Hud {
                         } else {
                             None
                         };
-                        (info.is_some() || bubble.is_some()).then(|| {
+                        (info.is_some() || bubble.is_some()).then_some({
                             (
                                 entity, pos, info, bubble, stats, skill_set, health, buffs, scale,
                                 body, hpfl, in_group, dist_sqr, alignment, is_mount,
@@ -2897,7 +2897,7 @@ impl Hud {
                     &info,
                     &self.imgs,
                     &self.fonts,
-                    &*i18n,
+                    i18n,
                     self.pulse,
                     &self.rot_imgs,
                     item_tooltip_manager,
@@ -3038,7 +3038,7 @@ impl Hud {
             &self.item_imgs,
             &self.rot_imgs,
             &self.fonts,
-            &*i18n,
+            i18n,
             &msm,
             item_tooltip_manager,
             self.pulse,

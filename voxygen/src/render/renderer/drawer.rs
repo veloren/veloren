@@ -1133,7 +1133,7 @@ impl<'pass_ref, 'pass: 'pass_ref> UiDrawer<'pass_ref, 'pass> {
         // Note: not actually prepared yet
         // we do this to avoid having to write extra code for the set functions
         let mut prepared = PreparedUiDrawer {
-            render_pass: &mut *self.render_pass,
+            render_pass: &mut self.render_pass,
         };
         // Prepare
         prepared.set_locals(locals);

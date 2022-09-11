@@ -15,7 +15,7 @@ use veloren_world::{
 
 fn good_pricing_csv(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {
     let mut csv = csv::Writer::from_path("good_pricing.csv")?;
-    csv.write_record(&[
+    csv.write_record([
         "Site",
         "XCoord",
         "YCoord",
@@ -39,7 +39,7 @@ fn good_pricing_csv(world: &World, index: &Index) -> Result<(), Box<dyn Error>> 
             if site.do_economic_simulation() {
                 let prices = site.economy.get_site_prices();
                 //println!("{:?}: {:?} {:?}", site.name(), civsite.center, prices);
-                csv.write_record(&[
+                csv.write_record([
                     site.name(),
                     &format!("{}", civsite.center.x),
                     &format!("{}", civsite.center.y),

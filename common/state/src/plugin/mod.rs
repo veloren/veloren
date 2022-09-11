@@ -114,7 +114,7 @@ pub struct PluginMgr {
 
 impl PluginMgr {
     pub fn from_assets() -> Result<Self, PluginError> {
-        let mut assets_path = (&*ASSETS_PATH).clone();
+        let mut assets_path = (*ASSETS_PATH).clone();
         assets_path.push("plugins");
         info!("Searching {:?} for plugins...", assets_path);
         Self::from_dir(assets_path)

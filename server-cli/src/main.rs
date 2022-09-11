@@ -1,6 +1,5 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(bool_to_option)]
 
 #[cfg(target_os = "windows")]
 #[global_allocator]

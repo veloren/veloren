@@ -170,7 +170,7 @@ fn graceful_load_segment_no_skin(specifier: &str) -> Arc<Segment> {
         .map(|mat_cell| match mat_cell {
             MatCell::None => None,
             MatCell::Mat(_) => Some(MatCell::None),
-            MatCell::Normal(data) => data.is_hollow().then(|| MatCell::None),
+            MatCell::Normal(data) => data.is_hollow().then_some(MatCell::None),
         })
         .to_segment(|_| Default::default());
     Arc::new(seg)

@@ -21,7 +21,7 @@ pub const TRADE_INTERACTION_TIME: f32 = 300.0;
 const AWARENESS_DECREMENT_CONSTANT: f32 = 2.1;
 const SECONDS_BEFORE_FORGET_SOUNDS: f64 = 180.0;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Alignment {
     /// Wild animals and gentle giants
     Wild,
@@ -37,7 +37,7 @@ pub enum Alignment {
     Passive,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Mark {
     Merchant,
     Guard,

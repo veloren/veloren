@@ -8,7 +8,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct Data {
     pub is_sneaking: bool,
     // None means unknown

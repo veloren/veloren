@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use specs::Component;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InviteKind {
     Group,
     Trade,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InviteResponse {
     Accept,
     Decline,

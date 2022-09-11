@@ -136,9 +136,9 @@ impl<'a> System<'a> for Sys {
                     &ecs_world,
                     #[cfg(feature = "plugins")]
                     &read_data._plugin_mgr,
-                    &*read_data.editable_settings.admins,
-                    &*read_data.editable_settings.whitelist,
-                    &*read_data.editable_settings.banlist,
+                    &read_data.editable_settings.admins,
+                    &read_data.editable_settings.whitelist,
+                    &read_data.editable_settings.banlist,
                     player_count >= max_players,
                 ) {
                     None => return Ok(()),
@@ -232,11 +232,11 @@ impl<'a> System<'a> for Sys {
                         time_of_day: *read_data.time_of_day,
                         max_group_size: read_data.settings.max_player_group_size,
                         client_timeout: read_data.settings.client_timeout,
-                        world_map: (&*read_data.map).clone(),
+                        world_map: (*read_data.map).clone(),
                         recipe_book: default_recipe_book().cloned(),
                         component_recipe_book: default_component_recipe_book().cloned(),
-                        material_stats: (&*read_data.material_stats).clone(),
-                        ability_map: (&*read_data.ability_map).clone(),
+                        material_stats: (*read_data.material_stats).clone(),
+                        ability_map: (*read_data.ability_map).clone(),
                     })?;
                     debug!("Done initial sync with client.");
 

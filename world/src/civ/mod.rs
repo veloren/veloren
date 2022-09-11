@@ -1233,7 +1233,7 @@ impl fmt::Display for Site {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SiteKind {
     Settlement,
     Dungeon,
@@ -1449,14 +1449,14 @@ impl Site {
     pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct PointOfInterest {
     pub name: String,
     pub kind: PoiKind,
     pub loc: Vec2<i32>,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum PoiKind {
     /// Peak stores the altitude
     Peak(u32),

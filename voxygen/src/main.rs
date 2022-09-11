@@ -1,5 +1,4 @@
 #![deny(unsafe_code)]
-#![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
 mod cli;

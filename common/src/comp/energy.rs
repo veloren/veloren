@@ -66,7 +66,7 @@ impl Energy {
             // NaN does not need to be handled here as rust will automatically change to 0 when casting to u32
             .clamp(0.0, Self::MAX_SCALED_ENERGY as f32) as u32;
 
-        (maximum != self.maximum).then(|| maximum)
+        (maximum != self.maximum).then_some(maximum)
     }
 
     /// Updates the maximum value for energy.

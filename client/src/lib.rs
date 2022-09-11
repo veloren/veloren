@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(label_break_value, option_zip)]
+#![feature(label_break_value, option_zip, bool_to_option)]
 
 pub mod addr;
 pub mod error;
@@ -318,7 +318,7 @@ impl Client {
                 server_info.git_hash,
                 server_info.git_date,
                 common::util::GIT_HASH.to_string(),
-                common::util::GIT_DATE.to_string(),
+                *common::util::GIT_DATE,
             );
         }
         // Pass the server info back to the caller to ensure they can access it even
@@ -2568,7 +2568,7 @@ impl Client {
     pub fn players(&self) -> impl Iterator<Item = &str> {
         self.player_list()
             .values()
-            .filter_map(|player_info| player_info.is_online.then(|| &*player_info.player_alias))
+            .filter_map(|player_info| player_info.is_online.then_some(&*player_info.player_alias))
     }
 
     /// Return true if this client is a moderator on the server

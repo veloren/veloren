@@ -15,13 +15,13 @@ make_proj_elim!(
 impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
-        let species = *(&ALL_SPECIES).choose(&mut rng).unwrap();
+        let species = *ALL_SPECIES.choose(&mut rng).unwrap();
         Self::random_with(&mut rng, &species)
     }
 
     #[inline]
     pub fn random_with(rng: &mut impl rand::Rng, &species: &Species) -> Self {
-        let body_type = *(&ALL_BODY_TYPES).choose(rng).unwrap();
+        let body_type = *ALL_BODY_TYPES.choose(rng).unwrap();
         Self { species, body_type }
     }
 }

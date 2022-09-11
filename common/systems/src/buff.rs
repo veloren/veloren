@@ -212,7 +212,7 @@ impl<'a> System<'a> for Sys {
             for (kind, ids) in buff_comp_kinds.iter() {
                 if kind.queues() {
                     if let Some((Some(buff), id)) =
-                        ids.get(0).map(|id| (buff_comp_buffs.get_mut(id), id))
+                        ids.first().map(|id| (buff_comp_buffs.get_mut(id), id))
                     {
                         tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
                     }
@@ -262,7 +262,7 @@ impl<'a> System<'a> for Sys {
                             buff.kind,
                             buff.time,
                             &read_data,
-                            &mut *stat,
+                            &mut stat,
                             health,
                             energy,
                             entity,

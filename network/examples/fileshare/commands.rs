@@ -22,7 +22,7 @@ pub enum Command {
     Get(u32),
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct FileInfo {
     id: u32,
     pub path: String,

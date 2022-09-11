@@ -422,7 +422,7 @@ impl PartialEq for Buff {
 }
 
 /// Source of the de/buff
-#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum BuffSource {
     /// Applied by a character
     Character { by: Uid },
@@ -505,7 +505,7 @@ impl Buffs {
         self.kinds
             .get(&kind)
             .map(|ids| ids.iter())
-            .unwrap_or_else(|| (&[]).iter())
+            .unwrap_or_else(|| [].iter())
             .map(move |id| (*id, &self.buffs[id]))
     }
 

@@ -254,7 +254,7 @@ impl Renderer {
 
                 let full_name = format!("#{} {} {:?}", i, info.name, info.device_type,);
 
-                full_name.contains(&filter).then(|| adapter)
+                full_name.contains(&filter).then_some(adapter)
             }),
             Some(_) | None => {
                 runtime.block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
@@ -504,7 +504,7 @@ impl Renderer {
 
         #[cfg(feature = "egui-ui")]
         let egui_renderpass =
-            egui_wgpu_backend::RenderPass::new(&*device, TextureFormat::Bgra8UnormSrgb, 1);
+            egui_wgpu_backend::RenderPass::new(&device, TextureFormat::Bgra8UnormSrgb, 1);
 
         Ok(Self {
             device,

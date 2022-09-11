@@ -8,7 +8,7 @@ pub enum CalendarEvent {
     Christmas = 0,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Calendar {
     events: Vec<CalendarEvent>,
 }

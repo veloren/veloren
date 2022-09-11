@@ -393,7 +393,7 @@ impl<'a> System<'a> for Sys {
 
             let outcomes = outcomes
                 .iter()
-                .filter(|o| o.get_pos().and_then(&is_near).unwrap_or(true))
+                .filter(|o| o.get_pos().and_then(is_near).unwrap_or(true))
                 .cloned()
                 .collect::<Vec<_>>();
 

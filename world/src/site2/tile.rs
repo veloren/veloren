@@ -239,14 +239,14 @@ pub enum HazardKind {
     Hill { gradient: f32 },
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum KeepKind {
     Middle,
     Corner,
     Wall(Dir),
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum RoofKind {
     Parapet,
     Pyramid,

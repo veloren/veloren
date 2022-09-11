@@ -28,7 +28,7 @@ pub enum ClientMsg {
 2nd Level Enums
 */
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ClientType {
     /// Regular Client like Voxygen who plays the game
     Game,
@@ -39,7 +39,7 @@ pub enum ClientType {
     Bot { privileged: bool },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ClientRegister {
     pub token_or_username: String,
 }

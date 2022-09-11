@@ -47,7 +47,7 @@ widget_ids! {
 const RESET_BUTTONS_HEIGHT: f64 = 34.0;
 const RESET_BUTTONS_WIDTH: f64 = 155.0;
 
-#[derive(Debug, EnumIter, PartialEq)]
+#[derive(Debug, EnumIter, PartialEq, Eq)]
 pub enum SettingsTab {
     Interface,
     Chat,

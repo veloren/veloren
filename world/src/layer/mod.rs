@@ -96,7 +96,7 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
             let surface_z = (riverless_alt + bridge_offset).floor() as i32;
 
             for z in inset - depth..inset {
-                let _ = canvas.set(
+                canvas.set(
                     Vec3::new(wpos2d.x, wpos2d.y, surface_z + z),
                     if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
                         Block::new(
@@ -114,7 +114,7 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
             for z in inset..inset + head_space {
                 let pos = Vec3::new(wpos2d.x, wpos2d.y, surface_z + z);
                 if canvas.get(pos).kind() != BlockKind::Water {
-                    let _ = canvas.set(pos, EMPTY_AIR);
+                    canvas.set(pos, EMPTY_AIR);
                 }
             }
         }
@@ -653,7 +653,7 @@ pub fn apply_coral_to(canvas: &mut Canvas) {
             });
 
             if is_coral {
-                let _ = canvas.set(wpos, Block::new(BlockKind::Rock, Rgb::new(170, 220, 210)));
+                canvas.set(wpos, Block::new(BlockKind::Rock, Rgb::new(170, 220, 210)));
             }
         }
     });
@@ -1042,7 +1042,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 block
             };
 
-            let _ = canvas.set(wpos, block);
+            canvas.set(wpos, block);
         }
     });
 }

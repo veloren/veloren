@@ -10,7 +10,7 @@ pub type CharacterId = i64;
 pub const MAX_NAME_LENGTH: usize = 20;
 
 /// The minimum character data we need to create a new character on the server.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Character {
     pub id: Option<CharacterId>,
     pub alias: String,

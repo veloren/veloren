@@ -38,7 +38,7 @@ pub struct GroupInfo {
     pub name: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Role {
     Member,
     Pet,
@@ -504,7 +504,7 @@ impl GroupManager {
         self.groups[group.0 as usize].leader = new_leader;
 
         // Point to new leader
-        members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| match role {
+        members(group, groups, entities, alignments, uids).for_each(|(e, role)| match role {
             Role::Member => notifier(e, ChangeNotification::NewLeader(new_leader)),
             Role::Pet => {},
         });

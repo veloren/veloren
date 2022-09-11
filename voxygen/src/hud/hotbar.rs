@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::HudInfo;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Slot {
     One = 0,
     Two = 1,
@@ -20,7 +20,7 @@ pub enum Slot {
     Ten = 9,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum SlotContents {
     Inventory(u64, ItemKey),
     Ability(usize),

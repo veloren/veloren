@@ -191,7 +191,7 @@ impl Recipe {
             for (inv_slot_id, slot) in inv.slots_with_id() {
                 if let Some(item) = slot
                     .as_ref()
-                    .filter(|item| item.matches_recipe_input(&*input, amount))
+                    .filter(|item| item.matches_recipe_input(input, amount))
                 {
                     *input_max.entry(inv_slot_id).or_insert(0) += item.amount();
                 }
@@ -241,7 +241,7 @@ fn inventory_contains_ingredients<'a, I: Iterator<Item = (&'a RecipeInput, u32)>
         for (inv_slot_id, slot) in inv.slots_with_id() {
             if let Some(item) = slot
                 .as_ref()
-                .filter(|item| item.matches_recipe_input(&*input, amount))
+                .filter(|item| item.matches_recipe_input(input, amount))
             {
                 let claim = slot_claims.entry(inv_slot_id).or_insert(0);
                 slots.push((i as u32, inv_slot_id));

@@ -1362,7 +1362,7 @@ impl WorldSim {
                 threadpool,
             )
         };
-        let flux_old = get_multi_drainage(map_size_lg, &mstack, &mrec, &*mwrec, boundary_len);
+        let flux_old = get_multi_drainage(map_size_lg, &mstack, &mrec, &mwrec, boundary_len);
         // let flux_rivers = get_drainage(map_size_lg, &water_alt_pos, &dh,
         // boundary_len); TODO: Make rivers work with multi-direction flux as
         // well.

@@ -557,7 +557,7 @@ impl<'a> AgentData<'a> {
         tgt_pos: &Pos,
     ) {
         if let Some((bearing, speed)) = agent.chaser.chase(
-            &*terrain,
+            terrain,
             self.pos.0,
             self.vel.0,
             tgt_pos.0,
@@ -666,7 +666,7 @@ impl<'a> AgentData<'a> {
         }
 
         if let Some((bearing, speed)) = agent.chaser.chase(
-            &*terrain,
+            terrain,
             self.pos.0,
             self.vel.0,
             // Away from the target (ironically)

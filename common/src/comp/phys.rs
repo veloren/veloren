@@ -156,14 +156,14 @@ impl Component for Collider {
     type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }
 
-#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Sticky;
 
 impl Component for Sticky {
     type Storage = DerefFlaggedStorage<Self, NullStorage<Self>>;
 }
 
-#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Immovable;
 
 impl Component for Immovable {
@@ -213,7 +213,7 @@ impl Component for PhysicsState {
 
 /// Used to forcefully update the position, velocity, and orientation of the
 /// client
-#[derive(Copy, Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ForceUpdate {
     flag: bool,
     counter: u64,

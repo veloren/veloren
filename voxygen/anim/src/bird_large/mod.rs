@@ -276,24 +276,24 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (WealdWyvern, _) => (0.5, 0.0, -3.5),
             },
             scaler: match (body.species, body.body_type) {
-                (Phoenix, _) => (1.0),
-                (Cockatrice, _) => (1.0),
-                (Roc, _) => (1.0),
+                (Phoenix, _) => 1.0,
+                (Cockatrice, _) => 1.0,
+                (Roc, _) => 1.0,
                 (FlameWyvern, _)
                 | (CloudWyvern, _)
                 | (FrostWyvern, _)
                 | (SeaWyvern, _)
-                | (WealdWyvern, _) => (1.0),
+                | (WealdWyvern, _) => 1.0,
             },
             feed: match (body.species, body.body_type) {
-                (Phoenix, _) => (-0.65),
-                (Cockatrice, _) => (-0.5),
-                (Roc, _) => (-0.4),
+                (Phoenix, _) => -0.65,
+                (Cockatrice, _) => -0.5,
+                (Roc, _) => -0.4,
                 (FlameWyvern, _)
                 | (CloudWyvern, _)
                 | (FrostWyvern, _)
                 | (SeaWyvern, _)
-                | (WealdWyvern, _) => (-0.65),
+                | (WealdWyvern, _) => -0.65,
             },
             wyvern: matches!(
                 (body.species, body.body_type),

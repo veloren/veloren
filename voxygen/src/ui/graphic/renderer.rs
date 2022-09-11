@@ -78,7 +78,7 @@ impl euc::Interpolate for VsOut {
     }
 }
 
-impl<'a> Pipeline for Voxel {
+impl Pipeline for Voxel {
     type Pixel = [u8; 4];
     type Vertex = Vert;
     type VsOut = VsOut;

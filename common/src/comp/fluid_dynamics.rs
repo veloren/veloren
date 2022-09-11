@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LiquidKind {
     Water,
     Lava,

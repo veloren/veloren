@@ -395,7 +395,7 @@ impl SettingsChange {
                         session_state
                             .scene
                             .camera_mut()
-                            .compute_dependents(&*session_state.client.borrow().state().terrain());
+                            .compute_dependents(&session_state.client.borrow().state().terrain());
                     },
                     Graphics::ChangeGamma(new_gamma) => {
                         settings.graphics.gamma = new_gamma;
@@ -411,7 +411,7 @@ impl SettingsChange {
                         global_state
                             .window
                             .renderer_mut()
-                            .set_render_mode((&*new_render_mode).clone())
+                            .set_render_mode((*new_render_mode).clone())
                             .unwrap();
                         settings.graphics.render_mode = *new_render_mode;
                     },
@@ -441,7 +441,7 @@ impl SettingsChange {
                         session_state
                             .scene
                             .camera_mut()
-                            .compute_dependents(&*session_state.client.borrow().state().terrain());
+                            .compute_dependents(&session_state.client.borrow().state().terrain());
                         // LoD
                         session_state.scene.lod.set_detail(graphics.lod_detail);
                         // Render mode

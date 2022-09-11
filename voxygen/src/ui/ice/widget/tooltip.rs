@@ -124,7 +124,7 @@ impl TooltipManager {
     fn showing(&self, aabr: Aabr<i32>) -> Option<(Point, f32)> {
         match self.state {
             State::Idle | State::Start(_) => None,
-            State::Showing(show) => (show.aabr == aabr).then(|| {
+            State::Showing(show) => (show.aabr == aabr).then_some({
                 (
                     Point {
                         x: show.hover_pos.x as f32,

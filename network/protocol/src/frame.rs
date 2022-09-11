@@ -14,7 +14,7 @@ const FRAME_RAW: u8 = 8;
 //const FRAME_RESERVED_3: u8 = 13;
 
 /// Used for Communication between Channel <----(TCP/UDP)----> Channel
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum InitFrame {
     Handshake {
         magic_number: [u8; 7],
@@ -30,7 +30,7 @@ pub enum InitFrame {
 }
 
 /// Used for OUT TCP Communication between Channel --(TCP)--> Channel
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum OTFrame {
     Shutdown, /* Shutdown this channel gracefully, if all channels are shutdown (gracefully),
                * Participant is deleted */
@@ -55,7 +55,7 @@ pub enum OTFrame {
 }
 
 /// Used for IN TCP Communication between Channel <--(TCP)-- Channel
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ITFrame {
     Shutdown, /* Shutdown this channel gracefully, if all channels are shutdown (gracefully),
                * Participant is deleted */
@@ -113,7 +113,7 @@ impl InitFrame {
     }
 
     pub(crate) fn read_frame(bytes: &mut BytesMut) -> Option<Self> {
-        let frame_no = match bytes.get(0) {
+        let frame_no = match bytes.first() {
             Some(&f) => f,
             None => return None,
         };
@@ -454,7 +454,7 @@ mod tests {
             magic_number: VELOREN_MAGIC_NUMBER,
             version: VELOREN_NETWORK_VERSION,
         };
-        let _ = InitFrame::write_bytes(frame1, &mut buffer);
+        InitFrame::write_bytes(frame1, &mut buffer);
         buffer.truncate(6); // simulate partial retrieve
         let frame1d = InitFrame::read_frame(&mut buffer);
         assert_eq!(frame1d, None);
@@ -474,7 +474,7 @@ mod tests {
         let mut buffer = BytesMut::with_capacity(50);
 
         let frame1 = InitFrame::Raw(b"foobar".to_vec());
-        let _ = InitFrame::write_bytes(frame1.clone(), &mut buffer);
+        InitFrame::write_bytes(frame1.clone(), &mut buffer);
         buffer[1] = 255;
         let framed = InitFrame::read_frame(&mut buffer);
         assert_eq!(framed, Some(frame1));
@@ -485,7 +485,7 @@ mod tests {
         let mut buffer = BytesMut::with_capacity(50);
 
         let frame1 = InitFrame::Raw(b"foobar".to_vec());
-        let _ = InitFrame::write_bytes(frame1, &mut buffer);
+        InitFrame::write_bytes(frame1, &mut buffer);
         buffer[1] = 3;
         let framed = InitFrame::read_frame(&mut buffer);
         // we accept a different frame here, as it's RAW and debug only!

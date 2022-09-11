@@ -14,7 +14,7 @@ pub struct Fader {
 }
 /// Enables quick lookup of whether a fader is increasing or decreasing the
 /// channel volume
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum FadeDirection {
     In,
     Out,

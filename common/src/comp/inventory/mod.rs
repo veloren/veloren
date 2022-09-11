@@ -559,7 +559,7 @@ impl Inventory {
     #[must_use = "Returned items will be lost if not used"]
     pub fn equip(&mut self, inv_slot: InvSlotId) -> Vec<Item> {
         self.get(inv_slot)
-            .and_then(|item| self.loadout.get_slot_to_equip_into(&*item.kind()))
+            .and_then(|item| self.loadout.get_slot_to_equip_into(&item.kind()))
             .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot))
             .unwrap_or_else(Vec::new)
     }
@@ -570,7 +570,7 @@ impl Inventory {
     pub fn free_after_equip(&self, inv_slot: InvSlotId) -> i32 {
         let (inv_slot_for_equipped, slots_from_equipped) = self
             .get(inv_slot)
-            .and_then(|item| self.loadout.get_slot_to_equip_into(&*item.kind()))
+            .and_then(|item| self.loadout.get_slot_to_equip_into(&item.kind()))
             .and_then(|equip_slot| self.equipped(equip_slot))
             .map_or((1, 0), |item| (0, item.slots().len()));
 

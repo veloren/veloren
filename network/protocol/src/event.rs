@@ -9,7 +9,7 @@ use bytes::Bytes;
 /// [`SendProtocol`]: crate::SendProtocol
 /// [`RecvProtocol`]: crate::RecvProtocol
 #[derive(Debug, Clone)]
-#[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(test, derive(PartialEq, Eq))]
 pub enum ProtocolEvent {
     Shutdown,
     OpenStream {

@@ -39,7 +39,7 @@ impl ChatCommandData {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub enum KitSpec {
     Item(String),
     ModularWeapon {
@@ -47,7 +47,7 @@ pub enum KitSpec {
         material: comp::item::Material,
     },
 }
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct KitManifest(pub HashMap<String, Vec<(KitSpec, u32)>>);
 impl assets::Asset for KitManifest {
     type Loader = assets::RonLoader;
@@ -55,7 +55,7 @@ impl assets::Asset for KitManifest {
     const EXTENSION: &'static str = "ron";
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct SkillPresetManifest(pub HashMap<String, Vec<(Skill, u8)>>);
 impl assets::Asset for SkillPresetManifest {
     type Loader = assets::RonLoader;
@@ -875,7 +875,7 @@ impl FromStr for ServerChatCommand {
         .filter_map(|c| c.short_keyword().map(|s| (s, c)))
         .chain(Self::iter().map(|c| (c.keyword(), c)))
             // Find command with matching string as keyword
-            .find_map(|(kwd, command)| (kwd == keyword).then(|| command))
+            .find_map(|(kwd, command)| (kwd == keyword).then_some(command))
             // Return error if not found
             .ok_or(())
     }

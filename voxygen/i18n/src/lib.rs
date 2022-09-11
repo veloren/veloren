@@ -165,7 +165,7 @@ impl assets::Compound for Language {
         for id in cache.load_dir::<raw::Resource>(path, true)?.ids() {
             match cache.load(id) {
                 Ok(handle) => {
-                    let source: &raw::Resource = &*handle.read();
+                    let source: &raw::Resource = &handle.read();
                     let src = source.src.clone();
 
                     // NOTE:

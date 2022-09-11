@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 use tracing::{trace, warn};
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TradePhase {
     Mutate,
     Review,
@@ -22,7 +22,7 @@ pub enum TradePhase {
 /// Clients submit `TradeAction` to the server, which adds the Uid of the
 /// player out-of-band (i.e. without trusting the client to say who it's
 /// accepting on behalf of)
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TradeAction {
     AddItem {
         item: InvSlotId,
@@ -41,7 +41,7 @@ pub enum TradeAction {
     Decline,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TradeResult {
     Completed,
     Declined,
@@ -73,7 +73,7 @@ pub enum TradeResult {
 /// trading currently-equipped items (since `EquipSlot`s are disjoint from
 /// `InvSlotId`s), which avoids the issues associated with trading equipped bags
 /// that may still have contents.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PendingTrade {
     /// `parties[0]` is the entity that initiated the trade, parties[1] is the
     /// other entity that's being traded with
@@ -239,7 +239,7 @@ impl Trades {
                         None => return,
                     }
                 }
-                trade.process_trade_action(party, action, &*inventories);
+                trade.process_trade_action(party, action, &inventories);
             } else {
                 warn!(
                     "An entity who is not a party to trade {:?} tried to modify it",

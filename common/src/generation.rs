@@ -12,14 +12,14 @@ use crate::{
 use serde::Deserialize;
 use vek::*;
 
-#[derive(Debug, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub enum NameKind {
     Name(String),
     Automatic,
     Uninit,
 }
 
-#[derive(Debug, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub enum BodyBuilder {
     RandomWith(String),
     Exact(Body),

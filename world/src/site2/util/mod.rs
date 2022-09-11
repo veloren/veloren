@@ -4,7 +4,7 @@ use rand::Rng;
 use vek::*;
 
 /// A 2d direction.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Dir {
     X,
     Y,

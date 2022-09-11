@@ -106,7 +106,7 @@ make_case_elim!(
 impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
-        *(&ALL_OBJECTS).choose(&mut rng).unwrap()
+        *ALL_OBJECTS.choose(&mut rng).unwrap()
     }
 }
 

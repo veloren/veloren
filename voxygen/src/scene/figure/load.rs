@@ -4896,7 +4896,7 @@ impl ItemDropCentralSpec {
                         .map(|mat_cell| match mat_cell {
                             MatCell::None => None,
                             MatCell::Mat(_) => Some(MatCell::None),
-                            MatCell::Normal(data) => data.is_hollow().then(|| MatCell::None),
+                            MatCell::Normal(data) => data.is_hollow().then_some(MatCell::None),
                         })
                         .to_segment(|_| Default::default())
                 },

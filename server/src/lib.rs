@@ -490,7 +490,7 @@ impl Server {
                     use std::fs;
 
                     match || -> Result<_, Box<dyn std::error::Error>> {
-                        let key = fs::read(&key_file_path)?;
+                        let key = fs::read(key_file_path)?;
                         let key = if key_file_path.extension().map_or(false, |x| x == "der") {
                             rustls::PrivateKey(key)
                         } else {
@@ -506,7 +506,7 @@ impl Server {
                                 .ok_or("No valid pem key in file")?;
                             rustls::PrivateKey(key)
                         };
-                        let cert_chain = fs::read(&cert_file_path)?;
+                        let cert_chain = fs::read(cert_file_path)?;
                         let cert_chain = if cert_file_path.extension().map_or(false, |x| x == "der")
                         {
                             vec![rustls::Certificate(cert_chain)]
@@ -585,7 +585,7 @@ impl Server {
         let editable_settings = self.state.ecs().fetch::<EditableSettings>();
         ServerInfo {
             name: settings.server_name.clone(),
-            description: (&*editable_settings.server_description).clone(),
+            description: (*editable_settings.server_description).clone(),
             git_hash: common::util::GIT_HASH.to_string(),
             git_date: common::util::GIT_DATE.to_string(),
             auth_provider: settings.auth_server_address.clone(),
