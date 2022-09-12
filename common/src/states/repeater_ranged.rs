@@ -84,7 +84,7 @@ impl CharacterBehavior for Data {
                             .unwrap_or_default(),
                         ..*self
                     });
-                } else if input_is_pressed(data, self.static_data.ability_info.input)
+                } else if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
                     && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Fire if input is pressed still

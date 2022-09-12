@@ -81,7 +81,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        auto_charge: !input_is_pressed(data, self.static_data.ability_info.input),
+                        auto_charge: !self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)),
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self
@@ -90,7 +90,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Charge => {
                 if self.timer < self.charge_end_timer
-                    && (input_is_pressed(data, self.static_data.ability_info.input)
+                    && (self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0.0
                 {

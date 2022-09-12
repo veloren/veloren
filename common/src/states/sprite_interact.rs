@@ -29,6 +29,8 @@ pub struct StaticData {
     pub was_wielded: bool,
     /// Was sneaking
     pub was_sneak: bool,
+    /// Miscellaneous information about the ability
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

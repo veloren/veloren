@@ -96,7 +96,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Action => {
-                if input_is_pressed(data, self.static_data.ability_info.input)
+                if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
                     && (self.static_data.energy_drain <= f32::EPSILON
                         || update.energy.current() > 0.0)
                 {

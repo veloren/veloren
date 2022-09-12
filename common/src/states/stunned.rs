@@ -19,6 +19,8 @@ pub struct StaticData {
     pub movement_speed: f32,
     /// Poise state (used for determining animation in the client)
     pub poise_state: PoiseState,
+    /// Miscellaneous information about the ability
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

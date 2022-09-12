@@ -118,7 +118,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if input_is_pressed(data, self.static_data.ability_info.input) {
+                    if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
                         reset_state(self, data, output_events, &mut update);
                     } else {
                         end_ability(data, &mut update);
@@ -146,10 +146,12 @@ fn reset_state(
     output_events: &mut OutputEvents,
     update: &mut StateUpdate,
 ) {
-    handle_input(
-        join,
-        output_events,
-        update,
-        data.static_data.ability_info.input,
-    );
+    if let Some(input) = data.static_data.ability_info.input {
+        handle_input(
+            join,
+            output_events,
+            update,
+            input,
+        );
+    }
 }

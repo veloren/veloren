@@ -806,8 +806,9 @@ pub fn handle_manipulate_loadout(
                         inv_slot,
                         item_kind,
                         item_hash: item.item_hash(),
-                        was_wielded: matches!(data.character, CharacterState::Wielding(_)),
+                        was_wielded: data.character.is_wield(),
                         was_sneak: data.character.is_stealthy(),
+                        ability_info: AbilityInfo::from_forced_state_change(data.character),
                     },
                     timer: Duration::default(),
                     stage_section: StageSection::Buildup,
@@ -910,8 +911,9 @@ pub fn handle_manipulate_loadout(
                                 recover_duration,
                                 sprite_pos,
                                 sprite_kind: sprite_interact,
-                                was_wielded: matches!(data.character, CharacterState::Wielding(_)),
+                                was_wielded: data.character.is_wield(),
                                 was_sneak: data.character.is_stealthy(),
+                                ability_info: AbilityInfo::from_forced_state_change(data.character),
                             },
                             timer: Duration::default(),
                             stage_section: StageSection::Buildup,
@@ -1060,7 +1062,7 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
             ));
             if let CharacterState::Roll(roll) = &mut update.character {
                 if let CharacterState::ComboMelee(c) = data.character {
-                    roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
+                    roll.was_combo = c.static_data.ability_info.input.map(|input| (input, c.stage));
                     roll.was_wielded = true;
                 } else {
                     if data.character.is_wield() {
@@ -1085,7 +1087,7 @@ pub fn handle_interrupts(
     // Check that the input used to enter current character state (if there was one)
     // is not pressed
     if input_override
-        .or_else(|| data.character.ability_info().map(|a| a.input))
+        .or_else(|| data.character.ability_info().and_then(|a| a.input))
         .map_or(true, |input| !input_is_pressed(data, input))
     {
         let can_dodge = {
@@ -1095,16 +1097,14 @@ pub fn handle_interrupts(
                 .map_or(true, |stage_section| {
                     matches!(stage_section, StageSection::Buildup)
                 });
-            let interruptible = data.character.ability_info().map_or(false, |info| {
-                info.ability_meta
-                    .capabilities
+            let interruptible = data.character.ability_info().and_then(|info| info.ability_meta).map_or(false, |meta| {
+                meta.capabilities
                     .contains(Capability::ROLL_INTERRUPT)
             });
             in_buildup || interruptible
         };
-        let can_block = data.character.ability_info().map_or(false, |info| {
-            info.ability_meta
-                .capabilities
+        let can_block = data.character.ability_info().and_then(|info| info.ability_meta).map_or(false, |meta| {
+            meta.capabilities
                 .contains(Capability::BLOCK_INTERRUPT)
         });
         if can_dodge {
@@ -1281,12 +1281,13 @@ impl MovementDirection {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct AbilityInfo {
     pub tool: Option<ToolKind>,
     pub hand: Option<HandInfo>,
-    pub input: InputKind,
+    pub input: Option<InputKind>,
     pub input_attr: Option<InputAttr>,
-    pub ability_meta: AbilityMeta,
+    pub ability_meta: Option<AbilityMeta>,
     pub ability: Option<Ability>,
     pub return_ability: Option<InputKind>,
 }
@@ -1314,7 +1315,7 @@ impl AbilityInfo {
             .map(|(i, a)| a.get_ability(i, data.inventory, Some(data.skill_set)));
 
         let return_ability = if data.character.should_be_returned_to() {
-            data.character.ability_info().map(|info| info.input)
+            data.character.ability_info().and_then(|info| info.input)
         } else {
             None
         };
@@ -1322,10 +1323,28 @@ impl AbilityInfo {
         Self {
             tool,
             hand,
-            input,
+            input: Some(input),
             input_attr: data.controller.queued_inputs.get(&input).copied(),
-            ability_meta,
+            ability_meta: Some(ability_meta),
             ability,
+            return_ability,
+        }
+    }
+
+    pub fn from_forced_state_change(char_state: &CharacterState) -> Self {
+        let return_ability = if char_state.should_be_returned_to() {
+            char_state.ability_info().and_then(|info| info.input)
+        } else {
+            None
+        };
+
+        Self {
+            tool: None,
+            hand: None,
+            input: None,
+            input_attr: None,
+            ability_meta: None,
+            ability: None,
             return_ability,
         }
     }

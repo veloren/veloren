@@ -250,7 +250,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     {
                         match buff.kind {
                             BuffIconKind::Buff { kind, .. } => event.push(Event::RemoveBuff(kind)),
-                            BuffIconKind::Ability { .. } => todo!(),
+                            BuffIconKind::Ability { .. } => {},
                         }
                     };
                 });
@@ -413,7 +413,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     {
                         match buff.kind {
                             BuffIconKind::Buff { kind, .. } => event.push(Event::RemoveBuff(kind)),
-                            BuffIconKind::Ability { .. } => todo!(),
+                            BuffIconKind::Ability { .. } => {},
                         }
                     }
                     Text::new(&remaining_time)

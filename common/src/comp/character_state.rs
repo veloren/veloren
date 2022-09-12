@@ -281,13 +281,16 @@ impl CharacterState {
     }
 
     pub fn is_parry(&self) -> bool {
-        let from_capability =
-            if let Some(capabilities) = self.ability_info().map(|a| a.ability_meta.capabilities) {
-                capabilities.contains(Capability::BUILDUP_PARRIES)
-                    && matches!(self.stage_section(), Some(StageSection::Buildup))
-            } else {
-                false
-            };
+        let from_capability = if let Some(capabilities) = self
+            .ability_info()
+            .and_then(|a| a.ability_meta)
+            .map(|m| m.capabilities)
+        {
+            capabilities.contains(Capability::BUILDUP_PARRIES)
+                && matches!(self.stage_section(), Some(StageSection::Buildup))
+        } else {
+            false
+        };
         let from_state = match self {
             CharacterState::BasicBlock(c) => c.is_parry(),
             CharacterState::RiposteMelee(c) => matches!(c.stage_section, StageSection::Buildup),
@@ -503,7 +506,7 @@ impl CharacterState {
             CharacterState::Skate(_) => None,
             CharacterState::Glide(_) => None,
             CharacterState::GlideWield(_) => None,
-            CharacterState::Stunned(_) => None,
+            CharacterState::Stunned(data) => Some(data.static_data.ability_info),
             CharacterState::Sit => None,
             CharacterState::Dance => None,
             CharacterState::BasicBlock(data) => Some(data.static_data.ability_info),
@@ -528,8 +531,8 @@ impl CharacterState {
             CharacterState::BasicSummon(data) => Some(data.static_data.ability_info),
             CharacterState::SelfBuff(data) => Some(data.static_data.ability_info),
             CharacterState::SpriteSummon(data) => Some(data.static_data.ability_info),
-            CharacterState::UseItem(_) => None,
-            CharacterState::SpriteInteract(_) => None,
+            CharacterState::UseItem(data) => Some(data.static_data.ability_info),
+            CharacterState::SpriteInteract(data) => Some(data.static_data.ability_info),
             CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Music(data) => Some(data.static_data.ability_info),
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),

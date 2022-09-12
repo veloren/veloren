@@ -26,7 +26,7 @@ use common::{
     outcome::{HealthChangeInfo, Outcome},
     resources::Time,
     rtsim::RtSimEntity,
-    states::utils::StageSection,
+    states::utils::{AbilityInfo, StageSection},
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -1324,8 +1324,9 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
         ) {
             let poise_state = comp::poise::PoiseState::Interrupted;
             let was_wielded = char_state.is_wield();
+            let ability_info = AbilityInfo::from_forced_state_change(&char_state);
             if let (Some((stunned_state, stunned_duration)), impulse_strength) =
-                poise_state.poise_effect(was_wielded)
+                poise_state.poise_effect(was_wielded, ability_info)
             {
                 // Reset poise if there is some stunned state to apply
                 poise.reset(*time, stunned_duration);

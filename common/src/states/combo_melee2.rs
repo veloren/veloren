@@ -1,11 +1,11 @@
 use crate::{
     comp::{
         character_state::OutputEvents, tool::Stats, CharacterState, InputKind, Melee,
-        MeleeConstructor, StateUpdate, InputAttr
+        MeleeConstructor, StateUpdate, InputAttr, InventoryAction, slot::{Slot, EquipSlot},
     },
     states::{
         behavior::{CharacterBehavior, JoinData},
-        utils::*,
+        utils::*, idle, wielding,
     },
     uid::Uid,
 };
@@ -116,7 +116,7 @@ impl CharacterBehavior for Data {
         let ability_input = if self.static_data.is_stance {
             InputKind::Primary
         } else {
-            self.static_data.ability_info.input
+            self.static_data.ability_info.input.unwrap_or(InputKind::Primary)
         };
 
         handle_orientation(data, &mut update, 1.0, None);
@@ -237,7 +237,7 @@ impl CharacterBehavior for Data {
 
                 if input_is_pressed(data, ability_input) {
                     next_strike(&mut update)
-                } else if !input_is_pressed(data, self.static_data.ability_info.input) {
+                } else if !self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
                     attempt_input(data, output_events, &mut update);
                 }
             },
@@ -255,13 +255,104 @@ impl CharacterBehavior for Data {
     ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        if matches!(data.character, CharacterState::ComboMelee2(data) if data.static_data.ability_info.input == input && input != InputKind::Primary && data.stage_section.is_none()) {
+        if matches!(data.character, CharacterState::ComboMelee2(data) if data.static_data.ability_info.input == Some(input) && input != InputKind::Primary && data.stage_section.is_none()) {
             end_ability(data, &mut update);
         } else {
             update.queued_inputs.insert(input, InputAttr {
                 select_pos,
                 target_entity,
             });
+        }
+        update
+    }
+
+    fn swap_equipped_weapons(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if let CharacterState::ComboMelee2(c) = data.character {
+            if c.stage_section.is_none() {
+                update.character =
+                    CharacterState::Wielding(wielding::Data { is_sneaking: data.character.is_stealthy() });
+                attempt_swap_equipped_weapons(data, &mut update);
+            }
+        }
+        update
+    }
+
+    fn unwield(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if let CharacterState::ComboMelee2(c) = data.character {
+            if c.stage_section.is_none() {
+                update.character = CharacterState::Idle(idle::Data {
+                    is_sneaking: data.character.is_stealthy(),
+                    footwear: None,
+                });
+            }
+        }
+        update
+    }
+
+    fn manipulate_loadout(
+        &self,
+        data: &JoinData,
+        output_events: &mut OutputEvents,
+        inv_action: InventoryAction,
+    ) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if let CharacterState::ComboMelee2(c) = data.character {
+            if c.stage_section.is_none() {
+                match inv_action {
+                    InventoryAction::Drop(slot)
+                    | InventoryAction::Swap(slot, _)
+                    | InventoryAction::Swap(_, Slot::Equip(slot)) if matches!(slot, EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand) => {
+                        update.character = CharacterState::Idle(idle::Data {
+                            is_sneaking: data.character.is_stealthy(),
+                            footwear: None,
+                        });
+                    },
+                    _ => (),
+                }
+                handle_manipulate_loadout(data, output_events, &mut update, inv_action);
+            }
+        }
+        update
+    }
+
+    fn glide_wield(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if let CharacterState::ComboMelee2(c) = data.character {
+            if c.stage_section.is_none() {
+                attempt_glide_wield(data, &mut update, output_events);
+            }
+        }
+        update
+    }
+
+    fn sit(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if let CharacterState::ComboMelee2(c) = data.character {
+            if c.stage_section.is_none() {
+                attempt_sit(data, &mut update);
+            }
+        }
+        update
+    }
+
+    fn dance(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if let CharacterState::ComboMelee2(c) = data.character {
+            if c.stage_section.is_none() {
+                attempt_dance(data, &mut update);
+            }
+        }
+        update
+    }
+
+    fn sneak(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if let CharacterState::ComboMelee2(c) = data.character {
+            if c.stage_section.is_none() && data.physics.on_ground.is_some() && data.body.is_humanoid() {
+                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: true });
+            }
         }
         update
     }

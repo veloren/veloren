@@ -78,7 +78,11 @@ pub enum PoiseState {
 impl PoiseState {
     /// Returns the optional stunned character state and duration of stun, and
     /// optional impulse strength corresponding to a particular poise state
-    pub fn poise_effect(&self, was_wielded: bool) -> (Option<(CharacterState, f64)>, Option<f32>) {
+    pub fn poise_effect(
+        &self,
+        was_wielded: bool,
+        ability_info: states::utils::AbilityInfo,
+    ) -> (Option<(CharacterState, f64)>, Option<f32>) {
         use states::{
             stunned::{Data, StaticData},
             utils::StageSection,
@@ -113,6 +117,7 @@ impl PoiseState {
                             recover_duration,
                             movement_speed,
                             poise_state: *self,
+                            ability_info,
                         },
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
@@ -262,10 +267,9 @@ impl Poise {
         let from_char = {
             let resistant = char_state
                 .and_then(|cs| cs.ability_info())
+                .and_then(|a| a.ability_meta)
                 .map_or(false, |a| {
-                    a.ability_meta
-                        .capabilities
-                        .contains(Capability::POISE_RESISTANT)
+                    a.capabilities.contains(Capability::POISE_RESISTANT)
                 });
             if resistant { 0.5 } else { 0.0 }
         };
