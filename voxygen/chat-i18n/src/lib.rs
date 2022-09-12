@@ -9,15 +9,15 @@ use std::collections::HashMap;
 pub fn internationalisate_chat_message(
     mut msg: ChatMsg,
     lookup_fn: impl Fn(&ChatMsg) -> HashMap<&'static str, ChatTypeContext>,
-    localized_strings: &Localization,
+    localisation: &Localization,
     show_char_name: bool,
 ) -> ChatMsg {
+    let info = lookup_fn(&msg);
     if let Some(template_key) = get_chat_template_key(&msg.chat_type) {
-        msg.message = localized_strings
+        msg.message = localisation
             .get_msg_ctx(template_key, &i18n::fluent_args! {
                 "attacker" => "{attacker}",
-                "attacker" => "{attacker_name}",
-                "name" => "{player}",
+                "name" => "{name}",
                 "died_of_buff" => "{died_of_buff}",
                 "victim" => "{victim}",
                 "environment" => "{environment}",
@@ -29,20 +29,14 @@ pub fn internationalisate_chat_message(
                 KillSource::Player(_, KillType::Buff(buffkind))
                 | KillSource::NonExistent(KillType::Buff(buffkind))
                 | KillSource::NonPlayer(_, KillType::Buff(buffkind)) => {
-                    msg.message = insert_killing_buff(*buffkind, localized_strings, &msg.message);
+                    msg.message = insert_killing_buff(*buffkind, localisation, &msg.message);
                 },
                 _ => {},
             }
         }
     }
-    let info = lookup_fn(&msg);
-    let gen_alias = |you, info: PlayerInfo| {
-        let mod_str = if info.is_moderator { "MOD - " } else { "" };
-        let you_str = if you { "You" } else { &info.player_alias };
-        format!("{}{}", mod_str, you_str)
-    };
     let message_format = |you, info: PlayerInfo, message: &str, group: Option<&String>| {
-        let alias = gen_alias(you, info.clone());
+        let alias = insert_alias(you, info.clone(), localisation);
         let name = if show_char_name {
             info.character.map(|c| c.name)
         } else {
@@ -70,7 +64,7 @@ pub fn internationalisate_chat_message(
     }
     for (name, datum) in info.into_iter() {
         let replacement = match datum {
-            ChatTypeContext::PlayerAlias { you, info } => gen_alias(you, info),
+            ChatTypeContext::PlayerAlias { you, info } => insert_alias(you, info, localisation),
             ChatTypeContext::Raw(text) => text,
         };
         msg.message = msg.message.replace(&format!("{{{}}}", name), &replacement);
@@ -105,7 +99,7 @@ fn get_chat_template_key(chat_type: &ChatType<String>) -> Option<&str> {
     })
 }
 
-fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, template: &str) -> String {
+fn insert_killing_buff(buff: BuffKind, localisation: &Localization, template: &str) -> String {
     let buff_outcome = match buff {
         BuffKind::Burning => "hud-outcome-burning",
         BuffKind::Bleeding => "hud-outcome-bleeding",
@@ -132,5 +126,20 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
         },
     };
 
-    template.replace("{died_of_buff}", &localized_strings.get_msg(buff_outcome))
+    template.replace("{died_of_buff}", &localisation.get_msg(buff_outcome))
+}
+
+fn insert_alias(you: bool, info: PlayerInfo, localisation: &Localization) -> String {
+    const YOU: &str = "hud-chat-you";
+    const MOD: &str = "hud-chat-mod";
+    match (info.is_moderator, you) {
+        (false, false) => info.player_alias,
+        (false, true) => localisation.get_msg(YOU).to_string(),
+        (true, false) => format!("{} - {}", &localisation.get_msg(MOD), info.player_alias),
+        (true, true) => format!(
+            "{} - {}",
+            &localisation.get_msg(MOD),
+            &localisation.get_msg(YOU)
+        ),
+    }
 }

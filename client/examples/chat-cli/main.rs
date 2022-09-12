@@ -29,7 +29,7 @@ fn main() {
     // Initialize logging.
     common_frontend::init_stdout(None);
 
-    info!("locading localisation");
+    info!("loading localisation");
 
     let localisation = voxygen_i18n::LocalizationHandle::load_expect("en");
 

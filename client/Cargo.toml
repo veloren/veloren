@@ -49,6 +49,8 @@ termcolor = { version = "1.1", optional = true }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
 
 [dev-dependencies]
+voxygen-chat-i18n = { package = "veloren-voxygen-chat-i18n", path = "../voxygen/chat-i18n" }
+voxygen-i18n = { package = "veloren-voxygen-i18n", path = "../voxygen/i18n" }
 
 [[example]]
 name = "chat-cli"

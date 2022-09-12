@@ -2643,8 +2643,6 @@ impl Client {
 
     /// Get important information from client that is necessary for message
     /// localisation
-    ///
-    /// Note: it uses the suffix `name` e.g. in `attacker_name` if Context is Raw, otherwise it returns just `attacker`
     pub fn lockup_msg_context(
         &self,
         msg: &comp::ChatMsg,
@@ -2672,7 +2670,7 @@ impl Client {
         };
         match chat_type {
             comp::ChatType::Online(uid) | comp::ChatType::Offline(uid) => {
-                result.insert("player", alias_of_uid(uid));
+                result.insert("name", alias_of_uid(uid));
             },
             comp::ChatType::CommandError => (),
             comp::ChatType::CommandInfo => (),
@@ -2685,7 +2683,7 @@ impl Client {
                         result.insert("attacker", alias_of_uid(attacker_uid));
                     },
                     KillSource::NonPlayer(attacker_name, _) => {
-                        result.insert("attacker_name", ChatTypeContext::Raw(attacker_name.clone()));
+                        result.insert("attacker", ChatTypeContext::Raw(attacker_name.clone()));
                     },
                     KillSource::Environment(environment) => {
                         result.insert("environment", ChatTypeContext::Raw(environment.clone()));
@@ -2827,6 +2825,7 @@ mod tests {
     /// CONTACT @Core Developer BEFORE MERGING CHANGES TO THIS TEST
     fn constant_api_test() {
         use common::clock::Clock;
+        use voxygen_chat_i18n::internationalisate_chat_message;
 
         const SPT: f64 = 1.0 / 60.0;
 
@@ -2846,6 +2845,7 @@ mod tests {
             password,
             |suggestion: &str| suggestion == auth_server,
         ));
+        let localisation = voxygen_i18n::LocalizationHandle::load_expect("en");
 
         let _ = veloren_client.map(|mut client| {
             //clock
@@ -2864,7 +2864,13 @@ mod tests {
                     match event {
                         Event::Chat(msg) => {
                             let msg: comp::ChatMsg = msg;
-                            let _s: String = client.format_message(&msg, true);
+                            let _s: String = internationalisate_chat_message(
+                                msg,
+                                |msg| client.lockup_msg_context(msg),
+                                &localisation.read(),
+                                true,
+                            )
+                            .message;
                         },
                         Event::Disconnect => {},
                         Event::DisconnectionNotification(_) => {
