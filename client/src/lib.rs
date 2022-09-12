@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(label_break_value, option_zip, bool_to_option)]
+#![feature(option_zip)]
 
 pub mod addr;
 pub mod error;

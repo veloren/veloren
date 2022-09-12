@@ -2,10 +2,8 @@
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
-    bool_to_option,
     box_patterns,
     drain_filter,
-    label_break_value,
     let_chains,
     let_else,
     never_type,
