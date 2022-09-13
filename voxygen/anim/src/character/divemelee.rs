@@ -2,11 +2,16 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::states::utils::StageSection;
+use common::states::utils::{AbilityInfo, StageSection};
 
 pub struct DiveMeleeAnimation;
 impl Animation for DiveMeleeAnimation {
-    type Dependency<'a> = (Option<&'a str>, Option<StageSection>, f32);
+    type Dependency<'a> = (
+        Option<&'a str>,
+        Option<StageSection>,
+        f32,
+        Option<AbilityInfo>,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -15,7 +20,7 @@ impl Animation for DiveMeleeAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_dive_melee")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section, ground_dist): Self::Dependency<'a>,
+        (ability_id, stage_section, ground_dist, _ability_info): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -26,6 +31,9 @@ impl Animation for DiveMeleeAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
         next.main_weapon_trail = true;
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
+        next.off_weapon_trail = true;
 
         let ground_dist = ground_dist.clamp(0.0, 0.5) * 2.0;
         let ground_dist = if ground_dist.is_nan() {

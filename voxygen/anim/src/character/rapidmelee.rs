@@ -2,12 +2,17 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::states::utils::StageSection;
+use common::states::utils::{AbilityInfo, StageSection};
 use std::ops::{Mul, Sub};
 
 pub struct RapidMeleeAnimation;
 impl Animation for RapidMeleeAnimation {
-    type Dependency<'a> = (Option<&'a str>, Option<StageSection>, (u32, u32));
+    type Dependency<'a> = (
+        Option<&'a str>,
+        Option<StageSection>,
+        (u32, u32),
+        Option<AbilityInfo>,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +21,9 @@ impl Animation for RapidMeleeAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_rapid_melee")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section, (current_strike, max_strikes)): Self::Dependency<'a>,
+        (ability_id, stage_section, (current_strike, max_strikes), _ability_info): Self::Dependency<
+            'a,
+        >,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -27,6 +34,9 @@ impl Animation for RapidMeleeAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
         next.main_weapon_trail = true;
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
+        next.off_weapon_trail = true;
 
         match ability_id {
             Some("common.abilities.sword.reaching_flurry") => {

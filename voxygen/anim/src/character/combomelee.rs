@@ -2,16 +2,12 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{
-    comp::item::Hands,
-    states::utils::{AbilityInfo, StageSection},
-};
+use common::states::utils::{AbilityInfo, StageSection};
 use core::f32::consts::PI;
 
 pub struct ComboAnimation;
 impl Animation for ComboAnimation {
     type Dependency<'a> = (
-        (Option<Hands>, Option<Hands>),
         Option<&'a str>,
         Option<StageSection>,
         Option<AbilityInfo>,
@@ -26,7 +22,7 @@ impl Animation for ComboAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_combo")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_hands, ability_id, stage_section, _ability_info, current_strike, move_dir): Self::Dependency<'a>,
+        (ability_id, stage_section, _ability_info, current_strike, move_dir): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -37,6 +33,9 @@ impl Animation for ComboAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
         next.main_weapon_trail = true;
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
+        next.off_weapon_trail = true;
         let multi_strike_pullback = 1.0
             - if matches!(stage_section, Some(StageSection::Recover)) {
                 anim_time.powi(4)

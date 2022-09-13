@@ -4,7 +4,7 @@ use super::{
 };
 use common::{
     comp::item::{Hands, ToolKind},
-    states::utils::StageSection,
+    states::utils::{AbilityInfo, StageSection},
 };
 use core::f32::consts::PI;
 
@@ -17,6 +17,7 @@ type BlockAnimationDependency<'a> = (
     Vec3<f32>,
     Option<&'a str>,
     Option<StageSection>,
+    Option<AbilityInfo>,
 );
 impl Animation for BlockAnimation {
     type Dependency<'a> = BlockAnimationDependency<'a>;
@@ -28,7 +29,15 @@ impl Animation for BlockAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_block")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (hands, active_tool_kind, second_tool_kind, velocity, ability_id, stage_section): Self::Dependency<'a>,
+        (
+            hands,
+            active_tool_kind,
+            second_tool_kind,
+            velocity,
+            ability_id,
+            stage_section,
+            _ability_info,
+        ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

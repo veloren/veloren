@@ -2,11 +2,11 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::states::utils::StageSection;
+use common::states::utils::{AbilityInfo, StageSection};
 
 pub struct SelfBuffAnimation;
 impl Animation for SelfBuffAnimation {
-    type Dependency<'a> = (Option<&'a str>, Option<StageSection>);
+    type Dependency<'a> = (Option<&'a str>, Option<StageSection>, Option<AbilityInfo>);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -15,7 +15,7 @@ impl Animation for SelfBuffAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_self_buff")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section): Self::Dependency<'a>,
+        (ability_id, stage_section, _ability_info): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -25,6 +25,8 @@ impl Animation for SelfBuffAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
 
         match ability_id {
             Some("common.abilities.sword.defensive_bulwark") => {

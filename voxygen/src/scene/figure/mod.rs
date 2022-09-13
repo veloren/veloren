@@ -1189,7 +1189,11 @@ impl FigureMgr {
                             };
                             anim::character::FinisherMeleeAnimation::update_skeleton(
                                 &target_base,
-                                (ability_id, Some(s.stage_section)),
+                                (
+                                    ability_id,
+                                    Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
+                                ),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1218,7 +1222,12 @@ impl FigureMgr {
                                 / vel.0.magnitude_squared();
                             anim::character::DiveMeleeAnimation::update_skeleton(
                                 &target_base,
-                                (ability_id, Some(s.stage_section), ground_dist),
+                                (
+                                    ability_id,
+                                    Some(s.stage_section),
+                                    ground_dist,
+                                    Some(s.static_data.ability_info),
+                                ),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1240,7 +1249,11 @@ impl FigureMgr {
                             };
                             anim::character::SelfBuffAnimation::update_skeleton(
                                 &target_base,
-                                (ability_id, Some(s.stage_section)),
+                                (
+                                    ability_id,
+                                    Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
+                                ),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1593,6 +1606,7 @@ impl FigureMgr {
                                     ability_id,
                                     Some(s.stage_section),
                                     (s.current_strike, s.static_data.max_strikes),
+                                    Some(s.static_data.ability_info),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -1761,7 +1775,6 @@ impl FigureMgr {
                                 anim::character::ComboAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        hands,
                                         ability_id,
                                         Some(stage_section),
                                         Some(s.static_data.ability_info),
@@ -1846,6 +1859,7 @@ impl FigureMgr {
                                     rel_vel,
                                     ability_id,
                                     Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -2064,7 +2078,11 @@ impl FigureMgr {
 
                             anim::character::RiposteMeleeAnimation::update_skeleton(
                                 &target_base,
-                                (ability_id, Some(s.stage_section)),
+                                (
+                                    ability_id,
+                                    Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
+                                ),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,

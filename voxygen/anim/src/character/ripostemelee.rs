@@ -2,11 +2,11 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::states::utils::StageSection;
+use common::states::utils::{AbilityInfo, StageSection};
 
 pub struct RiposteMeleeAnimation;
 impl Animation for RiposteMeleeAnimation {
-    type Dependency<'a> = (Option<&'a str>, Option<StageSection>);
+    type Dependency<'a> = (Option<&'a str>, Option<StageSection>, Option<AbilityInfo>);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -15,7 +15,7 @@ impl Animation for RiposteMeleeAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_riposte_melee")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section): Self::Dependency<'a>,
+        (ability_id, stage_section, _ability_info): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -26,6 +26,9 @@ impl Animation for RiposteMeleeAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
         next.main_weapon_trail = true;
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
+        next.off_weapon_trail = true;
 
         match ability_id {
             Some("common.abilities.sword.parrying_riposte") => {
