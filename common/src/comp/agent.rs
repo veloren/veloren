@@ -231,7 +231,7 @@ impl<'a> From<&'a Body> for Psyche {
                     _ => 0.3,
                 },
                 Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-                    quadruped_low::Species::Salamander => 0.2,
+                    quadruped_low::Species::Salamander | quadruped_low::Species::Elbst => 0.2,
                     quadruped_low::Species::Monitor => 0.3,
                     quadruped_low::Species::Pangolin => 0.6,
                     quadruped_low::Species::Tortoise => 0.2,

@@ -184,27 +184,79 @@
     (Salamander, Female): (
         upper: (
             offset: (-6.5, 0.0, -2.0),
-            central: ("npc.salamander.female.head_upper"),
+            central: ("npc.salamander.male.head_upper"),
         ),
         lower: (
-            offset: (-4.5, -2.0, -3.0),
-            central: ("npc.salamander.female.head_lower"),
+            offset: (-4.5, -1.5, -3.0),
+            central: ("npc.salamander.male.head_lower"),
         ),
         jaw: (
-            offset: (-6.5, 0.0, -3.5,),
-            central: ("npc.salamander.female.jaw"),
+            offset: (-6.5, 0.0, -3.0),
+            central: ("npc.salamander.male.jaw"),
         ),
         chest: (
             offset: (-6.5, -8.5, -3.0),
-            central: ("npc.salamander.female.chest"),
+            central: ("npc.salamander.male.chest"),
         ),
         tail_rear: (
-            offset: (-3.5, -13.0, -2.5),
-            central: ("npc.salamander.female.tail_rear"),
+            offset: (-3.5, -13.0, -3.0),
+            central: ("npc.salamander.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-4.5, -9.0, -3.0),
+            central: ("npc.salamander.male.tail_front"),
+        ),
+    ),
+    (Elbst, Male): (
+        upper: (
+            offset: (-9.5, 0.0, -2.0),
+            central: ("npc.elbst.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.5, -1.5, -3.0),
+            central: ("npc.elbst.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-6.5, 0.0, -2.0),
+            central: ("npc.elbst.male.jaw"),
+        ),
+        chest: (
+            offset: (-8.5, -8.5, -3.0),
+            central: ("npc.elbst.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-6.5, -13.0, -2.5),
+            central: ("npc.elbst.male.tail_rear"),
         ),
 		tail_front: (
             offset: (-5.5, -8.0, -3.0),
-            central: ("npc.salamander.female.tail_front"),
+            central: ("npc.elbst.male.tail_front"),
+        ),
+    ),
+    (Elbst, Female): (
+        upper: (
+            offset: (-9.5, 0.0, -2.0),
+            central: ("npc.elbst.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.5, -1.5, -3.0),
+            central: ("npc.elbst.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-6.5, 0.0, -2.0),
+            central: ("npc.elbst.male.jaw"),
+        ),
+        chest: (
+            offset: (-8.5, -8.5, -3.0),
+            central: ("npc.elbst.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-6.5, -13.0, -2.5),
+            central: ("npc.elbst.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-5.5, -8.0, -3.0),
+            central: ("npc.elbst.male.tail_front"),
         ),
     ),
     (Monitor, Male): (
@@ -470,15 +522,15 @@
     ),
     (Reefsnapper, Male): (
         upper: (
-            offset: (-3.5, 1.5, -4.0),
+            offset: (-3.5, -2.5, -6.0),
             central: ("npc.reefsnapper.male.head_upper"),
         ),
         lower: (
-            offset: (-3.5, -1.0, -6.0),
+            offset: (-3.5, -3.0, -6.0),
             central: ("npc.reefsnapper.male.head_lower"),
         ),
         jaw: (
-            offset: (-4.5, 7.0, -5.0),
+            offset: (-4.5, 4.0, -4.0),
             central: ("npc.reefsnapper.male.jaw"),
         ),
         chest: (
@@ -496,15 +548,15 @@
     ),
     (Reefsnapper, Female): (
         upper: (
-            offset: (-3.5, 1.5, -4.0),
+            offset: (-3.5, -2.5, -6.0),
             central: ("npc.reefsnapper.male.head_upper"),
         ),
         lower: (
-            offset: (-3.5, -1.0, -6.0),
+            offset: (-3.5, -3.0, -6.0),
             central: ("npc.reefsnapper.male.head_lower"),
         ),
         jaw: (
-            offset: (-4.5, 7.0, -5.0),
+            offset: (-4.5, 4.0, -4.0),
             central: ("npc.reefsnapper.male.jaw"),
         ),
         chest: (

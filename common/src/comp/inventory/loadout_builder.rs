@@ -585,7 +585,8 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_low::Species::Crocodile
             | quadruped_low::Species::SeaCrocodile
             | quadruped_low::Species::Alligator
-            | quadruped_low::Species::Salamander => Some(Item::new_from_asset_expect(
+            | quadruped_low::Species::Salamander
+            | quadruped_low::Species::Elbst => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadlowtail",
             )),
             quadruped_low::Species::Monitor | quadruped_low::Species::Pangolin => Some(
@@ -615,6 +616,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             theropod::Species::Yale => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.theropodcharge",
+            )),
+            theropod::Species::Dodarock => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.theropodsmall",
             )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.theropodbasic",

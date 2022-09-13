@@ -948,7 +948,9 @@ impl<'a> AgentData<'a> {
                             "Quad Low Tail" | "Husk Brute" => Tactic::TailSlap,
                             "Quad Low Quick" => Tactic::QuadLowQuick,
                             "Quad Low Basic" => Tactic::QuadLowBasic,
-                            "Theropod Basic" | "Theropod Bird" => Tactic::Theropod,
+                            "Theropod Basic" | "Theropod Bird" | "Theropod Small" => {
+                                Tactic::Theropod
+                            },
                             // Arthropods
                             "Antlion" => Tactic::ArthropodMelee,
                             "Tarantula" | "Horn Beetle" => Tactic::ArthropodAmbush,

@@ -5,7 +5,7 @@ SpawnEntry (
         Pack(
             groups: [
                 (5, (1, 1, "common.entity.wild.peaceful.beaver")),
-                (5, (1, 1, "common.entity.wild.peaceful.river_salamander")),
+                (5, (1, 1, "common.entity.wild.peaceful.elbst")),
                 (5, (1, 1, "common.entity.wild.peaceful.duck")),
                 (1, (1, 1, "common.entity.wild.peaceful.kelpie")),
                 (1, (1, 1, "common.entity.wild.aggressive.hakulaq")),

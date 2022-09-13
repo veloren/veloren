@@ -7,7 +7,7 @@ SpawnEntry (
                 // Casual
                 (2, (1, 1, "common.entity.wild.peaceful.camel")),
                 (2, (1, 1, "common.entity.wild.peaceful.sand_hare")),
-                (2, (1, 1, "common.entity.wild.peaceful.sand_salamander")),
+                (2, (1, 1, "common.entity.wild.peaceful.salamander")),
                 (2, (1, 1, "common.entity.wild.peaceful.gecko")),
                 // Rare
                 (1, (1, 1, "common.entity.wild.peaceful.crawler_sand")),
