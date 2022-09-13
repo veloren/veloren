@@ -128,19 +128,55 @@
     (Salamander, Female): (
         front_left: (
             offset: (-6.0, 0.0, -3.0),
-            lateral: ("npc.salamander.female.foot_fr", false),
+            lateral: ("npc.salamander.male.foot_fr", false),
         ),
         front_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.female.foot_fr", false),
+            lateral: ("npc.salamander.male.foot_fr", false),
         ),
         back_left: (
-            offset: (-7.5, 0.0, -3.0),
-            lateral: ("npc.salamander.female.foot_br", false),
+            offset: (-7.0, 0.0, -3.0),
+            lateral: ("npc.salamander.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (-0.0, 0.0, -3.0),
+            lateral: ("npc.salamander.male.foot_br", false),
+        ),
+    ),
+        (Elbst, Male): (
+        front_left: (
+            offset: (-6.0, 0.0, -3.0),
+            lateral: ("npc.elbst.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -3.0),
+            lateral: ("npc.elbst.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-8.0, 0.0, -3.0),
+            lateral: ("npc.elbst.male.foot_br", false),
         ),
         back_right: (
             offset: (0.0, 0.0, -3.0),
-            lateral: ("npc.salamander.female.foot_br", false),
+            lateral: ("npc.elbst.male.foot_br", false),
+        ),
+    ),
+    (Elbst, Female): (
+        front_left: (
+            offset: (-6.0, 0.0, -3.0),
+            lateral: ("npc.elbst.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -3.0),
+            lateral: ("npc.elbst.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-8.0, 0.0, -3.0),
+            lateral: ("npc.elbst.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, 0.0, -3.0),
+            lateral: ("npc.elbst.male.foot_br", false),
         ),
     ),
     (Monitor, Male): (
@@ -325,11 +361,11 @@
     ),
     (Reefsnapper, Male): (
         front_left: (
-            offset: (-12.0, 0.0, -10.0),
+            offset: (-12.0, -9.0, -10.0),
             lateral: ("npc.reefsnapper.male.foot_fr", false),
         ),
         front_right: (
-            offset: (-3.0, 0.0, -10.0),
+            offset: (-3.0, -9.0, -10.0),
             lateral: ("npc.reefsnapper.male.foot_fr", false),
         ),
         back_left: (
@@ -343,11 +379,11 @@
     ),
     (Reefsnapper, Female): (
         front_left: (
-            offset: (-12.0, 0.0, -10.0),
+            offset: (-12.0, -9.0, -10.0),
             lateral: ("npc.reefsnapper.male.foot_fr", false),
         ),
         front_right: (
-            offset: (-3.0, 0.0, -10.0),
+            offset: (-3.0, -9.0, -10.0),
             lateral: ("npc.reefsnapper.male.foot_fr", false),
         ),
         back_left: (

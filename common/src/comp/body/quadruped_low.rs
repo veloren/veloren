@@ -58,6 +58,7 @@ make_case_elim!(
         Rocksnapper = 16,
         Rootsnapper = 17,
         Reefsnapper = 18,
+        Elbst = 19,
     }
 );
 
@@ -70,6 +71,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub sea_crocodile: SpeciesMeta,
     pub alligator: SpeciesMeta,
     pub salamander: SpeciesMeta,
+    pub elbst: SpeciesMeta,
     pub monitor: SpeciesMeta,
     pub asp: SpeciesMeta,
     pub tortoise: SpeciesMeta,
@@ -97,6 +99,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::SeaCrocodile => &self.sea_crocodile,
             Species::Alligator => &self.alligator,
             Species::Salamander => &self.salamander,
+            Species::Elbst => &self.elbst,
             Species::Monitor => &self.monitor,
             Species::Asp => &self.asp,
             Species::Tortoise => &self.tortoise,
@@ -116,11 +119,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 19] = [
+pub const ALL_SPECIES: [Species; 20] = [
     Species::Crocodile,
     Species::SeaCrocodile,
     Species::Alligator,
     Species::Salamander,
+    Species::Elbst,
     Species::Monitor,
     Species::Asp,
     Species::Tortoise,

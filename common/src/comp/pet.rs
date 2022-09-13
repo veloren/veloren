@@ -90,7 +90,9 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
         },
         Body::QuadrupedLow(body) => matches!(
             body.species,
-            quadruped_low::Species::Salamander | quadruped_low::Species::Tortoise
+            quadruped_low::Species::Salamander
+                | quadruped_low::Species::Elbst
+                | quadruped_low::Species::Tortoise
         ),
         _ => false,
     }

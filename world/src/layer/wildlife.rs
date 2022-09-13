@@ -340,6 +340,10 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         ("world.wildlife.spawn.desert.hot", |c, _col| {
             close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 3.8
         }),
+        // Rock animals
+        ("world.wildlife.spawn.desert.rock", |c, col| {
+            close(c.temp, CONFIG.desert_temp + 0.2, 0.2) * col.rock_density * BASE_DENSITY * 5.0
+        }),
     ]
 }
 

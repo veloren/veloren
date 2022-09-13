@@ -271,6 +271,11 @@
         secondary: "common.abilities.custom.theropodbasic.triplestrike",
         abilities: [],
     ),
+    Custom("Theropod Small"): (
+        primary: "common.abilities.custom.theropodsmall.triplestrike",
+        secondary: "common.abilities.custom.theropodsmall.triplestrike",
+        abilities: [],
+    ),
     Custom("Theropod Bird"): (
         primary: "common.abilities.custom.theropodbird.triplestrike",
         secondary: "common.abilities.custom.theropodbird.triplestrike",

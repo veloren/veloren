@@ -838,8 +838,8 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 (biome.leafy + 0.05) * 0.5,
             ),
             (
-                Some("common.entity.wild.peaceful.tortoise"),
-                (biome.leafy + 0.05) * 0.35,
+                Some("common.entity.wild.aggressive.rootsnapper"),
+                (biome.leafy + 0.05) * 0.05,
             ),
             (
                 Some("common.entity.wild.peaceful.axolotl"),
@@ -872,7 +872,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Dusty biome
             (
                 Some("common.entity.wild.aggressive.dodarock"),
-                (biome.dusty.max(biome.barren) + 0.05) * 0.35,
+                (biome.dusty.max(biome.barren) + 0.05) * 0.05,
             ),
             (
                 Some("common.entity.wild.aggressive.cave_spider"),

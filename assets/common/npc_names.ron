@@ -1185,6 +1185,10 @@
                 keyword: "salamander",
                 generic: "Salamander"
             ),
+            elbst: (
+                keyword: "elbst",
+                generic: "Elbst"
+            ),
             monitor: (
                 keyword: "monitor",
                 generic: "Monitor"

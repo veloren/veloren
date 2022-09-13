@@ -117,6 +117,7 @@ impl Body {
                 quadruped_low::Species::SeaCrocodile => 120.0,
                 quadruped_low::Species::Alligator => 110.0,
                 quadruped_low::Species::Salamander => 85.0,
+                quadruped_low::Species::Elbst => 85.0,
                 quadruped_low::Species::Monitor => 160.0,
                 quadruped_low::Species::Asp => 110.0,
                 quadruped_low::Species::Tortoise => 60.0,

@@ -4,7 +4,8 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 1, "common.entity.wild.aggressive.rocksnapper")),
+                (1, (1, 1, "common.entity.wild.peaceful.jackalope")),
+                (1, (1, 1, "common.entity.wild.peaceful.arctic_hare")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
