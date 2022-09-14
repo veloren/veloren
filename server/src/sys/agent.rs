@@ -825,8 +825,8 @@ impl<'a> AgentData<'a> {
                 let wants_pickup = matches!(self.body, Some(Body::Humanoid(_)))
                     || matches!(item, item_drop::Body::Consumable);
 
-                // The agent will attempt to pickup the item if it wants to pick it up and is
-                // allowed to
+                // The agent will attempt to pickup the item if it wants to pick it up and
+                // is allowed to
                 let attempt_pickup = wants_pickup
                     && read_data
                         .loot_owners

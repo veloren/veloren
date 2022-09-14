@@ -201,7 +201,8 @@ fn react_if_on_fire(bdata: &mut BehaviorData) -> bool {
 fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
     match bdata.agent_data.health {
         Some(health)
-            if bdata.read_data.time.0 - health.last_change.time.0 < DAMAGE_MEMORY_DURATION =>
+            if bdata.read_data.time.0 - health.last_change.time.0 < DAMAGE_MEMORY_DURATION
+                && health.last_change.amount < 0.0 =>
         {
             if let Some(by) = health.last_change.damage_by() {
                 if let Some(attacker) = bdata

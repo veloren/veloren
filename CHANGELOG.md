@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   new chunk for the initial setting or subsequent change to apply).
 - Moderators and admins are no longer blocked from logging in when there are too many players.
 - FXAA now behaves correctly at non-1.0x internal resolutions
+- Pets no longer aggro on pet owners after being healed
 
 ## [0.13.0] - 2022-07-23
 
