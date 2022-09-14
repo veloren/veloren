@@ -5,10 +5,11 @@ use crate::{
 };
 use common::{
     comp::{
+        ability::{self, ActiveAbilities, AuxiliaryAbility},
         buff::BuffKind,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill},
-        AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, Controller,
-        InputKind,
+        AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
+        Controller, InputKind,
     },
     path::TraversalConfig,
     states::{self_buff, sprite_summon, utils::StageSection},
@@ -420,7 +421,147 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        // Rewrite before merging
+        use ability::SwordStance;
+        let stance = |stance| match stance {
+            1 => SwordStance::Offensive,
+            2 => SwordStance::Defensive,
+            3 => SwordStance::Mobility,
+            4 => SwordStance::Crippling,
+            5 => SwordStance::Cleaving,
+            6 => SwordStance::Parrying,
+            7 => SwordStance::Heavy,
+            8 => SwordStance::Reaching,
+            _ => SwordStance::Balanced,
+        };
+        if !agent.action_state.initialized {
+            agent.action_state.int_counter = rng.gen_range(0..9);
+            let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
+            let mut set_sword_ability = |slot, skill| {
+                controller.push_event(ControlEvent::ChangeAbility {
+                    slot,
+                    auxiliary_key,
+                    new_ability: AuxiliaryAbility::MainWeapon(skill),
+                })
+            };
+            match stance(agent.action_state.int_counter) {
+                SwordStance::Balanced => {
+                    // Balanced finisher
+                    set_sword_ability(0, 0);
+                },
+                SwordStance::Offensive => {
+                    // Offensive combo
+                    set_sword_ability(0, 1);
+                    // Offensive finisher
+                    set_sword_ability(1, 2);
+                    // Offensive advance
+                    set_sword_ability(2, 3);
+                    // Balanced finisher
+                    set_sword_ability(3, 0);
+                },
+                SwordStance::Defensive => {
+                    // Defensive combo
+                    set_sword_ability(0, 12);
+                    // Defensive bulwark
+                    set_sword_ability(1, 13);
+                    // Defensive retreat
+                    set_sword_ability(2, 14);
+                    // Balanced finisher
+                    set_sword_ability(3, 0);
+                },
+                SwordStance::Mobility => {
+                    // Mobility combo
+                    set_sword_ability(0, 23);
+                    // Mobility feint
+                    set_sword_ability(1, 24);
+                    // Mobility agility
+                    set_sword_ability(2, 25);
+                    // Balanced finisher
+                    set_sword_ability(3, 0);
+                },
+                SwordStance::Crippling => {
+                    // Crippling combo
+                    set_sword_ability(0, 4);
+                    // Crippling finisher
+                    set_sword_ability(1, 5);
+                    // Crippling strike
+                    set_sword_ability(2, 6);
+                    // Crippling gouge
+                    set_sword_ability(3, 7);
+                    // Offensive advance
+                    set_sword_ability(4, 3);
+                },
+                SwordStance::Cleaving => {
+                    // Cleaving combo
+                    set_sword_ability(0, 8);
+                    // Cleaving finisher
+                    set_sword_ability(1, 9);
+                    // Cleaving spin
+                    set_sword_ability(2, 10);
+                    // Cleaving dive
+                    set_sword_ability(3, 11);
+                    // Offensive finisher
+                    set_sword_ability(4, 2);
+                },
+                SwordStance::Parrying => {
+                    // Parrying combo
+                    set_sword_ability(0, 15);
+                    // Parrying parry
+                    set_sword_ability(1, 16);
+                    // Parrying riposte
+                    set_sword_ability(2, 17);
+                    // Parrying counter
+                    set_sword_ability(3, 18);
+                    // Defensive retreat
+                    set_sword_ability(4, 14);
+                },
+                SwordStance::Heavy => {
+                    // Heavy combo
+                    set_sword_ability(0, 19);
+                    // Heavy finisher
+                    set_sword_ability(1, 20);
+                    // Heavy pommelstrike
+                    set_sword_ability(2, 21);
+                    // Heavy fortitude
+                    set_sword_ability(3, 22);
+                    // Defensive bulwark
+                    set_sword_ability(4, 13);
+                },
+                SwordStance::Reaching => {
+                    // Reaching combo
+                    set_sword_ability(0, 26);
+                    // Reaching charge
+                    set_sword_ability(1, 27);
+                    // Reaching flurry
+                    set_sword_ability(2, 28);
+                    // Reaching skewer
+                    set_sword_ability(3, 29);
+                    // Mobility agility
+                    set_sword_ability(4, 25);
+                },
+            }
+            agent.action_state.initialized = true;
+        }
+
+        match stance(agent.action_state.int_counter) {
+            SwordStance::Balanced => {
+            },
+            SwordStance::Offensive => {
+            },
+            SwordStance::Defensive => {
+            },
+            SwordStance::Mobility => {
+            },
+            SwordStance::Crippling => {
+            },
+            SwordStance::Cleaving => {
+            },
+            SwordStance::Parrying => {
+            },
+            SwordStance::Heavy => {
+            },
+            SwordStance::Reaching => {
+            },
+        }
     }
 
     pub fn handle_bow_attack(

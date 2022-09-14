@@ -86,11 +86,7 @@ impl ActiveAbilities {
         }
     }
 
-    pub fn auxiliary_set(
-        &self,
-        inv: Option<&Inventory>,
-        skill_set: Option<&SkillSet>,
-    ) -> [AuxiliaryAbility; MAX_ABILITIES] {
+    pub fn active_auxiliary_key(inv: Option<&Inventory>) -> AuxiliaryKey {
         let tool_kind = |slot| {
             inv.and_then(|inv| inv.equipped(slot))
                 .and_then(|item| match &*item.kind() {
@@ -99,10 +95,18 @@ impl ActiveAbilities {
                 })
         };
 
-        let aux_key = (
+        (
             tool_kind(EquipSlot::ActiveMainhand),
             tool_kind(EquipSlot::ActiveOffhand),
-        );
+        )
+    }
+
+    pub fn auxiliary_set(
+        &self,
+        inv: Option<&Inventory>,
+        skill_set: Option<&SkillSet>,
+    ) -> [AuxiliaryAbility; MAX_ABILITIES] {
+        let aux_key = Self::active_auxiliary_key(inv);
 
         self.auxiliary_sets
             .get(&aux_key)
