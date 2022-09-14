@@ -31,7 +31,9 @@ hud-settings-chat = Chat
 hud-settings-background_opacity = Hintergrundsichtbarkeit
 hud-settings-chat_character_name = Charakternamen im Chat
 hud-settings-loading_tips = Tipps auf dem Ladebildschirm
-hud-settings-reset_interface = Auf Standardwerte zurücksetzen
+hud-settings-reset_interface =
+    Einstellungen
+    zurücksetzen
 hud-settings-pan_sensitivity = Kamera-Empfindlichkeit
 hud-settings-zoom_sensitivity = Zoom-Empfindlichkeit
 hud-settings-camera_clamp_angle = Starrer Winkel für vertikalen Kameramodus
@@ -45,7 +47,9 @@ hud-settings-camera_clamp_behavior = Verhalten bei starrer Kamera
 hud-settings-player_physics_behavior = Spielerphysik (experimentell)
 hud-settings-stop_auto_walk_on_input = Automatisches Gehen bei Spieleraktivität anhalten
 hud-settings-auto_camera = Auto Kamera
-hud-settings-reset_gameplay = Standardeinstellungen wiederherstellen
+hud-settings-reset_gameplay =
+    Einstellungen
+    zurücksetzen
 hud-settings-view_distance = Sichtweite
 hud-settings-sprites_view_distance = Sprite-Sichtweite
 hud-settings-figures_view_distance = Objekt-Sichtweite
@@ -67,7 +71,7 @@ hud-settings-fluid_rendering_mode-cheap = Billig
 hud-settings-fluid_rendering_mode-shiny = Glänzend
 hud-settings-cloud_rendering_mode-minimal = Minimal
 hud-settings-cloud_rendering_mode-low = Niedrig
-hud-settings-cloud_rendering_mode-medium = Mitel
+hud-settings-cloud_rendering_mode-medium = Mittel
 hud-settings-cloud_rendering_mode-high = Hoch
 hud-settings-cloud_rendering_mode-ultra = Ultra
 hud-settings-fullscreen = Vollbild
@@ -81,7 +85,7 @@ hud-settings-resolution = Auflösung
 hud-settings-bit_depth = Bit-Tiefe
 hud-settings-refresh_rate = Bildwiederholrate
 hud-settings-lighting_rendering_mode = Beleuchtungs-Renderingmodus
-hud-settings-lighting_rendering_mode-ashikhmin = Typ A - Hoch    
+hud-settings-lighting_rendering_mode-ashikhmin = Typ A - Hoch
 hud-settings-lighting_rendering_mode-blinnphong = Typ B - Medium
 hud-settings-lighting_rendering_mode-lambertian = Typ L - Billig
 hud-settings-shadow_rendering_mode = Schatten-Renderingmodus
@@ -90,19 +94,27 @@ hud-settings-shadow_rendering_mode-cheap = Billig
 hud-settings-shadow_rendering_mode-map = Karte
 hud-settings-shadow_rendering_mode-map-resolution = Auflösung
 hud-settings-lod_detail = LoD Detail
-hud-settings-save_window_size = Fenstergröße Speichern
-hud-settings-reset_graphics = Standardeinstellungen wiederherstellen
+hud-settings-save_window_size =
+    Fenstergröße
+    speichern
+hud-settings-reset_graphics =
+    Einstellungen
+    zurücksetzen
 hud-settings-bloom = Bloom-Effekt
 hud-settings-master_volume = Lautstärke
 hud-settings-inactive_master_volume_perc = Lautstärke, wenn das Fenster inaktiv ist
 hud-settings-music_volume = Musik-Lautstärke
 hud-settings-sound_effect_volume = Soundeffekt-Lautstärke
 hud-settings-audio_device = Audiogerät
-hud-settings-reset_sound = Standardeinstellungen wiederherstellen
+hud-settings-reset_sound =
+    Einstellungen
+    zurücksetzen
 hud-settings-english_fallback = Englische Einstellungen bei fehlender Übersetzung anzeigen
 hud-settings-awaitingkey = Drücke eine Taste...
 hud-settings-unbound = Keine
-hud-settings-reset_keybinds = Standardeinstellungen wiederherstellen
+hud-settings-reset_keybinds =
+    Einstellungen
+    zurücksetzen
 hud-settings-chat_tabs = Chat-Fenster
 hud-settings-label = Bezeichnung:
 hud-settings-delete = Löschen
@@ -117,4 +129,6 @@ hud-settings-region = Region
 hud-settings-say = Sagen
 hud-settings-all = Alle
 hud-settings-group_only = Nur für die Gruppe
-hud-settings-reset_chat = Standard wiederherstellen
+hud-settings-reset_chat =
+    Einstellungen
+    zurücksetzen
