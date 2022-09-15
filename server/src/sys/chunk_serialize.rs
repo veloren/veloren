@@ -108,7 +108,7 @@ impl<'a> System<'a> for Sys {
             .into_iter()
             .filter_map(|(chunk_key, meta)| {
                 terrain
-                    .get_key_arc(chunk_key)
+                    .get_key_arc_real(chunk_key)
                     .map(|chunk| (Arc::clone(chunk), chunk_key, meta))
             })
             .into_iter()

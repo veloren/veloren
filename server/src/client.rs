@@ -2,7 +2,7 @@ use common_net::msg::{ClientType, ServerGeneral, ServerMsg};
 use network::{Message, Participant, Stream, StreamError, StreamParams};
 use serde::{de::DeserializeOwned, Serialize};
 use specs::Component;
-use std::sync::{atomic::AtomicBool, Mutex};
+use std::sync::atomic::AtomicBool;
 
 /// Client handles ALL network related information of everything that connects
 /// to the server Client DOES NOT handle game states
@@ -13,17 +13,18 @@ use std::sync::{atomic::AtomicBool, Mutex};
 pub struct Client {
     pub client_type: ClientType,
     pub participant: Option<Participant>,
-    pub last_ping: Mutex<f64>,
+    pub last_ping: f64,
     pub login_msg_sent: AtomicBool,
 
-    //TODO: improve network crate so that `send` is no longer `&mut self` and we can get rid of
-    // this Mutex. This Mutex is just to please the compiler as we do not get into contention
-    general_stream: Mutex<Stream>,
-    ping_stream: Mutex<Stream>,
-    register_stream: Mutex<Stream>,
-    character_screen_stream: Mutex<Stream>,
-    in_game_stream: Mutex<Stream>,
-    terrain_stream: Mutex<Stream>,
+    //TODO: Consider splitting each of these out into their own components so all the message
+    //processing systems can run in parallel with each other (though it may turn out not to
+    //matter that much).
+    general_stream: Stream,
+    ping_stream: Stream,
+    register_stream: Stream,
+    character_screen_stream: Stream,
+    in_game_stream: Stream,
+    terrain_stream: Stream,
 
     general_stream_params: StreamParams,
     ping_stream_params: StreamParams,
@@ -63,14 +64,14 @@ impl Client {
         Client {
             client_type,
             participant: Some(participant),
-            last_ping: Mutex::new(last_ping),
+            last_ping,
             login_msg_sent: AtomicBool::new(false),
-            general_stream: Mutex::new(general_stream),
-            ping_stream: Mutex::new(ping_stream),
-            register_stream: Mutex::new(register_stream),
-            character_screen_stream: Mutex::new(character_screen_stream),
-            in_game_stream: Mutex::new(in_game_stream),
-            terrain_stream: Mutex::new(terrain_stream),
+            general_stream,
+            ping_stream,
+            register_stream,
+            character_screen_stream,
+            in_game_stream,
+            terrain_stream,
             general_stream_params,
             ping_stream_params,
             register_stream_params,
@@ -145,16 +146,12 @@ impl Client {
 
     pub(crate) fn send_prepared(&self, msg: &PreparedMsg) -> Result<(), StreamError> {
         match msg.stream_id {
-            0 => self.register_stream.lock().unwrap().send_raw(&msg.message),
-            1 => self
-                .character_screen_stream
-                .lock()
-                .unwrap()
-                .send_raw(&msg.message),
-            2 => self.in_game_stream.lock().unwrap().send_raw(&msg.message),
-            3 => self.general_stream.lock().unwrap().send_raw(&msg.message),
-            4 => self.ping_stream.lock().unwrap().send_raw(&msg.message),
-            5 => self.terrain_stream.lock().unwrap().send_raw(&msg.message),
+            0 => self.register_stream.send_raw(&msg.message),
+            1 => self.character_screen_stream.send_raw(&msg.message),
+            2 => self.in_game_stream.send_raw(&msg.message),
+            3 => self.general_stream.send_raw(&msg.message),
+            4 => self.ping_stream.send_raw(&msg.message),
+            5 => self.terrain_stream.send_raw(&msg.message),
             _ => unreachable!("invalid stream id"),
         }
     }
@@ -238,17 +235,17 @@ impl Client {
     }
 
     pub(crate) fn recv<M: DeserializeOwned>(
-        &self,
+        &mut self,
         stream_id: u8,
     ) -> Result<Option<M>, StreamError> {
         // TODO: are two systems using the same stream?? why is there contention here?
         match stream_id {
-            0 => self.register_stream.lock().unwrap().try_recv(),
-            1 => self.character_screen_stream.lock().unwrap().try_recv(),
-            2 => self.in_game_stream.lock().unwrap().try_recv(),
-            3 => self.general_stream.lock().unwrap().try_recv(),
-            4 => self.ping_stream.lock().unwrap().try_recv(),
-            5 => self.terrain_stream.lock().unwrap().try_recv(),
+            0 => self.register_stream.try_recv(),
+            1 => self.character_screen_stream.try_recv(),
+            2 => self.in_game_stream.try_recv(),
+            3 => self.general_stream.try_recv(),
+            4 => self.ping_stream.try_recv(),
+            5 => self.terrain_stream.try_recv(),
             _ => unreachable!("invalid stream id"),
         }
     }

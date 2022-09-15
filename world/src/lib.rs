@@ -255,7 +255,6 @@ impl World {
                 .map(|zcache| zcache.sample.stone_col)
                 .unwrap_or_else(|| index.colors.deep_stone_color.into()),
         );
-        let water = Block::new(BlockKind::Water, Rgb::zero());
 
         let (base_z, sim_chunk) = match self
             .sim
@@ -269,15 +268,9 @@ impl World {
             Some(base_z) => (base_z as i32, self.sim.get(chunk_pos).unwrap()),
             // Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
             None => {
-                return Ok((
-                    TerrainChunk::new(
-                        CONFIG.sea_level as i32,
-                        water,
-                        air,
-                        TerrainChunkMeta::void(),
-                    ),
-                    ChunkSupplement::default(),
-                ));
+                // NOTE: This is necessary in order to generate a handful of chunks at the edges
+                // of the map.
+                return Ok((self.sim().generate_oob_chunk(), ChunkSupplement::default()));
             },
         };
 

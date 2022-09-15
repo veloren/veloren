@@ -1,4 +1,5 @@
 use crate::{
+    terrain::MapSizeLg,
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, WriteVol},
     volumes::dyna::DynaError,
 };
@@ -19,6 +20,10 @@ pub enum VolGrid2dError<V: RectRasterableVol> {
 // M = Chunk metadata
 #[derive(Clone)]
 pub struct VolGrid2d<V: RectRasterableVol> {
+    /// Size of the entire (not just loaded) map.
+    map_size_lg: MapSizeLg,
+    /// Default voxel for use outside of max map bounds.
+    default: Arc<V>,
     chunks: HashMap<Vec2<i32>, Arc<V>>,
 }
 
@@ -27,6 +32,18 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     pub fn chunk_key<P: Into<Vec2<i32>>>(pos: P) -> Vec2<i32> {
         pos.into()
             .map2(V::RECT_SIZE, |e, sz: u32| e.div_euclid(sz as i32))
+    }
+
+    #[inline(always)]
+    pub fn key_chunk<K: Into<Vec2<i32>>>(key: K) -> Vec2<i32> {
+        key.into() * V::RECT_SIZE.map(|e| e as i32)
+    }
+
+    #[inline(always)]
+    pub fn par_keys(&self) -> hashbrown::hash_map::rayon::ParKeys<Vec2<i32>, Arc<V>>
+        where V: Send + Sync,
+    {
+        self.chunks.par_keys()
     }
 
     #[inline(always)]
@@ -45,8 +62,7 @@ impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid2dError<V>> {
         let ck = Self::chunk_key(pos);
-        self.chunks
-            .get(&ck)
+        self.get_key(ck)
             .ok_or(VolGrid2dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
@@ -102,14 +118,14 @@ impl<I: Into<Aabr<i32>>, V: RectRasterableVol + ReadVol + Debug> SampleVol<I> fo
     fn sample(&self, range: I) -> Result<Self::Sample, VolGrid2dError<V>> {
         let range = range.into();
 
-        let mut sample = VolGrid2d::new()?;
+        let mut sample = VolGrid2d::new(self.map_size_lg, Arc::clone(&self.default))?;
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
         for x in chunk_min.x..chunk_max.x + 1 {
             for y in chunk_min.y..chunk_max.y + 1 {
                 let chunk_key = Vec2::new(x, y);
 
-                let chunk = self.get_key_arc(chunk_key).cloned();
+                let chunk = self.get_key_arc_real(chunk_key).cloned();
 
                 if let Some(chunk) = chunk {
                     sample.insert(chunk_key, chunk);
@@ -138,12 +154,14 @@ impl<V: RectRasterableVol + WriteVol + Clone + Debug> WriteVol for VolGrid2d<V> 
 }
 
 impl<V: RectRasterableVol> VolGrid2d<V> {
-    pub fn new() -> Result<Self, VolGrid2dError<V>> {
+    pub fn new(map_size_lg: MapSizeLg, default: Arc<V>) -> Result<Self, VolGrid2dError<V>> {
         if Self::chunk_size()
             .map(|e| e.is_power_of_two() && e > 0)
             .reduce_and()
         {
             Ok(Self {
+                map_size_lg,
+                default,
                 chunks: HashMap::default(),
             })
         } else {
@@ -160,10 +178,37 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 
     #[inline(always)]
     pub fn get_key(&self, key: Vec2<i32>) -> Option<&V> {
-        self.chunks.get(&key).map(|arc_chunk| arc_chunk.as_ref())
+        self.get_key_arc(key).map(|arc_chunk| arc_chunk.as_ref())
     }
 
-    pub fn get_key_arc(&self, key: Vec2<i32>) -> Option<&Arc<V>> { self.chunks.get(&key) }
+    #[inline(always)]
+    pub fn get_key_real(&self, key: Vec2<i32>) -> Option<&V> {
+        self.get_key_arc_real(key).map(|arc_chunk| arc_chunk.as_ref())
+    }
+
+    #[inline(always)]
+    pub fn contains_key(&self, key: Vec2<i32>) -> bool {
+        self.contains_key_real(key) ||
+            // Counterintuitively, areas outside the map are *always* considered to be in it, since
+            // they're assigned the default chunk.
+            !self.map_size_lg.contains_chunk(key)
+    }
+
+    #[inline(always)]
+    pub fn contains_key_real(&self, key: Vec2<i32>) -> bool {
+        self.chunks.contains_key(&key)
+    }
+
+    #[inline(always)]
+    pub fn get_key_arc(&self, key: Vec2<i32>) -> Option<&Arc<V>> {
+        self.get_key_arc_real(key)
+            .or_else(|| if !self.map_size_lg.contains_chunk(key) { Some(&self.default) } else { None })
+    }
+
+    #[inline(always)]
+    pub fn get_key_arc_real(&self, key: Vec2<i32>) -> Option<&Arc<V>> {
+        self.chunks.get(&key)
+    }
 
     pub fn clear(&mut self) { self.chunks.clear(); }
 
@@ -172,7 +217,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> { self.chunks.remove(&key) }
 
     #[inline(always)]
-    pub fn key_pos(&self, key: Vec2<i32>) -> Vec2<i32> { key * V::RECT_SIZE.map(|e| e as i32) }
+    pub fn key_pos(&self, key: Vec2<i32>) -> Vec2<i32> { Self::key_chunk(key) }
 
     #[inline(always)]
     pub fn pos_key(&self, pos: Vec3<i32>) -> Vec2<i32> { Self::chunk_key(pos) }
@@ -219,8 +264,7 @@ impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
             // Otherwise retrieve from the hashmap
             let chunk = self
                 .vol_grid_2d
-                .chunks
-                .get(&ck)
+                .get_key_arc(ck)
                 .ok_or(VolGrid2dError::NoSuchChunk)?;
             // Store most recently looked up chunk in the cache
             self.cache = Some((ck, Arc::clone(chunk)));

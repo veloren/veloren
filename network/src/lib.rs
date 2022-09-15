@@ -59,11 +59,11 @@
 //!
 //! // Server
 //! async fn server(runtime: &Runtime) -> Result<(), Box<dyn std::error::Error>> {
-//!     let server_network = Network::new(Pid::new(), runtime);
+//!     let mut server_network = Network::new(Pid::new(), runtime);
 //!     server_network
 //!         .listen(ListenAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
-//!     let client = server_network.connected().await?;
+//!     let mut client = server_network.connected().await?;
 //!     let mut stream = client.opened().await?;
 //!     let msg: String = stream.recv().await?;
 //!     println!("Got message: {}", msg);

@@ -632,8 +632,7 @@ impl<'a> PhysicsData<'a> {
                 )| {
                     let in_loaded_chunk = read
                         .terrain
-                        .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
-                        .is_some();
+                        .contains_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)));
 
                     // Apply physics only if in a loaded chunk
                     if in_loaded_chunk
@@ -790,8 +789,7 @@ impl<'a> PhysicsData<'a> {
 
                     let in_loaded_chunk = read
                         .terrain
-                        .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
-                        .is_some();
+                        .contains_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)));
 
                     // Don't move if we're not in a loaded chunk
                     let pos_delta = if in_loaded_chunk {

@@ -1753,6 +1753,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 
 [[package]]
+name = "drop_guard"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c4a817d8b683f6e649aed359aab0c47a875377516bb5791d0f7e46d9066d209"
+
+[[package]]
 name = "egui"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4621,7 +4627,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f61dcf0b917cd75d4521d7343d1ffff3d1583054133c9b5cbea3375c703c40d"
 dependencies = [
  "profiling-procmacros",
- "tracy-client 0.13.2",
+ "tracy-client",
 ]
 
 [[package]]
@@ -6387,13 +6393,13 @@ dependencies = [
 
 [[package]]
 name = "tracing-tracy"
-version = "0.10.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed3ebef1f9f0d00aaa29239537effef65b82c56040c680f540fc6cedfac7b230"
+checksum = "23a42311a35ed976d72f359de43e9fe028ec9d9f1051c4c52bd05a4f66ff3cbf"
 dependencies = [
  "tracing-core",
  "tracing-subscriber",
- "tracy-client 0.14.0",
+ "tracy-client",
 ]
 
 [[package]]
@@ -6401,17 +6407,6 @@ name = "tracy-client"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ebfe7a24c18b5ba86d8920c124b41b942352f863fbe0c84d3d63428fa1860f"
-dependencies = [
- "loom",
- "once_cell",
- "tracy-client-sys",
-]
-
-[[package]]
-name = "tracy-client"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f901ea566c34f5fdc987962495ebfea20c18d781e271967edcc0f9897e339815"
 dependencies = [
  "loom",
  "once_cell",
@@ -6763,7 +6758,7 @@ version = "0.10.0"
 dependencies = [
  "directories-next",
  "tracing",
- "tracy-client 0.13.2",
+ "tracy-client",
 ]
 
 [[package]]
@@ -6937,6 +6932,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "crossbeam-channel",
+ "drop_guard",
  "enumset",
  "futures-util",
  "hashbrown 0.12.3",
@@ -6945,6 +6941,7 @@ dependencies = [
  "lazy_static",
  "noise",
  "num_cpus",
+ "parking_lot 0.12.1",
  "portpicker",
  "prometheus",
  "prometheus-hyper",

@@ -162,7 +162,7 @@ pub struct Settings {
     pub gameserver_protocols: Vec<Protocol>,
     pub metrics_address: SocketAddr,
     pub auth_server_address: Option<String>,
-    pub max_players: usize,
+    pub max_players: u16,
     pub world_seed: u32,
     pub server_name: String,
     pub start_time: f64,

@@ -5,7 +5,8 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::PingMsg;
-use specs::{Entities, Join, Read, ReadStorage};
+use rayon::prelude::*;
+use specs::{Entities, ParJoin, Read, WriteStorage};
 use tracing::{debug, info};
 
 impl Sys {
@@ -26,7 +27,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
-        ReadStorage<'a, Client>,
+        WriteStorage<'a, Client>,
         Read<'a, Settings>,
     );
 
@@ -36,45 +37,49 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, server_event_bus, time, clients, settings): Self::SystemData,
+        (entities, server_event_bus, time, mut clients, settings): Self::SystemData,
     ) {
-        let mut server_emitter = server_event_bus.emitter();
+        (&entities, &mut clients).par_join().for_each_init(
+            || server_event_bus.emitter(),
+            |server_emitter, (entity, client)| {
+                // ignore network events
+                while let Some(Ok(Some(_))) =
+                    client.participant.as_mut().map(|p| p.try_fetch_event())
+                {}
 
-        for (entity, client) in (&entities, &clients).join() {
-            // ignore network events
-            while let Some(Ok(Some(_))) = client.participant.as_ref().map(|p| p.try_fetch_event()) {
-            }
+                let res = super::try_recv_all(client, 4, Self::handle_ping_msg);
 
-            let res = super::try_recv_all(client, 4, Self::handle_ping_msg);
-
-            match res {
-                Err(e) => {
-                    debug!(?entity, ?e, "network error with client, disconnecting");
-                    server_emitter.emit(ServerEvent::ClientDisconnect(
-                        entity,
-                        common::comp::DisconnectReason::NetworkError,
-                    ));
-                },
-                Ok(1_u64..=u64::MAX) => {
-                    // Update client ping.
-                    *client.last_ping.lock().unwrap() = time.0
-                },
-                Ok(0) => {
-                    let last_ping: f64 = *client.last_ping.lock().unwrap();
-                    if time.0 - last_ping > settings.client_timeout.as_secs() as f64
-                    // Timeout
-                    {
-                        info!(?entity, "timeout error with client, disconnecting");
+                match res {
+                    Err(e) => {
+                        debug!(?entity, ?e, "network error with client, disconnecting");
                         server_emitter.emit(ServerEvent::ClientDisconnect(
                             entity,
-                            common::comp::DisconnectReason::Timeout,
+                            common::comp::DisconnectReason::NetworkError,
                         ));
-                    } else if time.0 - last_ping > settings.client_timeout.as_secs() as f64 * 0.5 {
-                        // Try pinging the client if the timeout is nearing.
-                        client.send_fallible(PingMsg::Ping);
-                    }
-                },
-            }
-        }
+                    },
+                    Ok(1_u64..=u64::MAX) => {
+                        // Update client ping.
+                        client.last_ping = time.0
+                    },
+                    Ok(0) => {
+                        let last_ping: f64 = client.last_ping;
+                        if time.0 - last_ping > settings.client_timeout.as_secs() as f64
+                        // Timeout
+                        {
+                            info!(?entity, "timeout error with client, disconnecting");
+                            server_emitter.emit(ServerEvent::ClientDisconnect(
+                                entity,
+                                common::comp::DisconnectReason::Timeout,
+                            ));
+                        } else if time.0 - last_ping
+                            > settings.client_timeout.as_secs() as f64 * 0.5
+                        {
+                            // Try pinging the client if the timeout is nearing.
+                            client.send_fallible(PingMsg::Ping);
+                        }
+                    },
+                }
+            },
+        );
     }
 }

@@ -64,7 +64,23 @@ macro_rules! trackers {
                 vel: Option<Vel>,
                 ori: Option<Ori>,
             ) -> Option<EntityPackage<EcsCompPacket>> {
-                let uid = self.uid.get(entity).copied()?.0;
+                let uid = self.uid.get(entity).copied()?;
+                Some(self.create_entity_package_with_uid(entity, uid, pos, vel, ori))
+            }
+
+            /// See [create_entity_package].
+            ///
+            /// NOTE: Only if you're certain you know the UID for the entity, and it hasn't
+            /// changed!
+            pub fn create_entity_package_with_uid(
+                &self,
+                entity: EcsEntity,
+                uid: Uid,
+                pos: Option<Pos>,
+                vel: Option<Vel>,
+                ori: Option<Ori>,
+            ) -> EntityPackage<EcsCompPacket> {
+                let uid = uid.0;
                 let mut comps = Vec::new();
                 // NOTE: we could potentially include a bitmap indicating which components are present instead of tagging
                 // components with the type in order to save bandwidth
@@ -94,7 +110,7 @@ macro_rules! trackers {
                 vel.map(|c| comps.push(c.into()));
                 ori.map(|c| comps.push(c.into()));
 
-                Some(EntityPackage { uid, comps })
+                EntityPackage { uid, comps }
             }
 
             /// Create sync package for switching a client to another entity specifically to

@@ -6,6 +6,7 @@ mod tests {
             Ori, PhysicsState, Poise, Pos, Skill, Stats, Vel,
         },
         resources::{DeltaTime, GameMode, Time},
+        terrain::{MapSizeLg, TerrainChunk},
         uid::Uid,
         util::Dir,
         SkillSetBuilder,
@@ -14,12 +15,25 @@ mod tests {
     use common_state::State;
     use rand::thread_rng;
     use specs::{Builder, Entity, WorldExt};
-    use std::time::Duration;
-    use vek::{approx::AbsDiffEq, Vec3};
+    use std::{sync::Arc, time::Duration};
+    use vek::{approx::AbsDiffEq, Vec2, Vec3};
     use veloren_common_systems::character_behavior;
 
+    const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
+        if let Ok(map_size_lg) = MapSizeLg::new(Vec2 { x: 1, y: 1 }) {
+            map_size_lg
+        } else {
+            panic!("Default world chunk size does not satisfy required invariants.");
+        };
+
     fn setup() -> State {
-        let mut state = State::new(GameMode::Server);
+        let pools = State::pools(GameMode::Server);
+        let mut state = State::new(
+            GameMode::Server,
+            pools,
+            DEFAULT_WORLD_CHUNKS_LG,
+            Arc::new(TerrainChunk::water(0)),
+        );
         let msm = MaterialStatManifest::load().cloned();
         state.ecs_mut().insert(msm);
         state.ecs_mut().read_resource::<Time>();

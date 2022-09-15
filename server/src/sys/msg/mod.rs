@@ -29,7 +29,7 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
 /// handles all send msg and calls a handle fn
 /// Aborts when a error occurred returns cnt of successful msg otherwise
 pub(crate) fn try_recv_all<M, F>(
-    client: &Client,
+    client: &mut Client,
     stream_id: u8,
     mut f: F,
 ) -> Result<u64, crate::error::Error>

@@ -188,6 +188,16 @@ impl TerrainGrid {
 }
 
 impl TerrainChunk {
+    /// Generate an all-water chunk at a specific sea level.
+    pub fn water(sea_level: i32) -> TerrainChunk {
+        TerrainChunk::new(
+            sea_level,
+            Block::new(BlockKind::Water, Rgb::zero()),
+            Block::air(SpriteKind::Empty),
+            TerrainChunkMeta::void(),
+        )
+    }
+
     /// Find the highest or lowest accessible position within the chunk
     pub fn find_accessible_pos(&self, spawn_wpos: Vec2<i32>, ascending: bool) -> Vec3<f32> {
         let min_z = self.get_min_z();
