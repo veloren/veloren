@@ -55,18 +55,21 @@ benchmarks:
 
 # Coverage is needed on master for the README.md badge to work
 # tmp remove simd as it doesnt work with tarpaulin: https://github.com/rust-lang/rust/issues/77529
-coverage:
-  extends: .release
-  stage: build
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/tarpaulin:${CACHE_IMAGE_TAG}
-  coverage: '/^\d+.\d+% coverage/'
-  tags: ["veloren/veloren", "check"]
-  script:
-    - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/coverage.sh
-    - source ./.gitlab/scripts/coverage.sh
-  retry:
-    max: 2
+#
+# 15/09/2022 - Temporarily disabled by XVar due to coverage docker cache image build issues
+#
+#coverage:
+#  extends: .release
+#  stage: build
+#  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/tarpaulin:${CACHE_IMAGE_TAG}
+#  coverage: '/^\d+.\d+% coverage/'
+#  tags: ["veloren/veloren", "check"]
+#  script:
+#    - ln -s /dockercache/target target
+#    - cat ./.gitlab/scripts/coverage.sh
+#    - source ./.gitlab/scripts/coverage.sh
+#  retry:
+#    max: 2
 
 #linux, windows, macos builds here as template
 .tlinux-x86_64:
