@@ -4106,9 +4106,9 @@ dependencies = [
 
 [[package]]
 name = "packed_simd_2"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "defdcfef86dcc44ad208f71d9ff4ce28df6537a4e0d6b0e8e845cb8ca10059a6"
+checksum = "a1914cd452d8fccd6f9db48147b29fd4ae05bea9dc5d9ad578509f72415de282"
 dependencies = [
  "cfg-if 1.0.0",
  "libm 0.1.4",
@@ -6780,7 +6780,7 @@ dependencies = [
  "lazy_static",
  "noise",
  "num_cpus",
- "parking_lot 0.12.1",
+ "parking_lot 0.12.0",
  "portpicker",
  "prometheus",
  "prometheus-hyper",
