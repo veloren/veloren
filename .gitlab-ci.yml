@@ -13,7 +13,7 @@ variables:
   # https://docs.gitlab.com/ee/ci/yaml/#shallow-cloning
   GIT_DEPTH: 3
   GIT_CLEAN_FLAGS: -f
-  CACHE_IMAGE_TAG: c96aef21
+  CACHE_IMAGE_TAG: ebce1d97
   TAG_REGEX: '/^v[0-9]+\.[0-9]+\.[0-9]+$/'
 
 default:
