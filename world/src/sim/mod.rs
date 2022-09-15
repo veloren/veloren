@@ -52,6 +52,7 @@ use common::{
     vol::RectVolSize,
 };
 use common_net::msg::WorldMapMsg;
+use enum_iterator::IntoEnumIterator;
 use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
     Seedable, SuperSimplex, Worley,
@@ -2238,7 +2239,7 @@ impl WorldSim {
         };
         let env = chunk.get_environment();
         Lottery::from(
-            enum_iterator::all::<ForestKind>()
+            ForestKind::into_enum_iter()
                 .enumerate()
                 .map(|(i, fk)| {
                     const CLUSTER_SIZE: f64 = 48.0;
@@ -2551,7 +2552,7 @@ impl SimChunk {
                     },
                 };
 
-                enum_iterator::all::<ForestKind>()
+                ForestKind::into_enum_iter()
                     .max_by_key(|fk| (fk.proclivity(&env) * 10000.0) as u32)
                     .unwrap() // Can't fail
             },
