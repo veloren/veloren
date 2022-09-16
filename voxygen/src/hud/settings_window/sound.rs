@@ -1,7 +1,7 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
-    hud::{img_ids::Imgs, TEXT_COLOR},
+    hud::{img_ids::Imgs, TEXT_COLOR, TEXT_COLOR_GREY},
     session::settings_change::{Audio as AudioChange, Audio::*},
     ui::{fonts::Fonts, ImageSlider, ToggleButton},
     GlobalState,
@@ -112,6 +112,12 @@ impl<'a> Widget for Sound<'a> {
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.window_scrollbar, ui);
 
+        let non_master_volume_text_color =
+            match self.global_state.settings.audio.master_volume.muted {
+                true => TEXT_COLOR_GREY,
+                false => TEXT_COLOR,
+            };
+
         // Master Volume
         Text::new(&self.localized_strings.get_msg("hud-settings-master_volume"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
@@ -206,7 +212,7 @@ impl<'a> Widget for Sound<'a> {
         .right_from(state.ids.inactive_master_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
+        .color(non_master_volume_text_color)
         .set(state.ids.inactive_master_volume_number, ui);
         // Master Volume (inactive window) Muted Indicator
         let inactive_master_muted = ToggleButton::new(
@@ -266,7 +272,7 @@ impl<'a> Widget for Sound<'a> {
         .right_from(state.ids.music_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
+        .color(non_master_volume_text_color)
         .set(state.ids.music_volume_number, ui);
         // Music Muted Indicator
         let music_muted = ToggleButton::new(
@@ -319,7 +325,7 @@ impl<'a> Widget for Sound<'a> {
         .right_from(state.ids.sfx_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
+        .color(non_master_volume_text_color)
         .set(state.ids.sfx_volume_number, ui);
         // SFX Volume Muted Indicator
         let sfx_muted = ToggleButton::new(
@@ -372,7 +378,7 @@ impl<'a> Widget for Sound<'a> {
         .right_from(state.ids.ambience_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
+        .color(non_master_volume_text_color)
         .set(state.ids.ambience_volume_number, ui);
         // Ambience Volume Muted Indicator
         let ambience_muted = ToggleButton::new(
