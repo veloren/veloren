@@ -40,6 +40,12 @@ use rand::{thread_rng, Rng};
 use specs::Entity as EcsEntity;
 use vek::*;
 
+#[cfg(feature = "use-dyn-lib")]
+use {
+    crate::LIB,
+    std::ffi::CStr,
+};
+
 impl<'a> AgentData<'a> {
     ////////////////////////////////////////
     // Action Nodes
@@ -698,8 +704,51 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         tgt_data: &TargetData,
         read_data: &ReadData,
+        #[cfg(not(feature = "use-dyn-lib"))]
+        rng: &mut impl Rng,
+        #[cfg(feature = "use-dyn-lib")]
+        _rng: &mut impl Rng,
+    ) {
+        #[cfg(not(feature = "use-dyn-lib"))]
+        {
+            self.attack_inner(agent, controller, tgt_data, read_data, rng);
+        }
+        #[cfg(feature = "use-dyn-lib")]
+        {
+            let lock = LIB.lock().unwrap();
+            let lib = &lock.as_ref().unwrap().lib;
+            const ATTACK_FN: &[u8] = b"attack_inner\0";
+
+            let attack_fn: server_dynlib::Symbol<
+                fn(&Self, &mut Agent, &mut Controller, &TargetData, &ReadData),
+            > = unsafe { lib.get(ATTACK_FN) }.unwrap_or_else(|e| {
+                panic!(
+                    "Trying to use: {} but had error: {:?}",
+                    CStr::from_bytes_with_nul(ATTACK_FN)
+                        .map(CStr::to_str)
+                        .unwrap()
+                        .unwrap(),
+                    e
+                )
+            });
+
+            attack_fn(self, agent, controller, tgt_data, read_data);
+        }
+    }
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "attack_inner")]
+    pub fn attack_inner(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        #[cfg(not(feature = "use-dyn-lib"))]
         rng: &mut impl Rng,
     ) {
+        #[cfg(feature = "use-dyn-lib")]
+        let rng = &mut thread_rng();
+
         let tool_tactic = |tool_kind| match tool_kind {
             ToolKind::Bow => Tactic::Bow,
             ToolKind::Staff => Tactic::Staff,

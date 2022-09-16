@@ -6830,6 +6830,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "veloren-server-agent-dyn"
+version = "0.1.0"
+dependencies = [
+ "veloren-server-agent",
+]
+
+[[package]]
 name = "veloren-server-cli"
 version = "0.13.0"
 dependencies = [
