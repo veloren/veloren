@@ -9,7 +9,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{comp, resources::DeltaTime};
+use common::{comp, event::UpdateCharacterMetadata, resources::DeltaTime};
 use common_base::span;
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc};
@@ -153,7 +153,7 @@ impl PlayState for CharSelectionState {
                         }
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
-                            None,
+                            UpdateCharacterMetadata::default(),
                             Rc::clone(&self.client),
                         )));
                     },
@@ -232,6 +232,9 @@ impl PlayState for CharSelectionState {
                             client::Event::CharacterJoined(metadata) => {
                                 // NOTE: It's possible we'll lose disconnect messages this way,
                                 // among other things, but oh well.
+                                //
+                                // TODO: Process all messages before returning (from any branch) in
+                                // order to catch disconnect messages.
                                 return PlayStateResult::Switch(Box::new(SessionState::new(
                                     global_state,
                                     metadata,
@@ -259,10 +262,7 @@ impl PlayState for CharSelectionState {
 
             PlayStateResult::Continue
         } else {
-            error!(
-                "Client not in character screen, pending, or registered state. Popping char \
-                 selection play state"
-            );
+            error!("Client not in pending, or registered state. Popping char selection play state");
             // TODO set global_state.info_message
             PlayStateResult::Pop
         }

@@ -1264,7 +1264,7 @@ impl PlayState for SessionState {
                     mutable_viewpoint,
                     target_entity: self.target_entity,
                     selected_entity: self.selected_entity,
-                    persistence_load_error: self.metadata,
+                    persistence_load_error: self.metadata.skill_set_persistence_load_error,
                 },
                 self.interactable,
             );
@@ -1684,7 +1684,7 @@ impl PlayState for SessionState {
                         settings_change.process(global_state, self);
                     },
                     HudEvent::AcknowledgePersistenceLoadError => {
-                        self.metadata = None;
+                        self.metadata.skill_set_persistence_load_error = None;
                     },
                     HudEvent::MapMarkerEvent(event) => {
                         self.client.borrow_mut().map_marker_event(event);

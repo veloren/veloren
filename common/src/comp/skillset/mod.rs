@@ -5,6 +5,7 @@ use crate::{
         skills::{GeneralSkill, Skill},
     },
 };
+use core::borrow::{Borrow, BorrowMut};
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -327,15 +328,21 @@ impl SkillSet {
         (skillset, persistence_load_error)
     }
 
+    /// Check if a particular skill group is accessible for an entity, *if* it
+    /// exists.
+    fn skill_group_accessible_if_exists(&self, skill_group_kind: SkillGroupKind) -> bool {
+        self.has_skill(Skill::UnlockGroup(skill_group_kind))
+    }
+
     /// Checks if a particular skill group is accessible for an entity
     pub fn skill_group_accessible(&self, skill_group_kind: SkillGroupKind) -> bool {
         self.skill_groups.contains_key(&skill_group_kind)
-            && self.has_skill(Skill::UnlockGroup(skill_group_kind))
+            && self.skill_group_accessible_if_exists(skill_group_kind)
     }
 
     ///  Unlocks a skill group for a player. It starts with 0 exp and 0 skill
     ///  points.
-    pub fn unlock_skill_group(&mut self, skill_group_kind: SkillGroupKind) {
+    fn unlock_skill_group(&mut self, skill_group_kind: SkillGroupKind) {
         if !self.skill_groups.contains_key(&skill_group_kind) {
             self.skill_groups
                 .insert(skill_group_kind, SkillGroup::new(skill_group_kind));
@@ -458,33 +465,56 @@ impl SkillSet {
 
     /// Unlocks a skill for a player, assuming they have the relevant skill
     /// group unlocked and available SP in that skill group.
-    pub fn unlock_skill(&mut self, skill: Skill) -> Result<(), SkillUnlockError> {
+    ///
+    /// NOTE: Please don't use pathological or clever implementations of to_mut
+    /// here.
+    pub fn unlock_skill_cow<'a, B, C: 'a>(
+        this_: &'a mut B,
+        skill: Skill,
+        to_mut: impl FnOnce(&'a mut B) -> &'a mut C,
+    ) -> Result<(), SkillUnlockError>
+    where
+        B: Borrow<SkillSet>,
+        C: BorrowMut<SkillSet>,
+    {
         if let Some(skill_group_kind) = skill.skill_group_kind() {
-            let next_level = self.next_skill_level(skill);
-            let prerequisites_met = self.prerequisites_met(skill);
+            let this = (&*this_).borrow();
+            let next_level = this.next_skill_level(skill);
+            let prerequisites_met = this.prerequisites_met(skill);
             // Check that skill is not yet at max level
-            if !matches!(self.skills.get(&skill), Some(level) if *level == skill.max_level()) {
-                if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
+            if !matches!(this.skills.get(&skill), Some(level) if *level == skill.max_level()) {
+                if let Some(skill_group) = this.skill_groups.get(&skill_group_kind) &&
+                    this.skill_group_accessible_if_exists(skill_group_kind)
+                {
                     if prerequisites_met {
                         if let Some(new_available_sp) = skill_group
                             .available_sp
                             .checked_sub(skill.skill_cost(next_level))
                         {
+                            // Perform all mutation inside this branch, to avoid triggering a copy
+                            // on write or flagged storage in cases where this matters.
+                            let this_ = to_mut(this_);
+                            let mut this = this_.borrow_mut();
+                            // NOTE: Verified to exist previously when we accessed
+                            // this.skill_groups (assuming a non-pathological implementation of
+                            // ToOwned).
+                            let skill_group = this.skill_groups.get_mut(&skill_group_kind)
+                                .expect("Verified to exist when we previously accessed this.skill_groups");
                             skill_group.available_sp = new_available_sp;
                             skill_group.ordered_skills.push(skill);
                             match skill {
                                 Skill::UnlockGroup(group) => {
-                                    self.unlock_skill_group(group);
+                                    this.unlock_skill_group(group);
                                 },
                                 Skill::General(GeneralSkill::HealthIncrease) => {
-                                    self.modify_health = true;
+                                    this.modify_health = true;
                                 },
                                 Skill::General(GeneralSkill::EnergyIncrease) => {
-                                    self.modify_energy = true;
+                                    this.modify_energy = true;
                                 },
                                 _ => {},
                             }
-                            self.skills.insert(skill, next_level);
+                            this.skills.insert(skill, next_level);
                             Ok(())
                         } else {
                             trace!("Tried to unlock skill for skill group with insufficient SP");
@@ -509,6 +539,12 @@ impl SkillSet {
             );
             Err(SkillUnlockError::NoParentSkillTree)
         }
+    }
+
+    /// Convenience function for the case where you have mutable access to the
+    /// skill.
+    pub fn unlock_skill(&mut self, skill: Skill) -> Result<(), SkillUnlockError> {
+        Self::unlock_skill_cow(self, skill, |x| x)
     }
 
     /// Checks if the player has available SP to spend

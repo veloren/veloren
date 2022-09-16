@@ -25,7 +25,10 @@ use crate::{
         EditableComponents, PersistedComponents,
     },
 };
-use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
+use common::{
+    character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    event::UpdateCharacterMetadata,
+};
 use core::ops::Range;
 use rusqlite::{types::Value, Connection, ToSql, Transaction, NO_PARAMS};
 use std::{num::NonZeroU64, rc::Rc};
@@ -272,7 +275,9 @@ pub fn load_character_data(
             active_abilities: convert_active_abilities_from_database(&ability_set_data),
             map_marker: char_map_marker,
         },
-        skill_set_persistence_load_error,
+        UpdateCharacterMetadata {
+            skill_set_persistence_load_error,
+        },
     ))
 }
 

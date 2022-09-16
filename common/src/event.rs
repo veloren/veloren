@@ -15,6 +15,7 @@ use crate::{
     util::Dir,
     Explosion,
 };
+use serde::{Deserialize, Serialize};
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
 use vek::*;
@@ -35,7 +36,10 @@ pub enum LocalEvent {
     CreateOutcome(Outcome),
 }
 
-pub type UpdateCharacterMetadata = Option<comp::skillset::SkillsPersistenceError>;
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+pub struct UpdateCharacterMetadata {
+    pub skill_set_persistence_load_error: Option<comp::skillset::SkillsPersistenceError>,
+}
 
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 #[derive(strum::EnumDiscriminants)]

@@ -844,7 +844,6 @@ impl Client {
                     | ClientGeneral::PlayerPhysics { .. }
                     | ClientGeneral::UnlockSkill(_)
                     | ClientGeneral::RequestSiteInfo(_)
-                    | ClientGeneral::UnlockSkillGroup(_)
                     | ClientGeneral::RequestPlayerPhysics { .. }
                     | ClientGeneral::RequestLossyTerrainCompression { .. }
                     | ClientGeneral::UpdateMapMarker(_)

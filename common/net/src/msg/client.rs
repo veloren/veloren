@@ -1,11 +1,5 @@
 use super::{world_msg::SiteId, PingMsg};
-use common::{
-    character::CharacterId,
-    comp,
-    comp::{Skill, SkillGroupKind},
-    terrain::block::Block,
-    ViewDistances,
-};
+use common::{character::CharacterId, comp, comp::Skill, terrain::block::Block, ViewDistances};
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -78,7 +72,6 @@ pub enum ClientGeneral {
         force_counter: u64,
     },
     UnlockSkill(Skill),
-    UnlockSkillGroup(SkillGroupKind),
     RequestSiteInfo(SiteId),
     UpdateMapMarker(comp::MapMarkerChange),
 
@@ -137,7 +130,6 @@ impl ClientMsg {
                         | ClientGeneral::LodZoneRequest { .. }
                         | ClientGeneral::UnlockSkill(_)
                         | ClientGeneral::RequestSiteInfo(_)
-                        | ClientGeneral::UnlockSkillGroup(_)
                         | ClientGeneral::RequestPlayerPhysics { .. }
                         | ClientGeneral::RequestLossyTerrainCompression { .. }
                         | ClientGeneral::UpdateMapMarker(_)

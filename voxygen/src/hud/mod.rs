@@ -88,11 +88,10 @@ use common::{
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         loot_owner::LootOwnerKind,
         pet::is_mountable,
-        skillset::{skills::Skill, SkillGroupKind},
+        skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
         BuffData, BuffKind, Health, Item, MapMarkerChange,
     },
     consts::MAX_PICKUP_RANGE,
-    event::UpdateCharacterMetadata,
     link::Is,
     mounting::Mount,
     outcome::Outcome,
@@ -506,7 +505,7 @@ pub struct HudInfo {
     pub mutable_viewpoint: bool,
     pub target_entity: Option<specs::Entity>,
     pub selected_entity: Option<(specs::Entity, Instant)>,
-    pub persistence_load_error: UpdateCharacterMetadata,
+    pub persistence_load_error: Option<SkillsPersistenceError>,
 }
 
 #[derive(Clone)]
@@ -1291,7 +1290,6 @@ impl Hud {
             // display a dialog prompt
             if self.show.prompt_dialog.is_none() {
                 if let Some(persistence_error) = info.persistence_load_error {
-                    use comp::skillset::SkillsPersistenceError;
                     let persistence_error = match persistence_error {
                         SkillsPersistenceError::HashMismatch => {
                             "There was a difference detected in one of your skill groups since you \
