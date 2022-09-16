@@ -606,7 +606,12 @@ pub fn convert_stats_from_database(alias: String) -> Stats {
     new_stats
 }
 
-pub fn convert_skill_set_from_database(skill_groups: &[SkillGroup]) -> SkillSet {
+/// NOTE: This does *not* return an error on failure, since we can partially
+/// recover from some failures.  Instead, it returns the error in the second
+/// return value; make sure to handle it if present!
+pub fn convert_skill_set_from_database(
+    skill_groups: &[SkillGroup],
+) -> (SkillSet, Option<skillset::SkillsPersistenceError>) {
     let (skillless_skill_groups, deserialized_skills) =
         convert_skill_groups_from_database(skill_groups);
     SkillSet::load_from_database(skillless_skill_groups, deserialized_skills)

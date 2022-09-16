@@ -254,21 +254,26 @@ pub fn load_character_data(
         })
     })?;
 
-    Ok(PersistedComponents {
-        body: convert_body_from_database(&body_data.variant, &body_data.body_data)?,
-        stats: convert_stats_from_database(character_data.alias),
-        skill_set: convert_skill_set_from_database(&skill_group_data),
-        inventory: convert_inventory_from_database_items(
-            character_containers.inventory_container_id,
-            &inventory_items,
-            character_containers.loadout_container_id,
-            &loadout_items,
-        )?,
-        waypoint: char_waypoint,
-        pets,
-        active_abilities: convert_active_abilities_from_database(&ability_set_data),
-        map_marker: char_map_marker,
-    })
+    let (skill_set, skill_set_persistence_load_error) =
+        convert_skill_set_from_database(&skill_group_data);
+    Ok((
+        PersistedComponents {
+            body: convert_body_from_database(&body_data.variant, &body_data.body_data)?,
+            stats: convert_stats_from_database(character_data.alias),
+            skill_set,
+            inventory: convert_inventory_from_database_items(
+                character_containers.inventory_container_id,
+                &inventory_items,
+                character_containers.loadout_container_id,
+                &loadout_items,
+            )?,
+            waypoint: char_waypoint,
+            pets,
+            active_abilities: convert_active_abilities_from_database(&ability_set_data),
+            map_marker: char_map_marker,
+        },
+        skill_set_persistence_load_error,
+    ))
 }
 
 /// Loads a list of characters belonging to the player. This data is a small

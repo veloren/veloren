@@ -276,11 +276,6 @@ impl Sys {
             } => {
                 presence.lossy_terrain_compression = lossy_terrain_compression;
             },
-            ClientGeneral::AcknowledgePersistenceLoadError => {
-                skill_sets
-                    .get_mut(entity)
-                    .map(|mut skill_set| skill_set.persistence_load_error = None);
-            },
             ClientGeneral::UpdateMapMarker(update) => {
                 server_emitter.emit(ServerEvent::UpdateMapMarker { entity, update });
             },

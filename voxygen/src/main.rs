@@ -223,7 +223,6 @@ fn main() {
         singleplayer: None,
         i18n,
         clipboard,
-        client_error: None,
         clear_shadows_next_frame: false,
         #[cfg(feature = "discord")]
         discord,

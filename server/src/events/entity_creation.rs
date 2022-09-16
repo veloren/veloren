@@ -11,7 +11,7 @@ use common::{
         Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats, Vel,
         WaypointArea,
     },
-    event::EventBus,
+    event::{EventBus, UpdateCharacterMetadata},
     lottery::LootSpec,
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -60,6 +60,7 @@ pub fn handle_loaded_character_data(
     server: &mut Server,
     entity: EcsEntity,
     loaded_components: PersistedComponents,
+    metadata: UpdateCharacterMetadata,
 ) {
     if let Some(marker) = loaded_components.map_marker {
         server.notify_client(
@@ -73,6 +74,8 @@ pub fn handle_loaded_character_data(
         .state
         .update_character_data(entity, loaded_components);
     sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
+    // We notify the client with the metadata result from the operation.
+    server.notify_client(entity, ServerGeneral::CharacterDataLoadResult(Ok(metadata)));
 }
 
 pub fn handle_create_npc(

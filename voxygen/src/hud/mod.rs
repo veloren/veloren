@@ -92,6 +92,7 @@ use common::{
         BuffData, BuffKind, Health, Item, MapMarkerChange,
     },
     consts::MAX_PICKUP_RANGE,
+    event::UpdateCharacterMetadata,
     link::Is,
     mounting::Mount,
     outcome::Outcome,
@@ -505,6 +506,7 @@ pub struct HudInfo {
     pub mutable_viewpoint: bool,
     pub target_entity: Option<specs::Entity>,
     pub selected_entity: Option<(specs::Entity, Instant)>,
+    pub persistence_load_error: UpdateCharacterMetadata,
 }
 
 #[derive(Clone)]
@@ -1288,41 +1290,38 @@ impl Hud {
             // Check if there was a persistence load error of the skillset, and if so
             // display a dialog prompt
             if self.show.prompt_dialog.is_none() {
-                if let Some(skill_set) = skill_sets.get(me) {
-                    if let Some(persistence_error) = skill_set.persistence_load_error {
-                        use comp::skillset::SkillsPersistenceError;
-                        let persistence_error = match persistence_error {
-                            SkillsPersistenceError::HashMismatch => {
-                                "There was a difference detected in one of your skill groups since \
-                                 you last played."
-                            },
-                            SkillsPersistenceError::DeserializationFailure => {
-                                "There was a error in loading some of your skills from the \
-                                 database."
-                            },
-                            SkillsPersistenceError::SpentExpMismatch => {
-                                "The amount of free experience you had in one of your skill groups \
-                                 differed from when you last played."
-                            },
-                            SkillsPersistenceError::SkillsUnlockFailed => {
-                                "Your skills were not able to be obtained in the same order you \
-                                 acquired them. Prerequisites or costs may have changed."
-                            },
-                        };
+                if let Some(persistence_error) = info.persistence_load_error {
+                    use comp::skillset::SkillsPersistenceError;
+                    let persistence_error = match persistence_error {
+                        SkillsPersistenceError::HashMismatch => {
+                            "There was a difference detected in one of your skill groups since you \
+                             last played."
+                        },
+                        SkillsPersistenceError::DeserializationFailure => {
+                            "There was a error in loading some of your skills from the database."
+                        },
+                        SkillsPersistenceError::SpentExpMismatch => {
+                            "The amount of free experience you had in one of your skill groups \
+                             differed from when you last played."
+                        },
+                        SkillsPersistenceError::SkillsUnlockFailed => {
+                            "Your skills were not able to be obtained in the same order you \
+                             acquired them. Prerequisites or costs may have changed."
+                        },
+                    };
 
-                        let common_message = "Some of your skill points have been reset. You will \
-                                              need to reassign them.";
+                    let common_message = "Some of your skill points have been reset. You will \
+                                          need to reassign them.";
 
-                        warn!("{}\n{}", persistence_error, common_message);
-                        let prompt_dialog = PromptDialogSettings::new(
-                            format!("{}\n", common_message),
-                            Event::AcknowledgePersistenceLoadError,
-                            None,
-                        )
-                        .with_no_negative_option();
-                        // self.set_prompt_dialog(prompt_dialog);
-                        self.show.prompt_dialog = Some(prompt_dialog);
-                    }
+                    warn!("{}\n{}", persistence_error, common_message);
+                    let prompt_dialog = PromptDialogSettings::new(
+                        format!("{}\n", common_message),
+                        Event::AcknowledgePersistenceLoadError,
+                        None,
+                    )
+                    .with_no_negative_option();
+                    // self.set_prompt_dialog(prompt_dialog);
+                    self.show.prompt_dialog = Some(prompt_dialog);
                 }
             }
 

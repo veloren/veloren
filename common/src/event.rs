@@ -35,6 +35,8 @@ pub enum LocalEvent {
     CreateOutcome(Outcome),
 }
 
+pub type UpdateCharacterMetadata = Option<comp::skillset::SkillsPersistenceError>;
+
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 #[derive(strum::EnumDiscriminants)]
 #[strum_discriminants(repr(usize))]
@@ -122,6 +124,7 @@ pub enum ServerEvent {
             comp::ActiveAbilities,
             Option<comp::MapMarker>,
         ),
+        metadata: UpdateCharacterMetadata,
     },
     ExitIngame {
         entity: EcsEntity,

@@ -238,10 +238,6 @@ pub struct SkillSet {
     skills: HashMap<Skill, u16>,
     pub modify_health: bool,
     pub modify_energy: bool,
-    // TODO: why is this part of the component?
-    /// Used to indicate to the frontend that there was an error in loading the
-    /// skillset from the database
-    pub persistence_load_error: Option<SkillsPersistenceError>,
 }
 
 impl Component for SkillSet {
@@ -259,7 +255,6 @@ impl Default for SkillSet {
             skills: SkillSet::initial_skills(),
             modify_health: false,
             modify_energy: false,
-            persistence_load_error: None,
         };
 
         // Insert default skill groups
@@ -281,17 +276,20 @@ impl SkillSet {
         skills
     }
 
+    /// NOTE: This does *not* return an error on failure, since we can partially
+    /// recover from some failures.  Instead, it returns the error in the
+    /// second return value; make sure to handle it if present!
     pub fn load_from_database(
         skill_groups: HashMap<SkillGroupKind, SkillGroup>,
         mut all_skills: HashMap<SkillGroupKind, Result<Vec<Skill>, SkillsPersistenceError>>,
-    ) -> Self {
+    ) -> (Self, Option<SkillsPersistenceError>) {
         let mut skillset = SkillSet {
             skill_groups,
             skills: SkillSet::initial_skills(),
             modify_health: true,
             modify_energy: true,
-            persistence_load_error: None,
         };
+        let mut persistence_load_error = None;
 
         // Loops while checking the all_skills hashmap. For as long as it can find an
         // entry where the skill group kind is unlocked, insert the skills corresponding
@@ -317,18 +315,16 @@ impl SkillSet {
                         {
                             skillset = backup_skillset;
                             // If unlocking failed, set persistence_load_error
-                            skillset.persistence_load_error =
+                            persistence_load_error =
                                 Some(SkillsPersistenceError::SkillsUnlockFailed)
                         }
                     },
-                    Err(persistence_error) => {
-                        skillset.persistence_load_error = Some(persistence_error)
-                    },
+                    Err(persistence_error) => persistence_load_error = Some(persistence_error),
                 }
             }
         }
 
-        skillset
+        (skillset, persistence_load_error)
     }
 
     /// Checks if a particular skill group is accessible for an entity

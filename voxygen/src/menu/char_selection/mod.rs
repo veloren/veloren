@@ -12,7 +12,7 @@ use client::{self, Client};
 use common::{comp, resources::DeltaTime};
 use common_base::span;
 use specs::WorldExt;
-use std::{cell::RefCell, mem, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 use tracing::error;
 use ui::CharSelectionUi;
 
@@ -81,11 +81,11 @@ impl PlayState for CharSelectionState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<WinEvent>) -> PlayStateResult {
         span!(_guard, "tick", "<CharSelectionState as PlayState>::tick");
-        let (client_presence, client_registered) = {
+        let client_registered = {
             let client = self.client.borrow();
-            (client.presence(), client.registered())
+            client.registered()
         };
-        if client_presence.is_none() && client_registered {
+        if client_registered {
             // Handle window events
             for event in events {
                 if self.char_selection_ui.handle_event(event.clone()) {
@@ -135,18 +135,12 @@ impl PlayState for CharSelectionState {
                         self.client.borrow_mut().delete_character(character_id);
                     },
                     ui::Event::Play(character_id) => {
-                        {
-                            let mut c = self.client.borrow_mut();
-                            let graphics = &global_state.settings.graphics;
-                            c.request_character(character_id, common::ViewDistances {
-                                terrain: graphics.terrain_view_distance,
-                                entity: graphics.entity_view_distance,
-                            });
-                        }
-                        return PlayStateResult::Switch(Box::new(SessionState::new(
-                            global_state,
-                            Rc::clone(&self.client),
-                        )));
+                        let mut c = self.client.borrow_mut();
+                        let graphics = &global_state.settings.graphics;
+                        c.request_character(character_id, common::ViewDistances {
+                            terrain: graphics.terrain_view_distance,
+                            entity: graphics.entity_view_distance,
+                        });
                     },
                     ui::Event::Spectate => {
                         {
@@ -159,6 +153,7 @@ impl PlayState for CharSelectionState {
                         }
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
+                            None,
                             Rc::clone(&self.client),
                         )));
                     },
@@ -210,11 +205,12 @@ impl PlayState for CharSelectionState {
             // Tick the client (currently only to keep the connection alive).
             let localized_strings = &global_state.i18n.read();
 
-            match self.client.borrow_mut().tick(
+            let res = self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),
                 global_state.clock.dt(),
                 |_| {},
-            ) {
+            );
+            match res {
                 Ok(events) => {
                     for event in events {
                         match event {
@@ -231,8 +227,18 @@ impl PlayState for CharSelectionState {
                                 self.char_selection_ui.select_character(character_id);
                             },
                             client::Event::CharacterError(error) => {
-                                global_state.client_error = Some(error);
+                                self.char_selection_ui.display_error(error);
                             },
+                            client::Event::CharacterJoined(metadata) => {
+                                // NOTE: It's possible we'll lose disconnect messages this way,
+                                // among other things, but oh well.
+                                return PlayStateResult::Switch(Box::new(SessionState::new(
+                                    global_state,
+                                    metadata,
+                                    Rc::clone(&self.client),
+                                )));
+                            },
+                            // TODO: See if we should handle StartSpectate here instead.
                             _ => {},
                         }
                     }
@@ -248,16 +254,15 @@ impl PlayState for CharSelectionState {
                 },
             }
 
-            if let Some(error) = mem::take(&mut global_state.client_error) {
-                self.char_selection_ui.display_error(error);
-            }
-
             // TODO: make sure rendering is not relying on cleaned up stuff
             self.client.borrow_mut().cleanup();
 
             PlayStateResult::Continue
         } else {
-            error!("Client not in pending or registered state. Popping char selection play state");
+            error!(
+                "Client not in character screen, pending, or registered state. Popping char \
+                 selection play state"
+            );
             // TODO set global_state.info_message
             PlayStateResult::Pop
         }

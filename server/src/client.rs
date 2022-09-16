@@ -93,7 +93,7 @@ impl Client {
             ServerMsg::General(g) => {
                 match g {
                     //Character Screen related
-                    ServerGeneral::CharacterDataLoadError(_)
+                    ServerGeneral::CharacterDataLoadResult(_)
                     | ServerGeneral::CharacterListUpdate(_)
                     | ServerGeneral::CharacterActionError(_)
                     | ServerGeneral::CharacterCreated(_)
@@ -164,7 +164,7 @@ impl Client {
             ServerMsg::General(g) => {
                 match g {
                     //Character Screen related
-                    ServerGeneral::CharacterDataLoadError(_)
+                    ServerGeneral::CharacterDataLoadResult(_)
                     | ServerGeneral::CharacterListUpdate(_)
                     | ServerGeneral::CharacterActionError(_)
                     | ServerGeneral::CharacterCreated(_)
