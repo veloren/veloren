@@ -10,6 +10,7 @@ simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
 persistent_world = []
 hot-reloading = ["common/hot-reloading"]
+hot-agent = ["server-agent/use-dyn-lib"]
 
 default = ["worldgen", "plugins", "persistent_world", "simd"]
 
@@ -22,6 +23,8 @@ common-systems = { package = "veloren-common-systems", path = "../common/systems
 common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
 network = { package = "veloren-network", path = "../network", features = ["metrics", "compression", "quic"], default-features = false }
+
+server-agent = {package = "veloren-server-agent", path = "agent"}
 
 #inline_tweak = "1.0.8"
 

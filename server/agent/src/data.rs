@@ -1,4 +1,3 @@
-use crate::rtsim::Entity as RtSimData;
 use common::{
     comp::{
         buff::Buffs, group, item::MaterialStatManifest, ActiveAbilities, Alignment, Body,
@@ -17,11 +16,9 @@ use specs::{
     shred::ResourceId, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData,
     World,
 };
-use std::sync::Arc;
 
 pub struct AgentData<'a> {
     pub entity: &'a EcsEntity,
-    pub rtsim_entity: Option<&'a RtSimData>,
     pub uid: &'a Uid,
     pub pos: &'a Pos,
     pub vel: &'a Vel,

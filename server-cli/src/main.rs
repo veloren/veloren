@@ -87,6 +87,11 @@ fn main() -> io::Result<()> {
             .unwrap(),
     );
 
+    #[cfg(feature = "hot-agent")]
+    {
+        agent::init();
+    }
+
     // Load server settings
     let mut server_settings = server::Settings::load(&server_data_dir);
     let mut editable_settings = server::EditableSettings::load(&server_data_dir);
