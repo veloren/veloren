@@ -12,7 +12,8 @@
     option_get_or_insert_default,
     map_try_insert,
     slice_as_chunks,
-    unzip_option
+    unzip_option,
+    let_chains
 )]
 #![recursion_limit = "2048"]
 
@@ -30,6 +31,7 @@ pub mod hud;
 pub mod key_state;
 pub mod menu;
 pub mod mesh;
+pub mod panic_handler;
 pub mod profile;
 pub mod render;
 pub mod run;
