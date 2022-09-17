@@ -717,7 +717,7 @@ impl<'a> AgentData<'a> {
             let lib = &lock.as_ref().unwrap().lib;
             const ATTACK_FN: &[u8] = b"attack_inner\0";
 
-            let attack_fn: server_dynlib::Symbol<
+            let attack_fn: common_dynlib::Symbol<
                 fn(&Self, &mut Agent, &mut Controller, &TargetData, &ReadData),
             > = unsafe { lib.get(ATTACK_FN) }.unwrap_or_else(|e| {
                 panic!(

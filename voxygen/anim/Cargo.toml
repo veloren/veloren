@@ -5,7 +5,7 @@ name = "veloren-voxygen-anim"
 version = "0.10.0"
 
 [features]
-use-dyn-lib = ["lazy_static", "voxygen-dynlib"]
+use-dyn-lib = ["lazy_static", "common-dynlib"]
 be-dyn-lib = []
 simd = ["vek/platform_intrinsics"]
 
@@ -16,7 +16,7 @@ common = {package = "veloren-common", path = "../../common"}
 # inline_tweak = "1.0.2"
 bytemuck = { version = "1.4", features=["derive"] }
 vek = {version = "0.15.8", features = ["serde"]}
-voxygen-dynlib = {package = "veloren-voxygen-dynlib", path = "../dynlib", optional = true}
+common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
 
 # Hot Reloading
 lazy_static = {version = "1.4.0", optional = true}

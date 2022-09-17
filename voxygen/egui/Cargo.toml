@@ -5,7 +5,7 @@ edition = "2021"
 version = "0.9.0"
 
 [features]
-use-dyn-lib = ["voxygen-dynlib"]
+use-dyn-lib = ["common-dynlib"]
 be-dyn-lib = []
 
 [dependencies]
@@ -14,6 +14,6 @@ common = {package = "veloren-common", path = "../../common"}
 egui = "0.12"
 egui_winit_platform = "0.8"
 lazy_static = "1.4.0"
-voxygen-dynlib = {package = "veloren-voxygen-dynlib", path = "../dynlib", optional = true}
+common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
 
 

@@ -12,12 +12,12 @@ pub mod data;
 pub mod util;
 
 #[cfg(feature = "use-dyn-lib")]
-use {lazy_static::lazy_static, server_dynlib::LoadedLib, std::sync::Arc, std::sync::Mutex};
+use {common_dynlib::LoadedLib, lazy_static::lazy_static, std::sync::Arc, std::sync::Mutex};
 
 #[cfg(feature = "use-dyn-lib")]
 lazy_static! {
     pub static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
-        server_dynlib::init("veloren-server-agent", "veloren-server-agent-dyn", "agent");
+        common_dynlib::init("veloren-server-agent", "veloren-server-agent-dyn", "agent");
 }
 
 #[cfg(feature = "use-dyn-lib")]

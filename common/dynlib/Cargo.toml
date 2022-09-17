@@ -1,11 +1,11 @@
 [package]
-name = "veloren-server-dynlib"
+name = "veloren-common-dynlib"
 version = "0.1.0"
-authors = ["Samuel Keiffer <samuelkeiffer@gmail.com>"]
+authors = ["Ben Wallis <atomyc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
 find_folder = {version = "0.3.0"}
 libloading = {version = "0.7"}
-notify = {version = "5.0.0"}
+notify = {version = "5.0.0-pre.13"}
 tracing = "0.1"
