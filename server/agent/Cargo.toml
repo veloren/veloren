@@ -20,3 +20,6 @@ rand = { version = "0.8", features = ["small_rng"] }
 tracing = "0.1"
 itertools = "0.10"
 lazy_static = "1.4.0"
+
+[target.'cfg(windows)'.dependencies]
+mimalloc = "0.1.29"

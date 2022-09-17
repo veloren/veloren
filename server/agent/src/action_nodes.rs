@@ -41,10 +41,7 @@ use specs::Entity as EcsEntity;
 use vek::*;
 
 #[cfg(feature = "use-dyn-lib")]
-use {
-    crate::LIB,
-    std::ffi::CStr,
-};
+use {crate::LIB, std::ffi::CStr};
 
 impl<'a> AgentData<'a> {
     ////////////////////////////////////////
@@ -704,14 +701,15 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        #[cfg(not(feature = "use-dyn-lib"))]
-        rng: &mut impl Rng,
-        #[cfg(feature = "use-dyn-lib")]
-        _rng: &mut impl Rng,
+        #[cfg(all(not(feature = "be-dyn-lib"), not(feature = "use-dyn-lib")))] rng: &mut impl Rng,
+        #[cfg(any(feature = "be-dyn-lib", feature = "use-dyn-lib"))] _rng: &mut impl Rng,
     ) {
         #[cfg(not(feature = "use-dyn-lib"))]
         {
+            #[cfg(not(feature = "be-dyn-lib"))]
             self.attack_inner(agent, controller, tgt_data, read_data, rng);
+            #[cfg(feature = "be-dyn-lib")]
+            self.attack_inner(agent, controller, tgt_data, read_data);
         }
         #[cfg(feature = "use-dyn-lib")]
         {
@@ -743,10 +741,9 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        #[cfg(not(feature = "use-dyn-lib"))]
-        rng: &mut impl Rng,
+        #[cfg(not(feature = "be-dyn-lib"))] rng: &mut impl Rng,
     ) {
-        #[cfg(feature = "use-dyn-lib")]
+        #[cfg(feature = "be-dyn-lib")]
         let rng = &mut thread_rng();
 
         let tool_tactic = |tool_kind| match tool_kind {
