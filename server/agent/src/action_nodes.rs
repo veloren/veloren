@@ -701,9 +701,11 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        #[cfg(all(not(feature = "be-dyn-lib"), not(feature = "use-dyn-lib")))] rng: &mut impl Rng,
-        #[cfg(any(feature = "be-dyn-lib", feature = "use-dyn-lib"))] _rng: &mut impl Rng,
+        rng: &mut impl Rng,
     ) {
+        #[cfg(any(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
+        let _rng = rng;
+
         #[cfg(not(feature = "use-dyn-lib"))]
         {
             #[cfg(not(feature = "be-dyn-lib"))]

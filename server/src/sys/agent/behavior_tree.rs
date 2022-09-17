@@ -38,6 +38,7 @@ mod interaction;
 pub struct BehaviorData<'a, 'b, 'c> {
     pub agent: &'a mut Agent,
     pub agent_data: AgentData<'a>,
+    // TODO: Move rtsim back into AgentData after rtsim2 when it has a separate crate
     pub rtsim_entity: Option<&'a RtSimEntity>,
     pub read_data: &'a ReadData<'a>,
     pub event_emitter: &'a mut Emitter<'c, ServerEvent>,

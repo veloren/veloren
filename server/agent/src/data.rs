@@ -17,6 +17,8 @@ use specs::{
     World,
 };
 
+// TODO: Move rtsim back into AgentData after rtsim2 when it has a separate
+// crate
 pub struct AgentData<'a> {
     pub entity: &'a EcsEntity,
     pub uid: &'a Uid,
