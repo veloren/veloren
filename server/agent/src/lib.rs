@@ -17,7 +17,7 @@ use {common_dynlib::LoadedLib, lazy_static::lazy_static, std::sync::Arc, std::sy
 #[cfg(feature = "use-dyn-lib")]
 lazy_static! {
     pub static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
-        common_dynlib::init("veloren-server-agent", "veloren-server-agent-dyn", "agent");
+        common_dynlib::init("veloren-server-agent", "veloren-server-agent", "agent");
 }
 
 #[cfg(feature = "use-dyn-lib")]

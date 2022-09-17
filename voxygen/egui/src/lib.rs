@@ -37,7 +37,7 @@ use {
 #[cfg(feature = "use-dyn-lib")]
 lazy_static! {
     static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
-        common_dynlib::init("veloren-voxygen-egui", "veloren-voxygen-egui-dyn", "egui");
+        common_dynlib::init("veloren-voxygen-egui", "veloren-voxygen-egui", "egui");
 }
 
 #[cfg(feature = "use-dyn-lib")]

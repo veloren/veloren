@@ -6841,13 +6841,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-server-agent-dyn"
-version = "0.1.0"
-dependencies = [
- "veloren-server-agent",
-]
-
-[[package]]
 name = "veloren-server-cli"
 version = "0.13.0"
 dependencies = [
@@ -6965,13 +6958,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-voxygen-anim-dyn"
-version = "0.10.0"
-dependencies = [
- "veloren-voxygen-anim",
-]
-
-[[package]]
 name = "veloren-voxygen-egui"
 version = "0.9.0"
 dependencies = [
@@ -6981,13 +6967,6 @@ dependencies = [
  "veloren-client",
  "veloren-common",
  "veloren-common-dynlib",
-]
-
-[[package]]
-name = "veloren-voxygen-egui-dyn"
-version = "0.9.0"
-dependencies = [
- "veloren-voxygen-egui",
 ]
 
 [[package]]

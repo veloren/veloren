@@ -238,11 +238,15 @@ fn compile(dyn_package: &str) -> bool {
     let output = Command::new("cargo")
         .stderr(Stdio::inherit())
         .stdout(Stdio::inherit())
-        .arg("build")
+        .arg("rustc")
         .arg("--package")
         .arg(dyn_package)
         .arg("--features")
         .arg(format!("{}/be-dyn-lib", dyn_package))
+        .arg("-Z")
+        .arg("unstable-options")
+        .arg("--crate-type")
+        .arg("dylib")
         .output()
         .unwrap();
 
