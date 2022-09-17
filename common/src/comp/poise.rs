@@ -54,11 +54,9 @@ pub struct Poise {
     /// Rate of poise regeneration per tick. Starts at zero and accelerates.
     pub regen_rate: f32,
     /// Time that entity was last in a poise state
-    pub last_stun_time: Option<Time>,
+    last_stun_time: Option<Time>,
     /// The previous poise state
     pub previous_state: PoiseState,
-    /// Next threshold for the poise change
-    next_threshold: f32,
 }
 
 /// States to define effects of a poise change
@@ -164,9 +162,6 @@ impl Poise {
     /// Returns the current value of poise casted to a float
     pub fn current(&self) -> f32 { self.current as f32 / Self::SCALING_FACTOR_FLOAT }
 
-    /// Returns the next threshold of poise
-    pub fn next_threshold(&self) -> f32 { self.next_threshold }
-
     /// Returns the base maximum value of poise casted to a float
     pub fn base_max(&self) -> f32 { self.base_max as f32 / Self::SCALING_FACTOR_FLOAT }
 
@@ -196,7 +191,6 @@ impl Poise {
             last_change: Dir::default(),
             regen_rate: 0.0,
             last_stun_time: None,
-            next_threshold: self::Poise::POISE_THRESHOLDS[0],
             previous_state: PoiseState::Normal,
         }
     }
@@ -213,10 +207,6 @@ impl Poise {
                     * Self::SCALING_FACTOR_FLOAT) as u32)
                     .min(self.maximum);
                 self.last_change = Dir::from_unnormalized(change.impulse).unwrap_or_default();
-                self.next_threshold = *self::Poise::POISE_THRESHOLDS
-                    .iter()
-                    .find(|&&threshold| self.current() > threshold)
-                    .unwrap_or(&self::Poise::POISE_THRESHOLDS[0]);
             },
         }
     }

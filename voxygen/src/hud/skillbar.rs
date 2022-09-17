@@ -21,14 +21,11 @@ use i18n::Localization;
 use std::borrow::Cow;
 
 use client::{self, Client};
-use common::{
-    comp::{
-        self,
-        ability::AbilityInput,
-        item::{ItemDesc, MaterialStatManifest},
-        Ability, ActiveAbilities, Body, Energy, Health, Inventory, Poise, PoiseState, SkillSet,
-    },
-    resources::Time,
+use common::comp::{
+    self,
+    ability::AbilityInput,
+    item::{ItemDesc, MaterialStatManifest},
+    Ability, ActiveAbilities, Body, Energy, Health, Inventory, Poise, PoiseState, SkillSet,
 };
 use conrod_core::{
     color,
@@ -485,21 +482,6 @@ impl<'a> Skillbar<'a> {
                 state.ids.poise_tick_4,
             ];
 
-            // println!(.poise
-            //     .last_stun_time
-            //     .unwrap_or(Time(self::Poise::POISE_BUFFER_TIME))
-            //     .0);
-            // let poise_state = if self
-            //     .poise
-            //     .last_stun_time
-            //     .unwrap_or(Time(self::Poise::POISE_BUFFER_TIME))
-            //     .0
-            //     >= 2.0
-            // {
-            //     self.poise.poise_state()
-            // } else {
-            //     self.poise.previous_state
-            // };
             let poise_colour = match self.poise.previous_state {
                 self::PoiseState::KnockedDown => BLACK,
                 self::PoiseState::Dazed => Color::Rgba(0.25, 0.0, 0.15, 1.0),
@@ -520,8 +502,6 @@ impl<'a> Skillbar<'a> {
                 .color(Some(poise_colour))
                 .top_left_with_margins_on(state.ids.poise_alignment, 0.0, 0.0)
                 .set(state.ids.poise_filling, ui);
-            // (ui.widget_graph().node(state.ids.poise_filling).unwrap().clone() as
-            // Image).color(color) ;
             for (i, threshold) in self::Poise::POISE_THRESHOLDS.iter().enumerate() {
                 Image::new(self.imgs.poise_tick)
                     .w_h(3.0, 10.0)
