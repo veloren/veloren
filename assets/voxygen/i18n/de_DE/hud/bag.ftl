@@ -28,6 +28,7 @@ hud-bag-energy = Ausdauer
 hud-bag-combat_rating = Kampfwertung
 hud-bag-protection = Schutz
 hud-bag-stun_res = Betäubungsresistenz
+hud-bag-stealth = Tarnung
 hud-bag-combat_rating_desc =
     Berechnet aus deiner 
     Ausrüstung und Gesundheit.

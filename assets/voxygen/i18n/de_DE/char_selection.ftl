@@ -3,6 +3,7 @@ char_selection-delete_permanently = Den Charakter unwiderruflich löschen?
 char_selection-deleting_character = Lösche Charakter...
 char_selection-change_server = Wechsle Server
 char_selection-enter_world = Welt betreten
+char_selection-spectate = Welt betrachten
 char_selection-logout = Ausloggen
 char_selection-create_new_character = Neuen Charakter erstellen
 char_selection-creating_character = Erstelle Charakter...
