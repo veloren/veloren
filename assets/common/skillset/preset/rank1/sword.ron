@@ -1,3 +1,4 @@
 ([
     Group(Weapon(Sword)),
+    Skill((Sword(BalancedFinisher), 1)),
 ])

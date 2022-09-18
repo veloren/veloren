@@ -41,6 +41,7 @@ pub struct AgentData<'a> {
     pub health: Option<&'a Health>,
     pub char_state: &'a CharacterState,
     pub active_abilities: &'a ActiveAbilities,
+    pub combo: Option<&'a Combo>,
     pub cached_spatial_grid: &'a common::CachedSpatialGrid,
     pub msm: &'a MaterialStatManifest,
 }
@@ -49,11 +50,22 @@ pub struct TargetData<'a> {
     pub pos: &'a Pos,
     pub body: Option<&'a Body>,
     pub scale: Option<&'a Scale>,
+    pub char_state: Option<&'a CharacterState>,
 }
 
 impl<'a> TargetData<'a> {
-    pub fn new(pos: &'a Pos, body: Option<&'a Body>, scale: Option<&'a Scale>) -> Self {
-        Self { pos, body, scale }
+    pub fn new(
+        pos: &'a Pos,
+        body: Option<&'a Body>,
+        scale: Option<&'a Scale>,
+        char_state: Option<&'a CharacterState>,
+    ) -> Self {
+        Self {
+            pos,
+            body,
+            scale,
+            char_state,
+        }
     }
 }
 

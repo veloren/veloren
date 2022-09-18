@@ -7,7 +7,7 @@ use common::{
     comp::{
         ability::{self, ActiveAbilities, AuxiliaryAbility},
         buff::BuffKind,
-        skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill},
+        skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
         Controller, InputKind,
     },
@@ -411,7 +411,6 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    #[allow(unused_variables)]
     pub fn handle_sword_attack(
         &self,
         agent: &mut Agent,
@@ -421,6 +420,22 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
+        struct FinisherMeleeData {
+            range: f32,
+            angle: f32,
+            energy: f32,
+            combo: u32,
+        }
+        impl FinisherMeleeData {
+            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+                attack_data.dist_sqrd < self.range.powi(2)
+                    && attack_data.angle < self.angle
+                    && agent_data.energy.current() >= self.energy
+                    && agent_data
+                        .combo
+                        .map_or(false, |c| c.counter() >= self.combo)
+            }
+        }
         use ability::SwordStance;
         let stance = |stance| match stance {
             1 => SwordStance::Offensive,
@@ -434,7 +449,23 @@ impl<'a> AgentData<'a> {
             _ => SwordStance::Balanced,
         };
         if !agent.action_state.initialized {
-            agent.action_state.int_counter = rng.gen_range(0..9);
+            // TODO: Don't always assume that if they have skill checked for, they have
+            // entire set of necessary skills to take full advantage of AI. Make sure to
+            // change this to properly query for all required skills when AI dynamically get
+            // new skills and don't have pre-created skill sets.
+            agent.action_state.int_counter = if self
+                .skill_set
+                .has_skill(Skill::Sword(SwordSkill::CripplingFinisher))
+            {
+                rng.gen_range(4..9)
+            } else if self
+                .skill_set
+                .has_skill(Skill::Sword(SwordSkill::OffensiveFinisher))
+            {
+                rng.gen_range(1..4)
+            } else {
+                0
+            };
             let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
             let mut set_sword_ability = |slot, skill| {
                 controller.push_event(ControlEvent::ChangeAbility {
@@ -542,24 +573,101 @@ impl<'a> AgentData<'a> {
             agent.action_state.initialized = true;
         }
 
+        let advance = |agent: &mut Agent, controller: &mut Controller, dist: f32, angle: f32| {
+            if attack_data.dist_sqrd > dist.powi(2) || attack_data.angle > angle {
+                self.path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Separate,
+                    None,
+                );
+            }
+        };
+
+        // Called when out of energy, or the situation is not right to use another
+        // ability. Only contains tactics for using M1 and M2
+        let fallback_rng_1 = rng.gen::<f32>() < 0.67;
+        let fallback_tactics = |agent: &mut Agent, controller: &mut Controller| {
+            const BALANCED_COMBO_RANGE: f32 = 2.5;
+            const BALANCED_COMBO_ANGLE: f32 = 40.0;
+            const BALANCED_THRUST_RANGE: f32 = 4.0;
+            const BALANCED_THRUST_ANGLE: f32 = 8.0;
+            let balanced_thrust_targetable = attack_data.dist_sqrd < BALANCED_THRUST_RANGE.powi(2)
+                && attack_data.angle < BALANCED_THRUST_ANGLE;
+
+            if (matches!(self.char_state, CharacterState::ChargedMelee(c) if c.charge_amount < 0.95)
+                || matches!(
+                    tgt_data.char_state.and_then(|cs| cs.stage_section()),
+                    Some(StageSection::Buildup)
+                ))
+                && balanced_thrust_targetable
+            {
+                // If target in buildup (and therefore likely to still be around for an attack
+                // that needs charging), thrust
+                // Or if already thrusting, keep thrussting
+                controller.push_basic_input(InputKind::Secondary);
+            } else if attack_data.dist_sqrd < BALANCED_COMBO_RANGE.powi(2)
+                && attack_data.angle < BALANCED_COMBO_ANGLE
+                && fallback_rng_1
+            {
+                controller.push_basic_input(InputKind::Primary);
+            } else if balanced_thrust_targetable {
+                controller.push_basic_input(InputKind::Secondary);
+            }
+
+            advance(agent, controller, 1.5, BALANCED_COMBO_ANGLE);
+        };
+
         match stance(agent.action_state.int_counter) {
             SwordStance::Balanced => {
+                const BALANCED_FINISHER: FinisherMeleeData = FinisherMeleeData {
+                    range: 2.5,
+                    angle: 12.5,
+                    energy: 30.0,
+                    combo: 10,
+                };
+
+                if self
+                    .skill_set
+                    .has_skill(Skill::Sword(SwordSkill::BalancedFinisher))
+                    && BALANCED_FINISHER.could_use(attack_data, self)
+                {
+                    controller.push_basic_input(InputKind::Ability(0));
+                    advance(
+                        agent,
+                        controller,
+                        BALANCED_FINISHER.range,
+                        BALANCED_FINISHER.angle,
+                    );
+                } else {
+                    fallback_tactics(agent, controller);
+                }
             },
             SwordStance::Offensive => {
+                fallback_tactics(agent, controller);
             },
             SwordStance::Defensive => {
+                fallback_tactics(agent, controller);
             },
             SwordStance::Mobility => {
+                fallback_tactics(agent, controller);
             },
             SwordStance::Crippling => {
+                fallback_tactics(agent, controller);
             },
             SwordStance::Cleaving => {
+                fallback_tactics(agent, controller);
             },
             SwordStance::Parrying => {
+                fallback_tactics(agent, controller);
             },
             SwordStance::Heavy => {
+                fallback_tactics(agent, controller);
             },
             SwordStance::Reaching => {
+                fallback_tactics(agent, controller);
             },
         }
     }

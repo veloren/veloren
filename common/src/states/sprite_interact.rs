@@ -13,7 +13,7 @@ use std::time::Duration;
 use vek::Vec3;
 
 /// Separated out to condense update portions of character state
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// Buildup to sprite interaction
     pub buildup_duration: Duration,
@@ -33,7 +33,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state

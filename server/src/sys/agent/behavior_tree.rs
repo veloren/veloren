@@ -619,6 +619,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         tgt_pos,
                         read_data.bodies.get(target),
                         read_data.scales.get(target),
+                        read_data.char_states.get(target),
                     );
                     let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 

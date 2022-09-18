@@ -1355,6 +1355,7 @@ impl<'a> AgentData<'a> {
                                     tgt_pos,
                                     read_data.bodies.get(target),
                                     read_data.scales.get(target),
+                                    read_data.char_states.get(target),
                                 );
                                 if let Some(tgt_name) =
                                     read_data.stats.get(target).map(|stats| stats.name.clone())

@@ -1,3 +1,13 @@
 ([
     Group(Weapon(Sword)),
+    Skill((Sword(BalancedFinisher), 1)),
+    Skill((Sword(OffensiveCombo), 1)),
+    Skill((Sword(OffensiveFinisher), 1)),
+    Skill((Sword(OffensiveAdvance), 1)),
+    Skill((Sword(DefensiveCombo), 1)),
+    Skill((Sword(DefensiveBulwark), 1)),
+    Skill((Sword(DefensiveRetreat), 1)),
+    Skill((Sword(MobilityCombo), 1)),
+    Skill((Sword(MobilityFeint), 1)),
+    Skill((Sword(MobilityAgility), 1)),
 ])
