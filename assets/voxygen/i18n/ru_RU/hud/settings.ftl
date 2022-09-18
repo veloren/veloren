@@ -56,19 +56,22 @@ hud-settings-reset_gameplay = По умолчанию
 hud-settings-view_distance =
     Дальность
     видимости
+hud-settings-entity_view_distance =
+    Дальность
+    видимости существ
 hud-settings-lod_distance = Дистанция LoD
 hud-settings-sprites_view_distance =
     Дальность
     видимости спрайтов
-hud-settings-figures_view_distance =
+hud-settings-entities_detail_distance =
     Дальность
-    видимости объектов
+    деталей существ
 hud-settings-maximum_fps = Максимальный FPS
 hud-settings-background_fps = FPS в фоновом режиме
 hud-settings-present_mode = Режим показа
-hud-settings-present_mode-fifo = Fifo
-hud-settings-present_mode-mailbox = Mailbox
-hud-settings-present_mode-immediate = Immediate
+hud-settings-present_mode-vsync_capped = Ограниченный Vsync
+hud-settings-present_mode-vsync_uncapped = Неограниченный Vsync
+hud-settings-present_mode-vsync_off = Vsync выкл
 hud-settings-fov = Угол обзора (град.)
 hud-settings-gamma = Гамма
 hud-settings-exposure = Экспозиция
