@@ -1,35 +1,67 @@
-buff-remove = Klicke zum Entfernen
-buff-title-missing = Fehlender Titel
-buff-desc-missing = Fehlende Beschreibung
+## Health
 buff-title-heal = Heilung
 buff-desc-heal = Heilung über Zeit.
-buff-title-potion = Trank
+buff-stat-health = Stellt { $str_total } Leben wiederher
+## Potion
+buff-title-potion = Zaubertrack
 buff-desc-potion = Trinke...
+## Saturation
 buff-title-saturation = Sättigung
-buff-desc-saturation = Erhalte mit der Zeit Lebenspunkte durch Konsumgüter.
+buff-desc-saturation = Erhalte mit der Zeit Lebenspunkte durch Nahrung.
+## Campfire
 buff-title-campfire_heal = Heilung durch Lagerfeuer
-buff-desc-campfire_heal = Das sitzen am Lagerfeuer heilt 1% der Lebensenergie pro Sekunde.
+buff-desc-campfire_heal = Das Sitzen am Lagerfeuer heilt { $rate }% der Lebensenergie pro Sekunde.
+## Energy Regen
+buff-title-energy_regen = Ausdauer Regeneration
+buff-desc-energy_regen = Schnellere Ausdauer Regeneration
+buff-stat-energy_regen = Stellt { $str_total } Ausdauer wieder her
+## Health Increase
+buff-title-increase_max_health = Erhöhung der maximalen Lebensenergie
+buff-desc-increase_max_health = Erhöhe deine maximale Lebensenergiegrenze
+buff-stat-increase_max_health =
+    Erhöht die maximale Lebensenergie
+    um { $strength }
+## Energy Increase
+buff-title-increase_max_energy = Erhöhung der maximalen Ausdauer
+buff-desc-increase_max_energy = Erhöhe deine maximale Ausdauergrenze
+buff-stat-increase_max_energy =
+    Erhöht die maximale Ausdauer
+    um { $strength }
+## Invulnerability
 buff-title-invulnerability = Unverwundbarkeit
 buff-desc-invulnerability = Du bist immun gegen jeglichen Schaden.
+buff-stat-invulnerability = Gewährt Unverwundbarkeit
+## Protection Ward
 buff-title-protectingward = Schutzaura
 buff-desc-protectingward = Du bist einigermaßen vor Angriffen geschützt.
-buff-title-bleed = Bluten
+## Frenzied
+buff-title-frenzied = Rasend
+buff-desc-frenzied = Du bist mit einer unnatürlichen Geschwindigkeit durchtränkt und ignorierst kleinere Verletzungen.
+## Haste
+buff-title-hastened = Beschleunigend
+buff-desc-hastened = Deine Bewegungen und Attacken sind schneller.
+## Bleeding
+buff-title-bleed = Blutend
 buff-desc-bleed = Fügt regelmäßigen Schaden zu.
+## Cursed
 buff-title-cursed = Verflucht
 buff-desc-cursed = Du bist verflucht.
-buff-title-burn = Brennend..
+## Burning
+buff-title-burn = Brennend
 buff-desc-burn = Du verbrennst.
-buff-title-crippled = Verkrüppelt.
+## Crippled
+buff-title-crippled = Verkrüppelt
 buff-desc-crippled = Deine Bewegungen sind eingeschränkt, da deine Beine schwerst verkrüppelt sind..
-buff-title-frozen = Du frierst.
+### Freeze
+buff-title-frozen = Frierend
 buff-desc-frozen = Deine Bewegungen und Attacken sind verlangsamt. Wärme dich auf.
-buff-title-wet = Du bist nass.
+## Wet
+buff-title-wet = Nass
 buff-desc-wet = Du rutschst über den Boden und kannst kaum anhalten.
-buff-title-ensnared = Gefesselt.
+## Ensnared
+buff-title-ensnared = Gefesselt
 buff-desc-ensnared = Äste greifen nach deinen Beinen und verlangsamen deine Bewegungen.
-buff-stat-health = Stellt { $str_total } Leben wiederher
-buff-stat-increase_max_energy = Erhöt die maximale Ausdauer um { $strength }
-buff-stat-increase_max_health = Erhöht die maximale Lebensenergie um { $strength }
-buff-stat-invulnerability = Gewährt Unverwundbarkeit
+## Util
 buff-text-over_seconds = über { $dur_secs } Sekunden
 buff-text-for_seconds = für { $dur_secs } Sekunden
+buff-remove = Klicke zum Entfernen

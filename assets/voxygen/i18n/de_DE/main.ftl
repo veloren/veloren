@@ -4,6 +4,7 @@ main-password = Passwort
 main-connecting = Verbinden
 main-creating_world = Welt wird generiert
 main-tip = Tipp:
+main-unbound_key_tip = Keine Taste ausgewählt
 main-notice =
     Wilkommen in der Alpha-Version von Veloren!
     
@@ -63,6 +64,12 @@ main-servers-stream_error = Client-Verbindungs-/-Komprimierungs-/-(De-)Serialisi
 main-servers-database_error = Serverdatenbankfehler: { $raw_error }
 main-servers-persistence_error = Server-Persistenzfehler (vermutlich im Zusammenhang mit Asset-/Charakterdaten): { $raw_error }
 main-servers-other_error = Genereller Serverfehler: { $raw_error }
+main-credits = Credits
+main-credits-created_by = erstellt von
+main-credits-music = Musik
+main-credits-fonts = Schriftarten
+main-credits-other_art = Andere Kunst
+main-credits-contributors = Mitwirkende
 main-servers-select_server = Wähle einen Server
 loading-tips =
     .a0 = Mit '{ $gameinput-togglelantern }' aktivierst du deine Laterne.

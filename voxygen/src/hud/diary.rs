@@ -3024,7 +3024,7 @@ fn hammer_skill_strings(skill: HammerSkill) -> SkillStrings<'static> {
             modifiers.charged.scaled_damage,
         ),
         HammerSkill::CKnockback => SkillStrings::with_mult(
-            "hud-kill-hmr_charged_melee_knockback_title",
+            "hud-skill-hmr_charged_melee_knockback_title",
             "hud-skill-hmr_charged_melee_knockback",
             modifiers.charged.scaled_knockback,
         ),
