@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } sköt [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } sprängde [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } dödade [{ $victim }] med trolldom
 hud-chat-npc_other_kill_msg = { $attacker } dödade [{ $victim }]
-hud-chat-loot_msg = Du plockade upp [{ $item }]
+
 hud-chat-loot_fail = Din packning är full!
 hud-chat-goodbye = Hejdå!
 hud-chat-connection_lost = Anslutningen bröts. Sparkas ut om { $time } sekunder.

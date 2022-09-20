@@ -16,7 +16,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker }は[{ $victim }]を撃ちました
 hud-chat-npc_explosion_kill_msg = { $attacker }は[{ $victim }]を爆破しました
 hud-chat-npc_energy_kill_msg = { $attacker }は魔法で[{ $victim }]を殺しました
 hud-chat-npc_other_kill_msg = { $attacker }は[{ $victim }]を殺しました
-hud-chat-loot_msg = [{ $item }]を拾った
+
 hud-chat-loot_fail = 持ち物がいっぱいです！
 hud-chat-goodbye = さようなら！
 hud-chat-connection_lost = 接続が切れました。キックされて{ $time }秒。

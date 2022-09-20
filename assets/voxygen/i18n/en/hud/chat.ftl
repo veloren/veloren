@@ -23,7 +23,10 @@ hud-chat-npc_ranged_kill_msg = { $attacker } shot [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } blew up [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } killed [{ $victim }] with magic
 hud-chat-npc_other_kill_msg = { $attacker } killed [{ $victim }]
-hud-chat-loot_msg = You picked up [{ $item }]
+hud-loot-pickup-msg = {$actor} picked up { $amount ->
+   [one] { $item }
+   *[other] {$amount}x {$item}
+}
 hud-chat-loot_fail = Your Inventory is full!
 hud-chat-goodbye = Goodbye!
 hud-chat-connection_lost = Connection lost. Kicking in { $time } seconds.

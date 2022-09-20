@@ -88,6 +88,7 @@ const PING_ROLLING_AVERAGE_SECS: usize = 10;
 #[derive(Debug)]
 pub enum Event {
     Chat(comp::ChatMsg),
+    GroupInventoryUpdate(comp::Item, String, Uid),
     InviteComplete {
         target: Uid,
         answer: InviteAnswer,
@@ -2276,6 +2277,9 @@ impl Client {
                     kind,
                 });
             },
+            ServerGeneral::GroupInventoryUpdate(item, taker, uid) => {
+                frontend_events.push(Event::GroupInventoryUpdate(item, taker, uid));
+            },
             // Cleanup for when the client goes back to the `presence = None`
             ServerGeneral::ExitInGameSuccess => {
                 self.presence = None;
@@ -2629,7 +2633,7 @@ impl Client {
     }
 
     /// Change player alias to "You" if client belongs to matching player
-    fn personalize_alias(&self, uid: Uid, alias: String) -> String {
+    pub fn personalize_alias(&self, uid: Uid, alias: String) -> String {
         let client_uid = self.uid().expect("Client doesn't have a Uid!!!");
         if client_uid == uid {
             "You".to_string() // TODO: Localize

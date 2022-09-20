@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } đã bắn [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } đã nổ tung [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } đã giết [{ $victim }] bằng phép thuật
 hud-chat-npc_other_kill_msg = { $attacker } đã giết [{ $victim }]
-hud-chat-loot_msg = Bạn đã nhặt được [{ $item }]
+
 hud-chat-loot_fail = Kho đồ của bạn đã đầy!
 hud-chat-goodbye = Tạm biệt!
 hud-chat-connection_lost = Mất kết nối. Thoát ra sau { $time } giây.

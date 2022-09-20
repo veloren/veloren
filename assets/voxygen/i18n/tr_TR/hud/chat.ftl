@@ -14,7 +14,7 @@ hud-chat-npc_ranged_kill_msg = [{ $victim }], { $attacker } tarafından vuruldu.
 hud-chat-npc_explosion_kill_msg = [{ $victim }], { $attacker } tarafından havaya uçuruldu.
 hud-chat-npc_energy_kill_msg = [{ $victim }], { $attacker } tarafından büyü ile mağlup edildi.
 hud-chat-npc_other_kill_msg = [{ $victim }], { $attacker } tarafından öldürüldü.
-hud-chat-loot_msg = [{ $item }] topladın.
+
 hud-chat-loot_fail = Envanterin dolu!
 hud-chat-goodbye = Hoşçakal!
 hud-chat-connection_lost = Bağlantı koptu. { $time } saniye içinde sunucudan atılacaksın.

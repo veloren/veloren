@@ -14,7 +14,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } skjøt [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } sprengte [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } drepte [{ $victim }] med magi
 hud-chat-npc_other_kill_msg = { $attacker } drepte [{ $victim }]
-hud-chat-loot_msg = Du plukket opp [{ $item }]
+
 hud-chat-loot_fail = Ditt inventar er fullt!
 hud-chat-goodbye = Adjø!
 hud-chat-connection_lost = Forbindelse mistet. Utkastet om { $time } sekunder.

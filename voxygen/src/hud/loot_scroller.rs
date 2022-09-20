@@ -102,6 +102,7 @@ impl<'a> LootScroller<'a> {
 pub struct LootMessage {
     pub item: Item,
     pub amount: u32,
+    pub taken_by: String,
 }
 
 pub struct State {
@@ -291,7 +292,11 @@ impl<'a> Widget for LootScroller<'a> {
                 let i = list_message.i;
 
                 let (message, age) = messages_to_display[i];
-                let LootMessage { item, amount } = message;
+                let LootMessage {
+                    item,
+                    amount,
+                    taken_by,
+                } = message;
 
                 let alpha = 1.0 - age.min(show_all_age).powi(4);
 
@@ -340,12 +345,14 @@ impl<'a> Widget for LootScroller<'a> {
                     &item_tooltip,
                 )
                 .set(state.ids.message_icons[i], ui);
-
-                let label = if *amount == 1 {
-                    item.name().into_owned()
-                } else {
-                    format!("{}x {}", amount, item.name())
-                };
+                let label = self.localized_strings.get_msg_ctx(
+                    "hud-loot-pickup-msg",
+                    &i18n::fluent_args! {
+                          "actor" => taken_by,
+                          "amount" => amount,
+                          "item" => item.name(),
+                    },
+                );
                 let label_font_size = 20;
 
                 Text::new(&label)

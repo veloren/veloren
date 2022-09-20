@@ -25,8 +25,7 @@ use comp::LightEmitter;
 use crate::{client::Client, Server, StateExt};
 use common::{
     comp::{
-        pet::is_tameable, Alignment, Body, ChatType, CollectFailedReason, Group,
-        InventoryUpdateEvent, Player,
+        pet::is_tameable, Alignment, Body, CollectFailedReason, Group, InventoryUpdateEvent, Player,
     },
     event::{EventBus, ServerEvent},
 };
@@ -228,7 +227,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     );
                     let ecs = state.ecs();
                     if let Some(group_id) = ecs.read_storage::<Group>().get(entity) {
-                        announce_loot_to_group(group_id, ecs, entity, &item_msg.name());
+                        announce_loot_to_group(
+                            group_id,
+                            ecs,
+                            entity,
+                            item_msg.duplicate(
+                                &state.ecs().read_resource::<AbilityMap>(),
+                                &state.ecs().read_resource::<MaterialStatManifest>(),
+                            ),
+                        );
                     }
                     comp::InventoryUpdate::new(InventoryUpdateEvent::Collected(item_msg))
                 },
@@ -256,7 +263,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             Ok(_) => {
                                 let ecs = state.ecs();
                                 if let Some(group_id) = ecs.read_storage::<Group>().get(entity) {
-                                    announce_loot_to_group(group_id, ecs, entity, &item_msg.name());
+                                    announce_loot_to_group(
+                                        group_id,
+                                        ecs,
+                                        entity,
+                                        item_msg.duplicate(
+                                            &state.ecs().read_resource::<AbilityMap>(),
+                                            &state.ecs().read_resource::<MaterialStatManifest>(),
+                                        ),
+                                    );
                                 }
                                 comp::InventoryUpdate::new(InventoryUpdateEvent::Collected(
                                     item_msg,
@@ -907,28 +922,34 @@ fn announce_loot_to_group(
     group_id: &Group,
     ecs: &specs::World,
     entity: EcsEntity,
-    item_name: &str,
+    item: comp::Item,
 ) {
     let clients = ecs.read_storage::<Client>();
-
-    members(
-        *group_id,
-        &ecs.read_storage(),
-        &ecs.entities(),
-        &ecs.read_storage(),
-        &ecs.read_storage::<Uid>(),
-    )
-    .filter(|(member_e, _)| member_e != &entity)
-    .for_each(|(e, _)| {
-        clients.get(e).and_then(|c| {
-            ecs.read_storage::<comp::Stats>().get(entity).map(|stats| {
-                c.send_fallible(ServerGeneral::server_msg(
-                    ChatType::Meta,
-                    format!("{} picked up {}", stats.name, item_name),
-                ));
-            })
+    let uids = ecs.read_storage();
+    if let Some(uid) = uids.get(entity) {
+        members(
+            *group_id,
+            &ecs.read_storage(),
+            &ecs.entities(),
+            &ecs.read_storage(),
+            &ecs.read_storage::<Uid>(),
+        )
+        .filter(|(member_e, _)| member_e != &entity)
+        .for_each(|(e, _)| {
+            clients.get(e).and_then(|c| {
+                ecs.read_storage::<comp::Stats>().get(entity).map(|stats| {
+                    c.send_fallible(ServerGeneral::GroupInventoryUpdate(
+                        item.duplicate(
+                            &ecs.read_resource::<AbilityMap>(),
+                            &ecs.read_resource::<MaterialStatManifest>(),
+                        ),
+                        stats.name.to_string(),
+                        *uid,
+                    ))
+                })
+            });
         });
-    });
+    }
 }
 
 #[cfg(test)]

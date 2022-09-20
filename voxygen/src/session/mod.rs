@@ -17,10 +17,7 @@ use common::{
     comp::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
-        item::{
-            tool::{AbilityMap, ToolKind},
-            ItemDesc, MaterialStatManifest,
-        },
+        item::{tool::ToolKind, ItemDesc},
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
@@ -223,6 +220,13 @@ impl SessionState {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
                 },
+                client::Event::GroupInventoryUpdate(item, taker, uid) => {
+                    self.hud.new_loot_message(LootMessage {
+                        amount: item.amount(),
+                        item,
+                        taken_by: client.personalize_alias(uid, taker),
+                    });
+                },
                 client::Event::InviteComplete {
                     target,
                     answer,
@@ -312,11 +316,10 @@ impl SessionState {
                             }
                         },
                         InventoryUpdateEvent::Collected(item) => {
-                            let ability_map = AbilityMap::load().read();
-                            let msm = MaterialStatManifest::load().read();
                             self.hud.new_loot_message(LootMessage {
-                                item: item.duplicate(&ability_map, &msm),
                                 amount: item.amount(),
+                                item,
+                                taken_by: "You".to_string(),
                             });
                         },
                         _ => {},

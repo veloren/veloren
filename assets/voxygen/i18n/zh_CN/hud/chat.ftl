@@ -16,7 +16,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker }射杀了[{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker }炸死了[{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker }用魔法击杀了[{ $victim }]
 hud-chat-npc_other_kill_msg = { $attacker }击杀了[{ $victim }]
-hud-chat-loot_msg = 你捡起了[{ $item }]
+
 hud-chat-loot_fail = 你的背包已满!
 hud-chat-goodbye = 再见!
 hud-chat-connection_lost = 连接已断开. { $time }秒内将被踢出.
