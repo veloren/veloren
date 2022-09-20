@@ -16,9 +16,14 @@ hud-trade-invite_sent = Pedido de troca enviado para { $playername }.
 hud-trade-result-completed = Troca concluída com sucesso.
 hud-trade-result-declined = Troca cancelada.
 hud-trade-result-nospace = Espaço insuficiente para completar a troca.
-hud-trade-buy_price = Preço de compra
-hud-trade-sell_price = Preço de venda
-hud-trade-coin = moeda(s)
+hud-trade-buy = Buy Price: { $coin_num ->
+    [one] uma moeda
+    *[other] { $coin_formatted } moedas
+}
+hud-trade-sell = Sell Price: { $coin_num ->
+    [one] uma moeda
+    *[other] { $coin_formatted } moedas
+}
 hud-trade-tooltip_hint_1 = <Shift-Click para Adicionar/Remover da troca.>
 hud-trade-tooltip_hint_2 = <Ctrl-Click para Equilibrar a troca.>
 hud-trade-your_offer = Sua oferta
