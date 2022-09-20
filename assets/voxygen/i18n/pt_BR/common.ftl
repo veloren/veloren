@@ -72,6 +72,7 @@ common-tool-debug = Depuração
 common-tool-farming = Ferramenta Agrícola
 common-tool-pick = Picareta
 common-tool-mining = Mineração
+common-tool-instrument = Instrumento
 common-kind-modular_component = Componente Modular
 common-kind-modular_component_partial = Componente
 common-kind-glider = Planador
