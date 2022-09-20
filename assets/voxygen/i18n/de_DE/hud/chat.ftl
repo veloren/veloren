@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } erschoss [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } sprengte [{ $victim }] aus dem Leben
 hud-chat-npc_energy_kill_msg = { $attacker } tötete [{ $victim }] mit Magie
 hud-chat-npc_other_kill_msg = { $attacker } tötete [{ $victim }]
-hud-chat-loot_msg = Du hast [{ $item }] aufgehoben
+
 hud-chat-loot_fail = Dein Inventar ist voll!
 hud-chat-goodbye = Auf Wiedersehen!
 hud-chat-connection_lost = Verbindungsabbruch. Du wirst in { $time } Sekunden gekickt.

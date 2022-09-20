@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } lelőtte őt: [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } felrobbantotta őt:[{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } mágiával megölte őt: [{ $victim }]
 hud-chat-npc_other_kill_msg = { $attacker } megölte őt: [{ $victim }]
-hud-chat-loot_msg = Felvetted a következőt: [{ $item }]
+
 hud-chat-loot_fail = Túl sok a holmid!
 hud-chat-goodbye = Viszlát!
 hud-chat-connection_lost = Megszakadt a kapcsolat. Szétkapcsolás { $time } másodpercen belül.

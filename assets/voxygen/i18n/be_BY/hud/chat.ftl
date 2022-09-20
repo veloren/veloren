@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } застрэліў(-ла) [{ $victi
 hud-chat-npc_explosion_kill_msg = { $attacker } падарваў(-ла) [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } забіў(-ла) [{ $victim }] чарамі
 hud-chat-npc_other_kill_msg = { $attacker } забіў(-ла) [{ $victim }]
-hud-chat-loot_msg = Вы падабралі [{ $item }]
+
 hud-chat-loot_fail = У вашых торбах не хапае месца!
 hud-chat-goodbye = Да пабачэння!
 hud-chat-connection_lost = Злучэнне згублена. Вас выштурхнуць праз { $time } сек.

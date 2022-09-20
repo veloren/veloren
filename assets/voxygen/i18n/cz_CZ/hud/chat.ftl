@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } zastřelil/a [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } vyhodil/a do vzduchu [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } zabil/a [{ $victim }] kouzlem
 hud-chat-npc_other_kill_msg = { $attacker } zabil/a [{ $victim }]
-hud-chat-loot_msg = Sebral/a jsi [{ $item }]
+
 hud-chat-loot_fail = Máš plný inventář!
 hud-chat-goodbye = Nashledanou!
 hud-chat-connection_lost = Připojení ztraceno. Ukončuji za { $time } sekund.

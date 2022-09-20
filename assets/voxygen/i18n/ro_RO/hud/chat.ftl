@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } a tras în [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } a facut ca [{ $victim }] să explodeze
 hud-chat-npc_energy_kill_msg = { $attacker } a omorât [{ $victim }] cu magie
 hud-chat-npc_other_kill_msg = { $attacker } a omorât [{ $victim }]
-hud-chat-loot_msg = Ai luat [{ $item }]
+
 hud-chat-loot_fail = Inventarul tău este plin!
 hud-chat-goodbye = Pe curând!
 hud-chat-connection_lost = Conexiune pierdută. Vei fi dat afară în { $time } secunde.

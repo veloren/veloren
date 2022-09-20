@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker }-(e)k [{ $victim }] tiroz hil du
 hud-chat-npc_explosion_kill_msg = { $attacker }-(e)k [{ $victim }] leherrarazi du
 hud-chat-npc_energy_kill_msg = { $attacker }-(e)k [{ $victim }] magiaz hil du
 hud-chat-npc_other_kill_msg = { $attacker }-(e)k [{ $victim }] hil du
-hud-chat-loot_msg = [{ $item }] jaso duzu
+
 hud-chat-loot_fail = Inbentarioa beteta duzu!
 hud-chat-goodbye = Agur!
 hud-chat-connection_lost = Konexioa galdu duzu. { $time } segundo barru kanporatua izango zara.

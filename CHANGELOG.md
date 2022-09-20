@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   distance at which lower detail models are used for entities).
 - Present mode options renamed for clarity: Fifo -> 'Vsync capped', Mailbox -> 'Vsync uncapped',
   Immediate -> 'Vsync off'.
+- Item pickup UI now displays items that members of your group pick up.
 
 ### Removed
 

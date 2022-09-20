@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } ha disparat [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } ha fet explotar [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } ha matat [{ $victim }] amb màgia
 hud-chat-npc_other_kill_msg = { $attacker } ha matat [{ $victim }]
-hud-chat-loot_msg = Has recollit [{ $item }]
+
 hud-chat-loot_fail = La teva bossa és plena!
 hud-chat-goodbye = Adeu!
 hud-chat-connection_lost = S'ha perdut la connexió. Tancament en { $time } segons.

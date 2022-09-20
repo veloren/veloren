@@ -11,7 +11,7 @@ hud-chat-pvp_energy_kill_msg = [{ $attacker }] gebruikte magie om [{ $victim }] 
 hud-chat-npc_melee_kill_msg = { $attacker } dode [{ $victim }]
 hud-chat-npc_ranged_kill_msg = { $attacker } schoot [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } blies [{ $victim }] op
-hud-chat-loot_msg = Je raapte [{ $item }] op
+
 hud-chat-loot_fail = Jouw inventory is vol!
 hud-chat-goodbye = Vaarwel!
 hud-chat-connection_lost = Verbinding verloren. Je wordt in { $time } seconden gekicked.

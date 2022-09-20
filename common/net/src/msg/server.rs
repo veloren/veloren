@@ -152,6 +152,8 @@ pub enum ServerGeneral {
     /// Indicate to the client that their sent invite was not invalid and is
     /// currently pending
     InvitePending(Uid),
+    /// Update the HUD of the clients in the group
+    GroupInventoryUpdate(comp::Item, String, Uid),
     /// Note: this could potentially include all the failure cases such as
     /// inviting yourself in which case the `InvitePending` message could be
     /// removed and the client could consider their invite pending until
@@ -310,6 +312,7 @@ impl ServerMsg {
                         | ServerGeneral::InviteComplete { .. }
                         | ServerGeneral::ExitInGameSuccess
                         | ServerGeneral::InventoryUpdate(_, _)
+                        | ServerGeneral::GroupInventoryUpdate(_, _, _)
                         | ServerGeneral::TerrainChunkUpdate { .. }
                         | ServerGeneral::LodZoneUpdate { .. }
                         | ServerGeneral::TerrainBlockUpdates(_)

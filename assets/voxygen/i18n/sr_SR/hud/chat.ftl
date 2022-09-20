@@ -23,7 +23,7 @@ hud-chat-npc_ranged_kill_msg = { $attacker } је упуца/ла [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } је разнео/ла [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } је убио/ла [{ $victim }] магијомc
 hud-chat-npc_other_kill_msg = { $attacker } је убио/ла [{ $victim }]
-hud-chat-loot_msg = Покупио/ла си [{ $item }]
+
 hud-chat-loot_fail = Твој инвентар је пун!
 hud-chat-goodbye = Збогом!
 hud-chat-connection_lost = Веза се прекинула. Бићеш избачен/а за { $time } секунди.
