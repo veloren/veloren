@@ -1,14 +1,14 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
-    hud::{img_ids::Imgs, TEXT_COLOR},
+    hud::{img_ids::Imgs, TEXT_COLOR, TEXT_COLOR_GREY},
     session::settings_change::{Audio as AudioChange, Audio::*},
-    ui::{fonts::Fonts, ImageSlider},
+    ui::{fonts::Fonts, ImageSlider, ToggleButton},
     GlobalState,
 };
 use conrod_core::{
     color,
-    position::Relative,
+    position::{Align, Relative},
     widget::{self, Button, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -22,18 +22,23 @@ widget_ids! {
         master_volume_text,
         master_volume_slider,
         master_volume_number,
+        master_volume_muted,
         inactive_master_volume_text,
         inactive_master_volume_slider,
         inactive_master_volume_number,
+        inactive_master_volume_muted,
         music_volume_text,
         music_volume_slider,
         music_volume_number,
+        music_volume_muted,
         sfx_volume_text,
         sfx_volume_slider,
         sfx_volume_number,
+        sfx_volume_muted,
         ambience_volume_text,
         ambience_volume_slider,
         ambience_volume_number,
+        ambience_volume_muted,
         music_spacing_text,
         music_spacing_slider,
         music_spacing_number,
@@ -107,6 +112,12 @@ impl<'a> Widget for Sound<'a> {
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.window_scrollbar, ui);
 
+        let non_master_volume_text_color =
+            match self.global_state.settings.audio.master_volume.muted {
+                true => TEXT_COLOR_GREY,
+                false => TEXT_COLOR,
+            };
+
         // Master Volume
         Text::new(&self.localized_strings.get_msg("hud-settings-master_volume"))
             .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
@@ -114,16 +125,30 @@ impl<'a> Widget for Sound<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.master_volume_text, ui);
+        // Master Volume Muted Indicator
+        let master_muted = ToggleButton::new(
+            self.global_state.settings.audio.master_volume.muted,
+            self.imgs.button_mute,
+            self.imgs.button_muted,
+        )
+        .w_h(24.0, 25.0)
+        .down_from(state.ids.master_volume_text, 10.0)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
+        .set(state.ids.master_volume_muted, ui);
+        if master_muted != self.global_state.settings.audio.master_volume.muted {
+            events.push(MuteMasterVolume(master_muted));
+        }
         // Master Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
-            self.global_state.settings.audio.master_volume,
+            self.global_state.settings.audio.master_volume.volume,
             0.0,
             1.0,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.master_volume_text, 10.0)
+        .right_from(state.ids.master_volume_muted, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
@@ -134,7 +159,7 @@ impl<'a> Widget for Sound<'a> {
         // Master Volume Number
         Text::new(&format!(
             "{:2.0}%",
-            self.global_state.settings.audio.master_volume * 100.0
+            self.global_state.settings.audio.master_volume.volume * 100.0
         ))
         .right_from(state.ids.master_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
@@ -148,21 +173,50 @@ impl<'a> Widget for Sound<'a> {
                 .localized_strings
                 .get_msg("hud-settings-inactive_master_volume_perc"),
         )
-        .down_from(state.ids.master_volume_slider, 10.0)
+        .down_from(state.ids.master_volume_muted, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.inactive_master_volume_text, ui);
+        // Master Volume (inactive window) Muted Indicator
+        let inactive_master_muted = ToggleButton::new(
+            self.global_state
+                .settings
+                .audio
+                .inactive_master_volume_perc
+                .muted,
+            self.imgs.button_mute,
+            self.imgs.button_muted,
+        )
+        .w_h(24.0, 25.0)
+        .down_from(state.ids.inactive_master_volume_text, 10.0)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
+        .set(state.ids.inactive_master_volume_muted, ui);
+        if inactive_master_muted
+            != self
+                .global_state
+                .settings
+                .audio
+                .inactive_master_volume_perc
+                .muted
+        {
+            events.push(MuteInactiveMasterVolume(inactive_master_muted));
+        }
         // Master Volume (inactive window) Slider
         if let Some(new_val) = ImageSlider::continuous(
-            self.global_state.settings.audio.inactive_master_volume_perc,
+            self.global_state
+                .settings
+                .audio
+                .inactive_master_volume_perc
+                .volume,
             0.0,
             1.0,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.inactive_master_volume_text, 10.0)
+        .right_from(state.ids.inactive_master_volume_muted, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
@@ -173,31 +227,50 @@ impl<'a> Widget for Sound<'a> {
         // Master Volume (inactive window) Number
         Text::new(&format!(
             "{:2.0}%",
-            self.global_state.settings.audio.inactive_master_volume_perc * 100.0
+            self.global_state
+                .settings
+                .audio
+                .inactive_master_volume_perc
+                .volume
+                * 100.0
         ))
         .right_from(state.ids.inactive_master_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
+        .color(non_master_volume_text_color)
         .set(state.ids.inactive_master_volume_number, ui);
 
         // Music Volume
         Text::new(&self.localized_strings.get_msg("hud-settings-music_volume"))
-            .down_from(state.ids.inactive_master_volume_slider, 10.0)
+            .down_from(state.ids.inactive_master_volume_muted, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.music_volume_text, ui);
+        // Music Muted Indicator
+        let music_muted = ToggleButton::new(
+            self.global_state.settings.audio.music_volume.muted,
+            self.imgs.button_mute,
+            self.imgs.button_muted,
+        )
+        .w_h(24.0, 25.0)
+        .down_from(state.ids.music_volume_text, 10.0)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
+        .set(state.ids.music_volume_muted, ui);
+        if music_muted != self.global_state.settings.audio.music_volume.muted {
+            events.push(MuteMusicVolume(music_muted));
+        }
         // Music Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
-            self.global_state.settings.audio.music_volume,
+            self.global_state.settings.audio.music_volume.volume,
             0.0,
             1.0,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.music_volume_text, 10.0)
+        .right_from(state.ids.music_volume_muted, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
@@ -208,12 +281,12 @@ impl<'a> Widget for Sound<'a> {
         // Music Volume Number
         Text::new(&format!(
             "{:2.0}%",
-            self.global_state.settings.audio.music_volume * 100.0
+            self.global_state.settings.audio.music_volume.volume * 100.0
         ))
         .right_from(state.ids.music_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
+        .color(non_master_volume_text_color)
         .set(state.ids.music_volume_number, ui);
 
         // SFX Volume
@@ -222,21 +295,35 @@ impl<'a> Widget for Sound<'a> {
                 .localized_strings
                 .get_msg("hud-settings-sound_effect_volume"),
         )
-        .down_from(state.ids.music_volume_slider, 10.0)
+        .down_from(state.ids.music_volume_muted, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.sfx_volume_text, ui);
+        // SFX Volume Muted Indicator
+        let sfx_muted = ToggleButton::new(
+            self.global_state.settings.audio.sfx_volume.muted,
+            self.imgs.button_mute,
+            self.imgs.button_muted,
+        )
+        .w_h(24.0, 25.0)
+        .down_from(state.ids.sfx_volume_text, 10.0)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
+        .set(state.ids.sfx_volume_muted, ui);
+        if sfx_muted != self.global_state.settings.audio.sfx_volume.muted {
+            events.push(MuteSfxVolume(sfx_muted));
+        }
         // SFX Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
-            self.global_state.settings.audio.sfx_volume,
+            self.global_state.settings.audio.sfx_volume.volume,
             0.0,
             1.0,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.sfx_volume_text, 10.0)
+        .right_from(state.ids.sfx_volume_muted, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
@@ -247,34 +334,49 @@ impl<'a> Widget for Sound<'a> {
         // SFX Volume Number
         Text::new(&format!(
             "{:2.0}%",
-            self.global_state.settings.audio.sfx_volume * 100.0
+            self.global_state.settings.audio.sfx_volume.volume * 100.0
         ))
         .right_from(state.ids.sfx_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
+        .color(non_master_volume_text_color)
         .set(state.ids.sfx_volume_number, ui);
+
         // Ambience Volume
         Text::new(
             &self
                 .localized_strings
                 .get_msg("hud-settings-ambience_volume"),
         )
-        .down_from(state.ids.sfx_volume_slider, 10.0)
+        .down_from(state.ids.sfx_volume_muted, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
         .set(state.ids.ambience_volume_text, ui);
+        // Ambience Volume Muted Indicator
+        let ambience_muted = ToggleButton::new(
+            self.global_state.settings.audio.ambience_volume.muted,
+            self.imgs.button_mute,
+            self.imgs.button_muted,
+        )
+        .w_h(24.0, 25.0)
+        .down_from(state.ids.ambience_volume_text, 10.0)
+        .hover_images(self.imgs.button_mute_hover, self.imgs.button_muted_hover)
+        .press_images(self.imgs.button_mute_press, self.imgs.button_muted_press)
+        .set(state.ids.ambience_volume_muted, ui);
+        if ambience_muted != self.global_state.settings.audio.ambience_volume.muted {
+            events.push(MuteAmbienceVolume(ambience_muted));
+        }
         // Ambience Volume Slider
         if let Some(new_val) = ImageSlider::continuous(
-            self.global_state.settings.audio.ambience_volume,
+            self.global_state.settings.audio.ambience_volume.volume,
             0.0,
             1.0,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
         .w_h(104.0, 22.0)
-        .down_from(state.ids.ambience_volume_text, 10.0)
+        .right_from(state.ids.ambience_volume_muted, 8.0)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
@@ -285,17 +387,17 @@ impl<'a> Widget for Sound<'a> {
         // Ambience Volume Number
         Text::new(&format!(
             "{:2.0}%",
-            self.global_state.settings.audio.ambience_volume * 100.0
+            self.global_state.settings.audio.ambience_volume.volume * 100.0
         ))
         .right_from(state.ids.ambience_volume_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .color(TEXT_COLOR)
+        .color(non_master_volume_text_color)
         .set(state.ids.ambience_volume_number, ui);
 
         // Music spacing
         Text::new(&self.localized_strings.get_msg("hud-settings-music_spacing"))
-            .down_from(state.ids.ambience_volume_slider, 10.0)
+            .down_from(state.ids.ambience_volume_muted, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
@@ -310,6 +412,7 @@ impl<'a> Widget for Sound<'a> {
         )
         .w_h(104.0, 22.0)
         .down_from(state.ids.music_spacing_text, 10.0)
+        .x_align_to(state.ids.ambience_volume_slider, Align::Start)
         .track_breadth(12.0)
         .slider_length(10.0)
         .pad_track((5.0, 5.0))
@@ -361,6 +464,7 @@ impl<'a> Widget for Sound<'a> {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .down_from(state.ids.music_spacing_slider, 12.0)
+            .x_align_to(state.ids.ambience_volume_text, Align::Start)
             .label(&self.localized_strings.get_msg("hud-settings-reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)

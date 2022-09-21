@@ -103,7 +103,10 @@ impl Screen {
                     let key = |code| match controls.keybindings.get(&code) {
                         Some(Some(key_mouse)) => key_mouse.display_string(key_layout),
                         Some(None) => i18n.get_msg("main-unbound_key_tip").into_owned(),
-                        None => ControlSettings::default_binding(code).display_string(key_layout),
+                        None => match ControlSettings::default_binding(code) {
+                            Some(key_mouse) => key_mouse.display_string(key_layout),
+                            None => i18n.get_msg("main-unbound_key_tip").into_owned(),
+                        },
                     };
                     let keys = i18n::fluent_args! {
                         "gameinput-togglelantern" => key(GameInput::ToggleLantern),

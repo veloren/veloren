@@ -8,8 +8,8 @@ use crate::{
     },
     render::RenderMode,
     settings::{
-        AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings,
-        GraphicsSettings, InterfaceSettings,
+        audio::AudioVolume, AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings,
+        GameplaySettings, GraphicsSettings, InterfaceSettings,
     },
     window::FullScreenSettings,
     GlobalState,
@@ -19,10 +19,15 @@ use i18n::{LanguageMetadata, LocalizationHandle};
 #[derive(Clone)]
 pub enum Audio {
     AdjustMasterVolume(f32),
+    MuteMasterVolume(bool),
     AdjustInactiveMasterVolume(f32),
+    MuteInactiveMasterVolume(bool),
     AdjustMusicVolume(f32),
+    MuteMusicVolume(bool),
     AdjustSfxVolume(f32),
+    MuteSfxVolume(bool),
     AdjustAmbienceVolume(f32),
+    MuteAmbienceVolume(bool),
     AdjustMusicSpacing(f32),
     //ChangeAudioDevice(String),
     ResetAudioSettings,
@@ -194,31 +199,73 @@ settings_change_from!(Networking);
 impl SettingsChange {
     pub fn process(self, global_state: &mut GlobalState, session_state: &mut SessionState) {
         let mut settings = &mut global_state.settings;
+
         match self {
             SettingsChange::Audio(audio_change) => {
+                fn update_volume(audio: &mut AudioVolume, volume: f32) -> f32 {
+                    audio.volume = volume;
+                    audio.get_checked()
+                }
+                fn update_muted(audio: &mut AudioVolume, muted: bool) -> f32 {
+                    audio.muted = muted;
+                    audio.get_checked()
+                }
+
                 match audio_change {
                     Audio::AdjustMasterVolume(master_volume) => {
-                        global_state.audio.set_master_volume(master_volume);
+                        let volume_checked =
+                            update_volume(&mut settings.audio.master_volume, master_volume);
 
-                        settings.audio.master_volume = master_volume;
+                        global_state.audio.set_master_volume(volume_checked);
+                    },
+                    Audio::MuteMasterVolume(master_muted) => {
+                        let volume_checked =
+                            update_muted(&mut settings.audio.master_volume, master_muted);
+
+                        global_state.audio.set_master_volume(volume_checked);
                     },
                     Audio::AdjustInactiveMasterVolume(inactive_master_volume_perc) => {
-                        settings.audio.inactive_master_volume_perc = inactive_master_volume_perc;
+                        settings.audio.inactive_master_volume_perc.volume =
+                            inactive_master_volume_perc;
+                    },
+                    Audio::MuteInactiveMasterVolume(inactive_master_volume_muted) => {
+                        settings.audio.inactive_master_volume_perc.muted =
+                            inactive_master_volume_muted;
                     },
                     Audio::AdjustMusicVolume(music_volume) => {
-                        global_state.audio.set_music_volume(music_volume);
+                        let volume_checked =
+                            update_volume(&mut settings.audio.music_volume, music_volume);
 
-                        settings.audio.music_volume = music_volume;
+                        global_state.audio.set_music_volume(volume_checked);
+                    },
+                    Audio::MuteMusicVolume(music_muted) => {
+                        let volume_checked =
+                            update_muted(&mut settings.audio.music_volume, music_muted);
+
+                        global_state.audio.set_music_volume(volume_checked);
                     },
                     Audio::AdjustSfxVolume(sfx_volume) => {
-                        global_state.audio.set_sfx_volume(sfx_volume);
+                        let volume_checked =
+                            update_volume(&mut settings.audio.sfx_volume, sfx_volume);
 
-                        settings.audio.sfx_volume = sfx_volume;
+                        global_state.audio.set_sfx_volume(volume_checked);
+                    },
+                    Audio::MuteSfxVolume(sfx_muted) => {
+                        let volume_checked =
+                            update_muted(&mut settings.audio.sfx_volume, sfx_muted);
+
+                        global_state.audio.set_sfx_volume(volume_checked);
                     },
                     Audio::AdjustAmbienceVolume(ambience_volume) => {
                         global_state.audio.set_ambience_volume(ambience_volume);
 
-                        settings.audio.ambience_volume = ambience_volume;
+                        settings.audio.ambience_volume.volume = ambience_volume;
+                    },
+                    Audio::MuteAmbienceVolume(ambience_muted) => {
+                        let volume_checked =
+                            update_muted(&mut settings.audio.ambience_volume, ambience_muted);
+
+                        global_state.audio.set_ambience_volume(volume_checked);
                     },
                     Audio::AdjustMusicSpacing(multiplier) => {
                         global_state.audio.set_music_spacing(multiplier);
@@ -232,9 +279,14 @@ impl SettingsChange {
                     //},
                     Audio::ResetAudioSettings => {
                         settings.audio = AudioSettings::default();
-                        let audio = &settings.audio;
-                        global_state.audio.set_music_volume(audio.music_volume);
-                        global_state.audio.set_sfx_volume(audio.sfx_volume);
+
+                        let audio = &mut global_state.audio;
+
+                        // TODO: check if updating the master volume is necessary
+                        // (it wasn't done before)
+                        audio.set_master_volume(settings.audio.master_volume.get_checked());
+                        audio.set_music_volume(settings.audio.music_volume.get_checked());
+                        audio.set_sfx_volume(settings.audio.sfx_volume.get_checked());
                     },
                 }
             },
