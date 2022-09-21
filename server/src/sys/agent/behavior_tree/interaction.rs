@@ -167,7 +167,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                         standard_response_msg()
                                     };
                                     agent_data.chat_npc(msg, event_emitter);
-                                } else if agent.behavior.can_trade() {
+                                } else if agent.behavior.can_trade(agent_data.alignment, by) {
                                     if !agent.behavior.is(BehaviorState::TRADING) {
                                         controller.push_initiate_invite(by, InviteKind::Trade);
                                         agent_data.chat_npc(
@@ -250,21 +250,29 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                             }
                         },
                         Subject::Trade => {
-                            if agent.behavior.can_trade() {
+                            if agent.behavior.can_trade(agent_data.alignment, by) {
                                 if !agent.behavior.is(BehaviorState::TRADING) {
                                     controller.push_initiate_invite(by, InviteKind::Trade);
-                                    agent_data.chat_npc(
+                                    agent_data.chat_npc_if_allowed_to_speak(
                                         "npc-speech-merchant_advertisement",
+                                        agent,
                                         event_emitter,
                                     );
                                 } else {
-                                    agent_data.chat_npc("npc-speech-merchant_busy", event_emitter);
+                                    agent_data.chat_npc_if_allowed_to_speak(
+                                        "npc-speech-merchant_busy",
+                                        agent,
+                                        event_emitter,
+                                    );
                                 }
                             } else {
                                 // TODO: maybe make some travellers willing to trade with
                                 // simpler goods like potions
-                                agent_data
-                                    .chat_npc("npc-speech-villager_decline_trade", event_emitter);
+                                agent_data.chat_npc_if_allowed_to_speak(
+                                    "npc-speech-villager_decline_trade",
+                                    agent,
+                                    event_emitter,
+                                );
                             }
                         },
                         Subject::Mood => {
@@ -387,7 +395,7 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
     }
 
     if let Some(AgentEvent::TradeInvite(with)) = agent.inbox.pop_front() {
-        if agent.behavior.can_trade() {
+        if agent.behavior.can_trade(agent_data.alignment, with) {
             if !agent.behavior.is(BehaviorState::TRADING) {
                 // stand still and looking towards the trading player
                 controller.push_action(ControlAction::Stand);
@@ -458,10 +466,18 @@ pub fn handle_inbox_finished_trade(bdata: &mut BehaviorData) -> bool {
         if agent.behavior.is(BehaviorState::TRADING) {
             match result {
                 TradeResult::Completed => {
-                    agent_data.chat_npc("npc-speech-merchant_trade_successful", event_emitter);
+                    agent_data.chat_npc_if_allowed_to_speak(
+                        "npc-speech-merchant_trade_successful",
+                        agent,
+                        event_emitter,
+                    );
                 },
                 _ => {
-                    agent_data.chat_npc("npc-speech-merchant_trade_declined", event_emitter);
+                    agent_data.chat_npc_if_allowed_to_speak(
+                        "npc-speech-merchant_trade_declined",
+                        agent,
+                        event_emitter,
+                    );
                 },
             }
             agent.behavior.unset(BehaviorState::TRADING);
@@ -587,7 +603,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                 {
                     // in combat, speak to players that aren't the current target
                     if !target.hostile || target.target != speaker {
-                        if agent.behavior.can_trade() {
+                        if agent.behavior.can_trade(agent_data.alignment, *by) {
                             agent_data.chat_npc_if_allowed_to_speak(
                                 "npc-speech-merchant_busy",
                                 agent,
@@ -610,12 +626,18 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                 if agent.behavior.is(BehaviorState::TRADING) {
                     match result {
                         TradeResult::Completed => {
-                            agent_data
-                                .chat_npc("npc-speech-merchant_trade_successful", event_emitter);
+                            agent_data.chat_npc_if_allowed_to_speak(
+                                "npc-speech-merchant_trade_successful",
+                                agent,
+                                event_emitter,
+                            );
                         },
                         _ => {
-                            agent_data
-                                .chat_npc("npc-speech-merchant_trade_declined", event_emitter);
+                            agent_data.chat_npc_if_allowed_to_speak(
+                                "npc-speech-merchant_trade_declined",
+                                agent,
+                                event_emitter,
+                            );
                         },
                     }
                     agent.behavior.unset(BehaviorState::TRADING);
@@ -631,7 +653,11 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                     *tradeid,
                     TradeAction::Decline,
                 ));
-                agent_data.chat_npc("npc-speech-merchant_trade_cancelled_hostile", event_emitter);
+                agent_data.chat_npc_if_allowed_to_speak(
+                    "npc-speech-merchant_trade_cancelled_hostile",
+                    agent,
+                    event_emitter,
+                );
                 true
             },
             AgentEvent::ServerSound(_) | AgentEvent::Hurt => false,

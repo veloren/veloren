@@ -86,6 +86,7 @@ bitflags::bitflags! {
     #[derive(Default)]
     pub struct BehaviorCapability: u8 {
         const SPEAK = 0b00000001;
+        const TRADE = 0b00000010;
     }
 }
 bitflags::bitflags! {
@@ -156,7 +157,9 @@ impl Behavior {
     }
 
     /// Check if the Behavior is able to trade
-    pub fn can_trade(&self) -> bool { self.trade_site.is_some() }
+    pub fn can_trade(&self, alignment: Option<&Alignment>, counterparty: Uid) -> bool {
+        self.trade_site.is_some() || alignment == Some(&Alignment::Owned(counterparty))
+    }
 
     /// Set a state to the Behavior
     pub fn set(&mut self, state: BehaviorState) { self.state.set(state, true) }

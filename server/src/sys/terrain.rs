@@ -517,6 +517,7 @@ impl NpcData {
                 .with_behavior(
                     Behavior::default()
                         .maybe_with_capabilities(can_speak.then_some(BehaviorCapability::SPEAK))
+                        .maybe_with_capabilities(trade_for_site.map(|_| BehaviorCapability::TRADE))
                         .with_trade_site(trade_for_site),
                 )
                 .with_patrol_origin(pos)

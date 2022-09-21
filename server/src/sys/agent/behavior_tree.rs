@@ -108,17 +108,21 @@ impl BehaviorTree {
     /// events.
     pub fn interaction(agent: &Agent) -> Self {
         let is_in_combat = agent.target.map_or(false, |t| t.hostile);
-        if !is_in_combat && agent.behavior.can(BehaviorCapability::SPEAK) {
-            Self {
-                tree: vec![
-                    increment_timer_deltatime,
-                    handle_inbox_talk,
-                    handle_inbox_trade_invite,
-                    handle_inbox_trade_accepted,
-                    handle_inbox_finished_trade,
-                    handle_inbox_update_pending_trade,
-                ],
+        if !is_in_combat
+            && (agent.behavior.can(BehaviorCapability::SPEAK)
+                || agent.behavior.can(BehaviorCapability::TRADE))
+        {
+            let mut tree: Vec<BehaviorFn> = vec![increment_timer_deltatime];
+            if agent.behavior.can(BehaviorCapability::SPEAK) {
+                tree.push(handle_inbox_talk);
             }
+            tree.extend_from_slice(&[
+                handle_inbox_trade_invite,
+                handle_inbox_trade_accepted,
+                handle_inbox_finished_trade,
+                handle_inbox_update_pending_trade,
+            ]);
+            Self { tree }
         } else {
             Self {
                 tree: vec![handle_inbox_cancel_interactions],
