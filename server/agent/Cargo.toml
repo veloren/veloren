@@ -1,0 +1,25 @@
+[package]
+authors = ["Samuel Keiffer <samuelkeiffer@gmail.com>"]
+name = "veloren-server-agent"
+edition = "2021"
+version = "0.1.0"
+
+[features]
+use-dyn-lib = ["common-dynlib"]
+be-dyn-lib = []
+
+[dependencies]
+common = {package = "veloren-common", path = "../../common"}
+common-base = { package = "veloren-common-base", path = "../../common/base" }
+common-ecs = { package = "veloren-common-ecs", path = "../../common/ecs" }
+common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
+
+specs = { version = "0.18", features = ["shred-derive"] }
+vek = { version = "0.15.8", features = ["serde"] }
+rand = { version = "0.8", features = ["small_rng"] }
+tracing = "0.1"
+itertools = "0.10"
+lazy_static = "1.4.0"
+
+[target.'cfg(windows)'.dependencies]
+mimalloc = "0.1.29"

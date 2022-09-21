@@ -30,14 +30,14 @@ use egui_winit_platform::Platform;
 use std::time::Duration;
 #[cfg(feature = "use-dyn-lib")]
 use {
-    lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc, std::sync::Mutex,
-    voxygen_dynlib::LoadedLib,
+    common_dynlib::LoadedLib, lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc,
+    std::sync::Mutex,
 };
 
 #[cfg(feature = "use-dyn-lib")]
 lazy_static! {
     static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
-        voxygen_dynlib::init("veloren-voxygen-egui", "veloren-voxygen-egui-dyn", "egui");
+        common_dynlib::init("veloren-voxygen-egui", "egui");
 }
 
 #[cfg(feature = "use-dyn-lib")]
@@ -170,7 +170,7 @@ pub fn maintain(
         let lock = LIB.lock().unwrap();
         let lib = &lock.as_ref().unwrap().lib;
 
-        let maintain_fn: voxygen_dynlib::Symbol<
+        let maintain_fn: common_dynlib::Symbol<
             fn(
                 &mut Platform,
                 &mut EguiInnerState,
@@ -614,7 +614,7 @@ fn selected_entity_window(
                                 .spacing([40.0, 4.0])
                                 .max_col_width(100.0)
                                 .striped(true)
-                                // Apparently, if the #[rustfmt::skip] is in front of the closure scope, rust-analyzer can't 
+                                // Apparently, if the #[rustfmt::skip] is in front of the closure scope, rust-analyzer can't
                                 // parse the code properly. Things will *sometimes* work if the skip is on the other side of
                                 // the opening bracket (even though that should only skip formatting the first line of the
                                 // closure), but things as arbitrary as adding a comment to the code cause it to be formatted

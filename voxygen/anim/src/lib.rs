@@ -77,8 +77,8 @@ use bytemuck::{Pod, Zeroable};
 use common::comp::tool::ToolKind;
 #[cfg(feature = "use-dyn-lib")]
 use {
-    lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc, std::sync::Mutex,
-    voxygen_dynlib::LoadedLib,
+    common_dynlib::LoadedLib, lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc,
+    std::sync::Mutex,
 };
 
 type MatRaw = [[f32; 4]; 4];
@@ -99,7 +99,7 @@ pub type Bone = Transform<f32, f32, f32>;
 #[cfg(feature = "use-dyn-lib")]
 lazy_static! {
     static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
-        voxygen_dynlib::init("veloren-voxygen-anim", "veloren-voxygen-anim-dyn", "anim");
+        common_dynlib::init("veloren-voxygen-anim", "anim");
 }
 
 #[cfg(feature = "use-dyn-lib")]
@@ -179,7 +179,7 @@ pub trait Skeleton: Send + Sync + 'static {
             let lock = LIB.lock().unwrap();
             let lib = &lock.as_ref().unwrap().lib;
 
-            let compute_fn: voxygen_dynlib::Symbol<
+            let compute_fn: common_dynlib::Symbol<
                 fn(&Self, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT], Self::Body) -> Offsets,
             > = unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|e| {
                 panic!(
@@ -247,7 +247,7 @@ pub trait Animation {
             let lock = LIB.lock().unwrap();
             let lib = &lock.as_ref().unwrap().lib;
 
-            let update_fn: voxygen_dynlib::Symbol<
+            let update_fn: common_dynlib::Symbol<
                 fn(
                     &Self::Skeleton,
                     Self::Dependency<'a>,

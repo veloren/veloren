@@ -90,7 +90,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                     match subject {
                         Subject::Regular => {
                             if let (Some((_travel_to, destination_name)), Some(rtsim_entity)) =
-                                (&agent.rtsim_controller.travel_to, &agent_data.rtsim_entity)
+                                (&agent.rtsim_controller.travel_to, &bdata.rtsim_entity)
                             {
                                 let personality = &rtsim_entity.brain.personality;
                                 let standard_response_msg = || -> String {
@@ -166,7 +166,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                     );
                                 } else {
                                     let default_msg = "npc-speech-merchant_busy";
-                                    let msg = agent_data.rtsim_entity.map_or(default_msg, |e| {
+                                    let msg = bdata.rtsim_entity.map_or(default_msg, |e| {
                                         if e.brain
                                             .personality
                                             .personality_traits
@@ -181,7 +181,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                 }
                             } else {
                                 let mut rng = thread_rng();
-                                if let Some(extreme_trait) = agent_data
+                                if let Some(extreme_trait) = bdata
                                     .rtsim_entity
                                     .and_then(|e| e.brain.personality.random_chat_trait(&mut rng))
                                 {
@@ -250,7 +250,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                             }
                         },
                         Subject::Mood => {
-                            if let Some(rtsim_entity) = agent_data.rtsim_entity {
+                            if let Some(rtsim_entity) = bdata.rtsim_entity {
                                 if !rtsim_entity.brain.remembers_mood() {
                                     // TODO: the following code will need a rework to
                                     // implement more mood contexts

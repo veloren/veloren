@@ -121,10 +121,9 @@ impl LoadedLib {
 /// files within it for any changes.
 pub fn init(
     package: &'static str,
-    dyn_package: &'static str,
     package_source_dir: &'static str,
 ) -> Arc<Mutex<Option<LoadedLib>>> {
-    let lib_storage = Arc::new(Mutex::new(Some(LoadedLib::compile_load(dyn_package))));
+    let lib_storage = Arc::new(Mutex::new(Some(LoadedLib::compile_load(package))));
 
     // TODO: use crossbeam
     let (reload_send, reload_recv) = mpsc::channel();
@@ -164,7 +163,7 @@ pub fn init(
                     "Hot reloading {} because files in `{}` modified.", package, package_source_dir
                 );
 
-                hotreload(dyn_package, &lib_storage_clone);
+                hotreload(package, &lib_storage_clone);
             }
         })
         .unwrap();
@@ -238,11 +237,15 @@ fn compile(dyn_package: &str) -> bool {
     let output = Command::new("cargo")
         .stderr(Stdio::inherit())
         .stdout(Stdio::inherit())
-        .arg("build")
+        .arg("rustc")
         .arg("--package")
         .arg(dyn_package)
         .arg("--features")
         .arg(format!("{}/be-dyn-lib", dyn_package))
+        .arg("-Z")
+        .arg("unstable-options")
+        .arg("--crate-type")
+        .arg("dylib")
         .output()
         .unwrap();
 

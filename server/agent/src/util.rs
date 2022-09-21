@@ -1,4 +1,4 @@
-use crate::sys::agent::{AgentData, ReadData};
+use crate::data::{AgentData, ReadData};
 use common::{
     comp::{
         agent::Psyche, buff::BuffKind, inventory::item::ItemTag, item::ItemDesc, Alignment, Body,
@@ -63,15 +63,6 @@ pub fn aim_projectile(speed: f32, pos: Vec3<f32>, tgt: Vec3<f32>) -> Option<Dir>
 
 pub fn get_entity_by_id(id: u64, read_data: &ReadData) -> Option<EcsEntity> {
     read_data.uid_allocator.retrieve_entity_internal(id)
-}
-
-impl<'a> AgentData<'a> {
-    pub fn has_buff(&self, read_data: &ReadData, buff: BuffKind) -> bool {
-        read_data
-            .buffs
-            .get(*self.entity)
-            .map_or(false, |b| b.kinds.contains_key(&buff))
-    }
 }
 
 /// Calculates whether the agent should continue chase or let the target escape.
@@ -201,4 +192,13 @@ pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity
         .filter(|health| health.last_change.amount < 0.0)
         .and_then(|health| health.last_change.damage_by())
         .and_then(|damage_contributor| get_entity_by_id(damage_contributor.uid().0, read_data))
+}
+
+impl<'a> AgentData<'a> {
+    pub fn has_buff(&self, read_data: &ReadData, buff: BuffKind) -> bool {
+        read_data
+            .buffs
+            .get(*self.entity)
+            .map_or(false, |b| b.kinds.contains_key(&buff))
+    }
 }

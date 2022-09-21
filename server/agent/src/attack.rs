@@ -1,6 +1,7 @@
-use crate::sys::agent::{
-    consts::MAX_PATH_DIST, data::Path, util::entities_have_line_of_sight, AgentData, AttackData,
-    ReadData, TargetData,
+use crate::{
+    consts::MAX_PATH_DIST,
+    data::{AgentData, AttackData, Path, ReadData, TargetData},
+    util::entities_have_line_of_sight,
 };
 use common::{
     comp::{

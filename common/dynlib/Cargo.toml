@@ -1,5 +1,5 @@
 [package]
-name = "veloren-voxygen-dynlib"
+name = "veloren-common-dynlib"
 version = "0.1.0"
 authors = ["Ben Wallis <atomyc@gmail.com>"]
 edition = "2021"
