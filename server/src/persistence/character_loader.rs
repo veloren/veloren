@@ -3,7 +3,10 @@ use crate::persistence::{
     error::PersistenceError,
     establish_connection, ConnectionMode, DatabaseSettings, PersistedComponents,
 };
-use common::character::{CharacterId, CharacterItem};
+use common::{
+    character::{CharacterId, CharacterItem},
+    event::UpdateCharacterMetadata,
+};
 use crossbeam_channel::{self, TryIter};
 use rusqlite::Connection;
 use std::sync::{Arc, RwLock};
@@ -13,7 +16,8 @@ pub(crate) type CharacterListResult = Result<Vec<CharacterItem>, PersistenceErro
 pub(crate) type CharacterCreationResult =
     Result<(CharacterId, Vec<CharacterItem>), PersistenceError>;
 pub(crate) type CharacterEditResult = Result<(CharacterId, Vec<CharacterItem>), PersistenceError>;
-pub(crate) type CharacterDataResult = Result<PersistedComponents, PersistenceError>;
+pub(crate) type CharacterDataResult =
+    Result<(PersistedComponents, UpdateCharacterMetadata), PersistenceError>;
 type CharacterLoaderRequest = (specs::Entity, CharacterLoaderRequestKind);
 
 /// Available database operations when modifying a player's character list

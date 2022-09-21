@@ -261,6 +261,7 @@ enum InfoContent {
     CreatingCharacter,
     EditingCharacter,
     DeletingCharacter,
+    JoiningCharacter,
     CharacterError(String),
 }
 
@@ -780,6 +781,11 @@ impl Controls {
                         },
                         InfoContent::DeletingCharacter => {
                             Text::new(i18n.get_msg("char_selection-deleting_character"))
+                                .size(fonts.cyri.scale(24))
+                                .into()
+                        },
+                        InfoContent::JoiningCharacter => {
+                            Text::new(i18n.get_msg("char_selection-joining_character"))
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
@@ -1426,14 +1432,57 @@ impl Controls {
             Message::Logout => {
                 events.push(Event::Logout);
             },
+            Message::ConfirmDeletion => {
+                if let Mode::Select { info_content, .. } = &mut self.mode {
+                    if let Some(InfoContent::Deletion(idx)) = info_content {
+                        if let Some(id) = characters.get(*idx).and_then(|i| i.character.id) {
+                            events.push(Event::DeleteCharacter(id));
+                            // Deselect if the selected character was deleted
+                            if Some(id) == self.selected {
+                                self.selected = None;
+                                events.push(Event::SelectCharacter(None));
+                            }
+                        }
+                        *info_content = Some(InfoContent::DeletingCharacter);
+                    }
+                }
+            },
+            Message::CancelDeletion => {
+                if let Mode::Select { info_content, .. } = &mut self.mode {
+                    if let Some(InfoContent::Deletion(_)) = info_content {
+                        *info_content = None;
+                    }
+                }
+            },
+            Message::ClearCharacterListError => {
+                events.push(Event::ClearCharacterListError);
+            },
+            Message::DoNothing => {},
+            _ if matches!(self.mode, Mode::Select {
+                info_content: Some(_),
+                ..
+            }) =>
+            {
+                // Don't allow use of the UI on the select screen to deal with
+                // things other than the event currently being
+                // procesed; all the select screen events after this
+                // modify the info content or selection, except for Spectate
+                // which currently causes us to exit the
+                // character select state.
+            },
             Message::EnterWorld => {
-                if let (Mode::Select { .. }, Some(selected)) = (&self.mode, self.selected) {
+                if let (Mode::Select { info_content, .. }, Some(selected)) =
+                    (&mut self.mode, self.selected)
+                {
                     events.push(Event::Play(selected));
+                    *info_content = Some(InfoContent::JoiningCharacter);
                 }
             },
             Message::Spectate => {
                 if matches!(self.mode, Mode::Select { .. }) {
                     events.push(Event::Spectate);
+                    // FIXME: Enter JoiningCharacter when we have a proper error
+                    // event for spectating.
                 }
             },
             Message::Select(id) => {
@@ -1559,32 +1608,6 @@ impl Controls {
                     );
                 }
             },
-
-            Message::ConfirmDeletion => {
-                if let Mode::Select { info_content, .. } = &mut self.mode {
-                    if let Some(InfoContent::Deletion(idx)) = info_content {
-                        if let Some(id) = characters.get(*idx).and_then(|i| i.character.id) {
-                            events.push(Event::DeleteCharacter(id));
-                            // Deselect if the selected character was deleted
-                            if Some(id) == self.selected {
-                                self.selected = None;
-                                events.push(Event::SelectCharacter(None));
-                            }
-                        }
-                        *info_content = Some(InfoContent::DeletingCharacter);
-                    }
-                }
-            },
-            Message::CancelDeletion => {
-                if let Mode::Select { info_content, .. } = &mut self.mode {
-                    if let Some(InfoContent::Deletion(_)) = info_content {
-                        *info_content = None;
-                    }
-                }
-            },
-            Message::ClearCharacterListError => {
-                events.push(Event::ClearCharacterListError);
-            },
             Message::HairStyle(value) => {
                 if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.hair_style = value;
@@ -1627,7 +1650,6 @@ impl Controls {
                     body.validate();
                 }
             },
-            Message::DoNothing => {},
         }
     }
 

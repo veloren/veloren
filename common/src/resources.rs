@@ -41,7 +41,7 @@ pub enum GameMode {
 #[derive(Copy, Clone, Default, Debug)]
 pub struct PlayerEntity(pub Option<Entity>);
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub struct PlayerPhysicsSetting {
     /// true if the client wants server-authoratative physics (e.g. to use
     /// airships properly)

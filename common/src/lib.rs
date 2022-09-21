@@ -8,6 +8,7 @@
     bool_to_option,
     fundamental,
     label_break_value,
+    let_chains,
     option_zip,
     trait_alias,
     type_alias_impl_trait,

@@ -15,6 +15,7 @@ use crate::{
     util::Dir,
     Explosion,
 };
+use serde::{Deserialize, Serialize};
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
 use vek::*;
@@ -33,6 +34,11 @@ pub enum LocalEvent {
     Boost { entity: EcsEntity, vel: Vec3<f32> },
     /// Creates an outcome
     CreateOutcome(Outcome),
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+pub struct UpdateCharacterMetadata {
+    pub skill_set_persistence_load_error: Option<comp::skillset::SkillsPersistenceError>,
 }
 
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
@@ -122,6 +128,7 @@ pub enum ServerEvent {
             comp::ActiveAbilities,
             Option<comp::MapMarker>,
         ),
+        metadata: UpdateCharacterMetadata,
     },
     ExitIngame {
         entity: EcsEntity,

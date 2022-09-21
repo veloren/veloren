@@ -83,10 +83,10 @@ impl Sys {
                         .any(|x| x == character_id)
                     {
                         debug!("player recently logged out pending persistence, aborting");
-                        client.send(ServerGeneral::CharacterDataLoadError(
+                        client.send(ServerGeneral::CharacterDataLoadResult(Err(
                             "You have recently logged out, please wait a few seconds and try again"
                                 .to_string(),
-                        ))?;
+                        )))?;
                     } else if character_updater.disconnect_all_clients_requested() {
                         // If we're in the middle of disconnecting all clients due to a persistence
                         // transaction failure, prevent new logins
@@ -95,11 +95,11 @@ impl Sys {
                             "Rejecting player login while pending disconnection of all players is \
                              in progress"
                         );
-                        client.send(ServerGeneral::CharacterDataLoadError(
+                        client.send(ServerGeneral::CharacterDataLoadResult(Err(
                             "The server is currently recovering from an error, please wait a few \
                              seconds and try again"
                                 .to_string(),
-                        ))?;
+                        )))?;
                     } else {
                         // Send a request to load the character's component data from the
                         // DB. Once loaded, persisted components such as stats and inventory
@@ -122,9 +122,9 @@ impl Sys {
                     }
                 } else {
                     debug!("Client is not yet registered");
-                    client.send(ServerGeneral::CharacterDataLoadError(String::from(
+                    client.send(ServerGeneral::CharacterDataLoadResult(Err(String::from(
                         "Failed to fetch player entity",
-                    )))?
+                    ))))?
                 }
             },
             ClientGeneral::RequestCharacterList => {

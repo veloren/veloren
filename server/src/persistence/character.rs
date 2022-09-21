@@ -25,7 +25,10 @@ use crate::{
         EditableComponents, PersistedComponents,
     },
 };
-use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
+use common::{
+    character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    event::UpdateCharacterMetadata,
+};
 use core::ops::Range;
 use rusqlite::{types::Value, Connection, ToSql, Transaction, NO_PARAMS};
 use std::{num::NonZeroU64, rc::Rc};
@@ -254,21 +257,28 @@ pub fn load_character_data(
         })
     })?;
 
-    Ok(PersistedComponents {
-        body: convert_body_from_database(&body_data.variant, &body_data.body_data)?,
-        stats: convert_stats_from_database(character_data.alias),
-        skill_set: convert_skill_set_from_database(&skill_group_data),
-        inventory: convert_inventory_from_database_items(
-            character_containers.inventory_container_id,
-            &inventory_items,
-            character_containers.loadout_container_id,
-            &loadout_items,
-        )?,
-        waypoint: char_waypoint,
-        pets,
-        active_abilities: convert_active_abilities_from_database(&ability_set_data),
-        map_marker: char_map_marker,
-    })
+    let (skill_set, skill_set_persistence_load_error) =
+        convert_skill_set_from_database(&skill_group_data);
+    Ok((
+        PersistedComponents {
+            body: convert_body_from_database(&body_data.variant, &body_data.body_data)?,
+            stats: convert_stats_from_database(character_data.alias),
+            skill_set,
+            inventory: convert_inventory_from_database_items(
+                character_containers.inventory_container_id,
+                &inventory_items,
+                character_containers.loadout_container_id,
+                &loadout_items,
+            )?,
+            waypoint: char_waypoint,
+            pets,
+            active_abilities: convert_active_abilities_from_database(&ability_set_data),
+            map_marker: char_map_marker,
+        },
+        UpdateCharacterMetadata {
+            skill_set_persistence_load_error,
+        },
+    ))
 }
 
 /// Loads a list of characters belonging to the player. This data is a small

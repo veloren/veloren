@@ -21,6 +21,7 @@ use common::{
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
+    event::UpdateCharacterMetadata,
     link::Is,
     mounting::Mount,
     outcome::Outcome,
@@ -71,6 +72,7 @@ enum TickAction {
 pub struct SessionState {
     scene: Scene,
     client: Rc<RefCell<Client>>,
+    metadata: UpdateCharacterMetadata,
     hud: Hud,
     key_state: KeyState,
     inputs: comp::ControllerInputs,
@@ -94,7 +96,11 @@ pub struct SessionState {
 /// Represents an active game session (i.e., the one being played).
 impl SessionState {
     /// Create a new `SessionState`.
-    pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
+    pub fn new(
+        global_state: &mut GlobalState,
+        metadata: UpdateCharacterMetadata,
+        client: Rc<RefCell<Client>>,
+    ) -> Self {
         // Create a scene for this session. The scene handles visible elements of the
         // game world.
         let mut scene = Scene::new(
@@ -150,6 +156,7 @@ impl SessionState {
             #[cfg(not(target_os = "macos"))]
             mumble_link,
             hitboxes: HashMap::new(),
+            metadata,
         }
     }
 
@@ -358,9 +365,8 @@ impl SessionState {
                 client::Event::Outcome(outcome) => outcomes.push(outcome),
                 client::Event::CharacterCreated(_) => {},
                 client::Event::CharacterEdited(_) => {},
-                client::Event::CharacterError(error) => {
-                    global_state.client_error = Some(error);
-                },
+                client::Event::CharacterError(_) => {},
+                client::Event::CharacterJoined(_) => {},
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
                 },
@@ -1261,6 +1267,7 @@ impl PlayState for SessionState {
                     mutable_viewpoint,
                     target_entity: self.target_entity,
                     selected_entity: self.selected_entity,
+                    persistence_load_error: self.metadata.skill_set_persistence_load_error,
                 },
                 self.interactable,
             );
@@ -1680,9 +1687,7 @@ impl PlayState for SessionState {
                         settings_change.process(global_state, self);
                     },
                     HudEvent::AcknowledgePersistenceLoadError => {
-                        self.client
-                            .borrow_mut()
-                            .acknolwedge_persistence_load_error();
+                        self.metadata.skill_set_persistence_load_error = None;
                     },
                     HudEvent::MapMarkerEvent(event) => {
                         self.client.borrow_mut().map_marker_event(event);

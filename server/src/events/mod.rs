@@ -150,7 +150,11 @@ impl Server {
                 ServerEvent::InitSpectator(entity, requested_view_distances) => {
                     handle_initialize_spectator(self, entity, requested_view_distances)
                 },
-                ServerEvent::UpdateCharacterData { entity, components } => {
+                ServerEvent::UpdateCharacterData {
+                    entity,
+                    components,
+                    metadata,
+                } => {
                     let (
                         body,
                         stats,
@@ -171,7 +175,7 @@ impl Server {
                         active_abilities,
                         map_marker,
                     };
-                    handle_loaded_character_data(self, entity, components);
+                    handle_loaded_character_data(self, entity, components, metadata);
                 },
                 ServerEvent::ExitIngame { entity } => {
                     handle_exit_ingame(self, entity);

@@ -888,7 +888,7 @@ impl Server {
                 },
                 CharacterLoaderResponseKind::CharacterData(result) => {
                     let message = match *result {
-                        Ok(character_data) => {
+                        Ok((character_data, skill_set_persistence_load_error)) => {
                             let PersistedComponents {
                                 body,
                                 stats,
@@ -912,6 +912,7 @@ impl Server {
                             ServerEvent::UpdateCharacterData {
                                 entity: query_result.entity,
                                 components: character_data,
+                                metadata: skill_set_persistence_load_error,
                             }
                         },
                         Err(error) => {
@@ -920,7 +921,7 @@ impl Server {
                             // to display
                             self.notify_client(
                                 query_result.entity,
-                                ServerGeneral::CharacterDataLoadError(error.to_string()),
+                                ServerGeneral::CharacterDataLoadResult(Err(error.to_string())),
                             );
 
                             // Clean up the entity data on the server
