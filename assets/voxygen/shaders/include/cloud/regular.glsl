@@ -282,7 +282,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
                 moon_color * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) * cloud_diffuse /*+ sky_color * global_scatter_factor*/) +
                 sky_light * (1.0 - global_darken) * not_underground +
                 // A small amount fake ambient light underground
-                (1.0 - not_underground) * vec3(0.2, 0.35, 0.5) * (1.0 - global_darken) +
+                (1.0 - not_underground) * vec3(0.2, 0.35, 0.5) * (1.0 - global_darken) / (1.0 + max_dist * 0.003) +
                 emission * density_integrals.y * step;
 
             // Rainbow
