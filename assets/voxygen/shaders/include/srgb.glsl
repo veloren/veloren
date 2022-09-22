@@ -226,10 +226,10 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
     } */
     wh = normalize(wh);//mix(normalize(wh), vec3(0.0), equal(light_dir, dir));
     float dot_wi_wh = dot(-light_dir, wh);
-    vec3 specular = BeckmannDistribution_D(dot(wh, norm), alpha) /
+    vec3 specular = dot(norm, dir) > 0.0 ? vec3(0.0) : (BeckmannDistribution_D(dot(wh, norm), alpha) /
         (4 * abs(dot_wi_wh) *
         max(abs(cos_wi), abs(cos_wo))) *
-        schlick_fresnel(R_s, dot_wi_wh);
+        schlick_fresnel(R_s, dot_wi_wh));
     // Spectrum specular = distribution->D(wh) /
     //     (4 * AbsDot(wi, wh) *
     //      std::max(AbsCosTheta(wi), AbsCosTheta(wo))) *
