@@ -119,4 +119,36 @@ float norm2tri(float n) {
    n = flip ? 1.0 - n : n;
    return n;
 }
+
+// Caustics, ported and modified from https://www.shadertoy.com/view/3tlfR7, originally David Hoskins.
+// License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License: https://creativecommons.org/licenses/by-nc-sa/3.0/legalcode.
+// Modifying these three functions mean that you agree to release your changes under the above license, *not* under GPL 3 as with the rest of the project.
+
+float hashvec2(vec2 p) {return fract(sin(p.x * 1e2 + p.y) * 1e5 + sin(p.y * 1e3) * 1e3 + sin(p.x * 735. + p.y * 11.1) * 1.5e2); }
+
+float n12(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f *= f * (3.-2.*f);
+    return mix(
+        mix(hashvec2(i+vec2(0.,0.)),hashvec2(i+vec2(1.,0.)),f.x),
+        mix(hashvec2(i+vec2(0.,1.)),hashvec2(i+vec2(1.,1.)),f.x),
+        f.y
+    );
+}
+
+float caustics(vec2 p, float t) {
+    vec3 k = vec3(p,t);
+    float l;
+    mat3 m = mat3(-2.,-1.,2.,3.,-2.,1.,1.,2.,2.);
+    float n = n12(p);
+    k = k*m*.5;
+    l = length(.5 - fract(k+n));
+    k = k*m*.4;
+    l = min(l, length(.5-fract(k+n)));
+    k = k*m*.3;
+    l = min(l, length(.5-fract(k+n)));
+    return pow(l,4.)*5.5;
+}
+
 #endif
