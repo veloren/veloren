@@ -157,8 +157,8 @@ impl Behavior {
     }
 
     /// Check if the Behavior is able to trade
-    pub fn can_trade(&self, alignment: Option<&Alignment>, counterparty: Uid) -> bool {
-        self.trade_site.is_some() || alignment == Some(&Alignment::Owned(counterparty))
+    pub fn can_trade(&self, alignment: Option<Alignment>, counterparty: Uid) -> bool {
+        self.trade_site.is_some() || alignment == Some(Alignment::Owned(counterparty))
     }
 
     /// Set a state to the Behavior

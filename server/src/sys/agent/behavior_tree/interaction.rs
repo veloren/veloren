@@ -167,7 +167,10 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                         standard_response_msg()
                                     };
                                     agent_data.chat_npc(msg, event_emitter);
-                                } else if agent.behavior.can_trade(agent_data.alignment, by) {
+                                } else if agent
+                                    .behavior
+                                    .can_trade(agent_data.alignment.copied(), by)
+                                {
                                     if !agent.behavior.is(BehaviorState::TRADING) {
                                         controller.push_initiate_invite(by, InviteKind::Trade);
                                         agent_data.chat_npc(
@@ -250,7 +253,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                             }
                         },
                         Subject::Trade => {
-                            if agent.behavior.can_trade(agent_data.alignment, by) {
+                            if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
                                 if !agent.behavior.is(BehaviorState::TRADING) {
                                     controller.push_initiate_invite(by, InviteKind::Trade);
                                     agent_data.chat_npc_if_allowed_to_speak(
@@ -395,7 +398,10 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
     }
 
     if let Some(AgentEvent::TradeInvite(with)) = agent.inbox.pop_front() {
-        if agent.behavior.can_trade(agent_data.alignment, with) {
+        if agent
+            .behavior
+            .can_trade(agent_data.alignment.copied(), with)
+        {
             if !agent.behavior.is(BehaviorState::TRADING) {
                 // stand still and looking towards the trading player
                 controller.push_action(ControlAction::Stand);
@@ -603,7 +609,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                 {
                     // in combat, speak to players that aren't the current target
                     if !target.hostile || target.target != speaker {
-                        if agent.behavior.can_trade(agent_data.alignment, *by) {
+                        if agent.behavior.can_trade(agent_data.alignment.copied(), *by) {
                             agent_data.chat_npc_if_allowed_to_speak(
                                 "npc-speech-merchant_busy",
                                 agent,
