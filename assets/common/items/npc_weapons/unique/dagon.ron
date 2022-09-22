@@ -1,6 +1,6 @@
 ItemDef(
     name: "Dagon Kit",
-    description: "Placeholder",
+    description: "Ocean Power!",
     kind: Tool((
         kind: Natural,
         hands: Two,

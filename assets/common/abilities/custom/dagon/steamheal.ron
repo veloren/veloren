@@ -1,0 +1,19 @@
+BasicAura(
+    buildup_duration: 0.2,
+    cast_duration: 0.4,
+    recover_duration: 5.0,
+    targets: InGroup,
+    auras: [
+        (
+            kind: Regeneration,
+            strength: 10.0,
+            duration: Some(5),
+            category: Magical,
+        ),
+    ],
+    aura_duration: 2.0,
+    range: 10.0,
+    energy_cost: 0.0,
+    scales_with_combo: false,
+    specifier: Some(HealingAura),
+)

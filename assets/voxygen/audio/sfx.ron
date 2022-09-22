@@ -1260,6 +1260,13 @@
             ],
             threshold: 1.0,
         ),
+        Utterance(Hurt, Dagon): (
+            files: [
+                "voxygen.audio.sfx.utterance.dagon_hurt1",
+                "voxygen.audio.sfx.utterance.dagon_hurt2",
+            ],
+            threshold: 1.0,
+        ),
         Utterance(Angry, Asp): (
             files: [
                 "voxygen.audio.sfx.utterance.asp_angry1",

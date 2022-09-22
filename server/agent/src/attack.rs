@@ -2401,7 +2401,7 @@ impl<'a> AgentData<'a> {
                         .is_some()
                 })
             {
-                // Use ward if target is far enough away, self is not buffed, and have
+                // Use steam beam if target is far enough away, self is not buffed, and have
                 // sufficient energy
                 controller.push_basic_input(InputKind::Ability(0));
             } else {
@@ -2414,9 +2414,8 @@ impl<'a> AgentData<'a> {
                 && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
-                // Else roll away if can roll and have enough energy, and not using aura or in
-                // recover
-                controller.push_basic_input(InputKind::Roll);
+                // Else use steam beam
+                controller.push_basic_input(InputKind::Ability(0));
             } else if attack_data.angle < 15.0 {
                 controller.push_basic_input(InputKind::Primary);
             }
@@ -2501,29 +2500,40 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        // if close to target, shoot dagon bombs and lay out sea urchins
-        if attack_data.angle < 70.0
-            && attack_data.dist_sqrd < (1.3 * attack_data.min_attack_dist).powi(2)
-        {
+        if agent.action_state.timer > 2.5 {
+            agent.action_state.timer = 0.0;
+        }
+        // if close to target lay out sea urchins, use steambeam and shoot dagon bombs
+        if attack_data.dist_sqrd < (1.3 * attack_data.min_attack_dist).powi(2) {
             controller.inputs.move_dir = Vec2::zero();
-            if agent.action_state.timer > 1.0 {
+            if agent.action_state.timer > 2.0 {
                 controller.push_basic_input(InputKind::Primary);
                 agent.action_state.timer += read_data.dt.0;
+            } else if agent.action_state.timer > 1.0 {
+                controller.push_basic_input(InputKind::Ability(1));
             } else {
                 controller.push_basic_input(InputKind::Secondary);
                 agent.action_state.timer += read_data.dt.0;
             }
-        } else if attack_data.angle < 30.0
-            && entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                tgt_data.pos,
-                tgt_data.body,
-                read_data,
-            )
-        {
-            // if in range, angle and sight, shoot dagon bombs at target
-            controller.push_basic_input(InputKind::Primary);
+        } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
+            // if enemy is far, heal
+            controller.push_basic_input(InputKind::Ability(2));
+            agent.action_state.timer += read_data.dt.0;
+        } else if entities_have_line_of_sight(
+            self.pos,
+            self.body,
+            tgt_data.pos,
+            tgt_data.body,
+            read_data,
+        ) {
+            // if in range shoot dagon bombs and steamwave
+            if agent.action_state.timer > 1.0 {
+                controller.push_basic_input(InputKind::Primary);
+                agent.action_state.timer += read_data.dt.0;
+            } else {
+                controller.push_basic_input(InputKind::Ability(0));
+                agent.action_state.timer += read_data.dt.0;
+            }
         }
         // chase
         let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {

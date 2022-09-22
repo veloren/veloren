@@ -368,6 +368,33 @@ pub fn init(
                         });
                     }
                 },
+                SiteKind::ChapelSite(site2) => {
+                    // prisoners
+                    for _ in 0..10 {
+                        rtsim.entities.insert(Entity {
+                            is_loaded: false,
+                            pos: site2
+                                .plots()
+                                .filter(|plot| {
+                                    matches!(plot.kind(), world::site2::PlotKind::SeaChapel(_))
+                                })
+                                .choose(&mut thread_rng())
+                                .map_or(site.get_origin(), |plot| {
+                                    site2.tile_center_wpos(Vec2::new(
+                                        plot.root_tile().x,
+                                        plot.root_tile().y + 4,
+                                    ))
+                                })
+                                .with_z(0)
+                                .map(|e| e as f32),
+                            seed: thread_rng().gen(),
+                            controller: RtSimController::default(),
+                            last_time_ticked: 0.0,
+                            kind: RtSimEntityKind::Prisoner,
+                            brain: Brain::villager(site_id, &mut thread_rng()),
+                        });
+                    }
+                },
                 _ => {},
             }
         }

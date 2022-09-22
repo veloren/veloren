@@ -3,6 +3,6 @@ SpriteSummon(
     cast_duration: 0.1,
     recover_duration: 0.9,
     sprite: SeaUrchin,
-    summon_distance: (3, 3.1),
+    summon_distance: (5, 3.1),
     sparseness: 0.2,
 )

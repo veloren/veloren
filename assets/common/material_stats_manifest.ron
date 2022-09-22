@@ -310,5 +310,12 @@
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
+        "Cardinal": (
+            protection: Some(Normal(666.0)),
+            poise_resilience: Some(Normal(60.0)),
+            energy_max: Some(45.0),
+            energy_reward: Some(0.5),
+            crit_power: Some(0.8),
+        ),
     },
 )

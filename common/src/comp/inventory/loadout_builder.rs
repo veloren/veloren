@@ -909,6 +909,7 @@ impl LoadoutBuilder {
                 | quadruped_low::Species::Sandshark => {
                     Some("common.items.npc_armor.quadruped_low.generic")
                 },
+                quadruped_low::Species::Dagon => Some("common.items.npc_armor.quadruped_low.dagon"),
                 quadruped_low::Species::Tortoise => {
                     Some("common.items.npc_armor.quadruped_low.shell")
                 },

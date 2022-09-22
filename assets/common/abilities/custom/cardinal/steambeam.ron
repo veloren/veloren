@@ -1,0 +1,19 @@
+BasicBeam(
+    buildup_duration: 0.3,
+    recover_duration: 1.0,
+    beam_duration: 1.0,
+    damage: 22.5,
+    tick_rate: 5.0,
+    range: 8.0,
+    max_angle: 15.0,
+    damage_effect: Some(Buff((
+        kind: Burning,
+        dur_secs: 3.0,
+        strength: Value(0.5),
+        chance: 1.0,
+    ))),
+    energy_regen: 2,
+    energy_drain: 0,
+    ori_rate: 0.5,
+    specifier: Steam,
+)

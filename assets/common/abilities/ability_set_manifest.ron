@@ -381,13 +381,17 @@
     Custom("Dagon"): (
     primary: "common.abilities.custom.dagon.dagonbombs",
     secondary: "common.abilities.custom.dagon.seaurchins",
-        abilities: [],
+        abilities: [
+            (None, "common.abilities.custom.dagon.steamwave"),
+            (None, "common.abilities.custom.cardinal.steambeam"),
+            (None, "common.abilities.custom.dagon.steamheal"),
+        ],
     ),
     Custom("Cardinal"): (
         primary: "common.abilities.sceptre.lifestealbeam",
         secondary: "common.abilities.sceptre.healingaura",
         abilities: [
-            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
+            (None, "common.abilities.custom.cardinal.steambeam"),
             (None, "common.abilities.custom.cardinal.summonseacrocs"),
         ],
     ),

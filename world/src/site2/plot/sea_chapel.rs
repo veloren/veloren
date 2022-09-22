@@ -77,6 +77,7 @@ impl Structure for SeaChapel {
                 .unwrap(),
         );
         let glass_barrier = Fill::Block(Block::air(SpriteKind::GlassBarrier));
+        let sea_urchins = Fill::Block(Block::air(SpriteKind::SeaUrchin));
         // random exit from water basin to side building
         let mut connect_gate_types = vec![
             SpriteKind::GlassBarrier,
@@ -2242,6 +2243,18 @@ impl Structure for SeaChapel {
                 min: (center - 8).with_z(base - (2 * (diameter / 3)) + 14),
                 max: (center + 8).with_z(base - (2 * (diameter / 3)) + 16),
             })
+            .fill(white_coral.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - 9).with_z(base - (2 * (diameter / 3)) + 16),
+                max: (center + 9).with_z(base - (2 * (diameter / 3)) + 18),
+            })
+            .fill(sea_urchins);
+        painter
+            .cylinder(Aabb {
+                min: (center - 8).with_z(base - (2 * (diameter / 3)) + 16),
+                max: (center + 8).with_z(base - (2 * (diameter / 3)) + 18),
+            })
             .clear();
         painter
             .cylinder(Aabb {
@@ -2832,20 +2845,6 @@ impl Structure for SeaChapel {
         painter
             .sphere(Aabb {
                 min: Vec3::new(
-                    center.x - (diameter / 2) - (diameter / 8) - 1,
-                    center.y + (diameter / 16) - 1,
-                    base - (diameter / 4) - 2,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) + (diameter / 8) + 1,
-                    center.y + (diameter / 16) + (diameter / 4) + 1,
-                    base,
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
                     center.x - (diameter / 2) - (diameter / 8),
                     center.y + (diameter / 16),
                     base - (diameter / 8),
@@ -2909,20 +2908,6 @@ impl Structure for SeaChapel {
             })
             .fill(glass_barrier.clone());
         // Holding Cell3
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) - (diameter / 8) - 1,
-                    center.y - (diameter / 4) - (diameter / 16) - 1,
-                    base - (diameter / 4) - 2,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) + (diameter / 8) + 1,
-                    center.y - (diameter / 16) + 1,
-                    base,
-                ),
-            })
-            .fill(white.clone());
         painter
             .sphere(Aabb {
                 min: Vec3::new(
@@ -3375,14 +3360,6 @@ impl Structure for SeaChapel {
                 ),
             })
             .fill(glass_barrier.clone());
-        // Holding Cell Prisoners
-        let prisoners_pos = Vec3::new(center.x, center.y + (diameter / 3), base + 3);
-        for _ in 0..(5 + ((RandomField::new(0).get((prisoners_pos).with_z(base))) % 5)) {
-            painter.spawn(
-                EntityInfo::at(prisoners_pos.as_())
-                    .with_asset_expect("common.entity.village.villager", &mut rng),
-            );
-        }
         // stairway3 tube
         painter
             .cylinder(Aabb {

@@ -208,6 +208,7 @@ pub enum VoiceKind {
     Pig,
     Cow,
     Canine,
+    Dagon,
     Lion,
     Mindflayer,
     Marlin,
@@ -236,6 +237,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             quadruped_low::Species::Maneater => VoiceKind::Maneater,
             quadruped_low::Species::Alligator => VoiceKind::Alligator,
             quadruped_low::Species::SeaCrocodile => VoiceKind::SeaCrocodile,
+            quadruped_low::Species::Dagon => VoiceKind::Dagon,
             quadruped_low::Species::Asp => VoiceKind::Asp,
             _ => return None,
         },
@@ -527,6 +529,7 @@ impl SfxMgr {
                 },
                 beam::FrontendSpecifier::ClayGolem
                 | beam::FrontendSpecifier::Bubbles
+                | beam::FrontendSpecifier::Steam
                 | beam::FrontendSpecifier::Frost
                 | beam::FrontendSpecifier::WebStrand => {},
             },
