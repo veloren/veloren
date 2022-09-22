@@ -401,8 +401,8 @@ void main() {
                 vec3 wpos = f_pos + vec3(focus_off.xy, 0);
                 vec3 spos = (wpos + (fluid_alt - wpos.z) * vec3(sun_dir.xy, 0)) * 0.25;
                 reflected_light += caustics(spos.xy * 1.0, tick.x * 0.5)
-                    * 2
-                    * (1.0 + abs(fluid_alt - wpos.z) * 0.2)
+                    * 3
+                    / (1.0 + pow(abs(fluid_alt - wpos.z) * 0.075, 2))
                     * cam_attenuation
                     * max(dot(f_norm, -sun_dir.xyz), 0)
                     * sun_diffuse

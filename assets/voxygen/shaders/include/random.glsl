@@ -148,7 +148,7 @@ float caustics(vec2 p, float t) {
     l = min(l, length(.5-fract(k+n)));
     k = k*m*.3;
     l = min(l, length(.5-fract(k+n)));
-    return pow(l,4.)*5.5;
+    return pow(l,3.)*5.5;
 }
 
 #endif
