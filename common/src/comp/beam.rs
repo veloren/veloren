@@ -52,6 +52,7 @@ pub enum FrontendSpecifier {
     Cultist,
     ClayGolem,
     Bubbles,
+    Steam,
     Frost,
     WebStrand,
 }

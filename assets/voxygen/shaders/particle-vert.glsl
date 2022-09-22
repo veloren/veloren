@@ -76,6 +76,8 @@ const int ENERGY_BUFFING = 35;
 const int WEB_STRAND = 36;
 const int BLACK_SMOKE = 37;
 const int LIGHTNING = 38;
+const int STEAM = 39;
+const int BARRELORGAN = 40;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -612,6 +614,27 @@ void main() {
                 vec3(max(3.0, 0.05 * length(start_pos + inst_dir * percent()))),
                 vec4(10.0, 20.0, 50.0, 1.0),// * (1.0 - length(inst_dir) * 0.1),
                 identity()//spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
+            );
+            break;
+        case STEAM:
+            f_reflect = 0.0; // Magic steam doesn't reflect light, it emits it
+            float steam_size = 8.0 * (1 - slow_start(0.1)) * slow_end(0.15);
+            attr = Attr(
+                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                vec3(steam_size),
+                vec4(vec3(0.7, 2.7, 1.3), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case BARRELORGAN:
+            attr = Attr(
+                linear_motion(
+                    vec3(rand0 * 0.25, rand1 * 0.25, 1.7 + rand5),
+                    vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.5)
+                ),
+                vec3(exp_scale(-0.2)) * rand0,
+                vec4(vec3(0.7, 2.7, 1.3), 1),
+                spin_in_axis(vec3(1,0,0),0)
             );
             break;
         default:

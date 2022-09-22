@@ -3,14 +3,7 @@ ItemDef(
     description: "Seemlessly transitions...",
     kind: Armor((
         kind: Belt,
-        stats: Direct((
-            protection: Some(Normal(24.0)),
-            poise_resilience: Some(Normal(3.0)),
-            energy_max: Some(20),
-            energy_reward: Some(0.025),
-            crit_power: Some(0.06),
-            stealth: Some(0.0),
-        )),
+        stats: FromSet("Cardinal"),
     )),
     quality: Legendary,
     tags: [

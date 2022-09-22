@@ -3,14 +3,7 @@ ItemDef(
     description: "The boots with millions of steps.",
     kind: Armor((
         kind: Foot,
-        stats: Direct((
-            protection: Some(Normal(24.0)),
-            poise_resilience: Some(Normal(6.0)),
-            energy_max: Some(85),
-            energy_reward: Some(0.105),
-            crit_power: Some(0.12),
-            stealth: Some(0.0),
-        )),
+        stats: FromSet("Cardinal"),
     )),
     quality: Legendary,
     tags: [

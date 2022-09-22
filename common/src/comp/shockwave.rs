@@ -50,4 +50,5 @@ pub enum FrontendSpecifier {
     Fire,
     Water,
     IceSpikes,
+    Steam,
 }

@@ -1,0 +1,13 @@
+#![enable(implicit_some)]
+(
+    name: Name("Prisoner"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Npc),
+    loot: LootTable("common.loot_tables.creature.humanoid"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.village.villager"),
+        )),
+    ),
+    meta: [],
+)

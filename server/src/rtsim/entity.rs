@@ -26,7 +26,7 @@ pub struct Entity {
     pub brain: Brain,
 }
 
-#[derive(Clone, Copy, strum::EnumIter)]
+#[derive(Clone, Copy, strum::EnumIter, PartialEq)]
 pub enum RtSimEntityKind {
     Wanderer,
     Cultist,
@@ -36,6 +36,7 @@ pub enum RtSimEntityKind {
     Blacksmith,
     Chef,
     Alchemist,
+    Prisoner,
 }
 
 const BIRD_MEDIUM_ROSTER: &[comp::bird_medium::Species] = &[
@@ -101,6 +102,7 @@ impl Entity {
             | RtSimEntityKind::Chef
             | RtSimEntityKind::Alchemist
             | RtSimEntityKind::Blacksmith
+            | RtSimEntityKind::Prisoner
             | RtSimEntityKind::Merchant => {
                 let species = *comp::humanoid::ALL_SPECIES
                     .choose(&mut self.rng(PERM_SPECIES))
@@ -986,6 +988,7 @@ fn humanoid_config(kind: RtSimEntityKind, rank: TravelerRank) -> &'static str {
         RtSimEntityKind::Blacksmith => "common.entity.village.blacksmith",
         RtSimEntityKind::Chef => "common.entity.village.chef",
         RtSimEntityKind::Alchemist => "common.entity.village.alchemist",
+        RtSimEntityKind::Prisoner => "common.entity.dungeon.sea_chapel.prisoner",
     }
 }
 

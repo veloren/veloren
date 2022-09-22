@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Dagon's Scales",
+    description: "Rigid enough to withstand the pressure of the deep ocean.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(150.0)),
+            poise_resilience: Some(Normal(5.0)),
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)

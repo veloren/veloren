@@ -504,7 +504,7 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(5.0),
+                        RadiusEffect::TerrainDestruction(75.0),
                     ],
                     radius,
                     reagent: Some(Reagent::Blue),
