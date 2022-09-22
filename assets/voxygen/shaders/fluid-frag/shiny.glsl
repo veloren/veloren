@@ -54,7 +54,7 @@ layout(location = 0) out vec4 tgt_color;
 
 vec2 wavedx(vec2 position, vec2 direction, float speed, float frequency, float timeshift) {
     float x = dot(direction, position) * frequency + timeshift * speed;
-    float wave = exp(sin(x) - 1.0);
+    float wave = pow(sin(x) + 0.5, 2);
     float dx = wave * cos(x);
     return vec2(wave, -dx);
 }
@@ -62,21 +62,21 @@ vec2 wavedx(vec2 position, vec2 direction, float speed, float frequency, float t
 // Based on https://www.shadertoy.com/view/MdXyzX
 float wave_height(vec3 pos){
     pos *= 0.3;
-	float iter = 0.0;
+    float iter = 0.0;
     float phase = 6.0;
     float speed = 2.0;
     float weight = 1.0;
     float w = 0.0;
     float ws = 0.0;
     const float drag_factor = 0.048;
-    for(int i = 0; i < 10; i ++){
+    for(int i = 0; i < 11; i ++){
         vec2 p = vec2(sin(iter), cos(iter));
         vec2 res = wavedx(pos.xy, p, speed, phase, tick.x);
         pos.xy += p * res.y * weight * drag_factor;
         w += res.x * weight;
         iter += 10.0;
         ws += weight;
-        weight = mix(weight, 0.0, 0.1);
+        weight = mix(weight, 0.0, 0.15);
         phase *= 1.18;
         speed *= 1.07;
     }
