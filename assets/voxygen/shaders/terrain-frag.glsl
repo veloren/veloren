@@ -9,7 +9,7 @@
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
     #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
     #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -209,7 +209,7 @@ void main() {
     /* vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
 
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float f_alt = alt_at(f_pos.xy);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
     float f_alt = f_pos.z;
@@ -396,7 +396,7 @@ void main() {
     reflected_light *= 0.4 + f_ao * 0.6;
 
     #ifndef EXPERIMENTAL_NOCAUSTICS
-        #if (FLUID_MODE == FLUID_MODE_SHINY)
+        #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
             if (faces_fluid) {
                 vec3 wpos = f_pos + vec3(focus_off.xy, 0);
                 vec3 spos = (wpos + (fluid_alt - wpos.z) * vec3(sun_dir.xy, 0)) * 0.25;

@@ -8,7 +8,7 @@
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -25,6 +25,7 @@
 
 layout(location = 0) in vec3 f_pos;
 layout(location = 1) flat in uint f_pos_norm;
+layout(location = 2) in vec2 f_vel;
 // in vec3 f_col;
 // in float f_light;
 // in vec3 light_pos[2];
@@ -60,27 +61,64 @@ vec2 wavedx(vec2 position, vec2 direction, float speed, float frequency, float t
 }
 
 // Based on https://www.shadertoy.com/view/MdXyzX
-float wave_height(vec3 pos){
-    pos *= 0.3;
+float wave_height(vec2 pos){
     float iter = 0.0;
-    float phase = 6.0;
-    float speed = 2.0;
-    float weight = 1.0;
+    float phase = 4.0;
+    float weight = 1.5;
     float w = 0.0;
     float ws = 0.0;
-    const float drag_factor = 0.048;
-    for(int i = 0; i < 11; i ++){
+    const float speed_per_iter = 0.1;
+    #if (FLUID_MODE == FLUID_MODE_HIGH)
+        float speed = 1.0;
+        pos *= 0.15;
+        const float drag_factor = 0.03;
+        const float iters = 21;
+    #else
+        float speed = 2.0;
+        pos *= 0.3;
+        const float drag_factor = 0.04;
+        const float iters = 11;
+    #endif
+    const float iter_shift = (3.14159 * 2.0) / 7.3;
+
+    vec2 dir = vec2(
+        sin(pos.y * 0.1),
+        sin(pos.x * 0.1)
+    ) * 0;
+    for(int i = 0; i < iters; i ++) {
         vec2 p = vec2(sin(iter), cos(iter));
-        vec2 res = wavedx(pos.xy, p, speed, phase, tick.x);
-        pos.xy += p * res.y * weight * drag_factor;
-        w += res.x * weight;
-        iter += 10.0;
+        vec2 res = wavedx(pos, p, speed, phase, tick.x);
+        pos += p * res.y * weight * drag_factor;
+        w += res.x * weight * (1.0 + max(dot(p, -dir), 0.0));
+        iter += iter_shift * 1.5;
         ws += weight;
-        weight = mix(weight, 0.0, 0.15);
-        phase *= 1.18;
-        speed *= 1.07;
+        weight = mix(weight, 0.0, 0.2);
+        phase *= 1.23;
+        speed += speed_per_iter;
     }
     return w / ws * 10.0;
+}
+
+float wave_height2(vec2 pos){
+    vec2 vel = vec2(sin(pos.x * 0.2), cos(pos.y * 0.2)) * 2.0;
+    vel = cross(vec3(vel, 0), vec3(0, 0, 1)).xy;
+    vel = lod_norm(f_pos.xy - 16).xy * 10.0;
+    vel = f_vel * 3.5;
+    float hx = mix(
+        wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x) - vec2(0, 1) * tick.x * floor(vel.y)),
+        wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x + 1.0) - vec2(0, 1) * tick.x * floor(vel.y)),
+        fract(vel.x + 1.0)
+    );
+    float hx2 = mix(
+        wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x) - vec2(0, 1) * tick.x * floor(vel.y + 1.0)),
+        wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x + 1.0) - vec2(0, 1) * tick.x * floor(vel.y + 1.0)),
+        fract(vel.x + 1.0)
+    );
+    return mix(
+        hx,
+        hx2,
+        fract(vel.y + 1.0)
+    );
 }
 
 void main() {
@@ -127,11 +165,11 @@ void main() {
     }
     vec3 c_norm = cross(f_norm, b_norm);
 
-    vec3 wave_pos = mod(f_pos + focus_off.xyz, vec3(3000.0));
-    float wave_sample_dist = 0.025;
-    float wave00 = wave_height(wave_pos);
-    float wave10 = wave_height(wave_pos + vec3(wave_sample_dist, 0, 0));
-    float wave01 = wave_height(wave_pos + vec3(0, wave_sample_dist, 0));
+    vec3 wave_pos = mod(f_pos + focus_off.xyz, vec3(3000.0)) - (f_pos.z + focus_off.z) * 0.2;
+    float wave_sample_dist = 0.1;
+    float wave00 = wave_height2(wave_pos.xy);
+    float wave10 = wave_height2(wave_pos.xy + vec2(wave_sample_dist, 0));
+    float wave01 = wave_height2(wave_pos.xy + vec2(0, wave_sample_dist));
 
     // Possibility of div by zero when slope = 0,
     // however this only results in no water surface appearing
@@ -175,7 +213,7 @@ void main() {
     //norm = f_norm;
 
     vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float f_alt = alt_at(f_pos.xy);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
     float f_alt = f_pos.z;

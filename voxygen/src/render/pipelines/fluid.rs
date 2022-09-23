@@ -7,10 +7,11 @@ use vek::*;
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
     pos_norm: u32,
+    vel: u32,
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, river_velocity: Vec2<f32>) -> Self {
         let (norm_axis, norm_dir) = norm
             .as_slice()
             .iter()
@@ -27,11 +28,17 @@ impl Vertex {
                 | ((pos.y as u32) & 0x003F) << 6
                 | (((pos.z + EXTRA_NEG_Z).max(0.0).min((1 << 17) as f32) as u32) & 0x1FFFF) << 12
                 | (norm_bits & 0x7) << 29,
+            vel: river_velocity
+                .map2(Vec2::new(0, 16), |e, off| (((e * 1000.0 + 32768.9) as u16 as u32) << off))
+                .reduce_bitor(),
         }
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Uint32];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 2] = wgpu::vertex_attr_array![
+            0 => Uint32,
+            1 => Uint32,
+        ];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,

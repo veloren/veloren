@@ -8,7 +8,7 @@
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -445,7 +445,7 @@ void main() {
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
     // voxel_norm = vec3(0.0);
 
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float shadow_alt = /*f_pos.z;*/alt_at(f_pos.xy);//max(alt_at(f_pos.xy), f_pos.z);
     // float shadow_alt = f_pos.z;
 #elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
@@ -648,7 +648,7 @@ void main() {
     // vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
     // f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
     vec3 surf_color;
-    #if (FLUID_MODE == FLUID_MODE_SHINY)
+    #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
         if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
             vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
 

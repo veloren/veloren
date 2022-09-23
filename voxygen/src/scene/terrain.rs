@@ -224,12 +224,12 @@ impl assets::Asset for SpriteSpec {
 
 /// skip_remesh is either None (do the full remesh, including recomputing the
 /// light map), or Some((light_map, glow_map)).
-fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + 'static>(
+fn mesh_worker(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
     skip_remesh: Option<(LightMapFn, LightMapFn)>,
     started_tick: u64,
-    volume: <VolGrid2d<V> as SampleVol<Aabr<i32>>>::Sample,
+    volume: <VolGrid2d<TerrainChunk> as SampleVol<Aabr<i32>>>::Sample,
     max_texture_size: u16,
     chunk: Arc<TerrainChunk>,
     range: Aabb<i32>,
@@ -274,11 +274,11 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
             prof_span!("extract sprite_instances");
             let mut instances = [(); SPRITE_LOD_LEVELS].map(|()| Vec::new());
 
-            for x in 0..V::RECT_SIZE.x as i32 {
-                for y in 0..V::RECT_SIZE.y as i32 {
+            for x in 0..TerrainChunk::RECT_SIZE.x as i32 {
+                for y in 0..TerrainChunk::RECT_SIZE.y as i32 {
                     for z in z_bounds.0 as i32..z_bounds.1 as i32 + 1 {
                         let rel_pos = Vec3::new(x, y, z);
-                        let wpos = Vec3::from(pos * V::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos;
+                        let wpos = Vec3::from(pos * TerrainChunk::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos;
 
                         let block = if let Ok(block) = volume.get(wpos) {
                             block

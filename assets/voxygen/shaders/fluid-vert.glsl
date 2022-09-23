@@ -8,7 +8,7 @@
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -21,6 +21,7 @@
 #include <random.glsl>
 
 layout(location = 0) in uint v_pos_norm;
+layout(location = 1) in uint v_vel;
 // in uint v_col_light;
 
 layout(std140, set = 2, binding = 0)
@@ -42,6 +43,7 @@ uniform u_locals {
 
 layout(location = 0) out vec3 f_pos;
 layout(location = 1) flat out uint f_pos_norm;
+layout(location = 2) out vec2 f_vel;
 // out vec3 f_col;
 // out float f_light;
 // out vec3 light_pos[2];
@@ -50,6 +52,10 @@ const float EXTRA_NEG_Z = 65536.0/*65536.1*/;
 
 void main() {
     f_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0x1FFFFu) - EXTRA_NEG_Z) + model_offs - focus_off.xyz;
+    f_vel = vec2(
+        (float(v_vel & 0xFFFFu) - 32768.0) / 1000.0,
+        (float((v_vel >> 16u) & 0xFFFFu) - 32768.0) / 1000.0
+    );
 
     // f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
     // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
@@ -73,7 +79,7 @@ void main() {
     // f_pos.xy += 0.01; // Avoid z-fighting
     // f_pos.x += 0.1 * sin(tick.x / 60 * hash(vec4(f_pos.xyz, 1.0)));
     // f_pos.y += 0.1 * sin(tick.x / 60 * hash(vec4(f_pos.xyz, 2.0)));
-#if (FLUID_MODE == FLUID_MODE_SHINY)
+#if (FLUID_MODE >= FLUID_MODE_MEDIUM)
     // f_pos.z -= 0.1 + 0.1 * (sin(tick.x/* / 60.0*/* 2.0 + f_pos.x * 2.0 + f_pos.y * 2.0) + 1.0) * 0.5;
 #endif
 

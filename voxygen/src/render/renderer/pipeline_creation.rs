@@ -182,7 +182,8 @@ impl ShaderModules {
             "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
             match pipeline_modes.fluid {
                 FluidMode::Cheap => "FLUID_MODE_CHEAP",
-                FluidMode::Shiny => "FLUID_MODE_SHINY",
+                FluidMode::Medium => "FLUID_MODE_MEDIUM",
+                FluidMode::High => "FLUID_MODE_HIGH",
             },
             match pipeline_modes.cloud {
                 CloudMode::None => "CLOUD_MODE_NONE",
@@ -299,7 +300,7 @@ impl ShaderModules {
 
         let selected_fluid_shader = ["fluid-frag.", match pipeline_modes.fluid {
             FluidMode::Cheap => "cheap",
-            FluidMode::Shiny => "shiny",
+            _ => "shiny",
         }]
         .concat();
 

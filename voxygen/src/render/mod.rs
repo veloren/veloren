@@ -155,6 +155,7 @@ pub enum FluidMode {
     /// diffraction, and no light attenuation through water.  As a result,
     /// it can be much cheaper than shiny reflection.
     Cheap,
+    High,
     /// "Shiny" water.  This water implements waves on the surfaces, some
     /// attempt at reflections, and tries to compute accurate light
     /// attenuation through water (this is what results in the
@@ -172,11 +173,11 @@ pub enum FluidMode {
     /// which causes attenuation to be computed incorrectly; this can be
     /// addressed by using shadow maps (at least for terrain).
     #[serde(other)]
-    Shiny,
+    Medium,
 }
 
 impl Default for FluidMode {
-    fn default() -> Self { FluidMode::Shiny }
+    fn default() -> Self { FluidMode::Medium }
 }
 
 /// Lighting modes

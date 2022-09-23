@@ -1038,12 +1038,14 @@ impl<'a> Widget for Video<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.fluid_mode_text, ui);
 
-        let mode_list = [FluidMode::Cheap, FluidMode::Shiny];
+        let mode_list = [FluidMode::Cheap, FluidMode::Medium, FluidMode::High];
         let mode_label_list = [
             self.localized_strings
                 .get_msg("hud-settings-fluid_rendering_mode-cheap"),
             self.localized_strings
-                .get_msg("hud-settings-fluid_rendering_mode-shiny"),
+                .get_msg("hud-settings-fluid_rendering_mode-medium"),
+            self.localized_strings
+                .get_msg("hud-settings-fluid_rendering_mode-high"),
         ];
 
         // Get which fluid rendering mode is currently active
