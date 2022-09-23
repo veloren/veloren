@@ -179,8 +179,8 @@ impl ExportVol {
 
         for (index, (model_pos, _)) in self.models.iter().enumerate() {
             // Transform node
-            let pos = model_pos
-                .map(|p| p * Self::CHUNK_SIZE + Self::CHUNK_SIZE / 2 + if p < 0 { 0 } else { 1 });
+            let pos =
+                model_pos.map(|p| p * Self::CHUNK_SIZE + Self::CHUNK_SIZE / 2 + i32::from(p >= 0));
             let pos = pos - Vec3::new(self.width / 2, self.width / 2, 0);
             let transform_node_id = index as i32 * 2 + 2;
             let shape_node_id = index as i32 * 2 + 3;

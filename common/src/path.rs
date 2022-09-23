@@ -521,7 +521,7 @@ where
             if is_walkable(&test_pos) {
                 return Some(test_pos);
             }
-            z_incr = -z_incr + if z_incr <= 0 { 1 } else { 0 };
+            z_incr = -z_incr + i32::from(z_incr <= 0);
         }
         None
     };

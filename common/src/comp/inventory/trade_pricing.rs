@@ -279,7 +279,7 @@ lazy_static! {
             .for_each(|(ComponentKey { toolkind, material, .. }, recipe)| {
                 let component = recipe.itemdef_output();
                 let hand_restriction = None; // once there exists a hand restriction add the logic here - for a slight price correction
-                let entry = component_pool.entry((*toolkind, String::from(material))).or_insert(Vec::new());
+                let entry: &mut Vec<_> = component_pool.entry((*toolkind, String::from(material))).or_default();
                 entry.push((component, hand_restriction));
             });
 
@@ -306,7 +306,7 @@ lazy_static! {
                 ) = asset_path.kind
                 {
                     let component = ItemDefinitionIdOwned::Simple(asset_path.id().into());
-                    let entry = component_pool.entry((toolkind, String::new())).or_insert(Vec::new());
+                    let entry: &mut Vec<_> = component_pool.entry((toolkind, String::new())).or_default();
                     entry.push((component, hand_restriction));
                 }});
 
@@ -790,7 +790,7 @@ impl TradePricing {
             {
                 secondaries
                     .entry(toolkind)
-                    .or_insert(Vec::new())
+                    .or_default()
                     .push(ItemDefinitionIdOwned::Simple(asset_path.id().into()));
             }
             ordered_recipes.push(RememberedRecipe {
@@ -822,7 +822,7 @@ impl TradePricing {
         for (key, recipe) in comp_book.iter() {
             primaries
                 .entry(key.toolkind)
-                .or_insert(Vec::new())
+                .or_default()
                 .push(recipe.itemdef_output());
             ordered_recipes.push(RememberedRecipe {
                 output: recipe.itemdef_output(),

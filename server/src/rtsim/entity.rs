@@ -26,7 +26,7 @@ pub struct Entity {
     pub brain: Brain,
 }
 
-#[derive(Clone, Copy, strum::EnumIter, PartialEq)]
+#[derive(Clone, Copy, strum::EnumIter, PartialEq, Eq)]
 pub enum RtSimEntityKind {
     Wanderer,
     Cultist,

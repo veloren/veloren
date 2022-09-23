@@ -478,7 +478,7 @@ impl SkillSet {
         C: BorrowMut<SkillSet>,
     {
         if let Some(skill_group_kind) = skill.skill_group_kind() {
-            let this = (&*this_).borrow();
+            let this = (*this_).borrow();
             let next_level = this.next_skill_level(skill);
             let prerequisites_met = this.prerequisites_met(skill);
             // Check that skill is not yet at max level

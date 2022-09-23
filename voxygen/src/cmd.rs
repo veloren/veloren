@@ -340,7 +340,7 @@ pub fn complete(line: &str, client: &Client, cmd_prefix: char) -> Vec<String> {
         let line = line.strip_prefix(cmd_prefix).unwrap_or(line);
         let mut iter = line.split_whitespace();
         let cmd = iter.next().unwrap_or("");
-        let i = iter.count() + if word.is_empty() { 1 } else { 0 };
+        let i = iter.count() + usize::from(word.is_empty());
         if i == 0 {
             // Completing chat command name. This is the start of the line so the prefix
             // will be part of it

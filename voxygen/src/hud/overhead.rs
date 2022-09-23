@@ -164,15 +164,11 @@ impl<'a> Ingameable for Overhead<'a> {
                     0
                 }
                 + if info.health.map_or(false, should_show_healthbar) {
-                    5 + if info.energy.is_some() { 1 } else { 0 }
+                    5 + usize::from(info.energy.is_some())
                 } else {
                     0
                 }
-                + if info.health.map_or(false, decayed_health_displayed) {
-                    1
-                } else {
-                    0
-                }
+                + usize::from(info.health.map_or(false, decayed_health_displayed))
                 + (!self.interaction_options.is_empty()) as usize * 2
         }) + if self.bubble.is_some() { 13 } else { 0 }
     }

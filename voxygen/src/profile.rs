@@ -150,7 +150,7 @@ impl Profile {
         match character_id {
             Some(character_id) => self.servers
               .entry(server.to_string())
-              .or_insert(ServerProfile::default())
+              .or_default()
               // Get or update the CharacterProfile.
               .characters
               .entry(character_id)
@@ -191,7 +191,7 @@ impl Profile {
     ) {
         self.servers
             .entry(server.to_string())
-            .or_insert(ServerProfile::default())
+            .or_default()
             .selected_character = selected_character;
     }
 
@@ -226,7 +226,7 @@ impl Profile {
     ) {
         self.servers
             .entry(server.to_string())
-            .or_insert(ServerProfile::default())
+            .or_default()
             .spectate_position = spectate_position;
     }
 

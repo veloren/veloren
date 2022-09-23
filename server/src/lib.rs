@@ -5,7 +5,6 @@
     box_patterns,
     drain_filter,
     let_chains,
-    let_else,
     never_type,
     option_zip,
     unwrap_infallible

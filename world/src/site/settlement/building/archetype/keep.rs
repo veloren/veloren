@@ -192,12 +192,7 @@ impl Archetype for Keep {
         };
 
         let ridge_x = (center_offset.map(|e| e.abs()).reduce_min() + 2) % 8;
-        let width = locus
-            + if ridge_x < 4 && attr.ridged && !attr.rounded {
-                1
-            } else {
-                0
-            };
+        let width = locus + i32::from(ridge_x < 4 && attr.ridged && !attr.rounded);
         let rampart_width = 2 + width;
         let storey_height = 9;
         let roof_height = attr.storeys * storey_height;

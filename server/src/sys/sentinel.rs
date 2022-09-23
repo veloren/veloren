@@ -293,10 +293,7 @@ impl Default for DeletedEntities {
 
 impl DeletedEntities {
     pub fn record_deleted_entity(&mut self, uid: Uid, region_key: Vec2<i32>) {
-        self.map
-            .entry(region_key)
-            .or_insert(Vec::new())
-            .push(uid.into());
+        self.map.entry(region_key).or_default().push(uid.into());
     }
 
     pub fn take_deleted_in_region(&mut self, key: Vec2<i32>) -> Vec<u64> {

@@ -48,7 +48,7 @@ fn unlz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Option<Vec<u8>> {
         r.into_read_with_dictionary(dictionary)
             .read_to_end(&mut uncompressed)
             .ok()?;
-        bincode::deserialize(&*uncompressed).ok()
+        bincode::deserialize(&uncompressed).ok()
     })
 }
 
@@ -201,7 +201,7 @@ impl VoxelImageEncoding for PngEncoding {
             FilterType::Up,
         );
         png.write_image(
-            &*ws.as_raw(),
+            ws.as_raw(),
             ws.width(),
             ws.height(),
             image::ColorType::Rgba8,
@@ -300,7 +300,7 @@ impl VoxelImageEncoding for MixedEncoding {
                 CompressionType::Rle,
                 FilterType::Up,
             );
-            png.write_image(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
                 .ok()?;
             indices[i] = buf.len();
             Some(())
@@ -407,7 +407,7 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
             FilterType::Up,
         );
         png.write_image(
-            &*ws.0.as_raw(),
+            ws.0.as_raw(),
             ws.0.width(),
             ws.0.height(),
             image::ColorType::L8,
@@ -471,14 +471,14 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
                 CompressionType::Fast,
                 FilterType::Up,
             );
-            png.write_image(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
                 .ok()?;
             indices[i] = buf.len();
             Some(())
         };
         f(&ws.0, 0)?;
         let mut g = |x: &[u8], i| {
-            buf.extend_from_slice(&*CompressedData::compress(&x, 4).data);
+            buf.extend_from_slice(&CompressedData::compress(&x, 4).data);
             indices[i] = buf.len();
         };
 
@@ -533,7 +533,7 @@ lazy_static::lazy_static! {
     static ref PALETTE_RTREE: HashMap<BlockKind, RTree<ColorPoint, TestParams>> = {
         let ron_bytes = include_bytes!("palettes.ron");
         let palettes: HashMap<BlockKind, Vec<Rgb<u8>>> =
-            ron::de::from_bytes(&*ron_bytes).expect("palette should parse");
+            ron::de::from_bytes(ron_bytes).expect("palette should parse");
         palettes
             .into_iter()
             .map(|(k, v)| {
@@ -549,7 +549,7 @@ lazy_static::lazy_static! {
     pub static ref PALETTE_KDTREE: HashMap<BlockKind, KdTree<f32, u8, 3>> = {
         let ron_bytes = include_bytes!("palettes.ron");
         let palettes: HashMap<BlockKind, Vec<Rgb<u8>>> =
-            ron::de::from_bytes(&*ron_bytes).expect("palette should parse");
+            ron::de::from_bytes(ron_bytes).expect("palette should parse");
         palettes
             .into_iter()
             .map(|(k, v)| {
@@ -637,7 +637,7 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
                 CompressionType::Rle,
                 FilterType::Up,
             );
-            png.write_image(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
                 .ok()?;
             indices[i] = buf.len();
             Some(())
@@ -921,8 +921,8 @@ fn main() {
                             histogram_to_dictionary(&histogram2, &mut dictionary2);
                         }
                     }
-                    let lz4_dyna = lz4_with_dictionary(&*ser_dyna, &[]);
-                    let deflate_dyna = do_deflate_flate2::<5>(&*ser_dyna);
+                    let lz4_dyna = lz4_with_dictionary(&ser_dyna, &[]);
+                    let deflate_dyna = do_deflate_flate2::<5>(&ser_dyna);
                     let deflate_channeled_dyna = do_deflate_flate2::<5>(
                         &bincode::serialize(&channelize_dyna(&dyna)).unwrap(),
                     );
@@ -936,7 +936,7 @@ fn main() {
                         ),
                     ]);
                     if HISTOGRAMS {
-                        let lz4_dict_dyna = lz4_with_dictionary(&*ser_dyna, &dictionary2);
+                        let lz4_dict_dyna = lz4_with_dictionary(&ser_dyna, &dictionary2);
                         sizes.push(("lz4_dict_dyna", lz4_dict_dyna.len() as f32 / n as f32));
                     }
                 }
@@ -954,7 +954,7 @@ fn main() {
                             spiralpos.x, spiralpos.y
                         ))
                         .unwrap();
-                        f.write_all(&*jpegchonkgrid).unwrap();
+                        f.write_all(&jpegchonkgrid).unwrap();
                     }
 
                     let jpegchonktall_pre = Instant::now();
@@ -1199,7 +1199,7 @@ fn main() {
                             .unwrap();
                         let jpeg_volgrid =
                             image_terrain_volgrid(&JpegEncoding, GridLtrPacking, &volgrid).unwrap();
-                        f.write_all(&*jpeg_volgrid).unwrap();
+                        f.write_all(&jpeg_volgrid).unwrap();
 
                         let mixedgrid_pre = Instant::now();
                         let (mixed_volgrid, indices) =

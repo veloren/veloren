@@ -222,7 +222,7 @@ impl Room {
                 .map(|e| e.rem_euclid(pillar_space) == 0)
                 .reduce_and()
         });
-        let enemy_spawn_tile = enemy_spawn_tile + if enemy_tile_is_pillar { 1 } else { 0 };
+        let enemy_spawn_tile = enemy_spawn_tile + i32::from(enemy_tile_is_pillar);
 
         // Toss mobs in the center of the room
         if tile_pos == enemy_spawn_tile && wpos2d == tile_wcenter.xy() {
@@ -281,7 +281,7 @@ impl Room {
                 .map(|e| e.rem_euclid(pillar_space) == 0)
                 .reduce_and()
         });
-        let miniboss_spawn_tile = miniboss_spawn_tile + if miniboss_tile_is_pillar { 1 } else { 0 };
+        let miniboss_spawn_tile = miniboss_spawn_tile + i32::from(miniboss_tile_is_pillar);
 
         if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
             let entities = match self.difficulty {
@@ -314,7 +314,7 @@ impl Room {
                 .map(|e| e.rem_euclid(pillar_space) == 0)
                 .reduce_and()
         });
-        let boss_spawn_tile = boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
+        let boss_spawn_tile = boss_spawn_tile + i32::from(boss_tile_is_pillar);
 
         if tile_pos == boss_spawn_tile && wpos2d == tile_wcenter.xy() {
             let entities = match self.difficulty {

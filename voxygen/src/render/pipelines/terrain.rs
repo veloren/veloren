@@ -15,6 +15,7 @@ impl Vertex {
     pub fn new(atlas_pos: Vec2<u16>, pos: Vec3<f32>, norm: Vec3<f32>, meta: bool) -> Self {
         const EXTRA_NEG_Z: f32 = 32768.0;
 
+        #[allow(clippy::bool_to_int_with_if)]
         let norm_bits = if norm.x != 0.0 {
             if norm.x < 0.0 { 0 } else { 1 }
         } else if norm.y != 0.0 {
@@ -28,18 +29,14 @@ impl Vertex {
             pos_norm: ((pos.x as u32) & 0x003F) << 0
                 | ((pos.y as u32) & 0x003F) << 6
                 | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
-                | if meta { 1 } else { 0 } << 28
+                | u32::from(meta) << 28
                 | (norm_bits & 0x7) << 29,
             atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) << 0 | ((atlas_pos.y as u32) & 0xFFFF) << 16,
         }
     }
 
     pub fn new_figure(atlas_pos: Vec2<u16>, pos: Vec3<f32>, norm: Vec3<f32>, bone_idx: u8) -> Self {
-        let norm_bits = if norm.x.min(norm.y).min(norm.z) < 0.0 {
-            0
-        } else {
-            1
-        };
+        let norm_bits = u32::from(norm.x.min(norm.y).min(norm.z) >= 0.0);
         let axis_bits = if norm.x != 0.0 {
             0
         } else if norm.y != 0.0 {

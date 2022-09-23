@@ -470,7 +470,7 @@ impl<'a> MapConfig<'a> {
             light_direction.y,
             0.0, // we currently ignore light_direction.z.
         );
-        let light_shadow_dir = if light_direction.x >= 0.0 { 0 } else { 1 };
+        let light_shadow_dir = usize::from(light_direction.x < 0.0);
         let horizon_map = horizons.map(|horizons| &horizons[light_shadow_dir]);
         let light = light_direction.normalized();
         let /*mut */quads = [[0u32; QUADRANTS]; QUADRANTS];
