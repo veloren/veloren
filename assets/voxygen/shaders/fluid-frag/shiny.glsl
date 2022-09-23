@@ -52,40 +52,35 @@ layout(location = 0) out vec4 tgt_color;
 #include <light.glsl>
 #include <lod.glsl>
 
-vec3 warp_normal(vec3 norm, vec3 pos, float time) {
-    return normalize(norm
-        + smooth_rand(pos * 1.0, time * 1.0) * 0.05
-        + smooth_rand(pos * 0.25, time * 0.25) * 0.1);
+vec2 wavedx(vec2 position, vec2 direction, float speed, float frequency, float timeshift) {
+    float x = dot(direction, position) * frequency + timeshift * speed;
+    float wave = pow(sin(x) + 0.5, 2);
+    float dx = wave * cos(x);
+    return vec2(wave, -dx);
 }
 
-float wave_height(vec3 pos) {
-    float timer = tick.x * 0.75;
-
-    pos *= 0.5;
-    vec3 big_warp = (
-        texture(sampler2D(t_noise, s_noise), fract(pos.xy * 0.03 + timer * 0.01)).xyz * 0.5 +
-        texture(sampler2D(t_noise, s_noise), fract(pos.yx * 0.03 - timer * 0.01)).xyz * 0.5 +
-        vec3(0)
-    );
-
-    vec3 warp = (
-        texture(sampler2D(t_noise, s_noise), fract(pos.yx * 0.1 + timer * 0.02)).xyz * 0.3 +
-        texture(sampler2D(t_noise, s_noise), fract(pos.yx * 0.1 - timer * 0.02)).xyz * 0.3 +
-        vec3(0)
-    );
-
-    float height = (
-        (texture(sampler2D(t_noise, s_noise), (pos.xy + pos.z) * 0.03 + big_warp.xy + timer * 0.05).y - 0.5) * 1.0 +
-        (texture(sampler2D(t_noise, s_noise), (pos.yx + pos.z) * 0.03 + big_warp.yx - timer * 0.05).y - 0.5) * 1.0 +
-        (texture(sampler2D(t_noise, s_noise), (pos.xy + pos.z) * 0.1 + warp.xy + timer * 0.1).x - 0.5) * 0.5 +
-        (texture(sampler2D(t_noise, s_noise), (pos.yx + pos.z) * 0.1 + warp.yx - timer * 0.1).x - 0.5) * 0.5 +
-        (texture(sampler2D(t_noise, s_noise), (pos.yx + pos.z) * 0.3 + warp.xy * 0.5 + timer * 0.1).x - 0.5) * 0.2 +
-        (texture(sampler2D(t_noise, s_noise), (pos.xy + pos.z) * 0.3 + warp.yx * 0.5 - timer * 0.1).x - 0.5) * 0.2 +
-        (texture(sampler2D(t_noise, s_noise), (pos.yx + pos.z) * 1.0 + warp.yx * 0.0 - timer * 0.1).x - 0.5) * 0.05 +
-        0.0
-    );
-
-    return pow(abs(height), 0.5) * sign(height) * 15.0;
+// Based on https://www.shadertoy.com/view/MdXyzX
+float wave_height(vec3 pos){
+    pos *= 0.3;
+    float iter = 0.0;
+    float phase = 6.0;
+    float speed = 2.0;
+    float weight = 1.0;
+    float w = 0.0;
+    float ws = 0.0;
+    const float drag_factor = 0.048;
+    for(int i = 0; i < 11; i ++){
+        vec2 p = vec2(sin(iter), cos(iter));
+        vec2 res = wavedx(pos.xy, p, speed, phase, tick.x);
+        pos.xy += p * res.y * weight * drag_factor;
+        w += res.x * weight;
+        iter += 10.0;
+        ws += weight;
+        weight = mix(weight, 0.0, 0.15);
+        phase *= 1.18;
+        speed *= 1.07;
+    }
+    return w / ws * 10.0;
 }
 
 void main() {
@@ -132,7 +127,7 @@ void main() {
     }
     vec3 c_norm = cross(f_norm, b_norm);
 
-    vec3 wave_pos = mod(f_pos + focus_off.xyz, vec3(100.0));
+    vec3 wave_pos = mod(f_pos + focus_off.xyz, vec3(3000.0));
     float wave_sample_dist = 0.025;
     float wave00 = wave_height(wave_pos);
     float wave10 = wave_height(wave_pos + vec3(wave_sample_dist, 0, 0));
@@ -210,7 +205,9 @@ void main() {
     if (medium.x == MEDIUM_WATER) {
         ray_dir = refract(cam_to_frag, -norm, 1.33);
     } else {
-        ray_dir = reflect_ray_dir;
+        // Ensure the ray doesn't accidentally point underwater
+        // TODO: Make this more efficient?
+        ray_dir = normalize(max(reflect_ray_dir, vec3(-1.0, -1.0, 0.0)));
     }
 
     vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
@@ -284,14 +281,14 @@ void main() {
 
     vec3 k_a = vec3(1.0);
     // Oxygen is light blue.
-    vec3 k_d = vec3(/*vec3(0.2, 0.9, 0.99)*/1.0);
-    vec3 k_s = vec3(R_s);//2.0 * reflect_color;
+    vec3 k_d = vec3(1.0);
+    vec3 k_s = vec3(0.0);//2.0 * reflect_color;
 
     vec3 emitted_light, reflected_light;
     // vec3 light, diffuse_light, ambient_light;
     // vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
     // 0 = 100% reflection, 1 = translucent water
-    float passthrough = max(dot(norm, -cam_to_frag), 0);
+    float passthrough = max(dot(norm, -cam_to_frag), 0) * 0.75;
 
     float max_light = 0.0;
     max_light += get_sun_diffuse2(sun_info, moon_info, norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);

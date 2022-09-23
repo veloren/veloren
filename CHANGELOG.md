@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Present mode options renamed for clarity: Fifo -> 'Vsync capped', Mailbox -> 'Vsync uncapped',
   Immediate -> 'Vsync off'.
 - Item pickup UI now displays items that members of your group pick up.
+- Improved shiny water shaders
 
 ### Removed
 
