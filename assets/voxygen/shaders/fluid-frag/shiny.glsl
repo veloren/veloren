@@ -103,7 +103,7 @@ float wave_height2(vec2 pos){
     vec2 vel = vec2(sin(pos.x * 0.2), cos(pos.y * 0.2)) * 2.0;
     vel = cross(vec3(vel, 0), vec3(0, 0, 1)).xy;
     vel = lod_norm(f_pos.xy - 16).xy * 10.0;
-    vel = f_vel * 3.5;
+    vel = f_vel * 2.5;
     float hx = mix(
         wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x) - vec2(0, 1) * tick.x * floor(vel.y)),
         wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x + 1.0) - vec2(0, 1) * tick.x * floor(vel.y)),

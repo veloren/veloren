@@ -391,12 +391,12 @@ pub fn generate_mesh<'a>(
     let create_opaque =
         |atlas_pos, pos, norm, meta| TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta);
     let create_transparent = |_atlas_pos, pos: Vec3<f32>, norm| {
-        let key = vol.pos_key(pos.map(|e| e.floor() as i32) + range.min);
+        let key = vol.pos_key(range.min + pos.as_());
         let v00 = vol.get_key(key + Vec2::new(0, 0)).map_or(Vec3::zero(), |c| c.meta().river_velocity());
         let v10 = vol.get_key(key + Vec2::new(1, 0)).map_or(Vec3::zero(), |c| c.meta().river_velocity());
         let v01 = vol.get_key(key + Vec2::new(0, 1)).map_or(Vec3::zero(), |c| c.meta().river_velocity());
         let v11 = vol.get_key(key + Vec2::new(1, 1)).map_or(Vec3::zero(), |c| c.meta().river_velocity());
-        let factor = pos / TerrainChunk::RECT_SIZE.map(|e| e as f32);
+        let factor = (range.min + pos.as_()).map(|e| e as f32) / TerrainChunk::RECT_SIZE.map(|e| e as f32);
         let vel = Lerp::lerp(
             Lerp::lerp(v00, v10, factor.x.rem_euclid(1.0)),
             Lerp::lerp(v01, v11, factor.x.rem_euclid(1.0)),
