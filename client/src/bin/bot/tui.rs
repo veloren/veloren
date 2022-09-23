@@ -26,7 +26,7 @@ impl Tui {
 
         let handle = thread::spawn(move || {
             thread::sleep(Duration::from_millis(20));
-            let mut readline = rustyline::Editor::<()>::new();
+            let mut readline = rustyline::Editor::<()>::new().unwrap();
             while let Ok(cmd) = readline.readline("\n\nbotclient> ") {
                 let keep_going = Self::process_command(&cmd, &mut commands_s);
                 readline.add_history_entry(cmd);
