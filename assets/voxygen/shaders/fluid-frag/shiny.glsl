@@ -107,7 +107,7 @@ vec4 wave_height(vec4 posx, vec4 posy) {
     return w / ws * 20.0;
 }
 
-float wave_height2(vec2 pos){
+float wave_height_vel(vec2 pos){
     vec4 heights = wave_height(
         pos.x - tick.x * floor(f_vel.x) - vec2(0.0, tick.x).xyxy,
         pos.y - tick.x * floor(f_vel.y) - vec2(0.0, tick.x).xxyy
@@ -165,9 +165,9 @@ void main() {
 
     vec3 wave_pos = mod(f_pos + focus_off.xyz, vec3(3000.0)) - (f_pos.z + focus_off.z) * 0.2;
     float wave_sample_dist = 0.1;
-    float wave00 = wave_height2(wave_pos.xy);
-    float wave10 = wave_height2(wave_pos.xy + vec2(wave_sample_dist, 0));
-    float wave01 = wave_height2(wave_pos.xy + vec2(0, wave_sample_dist));
+    float wave00 = wave_height_vel(wave_pos.xy);
+    float wave10 = wave_height_vel(wave_pos.xy + vec2(wave_sample_dist, 0));
+    float wave01 = wave_height_vel(wave_pos.xy + vec2(0, wave_sample_dist));
 
     // Possibility of div by zero when slope = 0,
     // however this only results in no water surface appearing

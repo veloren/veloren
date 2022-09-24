@@ -51,6 +51,29 @@ layout(location = 0) out vec4 tgt_color;
 #include <light.glsl>
 #include <lod.glsl>
 
+vec4 water_col(vec4 posx, vec4 posy) {
+    posx = (posx + focus_off.x) * 0.1;
+    posy = (posy + focus_off.y) * 0.1;
+    return 0.5 + (vec4(
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.x, posy.x), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.y, posy.y), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.z, posy.z), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.w, posy.w), 0).x
+    ) - 0.5) * 0.5;
+}
+
+float water_col_vel(vec2 pos){
+    vec4 cols = water_col(
+        pos.x - tick.x * floor(f_vel.x) - vec2(0.0, tick.x).xyxy,
+        pos.y - tick.x * floor(f_vel.y) - vec2(0.0, tick.x).xxyy
+    );
+    return mix(
+        mix(cols.x, cols.y, fract(f_vel.x + 1.0)),
+        mix(cols.z, cols.w, fract(f_vel.x + 1.0)),
+        fract(f_vel.y + 1.0)
+    );
+}
+
 void main() {
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(simple_lighting(f_pos.xyz, MU_SCATTER, 1.0), 0.5);
@@ -86,6 +109,8 @@ void main() {
     // vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
     /*const */vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;//srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.0, 0.25, 0.5));
+
+    water_color *= water_col_vel(f_pos.xy);
 
     /* vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
@@ -192,7 +217,7 @@ void main() {
     // float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + specular_light_point;
 
-    float passthrough = max(dot(f_norm, -cam_to_frag), 0) * 0.75;
+    float passthrough = max(dot(f_norm, -cam_to_frag), 0) * 0.25;
     float min_refl = 0.0;
     if (medium.x != MEDIUM_WATER) {
         min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
