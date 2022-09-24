@@ -69,7 +69,7 @@ void main() {
     #endif
 
     float pull_down = pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0) * 0.7;
-    f_pos.z -= pull_down;
+    //f_pos.z -= pull_down;
 
     #ifdef EXPERIMENTAL_CURVEDWORLD
         f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);

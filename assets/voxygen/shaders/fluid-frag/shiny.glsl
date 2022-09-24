@@ -104,7 +104,7 @@ vec4 wave_height(vec4 posx, vec4 posy) {
         phase *= 1.2;
         speed += speed_per_iter;
     }
-    return w / ws * 20.0;
+    return w / ws * 5.0;
 }
 
 float wave_height_vel(vec2 pos){
@@ -267,10 +267,10 @@ void main() {
 
     vec3 reflect_color;
     #if (FLUID_MODE == FLUID_MODE_HIGH)
-        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, sun_shade_frac > 0.5);
+        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
         reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
     #else
-        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, sun_shade_frac > 0.5, 1.0, true);
+        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
     #endif
     // Sort of non-physical, but we try to balance the reflection intensity with the direct light from the sun,
     // resulting in decent reflection of the ambient environment even after the sun has gone down.
@@ -314,6 +314,7 @@ void main() {
     vec3 mu = MU_WATER;
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
     vec3 cam_attenuation = compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, cam_pos.xyz);
+    //reflect_color *= cam_attenuation;
     // float water_depth_to_vertical = max(/*f_alt - f_pos.z*/f_light, 0.0);
     // For ambient color, we just take the distance to the surface out of laziness.
     // See https://en.wikipedia.org/wiki/Beer%E2%80%93Lambert_law.
@@ -334,7 +335,7 @@ void main() {
     float passthrough = max(dot(norm, -cam_to_frag), 0) * 0.75;
 
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(sun_info, moon_info, cam_norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
     emitted_light *= not_underground;
     reflected_light *= not_underground;
 

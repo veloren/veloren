@@ -369,7 +369,11 @@ void main() {
     float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
 
     // To account for prior saturation
-    /*float */f_light = faces_fluid ? not_underground : f_light * sqrt(f_light);
+    #if (FLUID_MODE == FLUID_MODE_CHEAP)
+        f_light = f_light * sqrt(f_light);
+    #else
+        f_light = faces_fluid ? not_underground : f_light * sqrt(f_light);
+    #endif
 
     vec3 emitted_light = vec3(1.0);
     vec3 reflected_light = vec3(1.0);
