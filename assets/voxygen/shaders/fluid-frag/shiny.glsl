@@ -53,71 +53,69 @@ layout(location = 0) out vec4 tgt_color;
 #include <light.glsl>
 #include <lod.glsl>
 
-vec2 wavedx(vec2 position, vec2 direction, float speed, float frequency, float timeshift) {
-    float x = dot(direction, position) * frequency + timeshift * speed;
-    float wave = pow(sin(x) + 0.5, 2);
-    float dx = wave * cos(x);
-    return vec2(wave, -dx);
+void wave_dx(vec4 posx, vec4 posy, vec2 dir, float speed, float frequency, float timeshift, out vec4 wave, out vec4 dx) {
+    vec4 x = vec4(
+        dot(dir, vec2(posx.x, posy.x)),
+        dot(dir, vec2(posx.y, posy.y)),
+        dot(dir, vec2(posx.z, posy.z)),
+        dot(dir, vec2(posx.w, posy.w))
+    ) * frequency + timeshift * speed;
+    wave = sin(x) + 0.5;
+    wave *= wave;
+    dx = -wave * cos(x);
 }
 
-// Based on https://www.shadertoy.com/view/MdXyzX
-float wave_height(vec2 pos){
+// Based loosely on https://www.shadertoy.com/view/MdXyzX.
+// Modified to allow calculating the wave function 4 times at once using different positions (used for intepolation
+// for moving water). The general idea is to sample the wave function at different positions, where those positions
+// depend on increments of the velocity, and then interpolate between those velocities to get a smooth water velocity.
+vec4 wave_height(vec4 posx, vec4 posy) {
     float iter = 0.0;
     float phase = 4.0;
     float weight = 1.5;
-    float w = 0.0;
+    vec4 w = vec4(0.0);
     float ws = 0.0;
     const float speed_per_iter = 0.1;
     #if (FLUID_MODE == FLUID_MODE_HIGH)
         float speed = 1.0;
-        pos *= 0.15;
+        posx *= 0.2;
+        posy *= 0.2;
         const float drag_factor = 0.03;
         const float iters = 21;
     #else
         float speed = 2.0;
-        pos *= 0.3;
+        posx *= 0.3;
+        posy *= 0.3;
         const float drag_factor = 0.04;
         const float iters = 11;
     #endif
     const float iter_shift = (3.14159 * 2.0) / 7.3;
 
-    vec2 dir = vec2(
-        sin(pos.y * 0.1),
-        sin(pos.x * 0.1)
-    ) * 0;
     for(int i = 0; i < iters; i ++) {
         vec2 p = vec2(sin(iter), cos(iter));
-        vec2 res = wavedx(pos, p, speed, phase, tick.x);
-        pos += p * res.y * weight * drag_factor;
-        w += res.x * weight * (1.0 + max(dot(p, -dir), 0.0));
+        vec4 wave, dx;
+        wave_dx(posx, posy, p, speed, phase, tick.x, wave, dx);
+        posx += p.x * dx * weight * drag_factor;
+        posy += p.y * dx * weight * drag_factor;
+        w += wave * weight;
         iter += iter_shift * 1.5;
         ws += weight;
         weight = mix(weight, 0.0, 0.2);
-        phase *= 1.23;
+        phase *= 1.2;
         speed += speed_per_iter;
     }
-    return w / ws * 10.0;
+    return w / ws * 20.0;
 }
 
 float wave_height2(vec2 pos){
-    vec2 vel = vec2(sin(pos.x * 0.2), cos(pos.y * 0.2)) * 2.0;
-    vel = cross(vec3(vel, 0), vec3(0, 0, 1)).xy;
-    vel = lod_norm(f_pos.xy - 16).xy * 10.0;
-    vel = f_vel * 2.5;
-    float hx = mix(
-        wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x) - vec2(0, 1) * tick.x * floor(vel.y)),
-        wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x + 1.0) - vec2(0, 1) * tick.x * floor(vel.y)),
-        fract(vel.x + 1.0)
-    );
-    float hx2 = mix(
-        wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x) - vec2(0, 1) * tick.x * floor(vel.y + 1.0)),
-        wave_height(pos - vec2(1, 0) * tick.x * floor(vel.x + 1.0) - vec2(0, 1) * tick.x * floor(vel.y + 1.0)),
-        fract(vel.x + 1.0)
+    vec4 heights = wave_height(
+        pos.x - tick.x * floor(f_vel.x) - vec2(0.0, tick.x).xyxy,
+        pos.y - tick.x * floor(f_vel.y) - vec2(0.0, tick.x).xxyy
     );
     return mix(
-        hx,
-        hx2,
-        fract(vel.y + 1.0)
+        mix(heights.x, heights.y, fract(f_vel.x + 1.0)),
+        mix(heights.z, heights.w, fract(f_vel.x + 1.0)),
+        fract(f_vel.y + 1.0)
     );
 }
 
@@ -247,14 +245,6 @@ void main() {
         // TODO: Make this more efficient?
         ray_dir = normalize(max(reflect_ray_dir, vec3(-1.0, -1.0, 0.0)));
     }
-
-    vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-    reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
-    reflect_color *= f_light;
-
-    // Prevent the sky affecting light when underground
-    float not_underground = clamp((f_pos.z - f_alt) / 32.0 + 1.0, 0.0, 1.0);
-    reflect_color *= not_underground;
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.8, 0.9, 1.0));
     // NOTE: Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
@@ -274,6 +264,21 @@ void main() {
     // float sun_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, sun_dir);
     // float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
     // float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
+
+    vec3 reflect_color;
+    #if (FLUID_MODE == FLUID_MODE_HIGH)
+        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, sun_shade_frac > 0.5);
+        reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
+    #else
+        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, sun_shade_frac > 0.5, 1.0, true);
+    #endif
+    // Sort of non-physical, but we try to balance the reflection intensity with the direct light from the sun,
+    // resulting in decent reflection of the ambient environment even after the sun has gone down.
+    reflect_color *= f_light * (sun_shade_frac * 0.75 + 0.25);
+
+    // Prevent the sky affecting light when underground
+    float not_underground = clamp((f_pos.z - f_alt) / 32.0 + 1.0, 0.0, 1.0);
+    reflect_color *= not_underground;
 
     // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
     float point_shadow = shadow_at(f_pos, f_norm);
@@ -370,7 +375,7 @@ void main() {
     // diffuse_light += point_light;
     // reflected_light += point_light;
     // vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
-    const float REFLECTANCE = 0.5;
+    const float REFLECTANCE = 1.0;
     vec3 surf_color = illuminate(max_light, view_dir, water_color * emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflect_color * REFLECTANCE + water_color * reflected_light/* * log(1.0 - MU_WATER)*/);
 
     // passthrough = pow(passthrough, 1.0 / (1.0 + water_depth_to_camera));
