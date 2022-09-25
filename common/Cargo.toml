@@ -26,7 +26,6 @@ common-base = { package = "veloren-common-base", path = "base" }
 serde = { version = "1.0.110", features = ["derive", "rc"] }
 
 # Util
-enum-iterator = "1.1.0"
 vek = { version = "0.15.8", features = ["serde"] }
 chrono = "0.4.22"
 chrono-tz = "0.6"

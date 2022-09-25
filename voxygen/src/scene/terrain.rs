@@ -38,6 +38,7 @@ use std::sync::{
     atomic::{AtomicU64, Ordering},
     Arc,
 };
+use strum::IntoEnumIterator;
 use tracing::warn;
 use treeculler::{BVol, Frustum, AABB};
 use vek::*;
@@ -195,7 +196,7 @@ impl TryFrom<HashMap<SpriteKind, Option<SpriteConfig<String>>>> for SpriteSpec {
         mut map: HashMap<SpriteKind, Option<SpriteConfig<String>>>,
     ) -> Result<Self, Self::Error> {
         let mut array = [(); 256].map(|()| None);
-        let sprites_missing = enum_iterator::all::<SpriteKind>()
+        let sprites_missing = SpriteKind::iter()
             .filter(|kind| match map.remove(kind) {
                 Some(config) => {
                     array[*kind as usize] = config;
@@ -453,7 +454,7 @@ impl SpriteRenderContext {
             );
             let mut sprite_mesh = Mesh::new();
             // NOTE: Tracks the start vertex of the next model to be meshed.
-            let sprite_data: HashMap<(SpriteKind, usize), _> = enum_iterator::all::<SpriteKind>()
+            let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::iter()
                 .filter_map(|kind| Some((kind, sprite_config.get(kind)?)))
                 .flat_map(|(kind, sprite_config)| {
                     sprite_config.variations.iter().enumerate().map(

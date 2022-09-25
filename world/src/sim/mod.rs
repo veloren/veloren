@@ -69,6 +69,7 @@ use std::{
     path::PathBuf,
     sync::Arc,
 };
+use strum::IntoEnumIterator;
 use tracing::{debug, warn};
 use vek::*;
 
@@ -2238,7 +2239,7 @@ impl WorldSim {
         };
         let env = chunk.get_environment();
         Lottery::from(
-            enum_iterator::all::<ForestKind>()
+            ForestKind::iter()
                 .enumerate()
                 .map(|(i, fk)| {
                     const CLUSTER_SIZE: f64 = 48.0;
@@ -2551,7 +2552,7 @@ impl SimChunk {
                     },
                 };
 
-                enum_iterator::all::<ForestKind>()
+                ForestKind::iter()
                     .max_by_key(|fk| (fk.proclivity(&env) * 10000.0) as u32)
                     .unwrap() // Can't fail
             },
