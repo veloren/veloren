@@ -3,7 +3,6 @@ use super::{
     OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
 use crate::{cmd::complete, settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
-use chat_i18n::internationalisate_chat_message;
 use client::Client;
 use common::comp::{group::Role, ChatMode, ChatMsg, ChatType};
 use conrod_core::{
@@ -19,6 +18,7 @@ use conrod_core::{
     WidgetCommon,
 };
 use i18n::Localization;
+use i18n_helpers::internationalisate_chat_message;
 use std::collections::{HashSet, VecDeque};
 
 widget_ids! {

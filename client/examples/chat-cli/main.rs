@@ -11,7 +11,7 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::{error, info};
 use veloren_client::{addr::ConnectionArgs, Client, Event};
-use voxygen_chat_i18n::internationalisate_chat_message;
+use voxygen_i18n_helpers::internationalisate_chat_message;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 

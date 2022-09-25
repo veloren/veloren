@@ -2825,7 +2825,7 @@ mod tests {
     /// CONTACT @Core Developer BEFORE MERGING CHANGES TO THIS TEST
     fn constant_api_test() {
         use common::clock::Clock;
-        use voxygen_chat_i18n::internationalisate_chat_message;
+        use voxygen_i18n_helpers::internationalisate_chat_message;
 
         const SPT: f64 = 1.0 / 60.0;
 

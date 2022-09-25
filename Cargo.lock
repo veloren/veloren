@@ -6683,8 +6683,8 @@ dependencies = [
  "veloren-common-state",
  "veloren-common-systems",
  "veloren-network",
- "veloren-voxygen-chat-i18n",
  "veloren-voxygen-i18n",
+ "veloren-voxygen-i18n-helpers",
 ]
 
 [[package]]
@@ -7091,9 +7091,9 @@ dependencies = [
  "veloren-common-systems",
  "veloren-server",
  "veloren-voxygen-anim",
- "veloren-voxygen-chat-i18n",
  "veloren-voxygen-egui",
  "veloren-voxygen-i18n",
+ "veloren-voxygen-i18n-helpers",
  "veloren-world",
  "wgpu",
  "wgpu-profiler",
@@ -7112,16 +7112,6 @@ dependencies = [
  "vek 0.15.8",
  "veloren-common",
  "veloren-common-dynlib",
-]
-
-[[package]]
-name = "veloren-voxygen-chat-i18n"
-version = "0.10.0"
-dependencies = [
- "tracing",
- "veloren-common",
- "veloren-common-net",
- "veloren-voxygen-i18n",
 ]
 
 [[package]]
@@ -7152,6 +7142,16 @@ dependencies = [
  "tracing",
  "unic-langid",
  "veloren-common-assets",
+]
+
+[[package]]
+name = "veloren-voxygen-i18n-helpers"
+version = "0.10.0"
+dependencies = [
+ "tracing",
+ "veloren-common",
+ "veloren-common-net",
+ "veloren-voxygen-i18n",
 ]
 
 [[package]]
