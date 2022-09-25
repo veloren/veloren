@@ -488,11 +488,7 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
     if let Some(AgentEvent::UpdatePendingTrade(boxval)) = agent.inbox.pop_front() {
         let (tradeid, pending, prices, inventories) = *boxval;
         if agent.behavior.is(BehaviorState::TRADING) {
-            let who: usize = if agent.behavior.is(BehaviorState::TRADING_ISSUER) {
-                0
-            } else {
-                1
-            };
+            let who = usize::from(!agent.behavior.is(BehaviorState::TRADING_ISSUER));
             let balance0: f32 = prices.balance(&pending.offers, &inventories, 1 - who, true);
             let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
             if balance0 >= balance1 {

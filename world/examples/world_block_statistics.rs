@@ -274,7 +274,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         },
         Some(("palette", matches)) => {
             let conn =
-                Connection::open(&matches.value_of("database").expect("database is required"))?;
+                Connection::open(matches.value_of("database").expect("database is required"))?;
             palette(conn)?;
         },
         _ => {

@@ -1079,11 +1079,7 @@ impl ParticleMgr {
                     } => {
                         let num_particles = aura.radius.powi(2) * dt / 250.0;
                         let num_particles = num_particles.floor() as usize
-                            + if rng.gen_bool(f64::from(num_particles % 1.0)) {
-                                1
-                            } else {
-                                0
-                            };
+                            + usize::from(rng.gen_bool(f64::from(num_particles % 1.0)));
                         self.particles
                             .resize_with(self.particles.len() + num_particles, || {
                                 let rand_pos = {

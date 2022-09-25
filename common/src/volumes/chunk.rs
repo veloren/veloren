@@ -123,7 +123,7 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
     {
         // First, construct a HashMap with max capacity equal to GROUP_COUNT (since each
         // filled group can have at most one slot).
-        let mut map = HashMap::with_capacity(Self::GROUP_COUNT_TOTAL as usize);
+        let mut map: HashMap<_, Vec<_>> = HashMap::with_capacity(Self::GROUP_COUNT_TOTAL as usize);
         let vox = &self.vox;
         let default = &self.default;
         self.indices
@@ -139,11 +139,11 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
                     if group.all(|block| block == first) {
                         // All blocks in the group were the same, so add our position to this entry
                         // in the HashMap.
-                        map.entry(first).or_insert(vec![]).push(grp_idx);
+                        map.entry(first).or_default().push(grp_idx);
                     }
                 } else {
                     // This slot is empty (i.e. has the default value).
-                    map.entry(default).or_insert(vec![]).push(grp_idx);
+                    map.entry(default).or_default().push(grp_idx);
                 }
             });
         // Now, find the block with max frequency in the HashMap and make that our new

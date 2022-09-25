@@ -84,14 +84,14 @@ fn image_from_function<F: FnMut(u32, u32) -> [u8; 3]>(
     let png =
         PngEncoder::new_with_quality(&mut heightmap_png, CompressionType::Best, FilterType::Paeth);
     png.write_image(
-        &*heightmap.as_raw(),
+        heightmap.as_raw(),
         heightmap.width(),
         heightmap.height(),
         image::ColorType::Rgb8,
     )
     .unwrap();
     let mut f = File::create(name).unwrap();
-    f.write_all(&*heightmap_png).unwrap();
+    f.write_all(&heightmap_png).unwrap();
 }
 
 fn image_with_autorange<F: Fn(f32, f32, f32) -> [u8; 3], G: FnMut(u32, u32) -> f32>(

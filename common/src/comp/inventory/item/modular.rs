@@ -342,9 +342,9 @@ lazy_static! {
                     } else {
                         return;
                     };
-                let entry = component_pool
+                let entry: &mut Vec<_> = component_pool
                     .entry((*toolkind, String::from(material)))
-                    .or_insert(Vec::new());
+                    .or_default();
                 entry.push((component, hand_restriction));
             },
         );
@@ -371,7 +371,7 @@ lazy_static! {
                             },
                         ) = comp_def.kind
                         {
-                            let entry = component_pool.entry(toolkind).or_insert(Vec::new());
+                            let entry: &mut Vec<_> = component_pool.entry(toolkind).or_default();
                             entry.push((Arc::clone(&comp_def), hand_restriction));
                         }
                     });

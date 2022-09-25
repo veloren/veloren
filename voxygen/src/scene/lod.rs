@@ -234,11 +234,9 @@ fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainVertex> {
                 Vertex::new(Vec2::new(x + 1, y + 1).map(transform)),
                 Vertex::new(Vec2::new(x, y + 1).map(transform)),
             )
-            .rotated_by(if (x > detail as i32 / 2) ^ (y > detail as i32 / 2) {
-                0
-            } else {
-                1
-            })
+            .rotated_by(usize::from(
+                !((x > detail as i32 / 2) ^ (y > detail as i32 / 2)),
+            ))
         })
         .collect()
 }

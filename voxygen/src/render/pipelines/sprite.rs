@@ -44,6 +44,7 @@ impl Vertex {
     pub fn new(atlas_pos: Vec2<u16>, pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
         const VERT_EXTRA_NEG_Z: i32 = 128; // NOTE: change if number of bits changes below, also we might not need this if meshing always produces positives values for sprites (I have no idea)
 
+        #[allow(clippy::bool_to_int_with_if)]
         let norm_bits = if norm.x != 0.0 {
             if norm.x < 0.0 { 0 } else { 1 }
         } else if norm.y != 0.0 {

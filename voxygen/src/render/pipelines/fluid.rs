@@ -17,7 +17,7 @@ impl Vertex {
             .enumerate()
             .find(|(_i, e)| **e != 0.0)
             .unwrap_or((0, &1.0));
-        let norm_bits = ((norm_axis << 1) | if *norm_dir > 0.0 { 1 } else { 0 }) as u32;
+        let norm_bits = ((norm_axis << 1) | usize::from(*norm_dir > 0.0)) as u32;
 
         const EXTRA_NEG_Z: f32 = 65536.0;
 

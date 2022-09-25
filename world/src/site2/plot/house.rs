@@ -42,6 +42,7 @@ impl House {
             min: site.tile_wpos(tile_aabr.min),
             max: site.tile_wpos(tile_aabr.max),
         };
+        #[allow(clippy::bool_to_int_with_if)]
         let front = if door_dir.y < 0 {
             2
         } else if door_dir.x < 0 {

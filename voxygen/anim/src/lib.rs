@@ -1,4 +1,3 @@
-#![feature(generic_associated_types, bool_to_option)]
 #![allow(incomplete_features)]
 #![allow(clippy::single_match)]
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]

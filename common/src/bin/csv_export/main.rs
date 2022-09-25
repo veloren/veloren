@@ -33,7 +33,7 @@ struct Cli {
 
 fn armor_stats() -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("armorstats.csv")?;
-    wtr.write_record(&[
+    wtr.write_record([
         "Path",
         "Kind",
         "Name",
@@ -74,7 +74,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                 let crit_power = armor.stats(msm).crit_power.unwrap_or(0.0).to_string();
                 let stealth = armor.stats(msm).stealth.unwrap_or(0.0).to_string();
 
-                wtr.write_record(&[
+                wtr.write_record([
                     item.item_definition_id()
                         .itemdef_id()
                         .expect("All items from asset glob should be simple items"),
@@ -100,7 +100,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 
 fn weapon_stats() -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("weaponstats.csv")?;
-    wtr.write_record(&[
+    wtr.write_record([
         "Path",
         "Kind",
         "Name",
@@ -135,7 +135,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             let kind = get_tool_kind(&tool.kind);
             let hands = get_tool_hands(tool);
 
-            wtr.write_record(&[
+            wtr.write_record([
                 item.item_definition_id()
                     .itemdef_id()
                     .expect("All items from asset glob should be simple items"),
@@ -207,12 +207,12 @@ fn get_armor_kind(kind: &ArmorKind) -> String {
 
 fn all_items() -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("items.csv")?;
-    wtr.write_record(&["Path", "Name"])?;
+    wtr.write_record(["Path", "Name"])?;
 
     for item in
         Item::new_from_asset_glob("common.items.*").expect("Failed to iterate over item folders!")
     {
-        wtr.write_record(&[
+        wtr.write_record([
             item.item_definition_id()
                 .itemdef_id()
                 .expect("All items in asset glob should be simple items"),
@@ -226,7 +226,7 @@ fn all_items() -> Result<(), Box<dyn Error>> {
 
 fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("loot_table.csv")?;
-    wtr.write_record(&[
+    wtr.write_record([
         "Relative Chance",
         "Kind",
         "Item",
@@ -256,8 +256,8 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         };
 
         match item {
-            LootSpec::Item(item) => wtr.write_record(&[&chance, "Item", item, "", ""])?,
-            LootSpec::ItemQuantity(item, lower, upper) => wtr.write_record(&[
+            LootSpec::Item(item) => wtr.write_record([&chance, "Item", item, "", ""])?,
+            LootSpec::ItemQuantity(item, lower, upper) => wtr.write_record([
                 &chance,
                 "Item",
                 item,
@@ -265,14 +265,14 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                 &upper.to_string(),
             ])?,
             LootSpec::LootTable(table) => {
-                wtr.write_record(&[&chance, "LootTable", table, "", ""])?
+                wtr.write_record([&chance, "LootTable", table, "", ""])?
             },
-            LootSpec::Nothing => wtr.write_record(&[&chance, "Nothing", "", ""])?,
+            LootSpec::Nothing => wtr.write_record([&chance, "Nothing", "", ""])?,
             LootSpec::ModularWeapon {
                 tool,
                 material,
                 hands,
-            } => wtr.write_record(&[
+            } => wtr.write_record([
                 &chance,
                 "Modular Weapon",
                 &get_tool_kind(tool),
@@ -283,7 +283,7 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                 tool,
                 material,
                 hands,
-            } => wtr.write_record(&[
+            } => wtr.write_record([
                 &chance,
                 "Modular Weapon Primary Component",
                 &get_tool_kind(tool),
@@ -299,7 +299,7 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
 
 fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("drop_table.csv")?;
-    wtr.write_record(&[
+    wtr.write_record([
         "Entity Name",
         "Entity Path",
         "Percent Chance",
@@ -314,7 +314,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
         let entity_config = EntityConfig::load_expect(asset_path).read();
         let entity_info = EntityInfo::at(Vec3::new(0.0, 0.0, 0.0))
             .with_asset_expect(asset_path, &mut rand::thread_rng());
-        let name = entity_info.name.unwrap_or_else(|| "".to_string());
+        let name = entity_info.name.unwrap_or_default();
 
         // Create initial entry in drop table
         let entry: (f32, LootSpec<String>) = (1.0, entity_config.loot.clone());

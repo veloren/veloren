@@ -1,4 +1,4 @@
-#![feature(let_else, btree_drain_filter, bool_to_option)]
+#![feature(btree_drain_filter)]
 #![allow(clippy::option_map_unit_fn)]
 
 mod aura;
