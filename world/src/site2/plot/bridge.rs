@@ -8,11 +8,12 @@ use inline_tweak::tweak;
 
 enum RoofKind {
     Crenelated,
+    Hipped,
 }
 
 enum BridgeKind {
     Flat,
-    Tower,
+    Tower(RoofKind),
 }
 
 fn aabb(min: Vec3<i32>, max: Vec3<i32>) -> Aabb<i32> {
@@ -80,8 +81,10 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
         .fill(rock);
 }
 
-fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: RoofKind) {
+fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
     let rock = Fill::Block(Block::new(BlockKind::Rock, Rgb::gray(50)));
+    let wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(40, 28, 20)));
+
     let tower_size = 5;
 
     let bridge_width = tower_size - 2;
@@ -232,6 +235,9 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: RoofKind) {
                 )
                 .fill(Fill::Sprite(SpriteKind::FireBowlGround));
         },
+        RoofKind::Hipped => {
+            painter.pyramid(aabb((tower_aabr.min - 1).with_z(tower_end + 1), (tower_aabr.max + 1).with_z(tower_end + 2 + tower_size))).fill(wood.clone());
+        },
     }
 
     let offset = 15;
@@ -290,7 +296,7 @@ pub struct Bridge {
 impl Bridge {
     pub fn generate(
         land: &Land,
-        _rng: &mut impl Rng,
+        rng: &mut impl Rng,
         site: &Site,
         start: Vec2<i32>,
         end: Vec2<i32>,
@@ -316,7 +322,10 @@ impl Bridge {
             center,
             dir: Dir::from_vector(end.xy() - start.xy()),
             kind: if end.z - start.z > 10 {
-                BridgeKind::Tower
+                BridgeKind::Tower(match rng.gen_range(0..=2) {
+                    0 => RoofKind::Crenelated,
+                    _ => RoofKind::Hipped,
+                })
             } else {
                 BridgeKind::Flat
             },
@@ -327,9 +336,9 @@ impl Bridge {
 
 impl Structure for Bridge {
     fn render(&self, _site: &Site, _land: &Land, painter: &Painter) {
-        match self.kind {
+        match &self.kind {
             BridgeKind::Flat => render_flat(&self, painter),
-            BridgeKind::Tower => render_tower(&self, painter, RoofKind::Crenelated),
+            BridgeKind::Tower(roof) => render_tower(&self, painter, roof),
         }
     }
 }
