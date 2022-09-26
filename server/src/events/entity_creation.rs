@@ -9,7 +9,7 @@ use common::{
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         shockwave, Agent, Alignment, Anchor, BehaviorCapability, Body, Health, Inventory, ItemDrop,
         LightEmitter, Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats,
-        Vel, WaypointArea,
+        TradingBehavior, Vel, WaypointArea,
     },
     event::{EventBus, UpdateCharacterMetadata},
     lottery::LootSpec,
@@ -104,6 +104,7 @@ pub fn handle_create_npc(
     if let Some(agent) = &mut agent {
         if let Alignment::Owned(_) = &alignment {
             agent.behavior.allow(BehaviorCapability::TRADE);
+            agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
         }
     }
 

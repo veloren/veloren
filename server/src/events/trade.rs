@@ -35,7 +35,7 @@ fn notify_agent_prices(
     entity: EcsEntity,
     event: AgentEvent,
 ) {
-    if let Some((site_id, agent)) = agents.get_mut(entity).map(|a| (a.behavior.trade_site, a)) {
+    if let Some((site_id, agent)) = agents.get_mut(entity).map(|a| (a.behavior.trade_site(), a)) {
         if let AgentEvent::UpdatePendingTrade(boxval) = event {
             // Prefer using this Agent's price data, but use the counterparty's price
             // data if we don't have price data
@@ -125,7 +125,7 @@ pub(super) fn handle_process_trade_action(
                                 prices = prices.or_else(|| {
                                     agents
                                         .get(e)
-                                        .and_then(|a| a.behavior.trade_site)
+                                        .and_then(|a| a.behavior.trade_site())
                                         .and_then(|id| server.index.get_site_prices(id))
                                 });
                             }

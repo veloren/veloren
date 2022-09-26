@@ -3,8 +3,10 @@ use common::{
         agent::{AgentEvent, Target, TimerAction},
         compass::{Direction, Distance},
         dialogue::{MoodContext, MoodState, Subject},
+        inventory::item::{ItemTag, MaterialStatManifest},
         invite::{InviteKind, InviteResponse},
-        BehaviorState, ControlAction, UnresolvedChatMsg, UtteranceKind,
+        tool::AbilityMap,
+        BehaviorState, ControlAction, Item, TradingBehavior, UnresolvedChatMsg, UtteranceKind,
     },
     event::ServerEvent,
     rtsim::{Memory, MemoryItem, RtSimEvent},
@@ -511,58 +513,100 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
         let (tradeid, pending, prices, inventories) = *boxval;
         if agent.behavior.is(BehaviorState::TRADING) {
             let who = usize::from(!agent.behavior.is(BehaviorState::TRADING_ISSUER));
-            let balance0: f32 = prices.balance(&pending.offers, &inventories, 1 - who, true);
-            let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
-            if balance0 >= balance1 {
-                // If the trade is favourable to us, only send an accept message if we're
-                // not already accepting (since otherwise, spam-clicking the accept button
-                // results in lagging and moving to the review phase of an unfavorable trade
-                // (although since the phase is included in the message, this shouldn't
-                // result in fully accepting an unfavourable trade))
-                if !pending.accept_flags[who] && !pending.is_empty_trade() {
-                    event_emitter.emit(ServerEvent::ProcessTradeAction(
-                        *agent_data.entity,
-                        tradeid,
-                        TradeAction::Accept(pending.phase),
-                    ));
-                    tracing::trace!(?tradeid, ?balance0, ?balance1, "Accept Pending Trade");
-                }
-            } else {
-                if balance1 > 0.0 {
-                    let msg = format!(
-                        "That only covers {:.0}% of my costs!",
-                        (balance0 / balance1 * 100.0).floor()
-                    );
-                    if let Some(tgt_data) = &agent.target {
-                        // If talking with someone in particular, "tell" it only to them
-                        if let Some(with) = read_data.uids.get(tgt_data.target) {
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_tell(
-                                *agent_data.uid,
-                                *with,
-                                msg,
-                            )));
-                        } else {
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
-                                *agent_data.uid,
-                                msg,
-                            )));
+            match agent.behavior.trading_behavior {
+                TradingBehavior::RequireBalanced { .. } => {
+                    let balance0: f32 =
+                        prices.balance(&pending.offers, &inventories, 1 - who, true);
+                    let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
+                    if balance0 >= balance1 {
+                        // If the trade is favourable to us, only send an accept message if we're
+                        // not already accepting (since otherwise, spam-clicking the accept button
+                        // results in lagging and moving to the review phase of an unfavorable trade
+                        // (although since the phase is included in the message, this shouldn't
+                        // result in fully accepting an unfavourable trade))
+                        if !pending.accept_flags[who] && !pending.is_empty_trade() {
+                            event_emitter.emit(ServerEvent::ProcessTradeAction(
+                                *agent_data.entity,
+                                tradeid,
+                                TradeAction::Accept(pending.phase),
+                            ));
+                            tracing::trace!(?tradeid, ?balance0, ?balance1, "Accept Pending Trade");
                         }
                     } else {
-                        event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
-                            *agent_data.uid,
-                            msg,
-                        )));
+                        if balance1 > 0.0 {
+                            let msg = format!(
+                                "That only covers {:.0}% of my costs!",
+                                (balance0 / balance1 * 100.0).floor()
+                            );
+                            if let Some(tgt_data) = &agent.target {
+                                // If talking with someone in particular, "tell" it only to them
+                                if let Some(with) = read_data.uids.get(tgt_data.target) {
+                                    event_emitter.emit(ServerEvent::Chat(
+                                        UnresolvedChatMsg::npc_tell(*agent_data.uid, *with, msg),
+                                    ));
+                                } else {
+                                    event_emitter.emit(ServerEvent::Chat(
+                                        UnresolvedChatMsg::npc_say(*agent_data.uid, msg),
+                                    ));
+                                }
+                            } else {
+                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                                    *agent_data.uid,
+                                    msg,
+                                )));
+                            }
+                        }
+                        if pending.phase != TradePhase::Mutate {
+                            // we got into the review phase but without balanced goods, decline
+                            agent.behavior.unset(BehaviorState::TRADING);
+                            event_emitter.emit(ServerEvent::ProcessTradeAction(
+                                *agent_data.entity,
+                                tradeid,
+                                TradeAction::Decline,
+                            ));
+                        }
                     }
-                }
-                if pending.phase != TradePhase::Mutate {
-                    // we got into the review phase but without balanced goods, decline
+                },
+                TradingBehavior::AcceptFood => {
+                    let mut only_food = true;
+                    let ability_map = AbilityMap::load().read();
+                    let msm = MaterialStatManifest::load().read();
+                    if let Some(ri) = &inventories[1 - who] {
+                        for (slot, _) in pending.offers[1 - who].iter() {
+                            if let Some(item) = ri.inventory.get(slot) {
+                                if let Ok(item) = Item::new_from_item_definition_id(
+                                    item.name.as_ref(),
+                                    &ability_map,
+                                    &msm,
+                                ) {
+                                    if !item.tags().contains(&ItemTag::Food) {
+                                        only_food = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if !pending.accept_flags[who]
+                        && pending.offers[who].is_empty()
+                        && !pending.offers[1 - who].is_empty()
+                        && only_food
+                    {
+                        event_emitter.emit(ServerEvent::ProcessTradeAction(
+                            *agent_data.entity,
+                            tradeid,
+                            TradeAction::Accept(pending.phase),
+                        ));
+                    }
+                },
+                TradingBehavior::None => {
                     agent.behavior.unset(BehaviorState::TRADING);
                     event_emitter.emit(ServerEvent::ProcessTradeAction(
                         *agent_data.entity,
                         tradeid,
                         TradeAction::Decline,
                     ));
-                }
+                },
             }
         }
     }

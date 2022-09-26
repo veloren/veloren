@@ -246,13 +246,13 @@ pub fn handle_invite_accept(server: &mut Server, entity: Entity) {
                         .get(inviter)
                         .and_then(|a| {
                             a.behavior
-                                .trade_site
+                                .trade_site()
                                 .and_then(|id| index.get_site_prices(id))
                         })
                         .or_else(|| {
                             agents.get(entity).and_then(|a| {
                                 a.behavior
-                                    .trade_site
+                                    .trade_site()
                                     .and_then(|id| index.get_site_prices(id))
                             })
                         });
