@@ -1052,6 +1052,122 @@ impl Painter {
         }
     }
 
+    /// ```text
+    ///     ___
+    ///    /  /\
+    ///   /__/  |
+    ///  /   \  |
+    /// |     | /
+    /// |_____|/
+    /// ```
+    pub fn vault(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+        let aabr = Aabr::from(aabb);
+        let a = dir.select_aabr(aabr);
+        let b = (-dir).select_aabr(aabr);
+        let dmin = a.min(b);
+        let dmax = a.max(b);
+        let length = dmax - dmin;
+
+        let c = dir.rotated_cw().select_aabr(aabr);
+        let d = dir.rotated_ccw().select_aabr(aabr);
+        let omin = c.min(d);
+        let omax = c.max(d);
+        let diameter = omax - omin;
+        let radius = (diameter + 1) / 2;
+        let min = (a * dir.to_vec2() + c * dir.orthogonal().to_vec2()).with_z(aabb.max.z);
+
+        self.cylinder(
+            Aabb {
+                min,
+                max: (a * dir.to_vec2()
+                    + diameter * (-dir).to_vec2()
+                    + d * dir.orthogonal().to_vec2())
+                .with_z(aabb.max.z + length),
+            }
+            .made_valid(),
+        )
+        .rotate_about(dir.abs().from_z_mat3(), min)
+        .without(self.aabb(Aabb {
+            min: aabb.min.with_z(aabb.min.z - radius),
+            max: aabb.max.with_z(aabb.min.z),
+        }))
+        .union(self.aabb(Aabb {
+            min: aabb.min,
+            max: aabb.max.with_z(aabb.max.z - radius),
+        }))
+    }
+
+    /// Place aabbs around another aabb in a symmetric and distributed manner.
+    pub fn aabbs_around_aabb(&self, aabb: Aabb<i32>, size: i32, offset: i32) -> PrimitiveRef {
+        let pillar = self.aabb(Aabb {
+            min: (aabb.min.xy() - 1).with_z(aabb.min.z),
+            max: (aabb.min.xy() + size - 1).with_z(aabb.max.z),
+        });
+
+        let true_offset = offset + size;
+
+        let size_x = aabb.max.x - aabb.min.x;
+        let size_y = aabb.max.y - aabb.min.y;
+
+        let num_aabbs = ((size_x + 1) / 2) / true_offset;
+        let x = pillar.repeat(Vec3::new(true_offset, 0, 0), num_aabbs as u32 + 1);
+
+        let num_aabbs = ((size_y + 1) / 2) / true_offset;
+        let y = pillar.repeat(Vec3::new(0, true_offset, 0), num_aabbs as u32 + 1);
+        let center = aabb.as_::<f32>().center();
+        let shape = x.union(y);
+        let shape =
+            shape.union(shape.rotate_about(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, -1), center));
+        shape.union(shape.rotate_about(Mat3::new(0, 1, 0, -1, 0, 0, 0, 0, 1), center))
+    }
+
+    pub fn staircase_in_aabb(
+        &self,
+        aabb: Aabb<i32>,
+        thickness: i32,
+        start_dir: Dir,
+    ) -> PrimitiveRef {
+        let mut forward = start_dir;
+        let mut z = aabb.max.z - 1;
+        let aabr = Aabr::from(aabb);
+
+        let mut prim = self.empty();
+
+        while z > aabb.min.z {
+            let right = forward.rotated_cw();
+            let fc = forward.select_aabr(aabr);
+            let corner =
+                fc * forward.abs().to_vec2() + right.select_aabr(aabr) * right.abs().to_vec2();
+            let aabb = Aabb {
+                min: corner.with_z(z),
+                max: (corner - (forward.to_vec2() + right.to_vec2()) * thickness).with_z(z + 1),
+            }
+            .made_valid();
+
+            let stair_len = ((fc - (-forward).select_aabr(aabr)).abs() - thickness * 2).max(1) + 1;
+
+            let stairs = self.ramp(
+                Aabb {
+                    min: (corner - right.to_vec2() * (stair_len + thickness))
+                        .with_z(z - stair_len),
+                    max: (corner - right.to_vec2() * (thickness - 1) - forward.to_vec2() * thickness)
+                        .with_z(z + 1),
+                }
+                .made_valid(),
+                stair_len + 1,
+                right,
+            );
+
+            prim = prim
+                .union(self.aabb(aabb))
+                .union(stairs.without(stairs.translate(Vec3::new(0, 0, -2))));
+
+            z -= stair_len;
+            forward = forward.rotated_ccw();
+        }
+        prim
+    }
+
     /// The area that the canvas is currently rendering.
     pub fn render_aabr(&self) -> Aabr<i32> { self.render_area }
 

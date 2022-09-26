@@ -1194,7 +1194,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             marble,
             marble_mid,
             marble_small,
-            rock_density,
+            rock_density: if spawn_rules.trees { rock_density } else { 0.0 },
             temp,
             humidity,
             spawn_rate,

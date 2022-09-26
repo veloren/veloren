@@ -140,6 +140,7 @@ pub enum Interface {
     MapShowTowns(bool),
     MapShowDungeons(bool),
     MapShowCastles(bool),
+    MapShowBridges(bool),
     MapShowCaves(bool),
     MapShowTrees(bool),
     MapShowPeaks(bool),
@@ -631,6 +632,9 @@ impl SettingsChange {
                     },
                     Interface::MapShowCastles(map_show_castles) => {
                         settings.interface.map_show_castles = map_show_castles;
+                    },
+                    Interface::MapShowBridges(map_show_bridges) => {
+                        settings.interface.map_show_bridges = map_show_bridges;
                     },
                     Interface::MapShowCaves(map_show_caves) => {
                         settings.interface.map_show_caves = map_show_caves;

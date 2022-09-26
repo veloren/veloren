@@ -35,7 +35,7 @@ packed_simd = { package = "packed_simd_2", version = "0.3.8", optional = true }
 rayon = "1.5"
 serde = { version = "1.0.110", features = ["derive"] }
 ron = { version = "0.8", default-features = false }
-# inline_tweak = "1.0.2"
+inline_tweak = "1.0.2"
 kiddo = "0.2"
 strum = "0.24.0"
 

@@ -988,6 +988,68 @@ impl Site {
         site
     }
 
+    pub fn generate_bridge(
+        land: &Land,
+        rng: &mut impl Rng,
+        start: Vec2<i32>,
+        end: Vec2<i32>,
+    ) -> Self {
+        let mut rng = reseed(rng);
+        let start = TerrainChunkSize::center_wpos(start);
+        let end = TerrainChunkSize::center_wpos(end);
+        let origin = (start + end) / 2;
+
+        let mut site = Site {
+            origin,
+            name: format!("Bridge of {}", NameGen::location(&mut rng).generate_town()),
+            ..Site::default()
+        };
+
+        let start_tile = site.wpos_tile_pos(start);
+        let end_tile = site.wpos_tile_pos(end);
+
+        let width = 1;
+
+        let orth = (start_tile - end_tile).yx().map(|dir| dir.signum().abs());
+
+        let aabr = Aabr {
+            min: start_tile.map2(end_tile, |a, b| a.min(b)) - orth * width,
+            max: start_tile.map2(end_tile, |a, b| a.max(b)) + 1 + orth * width,
+        };
+
+        site.create_road(
+            land,
+            &mut rng,
+            aabr.min - 1,
+            aabr.min - 1 + orth * (3 + width * 2),
+            2,
+        );
+        site.create_road(
+            land,
+            &mut rng,
+            aabr.max + 1,
+            aabr.max + 1 - orth * (3 + width * 2),
+            2,
+        );
+
+        let bridge = plot::Bridge::generate(land, &mut rng, &site, start_tile, end_tile, width);
+
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::Bridge(bridge),
+            root_tile: start_tile,
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::Building,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+
+        site
+    }
+
     pub fn wpos_tile_pos(&self, wpos2d: Vec2<i32>) -> Vec2<i32> {
         (wpos2d - self.origin).map(|e| e.div_euclid(TILE_SIZE as i32))
     }
@@ -1245,6 +1307,7 @@ impl Site {
                     desert_city_temple.render_collect(self, canvas)
                 },
                 PlotKind::Citadel(citadel) => citadel.render_collect(self, canvas),
+                PlotKind::Bridge(bridge) => bridge.render_collect(self, canvas),
                 _ => continue,
             };
 

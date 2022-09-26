@@ -14,6 +14,7 @@ hud-map-trees = Giant Trees
 hud-map-tree = Giant Tree
 hud-map-town = Town
 hud-map-castle = Castle
+hud-map-bridge = Bridge
 hud-map-dungeon = Dungeon
 hud-map-difficulty_dungeon =
     Dungeon
