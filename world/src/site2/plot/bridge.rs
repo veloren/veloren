@@ -1,6 +1,6 @@
 use super::*;
 use crate::{site2::gen::PrimitiveTransform, Land};
-use common::terrain::{Block, BlockKind};
+use common::terrain::{BiomeKind, Block, BlockKind};
 use rand::prelude::*;
 use vek::*;
 
@@ -26,8 +26,16 @@ fn aabb(min: Vec3<i32>, max: Vec3<i32>) -> Aabb<i32> {
 }
 
 fn render_short(bridge: &Bridge, painter: &Painter) {
-    let rock = Fill::Brick(BlockKind::Rock, Rgb::gray(70), 25);
-    let light_rock = Fill::Block(Block::new(BlockKind::Rock, Rgb::gray(140)));
+    let (bridge_fill, edge_fill) = match bridge.biome {
+        BiomeKind::Desert | BiomeKind::Savannah => (
+            Fill::Block(Block::new(BlockKind::Rock, Rgb::new(212, 191, 142))),
+            Fill::Block(Block::new(BlockKind::Rock, Rgb::gray(190))),
+        ),
+        _ => (
+            Fill::Brick(BlockKind::Rock, Rgb::gray(70), 25),
+            Fill::Block(Block::new(BlockKind::Rock, Rgb::gray(130))),
+        ),
+    };
 
     let bridge_width = 3;
 
@@ -90,15 +98,19 @@ fn render_short(bridge: &Bridge, painter: &Painter) {
     let b = bridge_prim(bridge_width);
 
     let t = 4;
-    b.union(painter.aabb(aabb(
-        (bridge.start.xy() - side - forward * (top - bridge.start.z - ramp_in + outset)).with_z(bridge.start.z - t),
-        (bridge.end.xy() + side + forward * (top - bridge.end.z - ramp_in + outset)).with_z(bridge.start.z),
-    )))
+    b.union(
+        painter.aabb(aabb(
+            (bridge.start.xy() - side - forward * (top - bridge.start.z - ramp_in + outset))
+                .with_z(bridge.start.z - t),
+            (bridge.end.xy() + side + forward * (top - bridge.end.z - ramp_in + outset))
+                .with_z(bridge.start.z),
+        )),
+    )
     .translate(Vec3::new(0, 0, t))
     .without(b)
     .clear();
 
-    b.without(remove).fill(rock.clone());
+    b.without(remove).fill(bridge_fill);
 
     let prim = bridge_prim(bridge_width + 1);
 
@@ -108,7 +120,7 @@ fn render_short(bridge: &Bridge, painter: &Painter) {
             bridge.start - side - forward * outset,
             (bridge.end.xy() + side + forward * outset).with_z(top + 1),
         )))
-        .fill(light_rock);
+        .fill(edge_fill);
 }
 
 fn render_flat(bridge: &Bridge, painter: &Painter) {
@@ -191,7 +203,7 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
         max: tower_center + tower_size,
     };
 
-    let len = (bridge.dir.select(bridge.end.xy()) - bridge.dir.select_aabr(tower_aabr)).abs();
+    let len = (bridge.dir.select(bridge.end.xy()) - bridge.dir.select_aabr(tower_aabr)).abs() - 1;
 
     painter
         .aabb(aabb(
@@ -391,6 +403,7 @@ pub struct Bridge {
     pub(crate) dir: Dir,
     center: Vec3<i32>,
     kind: BridgeKind,
+    biome: BiomeKind,
 }
 
 impl Bridge {
@@ -483,6 +496,9 @@ impl Bridge {
                 BridgeKind::Flat
             },
             width: 8,
+            biome: land
+                .get_chunk_wpos(center.xy())
+                .map_or(BiomeKind::Void, |chunk| chunk.get_biome()),
         }
     }
 }
