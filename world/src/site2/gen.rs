@@ -1148,9 +1148,10 @@ impl Painter {
 
             let stairs = self.ramp(
                 Aabb {
-                    min: (corner - right.to_vec2() * (stair_len + thickness))
-                        .with_z(z - stair_len),
-                    max: (corner - right.to_vec2() * (thickness - 1) - forward.to_vec2() * thickness)
+                    min: (corner - right.to_vec2() * (stair_len + thickness)).with_z(z - stair_len),
+                    max: (corner
+                        - right.to_vec2() * (thickness - 1)
+                        - forward.to_vec2() * thickness)
                         .with_z(z + 1),
                 }
                 .made_valid(),

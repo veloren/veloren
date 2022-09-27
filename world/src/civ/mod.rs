@@ -8,7 +8,7 @@ use crate::{
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
     util::{attempt, seed_expan, DHashMap, NEIGHBORS},
-    Index, Land,
+    Index, IndexRef, Land,
 };
 use common::{
     astar::Astar,
@@ -252,65 +252,73 @@ impl Civs {
                 });
 
             let mut rng = ctx.reseed().rng;
-            let site = index.sites.insert(match &sim_site.kind {
-                SiteKind::Settlement => {
-                    WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
-                },
-                SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Castle => {
-                    WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
-                },
-                SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::SavannahPit => WorldSite::savannah_pit(
-                    site2::Site::generate_savannah_pit(&Land::from_sim(ctx.sim), &mut rng, wpos),
-                ),
-                SiteKind::DesertCity => WorldSite::desert_city(site2::Site::generate_desert_city(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Tree => {
-                    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
-                },
-                SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::ChapelSite => WorldSite::chapel_site(site2::Site::generate_chapel_site(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Bridge(a, b) => WorldSite::bridge(site2::Site::generate_bridge(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    *a,
-                    *b,
-                )),
+            let site = index.sites.insert({
+                let index_ref = IndexRef {
+                    colors: &index.colors(),
+                    features: &index.features(),
+                    index,
+                };
+                match &sim_site.kind {
+                    SiteKind::Settlement => {
+                        WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
+                    },
+                    SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Castle => {
+                        WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
+                    },
+                    SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::SavannahPit => {
+                        WorldSite::savannah_pit(site2::Site::generate_savannah_pit(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                        ))
+                    },
+                    SiteKind::DesertCity => WorldSite::desert_city(
+                        site2::Site::generate_desert_city(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
+                    SiteKind::Tree => {
+                        WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
+                    },
+                    SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::ChapelSite => WorldSite::chapel_site(
+                        site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
+                    SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Bridge(a, b) => WorldSite::bridge(site2::Site::generate_bridge(
+                        &Land::from_sim(ctx.sim),
+                        index_ref,
+                        &mut rng,
+                        *a,
+                        *b,
+                    )),
+                }
             });
             sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];

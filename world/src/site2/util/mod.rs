@@ -13,7 +13,6 @@ pub enum Dir {
 }
 
 impl Dir {
-
     pub const ALL: [Dir; 4] = [Dir::X, Dir::Y, Dir::NegX, Dir::NegY];
 
     pub fn choose(rng: &mut impl Rng) -> Dir {

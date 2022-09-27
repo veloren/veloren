@@ -13,7 +13,7 @@ use crate::{
     sim::Path,
     site::{namegen::NameGen, SpawnRules},
     util::{attempt, DHashSet, Grid, CARDINALS, SQUARE_4, SQUARE_9},
-    Canvas, Land,
+    Canvas, IndexRef, Land,
 };
 use common::{
     astar::Astar,
@@ -990,6 +990,7 @@ impl Site {
 
     pub fn generate_bridge(
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         start: Vec2<i32>,
         end: Vec2<i32>,
@@ -1012,6 +1013,18 @@ impl Site {
 
         let orth = (start_tile - end_tile).yx().map(|dir| dir.signum().abs());
 
+        let start_aabr = Aabr {
+            min: start_tile.map2(end_tile, |a, b| a.min(b)) - orth * width,
+            max: start_tile.map2(end_tile, |a, b| a.max(b)) + 1 + orth * width,
+        };
+
+
+        let bridge = plot::Bridge::generate(land, index, &mut rng, &site, start_tile, end_tile);
+
+        let start_tile = site.wpos_tile_pos(bridge.start.xy());
+        let end_tile = site.wpos_tile_pos(bridge.end.xy());
+
+        let width = (bridge.width + TILE_SIZE as i32 / 2) / TILE_SIZE as i32;
         let aabr = Aabr {
             min: start_tile.map2(end_tile, |a, b| a.min(b)) - orth * width,
             max: start_tile.map2(end_tile, |a, b| a.max(b)) + 1 + orth * width,
@@ -1020,20 +1033,18 @@ impl Site {
         site.create_road(
             land,
             &mut rng,
-            aabr.min - 1,
-            aabr.min - 1 + orth * (3 + width * 2),
+            bridge.dir.select_aabr_with(aabr, aabr.center()) + bridge.dir.to_vec2(),
+            bridge.dir.select_aabr_with(start_aabr, aabr.center()),
             2,
         );
         site.create_road(
             land,
             &mut rng,
-            aabr.max + 1,
-            aabr.max + 1 - orth * (3 + width * 2),
+            (-bridge.dir).select_aabr_with(aabr, aabr.center()) - bridge.dir.to_vec2(),
+            (-bridge.dir).select_aabr_with(start_aabr, aabr.center()),
             2,
         );
-
-        let bridge = plot::Bridge::generate(land, &mut rng, &site, start_tile, end_tile, width);
-
+        
         let plot = site.create_plot(Plot {
             kind: PlotKind::Bridge(bridge),
             root_tile: start_tile,
@@ -1046,6 +1057,40 @@ impl Site {
             plot: Some(plot),
             hard_alt: None,
         });
+
+        
+        let size = (1.5 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+        if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+            site.find_roadside_aabr(
+                &mut rng,
+                4..(size + 1).pow(2),
+                Extent2::broadcast(size),
+            )
+        }) {
+            let house = plot::House::generate(
+                land,
+                &mut reseed(&mut rng),
+                &site,
+                door_tile,
+                door_dir,
+                aabr,
+            );
+            let house_alt = house.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::House(house),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(house_alt),
+            });
+        } else {
+            site.make_plaza(land, &mut rng);
+        }
 
         site
     }
