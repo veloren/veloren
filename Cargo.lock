@@ -6675,6 +6675,7 @@ dependencies = [
  "tokio",
  "tracing",
  "vek 0.15.8",
+ "veloren-client-i18n",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-ecs",
@@ -6683,8 +6684,25 @@ dependencies = [
  "veloren-common-state",
  "veloren-common-systems",
  "veloren-network",
- "veloren-voxygen-i18n",
  "veloren-voxygen-i18n-helpers",
+]
+
+[[package]]
+name = "veloren-client-i18n"
+version = "0.13.0"
+dependencies = [
+ "clap 3.2.22",
+ "deunicode",
+ "fluent",
+ "fluent-bundle",
+ "fluent-syntax",
+ "hashbrown 0.12.3",
+ "intl-memoizer",
+ "ron 0.8.0",
+ "serde",
+ "tracing",
+ "unic-langid",
+ "veloren-common-assets",
 ]
 
 [[package]]
@@ -7082,6 +7100,7 @@ dependencies = [
  "treeculler",
  "vek 0.15.8",
  "veloren-client",
+ "veloren-client-i18n",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-ecs",
@@ -7092,7 +7111,6 @@ dependencies = [
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-voxygen-egui",
- "veloren-voxygen-i18n",
  "veloren-voxygen-i18n-helpers",
  "veloren-world",
  "wgpu",
@@ -7127,31 +7145,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-voxygen-i18n"
-version = "0.13.0"
-dependencies = [
- "clap 3.2.22",
- "deunicode",
- "fluent",
- "fluent-bundle",
- "fluent-syntax",
- "hashbrown 0.12.3",
- "intl-memoizer",
- "ron 0.8.0",
- "serde",
- "tracing",
- "unic-langid",
- "veloren-common-assets",
-]
-
-[[package]]
 name = "veloren-voxygen-i18n-helpers"
 version = "0.10.0"
 dependencies = [
  "tracing",
+ "veloren-client-i18n",
  "veloren-common",
  "veloren-common-net",
- "veloren-voxygen-i18n",
 ]
 
 [[package]]

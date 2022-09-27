@@ -2816,6 +2816,7 @@ impl Drop for Client {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use client_i18n::LocalizationHandle;
 
     #[test]
     /// THIS TEST VERIFIES THE CONSTANT API.
@@ -2845,7 +2846,7 @@ mod tests {
             password,
             |suggestion: &str| suggestion == auth_server,
         ));
-        let localisation = voxygen_i18n::LocalizationHandle::load_expect("en");
+        let localisation = LocalizationHandle::load_expect("en");
 
         let _ = veloren_client.map(|mut client| {
             //clock

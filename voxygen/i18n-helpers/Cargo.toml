@@ -8,6 +8,6 @@ version = "0.10.0"
 [dependencies]
 common-net = {package = "veloren-common-net", path = "../../common/net"}
 common = {package = "veloren-common", path = "../../common"}
-i18n = {package = "veloren-voxygen-i18n", path = "../i18n"}
+i18n = {package = "veloren-client-i18n", path = "../../client/i18n"}
 # Utility
 tracing = "0.1"

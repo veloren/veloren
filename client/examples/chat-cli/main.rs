@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
 
+use client_i18n::LocalizationHandle;
 use common::{clock::Clock, comp};
 use std::{
     io,
@@ -31,7 +32,7 @@ fn main() {
 
     info!("loading localisation");
 
-    let localisation = voxygen_i18n::LocalizationHandle::load_expect("en");
+    let localisation = LocalizationHandle::load_expect("en");
 
     info!("Starting chat-cli...");
 

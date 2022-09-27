@@ -49,7 +49,7 @@ common-systems = {package = "veloren-common-systems", path = "../common/systems"
 common-state = {package = "veloren-common-state", path = "../common/state"}
 
 anim = {package = "veloren-voxygen-anim", path = "anim"}
-i18n = {package = "veloren-voxygen-i18n", path = "i18n"}
+i18n = {package = "veloren-client-i18n", path = "../client/i18n"}
 i18n-helpers = {package = "veloren-voxygen-i18n-helpers", path = "i18n-helpers"}
 voxygen-egui = {package = "veloren-voxygen-egui", path = "egui", optional = true }
 
