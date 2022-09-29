@@ -12,7 +12,7 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::{error, info};
 use veloren_client::{addr::ConnectionArgs, Client, Event};
-use voxygen_i18n_helpers::internationalisate_chat_message;
+use voxygen_i18n_helpers::localize_chat_message;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
@@ -97,7 +97,7 @@ fn main() {
             match event {
                 Event::Chat(m) => println!(
                     "{}",
-                    internationalisate_chat_message(
+                    localize_chat_message(
                         m,
                         |msg| client.lockup_msg_context(msg),
                         &localisation.read(),

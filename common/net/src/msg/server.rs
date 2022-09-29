@@ -246,10 +246,10 @@ pub struct PlayerInfo {
 }
 
 /// used for localisation, filled by client and used by i18n code
-#[derive(Clone)]
-pub enum ChatTypeContext {
-    PlayerAlias { you: bool, info: PlayerInfo },
-    Raw(String),
+pub struct ChatTypeContext {
+    pub you: Uid,
+    pub player_alias: HashMap<Uid, PlayerInfo>,
+    pub entity_name: HashMap<Uid, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

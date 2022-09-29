@@ -1,132 +1,209 @@
+#![feature(let_chains)]
 use common::comp::{
     chat::{KillSource, KillType},
     BuffKind, ChatMsg, ChatType,
 };
 use common_net::msg::{ChatTypeContext, PlayerInfo};
 use i18n::Localization;
-use std::collections::HashMap;
 
-pub fn internationalisate_chat_message(
+pub fn localize_chat_message(
     mut msg: ChatMsg,
-    lookup_fn: impl Fn(&ChatMsg) -> HashMap<&'static str, ChatTypeContext>,
+    lookup_fn: impl Fn(&ChatMsg) -> ChatTypeContext,
     localisation: &Localization,
     show_char_name: bool,
 ) -> ChatMsg {
     let info = lookup_fn(&msg);
-    if let Some(template_key) = get_chat_template_key(&msg.chat_type) {
-        msg.message = localisation
-            .get_msg_ctx(template_key, &i18n::fluent_args! {
-                "attacker" => "{attacker}",
-                "name" => "{name}",
-                "died_of_buff" => "{died_of_buff}",
-                "victim" => "{victim}",
-                "environment" => "{environment}",
-            })
-            .into_owned();
 
-        if let ChatType::Kill(kill_source, _) = &msg.chat_type {
-            match kill_source {
-                KillSource::Player(_, KillType::Buff(buffkind))
-                | KillSource::NonExistent(KillType::Buff(buffkind))
-                | KillSource::NonPlayer(_, KillType::Buff(buffkind)) => {
-                    msg.message = insert_killing_buff(*buffkind, localisation, &msg.message);
-                },
-                _ => {},
-            }
-        }
-    }
-    let message_format = |you, info: PlayerInfo, message: &str, group: Option<&String>| {
-        let alias = insert_alias(you, info.clone(), localisation);
-        let name = if show_char_name {
-            info.character.map(|c| c.name)
+    let name_format = |uid: &common::uid::Uid| match info.player_alias.get(uid).cloned() {
+        Some(pi) => insert_alias(info.you == *uid, pi, localisation),
+        None => info
+            .entity_name
+            .get(uid)
+            .cloned()
+            .expect("client didn't proved enough info"),
+    };
+
+    let message_format = |from: &common::uid::Uid, message: &str, group: Option<&String>| {
+        let alias = name_format(from);
+        let name = if let Some(pi) = info.player_alias.get(from).cloned() && show_char_name {
+            pi.character.map(|c| c.name)
         } else {
             None
         };
         match (group, name) {
-            (Some(group), None) => format!("({}) [{}]: {}", group, alias, message),
-            (None, None) => format!("[{}]: {}", alias, message),
-            (Some(group), Some(name)) => {
-                format!("({}) [{}] {}: {}", group, alias, name, message)
-            },
-            (None, Some(name)) => format!("[{}] {}: {}", alias, name, message),
+            (Some(group), None) => format!("({group}) [{alias}]: {message}"),
+            (None, None) => format!("[{alias}]: {message}"),
+            (Some(group), Some(name)) => format!("({group}) [{alias}] {name}: {message}"),
+            (None, Some(name)) => format!("[{alias}] {name}: {message}"),
         }
     };
-    if let Some(ChatTypeContext::PlayerAlias { you, info }) = info.get("from").cloned() {
-        msg.message = match &msg.chat_type {
-            ChatType::Say(_) => message_format(you, info, &msg.message, None),
-            ChatType::Group(_, s) => message_format(you, info, &msg.message, Some(s)),
-            ChatType::Faction(_, s) => message_format(you, info, &msg.message, Some(s)),
-            ChatType::Region(_) => message_format(you, info, &msg.message, None),
-            ChatType::World(_) => message_format(you, info, &msg.message, None),
-            ChatType::NpcSay(_, _r) => message_format(you, info, &msg.message, None),
-            _ => msg.message,
-        };
-    }
-    for (name, datum) in info.into_iter() {
-        let replacement = match datum {
-            ChatTypeContext::PlayerAlias { you, info } => insert_alias(you, info, localisation),
-            ChatTypeContext::Raw(text) => text,
-        };
-        msg.message = msg.message.replace(&format!("{{{}}}", name), &replacement);
-    }
-    msg
-}
 
-fn get_chat_template_key(chat_type: &ChatType<String>) -> Option<&str> {
-    Some(match chat_type {
-        ChatType::Online(_) => "hud-chat-online_msg",
-        ChatType::Offline(_) => "hud-chat-offline_msg",
-        ChatType::Kill(kill_source, _) => match kill_source {
-            KillSource::Player(_, KillType::Buff(_)) => "hud-chat-died_of_pvp_buff_msg",
-            KillSource::Player(_, KillType::Melee) => "hud-chat-pvp_melee_kill_msg",
-            KillSource::Player(_, KillType::Projectile) => "hud-chat-pvp_ranged_kill_msg",
-            KillSource::Player(_, KillType::Explosion) => "hud-chat-pvp_explosion_kill_msg",
-            KillSource::Player(_, KillType::Energy) => "hud-chat-pvp_energy_kill_msg",
-            KillSource::Player(_, KillType::Other) => "hud-chat-pvp_other_kill_msg",
-            KillSource::NonExistent(KillType::Buff(_)) => "hud-chat-died_of_buff_nonexistent_msg",
-            KillSource::NonPlayer(_, KillType::Buff(_)) => "hud-chat-died_of_npc_buff_msg",
-            KillSource::NonPlayer(_, KillType::Melee) => "hud-chat-npc_melee_kill_msg",
-            KillSource::NonPlayer(_, KillType::Projectile) => "hud-chat-npc_ranged_kill_msg",
-            KillSource::NonPlayer(_, KillType::Explosion) => "hud-chat-npc_explosion_kill_msg",
-            KillSource::NonPlayer(_, KillType::Energy) => "hud-chat-npc_energy_kill_msg",
-            KillSource::NonPlayer(_, KillType::Other) => "hud-chat-npc_other_kill_msg",
-            KillSource::Environment(_) => "hud-chat-environmental_kill_msg",
-            KillSource::FallDamage => "hud-chat-fall_kill_msg",
-            KillSource::Suicide => "hud-chat-suicide_msg",
-            KillSource::NonExistent(_) | KillSource::Other => "hud-chat-default_death_msg",
+    let new_msg = match &msg.chat_type {
+        ChatType::Online(uid) => localisation
+            .get_msg_ctx("hud-chat-online_msg", &i18n::fluent_args! {
+                "name" => name_format(uid),
+            })
+            .into_owned(),
+        ChatType::Offline(uid) => localisation
+            .get_msg_ctx("hud-chat-offline_msg", &i18n::fluent_args! {
+                "name" => name_format(uid
+                ),
+            })
+            .into_owned(),
+        ChatType::CommandError => msg.message.to_string(),
+        ChatType::CommandInfo => msg.message.to_string(),
+        ChatType::FactionMeta(_) => msg.message.to_string(),
+        ChatType::GroupMeta(_) => msg.message.to_string(),
+        ChatType::Tell(from, to) => {
+            let from_alias = name_format(from);
+            let to_alias = name_format(to);
+            // TODO: internationalise
+            if *from == info.you {
+                format!("To [{to_alias}]: {}", msg.message)
+            } else {
+                format!("From [{from_alias}]: {}", msg.message)
+            }
         },
-        _ => return None,
-    })
-}
+        ChatType::Say(uid) => message_format(uid, &msg.message, None),
+        ChatType::Group(uid, s) => message_format(uid, &msg.message, Some(s)),
+        ChatType::Faction(uid, s) => message_format(uid, &msg.message, Some(s)),
+        ChatType::Region(uid) => message_format(uid, &msg.message, None),
+        ChatType::World(uid) => message_format(uid, &msg.message, None),
+        // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and
+        // should be filtered by server (due to not having a Pos) for chat-cli
+        ChatType::Npc(uid, _r) => message_format(uid, &msg.message, None),
+        ChatType::NpcSay(uid, _r) => message_format(uid, &msg.message, None),
+        ChatType::NpcTell(from, to, _r) => {
+            let from_alias = name_format(from);
+            let to_alias = name_format(to);
+            // TODO: internationalise
+            if *from == info.you {
+                format!("To [{to_alias}]: {}", msg.message)
+            } else {
+                format!("From [{from_alias}]: {}", msg.message)
+            }
+        },
+        ChatType::Meta => msg.message.to_string(),
+        ChatType::Kill(kill_source, victim) => {
+            let i18n_buff = |buff| match buff {
+                BuffKind::Burning => "hud-outcome-burning",
+                BuffKind::Bleeding => "hud-outcome-bleeding",
+                BuffKind::Cursed => "hud-outcome-curse",
+                BuffKind::Crippled => "hud-outcome-crippled",
+                BuffKind::Frozen => "hud-outcome-frozen",
+                BuffKind::Regeneration
+                | BuffKind::Saturation
+                | BuffKind::Potion
+                | BuffKind::CampfireHeal
+                | BuffKind::EnergyRegen
+                | BuffKind::IncreaseMaxEnergy
+                | BuffKind::IncreaseMaxHealth
+                | BuffKind::Invulnerability
+                | BuffKind::ProtectingWard
+                | BuffKind::Frenzied
+                | BuffKind::Hastened => {
+                    tracing::error!("Player was killed by a positive buff!");
+                    "hud-outcome-mysterious"
+                },
+                BuffKind::Wet | BuffKind::Ensnared | BuffKind::Poisoned => {
+                    tracing::error!("Player was killed by a debuff that doesn't do damage!");
+                    "hud-outcome-mysterious"
+                },
+            };
 
-fn insert_killing_buff(buff: BuffKind, localisation: &Localization, template: &str) -> String {
-    let buff_outcome = match buff {
-        BuffKind::Burning => "hud-outcome-burning",
-        BuffKind::Bleeding => "hud-outcome-bleeding",
-        BuffKind::Cursed => "hud-outcome-curse",
-        BuffKind::Crippled => "hud-outcome-crippled",
-        BuffKind::Frozen => "hud-outcome-frozen",
-        BuffKind::Regeneration
-        | BuffKind::Saturation
-        | BuffKind::Potion
-        | BuffKind::CampfireHeal
-        | BuffKind::EnergyRegen
-        | BuffKind::IncreaseMaxEnergy
-        | BuffKind::IncreaseMaxHealth
-        | BuffKind::Invulnerability
-        | BuffKind::ProtectingWard
-        | BuffKind::Frenzied
-        | BuffKind::Hastened => {
-            tracing::error!("Player was killed by a positive buff!");
-            "hud-outcome-mysterious"
-        },
-        BuffKind::Wet | BuffKind::Ensnared | BuffKind::Poisoned => {
-            tracing::error!("Player was killed by a debuff that doesn't do damage!");
-            "hud-outcome-mysterious"
+            match kill_source {
+                // Buff deaths
+                KillSource::Player(attacker, KillType::Buff(buff_kind)) => {
+                    let i18n_buff = i18n_buff(*buff_kind);
+                    let buff = localisation.get_msg(i18n_buff);
+
+                    localisation.get_msg_ctx("hud-chat-died_of_pvp_buff_msg", &i18n::fluent_args! {
+                        "victim" => name_format(victim),
+                        "died_of_buff" => buff,
+                        "attacker" => name_format(attacker),
+                    })
+                },
+                KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => {
+                    let i18n_buff = i18n_buff(*buff_kind);
+                    let buff = localisation.get_msg(i18n_buff);
+
+                    localisation.get_msg_ctx("hud-chat-died_of_npc_buff_msg", &i18n::fluent_args! {
+                        "victim" => name_format(victim),
+                        "died_of_buff" => buff,
+                        "attacker" => attacker_name,
+                    })
+                },
+                KillSource::NonExistent(KillType::Buff(buff_kind)) => {
+                    let i18n_buff = i18n_buff(*buff_kind);
+                    let buff = localisation.get_msg(i18n_buff);
+
+                    localisation.get_msg_ctx(
+                        "hud-chat-died_of_buff_nonexistent_msg",
+                        &i18n::fluent_args! {
+                            "victim" => name_format(victim),
+                            "died_of_buff" => buff,
+                        },
+                    )
+                },
+                // PvP deaths
+                KillSource::Player(attacker, kill_type) => {
+                    let key = match kill_type {
+                        KillType::Melee => "hud-chat-pvp_melee_kill_msg",
+                        KillType::Projectile => "hud-chat-pvp_ranged_kill_msg",
+                        KillType::Explosion => "hud-chat-pvp_explosion_kill_msg",
+                        KillType::Energy => "hud-chat-pvp_energy_kill_msg",
+                        KillType::Other => "hud-chat-pvp_other_kill_msg",
+                        &KillType::Buff(_) => unreachable!("handled above"),
+                    };
+                    localisation.get_msg_ctx(key, &i18n::fluent_args! {
+                        "victim" => name_format(victim),
+                        "attacker" => name_format(attacker),
+                    })
+                },
+                // PvE deaths
+                KillSource::NonPlayer(attacker_name, kill_type) => {
+                    let key = match kill_type {
+                        KillType::Melee => "hud-chat-npc_melee_kill_msg",
+                        KillType::Projectile => "hud-chat-npc_ranged_kill_msg",
+                        KillType::Explosion => "hud-chat-npc_explosion_kill_msg",
+                        KillType::Energy => "hud-chat-npc_energy_kill_msg",
+                        KillType::Other => "hud-chat-npc_other_kill_msg",
+                        &KillType::Buff(_) => unreachable!("handled above"),
+                    };
+                    localisation.get_msg_ctx(key, &i18n::fluent_args! {
+                        "victim" => name_format(victim),
+                        "attacker" => attacker_name,
+                    })
+                },
+                // Other deaths
+                KillSource::Environment(environment) => {
+                    localisation.get_msg_ctx("hud-chat-environment_kill_msg", &i18n::fluent_args! {
+                        "name" => name_format(victim),
+                        "environment" => environment,
+                    })
+                },
+                KillSource::FallDamage => {
+                    localisation.get_msg_ctx("hud-chat-fall_kill_msg", &i18n::fluent_args! {
+                        "name" => name_format(victim),
+                    })
+                },
+                KillSource::Suicide => {
+                    localisation.get_msg_ctx("hud-chat-suicide_msg", &i18n::fluent_args! {
+                        "name" => name_format(victim),
+                    })
+                },
+                KillSource::NonExistent(_) | KillSource::Other => {
+                    localisation.get_msg_ctx("hud-chat-default_death_msg", &i18n::fluent_args! {
+                        "name" => name_format(victim),
+                    })
+                },
+            }
+            .to_string()
         },
     };
 
-    template.replace("{died_of_buff}", &localisation.get_msg(buff_outcome))
+    msg.message = new_msg;
+    msg
 }
 
 fn insert_alias(you: bool, info: PlayerInfo, localisation: &Localization) -> String {

@@ -18,7 +18,7 @@ use conrod_core::{
     WidgetCommon,
 };
 use i18n::Localization;
-use i18n_helpers::internationalisate_chat_message;
+use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
 
 widget_ids! {
@@ -419,7 +419,7 @@ impl<'a> Widget for Chat<'a> {
             .messages
             .iter()
             .map(|m| {
-                internationalisate_chat_message(
+                localize_chat_message(
                     m.clone(),
                     |msg| self.client.lockup_msg_context(msg),
                     self.localized_strings,

@@ -2643,12 +2643,12 @@ impl Client {
 
     /// Get important information from client that is necessary for message
     /// localisation
-    pub fn lockup_msg_context(
-        &self,
-        msg: &comp::ChatMsg,
-    ) -> std::collections::HashMap<&'static str, ChatTypeContext> {
-        let mut result = std::collections::HashMap::new();
-        let comp::ChatMsg { chat_type, .. } = &msg;
+    pub fn lockup_msg_context(&self, msg: &comp::ChatMsg) -> ChatTypeContext {
+        let mut result = ChatTypeContext {
+            you: self.uid().expect("Client doesn't have a Uid!!!"),
+            player_alias: HashMap::new(),
+            entity_name: HashMap::new(),
+        };
         let name_of_uid = |uid| {
             let ecs = self.state.ecs();
             (
@@ -2659,35 +2659,32 @@ impl Client {
                 .find(|(_, u)| u == &uid)
                 .map(|(c, _)| c.name.clone())
         };
-        let alias_of_uid = |uid| {
-            self.player_list.get(uid).map_or(
-                ChatTypeContext::Raw(name_of_uid(uid).unwrap_or_else(|| "<?>".to_string())),
-                |player_info| ChatTypeContext::PlayerAlias {
-                    you: self.uid().expect("Client doesn't have a Uid!!!") == *uid,
-                    info: player_info.clone(),
-                },
-            )
+        let mut alias_of_uid = |uid| match self.player_list.get(uid) {
+            Some(player_info) => {
+                result.player_alias.insert(*uid, player_info.clone());
+            },
+            None => {
+                result
+                    .entity_name
+                    .insert(*uid, name_of_uid(uid).unwrap_or_else(|| "<?>".to_string()));
+            },
         };
-        match chat_type {
+        match &msg.chat_type {
             comp::ChatType::Online(uid) | comp::ChatType::Offline(uid) => {
-                result.insert("name", alias_of_uid(uid));
+                alias_of_uid(uid);
             },
             comp::ChatType::CommandError => (),
             comp::ChatType::CommandInfo => (),
             comp::ChatType::FactionMeta(_) => (),
             comp::ChatType::GroupMeta(_) => (),
             comp::ChatType::Kill(kill_source, victim) => {
-                result.insert("victim", alias_of_uid(victim));
+                alias_of_uid(victim);
                 match kill_source {
                     KillSource::Player(attacker_uid, _) => {
-                        result.insert("attacker", alias_of_uid(attacker_uid));
+                        alias_of_uid(attacker_uid);
                     },
-                    KillSource::NonPlayer(attacker_name, _) => {
-                        result.insert("attacker", ChatTypeContext::Raw(attacker_name.clone()));
-                    },
-                    KillSource::Environment(environment) => {
-                        result.insert("environment", ChatTypeContext::Raw(environment.clone()));
-                    },
+                    KillSource::NonPlayer(_, _) => (),
+                    KillSource::Environment(_) => (),
                     KillSource::FallDamage => (),
                     KillSource::Suicide => (),
                     KillSource::NonExistent(_) => (),
@@ -2695,22 +2692,19 @@ impl Client {
                 };
             },
             comp::ChatType::Tell(from, to) | comp::ChatType::NpcTell(from, to, _) => {
-                result.insert("from", alias_of_uid(from));
-                result.insert("to", alias_of_uid(to));
+                alias_of_uid(from);
+                alias_of_uid(to);
             },
             comp::ChatType::Say(uid)
             | comp::ChatType::Region(uid)
             | comp::ChatType::World(uid)
             | comp::ChatType::NpcSay(uid, _) => {
-                result.insert("from", alias_of_uid(uid));
+                alias_of_uid(uid);
             },
-            comp::ChatType::Group(uid, s) | comp::ChatType::Faction(uid, s) => {
-                result.insert("from", alias_of_uid(uid));
-                result.insert("group_name", ChatTypeContext::Raw(s.clone()));
+            comp::ChatType::Group(uid, _) | comp::ChatType::Faction(uid, _) => {
+                alias_of_uid(uid);
             },
-            // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and should be filtered
-            // by server (due to not having a Pos) for chat-cli
-            comp::ChatType::Npc(_uid, _r) => (),
+            comp::ChatType::Npc(uid, _) => alias_of_uid(uid),
             comp::ChatType::Meta => (),
         };
         result
@@ -2826,7 +2820,7 @@ mod tests {
     /// CONTACT @Core Developer BEFORE MERGING CHANGES TO THIS TEST
     fn constant_api_test() {
         use common::clock::Clock;
-        use voxygen_i18n_helpers::internationalisate_chat_message;
+        use voxygen_i18n_helpers::localize_chat_message;
 
         const SPT: f64 = 1.0 / 60.0;
 
@@ -2865,7 +2859,7 @@ mod tests {
                     match event {
                         Event::Chat(msg) => {
                             let msg: comp::ChatMsg = msg;
-                            let _s: String = internationalisate_chat_message(
+                            let _s: String = localize_chat_message(
                                 msg,
                                 |msg| client.lockup_msg_context(msg),
                                 &localisation.read(),
