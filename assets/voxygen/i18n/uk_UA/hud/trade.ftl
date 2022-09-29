@@ -14,12 +14,22 @@ hud-trade-has_accepted =
      дав згоду
 hud-trade-accept = Прийняти
 hud-trade-decline = Відмовитись
-hud-trade-invite_sent = Пропозиція торгувати надіслана до { $playername }.
+hud-trade-invite_sent = Пропозиція торгувати надіслана до { $playername }
 hud-trade-result-completed = Торгівля завершилась успішно.
 hud-trade-result-declined = Торгівля розірвана.
 hud-trade-result-nospace = Недостатньо місця щоб завершити торг.
-hud-trade-buy_price = Ціна покупки
-hud-trade-sell_price = Ціна продажу
-hud-trade-coin = Монет
+hud-trade-buy = Ціна покупки: { $coin_num ->
+    [one] { $coin_formatted } монета
+    [few] { $coin_formatted } монети
+    *[other] { $coin_formatted } монет
+}
+hud-trade-sell = Sell Price: { $coin_num ->
+    [one] { $coin_formatted } монета
+    [few] { $coin_formatted } монети
+    *[other] { $coin_formatted } монет
+}
 hud-trade-tooltip_hint_1 = <Shift-Click щоб Додати/Забрати одиницю товару.>
 hud-trade-tooltip_hint_2 = <Ctrl-Click щоб Врівноважити товаром.>
+hud-trade-your_offer = Ваша пропозиція
+hud-trade-their_offer = Його пропозиція
+hud-trade-amount_input = Виберіть предмет
