@@ -1,5 +1,7 @@
 pub mod gradient;
 
+use std::ops::{Add, Sub};
+
 use rand::Rng;
 use vek::*;
 
@@ -168,7 +170,8 @@ impl Dir {
     pub fn is_y(self) -> bool { matches!(self, Dir::Y | Dir::NegY) }
 
     /// Returns the component that the direction is parallell to
-    pub fn select(self, vec: Vec2<i32>) -> i32 {
+    pub fn select(self, vec: impl Into<Vec2<i32>>) -> i32 {
+        let vec = vec.into();
         match self {
             Dir::X | Dir::NegX => vec.x,
             Dir::Y | Dir::NegY => vec.y,
@@ -177,7 +180,9 @@ impl Dir {
 
     /// Select one component the direction is parallel to from vec and select
     /// the other component from other
-    pub fn select_with(self, vec: Vec2<i32>, other: Vec2<i32>) -> Vec2<i32> {
+    pub fn select_with(self, vec: impl Into<Vec2<i32>>, other: impl Into<Vec2<i32>>) -> Vec2<i32> {
+        let vec = vec.into();
+        let other = other.into();
         match self {
             Dir::X | Dir::NegX => Vec2::new(vec.x, other.y),
             Dir::Y | Dir::NegY => Vec2::new(other.x, vec.y),
@@ -185,7 +190,7 @@ impl Dir {
     }
 
     /// Returns the side of an aabr that the direction is pointing to
-    pub fn select_aabr(self, aabr: Aabr<i32>) -> i32 {
+    pub fn select_aabr<T>(self, aabr: Aabr<T>) -> T {
         match self {
             Dir::X => aabr.max.x,
             Dir::NegX => aabr.min.x,
@@ -196,7 +201,8 @@ impl Dir {
 
     /// Select one component from the side the direction is pointing to from
     /// aabr and select the other component from other
-    pub fn select_aabr_with(self, aabr: Aabr<i32>, other: Vec2<i32>) -> Vec2<i32> {
+    pub fn select_aabr_with<T>(self, aabr: Aabr<T>, other: impl Into<Vec2<T>>) -> Vec2<T> {
+        let other = other.into();
         match self {
             Dir::X => Vec2::new(aabr.max.x, other.y),
             Dir::NegX => Vec2::new(aabr.min.x, other.y),
@@ -215,7 +221,7 @@ impl Dir {
         }
     }
 
-    pub fn split_aabr(self, aabr: Aabr<i32>, offset: i32) -> [Aabr<i32>; 2] {
+    pub fn split_aabr<T>(self, aabr: Aabr<T>, offset: T) -> [Aabr<T>; 2] where T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T> {
         match self {
             Dir::X => aabr.split_at_x(aabr.min.x + offset),
             Dir::Y => aabr.split_at_y(aabr.min.y + offset),

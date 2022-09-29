@@ -1058,40 +1058,6 @@ impl Site {
             hard_alt: None,
         });
 
-        
-        let size = (1.5 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
-        if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
-            site.find_roadside_aabr(
-                &mut rng,
-                4..(size + 1).pow(2),
-                Extent2::broadcast(size),
-            )
-        }) {
-            let house = plot::House::generate(
-                land,
-                &mut reseed(&mut rng),
-                &site,
-                door_tile,
-                door_dir,
-                aabr,
-            );
-            let house_alt = house.alt;
-            let plot = site.create_plot(Plot {
-                kind: PlotKind::House(house),
-                root_tile: aabr.center(),
-                tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
-            });
-
-            site.blit_aabr(aabr, Tile {
-                kind: TileKind::Building,
-                plot: Some(plot),
-                hard_alt: Some(house_alt),
-            });
-        } else {
-            site.make_plaza(land, &mut rng);
-        }
-
         site
     }
 

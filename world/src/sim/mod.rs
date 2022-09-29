@@ -28,7 +28,7 @@ pub(crate) use self::{
 use crate::{
     all::{Environment, ForestKind, TreeAttr},
     block::BlockGen,
-    civ::{Place, PointOfInterest},
+    civ::{Place, PointOfInterest, self},
     column::ColumnGen,
     layer::spot::Spot,
     site::Site,
@@ -1657,7 +1657,7 @@ impl WorldSim {
         map_config.is_shaded = false;
 
         map_config.generate(
-            |pos| sample_pos(&map_config, self, Some(&samples_data), pos),
+            |pos| sample_pos(&map_config, self, index, Some(&samples_data), pos),
             |pos| sample_wpos(&map_config, self, pos),
             |pos, (r, g, b, _a)| {
                 // We currently ignore alpha and replace it with the height at pos, scaled to

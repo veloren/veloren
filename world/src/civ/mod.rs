@@ -1626,6 +1626,8 @@ impl Site {
     }
 
     pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
+    
+    pub fn is_bridge(&self) -> bool { matches!(self.kind, SiteKind::Bridge(_, _)) }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
