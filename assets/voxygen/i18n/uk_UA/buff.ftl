@@ -9,11 +9,11 @@ buff-desc-potion = Пиття...
 buff-title-saturation = Насичення
 buff-desc-saturation = Поступово відновлює Здоров'я з їжі.
 ## Campfire
-buff-title-campfire_heal = Відновлення біля ватри
-buff-desc-campfire_heal = Відпочинок біля ватри лікує на { $rate }% за секунду.
+buff-title-campfire_heal = Відновлення біля вогнища
+buff-desc-campfire_heal = Відпочинок біля вогнища лікує на { $rate }% за секунду.
 ## Energy Regen
 buff-title-energy_regen = Відновлення Енергії
-buff-desc-energy_regen = Поступово відновляє Eнергію
+buff-desc-energy_regen = Пришвидшене відновлення Енергії
 buff-stat-energy-regen = Відновлює { $str_total } енергії
 ## Health Increase
 buff-title-increase_max_health = Підвищення Максимального Здоров'я
@@ -34,15 +34,18 @@ buff-stat-invulnerability = Дає невразливість
 ## Protection Ward
 buff-title-protectingward = Захисна Аура
 buff-desc-protectingward = Ви захищені від атак, у якомусь сенсі.
-## Frenized
+## Frenzied
 buff-title-frenzied = Манія
 buff-desc-frenzied = Кров тече швидше, прискоруючи ваш рух та помалу зцілюючи вас.
-## Cursed
-buff-title-cursed = Проклін
-buff-desc-cursed = Вас прокляли.
+## Haste
+buff-title-hastened = Квапливість
+buff-desc-hastened = Ваша швидкість переміщення і шкидкість атак прискорена.
 ## Bleeding
 buff-title-bleed = Кровотеча
 buff-desc-bleed = Завдає регулярних пошкодженнь.
+## Curse
+buff-title-cursed = Проклін
+buff-desc-cursed = Вас прокляли.
 ## Burning
 buff-title-burn = У Вогні
 buff-desc-burn = Ви згораєте заживо.
