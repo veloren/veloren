@@ -4,11 +4,7 @@ use super::{
 };
 use crate::{cmd::complete, settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
 use client::Client;
-use common::comp::{
-    chat::{KillSource, KillType},
-    group::Role,
-    BuffKind, ChatMode, ChatMsg, ChatType,
-};
+use common::comp::{group::Role, ChatMode, ChatMsg, ChatType};
 use conrod_core::{
     color,
     input::Key,
@@ -22,6 +18,7 @@ use conrod_core::{
     WidgetCommon,
 };
 use i18n::Localization;
+use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
 
 widget_ids! {
@@ -422,39 +419,12 @@ impl<'a> Widget for Chat<'a> {
             .messages
             .iter()
             .map(|m| {
-                let mut message = m.clone();
-                if let Some(template_key) = get_chat_template_key(&message.chat_type) {
-                    // FIXME (i18n death messages):
-                    // Death message is half localized in voxygen, half in client.
-                    // Make this not.
-                    message.message = self
-                        .localized_strings
-                        .get_msg_ctx(template_key, &i18n::fluent_args! {
-                            "attacker" => "{attacker}",
-                            "name" => "{name}",
-                            "died_of_buff" => "{died_of_buff}",
-                            "victim" => "{victim}",
-                            "environment" => "{environment}",
-                        })
-                        .into_owned();
-
-                    if let ChatType::Kill(kill_source, _) = &message.chat_type {
-                        match kill_source {
-                            KillSource::Player(_, KillType::Buff(buffkind))
-                            | KillSource::NonExistent(KillType::Buff(buffkind))
-                            | KillSource::NonPlayer(_, KillType::Buff(buffkind)) => {
-                                message.message = insert_killing_buff(
-                                    *buffkind,
-                                    self.localized_strings,
-                                    &message.message,
-                                );
-                            },
-                            _ => {},
-                        }
-                    }
-                }
-                message.message = self.client.format_message(&message, show_char_name);
-                message
+                localize_chat_message(
+                    m.clone(),
+                    |msg| self.client.lockup_msg_context(msg),
+                    self.localized_strings,
+                    show_char_name,
+                )
             })
             .filter(|m| {
                 if let Some(chat_tab) = current_chat_tab {
@@ -775,63 +745,6 @@ fn render_chat_line(chat_type: &ChatType<String>, imgs: &Imgs) -> (Color, conrod
         ChatType::NpcTell(_from, _to, _r) => (TELL_COLOR, imgs.chat_tell_small),
         ChatType::Meta => (INFO_COLOR, imgs.chat_command_info_small),
     }
-}
-
-fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, template: &str) -> String {
-    let buff_outcome = match buff {
-        BuffKind::Burning => "hud-outcome-burning",
-        BuffKind::Bleeding => "hud-outcome-bleeding",
-        BuffKind::Cursed => "hud-outcome-curse",
-        BuffKind::Crippled => "hud-outcome-crippled",
-        BuffKind::Frozen => "hud-outcome-frozen",
-        BuffKind::Regeneration
-        | BuffKind::Saturation
-        | BuffKind::Potion
-        | BuffKind::CampfireHeal
-        | BuffKind::EnergyRegen
-        | BuffKind::IncreaseMaxEnergy
-        | BuffKind::IncreaseMaxHealth
-        | BuffKind::Invulnerability
-        | BuffKind::ProtectingWard
-        | BuffKind::Frenzied
-        | BuffKind::Hastened => {
-            tracing::error!("Player was killed by a positive buff!");
-            "hud-outcome-mysterious"
-        },
-        BuffKind::Wet | BuffKind::Ensnared | BuffKind::Poisoned => {
-            tracing::error!("Player was killed by a debuff that doesn't do damage!");
-            "hud-outcome-mysterious"
-        },
-    };
-
-    template.replace("{died_of_buff}", &localized_strings.get_msg(buff_outcome))
-}
-
-fn get_chat_template_key(chat_type: &ChatType<String>) -> Option<&str> {
-    Some(match chat_type {
-        ChatType::Online(_) => "hud-chat-online_msg",
-        ChatType::Offline(_) => "hud-chat-offline_msg",
-        ChatType::Kill(kill_source, _) => match kill_source {
-            KillSource::Player(_, KillType::Buff(_)) => "hud-chat-died_of_pvp_buff_msg",
-            KillSource::Player(_, KillType::Melee) => "hud-chat-pvp_melee_kill_msg",
-            KillSource::Player(_, KillType::Projectile) => "hud-chat-pvp_ranged_kill_msg",
-            KillSource::Player(_, KillType::Explosion) => "hud-chat-pvp_explosion_kill_msg",
-            KillSource::Player(_, KillType::Energy) => "hud-chat-pvp_energy_kill_msg",
-            KillSource::Player(_, KillType::Other) => "hud-chat-pvp_other_kill_msg",
-            KillSource::NonExistent(KillType::Buff(_)) => "hud-chat-died_of_buff_nonexistent_msg",
-            KillSource::NonPlayer(_, KillType::Buff(_)) => "hud-chat-died_of_npc_buff_msg",
-            KillSource::NonPlayer(_, KillType::Melee) => "hud-chat-npc_melee_kill_msg",
-            KillSource::NonPlayer(_, KillType::Projectile) => "hud-chat-npc_ranged_kill_msg",
-            KillSource::NonPlayer(_, KillType::Explosion) => "hud-chat-npc_explosion_kill_msg",
-            KillSource::NonPlayer(_, KillType::Energy) => "hud-chat-npc_energy_kill_msg",
-            KillSource::NonPlayer(_, KillType::Other) => "hud-chat-npc_other_kill_msg",
-            KillSource::Environment(_) => "hud-chat-environmental_kill_msg",
-            KillSource::FallDamage => "hud-chat-fall_kill_msg",
-            KillSource::Suicide => "hud-chat-suicide_msg",
-            KillSource::NonExistent(_) | KillSource::Other => "hud-chat-default_death_msg",
-        },
-        _ => return None,
-    })
 }
 
 fn parse_cmd(msg: &str) -> Result<(String, Vec<String>), String> {

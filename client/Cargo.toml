@@ -7,7 +7,7 @@ edition = "2021"
 [features]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
-bin_bot = ["common-ecs", "serde", "ron", "clap", "structopt", "rustyline", "common-frontend", "async-channel"]
+bin_bot = ["common-ecs", "serde", "ron", "clap", "structopt", "rustyline", "common-frontend", "async-channel", "voxygen-i18n-helpers", "client-i18n"]
 tracy = ["common-base/tracy"]
 tick_network = []
 
@@ -37,6 +37,8 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253
 #bot only
 async-channel = { version = "1.6", optional = true }
 common-ecs = { package = "veloren-common-ecs", path = "../common/ecs", optional = true }
+voxygen-i18n-helpers = { package = "veloren-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers", optional = true }
+client-i18n = { package = "veloren-client-i18n", path = "i18n", optional = true }
 serde = { version = "1.0", features = [ "rc", "derive" ], optional = true }
 ron = { version = "0.8", default-features = false, optional = true }
 clap = { version = "3.1.8", optional = true, features = ["color", "std"] }
@@ -47,6 +49,8 @@ termcolor = { version = "1.1", optional = true }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
 
 [dev-dependencies]
+voxygen-i18n-helpers = { package = "veloren-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers" }
+client-i18n = { package = "veloren-client-i18n", path = "i18n" }
 
 [[example]]
 name = "chat-cli"

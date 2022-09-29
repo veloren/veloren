@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
 
+use client_i18n::LocalizationHandle;
 use common::{clock::Clock, comp};
 use std::{
     io,
@@ -11,6 +12,7 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::{error, info};
 use veloren_client::{addr::ConnectionArgs, Client, Event};
+use voxygen_i18n_helpers::localize_chat_message;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
@@ -27,6 +29,10 @@ fn read_input() -> String {
 fn main() {
     // Initialize logging.
     common_frontend::init_stdout(None);
+
+    info!("loading localisation");
+
+    let localisation = LocalizationHandle::load_expect("en");
 
     info!("Starting chat-cli...");
 
@@ -63,7 +69,7 @@ fn main() {
 
     println!("Server info: {:?}", client.server_info());
 
-    println!("Players online: {:?}", client.players().collect::<Vec<_>>());
+    let mut player_printed = false;
 
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
@@ -89,7 +95,16 @@ fn main() {
         const SHOW_NAME: bool = false;
         for event in events {
             match event {
-                Event::Chat(m) => println!("{}", client.format_message(&m, SHOW_NAME)),
+                Event::Chat(m) => println!(
+                    "{}",
+                    localize_chat_message(
+                        m,
+                        |msg| client.lockup_msg_context(msg),
+                        &localisation.read(),
+                        SHOW_NAME,
+                    )
+                    .message
+                ),
                 Event::Disconnect => {}, // TODO
                 Event::DisconnectionNotification(time) => {
                     let message = match time {
@@ -108,5 +123,10 @@ fn main() {
 
         // Wait for the next tick.
         clock.tick();
+
+        if !player_printed {
+            println!("Players online: {:?}", client.players().collect::<Vec<_>>());
+            player_printed = true;
+        }
     }
 }

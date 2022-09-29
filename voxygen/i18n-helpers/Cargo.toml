@@ -1,0 +1,13 @@
+[package]
+authors = ["juliancoffee <lightdarkdaughter@gmail.com>"]
+edition = "2021"
+name = "veloren-voxygen-i18n-helpers"
+description = "Crate for internalization and diagnostic of existing localizations."
+version = "0.10.0"
+
+[dependencies]
+common-net = {package = "veloren-common-net", path = "../../common/net"}
+common = {package = "veloren-common", path = "../../common"}
+i18n = {package = "veloren-client-i18n", path = "../../client/i18n"}
+# Utility
+tracing = "0.1"

@@ -1,4 +1,6 @@
 hud-chat-all = Alle
+hud-chat-you = Du
+hud-chat-mod = Mod
 hud-chat-chat_tab_hover_tooltip = Rechtsklick für Einstellungen
 hud-outcome-burning = An Verbrennung gestorben
 hud-outcome-curse = An Verfluchung gestorben
