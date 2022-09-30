@@ -2643,7 +2643,7 @@ impl Client {
 
     /// Get important information from client that is necessary for message
     /// localisation
-    pub fn lockup_msg_context(&self, msg: &comp::ChatMsg) -> ChatTypeContext {
+    pub fn lookup_msg_context(&self, msg: &comp::ChatMsg) -> ChatTypeContext {
         let mut result = ChatTypeContext {
             you: self.uid().expect("Client doesn't have a Uid!!!"),
             player_alias: HashMap::new(),
@@ -2861,7 +2861,7 @@ mod tests {
                             let msg: comp::ChatMsg = msg;
                             let _s: String = localize_chat_message(
                                 msg,
-                                |msg| client.lockup_msg_context(msg),
+                                |msg| client.lookup_msg_context(msg),
                                 &localisation.read(),
                                 true,
                             )
