@@ -421,7 +421,7 @@ impl<'a> Widget for Chat<'a> {
             .map(|m| {
                 localize_chat_message(
                     m.clone(),
-                    |msg| self.client.lockup_msg_context(msg),
+                    |msg| self.client.lookup_msg_context(msg),
                     self.localized_strings,
                     show_char_name,
                 )

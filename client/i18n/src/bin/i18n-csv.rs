@@ -1,6 +1,6 @@
 use common_assets::find_root;
 use std::{fs, io::Write, path::Path};
-use veloren_voxygen_i18n::{
+use veloren_client_i18n::{
     analysis::{Language, ReferenceLanguage},
     list_localizations, REFERENCE_LANG,
 };
@@ -26,7 +26,7 @@ fn main() {
             .and_then(|s| s.to_str())
             .unwrap_or("<err>");
 
-        format!("{file}")
+        file.to_string()
     };
     for meta in list {
         let code = meta.language_identifier;

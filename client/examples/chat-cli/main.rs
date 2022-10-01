@@ -99,7 +99,7 @@ fn main() {
                     "{}",
                     localize_chat_message(
                         m,
-                        |msg| client.lockup_msg_context(msg),
+                        |msg| client.lookup_msg_context(msg),
                         &localisation.read(),
                         SHOW_NAME,
                     )

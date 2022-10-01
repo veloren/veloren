@@ -1,6 +1,6 @@
 use clap::{Arg, Command};
 use common_assets::find_root;
-use veloren_voxygen_i18n::{
+use veloren_client_i18n::{
     analysis::{Language, ReferenceLanguage},
     REFERENCE_LANG,
 };
