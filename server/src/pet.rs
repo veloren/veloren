@@ -1,6 +1,9 @@
 use crate::{client::Client, events::update_map_markers};
 use common::{
-    comp::{self, anchor::Anchor, group::GroupManager, Agent, Alignment, Pet},
+    comp::{
+        self, anchor::Anchor, group::GroupManager, Agent, Alignment, Behavior, BehaviorCapability,
+        Pet, TradingBehavior,
+    },
     uid::Uid,
 };
 use common_net::msg::ServerGeneral;
@@ -51,9 +54,11 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
 
     // Create an agent for this entity using its body
     if let Some(body) = ecs.read_storage().get(pet_entity) {
-        let _ = ecs
-            .write_storage()
-            .insert(pet_entity, Agent::from_body(body));
+        let mut agent = Agent::from_body(body).with_behavior(
+            Behavior::default().maybe_with_capabilities(Some(BehaviorCapability::TRADE)),
+        );
+        agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
+        let _ = ecs.write_storage().insert(pet_entity, agent);
     }
 
     // Add to group system

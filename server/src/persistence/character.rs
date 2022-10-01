@@ -349,7 +349,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
             Ok(CharacterItem {
                 character: char,
                 body: char_body,
-                inventory: Inventory::with_loadout_humanoid(loadout),
+                inventory: Inventory::with_loadout(loadout, char_body),
             })
         })
         .collect()

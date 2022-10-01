@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   extra ghost slider cursor when set above the limit (instead of snapping back to the limit).
   Limits on the view distance by the server no longer affect the settings saved on the client.
 - HQX upscaling shader for people playing on low internal resolutions
+- Pets can now be traded with.
 
 ### Changed
 - Use fluent for translations
@@ -54,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moderators and admins are no longer blocked from logging in when there are too many players.
 - FXAA now behaves correctly at non-1.0x internal resolutions
 - Pets no longer aggro on pet owners after being healed
+- Pets no longer lose their intrinsic weapons/armour when loaded on login.
 
 ## [0.13.0] - 2022-07-23
 

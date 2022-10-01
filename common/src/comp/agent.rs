@@ -86,6 +86,7 @@ bitflags::bitflags! {
     #[derive(Default)]
     pub struct BehaviorCapability: u8 {
         const SPEAK = 0b00000001;
+        const TRADE = 0b00000010;
     }
 }
 bitflags::bitflags! {
@@ -93,6 +94,26 @@ bitflags::bitflags! {
     pub struct BehaviorState: u8 {
         const TRADING        = 0b00000001;
         const TRADING_ISSUER = 0b00000010;
+    }
+}
+
+#[derive(Default, Copy, Clone, Debug)]
+pub enum TradingBehavior {
+    #[default]
+    None,
+    RequireBalanced {
+        trade_site: SiteId,
+    },
+    AcceptFood,
+}
+
+impl TradingBehavior {
+    fn can_trade(&self, alignment: Option<Alignment>, counterparty: Uid) -> bool {
+        match self {
+            TradingBehavior::RequireBalanced { .. } => true,
+            TradingBehavior::AcceptFood => alignment == Some(Alignment::Owned(counterparty)),
+            TradingBehavior::None => false,
+        }
     }
 }
 
@@ -105,7 +126,7 @@ bitflags::bitflags! {
 pub struct Behavior {
     capabilities: BehaviorCapability,
     state: BehaviorState,
-    pub trade_site: Option<SiteId>,
+    pub trading_behavior: TradingBehavior,
 }
 
 impl From<BehaviorCapability> for Behavior {
@@ -113,7 +134,7 @@ impl From<BehaviorCapability> for Behavior {
         Behavior {
             capabilities,
             state: BehaviorState::default(),
-            trade_site: None,
+            trading_behavior: TradingBehavior::None,
         }
     }
 }
@@ -136,7 +157,9 @@ impl Behavior {
     /// Set trade_site if Option is Some
     #[must_use]
     pub fn with_trade_site(mut self, trade_site: Option<SiteId>) -> Self {
-        self.trade_site = trade_site;
+        if let Some(trade_site) = trade_site {
+            self.trading_behavior = TradingBehavior::RequireBalanced { trade_site };
+        }
         self
     }
 
@@ -156,7 +179,9 @@ impl Behavior {
     }
 
     /// Check if the Behavior is able to trade
-    pub fn can_trade(&self) -> bool { self.trade_site.is_some() }
+    pub fn can_trade(&self, alignment: Option<Alignment>, counterparty: Uid) -> bool {
+        self.trading_behavior.can_trade(alignment, counterparty)
+    }
 
     /// Set a state to the Behavior
     pub fn set(&mut self, state: BehaviorState) { self.state.set(state, true) }
@@ -166,6 +191,15 @@ impl Behavior {
 
     /// Check if the Behavior has a specific state
     pub fn is(&self, state: BehaviorState) -> bool { self.state.contains(state) }
+
+    /// Get the trade site at which this behavior evaluates prices, if it does
+    pub fn trade_site(&self) -> Option<SiteId> {
+        if let TradingBehavior::RequireBalanced { trade_site } = self.trading_behavior {
+            Some(trade_site)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default)]

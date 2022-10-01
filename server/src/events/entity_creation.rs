@@ -7,9 +7,9 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        shockwave, Agent, Alignment, Anchor, Body, Health, Inventory, ItemDrop, LightEmitter,
-        Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats, Vel,
-        WaypointArea,
+        shockwave, Agent, Alignment, Anchor, BehaviorCapability, Body, Health, Inventory, ItemDrop,
+        LightEmitter, Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats,
+        TradingBehavior, Vel, WaypointArea,
     },
     event::{EventBus, UpdateCharacterMetadata},
     lottery::LootSpec,
@@ -98,10 +98,19 @@ pub fn handle_create_npc(
     let entity = server
         .state
         .create_npc(pos, stats, skill_set, health, poise, inventory, body)
-        .with(scale)
-        .with(alignment);
+        .with(scale);
 
-    let entity = if let Some(agent) = agent.into() {
+    let mut agent = agent.into();
+    if let Some(agent) = &mut agent {
+        if let Alignment::Owned(_) = &alignment {
+            agent.behavior.allow(BehaviorCapability::TRADE);
+            agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
+        }
+    }
+
+    let entity = entity.with(alignment);
+
+    let entity = if let Some(agent) = agent {
         entity.with(agent)
     } else {
         entity

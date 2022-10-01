@@ -26,7 +26,7 @@ use common::{
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
-    ViewDistances,
+    LoadoutBuilder, ViewDistances,
 };
 use common_net::{
     msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
@@ -651,7 +651,10 @@ impl StateExt for State {
                             comp::SkillSet::default(),
                             Some(comp::Health::new(body, DEFAULT_PET_HEALTH_LEVEL)),
                             Poise::new(body),
-                            Inventory::with_empty(),
+                            Inventory::with_loadout(
+                                LoadoutBuilder::from_default(&body).build(),
+                                body,
+                            ),
                             body,
                         )
                         .with(comp::Scale(1.0))

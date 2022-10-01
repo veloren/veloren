@@ -55,7 +55,10 @@ pub use self::{
         MAX_ABILITIES,
     },
     admin::{Admin, AdminRole},
-    agent::{Agent, Alignment, Behavior, BehaviorCapability, BehaviorState, PidController},
+    agent::{
+        Agent, Alignment, Behavior, BehaviorCapability, BehaviorState, PidController,
+        TradingBehavior,
+    },
     anchor::Anchor,
     aura::{Aura, AuraChange, AuraKind, Auras},
     beam::{Beam, BeamSegment},

@@ -2103,12 +2103,18 @@ impl Hud {
                         },
                         Some(comp::Alignment::Owned(owner))
                             if Some(*owner) == client.uid()
-                                && !client.is_riding()
-                                && is_mount.is_none()
-                                && is_mountable(body, bodies.get(client.entity()))
                                 && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
                         {
-                            vec![(GameInput::Mount, i18n.get_msg("hud-mount").to_string())]
+                            let mut options =
+                                vec![(GameInput::Trade, i18n.get_msg("hud-trade").to_string())];
+                            if !client.is_riding()
+                                && is_mount.is_none()
+                                && is_mountable(body, bodies.get(client.entity()))
+                            {
+                                options
+                                    .push((GameInput::Mount, i18n.get_msg("hud-mount").to_string()))
+                            }
+                            options
                         },
                         _ => Vec::new(),
                     },
