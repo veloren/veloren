@@ -24,7 +24,7 @@ hud-trade-sell = Verkaufspreis: { $coin_num ->
     [one] 1 Münze
     *[other] { $coin_formatted } Münzen
     }
-hud-trade-tooltip_hint_1 = <Shift-Klick zum hinzufügen/entfernen der Waren.>
+hud-trade-tooltip_hint_1 = <Shift-Klick zum Hinzufügen/Entfernen der Waren.>
 hud-trade-tooltip_hint_2 = <Strg-Klick zum Auto-Ausgleich des Handels.>
 hud-trade-your_offer = Dein Angebot
 hud-trade-their_offer = Deren Angebot
