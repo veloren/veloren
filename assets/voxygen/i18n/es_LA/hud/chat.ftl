@@ -1,10 +1,10 @@
 hud-chat-all = Todos
 hud-chat-chat_tab_hover_tooltip = Haga clic derecho para configurar
-hud-outcome-burning = murio de: quemarse
-hud-outcome-curse = murio de: maldición
-hud-outcome-bleeding = murio de: sangrado
-hud-outcome-crippled = murio de: paralisis
-hud-outcome-frozen = murio: congelado
+hud-outcome-burning = murió de: quemaduras
+hud-outcome-curse = murió de: maldición
+hud-outcome-bleeding = murió de: sangrado
+hud-outcome-crippled = murió de: parálisis
+hud-outcome-frozen = murió: congelado
 hud-chat-online_msg = [{ $name }] se ha conectado.
 hud-chat-offline_msg = [{ $name }] se ha desconectado.
 hud-chat-default_death_msg = [{ $name }] murió
