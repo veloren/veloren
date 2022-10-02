@@ -1890,6 +1890,15 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
+/// LANTERN
+    "black lantern": (
+        output: ("common.items.lantern.black_0", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.tin"), 5, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
 /// MODULAR WEAPONS/SWORDS/SECONDARY COMPONENTS
     "short hilt": (
         output: ("common.items.modular.weapon.secondary.sword.short", 1),

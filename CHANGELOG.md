@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Limits on the view distance by the server no longer affect the settings saved on the client.
 - HQX upscaling shader for people playing on low internal resolutions
 - Pets can now be traded with.
+- Crafting recipe for black lantern
 
 ### Changed
 - Use fluent for translations
