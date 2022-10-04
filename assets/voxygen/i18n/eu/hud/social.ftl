@@ -6,5 +6,5 @@ hud-social-faction = Taldea
 hud-social-play_online_fmt = { $nb_player } jokalari daude online
 hud-social-name = Izena
 hud-social-level = Maila
-hud-social-zone = Zona
+hud-social-zone = Ingurua
 hud-social-account = Kontua

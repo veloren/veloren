@@ -8,6 +8,7 @@ hud-map-dungeons = Ziegak
 hud-map-caves = Kobak
 hud-map-cave = Koba
 hud-map-peaks = Mendiak
+hud-map-biomes = Biomak
 hud-map-voxel_map = Voxel mapa
 hud-map-trees = Zuhaitz erraldoiak
 hud-map-tree = Zuhaitz erraldoia
@@ -29,3 +30,6 @@ hud-map-toggle_minimap_voxel = Erakutsi edo ezkutatu minimapa
 hud-map-zoom_minimap_explanation =
     Handiagotu minimapa zure ingurua
     hobeto ikusteko
+hud-map-chapel_site = Itsasoko Kapera
+hud-map-placed_by = { $name }(e)k jarria
+
