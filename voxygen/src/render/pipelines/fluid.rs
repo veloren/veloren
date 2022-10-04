@@ -131,7 +131,7 @@ impl FluidPipeline {
                         alpha: wgpu::BlendComponent {
                             src_factor: wgpu::BlendFactor::One,
                             dst_factor: wgpu::BlendFactor::One,
-                            operation: wgpu::BlendOperation::Add,
+                            operation: wgpu::BlendOperation::Min,
                         },
                     }),
                     write_mask: wgpu::ColorWrite::ALL,
