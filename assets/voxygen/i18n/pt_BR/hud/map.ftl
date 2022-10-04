@@ -31,4 +31,5 @@ hud-map-zoom_minimap_explanation =
     Dê zoom no minimapa para ver
     sua área em maior detalhes
 hud-map-gnarling = Fortificação Retorcida
+hud-map-chapel_site = Capela Marítima
 hud-map-placed_by = Marcado por { $name }
