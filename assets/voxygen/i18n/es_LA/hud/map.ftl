@@ -1,6 +1,6 @@
 hud-map-map_title = Mapa
 hud-map-qlog_title = Misiones
-hud-map-topo_map = Fisico
+hud-map-topo_map = Físico
 hud-map-difficulty = Dificultad
 hud-map-towns = Pueblos
 hud-map-castles = Castillos

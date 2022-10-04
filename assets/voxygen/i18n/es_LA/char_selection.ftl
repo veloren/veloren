@@ -21,4 +21,4 @@ char_selection-skin = Color de Piel
 char_selection-eyeshape = Detalles de los Ojos
 char_selection-accessories = Accesorios
 char_selection-create_info_name = Tu Personaje necesita un nombre!
-char_selection-version_mismatch = ¡ADVERTENCIA! Este servidor está ejecutando una versión de juego diferente, posiblemente incompatible. Actualiza tu juego.
+char_selection-version_mismatch = ¡ADVERTENCIA! Este servidor está ejecutando una versión de juego diferente, posiblemente incompatible. Actualice su juego.
