@@ -489,6 +489,7 @@ pub fn handle_inbox_finished_trade(bdata: &mut BehaviorData) -> bool {
                 },
             }
             agent.behavior.unset(BehaviorState::TRADING);
+            agent.target = None;
         }
     }
     true
@@ -559,6 +560,7 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                         if pending.phase != TradePhase::Mutate {
                             // we got into the review phase but without balanced goods, decline
                             agent.behavior.unset(BehaviorState::TRADING);
+                            agent.target = None;
                             event_emitter.emit(ServerEvent::ProcessTradeAction(
                                 *agent_data.entity,
                                 tradeid,
@@ -601,6 +603,7 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                 },
                 TradingBehavior::None => {
                     agent.behavior.unset(BehaviorState::TRADING);
+                    agent.target = None;
                     event_emitter.emit(ServerEvent::ProcessTradeAction(
                         *agent_data.entity,
                         tradeid,
@@ -691,6 +694,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                         },
                     }
                     agent.behavior.unset(BehaviorState::TRADING);
+                    agent.target = None;
                 }
                 true
             },
@@ -698,6 +702,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                 // immediately cancel the trade
                 let (tradeid, _pending, _prices, _inventories) = &**boxval;
                 agent.behavior.unset(BehaviorState::TRADING);
+                agent.target = None;
                 event_emitter.emit(ServerEvent::ProcessTradeAction(
                     *agent_data.entity,
                     *tradeid,
