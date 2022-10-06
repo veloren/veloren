@@ -148,20 +148,20 @@ impl CharacterBehavior for Data {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ScalingTarget {
     Attack,
     Buff,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ScalingKind {
     // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at double minimum
     // combo
     Linear,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Scaling {
     pub target: ScalingTarget,
     pub kind: ScalingKind,

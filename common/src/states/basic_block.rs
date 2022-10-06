@@ -8,7 +8,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParryWindow {
     pub buildup: bool,
     pub recover: bool,

@@ -235,7 +235,7 @@ pub enum AbilityInput {
     Auxiliary(usize),
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Ability {
     ToolPrimary,
     ToolSecondary,
@@ -2581,7 +2581,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct AbilityMeta {
     pub kind: Option<AbilityKind>,
@@ -2591,12 +2591,12 @@ pub struct AbilityMeta {
 
 // Only extend this if it is needed to control certain functionality of
 // abilities
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AbilityKind {
     Sword(SwordStance),
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SwordStance {
     Balanced,
     Offensive,

@@ -51,20 +51,17 @@ pub struct TargetData<'a> {
     pub body: Option<&'a Body>,
     pub scale: Option<&'a Scale>,
     pub char_state: Option<&'a CharacterState>,
+    pub health: Option<&'a Health>,
 }
 
 impl<'a> TargetData<'a> {
-    pub fn new(
-        pos: &'a Pos,
-        body: Option<&'a Body>,
-        scale: Option<&'a Scale>,
-        char_state: Option<&'a CharacterState>,
-    ) -> Self {
+    pub fn new(pos: &'a Pos, target: EcsEntity, read_data: &'a ReadData) -> Self {
         Self {
             pos,
-            body,
-            scale,
-            char_state,
+            body: read_data.bodies.get(target),
+            scale: read_data.scales.get(target),
+            char_state: read_data.char_states.get(target),
+            health: read_data.healths.get(target),
         }
     }
 }

@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{
-        ability::{self, ActiveAbilities, AuxiliaryAbility},
+        ability::{self, AbilityKind, ActiveAbilities, AuxiliaryAbility},
         buff::BuffKind,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
@@ -420,6 +420,20 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
+        struct ComboMeleeData {
+            min_range: f32,
+            max_range: f32,
+            angle: f32,
+            energy: f32,
+        }
+        impl ComboMeleeData {
+            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+                attack_data.dist_sqrd < self.max_range.powi(2)
+                    && attack_data.dist_sqrd > self.min_range.powi(2)
+                    && attack_data.angle < self.angle
+                    && agent_data.energy.current() >= self.energy
+            }
+        }
         struct FinisherMeleeData {
             range: f32,
             angle: f32,
@@ -434,6 +448,15 @@ impl<'a> AgentData<'a> {
                     && agent_data
                         .combo
                         .map_or(false, |c| c.counter() >= self.combo)
+            }
+
+            fn use_desirable(&self, tgt_data: &TargetData, agent_data: &AgentData) -> bool {
+                let combo_factor =
+                    agent_data.combo.map_or(0, |c| c.counter()) as f32 / self.combo as f32 * 2.0;
+                let tgt_health_factor = tgt_data.health.map_or(0.0, |h| h.current()) / 50.0;
+                let self_health_factor = agent_data.health.map_or(0.0, |h| h.current()) / 50.0;
+                // Use becomes more desirable if either self or target is close to death
+                combo_factor > tgt_health_factor.min(self_health_factor)
             }
         }
         use ability::SwordStance;
@@ -482,10 +505,10 @@ impl<'a> AgentData<'a> {
                 SwordStance::Offensive => {
                     // Offensive combo
                     set_sword_ability(0, 1);
-                    // Offensive finisher
-                    set_sword_ability(1, 2);
                     // Offensive advance
-                    set_sword_ability(2, 3);
+                    set_sword_ability(1, 3);
+                    // Offensive finisher
+                    set_sword_ability(2, 2);
                     // Balanced finisher
                     set_sword_ability(3, 0);
                 },
@@ -590,12 +613,20 @@ impl<'a> AgentData<'a> {
         // ability. Only contains tactics for using M1 and M2
         let fallback_rng_1 = rng.gen::<f32>() < 0.67;
         let fallback_tactics = |agent: &mut Agent, controller: &mut Controller| {
-            const BALANCED_COMBO_RANGE: f32 = 2.5;
-            const BALANCED_COMBO_ANGLE: f32 = 40.0;
-            const BALANCED_THRUST_RANGE: f32 = 4.0;
-            const BALANCED_THRUST_ANGLE: f32 = 8.0;
-            let balanced_thrust_targetable = attack_data.dist_sqrd < BALANCED_THRUST_RANGE.powi(2)
-                && attack_data.angle < BALANCED_THRUST_ANGLE;
+            const BALANCED_COMBO: ComboMeleeData = ComboMeleeData {
+                min_range: 0.0,
+                max_range: 2.5,
+                angle: 40.0,
+                energy: 0.0,
+            };
+            const BALANCED_THRUST: ComboMeleeData = ComboMeleeData {
+                min_range: 0.0,
+                max_range: 4.0,
+                angle: 8.0,
+                energy: 0.0,
+            };
+
+            let balanced_thrust_targetable = BALANCED_THRUST.could_use(attack_data, self);
 
             if (matches!(self.char_state, CharacterState::ChargedMelee(c) if c.charge_amount < 0.95)
                 || matches!(
@@ -608,27 +639,37 @@ impl<'a> AgentData<'a> {
                 // that needs charging), thrust
                 // Or if already thrusting, keep thrussting
                 controller.push_basic_input(InputKind::Secondary);
-            } else if attack_data.dist_sqrd < BALANCED_COMBO_RANGE.powi(2)
-                && attack_data.angle < BALANCED_COMBO_ANGLE
-                && fallback_rng_1
-            {
+            } else if BALANCED_COMBO.could_use(attack_data, self) && fallback_rng_1 {
                 controller.push_basic_input(InputKind::Primary);
             } else if balanced_thrust_targetable {
                 controller.push_basic_input(InputKind::Secondary);
             }
 
-            advance(agent, controller, 1.5, BALANCED_COMBO_ANGLE);
+            advance(agent, controller, 1.5, BALANCED_COMBO.angle);
+        };
+
+        let in_stance = |stance| {
+            if let CharacterState::ComboMelee2(c) = self.char_state {
+                c.static_data.is_stance
+                    && c.static_data
+                        .ability_info
+                        .ability_meta
+                        .and_then(|meta| meta.kind)
+                        .map_or(false, |kind| AbilityKind::Sword(stance) == kind)
+            } else {
+                false
+            }
+        };
+
+        const BALANCED_FINISHER: FinisherMeleeData = FinisherMeleeData {
+            range: 2.5,
+            angle: 12.5,
+            energy: 30.0,
+            combo: 10,
         };
 
         match stance(agent.action_state.int_counter) {
             SwordStance::Balanced => {
-                const BALANCED_FINISHER: FinisherMeleeData = FinisherMeleeData {
-                    range: 2.5,
-                    angle: 12.5,
-                    energy: 30.0,
-                    combo: 10,
-                };
-
                 if self
                     .skill_set
                     .has_skill(Skill::Sword(SwordSkill::BalancedFinisher))
@@ -646,7 +687,89 @@ impl<'a> AgentData<'a> {
                 }
             },
             SwordStance::Offensive => {
-                fallback_tactics(agent, controller);
+                const OFFENSIVE_COMBO: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 2.0,
+                    angle: 30.0,
+                    energy: 5.0,
+                };
+                const OFFENSIVE_ADVANCE: ComboMeleeData = ComboMeleeData {
+                    min_range: 6.0,
+                    max_range: 10.0,
+                    angle: 20.0,
+                    energy: 10.0,
+                };
+                const OFFENSIVE_FINISHER: FinisherMeleeData = FinisherMeleeData {
+                    range: 2.0,
+                    angle: 10.0,
+                    energy: 40.0,
+                    combo: 10,
+                };
+                const DESIRED_ENERGY: f32 = 50.0;
+
+                if self.energy.current() < DESIRED_ENERGY {
+                    fallback_tactics(agent, controller);
+                } else if !in_stance(SwordStance::Offensive) {
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else {
+                    let used_finisher = if self
+                        .skill_set
+                        .has_skill(Skill::Sword(SwordSkill::OffensiveFinisher))
+                    {
+                        if OFFENSIVE_FINISHER.could_use(attack_data, self)
+                            && OFFENSIVE_FINISHER.use_desirable(tgt_data, self)
+                        {
+                            controller.push_basic_input(InputKind::Ability(2));
+                            advance(
+                                agent,
+                                controller,
+                                OFFENSIVE_FINISHER.range,
+                                OFFENSIVE_FINISHER.angle,
+                            );
+                            true
+                        } else {
+                            false
+                        }
+                    } else if BALANCED_FINISHER.could_use(attack_data, self) {
+                        controller.push_basic_input(InputKind::Ability(3));
+                        advance(
+                            agent,
+                            controller,
+                            BALANCED_FINISHER.range,
+                            BALANCED_FINISHER.angle,
+                        );
+                        true
+                    } else {
+                        false
+                    };
+
+                    if !used_finisher {
+                        if OFFENSIVE_COMBO.could_use(attack_data, self) {
+                            controller.push_basic_input(InputKind::Primary);
+                            advance(
+                                agent,
+                                controller,
+                                OFFENSIVE_COMBO.max_range,
+                                OFFENSIVE_COMBO.angle,
+                            );
+                        } else if OFFENSIVE_ADVANCE.could_use(attack_data, self) {
+                            controller.push_basic_input(InputKind::Ability(1));
+                            advance(
+                                agent,
+                                controller,
+                                OFFENSIVE_ADVANCE.max_range,
+                                OFFENSIVE_ADVANCE.angle,
+                            );
+                        } else {
+                            advance(
+                                agent,
+                                controller,
+                                OFFENSIVE_COMBO.max_range,
+                                OFFENSIVE_COMBO.angle,
+                            );
+                        }
+                    }
+                }
             },
             SwordStance::Defensive => {
                 fallback_tactics(agent, controller);
