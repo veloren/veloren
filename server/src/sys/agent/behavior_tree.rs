@@ -86,7 +86,6 @@ impl BehaviorTree {
                 do_hostile_tree_if_hostile,
                 do_pet_tree_if_owned,
                 do_pickup_loot,
-                untarget,
                 do_idle_tree,
             ],
         }
@@ -339,6 +338,7 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
                             .controller
                             .push_event(ControlEvent::InventoryEvent(InventoryEvent::Pickup(*uid)));
                     }
+                    bdata.agent.target = None;
                 } else if let Some((bearing, speed)) = bdata.agent.chaser.chase(
                     &*bdata.read_data.terrain,
                     bdata.agent_data.pos.0,
@@ -359,14 +359,6 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
             return true;
         }
     }
-    false
-}
-
-/// Reset the agent's target
-///
-/// This function will never stop the BehaviorTree
-fn untarget(bdata: &mut BehaviorData) -> bool {
-    bdata.agent.target = None;
     false
 }
 

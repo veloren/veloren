@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FXAA now behaves correctly at non-1.0x internal resolutions
 - Pets no longer aggro on pet owners after being healed
 - Pets no longer lose their intrinsic weapons/armour when loaded on login.
+- Fixed npcs using `/say` instead of `/tell`
 
 ## [0.13.0] - 2022-07-23
 
