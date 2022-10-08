@@ -220,7 +220,7 @@
         ),
         // Misc Sets
         "Alchemist": (
-            protection: Some(Normal(160.0)),
+            protection: Some(Normal(120.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
@@ -231,17 +231,17 @@
             poise_resilience: Some(Normal(5.0)),
         ),
         "Blacksmith": (
-            protection: Some(Normal(160.0)),
+            protection: Some(Normal(120.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
         "Bonerattler": (
-            protection: Some(Normal(100.0)),
+            protection: Some(Normal(80.0)),
         ),
         "Chef": (
-            protection: Some(Normal(160.0)),
+            protection: Some(Normal(120.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
@@ -257,61 +257,61 @@
             protection: Some(Normal(5.0)),
         ),
         "Cultist": (
-            protection: Some(Normal(150.0)),
+            protection: Some(Normal(100.0)),
             poise_resilience: Some(Normal(20.0)),
-            energy_max: Some(45.0),
-            energy_reward: Some(0.5),
-            crit_power: Some(0.4),
+            energy_max: Some(30.0),
+            energy_reward: Some(0.4),
+            crit_power: Some(0.25),
             stealth: Some(0.4),
         ),
         "Ferocious": (
-            protection: Some(Normal(240.0)),
+            protection: Some(Normal(180.0)),
         ),
         "Leather Plate": (
-            protection: Some(Normal(160.0)),
-            poise_resilience: Some(Normal(40.0)),
+            protection: Some(Normal(120.0)),
+            poise_resilience: Some(Normal(30.0)),
         ),
         "Merchant": (
-            protection: Some(Normal(160.0)),
+            protection: Some(Normal(120.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
         "Pirate": (
-            protection: Some(Normal(160.0)),
+            protection: Some(Normal(120.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
         "Savage": (
-            protection: Some(Normal(100.0)),
+            protection: Some(Normal(60.0)),
         ),
         "Tarasque": (
-            protection: Some(Normal(100.0)),
+            protection: Some(Normal(60.0)),
         ),
         "Twigs": (
-            protection: Some(Normal(60.0)),
+            protection: Some(Normal(20.0)),
         ),
         "Twigs Flowers": (
-            protection: Some(Normal(60.0)),
+            protection: Some(Normal(20.0)),
         ),
         "Twigs Leaves": (
-            protection: Some(Normal(60.0)),
+            protection: Some(Normal(20.0)),
         ),
         "Velorite Battlemage": (
-            protection: Some(Normal(115.0)),
+            protection: Some(Normal(100.0)),
         ),
         "Witch": (
-            protection: Some(Normal(160.0)),
+            protection: Some(Normal(120.0)),
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
             crit_power: Some(0.4),
         ),
         "Cardinal": (
-            protection: Some(Normal(666.0)),
+            protection: Some(Normal(540.0)),
             poise_resilience: Some(Normal(60.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
