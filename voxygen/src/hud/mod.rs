@@ -84,7 +84,7 @@ use common::{
     combat,
     comp::{
         self,
-        ability::AuxiliaryAbility,
+        ability::{self, AuxiliaryAbility},
         fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
@@ -553,36 +553,55 @@ impl<'a> BuffIcon<'a> {
         }
     }
 
-    pub fn icons_vec(
-        buffs: &comp::Buffs,
-        char_state: &comp::CharacterState,
-        inv: Option<&'a comp::Inventory>,
-    ) -> Vec<Self> {
+    pub fn icons_vec(buffs: &comp::Buffs, char_state: &comp::CharacterState) -> Vec<Self> {
         buffs
             .iter_active()
             .map(BuffIcon::from_buff)
-            .chain(BuffIcon::from_char_state(char_state, inv).into_iter())
+            .chain(BuffIcon::from_char_state(char_state).into_iter())
             .collect::<Vec<_>>()
     }
 
-    fn from_char_state(
-        char_state: &comp::CharacterState,
-        inv: Option<&'a comp::Inventory>,
-    ) -> Option<Self> {
-        let ability_id = || {
-            char_state
-                .ability_info()
-                .and_then(|info| info.ability)
-                .and_then(|ability| ability.ability_id(inv))
-        };
-        use comp::CharacterState::*;
-        match char_state {
-            ComboMelee2(data) if data.static_data.is_stance => ability_id().map(|id| BuffIcon {
+    fn from_char_state(char_state: &comp::CharacterState) -> Option<Self> {
+        use ability::{AbilityKind, SwordStance};
+        if let Some(ability_kind) = char_state
+            .ability_info()
+            .and_then(|info| info.ability_meta)
+            .and_then(|meta| meta.kind)
+        {
+            let id = match ability_kind {
+                AbilityKind::Sword(SwordStance::Balanced) => {
+                    "common.abilities.sword.balanced_combo"
+                },
+                AbilityKind::Sword(SwordStance::Offensive) => {
+                    "common.abilities.sword.offensive_combo"
+                },
+                AbilityKind::Sword(SwordStance::Crippling) => {
+                    "common.abilities.sword.crippling_combo"
+                },
+                AbilityKind::Sword(SwordStance::Cleaving) => {
+                    "common.abilities.sword.cleaving_combo"
+                },
+                AbilityKind::Sword(SwordStance::Defensive) => {
+                    "common.abilities.sword.defensive_combo"
+                },
+                AbilityKind::Sword(SwordStance::Parrying) => {
+                    "common.abilities.sword.parrying_combo"
+                },
+                AbilityKind::Sword(SwordStance::Heavy) => "common.abilities.sword.heavy_combo",
+                AbilityKind::Sword(SwordStance::Mobility) => {
+                    "common.abilities.sword.mobility_combo"
+                },
+                AbilityKind::Sword(SwordStance::Reaching) => {
+                    "common.abilities.sword.reaching_combo"
+                },
+            };
+            Some(BuffIcon {
                 kind: BuffIconKind::Ability { ability_id: id },
                 is_buff: true,
                 dur: None,
-            }),
-            _ => None,
+            })
+        } else {
+            None
         }
     }
 
@@ -2197,7 +2216,6 @@ impl Hud {
                             } else {
                                 0.0
                             },
-                            inventory,
                             char_state,
                         });
                         // Only render bubble if nearby or if its me and setting is on
@@ -3027,12 +3045,11 @@ impl Hud {
         }
 
         // Buffs
-        if let (Some(player_buffs), Some(health), Some(energy), Some(char_state), Some(inventory)) = (
+        if let (Some(player_buffs), Some(health), Some(energy), Some(char_state)) = (
             buffs.get(info.viewpoint_entity),
             healths.get(entity),
             energies.get(entity),
             char_states.get(entity),
-            inventories.get(entity),
         ) {
             for event in BuffsBar::new(
                 &self.imgs,
@@ -3046,7 +3063,6 @@ impl Hud {
                 global_state,
                 health,
                 energy,
-                inventory,
             )
             .set(self.ids.buffs, ui_widgets)
             {

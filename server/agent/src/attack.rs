@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{
-        ability::{self, AbilityKind, ActiveAbilities, AuxiliaryAbility},
+        ability::{self, AbilityKind, ActiveAbilities, AuxiliaryAbility, Capability},
         buff::BuffKind,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
@@ -459,6 +459,21 @@ impl<'a> AgentData<'a> {
                 combo_factor > tgt_health_factor.min(self_health_factor)
             }
         }
+        struct SelfBuffData {
+            buff: BuffKind,
+            energy: f32,
+        }
+        impl SelfBuffData {
+            fn could_use(&self, agent_data: &AgentData) -> bool {
+                agent_data.energy.current() >= self.energy
+            }
+
+            fn use_desirable(&self, agent_data: &AgentData) -> bool {
+                agent_data
+                    .buffs
+                    .map_or(false, |buffs| !buffs.contains(self.buff))
+            }
+        }
         use ability::SwordStance;
         let stance = |stance| match stance {
             1 => SwordStance::Offensive,
@@ -515,10 +530,10 @@ impl<'a> AgentData<'a> {
                 SwordStance::Defensive => {
                     // Defensive combo
                     set_sword_ability(0, 12);
-                    // Defensive bulwark
-                    set_sword_ability(1, 13);
                     // Defensive retreat
-                    set_sword_ability(2, 14);
+                    set_sword_ability(1, 14);
+                    // Defensive bulwark
+                    set_sword_ability(2, 13);
                     // Balanced finisher
                     set_sword_ability(3, 0);
                 },
@@ -772,7 +787,106 @@ impl<'a> AgentData<'a> {
                 }
             },
             SwordStance::Defensive => {
-                fallback_tactics(agent, controller);
+                const DEFENSIVE_COMBO: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 2.5,
+                    angle: 35.0,
+                    energy: 5.0,
+                };
+                const DEFENSIVE_RETREAT: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 3.0,
+                    angle: 35.0,
+                    energy: 10.0,
+                };
+                const DEFENSIVE_BULWARK: SelfBuffData = SelfBuffData {
+                    buff: BuffKind::ProtectingWard,
+                    energy: 40.0,
+                };
+                const DESIRED_ENERGY: f32 = 50.0;
+
+                let mut try_block = || {
+                    if let Some(char_state) = tgt_data.char_state {
+                        matches!(char_state.stage_section(), Some(StageSection::Buildup))
+                            && char_state.is_melee_attack()
+                            && char_state
+                                .timer()
+                                .map_or(false, |timer| rng.gen::<f32>() < timer.as_secs_f32() * 4.0)
+                            && self
+                                .char_state
+                                .ability_info()
+                                .and_then(|a| a.ability_meta)
+                                .map(|m| m.capabilities)
+                                .map_or(false, |c| c.contains(Capability::BLOCK_INTERRUPT))
+                    } else {
+                        false
+                    }
+                };
+
+                if read_data.time.0
+                    - self
+                        .health
+                        .map_or(read_data.time.0, |h| h.last_change.time.0)
+                    < read_data.dt.0 as f64 * 2.0
+                {
+                    // If attacked in last couple ticks, stop standing still
+                    agent.action_state.condition = false;
+                } else if matches!(
+                    self.char_state.ability_info().and_then(|info| info.input),
+                    Some(InputKind::Ability(1))
+                ) {
+                    // If used defensive retreat, stand still for a little bit to bait people
+                    // forward
+                    agent.action_state.condition = true;
+                };
+
+                if self.energy.current() < DESIRED_ENERGY {
+                    fallback_tactics(agent, controller);
+                } else if !in_stance(SwordStance::Defensive) {
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else if DEFENSIVE_BULWARK.could_use(self) && DEFENSIVE_BULWARK.use_desirable(self)
+                {
+                    controller.push_basic_input(InputKind::Ability(2));
+                } else if BALANCED_FINISHER.could_use(attack_data, self)
+                    && BALANCED_FINISHER.use_desirable(tgt_data, self)
+                {
+                    controller.push_basic_input(InputKind::Ability(3));
+                    advance(
+                        agent,
+                        controller,
+                        BALANCED_FINISHER.range,
+                        BALANCED_FINISHER.angle,
+                    );
+                } else if try_block() {
+                    controller.push_basic_input(InputKind::Block);
+                } else if DEFENSIVE_RETREAT.could_use(attack_data, self) && rng.gen::<f32>() < 0.2 {
+                    controller.push_basic_input(InputKind::Ability(1));
+                    if !agent.action_state.condition {
+                        advance(
+                            agent,
+                            controller,
+                            DEFENSIVE_RETREAT.max_range,
+                            DEFENSIVE_RETREAT.angle,
+                        );
+                    }
+                } else if DEFENSIVE_COMBO.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Primary);
+                    if !agent.action_state.condition {
+                        advance(
+                            agent,
+                            controller,
+                            DEFENSIVE_COMBO.max_range,
+                            DEFENSIVE_COMBO.angle,
+                        );
+                    }
+                } else if !agent.action_state.condition {
+                    advance(
+                        agent,
+                        controller,
+                        DEFENSIVE_COMBO.max_range,
+                        DEFENSIVE_COMBO.angle,
+                    );
+                }
             },
             SwordStance::Mobility => {
                 fallback_tactics(agent, controller);

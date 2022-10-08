@@ -9,9 +9,7 @@ use crate::{
     settings::{ControlSettings, InterfaceSettings},
     ui::{fonts::Fonts, Ingameable},
 };
-use common::comp::{
-    Buffs, CharacterState, Energy, Health, Inventory, SpeechBubble, SpeechBubbleType,
-};
+use common::comp::{Buffs, CharacterState, Energy, Health, SpeechBubble, SpeechBubbleType};
 use conrod_core::{
     color,
     position::Align,
@@ -71,7 +69,6 @@ pub struct Info<'a> {
     pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
     pub combat_rating: f32,
-    pub inventory: &'a Inventory,
     pub char_state: &'a CharacterState,
 }
 
@@ -202,7 +199,6 @@ impl<'a> Widget for Overhead<'a> {
             buffs,
             energy,
             combat_rating,
-            inventory,
             char_state,
         }) = self.info
         {
@@ -233,7 +229,7 @@ impl<'a> Widget for Overhead<'a> {
             };
             // Buffs
             // Alignment
-            let buff_icons = BuffIcon::icons_vec(buffs, char_state, Some(inventory));
+            let buff_icons = BuffIcon::icons_vec(buffs, char_state);
             let buff_count = buff_icons.len().min(11);
             Rectangle::fill_with([168.0, 100.0], color::TRANSPARENT)
                 .x_y(-1.0, name_y + 60.0)

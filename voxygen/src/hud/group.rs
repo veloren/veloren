@@ -505,7 +505,7 @@ impl<'a> Widget for Group<'a> {
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
                         .set(state.ids.member_energy[i], ui);
                     if let Some(buffs) = buffs {
-                        let buff_icons = BuffIcon::icons_vec(buffs, char_state, Some(inventory));
+                        let buff_icons = BuffIcon::icons_vec(buffs, char_state);
                         // Limit displayed buffs to 11
                         let buff_count = buff_icons.len().min(11);
                         total_buff_count += buff_count;

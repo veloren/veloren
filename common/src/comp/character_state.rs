@@ -339,6 +339,23 @@ impl CharacterState {
             || matches!(self, CharacterState::Roll(s) if s.stage_section == StageSection::Movement)
     }
 
+    pub fn is_melee_attack(&self) -> bool {
+        matches!(
+            self,
+            CharacterState::BasicMelee(_)
+                | CharacterState::DashMelee(_)
+                | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
+                | CharacterState::LeapMelee(_)
+                | CharacterState::SpinMelee(_)
+                | CharacterState::ChargedMelee(_)
+                | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
+        )
+    }
+
     pub fn can_perform_mounted(&self) -> bool {
         matches!(
             self,
@@ -766,6 +783,50 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
+        }
+    }
+
+    pub fn timer(&self) -> Option<Duration> {
+        match &self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Skate(_) => None,
+            CharacterState::Glide(data) => Some(data.timer),
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(data) => Some(data.timer),
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(data) => Some(data.timer),
+            CharacterState::Roll(data) => Some(data.timer),
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(data) => Some(data.timer),
+            CharacterState::ComboMelee(data) => Some(data.timer),
+            CharacterState::ComboMelee2(data) => Some(data.timer),
+            CharacterState::BasicMelee(data) => Some(data.timer),
+            CharacterState::BasicRanged(data) => Some(data.timer),
+            CharacterState::Boost(data) => Some(data.timer),
+            CharacterState::DashMelee(data) => Some(data.timer),
+            CharacterState::LeapMelee(data) => Some(data.timer),
+            CharacterState::SpinMelee(data) => Some(data.timer),
+            CharacterState::ChargedMelee(data) => Some(data.timer),
+            CharacterState::ChargedRanged(data) => Some(data.timer),
+            CharacterState::RepeaterRanged(data) => Some(data.timer),
+            CharacterState::Shockwave(data) => Some(data.timer),
+            CharacterState::BasicBeam(data) => Some(data.timer),
+            CharacterState::BasicAura(data) => Some(data.timer),
+            CharacterState::Blink(data) => Some(data.timer),
+            CharacterState::BasicSummon(data) => Some(data.timer),
+            CharacterState::SelfBuff(data) => Some(data.timer),
+            CharacterState::SpriteSummon(data) => Some(data.timer),
+            CharacterState::UseItem(data) => Some(data.timer),
+            CharacterState::SpriteInteract(data) => Some(data.timer),
+            CharacterState::FinisherMelee(data) => Some(data.timer),
+            CharacterState::Music(data) => Some(data.timer),
+            CharacterState::DiveMelee(data) => Some(data.timer),
+            CharacterState::RiposteMelee(data) => Some(data.timer),
+            CharacterState::RapidMelee(data) => Some(data.timer),
         }
     }
 

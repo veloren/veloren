@@ -9,7 +9,7 @@ use crate::{
 };
 use i18n::Localization;
 
-use common::comp::{BuffKind, Buffs, CharacterState, Energy, Health, Inventory};
+use common::comp::{BuffKind, Buffs, CharacterState, Energy, Health};
 use conrod_core::{
     color,
     image::Id,
@@ -46,7 +46,6 @@ pub struct BuffsBar<'a> {
     global_state: &'a GlobalState,
     health: &'a Health,
     energy: &'a Energy,
-    inventory: &'a Inventory,
 }
 
 impl<'a> BuffsBar<'a> {
@@ -62,7 +61,6 @@ impl<'a> BuffsBar<'a> {
         global_state: &'a GlobalState,
         health: &'a Health,
         energy: &'a Energy,
-        inventory: &'a Inventory,
     ) -> Self {
         Self {
             imgs,
@@ -77,7 +75,6 @@ impl<'a> BuffsBar<'a> {
             global_state,
             health,
             energy,
-            inventory,
         }
     }
 }
@@ -129,7 +126,7 @@ impl<'a> Widget for BuffsBar<'a> {
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
-        let buff_icons = BuffIcon::icons_vec(self.buffs, self.char_state, Some(self.inventory));
+        let buff_icons = BuffIcon::icons_vec(self.buffs, self.char_state);
         if let BuffPosition::Bar = buff_position {
             let decayed_health = 1.0 - self.health.maximum() / self.health.base_max();
             let show_health = self.global_state.settings.interface.always_show_bars
