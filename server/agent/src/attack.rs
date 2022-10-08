@@ -889,7 +889,106 @@ impl<'a> AgentData<'a> {
                 }
             },
             SwordStance::Mobility => {
-                fallback_tactics(agent, controller);
+                const MOBILITY_COMBO: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 2.5,
+                    angle: 35.0,
+                    energy: 10.0,
+                };
+                const MOBILITY_FEINT: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 3.0,
+                    angle: 35.0,
+                    energy: 10.0,
+                };
+                const MOBILITY_AGILITY: SelfBuffData = SelfBuffData {
+                    buff: BuffKind::Hastened,
+                    energy: 40.0,
+                };
+                const DESIRED_ENERGY: f32 = 50.0;
+
+                let mut try_roll = || {
+                    if let Some(char_state) = tgt_data.char_state {
+                        matches!(char_state.stage_section(), Some(StageSection::Buildup))
+                            && char_state.is_melee_attack()
+                            && char_state
+                                .timer()
+                                .map_or(false, |timer| rng.gen::<f32>() < timer.as_secs_f32() * 4.0)
+                            && matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Recover)
+                            )
+                            && self
+                                .char_state
+                                .ability_info()
+                                .and_then(|a| a.ability_meta)
+                                .map(|m| m.capabilities)
+                                .map_or(false, |c| c.contains(Capability::ROLL_INTERRUPT))
+                    } else {
+                        false
+                    }
+                };
+
+                if matches!(self.char_state, CharacterState::Roll(_)) {
+                    controller.push_basic_input(InputKind::Jump);
+                }
+
+                if self.energy.current() < DESIRED_ENERGY {
+                    fallback_tactics(agent, controller);
+                } else if !in_stance(SwordStance::Mobility) {
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else if MOBILITY_AGILITY.could_use(self) && MOBILITY_AGILITY.use_desirable(self) {
+                    controller.push_basic_input(InputKind::Ability(2));
+                } else if BALANCED_FINISHER.could_use(attack_data, self)
+                    && BALANCED_FINISHER.use_desirable(tgt_data, self)
+                {
+                    controller.push_basic_input(InputKind::Ability(3));
+                    advance(
+                        agent,
+                        controller,
+                        BALANCED_FINISHER.range,
+                        BALANCED_FINISHER.angle,
+                    );
+                } else if try_roll() {
+                    controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                        .xy()
+                        .try_normalized()
+                        .unwrap_or_default();
+                    controller.push_basic_input(InputKind::Roll);
+                } else if MOBILITY_FEINT.could_use(attack_data, self) && rng.gen::<f32>() < 0.3 {
+                    controller.push_basic_input(InputKind::Ability(1));
+                    advance(
+                        agent,
+                        controller,
+                        MOBILITY_FEINT.max_range,
+                        MOBILITY_FEINT.angle,
+                    );
+                } else if MOBILITY_COMBO.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Primary);
+                    advance(
+                        agent,
+                        controller,
+                        MOBILITY_COMBO.max_range,
+                        MOBILITY_COMBO.angle,
+                    );
+                } else {
+                    advance(
+                        agent,
+                        controller,
+                        MOBILITY_COMBO.max_range,
+                        MOBILITY_COMBO.angle,
+                    );
+                }
+
+                if rng.gen::<f32>() < read_data.dt.0 {
+                    agent.action_state.condition = !agent.action_state.condition;
+                }
+                let dir = if agent.action_state.condition {
+                    1.0
+                } else {
+                    -1.0
+                };
+                controller.inputs.move_dir.rotated_z(PI / 4.0 * dir);
             },
             SwordStance::Crippling => {
                 fallback_tactics(agent, controller);
