@@ -500,4 +500,6 @@ pub enum ExperimentalShader {
     NoRainbows,
     /// Make objects appear wet when appropriate.
     Wetness,
+    /// Add screen-space reflections to water.
+    ScreenSpaceReflections,
 }

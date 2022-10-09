@@ -87,7 +87,6 @@ void main() {
     float cloud_blend = 1.0;
     if (color.a < 1.0) {
         cloud_blend = 1.0 - color.a;
-        dist = DIST_CAP;
         //color.rgb = vec3(1, 0, 0);
 
         vec2 uv_refl = uv;
@@ -101,26 +100,37 @@ void main() {
         /*     } */
         /* } */
 
-        if (dir.z < 0.0) {
-            vec3 dir_mid = dir_at(vec2(0, 0));//normalize((all_mat_inv * vec4(0, 0, 0, 0)).xyz);
-            vec3 dir_right = dir_at(vec2(1, 0));//normalize((all_mat_inv * vec4(1, 0, 0, 0)).xyz);
-            vec3 dir_up = dir_at(vec2(0, 1));//normalize((all_mat_inv * vec4(0, -1, 0, 0)).xyz);
-            vec3 surf_norm = normalize(vec3((vec2(noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.3)).x, noise_3d(vec3((wpos.xy + focus_off.xy).yx * 0.1, tick.x * 0.3)).x) - 0.5) * 0.03, 1));
-            vec3 refl_dir = reflect(dir, surf_norm);
+        #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONS
+            if (dir.z < 0.0) {
+                vec3 dir_mid = dir_at(vec2(0, 0));
+                vec3 dir_right = dir_at(vec2(1, 0));
+                vec3 dir_up = dir_at(vec2(0, 1));
+                vec3 surf_norm = normalize(vec3((vec2(noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.3)).x, noise_3d(vec3((wpos.xy + focus_off.xy).yx * 0.1, tick.x * 0.3)).x) - 0.5) * 0.03, 1));
+                vec3 refl_dir = reflect(dir, surf_norm);
 
-            float right = invlerp(dir_mid.x, dir_right.x, refl_dir.x);
-            float up = invlerp(dir_mid.z, dir_up.z, refl_dir.z);
+                //float right = invlerp(atan2(dir_mid.x, dir_mid.y), atan2(dir_right.x, dir_right.y), atan2(refl_dir.x, refl_dir.y));
+                float up = invlerp(dir_mid.z, dir_up.z, refl_dir.z);
 
-            vec2 new_uv = vec2(uv.x, up);
+                vec2 new_uv = vec2(uv.x, up);
 
-            float merge = clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.5, 0, 0.75);
+                float new_dist = distance(wpos_at(new_uv), cam_pos.xyz);
+                if (new_dist > dist) {
+                    float merge = clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.5, 0, 0.75);
 
-            //vec2 new_uv = uv * vec2(1, -1) + vec2(0, 1.1) / (1.0 + dist * 0.000001) + vec2(0, dir.z);
-            color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), new_uv).rgb, merge);
-            wpos = wpos_at(new_uv);
-            dist = distance(wpos, cam_pos.xyz);
-            dir = (wpos - cam_pos.xyz) / dist;
-            cloud_blend = min(merge * 2.0, 1.0);
+                    //vec2 new_uv = uv * vec2(1, -1) + vec2(0, 1.1) / (1.0 + dist * 0.000001) + vec2(0, dir.z);
+                    color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), new_uv).rgb, merge);
+                    wpos = wpos_at(new_uv);
+                    dist = distance(wpos, cam_pos.xyz);
+                    dir = (wpos - cam_pos.xyz) / dist;
+                    cloud_blend = min(merge * 2.0, 1.0);
+                } else {
+                    cloud_blend = 1.0;
+                }
+            } else {
+        #else
+            {
+        #endif
+            dist = DIST_CAP;
         }
     }
     color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
