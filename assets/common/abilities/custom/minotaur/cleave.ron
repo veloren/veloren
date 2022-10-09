@@ -16,7 +16,7 @@ ChargedMelee(
         )),
         range: 5.0,
         angle: 45.0,
-        multi_target: true,
+        multi_target: Some(Normal),
     ),
     charge_duration: 4.5,
     swing_duration: 0.1,

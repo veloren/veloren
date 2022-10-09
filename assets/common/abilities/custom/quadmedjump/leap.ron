@@ -13,7 +13,7 @@ LeapMelee(
         ),
         range: 6.75,
         angle: 180.0,
-        multi_target: true,
+        multi_target: Some(Normal),
     ),
     forward_leap_strength: 45.0,
     vertical_leap_strength: 10.0,

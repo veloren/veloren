@@ -10,7 +10,7 @@ ComboMelee2(
                 ),
                 range: 8.0,
                 angle: 10.0,
-                multi_target: true,
+                multi_target: Some(Normal),
             ),
             buildup_duration: 0.3,
             swing_duration: 0.1,

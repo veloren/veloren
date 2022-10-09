@@ -86,7 +86,7 @@ fn maps_basic_melee() {
                     range: 3.5,
                     angle: 15.0,
                     damage_effect: None,
-                    multi_target: false,
+                    multi_target: None,
                 },
                 ori_modifier: 1.0,
                 ability_info: empty_ability_info(),

@@ -1,6 +1,6 @@
 DiveMelee(
     energy_cost: 20,
-    vertical_speed: 15,
+    vertical_speed: 10,
     movement_duration: 5,
     swing_duration: 0.1,
     recover_duration: 0.3,
@@ -19,7 +19,7 @@ DiveMelee(
         )),
         range: 6.0,
         angle: 15.0,
-        multi_target: true,
+        multi_target: Some(Normal),
     ),
     meta: (
         kind: Some(Sword(Cleaving)),

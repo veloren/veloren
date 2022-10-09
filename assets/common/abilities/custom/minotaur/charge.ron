@@ -21,7 +21,7 @@ DashMelee(
             strength: DamageFraction(0.3),
             chance: 0.25,
         ))),
-        multi_target: true,
+        multi_target: Some(Normal),
     ),
     energy_drain: 0,
     forward_speed: 5.0,

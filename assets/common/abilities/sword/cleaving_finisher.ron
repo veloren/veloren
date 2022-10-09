@@ -12,7 +12,7 @@ FinisherMelee(
         ),
         range: 3.0,
         angle: 15.0,
-        damage_effect: Some(ResetMelee),
+        multi_target: Some(Scaling(0.5)),
     ),
     scaling: Some((
         target: Buff,

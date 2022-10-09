@@ -732,7 +732,7 @@ impl Default for CharacterAbility {
                 scaled: None,
                 range: 3.5,
                 angle: 15.0,
-                multi_target: false,
+                multi_target: None,
                 damage_effect: None,
             },
             ori_modifier: 1.0,

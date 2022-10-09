@@ -2,7 +2,7 @@ use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
     comp::{
         character_state::OutputEvents,
-        tool::{Stats, ToolKind},
+        tool::{Stats, ToolKind}, melee::MultiTarget,
         CharacterState, Melee, StateUpdate,
     },
     states::{
@@ -279,7 +279,7 @@ impl CharacterBehavior for Data {
                         hit_count: 0,
                         // TODO: Evaluate if we want to leave this true. State will be removed at
                         // some point anyways and this does preserve behavior
-                        multi_target: true,
+                        multi_target: Some(MultiTarget::Normal),
                         break_block: data
                             .inputs
                             .break_block_pos

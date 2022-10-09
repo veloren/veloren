@@ -1417,12 +1417,3 @@ pub fn handle_update_map_marker(
         }
     }
 }
-
-pub fn handle_reset_melee(server: &Server, entity: EcsEntity) {
-    let ecs = &server.state.ecs();
-
-    if let Some(mut melee) = ecs.write_storage::<comp::Melee>().get_mut(entity) {
-        melee.applied = false;
-        melee.hit_count = 0;
-    }
-}

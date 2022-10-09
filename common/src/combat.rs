@@ -430,18 +430,6 @@ impl Attack {
                                 });
                             }
                         },
-                        CombatEffect::ResetMelee => {
-                            if let Some(attacker_entity) = attacker.map(|a| a.entity) {
-                                if target
-                                    .health
-                                    .map_or(false, |h| accumulated_damage > h.current())
-                                {
-                                    emit(ServerEvent::ResetMelee {
-                                        entity: attacker_entity,
-                                    });
-                                }
-                            }
-                        },
                         CombatEffect::BuildupsVulnerable => {
                             if target.char_state.map_or(false, |cs| {
                                 matches!(cs.stage_section(), Some(StageSection::Buildup))
@@ -604,18 +592,6 @@ impl Attack {
                             });
                         }
                     },
-                    CombatEffect::ResetMelee => {
-                        if let Some(attacker_entity) = attacker.map(|a| a.entity) {
-                            if target
-                                .health
-                                .map_or(false, |h| accumulated_damage > h.current())
-                            {
-                                emit(ServerEvent::ResetMelee {
-                                    entity: attacker_entity,
-                                });
-                            }
-                        }
-                    },
                     // Only has an effect when attached to a damage
                     CombatEffect::BuildupsVulnerable => {},
                 }
@@ -749,8 +725,6 @@ pub enum CombatEffect {
     Lifesteal(f32),
     Poise(f32),
     Combo(i32),
-    // If the attack kills the target, reset the melee attack
-    ResetMelee,
     // If the attack hits the target while they are in the buildup portion of a character state,
     // deal double damage Only has an effect when attached to a damage, otherwise does nothing
     // if only attached to the attack TODO: Maybe try to make it do something if tied to

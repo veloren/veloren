@@ -10,7 +10,7 @@ SpinMelee(
         ),
         range: 16.0,
         angle: 360.0,
-        multi_target: true,
+        multi_target: Some(Normal),
     ),
     energy_cost: 0.0,
     is_infinite: true,

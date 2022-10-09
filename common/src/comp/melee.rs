@@ -20,8 +20,14 @@ pub struct Melee {
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
-    pub multi_target: bool,
+    pub multi_target: Option<MultiTarget>,
     pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum MultiTarget {
+    Normal,
+    Scaling(f32),
 }
 
 impl Melee {
@@ -47,8 +53,7 @@ pub struct MeleeConstructor {
     pub scaled: Option<MeleeConstructorKind>,
     pub range: f32,
     pub angle: f32,
-    #[serde(default)]
-    pub multi_target: bool,
+    pub multi_target: Option<MultiTarget>,
     pub damage_effect: Option<CombatEffect>,
 }
 

@@ -15,7 +15,7 @@ DashMelee(
         )),
         range: 5.0,
         angle: 90.0,
-        multi_target: true,
+        multi_target: Some(Normal),
     ),
     energy_drain: 0,
     forward_speed: 10.0,

@@ -18,6 +18,7 @@ use common::{
     vol::ReadVol,
 };
 use rand::Rng;
+use specs::saveload::MarkerAllocator;
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
@@ -474,16 +475,31 @@ impl<'a> AgentData<'a> {
                     .map_or(false, |buffs| !buffs.contains(self.buff))
             }
         }
+        struct DiveMeleeData {
+            range: f32,
+            angle: f32,
+            energy: f32,
+        }
+        impl DiveMeleeData {
+            fn npc_should_use_hack(&self, agent_data: &AgentData, tgt_data: &TargetData) -> bool {
+                let dist_sqrd_2d = agent_data.pos.0.xy().distance_squared(tgt_data.pos.0.xy());
+                agent_data.energy.current() > self.energy
+                    && agent_data.physics_state.on_ground.is_some()
+                    && agent_data.pos.0.z >= tgt_data.pos.0.z
+                    && dist_sqrd_2d > (self.range / 2.0).powi(2)
+                    && dist_sqrd_2d < (self.range + 5.0).powi(2)
+            }
+        }
         use ability::SwordStance;
         let stance = |stance| match stance {
             1 => SwordStance::Offensive,
             2 => SwordStance::Defensive,
             3 => SwordStance::Mobility,
             4 => SwordStance::Crippling,
-            5 => SwordStance::Cleaving,
-            6 => SwordStance::Parrying,
-            7 => SwordStance::Heavy,
-            8 => SwordStance::Reaching,
+            5 => SwordStance::Parrying,
+            6 => SwordStance::Heavy,
+            7 => SwordStance::Reaching,
+            8 => SwordStance::Cleaving,
             _ => SwordStance::Balanced,
         };
         if !agent.action_state.initialized {
@@ -495,8 +511,12 @@ impl<'a> AgentData<'a> {
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::CripplingFinisher))
             {
+                // Hack to make cleaving stance come up less often because agents cannot use it
+                // effectively due to only considering a single target
+                // Remove when agents properly consider multiple targets
+                // 4 + rng.gen_range(0..13) / 3
                 // rng.gen_range(4..9)
-                4
+                5
             } else if self
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::OffensiveFinisher))
@@ -569,8 +589,8 @@ impl<'a> AgentData<'a> {
                     set_sword_ability(2, 10);
                     // Cleaving dive
                     set_sword_ability(3, 11);
-                    // Offensive finisher
-                    set_sword_ability(4, 2);
+                    // Offensive advance
+                    set_sword_ability(4, 3);
                 },
                 SwordStance::Parrying => {
                     // Parrying combo
@@ -1021,8 +1041,6 @@ impl<'a> AgentData<'a> {
                 if self.energy.current() < DESIRED_ENERGY {
                     fallback_tactics(agent, controller);
                 } else if !in_stance(SwordStance::Crippling) {
-                    // controller.push_basic_input(InputKind::Jump);
-                    // agent.action_state.initialized = false;
                     controller.push_basic_input(InputKind::Ability(0));
                 } else if CRIPPLING_FINISHER.could_use(attack_data, self)
                     && CRIPPLING_FINISHER.use_desirable(tgt_data, self)
@@ -1080,7 +1098,121 @@ impl<'a> AgentData<'a> {
                 }
             },
             SwordStance::Cleaving => {
-                fallback_tactics(agent, controller);
+                // TODO: Rewrite cleaving stance tactics when agents can consider multiple
+                // targets at once. Remove hack to make cleaving AI appear less frequently above
+                // when doing so.
+                const CLEAVING_COMBO: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 2.5,
+                    angle: 35.0,
+                    energy: 10.0,
+                };
+                const CLEAVING_FINISHER: FinisherMeleeData = FinisherMeleeData {
+                    range: 2.0,
+                    angle: 10.0,
+                    energy: 40.0,
+                    combo: 10,
+                };
+                const CLEAVING_SPIN: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 5.0,
+                    angle: 360.0,
+                    energy: 15.0,
+                };
+                const CLEAVING_DIVE: DiveMeleeData = DiveMeleeData {
+                    range: 5.0,
+                    angle: 10.0,
+                    energy: 20.0,
+                };
+                const DESIRED_ENERGY: f32 = 50.0;
+
+                // TODO: Remove when agents actually have multiple targets
+                // Hacky check for multiple nearby melee range targets
+                let are_nearby_targets = || {
+                    if let Some(health) = self.health {
+                        health
+                            .recent_damagers()
+                            .filter(|(_, time)| read_data.time.0 - time.0 < 5.0)
+                            .filter_map(|(uid, _)| {
+                                read_data.uid_allocator.retrieve_entity_internal(uid.0)
+                            })
+                            .filter(|e| {
+                                read_data.positions.get(*e).map_or(false, |pos| {
+                                    pos.0.distance_squared(self.pos.0) < 10_f32.powi(2)
+                                })
+                            })
+                            .count()
+                            > 1
+                    } else {
+                        false
+                    }
+                };
+
+                if matches!(self.char_state, CharacterState::Roll(_)) {
+                    agent.action_state.condition = true;
+                }
+
+                if agent.action_state.condition {
+                    if self.physics_state.on_ground.is_some() {
+                        controller.push_basic_input(InputKind::Jump);
+                    } else {
+                        controller.push_basic_input(InputKind::Ability(3));
+                    }
+                    agent.action_state.timer += read_data.dt.0;
+                    if agent.action_state.timer > 2.0 {
+                        agent.action_state.timer = 0.0;
+                        agent.action_state.condition = false;
+                    }
+                    advance(agent, controller, CLEAVING_DIVE.range, CLEAVING_DIVE.angle);
+                } else if self.energy.current() < DESIRED_ENERGY {
+                    fallback_tactics(agent, controller);
+                } else if !in_stance(SwordStance::Cleaving) {
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else if CLEAVING_FINISHER.could_use(attack_data, self)
+                    && CLEAVING_FINISHER.use_desirable(tgt_data, self)
+                {
+                    controller.push_basic_input(InputKind::Ability(1));
+                    advance(
+                        agent,
+                        controller,
+                        CLEAVING_FINISHER.range,
+                        CLEAVING_FINISHER.angle,
+                    );
+                } else if CLEAVING_SPIN.could_use(attack_data, self) && are_nearby_targets() {
+                    controller.push_basic_input(InputKind::Ability(2));
+                    advance(
+                        agent,
+                        controller,
+                        CLEAVING_SPIN.max_range,
+                        CLEAVING_SPIN.angle,
+                    );
+                } else if CLEAVING_DIVE.npc_should_use_hack(self, tgt_data) {
+                    controller.push_basic_input(InputKind::Roll);
+                    advance(agent, controller, CLEAVING_DIVE.range, CLEAVING_DIVE.angle);
+                } else if CLEAVING_COMBO.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Primary);
+                    advance(
+                        agent,
+                        controller,
+                        CLEAVING_COMBO.max_range,
+                        CLEAVING_COMBO.angle,
+                    );
+                } else if OFFENSIVE_ADVANCE.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Ability(4));
+                    advance(
+                        agent,
+                        controller,
+                        OFFENSIVE_ADVANCE.max_range,
+                        OFFENSIVE_ADVANCE.angle,
+                    );
+                } else {
+                    advance(
+                        agent,
+                        controller,
+                        CLEAVING_COMBO.max_range,
+                        CLEAVING_COMBO.angle,
+                    );
+                }
             },
             SwordStance::Parrying => {
                 fallback_tactics(agent, controller);

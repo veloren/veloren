@@ -278,7 +278,7 @@ fn create_test_melee(static_data: StaticData) -> Melee {
         scaled: None,
         range: static_data.melee_constructor.range,
         angle: static_data.melee_constructor.angle,
-        multi_target: false,
+        multi_target: None,
         damage_effect: None,
     };
     melee.create_melee((0.0, 0.0), 0.0)

@@ -12,7 +12,7 @@ BasicMelee(
         ),
         range: 4.0,
         angle: 20.0,
-        multi_target: true,
+        multi_target: Some(Normal),
     ),
     ori_modifier: 1.0,
 )

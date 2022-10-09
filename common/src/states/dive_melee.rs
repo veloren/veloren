@@ -74,6 +74,8 @@ impl CharacterBehavior for Data {
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
                     let buff_strength = get_buff_strength(data, self.static_data.ability_info);
                     let scaling = self.max_vertical_speed / self.static_data.vertical_speed;
+                    // TODO: Remove when server authoritative physics
+                    let scaling = scaling.max(2.0);
 
                     data.updater.insert(
                         data.entity,
