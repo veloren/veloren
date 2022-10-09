@@ -296,8 +296,8 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
             )))
     };
 
-    let b = bridge_prim(bridge_width - 1);
-    let b = b.without(b.translate(-Vec3::unit_z()));
+    let br = bridge_prim(bridge_width - 1);
+    let b = br.without(br.translate(-Vec3::unit_z()));
 
     let c = bridge_aabr.center();
     let len = bridge.dir.select(bridge_aabr.size());
@@ -356,14 +356,35 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
     }
 
     bridge_prim(bridge_width)
-        .without(b)
         .without(remove)
         .fill(rock.clone());
     b.translate(-Vec3::unit_z()).fill(light_rock.clone());
 
-    b.translate(Vec3::unit_z() * 5)
-        .without(b.translate(-Vec3::unit_z()))
+    br.translate(Vec3::unit_z() * 5)
+        .without(br.translate(-Vec3::unit_z()))
         .clear();
+
+
+    let place_lights = |center: Vec3<i32>| {
+        painter.sprite(orth_dir.select_aabr_with(bridge_aabr, center.xy()).with_z(center.z), SpriteKind::FireBowlGround);
+        painter.sprite((-orth_dir).select_aabr_with(bridge_aabr, center.xy()).with_z(center.z), SpriteKind::FireBowlGround);
+    };
+
+    place_lights(bridge_aabr.center().with_z(bridge_top + 1));
+
+    let light_spacing = 1;
+    let num_lights = (len - 1) / 2 / light_spacing;
+
+    let place_lights = |i: i32| {
+        let offset = i * light_spacing;
+        let z = bridge_start_z + 1 + (offset + if len / 2 % 2 == 0 { 4 } else { 3 }) / (slope_inv - 1);
+        
+        place_lights((bridge.dir.select_aabr_with(bridge_aabr, bridge_aabr.center()) - forward * offset).with_z(z));
+        place_lights(((-bridge.dir).select_aabr_with(bridge_aabr, bridge_aabr.center()) + forward * offset).with_z(z));
+    };
+    for i in 0..num_lights {
+        place_lights(i);
+    }
 }
 
 fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {

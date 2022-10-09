@@ -28,7 +28,7 @@ pub(crate) use self::{
 use crate::{
     all::{Environment, ForestKind, TreeAttr},
     block::BlockGen,
-    civ::{Place, PointOfInterest, self},
+    civ::{Place, PointOfInterest},
     column::ColumnGen,
     layer::spot::Spot,
     site::Site,
