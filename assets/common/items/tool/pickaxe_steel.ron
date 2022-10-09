@@ -1,6 +1,6 @@
 ItemDef(
     name: "Steel Pickaxe",
-    description: "Allows for swift excavation of those pesky blue veins.",
+    description: "Allows for swift excavation of any ore in sight.",
     kind: Tool((
         kind: Pick,
         hands: Two,
