@@ -53,6 +53,7 @@ pub struct TargetData<'a> {
     pub scale: Option<&'a Scale>,
     pub char_state: Option<&'a CharacterState>,
     pub health: Option<&'a Health>,
+    pub buffs: Option<&'a Buffs>,
 }
 
 impl<'a> TargetData<'a> {
@@ -63,6 +64,7 @@ impl<'a> TargetData<'a> {
             scale: read_data.scales.get(target),
             char_state: read_data.char_states.get(target),
             health: read_data.healths.get(target),
+            buffs: read_data.buffs.get(target),
         }
     }
 }

@@ -495,7 +495,8 @@ impl<'a> AgentData<'a> {
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::CripplingFinisher))
             {
-                rng.gen_range(4..9)
+                // rng.gen_range(4..9)
+                4
             } else if self
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::OffensiveFinisher))
@@ -682,6 +683,12 @@ impl<'a> AgentData<'a> {
             energy: 30.0,
             combo: 10,
         };
+        const OFFENSIVE_ADVANCE: ComboMeleeData = ComboMeleeData {
+            min_range: 6.0,
+            max_range: 10.0,
+            angle: 20.0,
+            energy: 10.0,
+        };
 
         match stance(agent.action_state.int_counter) {
             SwordStance::Balanced => {
@@ -707,12 +714,6 @@ impl<'a> AgentData<'a> {
                     max_range: 2.0,
                     angle: 30.0,
                     energy: 5.0,
-                };
-                const OFFENSIVE_ADVANCE: ComboMeleeData = ComboMeleeData {
-                    min_range: 6.0,
-                    max_range: 10.0,
-                    angle: 20.0,
-                    energy: 10.0,
                 };
                 const OFFENSIVE_FINISHER: FinisherMeleeData = FinisherMeleeData {
                     range: 2.0,
@@ -991,7 +992,92 @@ impl<'a> AgentData<'a> {
                 controller.inputs.move_dir.rotated_z(PI / 4.0 * dir);
             },
             SwordStance::Crippling => {
-                fallback_tactics(agent, controller);
+                const CRIPPLING_COMBO: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 2.5,
+                    angle: 35.0,
+                    energy: 10.0,
+                };
+                const CRIPPLING_GOUGE: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 3.0,
+                    angle: 35.0,
+                    energy: 20.0,
+                };
+                const CRIPPLING_STRIKE: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 3.0,
+                    angle: 35.0,
+                    energy: 20.0,
+                };
+                const CRIPPLING_FINISHER: FinisherMeleeData = FinisherMeleeData {
+                    range: 2.5,
+                    angle: 10.0,
+                    energy: 40.0,
+                    combo: 10,
+                };
+                const DESIRED_ENERGY: f32 = 50.0;
+
+                if self.energy.current() < DESIRED_ENERGY {
+                    fallback_tactics(agent, controller);
+                } else if !in_stance(SwordStance::Crippling) {
+                    // controller.push_basic_input(InputKind::Jump);
+                    // agent.action_state.initialized = false;
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else if CRIPPLING_FINISHER.could_use(attack_data, self)
+                    && CRIPPLING_FINISHER.use_desirable(tgt_data, self)
+                {
+                    controller.push_basic_input(InputKind::Ability(1));
+                    advance(
+                        agent,
+                        controller,
+                        CRIPPLING_FINISHER.range,
+                        CRIPPLING_FINISHER.angle,
+                    );
+                } else if tgt_data
+                    .buffs
+                    .map_or(false, |buffs| !buffs.contains(BuffKind::Crippled))
+                    && CRIPPLING_STRIKE.could_use(attack_data, self)
+                {
+                    controller.push_basic_input(InputKind::Ability(2));
+                    advance(
+                        agent,
+                        controller,
+                        CRIPPLING_STRIKE.max_range,
+                        CRIPPLING_STRIKE.angle,
+                    );
+                } else if CRIPPLING_GOUGE.could_use(attack_data, self) && rng.gen::<f32>() < 0.3 {
+                    controller.push_basic_input(InputKind::Ability(3));
+                    advance(
+                        agent,
+                        controller,
+                        CRIPPLING_GOUGE.max_range,
+                        CRIPPLING_GOUGE.angle,
+                    );
+                } else if CRIPPLING_COMBO.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Primary);
+                    advance(
+                        agent,
+                        controller,
+                        CRIPPLING_COMBO.max_range,
+                        CRIPPLING_COMBO.angle,
+                    );
+                } else if OFFENSIVE_ADVANCE.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Ability(4));
+                    advance(
+                        agent,
+                        controller,
+                        OFFENSIVE_ADVANCE.max_range,
+                        OFFENSIVE_ADVANCE.angle,
+                    );
+                } else {
+                    advance(
+                        agent,
+                        controller,
+                        CRIPPLING_COMBO.max_range,
+                        CRIPPLING_COMBO.angle,
+                    );
+                }
             },
             SwordStance::Cleaving => {
                 fallback_tactics(agent, controller);
@@ -1005,6 +1091,10 @@ impl<'a> AgentData<'a> {
             SwordStance::Reaching => {
                 fallback_tactics(agent, controller);
             },
+        }
+
+        if self.active_abilities.auxiliary_sets.is_empty() {
+            agent.action_state.initialized = false;
         }
     }
 

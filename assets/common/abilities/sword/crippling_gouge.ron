@@ -8,8 +8,8 @@ ComboMelee2(
                     knockback: 0,
                     energy_regen: 10,
                 ),
-                range: 6.0,
-                angle: 5.0,
+                range: 4.0,
+                angle: 45.0,
                 damage_effect: Some(Buff((
                     kind: Bleeding,
                     dur_secs: 20.0,
