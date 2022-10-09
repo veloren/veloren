@@ -107,7 +107,7 @@ vec4 wave_height(vec4 posx, vec4 posy) {
     return w / ws * 5.0;
 }
 
-float wave_height_vel(vec2 pos){
+float wave_height_vel(vec2 pos) {
     vec4 heights = wave_height(
         pos.x - tick.x * floor(f_vel.x) - vec2(0.0, tick.x).xyxy,
         pos.y - tick.x * floor(f_vel.y) - vec2(0.0, tick.x).xxyy

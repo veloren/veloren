@@ -648,6 +648,7 @@ void main() {
     // vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
     // f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
     vec3 surf_color;
+    float surf_alpha = 1.0;
     #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
         if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
             vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
@@ -671,6 +672,7 @@ void main() {
             const vec3 underwater_col = vec3(0.0);
             float min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
             surf_color = mix(underwater_col, surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));
+            surf_alpha = 0.99;
         } else {
             surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
         }
@@ -683,5 +685,5 @@ void main() {
     // color = mix(color, vec3(1.0) * /*diffuse_light*/reflected_light, clamp(mist_factor * 0.00005 * distance(f_pos.xy, focus_pos.xy), 0, 0.3));
     // color = surf_color;
 
-    tgt_color = vec4(surf_color, 1.0);
+    tgt_color = vec4(surf_color, surf_alpha);
 }
