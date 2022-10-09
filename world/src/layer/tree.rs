@@ -180,11 +180,7 @@ pub fn apply_trees_to(
                         ForestKind::Redwood => {
                             break 'model TreeModel::Procedural(
                                 ProceduralTree::generate(
-                                    TreeConfig::redwood(
-                                        &mut RandomPerm::new(seed),
-                                        scale,
-                                        calendar,
-                                    ),
+                                    TreeConfig::redwood(&mut RandomPerm::new(seed), scale),
                                     &mut RandomPerm::new(seed),
                                 ),
                                 StructureBlock::PineLeaves,
@@ -419,7 +415,6 @@ impl TreeConfig {
 
     pub fn dead(rng: &mut impl Rng, scale: f32) -> Self {
         let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
-        let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
             trunk_len: 9.0 * scale,
@@ -671,7 +666,7 @@ impl TreeConfig {
         }
     }
 
-    pub fn redwood(rng: &mut impl Rng, scale: f32, calendar: Option<&Calendar>) -> Self {
+    pub fn redwood(rng: &mut impl Rng, scale: f32) -> Self {
         let scale = scale * (1.0 + rng.gen::<f32>().powi(4) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 

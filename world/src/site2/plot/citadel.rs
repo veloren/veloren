@@ -1,16 +1,5 @@
 use super::*;
-use crate::{
-    assets::AssetHandle,
-    site2::util::Dir,
-    util::{attempt, sampler::Sampler, RandomField, NEIGHBORS},
-    Land,
-};
-use common::{
-    generation::{ChunkSupplement, EntityInfo},
-    terrain::{Structure as PrefabStructure, StructuresGroup},
-};
-use kiddo::{distance::squared_euclidean, KdTree};
-use lazy_static::lazy_static;
+use crate::{util::NEIGHBORS, Land};
 use rand::prelude::*;
 use std::ops::{Add, Div, Mul};
 use vek::*;
@@ -24,7 +13,7 @@ const CELL_SIZE: i32 = 16;
 
 pub struct Citadel {
     name: String,
-    seed: u32,
+    _seed: u32,
     origin: Vec3<i32>,
     radius: i32,
     grid: Grid<Option<Cell>>,
@@ -83,7 +72,7 @@ impl Citadel {
 
         Self {
             name,
-            seed,
+            _seed: seed,
             origin,
             radius,
             grid,

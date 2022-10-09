@@ -7,12 +7,7 @@
 )]
 #![allow(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(
-    option_zip,
-    arbitrary_enum_discriminant,
-    int_log,
-    map_first_last,
-)]
+#![feature(option_zip, arbitrary_enum_discriminant, int_log, map_first_last)]
 
 mod all;
 mod block;
@@ -490,7 +485,7 @@ impl World {
                     Some(lod::Object {
                         kind: match tree.forest_kind {
                             all::ForestKind::Oak => lod::ObjectKind::Oak,
-                            all::ForestKind::Pine | all::ForestKind::Frostpine => {
+                            all::ForestKind::Pine | all::ForestKind::Frostpine | all::ForestKind::Redwood => {
                                 lod::ObjectKind::Pine
                             },
                             _ => lod::ObjectKind::Oak,
