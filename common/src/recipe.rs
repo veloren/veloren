@@ -404,6 +404,19 @@ impl RecipeBook {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_recipe_valid_key_check() {
+        let recipe_book = default_recipe_book().read();
+        let is_invalid_key =
+            |input: &str| input.chars().any(|c| c.is_uppercase() || c.is_whitespace());
+        assert!(!recipe_book.iter().any(|(k, _)| is_invalid_key(k)));
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum RawRecipeInput {
     Item(String),
