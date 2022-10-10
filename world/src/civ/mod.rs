@@ -129,6 +129,7 @@ impl Civs {
                         }
                     },
                     32..=37 => (SiteKind::Gnarling, (&gnarling_enemies, 40)),
+                    // 32..=37 => (SiteKind::Citadel, (&castle_enemies, 20)),
                     38..=43 => (SiteKind::ChapelSite, (&chapel_site_enemies, 40)),
                     _ => (SiteKind::Dungeon, (&dungeon_enemies, 40)),
                 };
@@ -178,7 +179,7 @@ impl Civs {
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
             let (radius, flatten_radius) = match &site.kind {
-                SiteKind::Settlement => (32i32, 10.0),
+                SiteKind::Settlement => (32i32, 10.0f32),
                 SiteKind::Dungeon => (8i32, 3.0),
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (32i32, 10.0),
@@ -188,6 +189,7 @@ impl Civs {
                 SiteKind::Tree => (12i32, 8.0),
                 SiteKind::GiantTree => (12i32, 8.0),
                 SiteKind::Gnarling => (16i32, 10.0),
+                SiteKind::Citadel => (16i32, 0.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -207,7 +209,8 @@ impl Civs {
                         }; // Raise the town centre up a little
                     let pos = site.center + offs;
                     let factor = ((1.0
-                        - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius)
+                        - (site.center - pos).map(|e| e as f32).magnitude()
+                            / flatten_radius.max(0.01))
                         * 1.25)
                         .min(1.0);
                     let rng = &mut ctx.rng;
@@ -288,6 +291,11 @@ impl Civs {
                     SiteKind::ChapelSite => WorldSite::chapel_site(
                         site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
+                    SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
                 });
             sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];
@@ -1245,6 +1253,7 @@ pub enum SiteKind {
     Tree,
     GiantTree,
     Gnarling,
+    Citadel,
 }
 
 impl SiteKind {
@@ -1378,6 +1387,7 @@ impl SiteKind {
                         && chunk.tree_density > 0.4
                         && (-0.3..0.4).contains(&chunk.temp)
                 },
+                SiteKind::Citadel => true,
                 SiteKind::CliffTown => {
                     (-0.6..0.4).contains(&chunk.temp)
                         && chunk.near_cliffs()

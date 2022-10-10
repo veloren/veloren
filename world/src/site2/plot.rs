@@ -1,4 +1,5 @@
 mod castle;
+mod citadel;
 mod cliff_tower;
 mod desert_city_multiplot;
 mod desert_city_temple;
@@ -10,9 +11,10 @@ mod sea_chapel;
 mod workshop;
 
 pub use self::{
-    castle::Castle, cliff_tower::CliffTower, desert_city_multiplot::DesertCityMultiPlot,
-    desert_city_temple::DesertCityTemple, dungeon::Dungeon, giant_tree::GiantTree,
-    gnarling::GnarlingFortification, house::House, sea_chapel::SeaChapel, workshop::Workshop,
+    castle::Castle, citadel::Citadel, cliff_tower::CliffTower,
+    desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
+    dungeon::Dungeon, giant_tree::GiantTree, gnarling::GnarlingFortification, house::House,
+    sea_chapel::SeaChapel, workshop::Workshop,
 };
 
 use super::*;
@@ -61,4 +63,5 @@ pub enum PlotKind {
     Gnarling(GnarlingFortification),
     GiantTree(GiantTree),
     CliffTower(CliffTower),
+    Citadel(Citadel),
 }
