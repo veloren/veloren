@@ -502,4 +502,6 @@ pub enum ExperimentalShader {
     Wetness,
     /// Add screen-space reflections to water.
     ScreenSpaceReflections,
+    /// Use screen-space raycasting for reflections.
+    ScreenSpaceReflectionsCasting,
 }

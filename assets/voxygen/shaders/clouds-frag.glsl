@@ -63,6 +63,19 @@ vec3 wpos_at(vec2 uv) {
     }
 }
 
+float depth_at(vec2 uv) {
+    uvec2 sz = textureSize(sampler2D(t_src_depth, s_src_depth), 0);
+    float buf_depth = texelFetch(sampler2D(t_src_depth, s_src_depth), clamp(ivec2(uv * sz), ivec2(0), ivec2(sz) - 1), 0).x;
+    if (buf_depth == 0.0) {
+        return 524288.0;
+    } else {
+        vec4 clip_space = vec4((uv * 2.0 - 1.0) * vec2(1, -1), buf_depth, 1.0);
+        vec4 view_space = all_mat_inv * clip_space;
+        view_space /= view_space.w;
+        return -(view_mat * view_space).z;
+    }
+}
+
 vec3 dir_at(vec2 uv) {
     vec4 view_space = all_mat_inv * vec4((uv * 2.0 - 1.0) * vec2(1, -1), 0.0, 1.0);
     view_space /= view_space.w;
@@ -85,6 +98,10 @@ void main() {
     float dist = distance(wpos, cam_pos.xyz);
     vec3 dir = (wpos - cam_pos.xyz) / dist;
 
+    /* vec4 clip2 = all_mat * vec4(wpos, 1.0); */
+    /* vec2 test_uv = (clip2.xy / clip2.w).xy * 0.5 * vec2(1, -1) + 0.5; */
+    /* color = texture(sampler2D(t_src_color, s_src_color), test_uv); */
+
     // Apply clouds
     float cloud_blend = 1.0;
     if (color.a < 1.0) {
@@ -104,43 +121,68 @@ void main() {
 
         #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONS
             if (dir.z < 0.0) {
-                vec3 dir_mid = dir_at(vec2(0, 0));
-                vec3 dir_right = dir_at(vec2(1, 0));
-                vec3 dir_up = dir_at(vec2(0, 1));
-                vec2 nz = (vec2(
-                    noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
-                    noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
-                ) - 0.5) * 1.5;
-                vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.01), 1));
+                #if (FLUID_MODE == FLUID_MODE_CHEAP)
+                    vec2 nz = vec2(0);
+                #else
+                    vec2 nz = (vec2(
+                        noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
+                        noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
+                    ) - 0.5) * 2.5;
+                #endif
+                vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.1), 1));
                 vec3 refl_dir = reflect(dir, surf_norm);
 
-                //float right = invlerp(atan2(dir_mid.x, dir_mid.y), atan2(dir_right.x, dir_right.y), atan2(refl_dir.x, refl_dir.y));
-                float up = invlerp(dir_mid.z, dir_up.z, refl_dir.z) + (cam_pos.z - wpos.z) / dist * 0.8;
+                vec3 ray_end = wpos + refl_dir * 50.0;
+                vec2 start_uv = uv;
+                vec4 clip_end = all_mat * vec4(ray_end, 1.0);
+                vec2 end_uv = (clip_end.xy / clip_end.w).xy * 0.5 * vec2(1, -1) + 0.5;
+                float depth_start = dist;
+                float depth_end = (view_mat * vec4(ray_end, 1.0)).z;//depth_at(end_uv);
 
-                float look_z = dir_at(vec2(0.5, 0.5)).z;
-                float x_shift = (up - uv.y) * pow(abs(look_z), 0.5)
-                    * sign(look_z) * 0.6
-                    * (uv.x - 0.5) * (1.0 - pow(abs(uv.x - 0.5) * 2.0, 3.0));
-                vec2 new_uv = vec2(uv.x + x_shift, up);
+                vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
+                vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
 
+                #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONSCASTING
+                    const int ITERS = 64;
+                    float t = 0.0;
+                    float lastd = 0.0;
+                    for (int i = 0; i < ITERS; i ++) {
+                        vec3 swpos = mix(wpos, ray_end, t);
+                        vec3 svpos = (view_mat * vec4(swpos, 1)).xyz;
+                        vec4 clippos = proj_mat * vec4(svpos, 1);
+                        vec2 suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
+                        float d = -depth_at(suv);
+                        if (d < svpos.z * 0.85 && d > svpos.z * 0.999) {
+                            new_uv = suv;
+                            break;
+                        }
+                        lastd = d;
+                        t += 1.0 / float(ITERS);
+                    }
+                #endif
+
+                new_uv = clamp(new_uv, vec2(0), vec2(1));
+
+                vec3 new_wpos = wpos_at(new_uv);;
                 float new_dist = distance(wpos_at(new_uv), cam_pos.xyz);
-                if (new_dist > dist * 0.5) {
+                if (new_dist > dist || true) {
                     float merge = min(
                         // Off-screen merge factor
-                        clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 5.0, 0, 1.0),
+                        clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 2.0, 0, 0.75),
                         // Depth merge factor
                         clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
                     );
 
                     //vec2 new_uv = uv * vec2(1, -1) + vec2(0, 1.1) / (1.0 + dist * 0.000001) + vec2(0, dir.z);
                     color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), new_uv).rgb, merge);
-                    wpos = wpos_at(new_uv);
+                    wpos = new_wpos;
                     dist = distance(wpos, cam_pos.xyz);
                     dir = (wpos - cam_pos.xyz) / dist;
                     cloud_blend = min(merge * 2.0, 1.0);
                 } else {
                     cloud_blend = 1.0;
                 }
+                /* color.rgb = vec3(t); */
             } else {
         #else
             {
@@ -148,6 +190,7 @@ void main() {
             //dist = DIST_CAP;
         }
     }
+    /* color.rgb = vec3(sin(depth_at(uv) * 3.14159 * 2) * 0.5 + 0.5); */
     color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
 
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
