@@ -104,6 +104,7 @@ void main() {
 
     // Apply clouds
     float cloud_blend = 1.0;
+    bool is_reflection = false;
     if (color.a < 1.0) {
         cloud_blend = 1.0 - color.a;
         //color.rgb = vec3(1, 0, 0);
@@ -188,6 +189,7 @@ void main() {
                 dist = distance(wpos, cam_pos.xyz);
                 dir = (wpos - cam_pos.xyz) / dist;
                 cloud_blend = min(merge * 2.0, 1.0);
+                is_reflection = true;
             } else {
         #else
             {
@@ -201,7 +203,7 @@ void main() {
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
     #else
-        if (medium.x == MEDIUM_AIR && rain_density > 0.001) {
+        if (medium.x == MEDIUM_AIR && rain_density > 0.001 && !is_reflection) {
             vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
 
             vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
