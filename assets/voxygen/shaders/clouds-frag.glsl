@@ -76,16 +76,6 @@ float depth_at(vec2 uv) {
     }
 }
 
-vec3 dir_at(vec2 uv) {
-    vec4 view_space = all_mat_inv * vec4((uv * 2.0 - 1.0) * vec2(1, -1), 0.0, 1.0);
-    view_space /= view_space.w;
-    return normalize(view_space.xyz);
-}
-
-float invlerp(float a, float b, float v) {
-    return (v - a) / (b - a);
-}
-
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
 
@@ -98,27 +88,11 @@ void main() {
     float dist = distance(wpos, cam_pos.xyz);
     vec3 dir = (wpos - cam_pos.xyz) / dist;
 
-    /* vec4 clip2 = all_mat * vec4(wpos, 1.0); */
-    /* vec2 test_uv = (clip2.xy / clip2.w).xy * 0.5 * vec2(1, -1) + 0.5; */
-    /* color = texture(sampler2D(t_src_color, s_src_color), test_uv); */
-
     // Apply clouds
     float cloud_blend = 1.0;
     bool is_reflection = false;
-    if (color.a < 1.0) {
+    if (color.a < 1.0 && medium.x != MEDIUM_WATER) {
         cloud_blend = 1.0 - color.a;
-        //color.rgb = vec3(1, 0, 0);
-
-        vec2 uv_refl = uv;
-        vec3 wpos_refl = wpos;
-        /* for (int i = 0; i < 10; i ++) { */
-        /*     uv_refl.y -= 0.1; */
-        /*     wpos_refl += reflect(dir, vec3(0, 0, 1)) * dist * 0.5; */
-        /*     if (distance(wpos_at(uv_refl), cam_pos.xyz) < distance(wpos_refl, cam_pos.xyz)) { */
-        /*         color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), uv_refl).rgb, 0.9); */
-        /*         break; */
-        /*     } */
-        /* } */
 
         #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONS
             if (dir.z < 0.0) {
@@ -139,7 +113,7 @@ void main() {
                 #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONSCASTING
                     vec3 ray_end = wpos + refl_dir * 5.0 * dist;
                     float t = 0.0;
-                    float lastd = 0.0;
+                    // Trace through the screen-space depth buffer to find the ray intersection
                     const int MAIN_ITERS = 64;
                     for (int i = 0; i < MAIN_ITERS; i ++) {
                         vec3 swpos = mix(wpos, ray_end, t);
@@ -149,6 +123,7 @@ void main() {
                         float d = -depth_at(suv);
                         if (d < svpos.z * 0.8 && d > svpos.z * 0.999) {
                             t -= 1.0 / float(MAIN_ITERS);
+                            // Do a bit of extra iteration to try to refine the estimate
                             const int ITERS = 8;
                             float diff = 1.0 / float(MAIN_ITERS);
                             for (int i = 0; i < ITERS; i ++) {
@@ -164,9 +139,7 @@ void main() {
                             }
                             break;
                         }
-                        lastd = d;
                         t += 1.0 / float(MAIN_ITERS);
-                        lastd = d;
                     }
                 #endif
 
@@ -176,7 +149,7 @@ void main() {
                 float new_dist = distance(new_wpos, cam_pos.xyz);
                 float merge = min(
                     // Off-screen merge factor
-                    clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.0, 0, 0.75),
+                    clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.0, 0, 1),
                     // Depth merge factor
                     min(
                         clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0),
@@ -185,17 +158,17 @@ void main() {
                 );
 
                 if (merge > 0.0) {
-                    color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), new_uv).rgb, merge);
-                    wpos = new_wpos;
-                    dist = distance(wpos, cam_pos.xyz);
-                    dir = (wpos - cam_pos.xyz) / dist;
-                    cloud_blend = merge;
+                    vec3 new_col = texture(sampler2D(t_src_color, s_src_color), new_uv).rgb;
+                    new_col = get_cloud_color(new_col.rgb, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
+                    color.rgb = mix(color.rgb, new_col, merge);
+                    cloud_blend = 1;
                     is_reflection = true;
                 }
             } else {
         #else
             {
         #endif
+            cloud_blend = 1;
             dist = DIST_CAP;
         }
     }
