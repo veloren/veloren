@@ -406,7 +406,7 @@ void main() {
     if (medium.x != MEDIUM_WATER) {
         min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
     }
-    vec4 color = vec4(surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
+    vec4 color = vec4(surf_color, (1.0 - passthrough) * 0.5 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
     // vec4 color = vec4(surf_color, mix(1.0, 1.0 / (1.0 + /*0.25 * *//*diffuse_light*/(/*f_light * point_shadow*/reflected_light_point)), passthrough));
     // vec4 color = vec4(surf_color, mix(1.0, length(cam_attenuation), passthrough));
 

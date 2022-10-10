@@ -132,13 +132,13 @@ void main() {
                                     vec3 swpos = mix(wpos, ray_end, t);
                                     svpos = (view_mat * vec4(swpos, 1)).xyz;
                                     vec4 clippos = proj_mat * vec4(svpos, 1);
-                                    vec2 suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
+                                    suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
                                     float d = -depth_at(suv);
                                     t += ((d > svpos.z * 0.999) ? -1.0 : 1.0) * diff;
                                     diff *= 0.5;
-
-                                    new_uv = suv;
                                 }
+                                // Small offset to push us into obscured territory
+                                new_uv = suv - vec2(0, 0.001);
                                 break;
                             }
                         }
@@ -154,10 +154,7 @@ void main() {
                     // Off-screen merge factor
                     clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.0, 0, 1),
                     // Depth merge factor
-                    min(
-                        clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0),
-                        max(dot(normalize(new_wpos - wpos), refl_dir) - 0.95, 0.0) / 0.05
-                    )
+                    clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
                 ) * 0.85;
 
                 if (merge > 0.0) {
