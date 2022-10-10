@@ -172,11 +172,11 @@ void main() {
 
                 new_uv = clamp(new_uv, vec2(0), vec2(1));
 
-                vec3 new_wpos = wpos_at(new_uv);;
-                float new_dist = distance(wpos_at(new_uv), cam_pos.xyz);
+                vec3 new_wpos = wpos_at(new_uv);
+                float new_dist = distance(new_wpos, cam_pos.xyz);
                 float merge = min(
                     // Off-screen merge factor
-                    clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 2.0, 0, 0.75),
+                    clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.0, 0, 0.75),
                     // Depth merge factor
                     min(
                         clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0),
@@ -184,12 +184,14 @@ void main() {
                     )
                 );
 
-                color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), new_uv).rgb, merge);
-                wpos = new_wpos;
-                dist = distance(wpos, cam_pos.xyz);
-                dir = (wpos - cam_pos.xyz) / dist;
-                cloud_blend = min(merge * 2.0, 1.0);
-                is_reflection = true;
+                if (merge > 0.0) {
+                    color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), new_uv).rgb, merge);
+                    wpos = new_wpos;
+                    dist = distance(wpos, cam_pos.xyz);
+                    dir = (wpos - cam_pos.xyz) / dist;
+                    cloud_blend = merge;
+                    is_reflection = true;
+                }
             } else {
         #else
             {
