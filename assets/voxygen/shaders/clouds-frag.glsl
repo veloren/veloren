@@ -127,37 +127,44 @@ void main() {
                     vec2 nz = (vec2(
                         noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
                         noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
-                    ) - 0.5) * 2.5;
+                    ) - 0.5) * 5.0;
                 #endif
                 vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.1), 1));
                 vec3 refl_dir = reflect(dir, surf_norm);
-
-                vec3 ray_end = wpos + refl_dir * 50.0;
-                vec2 start_uv = uv;
-                vec4 clip_end = all_mat * vec4(ray_end, 1.0);
-                vec2 end_uv = (clip_end.xy / clip_end.w).xy * 0.5 * vec2(1, -1) + 0.5;
-                float depth_start = dist;
-                float depth_end = (view_mat * vec4(ray_end, 1.0)).z;//depth_at(end_uv);
 
                 vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
                 vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
 
                 #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONSCASTING
-                    const int ITERS = 64;
+                    vec3 ray_end = wpos + refl_dir * 100.0;
                     float t = 0.0;
                     float lastd = 0.0;
+                    const int MAIN_ITERS = 64;
+                    for (int i = 0; i < MAIN_ITERS; i ++) {
+                        vec3 swpos = mix(wpos, ray_end, t);
+                        vec3 svpos = (view_mat * vec4(swpos, 1)).xyz;
+                        vec4 clippos = proj_mat * vec4(svpos, 1);
+                        new_uv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
+                        float d = -depth_at(new_uv);
+                        if (d < svpos.z * 0.8 && d > svpos.z * 0.999) {
+                            t -= 1.0 / float(MAIN_ITERS);
+                            break;
+                        }
+                        lastd = d;
+                        t += 1.0 / float(MAIN_ITERS);
+                        lastd = d;
+                    }
+
+                    const int ITERS = 8;
+                    float diff = 1.0 / float(MAIN_ITERS);
                     for (int i = 0; i < ITERS; i ++) {
                         vec3 swpos = mix(wpos, ray_end, t);
                         vec3 svpos = (view_mat * vec4(swpos, 1)).xyz;
                         vec4 clippos = proj_mat * vec4(svpos, 1);
-                        vec2 suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
-                        float d = -depth_at(suv);
-                        if (d < svpos.z * 0.85 && d > svpos.z * 0.999) {
-                            new_uv = suv;
-                            break;
-                        }
-                        lastd = d;
-                        t += 1.0 / float(ITERS);
+                        new_uv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
+                        float d = -depth_at(new_uv);
+                        t += ((d > svpos.z * 0.999) ? -1.0 : 1.0) * diff;
+                        diff *= 0.5;
                     }
                 #endif
 
@@ -165,24 +172,22 @@ void main() {
 
                 vec3 new_wpos = wpos_at(new_uv);;
                 float new_dist = distance(wpos_at(new_uv), cam_pos.xyz);
-                if (new_dist > dist || true) {
-                    float merge = min(
-                        // Off-screen merge factor
-                        clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 2.0, 0, 0.75),
-                        // Depth merge factor
-                        clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
-                    );
+                float merge = min(
+                    // Off-screen merge factor
+                    clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 2.0, 0, 0.75),
+                    // Depth merge factor
+                    min(
+                        clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0),
+                        max(dot(normalize(new_wpos - wpos), refl_dir) - 0.95, 0.0) / 0.05
+                    )
+                );
 
-                    //vec2 new_uv = uv * vec2(1, -1) + vec2(0, 1.1) / (1.0 + dist * 0.000001) + vec2(0, dir.z);
-                    color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), new_uv).rgb, merge);
-                    wpos = new_wpos;
-                    dist = distance(wpos, cam_pos.xyz);
-                    dir = (wpos - cam_pos.xyz) / dist;
-                    cloud_blend = min(merge * 2.0, 1.0);
-                } else {
-                    cloud_blend = 1.0;
-                }
-                /* color.rgb = vec3(t); */
+                //vec2 new_uv = uv * vec2(1, -1) + vec2(0, 1.1) / (1.0 + dist * 0.000001) + vec2(0, dir.z);
+                color.rgb = mix(color.rgb, texture(sampler2D(t_src_color, s_src_color), new_uv).rgb, merge);
+                wpos = new_wpos;
+                dist = distance(wpos, cam_pos.xyz);
+                dir = (wpos - cam_pos.xyz) / dist;
+                cloud_blend = min(merge * 2.0, 1.0);
             } else {
         #else
             {
