@@ -391,13 +391,13 @@ vec3 water_diffuse(vec3 color, vec3 dir, float max_dist) {
         float f_alt = alt_at(cam_pos.xy);
         float fluid_alt = max(cam_pos.z + 1, floor(f_alt + 1));
 
-        float water_dist = clamp((fluid_alt - cam_pos.z) / pow(max(dir.z, 0), 5), 0, max_dist);
+        float water_dist = clamp((fluid_alt - cam_pos.z) / pow(max(dir.z, 0), 2), 0, max_dist);
 
-        float fade = pow(0.97, water_dist);
+        float fade = pow(0.95, water_dist);
 
         return mix(vec3(0.0, 0.2, 0.5)
             * (get_sun_brightness() * get_sun_color() + get_moon_brightness() * get_moon_color())
-            * pow(0.99, max((fluid_alt - cam_pos.z) * 12.0 - dir.z * 200, 0)), color.rgb, fade);
+            * pow(0.99, max((fluid_alt - cam_pos.z) * 12.0 - dir.z * 200, 0)), color.rgb * exp(-MU_WATER * water_dist * 0.1), fade);
     } else {
         return color;
     }

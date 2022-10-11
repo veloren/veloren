@@ -55,5 +55,5 @@ void main() {
     } */
     vec3 wpos = cam_pos.xyz + /*normalize(f_pos)*/cam_dir * dist;
 
-    tgt_color = vec4(cam_attenuation * get_sky_color(normalize(f_pos), time_of_day.x, cam_pos.xyz, wpos, 1.0, true, refractionIndex), 1.0);
+    tgt_color = vec4(cam_attenuation * get_sky_color(normalize(f_pos), time_of_day.x, cam_pos.xyz, wpos, 1.0, medium.x != MEDIUM_WATER, refractionIndex), 1.0);
 }

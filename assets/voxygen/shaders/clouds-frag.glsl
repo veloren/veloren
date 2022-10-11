@@ -168,8 +168,7 @@ void main() {
         #else
             {
         #endif
-            cloud_blend = 1;
-            /* dist = DIST_CAP; */
+            dist = DIST_CAP;
         }
     }
     /* color.rgb = vec3(sin(depth_at(uv) * 3.14159 * 2) * 0.5 + 0.5); */

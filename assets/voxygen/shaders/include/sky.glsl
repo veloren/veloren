@@ -581,7 +581,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
 
     // Sun
-    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 50.0;
+    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 10.0;
 
     vec3 sun_halo_color = mix(
         (sun_dir.x > 0 ? SUN_HALO_DUSK : SUN_HALO_DAWN)* magnetosphere_tint,

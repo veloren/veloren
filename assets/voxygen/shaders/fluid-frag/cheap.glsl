@@ -59,7 +59,7 @@ vec4 water_col(vec4 posx, vec4 posy) {
         textureLod(sampler2D(t_noise, s_noise), vec2(posx.y, posy.y), 0).x,
         textureLod(sampler2D(t_noise, s_noise), vec2(posx.z, posy.z), 0).x,
         textureLod(sampler2D(t_noise, s_noise), vec2(posx.w, posy.w), 0).x
-    ) - 0.5) * 1.3;
+    ) - 0.5) * 1.0;
 }
 
 float water_col_vel(vec2 pos){
@@ -108,7 +108,7 @@ void main() {
     vec3 view_dir = -cam_to_frag;
     // vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
 
-    vec3 water_color = (1.0 - mix(MU_WATER, vec3(0.8, 0.24, 0.08), water_col_vel(f_pos.xy))) * MU_SCATTER;
+    vec3 water_color = (1.0 - mix(pow(MU_WATER, vec3(0.25)), pow(vec3(0.8, 0.24, 0.08), vec3(0.25)), water_col_vel(f_pos.xy))) * MU_SCATTER;
 
     /* vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
@@ -215,15 +215,18 @@ void main() {
     // float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + specular_light_point;
 
-    float passthrough = max(dot(f_norm, -cam_to_frag), 0) * 0.65;
+    float passthrough = max(dot(cam_norm, -cam_to_frag), 0) * 0.65;
+
     float min_refl = 0.0;
-    /* if (medium.x != MEDIUM_WATER) { */
-    /*     min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b)); */
-    /* } */
+    float opacity = (1.0 - passthrough) * 1.0 / (1.0 + min_refl);
+    if (medium.x == MEDIUM_WATER) {
+        // Hack to make the opacity of the surface fade when underwater to avoid artifacts
+        opacity = min(sqrt(max(opacity, clamp((f_pos.z - cam_pos.z) * 0.05, 0.0, 1.0))), 1.0);
+    }
 
     vec3 surf_color = illuminate(max_light, view_dir, water_color * /* fog_color * */emitted_light, /*surf_color * */water_color * reflected_light);
     // vec4 color = vec4(surf_color, passthrough * 1.0 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
-    vec4 color = vec4(surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));
+    vec4 color = vec4(surf_color, opacity);
 
     tgt_color = color;
 }

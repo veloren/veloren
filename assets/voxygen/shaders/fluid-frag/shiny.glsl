@@ -332,7 +332,7 @@ void main() {
     // vec3 light, diffuse_light, ambient_light;
     // vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
     // 0 = 100% reflection, 1 = translucent water
-    float passthrough = max(dot(norm, -cam_to_frag), 0) * 0.75;
+    float passthrough = max(dot(cam_norm, -cam_to_frag), 0) * 0.75;
 
     float max_light = 0.0;
     max_light += get_sun_diffuse2(sun_info, moon_info, cam_norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
@@ -403,10 +403,14 @@ void main() {
 
     // float log_cam = log(min(cam_attenuation.r, min(cam_attenuation.g, cam_attenuation.b)));
     float min_refl = 0.0;
+    float opacity = (1.0 - passthrough) * 0.5 / (1.0 + min_refl);
     if (medium.x != MEDIUM_WATER) {
         min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
+    } else {
+        // Hack to make the opacity of the surface fade when underwater to avoid artifacts
+        opacity = min(sqrt(max(opacity, clamp((f_pos.z - cam_pos.z) * 0.05, 0.0, 1.0))), 1.0);
     }
-    vec4 color = vec4(surf_color, (1.0 - passthrough) * 0.5 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
+    vec4 color = vec4(surf_color, opacity);// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
     // vec4 color = vec4(surf_color, mix(1.0, 1.0 / (1.0 + /*0.25 * *//*diffuse_light*/(/*f_light * point_shadow*/reflected_light_point)), passthrough));
     // vec4 color = vec4(surf_color, mix(1.0, length(cam_attenuation), passthrough));
 
