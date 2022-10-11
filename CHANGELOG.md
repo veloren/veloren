@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HQX upscaling shader for people playing on low internal resolutions
 - Pets can now be traded with.
 - Crafting recipe for black lantern
+- Added redwood and dead trees
 
 ### Changed
 - Use fluent for translations
