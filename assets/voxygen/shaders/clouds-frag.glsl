@@ -112,10 +112,11 @@ void main() {
 
                 #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONSCASTING
                     vec3 ray_end = wpos + refl_dir * 5.0 * dist;
-                    float t = 0.0;
                     // Trace through the screen-space depth buffer to find the ray intersection
                     const int MAIN_ITERS = 64;
                     for (int i = 0; i < MAIN_ITERS; i ++) {
+                        float t = float(i) / float(MAIN_ITERS);
+                        // TODO: Trace in screen space, not world space
                         vec3 swpos = mix(wpos, ray_end, t);
                         vec3 svpos = (view_mat * vec4(swpos, 1)).xyz;
                         vec4 clippos = proj_mat * vec4(svpos, 1);
@@ -124,7 +125,7 @@ void main() {
                         if (d < svpos.z * 0.8 && d > svpos.z * 0.999) {
                             // Don't cast into water!
                             if (texture(sampler2D(t_src_color, s_src_color), suv).a >= 1.0) {
-                                t -= 1.0 / float(MAIN_ITERS);
+                                /* t -= 1.0 / float(MAIN_ITERS); */
                                 // Do a bit of extra iteration to try to refine the estimate
                                 const int ITERS = 8;
                                 float diff = 1.0 / float(MAIN_ITERS);
@@ -142,7 +143,6 @@ void main() {
                                 break;
                             }
                         }
-                        t += 1.0 / float(MAIN_ITERS);
                     }
                 #endif
 
@@ -169,7 +169,7 @@ void main() {
             {
         #endif
             cloud_blend = 1;
-            dist = DIST_CAP;
+            /* dist = DIST_CAP; */
         }
     }
     /* color.rgb = vec3(sin(depth_at(uv) * 3.14159 * 2) * 0.5 + 0.5); */
