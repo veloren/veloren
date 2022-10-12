@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{
-        ability::{self, AbilityKind, ActiveAbilities, AuxiliaryAbility, Capability},
+        ability::{self, Ability, AbilityKind, ActiveAbilities, AuxiliaryAbility, Capability},
         buff::BuffKind,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
@@ -529,7 +529,7 @@ impl<'a> AgentData<'a> {
                 // Remove when agents properly consider multiple targets
                 // 4 + rng.gen_range(0..13) / 3
                 // rng.gen_range(4..9)
-                5
+                6
             } else if self
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::OffensiveFinisher))
@@ -728,6 +728,10 @@ impl<'a> AgentData<'a> {
             angle: 35.0,
             energy: 10.0,
         };
+        const DEFENSIVE_BULWARK: SelfBuffData = SelfBuffData {
+            buff: BuffKind::ProtectingWard,
+            energy: 40.0,
+        };
 
         match stance(agent.action_state.int_counter) {
             SwordStance::Balanced => {
@@ -832,10 +836,6 @@ impl<'a> AgentData<'a> {
                     max_range: 2.5,
                     angle: 35.0,
                     energy: 5.0,
-                };
-                const DEFENSIVE_BULWARK: SelfBuffData = SelfBuffData {
-                    buff: BuffKind::ProtectingWard,
-                    energy: 40.0,
                 };
                 const BASIC_BLOCK: BlockData = BlockData {
                     angle: 55.0,
@@ -1371,7 +1371,85 @@ impl<'a> AgentData<'a> {
                 }
             },
             SwordStance::Heavy => {
-                fallback_tactics(agent, controller);
+                const HEAVY_COMBO: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 2.5,
+                    angle: 35.0,
+                    energy: 5.0,
+                };
+                const HEAVY_FINISHER: FinisherMeleeData = FinisherMeleeData {
+                    range: 2.5,
+                    angle: 10.0,
+                    energy: 40.0,
+                    combo: 10,
+                };
+                const HEAVY_POMMELSTRIKE: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 3.0,
+                    angle: 3.0,
+                    energy: 10.0,
+                };
+                const HEAVY_FORTITUDE: SelfBuffData = SelfBuffData {
+                    buff: BuffKind::Fortitude,
+                    energy: 40.0,
+                };
+                const DESIRED_ENERGY: f32 = 50.0;
+
+                agent.action_state.condition = self
+                    .poise
+                    .map_or(false, |p| p.current() < p.maximum() * 0.8);
+                if matches!(
+                    self.char_state.ability_info().and_then(|info| info.ability),
+                    Some(Ability::MainWeaponAux(21))
+                ) {
+                    agent.action_state.timer = 0.0;
+                }
+
+                if self.energy.current() < DESIRED_ENERGY {
+                    fallback_tactics(agent, controller);
+                } else if !agent.action_state.condition
+                    && DEFENSIVE_BULWARK.could_use(self)
+                    && DEFENSIVE_BULWARK.use_desirable(self)
+                {
+                    if in_stance(SwordStance::Heavy) {
+                        controller.push_basic_input(InputKind::Ability(0));
+                    } else {
+                        controller.push_basic_input(InputKind::Ability(4));
+                    }
+                } else if !in_stance(SwordStance::Heavy) {
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else if HEAVY_FORTITUDE.could_use(self)
+                    && HEAVY_FORTITUDE.use_desirable(self)
+                    && agent.action_state.condition
+                {
+                    controller.push_basic_input(InputKind::Ability(3));
+                } else if HEAVY_FINISHER.could_use(attack_data, self)
+                    && HEAVY_FINISHER.use_desirable(tgt_data, self)
+                {
+                    controller.push_basic_input(InputKind::Ability(1));
+                    advance(
+                        agent,
+                        controller,
+                        HEAVY_FINISHER.range,
+                        HEAVY_FINISHER.angle,
+                    );
+                } else if HEAVY_POMMELSTRIKE.could_use(attack_data, self)
+                    && rng.gen::<f32>()
+                        < agent.action_state.timer * self.poise.map_or(0.5, |p| p.fraction())
+                {
+                    controller.push_basic_input(InputKind::Ability(2));
+                    advance(
+                        agent,
+                        controller,
+                        HEAVY_POMMELSTRIKE.max_range,
+                        HEAVY_POMMELSTRIKE.angle,
+                    );
+                } else if HEAVY_COMBO.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Primary);
+                    advance(agent, controller, HEAVY_COMBO.max_range, HEAVY_COMBO.angle);
+                } else {
+                    advance(agent, controller, HEAVY_COMBO.max_range, HEAVY_COMBO.angle);
+                }
             },
             SwordStance::Reaching => {
                 fallback_tactics(agent, controller);

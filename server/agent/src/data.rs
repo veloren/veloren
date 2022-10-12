@@ -2,7 +2,7 @@ use common::{
     comp::{
         buff::Buffs, group, item::MaterialStatManifest, ActiveAbilities, Alignment, Body,
         CharacterState, Combo, Energy, Health, Inventory, LightEmitter, LootOwner, Ori,
-        PhysicsState, Pos, Scale, SkillSet, Stats, Vel,
+        PhysicsState, Poise, Pos, Scale, SkillSet, Stats, Vel,
     },
     link::Is,
     mounting::Mount,
@@ -43,6 +43,7 @@ pub struct AgentData<'a> {
     pub active_abilities: &'a ActiveAbilities,
     pub combo: Option<&'a Combo>,
     pub buffs: Option<&'a Buffs>,
+    pub poise: Option<&'a Poise>,
     pub cached_spatial_grid: &'a common::CachedSpatialGrid,
     pub msm: &'a MaterialStatManifest,
 }
@@ -171,6 +172,7 @@ pub struct ReadData<'a> {
     pub active_abilities: ReadStorage<'a, ActiveAbilities>,
     pub loot_owners: ReadStorage<'a, LootOwner>,
     pub msm: ReadExpect<'a, MaterialStatManifest>,
+    pub poises: ReadStorage<'a, Poise>,
 }
 
 pub enum Path {
