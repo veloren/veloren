@@ -1,11 +1,12 @@
 use vek::*;
+use super::GridHasher;
 
 #[derive(Debug)]
 pub struct SpatialGrid {
     // Uses two scales of grids so that we can have a hard limit on how far to search in the
     // smaller grid
-    grid: hashbrown::HashMap<Vec2<i32>, Vec<specs::Entity>>,
-    large_grid: hashbrown::HashMap<Vec2<i32>, Vec<specs::Entity>>,
+    grid: hashbrown::HashMap<Vec2<i32>, Vec<specs::Entity>, GridHasher>,
+    large_grid: hashbrown::HashMap<Vec2<i32>, Vec<specs::Entity>, GridHasher>,
     // Log base 2 of the cell size of the spatial grid
     lg2_cell_size: usize,
     // Log base 2 of the cell size of the large spatial grid
@@ -53,7 +54,7 @@ impl SpatialGrid {
     /// NOTE: for best optimization of the iterator use
     /// `for_each` rather than a for loop.
     pub fn in_aabr<'a>(&'a self, aabr: Aabr<i32>) -> impl Iterator<Item = specs::Entity> + 'a {
-        let iter = |max_entity_radius, grid: &'a hashbrown::HashMap<_, _>, lg2_cell_size| {
+        let iter = |max_entity_radius, grid: &'a hashbrown::HashMap<_, _, _>, lg2_cell_size| {
             // Add buffer for other entity radius
             let min = aabr.min - max_entity_radius as i32;
             let max = aabr.max + max_entity_radius as i32;

@@ -2,6 +2,7 @@ use crate::{
     terrain::MapSizeLg,
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, WriteVol},
     volumes::dyna::DynaError,
+    util::GridHasher,
 };
 use hashbrown::{hash_map, HashMap};
 use std::{fmt::Debug, ops::Deref, sync::Arc};
@@ -24,7 +25,7 @@ pub struct VolGrid2d<V: RectRasterableVol> {
     map_size_lg: MapSizeLg,
     /// Default voxel for use outside of max map bounds.
     default: Arc<V>,
-    chunks: HashMap<Vec2<i32>, Arc<V>>,
+    chunks: HashMap<Vec2<i32>, Arc<V>, GridHasher>,
 }
 
 impl<V: RectRasterableVol> VolGrid2d<V> {
@@ -64,9 +65,10 @@ impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
         let ck = Self::chunk_key(pos);
         self.get_key(ck)
             .ok_or(VolGrid2dError::NoSuchChunk)
-            .and_then(|chunk| {
+            .map(|chunk| {
                 let co = Self::chunk_offs(pos);
-                chunk.get(co).map_err(VolGrid2dError::ChunkError)
+                // Always within bounds of the chunk, so we can use the get_unchecked form
+                chunk.get_unchecked(co)
             })
     }
 
@@ -271,7 +273,7 @@ impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
             chunk
         };
         let co = VolGrid2d::<V>::chunk_offs(pos);
-        chunk.get(co).map_err(VolGrid2dError::ChunkError)
+        Ok(chunk.get_unchecked(co))
     }
 }
 

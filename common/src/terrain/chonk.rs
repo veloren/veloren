@@ -181,6 +181,49 @@ impl<V, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
                 .map_err(Self::Error::SubChunkError)
         }
     }
+
+    #[inline(always)]
+    fn get_unchecked(&self, pos: Vec3<i32>) -> &V {
+        if pos.z < self.get_min_z() {
+            // Below the terrain
+            &self.below
+        } else if pos.z >= self.get_max_z() {
+            // Above the terrain
+            &self.above
+        } else {
+            // Within the terrain
+            let sub_chunk_idx = self.sub_chunk_idx(pos.z);
+            let rpos = pos
+                - Vec3::unit_z()
+                    * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
+            self.sub_chunks[sub_chunk_idx as usize]
+                .get_unchecked(rpos)
+        }
+    }
+
+    fn for_each_in(&self, aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, Self::Vox))
+    where
+        Self::Vox: Copy,
+    {
+        let idx = self.sub_chunk_idx(aabb.min.z);
+        // Special-case for the AABB being entirely within a single sub-chunk as this is very common.
+        if idx == self.sub_chunk_idx(aabb.max.z) && idx >= 0 && idx < self.sub_chunks.len() as i32 {
+            let sub_chunk = &self.sub_chunks[idx as usize];
+            let z_off = self.z_offset + idx * SubChunkSize::<S>::SIZE.z as i32;
+            sub_chunk.for_each_in(
+                Aabb { min: aabb.min.with_z(aabb.min.z - z_off), max: aabb.max.with_z(aabb.max.z - z_off) },
+                |pos, vox| f(pos.with_z(pos.z + z_off), vox),
+            );
+        } else {
+            for z in aabb.min.z..aabb.max.z + 1 {
+                for y in aabb.min.y..aabb.max.y + 1 {
+                    for x in aabb.min.x..aabb.max.x + 1 {
+                        f(Vec3::new(x, y, z), *self.get_unchecked(Vec3::new(x, y, z)));
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {

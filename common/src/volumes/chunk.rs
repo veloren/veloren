@@ -307,6 +307,28 @@ impl<V, S: VolSize, M> ReadVol for Chunk<V, S, M> {
             Ok(self.get_unchecked(pos))
         }
     }
+
+    #[inline(always)]
+    fn get_unchecked(&self, pos: Vec3<i32>) -> &Self::Vox {
+        self.get_unchecked(pos)
+    }
+
+    fn for_each_in(&self, mut aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, Self::Vox))
+    where
+        Self::Vox: Copy,
+    {
+        aabb.intersect(Aabb {
+            min: Vec3::zero(),
+            max: S::SIZE.map(|e| e as i32) - 1,
+        });
+        for z in aabb.min.z..aabb.max.z + 1 {
+            for y in aabb.min.y..aabb.max.y + 1 {
+                for x in aabb.min.x..aabb.max.x + 1 {
+                    f(Vec3::new(x, y, z), *self.get_unchecked(Vec3::new(x, y, z)));
+                }
+            }
+        }
+    }
 }
 
 impl<V: Clone + PartialEq, S: VolSize, M> WriteVol for Chunk<V, S, M> {

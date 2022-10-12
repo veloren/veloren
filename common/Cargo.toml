@@ -82,6 +82,7 @@ specs = { version = "0.18", features = ["serde", "storage-event-control", "night
 [dev-dependencies]
 #bench
 criterion = "0.3"
+rand_chacha = "0.3"
 
 #test
 tracing-subscriber = { version = "0.3.7", default-features = false, features = ["fmt", "time", "ansi", "smallvec", "env-filter"] }
