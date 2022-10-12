@@ -490,6 +490,19 @@ impl<'a> AgentData<'a> {
                     && dist_sqrd_2d < (self.range + 5.0).powi(2)
             }
         }
+        struct BlockData {
+            angle: f32,
+            // Should probably just always use 5 or so unless riposte melee
+            range: f32,
+            energy: f32,
+        }
+        impl BlockData {
+            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+                attack_data.dist_sqrd < self.range.powi(2)
+                    && attack_data.angle < self.angle
+                    && agent_data.energy.current() >= self.energy
+            }
+        }
         use ability::SwordStance;
         let stance = |stance| match stance {
             1 => SwordStance::Offensive,
@@ -709,6 +722,12 @@ impl<'a> AgentData<'a> {
             angle: 20.0,
             energy: 10.0,
         };
+        const DEFENSIVE_RETREAT: ComboMeleeData = ComboMeleeData {
+            min_range: 0.0,
+            max_range: 3.0,
+            angle: 35.0,
+            energy: 10.0,
+        };
 
         match stance(agent.action_state.int_counter) {
             SwordStance::Balanced => {
@@ -814,15 +833,14 @@ impl<'a> AgentData<'a> {
                     angle: 35.0,
                     energy: 5.0,
                 };
-                const DEFENSIVE_RETREAT: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 3.0,
-                    angle: 35.0,
-                    energy: 10.0,
-                };
                 const DEFENSIVE_BULWARK: SelfBuffData = SelfBuffData {
                     buff: BuffKind::ProtectingWard,
                     energy: 40.0,
+                };
+                const BASIC_BLOCK: BlockData = BlockData {
+                    angle: 55.0,
+                    range: 5.0,
+                    energy: 2.5,
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
 
@@ -830,6 +848,7 @@ impl<'a> AgentData<'a> {
                     if let Some(char_state) = tgt_data.char_state {
                         matches!(char_state.stage_section(), Some(StageSection::Buildup))
                             && char_state.is_melee_attack()
+                            && BASIC_BLOCK.could_use(attack_data, self)
                             && char_state
                                 .timer()
                                 .map_or(false, |timer| rng.gen::<f32>() < timer.as_secs_f32() * 4.0)
@@ -1215,7 +1234,141 @@ impl<'a> AgentData<'a> {
                 }
             },
             SwordStance::Parrying => {
-                fallback_tactics(agent, controller);
+                const PARRYING_COMBO: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 2.5,
+                    angle: 35.0,
+                    energy: 10.0,
+                };
+                const PARRYING_PARRY: BlockData = BlockData {
+                    angle: 40.0,
+                    range: 5.0,
+                    energy: 10.0,
+                };
+                const PARRYING_RIPOSTE: BlockData = BlockData {
+                    angle: 15.0,
+                    range: 3.5,
+                    energy: 15.0,
+                };
+                const PARRYING_COUNTER: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 2.5,
+                    angle: 25.0,
+                    energy: 15.0,
+                };
+                const DESIRED_ENERGY: f32 = 50.0;
+
+                let try_parry = |pregen_rng_1: f32| {
+                    if let Some(char_state) = tgt_data.char_state {
+                        matches!(char_state.stage_section(), Some(StageSection::Buildup))
+                            && char_state.is_melee_attack()
+                            && char_state
+                                .timer()
+                                .map_or(false, |timer| pregen_rng_1 < timer.as_secs_f32() * 4.0)
+                    } else {
+                        false
+                    }
+                };
+
+                if tgt_data
+                    .buffs
+                    .map_or(false, |b| b.contains(BuffKind::Parried))
+                {
+                    agent.action_state.condition = true;
+                }
+                if agent.action_state.condition {
+                    agent.action_state.timer += read_data.dt.0;
+                }
+                if agent.action_state.timer > 0.5 {
+                    agent.action_state.condition = false;
+                    agent.action_state.timer = 0.0;
+                }
+
+                if self.energy.current() < DESIRED_ENERGY {
+                    fallback_tactics(agent, controller);
+                } else if agent.action_state.condition
+                    && agent.action_state.timer > 0.25
+                    && DEFENSIVE_RETREAT.could_use(attack_data, self)
+                {
+                    controller.push_basic_input(InputKind::Ability(4));
+                    if matches!(self.char_state.stage_section(), Some(StageSection::Buildup)) {
+                        advance(
+                            agent,
+                            controller,
+                            DEFENSIVE_RETREAT.max_range,
+                            DEFENSIVE_RETREAT.angle,
+                        );
+                    }
+                } else if !in_stance(SwordStance::Parrying) {
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else if matches!(
+                    tgt_data.char_state.and_then(|cs| cs.stage_section()),
+                    Some(StageSection::Buildup)
+                ) && PARRYING_COUNTER.could_use(attack_data, self)
+                    && rng.gen::<f32>() < self.health.map_or(0.0, |h| h.fraction())
+                {
+                    controller.push_basic_input(InputKind::Ability(3));
+                    advance(
+                        agent,
+                        controller,
+                        PARRYING_COUNTER.max_range,
+                        PARRYING_COUNTER.angle,
+                    );
+                } else if try_parry(rng.gen::<f32>()) {
+                    if PARRYING_RIPOSTE.could_use(attack_data, self)
+                        && rng.gen::<f32>() > self.health.map_or(0.0, |h| h.fraction())
+                    {
+                        controller.push_basic_input(InputKind::Ability(2));
+                        advance(
+                            agent,
+                            controller,
+                            PARRYING_RIPOSTE.range,
+                            PARRYING_RIPOSTE.angle,
+                        );
+                    } else if PARRYING_PARRY.could_use(attack_data, self) {
+                        controller.push_basic_input(InputKind::Ability(1));
+                        advance(
+                            agent,
+                            controller,
+                            PARRYING_PARRY.range,
+                            PARRYING_PARRY.angle,
+                        );
+                    } else if PARRYING_COMBO.could_use(attack_data, self) {
+                        controller.push_basic_input(InputKind::Primary);
+                        if !agent.action_state.condition {
+                            advance(
+                                agent,
+                                controller,
+                                PARRYING_COMBO.max_range,
+                                PARRYING_COMBO.angle,
+                            );
+                        }
+                    } else {
+                        advance(
+                            agent,
+                            controller,
+                            PARRYING_COMBO.max_range,
+                            PARRYING_COMBO.angle,
+                        );
+                    }
+                } else if PARRYING_COMBO.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Primary);
+                    if !agent.action_state.condition {
+                        advance(
+                            agent,
+                            controller,
+                            PARRYING_COMBO.max_range,
+                            PARRYING_COMBO.angle,
+                        );
+                    }
+                } else {
+                    advance(
+                        agent,
+                        controller,
+                        PARRYING_COMBO.max_range,
+                        PARRYING_COMBO.angle,
+                    );
+                }
             },
             SwordStance::Heavy => {
                 fallback_tactics(agent, controller);
