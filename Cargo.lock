@@ -6729,6 +6729,7 @@ dependencies = [
  "ordered-float 2.10.0",
  "petgraph 0.6.2",
  "rand 0.8.5",
+ "rand_chacha 0.3.1",
  "rayon",
  "ron 0.7.1",
  "roots",

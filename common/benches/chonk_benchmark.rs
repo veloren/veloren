@@ -124,6 +124,27 @@ fn criterion_benchmark(c: &mut Criterion) {
             }
         })
     });
+
+    c.bench_function("for_each_in", |b| {
+        use rand::prelude::*;
+        let mut rng = rand_chacha::ChaChaRng::seed_from_u64(thread_rng().gen());
+        b.iter(|| {
+            let pos = Vec3::new(
+                rng.gen_range(0..TerrainChunk::RECT_SIZE.x as i32 - 3),
+                rng.gen_range(0..TerrainChunk::RECT_SIZE.x as i32 - 3),
+                rng.gen_range(MIN_Z..MAX_Z - 6),
+            );
+            chunk.for_each_in(
+                Aabb {
+                    min: pos,
+                    max: pos + Vec3::new(3, 3, 6),
+                },
+                |pos, vox| {
+                    black_box((pos, vox));
+                },
+            );
+        })
+    });
     black_box(chunk);
 }
 

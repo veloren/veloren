@@ -1460,11 +1460,9 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             // Calculate the world space near aabb
             let near_aabb = move_aabb(near_aabb, pos.0);
             let player_overlap = |block_aabb: Aabb<f32>| {
-                ordered_float::OrderedFloat(
-                    (block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
-                        .map(f32::abs)
-                        .sum(),
-                )
+                (block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
+                    .map(f32::abs)
+                    .sum()
             };
 
             terrain.for_each_in(near_aabb, |block_pos, block| {
@@ -1479,19 +1477,16 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
                     // Determine whether the block's AABB collides with the player's AABB
                     if block_aabb.collides_with_aabb(player_aabb) {
-                        most_colliding = match most_colliding {
+                        match &most_colliding {
                             // Select the minimum of the value from `player_overlap`
-                            other @ Some((_, other_block_aabb, _))
+                            Some((_, other_block_aabb, _))
                                 if {
                                     // TODO: comment below is outdated (as of ~1 year ago)
                                     // Find the maximum of the minimum collision axes (this bit
                                     // is weird, trust me that it works)
-                                    player_overlap(block_aabb) >= player_overlap(other_block_aabb)
-                                } =>
-                            {
-                                other
-                            },
-                            _ => Some((block_pos, block_aabb, block)),
+                                    player_overlap(block_aabb) >= player_overlap(*other_block_aabb)
+                                } => {},
+                            _ => most_colliding = Some((block_pos, block_aabb, block)),
                         }
                     }
                 }

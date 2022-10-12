@@ -98,6 +98,10 @@ pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error>;
 
+    /// Get a reference to the voxel at the provided position in the volume. Many volumes provide a fast path,
+    /// provided the position is always in-bounds. Note that this function is still safe.
+    fn get_unchecked(&self, pos: Vec3<i32>) -> &Self::Vox { self.get(pos).unwrap() }
+
     /// NOTE: By default, this ray will simply run from `from` to `to` without
     /// stopping.  To make something interesting happen, call `until` or
     /// `for_each`.
