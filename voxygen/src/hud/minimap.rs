@@ -276,7 +276,7 @@ impl VoxelMinimap {
                 )
                 .unwrap_or(0)
         };
-        if cpos.distance_squared(self.last_pos.xy()) >= 1
+        if self.last_pos.xy() != cpos
             || self.last_pos.z != pos.z as i32
             || self.last_ceiling != ceiling_offset
             || new_chunks

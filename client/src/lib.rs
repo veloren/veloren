@@ -1858,8 +1858,11 @@ impl Client {
                 // 1 for the chunks needed bordering other chunks for meshing
                 // 1 as a buffer so that if the player moves back in that direction the chunks
                 //   don't need to be reloaded
+                // Take the minimum of the adjusted difference vs the view_distance + 1 to
+                //   prevent magnitude_squared from overflowing
+
                 if (chunk_pos - key)
-                    .map(|e: i32| (e.unsigned_abs()).saturating_sub(2))
+                    .map(|e: i32| (e.unsigned_abs()).saturating_sub(2).min(view_distance + 1))
                     .magnitude_squared()
                     > view_distance.pow(2)
                 {
