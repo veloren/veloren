@@ -286,26 +286,23 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng, calendar: Optio
             kind: Pumpkin,
             water_mode: Ground,
             permit: |b| matches!(b, BlockKind::Grass),
-            f: if calendar.map_or(false, |calendar| calendar.is_event(CalendarEvent::Halloween)) {
-                    |_, _| {
-                        (
-                            0.1,
-                            Some((0.0003, 128.0, 0.1)),
-                        )
-                    }
-                } else {
-                    |_, col| {
-                        (
-                            close(col.temp, CONFIG.temperate_temp, 0.5).min(close(
-                                col.humidity,
-                                CONFIG.forest_hum,
-                                0.5,
-                            )) * MUSH_FACT
-                                * 500.0,
-                            Some((0.0, 512.0, 0.05)),
-                        )
-                    }
-                },
+            f: if calendar.map_or(false, |calendar| {
+                calendar.is_event(CalendarEvent::Halloween)
+            }) {
+                |_, _| (0.1, Some((0.0003, 128.0, 0.1)))
+            } else {
+                |_, col| {
+                    (
+                        close(col.temp, CONFIG.temperate_temp, 0.5).min(close(
+                            col.humidity,
+                            CONFIG.forest_hum,
+                            0.5,
+                        )) * MUSH_FACT
+                            * 500.0,
+                        Some((0.0, 512.0, 0.05)),
+                    )
+                }
+            },
         },
         // Collectable Objects
         // Only spawn twigs in temperate forests

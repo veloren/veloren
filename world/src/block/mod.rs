@@ -265,6 +265,19 @@ pub fn block_from_structure(
                     && field.chance(pos + structure_pos, 0.025)
                 {
                     Block::new(BlockKind::GlowingWeakRock, Rgb::new(255, 0, 0))
+                } else if calendar.map_or(false, |c| c.is_event(CalendarEvent::Halloween))
+                    && sblock != StructureBlock::PineLeaves
+                {
+                    let (c0, c1) = match structure_seed % 6 {
+                        0 => (Rgb::new(165.0, 150.0, 11.0), Rgb::new(170.0, 165.0, 16.0)),
+                        1 | 2 => (Rgb::new(218.0, 53.0, 3.0), Rgb::new(226.0, 62.0, 5.0)),
+                        _ => (Rgb::new(230.0, 120.0, 20.0), Rgb::new(242.0, 130.0, 25.0)),
+                    };
+                    
+                    Block::new(
+                        BlockKind::Leaves,
+                        Rgb::<f32>::lerp(c0, c1, lerp).map(|e| e as u8),
+                    )
                 } else {
                     Block::new(
                         BlockKind::Leaves,
