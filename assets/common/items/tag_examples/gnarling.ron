@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Attire of the Gnarling tribes",
+    description: "Worn by Gnarlings and their Chieftains.",
+    kind: TagExamples(
+        item_ids: [
+            "common.items.armor.mist.head.gnarling_mask",            
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)
+
+

@@ -217,6 +217,7 @@ pub enum ItemTag {
     /// Used to indicate that an item is composed of this material kind
     MaterialKind(MaterialKind),
     Cultist,
+    Gnarling,
     Potion,
     Food,
     BaseMaterial, // Cloth-scraps, Leather...
@@ -232,6 +233,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::Material(material) => material.name(),
             ItemTag::MaterialKind(material_kind) => material_kind.into(),
             ItemTag::Cultist => "cultist",
+            ItemTag::Gnarling => "gnarling",
             ItemTag::Potion => "potion",
             ItemTag::Food => "food",
             ItemTag::BaseMaterial => "basemat",
@@ -248,6 +250,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::Material(material) => material.exemplar_identifier(),
             ItemTag::MaterialKind(_) => None,
             ItemTag::Cultist => Some("common.items.tag_examples.cultist"),
+            ItemTag::Gnarling => Some("common.items.tag_examples.gnarling"),
             ItemTag::Potion => None,
             ItemTag::Food => None,
             ItemTag::BaseMaterial => None,
