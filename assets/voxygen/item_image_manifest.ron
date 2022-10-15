@@ -2802,6 +2802,10 @@
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Hats
+    Simple("common.items.armor.misc.head.gnarling_mask"): VoxTrans(
+        "voxel.armor.misc.head.gnarling_mask",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
     Simple("common.items.armor.witch.hat"): VoxTrans(
         "voxel.armor.witch.hat",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,

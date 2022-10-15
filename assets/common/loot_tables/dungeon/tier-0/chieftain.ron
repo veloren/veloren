@@ -6,6 +6,8 @@
     // Misc
     (3.0, Item("common.items.armor.misc.neck.scratched")),
     (2.0, Item("common.items.armor.misc.head.wanderers_hat")),
+    // Chieftain Mask
+    (1.0, Item("common.items.armor.misc.head.gnarling_mask")),
     // Indirect crafting materials for T2 gear
     (1.0, ItemQuantity("common.items.crafting_ing.sticky_thread", 2, 5)),
     (1.0, ItemQuantity("common.items.mineral.ore.coal", 2, 5)),

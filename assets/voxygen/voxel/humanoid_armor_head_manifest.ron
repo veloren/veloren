@@ -1156,6 +1156,54 @@
             vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -8.0, -4.0)),
             color: None
         ),
-
+        // Gnarling Chieftain Mask
+        (Human, Male, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-4.0, 1.0, -2.0)),
+            color: None
+        ),
+        (Human, Female, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-4.0, 1.0, -1.0)),
+            color: None
+        ),
+        (Elf, Male, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-3.0, 1.0, -2.0)),
+            color: None
+        ),
+        (Elf, Female, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-3.0, 1.0, -2.0)),
+            color: None
+        ),
+        (Dwarf, Male, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-5.0, 2.0, -2.0)),
+            color: None
+        ),
+        (Dwarf, Female, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-5.0, 2.0, -1.0)),
+            color: None
+        ),
+        (Danari, Male, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-2.0, 0.0, 2.0)),
+            color: None
+        ),
+        (Danari, Female, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-2.0, 1.0, 2.0)),
+            color: None
+        ),
+        (Draugr, Male, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-6.0, 1.0, 0.0)),
+            color: None
+        ),
+        (Draugr, Female, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-6.0, 1.0, 0.0)),
+            color: None
+        ),
+        (Orc, Male, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-3.0, 1.0, 0.0)),
+            color: None
+        ),
+        (Orc, Female, "common.items.armor.misc.head.gnarling_mask"): (
+            vox_spec: ("armor.misc.head.gnarling_mask", (-3.0, 0.0, -1.0)),
+            color: None
+        ),
     }
 ))
