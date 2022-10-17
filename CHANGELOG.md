@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Immediate -> 'Vsync off'.
 - Item pickup UI now displays items that members of your group pick up.
 - Improved shiny water shaders
-
+- ActionState was extended to allow for the tracking of multiple concurrent timers, counters, and conditions in action node handlers
 ### Removed
 
 ### Fixed
