@@ -10,7 +10,7 @@ ComboMelee(
             range: 4.0,
             angle: 30.0,
             base_buildup_duration: 0.1,
-            base_swing_duration: 0.01,
+            base_swing_duration: 0.1,
             hit_timing: 0.5,
             base_recover_duration: 0.25,
             forward_movement: 0.5,
