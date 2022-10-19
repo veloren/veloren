@@ -960,6 +960,55 @@
             vox_spec: ("armor.misc.head.spikeguard", (-3.0, -5.0, 7.0)),
             color: None
         ),
+        //
+        (Human, Female, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-4.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Human, Male, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-4.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Elf, Female, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-3.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Elf, Male, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-3.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Orc, Female, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-3.0, -3.0, -1.0)),
+            color: None
+        ),
+        (Orc, Male, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-3.0, -6.0, 2.0)),
+            color: None
+        ),
+        (Dwarf, Female, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-5.0, -4.0, -1.0)),
+            color: None
+        ),
+        (Dwarf, Male, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-3.0, -3.0, -1.0)),
+            color: None
+        ),
+        (Draugr, Female, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-6.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Draugr, Male, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-6.0, -5.0, 1.0)),
+            color: None
+        ),
+        (Danari, Female, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-2.0, -5.0, 1.0)),
+            color: None
+        ),
+        (Danari, Male, "common.items.armor.misc.head.facegourd"): (
+            vox_spec: ("armor.misc.head.facegourd", (-2.0, -5.0, -1.0)),
+            color: None
+        ),
         // Merchant Turban
         (Human, Male, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-4.0, -7.0, -6.0)),

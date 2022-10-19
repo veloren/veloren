@@ -1,0 +1,22 @@
+ItemDef(
+    name: "Honeycorn",
+    description: "Sweeet",
+    kind: Consumable(
+        kind: Food,
+        effects: [
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 4.0,
+                    duration: Some((
+                            secs: 5,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
+    ),
+    quality: Common,
+    tags: [Food],
+)

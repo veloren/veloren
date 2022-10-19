@@ -1,0 +1,24 @@
+#![enable(implicit_some)]
+(
+    name: Name("Trickster"),
+    body: RandomWith("draugr"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.calendar.halloween.trickster"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.calendar.halloween.trickster"),
+            active_hands: InHands((Choice([
+                (1, Item("common.items.weapons.tool.broom")),
+                (1, Item("common.items.weapons.tool.hoe")),
+                (1, Item("common.items.weapons.tool.pickaxe")),
+                (1, Item("common.items.weapons.tool.rake")),
+                (1, Item("common.items.weapons.tool.shovel-0")),
+                (1, Item("common.items.weapons.tool.shovel-1")),
+            ]), None)),
+        )),
+        items: [
+            (10, "common.items.consumable.potion_big"),
+        ],
+    ),
+    meta: [],
+)

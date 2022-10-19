@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Pumpkin Head.",
+    description: "Halloween attire.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            energy_max: Some(4.0),
+            energy_reward: Some(0.04),
+        )),
+    )),
+    quality: Common,
+    tags: [],
+)

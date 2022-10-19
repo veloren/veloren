@@ -167,6 +167,10 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
             "world.wildlife.spawn.calendar.christmas.tundra.core",
             |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5,
         ),
+        (
+            "world.wildlife.spawn.calendar.halloween.halloween",
+            |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5,
+        ),
         // Snowy animals
         ("world.wildlife.spawn.tundra.snow", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.3) * BASE_DENSITY * col.snow_cover as i32 as f32 * 1.0
@@ -174,6 +178,15 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         // Snowy animals event
         (
             "world.wildlife.spawn.calendar.christmas.tundra.snow",
+            |c, col| {
+                close(c.temp, CONFIG.snow_temp, 0.3)
+                    * BASE_DENSITY
+                    * col.snow_cover as i32 as f32
+                    * 1.0
+            },
+        ),
+        (
+            "world.wildlife.spawn.calendar.halloween.halloween",
             |c, col| {
                 close(c.temp, CONFIG.snow_temp, 0.3)
                     * BASE_DENSITY
@@ -190,6 +203,10 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
             "world.wildlife.spawn.calendar.christmas.tundra.forest",
             |c, col| close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4,
         ),
+        (
+            "world.wildlife.spawn.calendar.halloween.halloween",
+            |c, col| close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4,
+        ),
         // **Taiga**
         // Forest core animals
         ("world.wildlife.spawn.taiga.core_forest", |c, col| {
@@ -198,6 +215,12 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         // Forest core animals event
         (
             "world.wildlife.spawn.calendar.christmas.taiga.core_forest",
+            |c, col| {
+                close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
+            },
+        ),
+        (
+            "world.wildlife.spawn.calendar.halloween.halloween",
             |c, col| {
                 close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
             },
@@ -243,6 +266,16 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                 * BASE_DENSITY
                 * 4.0
         }),
+        // Temperate Rainforest animals event
+        (
+            "world.wildlife.spawn.calendar.halloween.halloween",
+            |c, _col| {
+                close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
+                    * close(c.humidity, CONFIG.forest_hum, 0.6)
+                    * BASE_DENSITY
+                    * 4.0
+            },
+        ),
         // Water animals
         ("world.wildlife.spawn.temperate.water", |c, col| {
             close(c.temp, CONFIG.temperate_temp, 1.0) * col.tree_density * BASE_DENSITY * 5.0
@@ -262,6 +295,16 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                 * BASE_DENSITY
                 * 8.0
         }),
+        // Jungle animals event
+        (
+            "world.wildlife.spawn.calendar.halloween.halloween",
+            |c, _col| {
+                close(c.temp, CONFIG.tropical_temp + 0.2, 0.3)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.2)
+                    * BASE_DENSITY
+                    * 8.0
+            },
+        ),
         // **Tropical**
         // Rare river animals
         ("world.wildlife.spawn.tropical.river_rare", |_c, col| {
@@ -308,6 +351,16 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                 * BASE_DENSITY
                 * 2.0
         }),
+        // Tropical Rainforest animals event
+        (
+            "world.wildlife.spawn.calendar.halloween.halloween",
+            |c, _col| {
+                close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
+                    * close(c.humidity, CONFIG.desert_hum, 0.4)
+                    * BASE_DENSITY
+                    * 2.0
+            },
+        ),
         // Rock animals
         ("world.wildlife.spawn.tropical.rock", |c, col| {
             close(c.temp, CONFIG.tropical_temp + 0.1, 0.5) * col.rock_density * BASE_DENSITY * 5.0
