@@ -514,6 +514,7 @@ pub struct Agent {
 /// Always clamped between `0.0` and `1.0`.
 pub struct Awareness {
     level: f32,
+    reached: bool,
 }
 impl fmt::Display for Awareness {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:.2}", self.level) }
@@ -528,11 +529,15 @@ impl Awareness {
     pub fn new(level: f32) -> Self {
         Self {
             level: level.clamp(Self::UNAWARE, Self::AWARE),
+            reached: false,
         }
     }
 
+    /// The level of awareness as a decimal.
     pub fn level(&self) -> f32 { self.level }
 
+    /// The level of awareness in English. To see if awareness has been fully
+    /// reached, use `self.reached()`.
     pub fn state(&self) -> AwarenessState {
         if self.level == Self::AWARE {
             AwarenessState::Aware
@@ -547,13 +552,22 @@ impl Awareness {
         }
     }
 
+    /// Awareness was reached at some point and has not been reset.
+    pub fn reached(&self) -> bool { self.reached }
+
     pub fn change_by(&mut self, amount: f32, dt: f32) {
         let change = amount * dt * 30.0;
         self.level = (self.level + change).clamp(Self::UNAWARE, Self::AWARE);
+
+        if self.state() == AwarenessState::Aware {
+            self.reached = true;
+        } else if self.state() == AwarenessState::Unaware {
+            self.reached = false;
+        }
     }
 }
 
-#[derive(Clone, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Debug, PartialOrd, PartialEq, Eq)]
 pub enum AwarenessState {
     Unaware = 0,
     Low = 1,
