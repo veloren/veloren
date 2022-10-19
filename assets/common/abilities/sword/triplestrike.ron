@@ -2,17 +2,17 @@ ComboMelee(
     stage_data: [
         (
             stage: 1,
-            base_damage: 10.0,
-            damage_increase: 1.0,
+            base_damage: 8.0,
+            damage_increase: 0.5,
             base_poise_damage: 0,
             poise_damage_increase: 0,
             knockback: 0.0,
             range: 4.0,
             angle: 30.0,
             base_buildup_duration: 0.1,
-            base_swing_duration: 0.075,
+            base_swing_duration: 0.01,
             hit_timing: 0.5,
-            base_recover_duration: 0.15,
+            base_recover_duration: 0.25,
             forward_movement: 0.5,
             damage_kind: Slashing,
             damage_effect: Some(Buff((
@@ -24,8 +24,8 @@ ComboMelee(
         ),
         (
             stage: 2,
-            base_damage: 8.0,
-            damage_increase: 1.5,
+            base_damage: 9.0,
+            damage_increase: 0.5,
             base_poise_damage: 0,
             poise_damage_increase: 0,
             knockback: 2.0,
@@ -47,7 +47,7 @@ ComboMelee(
         (
             stage: 3,
             base_damage: 10.0,
-            damage_increase: 2,
+            damage_increase: 0.5,
             base_poise_damage: 0,
             poise_damage_increase: 0,
             knockback: 2.0,

@@ -4,8 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Head,
         stats: Direct((
-            protection: Some(Normal(3.0)),
-            crit_power: Some(0.021),
+            protection: Some(Normal(2.5)),
+            crit_power: Some(0.016),
             stealth: Some(0.22),
         )),
     )),
