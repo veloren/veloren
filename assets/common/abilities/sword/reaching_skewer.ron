@@ -25,7 +25,7 @@ ComboMelee2(
         ),
     ],
     is_stance: false,
-    energy_cost_per_strike: 20,
+    energy_cost_per_strike: 10,
     meta: (
         kind: Some(Sword(Reaching)),
     ),

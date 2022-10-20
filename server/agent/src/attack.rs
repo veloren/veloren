@@ -503,6 +503,53 @@ impl<'a> AgentData<'a> {
                     && agent_data.energy.current() >= self.energy
             }
         }
+        struct DashMeleeData {
+            range: f32,
+            angle: f32,
+            initial_energy: f32,
+            energy_drain: f32,
+            speed: f32,
+            charge_dur: f32,
+        }
+        impl DashMeleeData {
+            // TODO: Maybe figure out better way of pulling in base accel from body and
+            // accounting for friction?
+            const BASE_SPEED: f32 = 3.0;
+            const ORI_RATE: f32 = 30.0;
+
+            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+                let charge_dur = self.charge_dur(agent_data);
+                let charge_dist = charge_dur * self.speed * Self::BASE_SPEED;
+                let attack_dist = charge_dist + self.range;
+                let ori_gap = Self::ORI_RATE * charge_dur;
+                attack_data.dist_sqrd < attack_dist.powi(2)
+                    && attack_data.angle < self.angle + ori_gap
+                    && agent_data.energy.current() > self.initial_energy
+            }
+
+            fn use_desirable(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+                let charge_dist = self.charge_dur(agent_data) * self.speed * Self::BASE_SPEED;
+                attack_data.dist_sqrd / charge_dist.powi(2) > 0.75_f32.powi(2)
+            }
+
+            fn charge_dur(&self, agent_data: &AgentData) -> f32 {
+                ((agent_data.energy.current() - self.initial_energy) / self.energy_drain)
+                    .clamp(0.0, self.charge_dur)
+            }
+        }
+        struct RapidMeleeData {
+            range: f32,
+            angle: f32,
+            energy: f32,
+            strikes: u32,
+        }
+        impl RapidMeleeData {
+            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+                attack_data.dist_sqrd < self.range.powi(2)
+                    && attack_data.angle < self.angle
+                    && agent_data.energy.current() > self.energy * self.strikes as f32
+            }
+        }
         use ability::SwordStance;
         let stance = |stance| match stance {
             1 => SwordStance::Offensive,
@@ -527,9 +574,8 @@ impl<'a> AgentData<'a> {
                 // Hack to make cleaving stance come up less often because agents cannot use it
                 // effectively due to only considering a single target
                 // Remove when agents properly consider multiple targets
-                // 4 + rng.gen_range(0..13) / 3
+                4 + rng.gen_range(0..13) / 3
                 // rng.gen_range(4..9)
-                6
             } else if self
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::OffensiveFinisher))
@@ -730,6 +776,10 @@ impl<'a> AgentData<'a> {
         };
         const DEFENSIVE_BULWARK: SelfBuffData = SelfBuffData {
             buff: BuffKind::ProtectingWard,
+            energy: 40.0,
+        };
+        const MOBILITY_AGILITY: SelfBuffData = SelfBuffData {
+            buff: BuffKind::Hastened,
             energy: 40.0,
         };
 
@@ -940,10 +990,6 @@ impl<'a> AgentData<'a> {
                     max_range: 3.0,
                     angle: 35.0,
                     energy: 10.0,
-                };
-                const MOBILITY_AGILITY: SelfBuffData = SelfBuffData {
-                    buff: BuffKind::Hastened,
-                    energy: 40.0,
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
 
@@ -1452,7 +1498,93 @@ impl<'a> AgentData<'a> {
                 }
             },
             SwordStance::Reaching => {
-                fallback_tactics(agent, controller);
+                const REACHING_COMBO: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 4.5,
+                    angle: 6.0,
+                    energy: 5.0,
+                };
+                const REACHING_CHARGE: DashMeleeData = DashMeleeData {
+                    range: 3.5,
+                    angle: 12.5,
+                    initial_energy: 10.0,
+                    energy_drain: 20.0,
+                    speed: 3.0,
+                    charge_dur: 1.0,
+                };
+                const REACHING_FLURRY: RapidMeleeData = RapidMeleeData {
+                    range: 4.0,
+                    angle: 7.5,
+                    energy: 10.0,
+                    strikes: 6,
+                };
+                const REACHING_SKEWER: ComboMeleeData = ComboMeleeData {
+                    min_range: 1.0,
+                    max_range: 7.5,
+                    angle: 7.5,
+                    energy: 10.0,
+                };
+                const DESIRED_ENERGY: f32 = 50.0;
+
+                if self.energy.current() < DESIRED_ENERGY {
+                    fallback_tactics(agent, controller);
+                } else if MOBILITY_AGILITY.could_use(self) && MOBILITY_AGILITY.use_desirable(self) {
+                    if in_stance(SwordStance::Reaching) {
+                        controller.push_basic_input(InputKind::Ability(0));
+                    } else {
+                        controller.push_basic_input(InputKind::Ability(4));
+                    }
+                } else if !in_stance(SwordStance::Reaching) {
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else if matches!(self.char_state, CharacterState::DashMelee(s) if s.stage_section != StageSection::Recover)
+                    || (REACHING_CHARGE.could_use(attack_data, self)
+                        && REACHING_CHARGE.use_desirable(attack_data, self))
+                {
+                    controller.push_basic_input(InputKind::Ability(1));
+                    advance(
+                        agent,
+                        controller,
+                        REACHING_CHARGE.range,
+                        REACHING_CHARGE.angle,
+                    );
+                } else if REACHING_FLURRY.could_use(attack_data, self)
+                    && matches!(
+                        tgt_data.char_state.and_then(|cs| cs.stage_section()),
+                        Some(StageSection::Buildup)
+                    )
+                    && rng.gen::<f32>() < 0.5
+                {
+                    controller.push_basic_input(InputKind::Ability(2));
+                    advance(
+                        agent,
+                        controller,
+                        REACHING_FLURRY.range,
+                        REACHING_FLURRY.angle,
+                    );
+                } else if REACHING_SKEWER.could_use(attack_data, self) && rng.gen::<f32>() < 0.33 {
+                    controller.push_basic_input(InputKind::Ability(3));
+                    advance(
+                        agent,
+                        controller,
+                        REACHING_SKEWER.max_range,
+                        REACHING_SKEWER.angle,
+                    );
+                } else if REACHING_COMBO.could_use(attack_data, self) {
+                    controller.push_basic_input(InputKind::Primary);
+                    advance(
+                        agent,
+                        controller,
+                        REACHING_COMBO.max_range,
+                        REACHING_COMBO.angle,
+                    );
+                } else {
+                    advance(
+                        agent,
+                        controller,
+                        REACHING_COMBO.max_range,
+                        REACHING_COMBO.angle,
+                    );
+                }
             },
         }
 

@@ -14,7 +14,7 @@ DashMelee(
             energy_regen: 0,
         )),
         range: 4,
-        angle: 45.0,
+        angle: 15.0,
     ),
     energy_drain: 20,
     forward_speed: 3,
