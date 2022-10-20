@@ -1,5 +1,5 @@
 use crate::comp::skillset::{
-    SkillGroupKind, SKILL_COST, SKILL_GROUP_LOOKUP, SKILL_MAX_LEVEL, SKILL_PREREQUISITES,
+    SkillGroupKind, SKILL_GROUP_LOOKUP, SKILL_MAX_LEVEL, SKILL_PREREQUISITES,
 };
 use serde::{Deserialize, Serialize};
 
@@ -209,14 +209,7 @@ impl Skill {
     }
 
     /// Returns the cost in skill points of unlocking a particular skill
-    pub fn skill_cost(&self, level: u16) -> u16 {
-        // TODO: Better balance the costs later
-        SKILL_COST
-            .get(self)
-            .copied()
-            .unwrap_or(1)
-            .saturating_mul(level)
-    }
+    pub fn skill_cost(&self, level: u16) -> u16 { level }
 
     /// Returns the maximum level a skill can reach, returns None if the skill
     /// doesn't level

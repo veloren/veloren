@@ -124,12 +124,6 @@ lazy_static! {
         }
         hashes
     };
-    // Loads the cost in skill points per level needed to purchase a skill
-    pub static ref SKILL_COST: HashMap<Skill, u16> = {
-        SkillCostMap::load_expect_cloned(
-            "common.skill_trees.skill_cost",
-        ).0
-    };
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
@@ -143,17 +137,30 @@ impl SkillGroupKind {
     /// Changing this is forward compatible with persistence and will
     /// automatically force a respec for skill group kinds that are affected.
     pub fn skill_point_cost(self, level: u16) -> u32 {
-        const EXP_INCREMENT: f32 = 10.0;
-        const STARTING_EXP: f32 = 70.0;
-        const EXP_CEILING: f32 = 1000.0;
-        const SCALING_FACTOR: f32 = 0.125;
-        (EXP_INCREMENT
-            * (EXP_CEILING
-                / EXP_INCREMENT
-                / (1.0
-                    + std::f32::consts::E.powf(-SCALING_FACTOR * level as f32)
-                        * (EXP_CEILING / STARTING_EXP - 1.0)))
-                .floor()) as u32
+        use std::f32::consts::E;
+        match self {
+            Self::Weapon(ToolKind::Sword) => {
+                let level = level as f32;
+                ((400.0 * (level / (level + 20.0)).powi(2)
+                    + 2.0 * level.sqrt()
+                    + 4.0 * E.powf(0.025 * level))
+                .min(u32::MAX as f32) as u32)
+                    .saturating_mul(25)
+            },
+            _ => {
+                const EXP_INCREMENT: f32 = 10.0;
+                const STARTING_EXP: f32 = 70.0;
+                const EXP_CEILING: f32 = 1000.0;
+                const SCALING_FACTOR: f32 = 0.125;
+                (EXP_INCREMENT
+                    * (EXP_CEILING
+                        / EXP_INCREMENT
+                        / (1.0
+                            + E.powf(-SCALING_FACTOR * level as f32)
+                                * (EXP_CEILING / STARTING_EXP - 1.0)))
+                        .floor()) as u32
+            },
+        }
     }
 
     /// Gets the total amount of skill points that can be spent in a particular
