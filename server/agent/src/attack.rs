@@ -806,7 +806,7 @@ impl<'a> AgentData<'a> {
                     min_range: 0.0,
                     max_range: 2.0,
                     angle: 30.0,
-                    energy: 5.0,
+                    energy: 4.0,
                 };
                 const OFFENSIVE_FINISHER: FinisherMeleeData = FinisherMeleeData {
                     range: 2.0,
@@ -885,7 +885,7 @@ impl<'a> AgentData<'a> {
                     min_range: 0.0,
                     max_range: 2.5,
                     angle: 35.0,
-                    energy: 5.0,
+                    energy: 3.0,
                 };
                 const BASIC_BLOCK: BlockData = BlockData {
                     angle: 55.0,
@@ -983,7 +983,7 @@ impl<'a> AgentData<'a> {
                     min_range: 0.0,
                     max_range: 2.5,
                     angle: 35.0,
-                    energy: 10.0,
+                    energy: 3.0,
                 };
                 const MOBILITY_FEINT: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
@@ -1081,19 +1081,19 @@ impl<'a> AgentData<'a> {
                     min_range: 0.0,
                     max_range: 2.5,
                     angle: 35.0,
-                    energy: 10.0,
+                    energy: 5.0,
                 };
                 const CRIPPLING_GOUGE: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 3.0,
                     angle: 35.0,
-                    energy: 20.0,
+                    energy: 25.0,
                 };
                 const CRIPPLING_STRIKE: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 3.0,
                     angle: 35.0,
-                    energy: 20.0,
+                    energy: 25.0,
                 };
                 const CRIPPLING_FINISHER: FinisherMeleeData = FinisherMeleeData {
                     range: 2.5,
@@ -1170,7 +1170,7 @@ impl<'a> AgentData<'a> {
                     min_range: 0.0,
                     max_range: 2.5,
                     angle: 35.0,
-                    energy: 10.0,
+                    energy: 6.0,
                 };
                 const CLEAVING_FINISHER: FinisherMeleeData = FinisherMeleeData {
                     range: 2.0,
@@ -1182,12 +1182,12 @@ impl<'a> AgentData<'a> {
                     min_range: 0.0,
                     max_range: 5.0,
                     angle: 360.0,
-                    energy: 15.0,
+                    energy: 20.0,
                 };
                 const CLEAVING_DIVE: DiveMeleeData = DiveMeleeData {
                     range: 5.0,
                     angle: 10.0,
-                    energy: 20.0,
+                    energy: 25.0,
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
 
@@ -1284,7 +1284,7 @@ impl<'a> AgentData<'a> {
                     min_range: 0.0,
                     max_range: 2.5,
                     angle: 35.0,
-                    energy: 10.0,
+                    energy: 6.0,
                 };
                 const PARRYING_PARRY: BlockData = BlockData {
                     angle: 40.0,
@@ -1294,7 +1294,7 @@ impl<'a> AgentData<'a> {
                 const PARRYING_RIPOSTE: BlockData = BlockData {
                     angle: 15.0,
                     range: 3.5,
-                    energy: 15.0,
+                    energy: 20.0,
                 };
                 const PARRYING_COUNTER: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
@@ -1433,7 +1433,7 @@ impl<'a> AgentData<'a> {
                     min_range: 0.0,
                     max_range: 3.0,
                     angle: 3.0,
-                    energy: 10.0,
+                    energy: 15.0,
                 };
                 const HEAVY_FORTITUDE: SelfBuffData = SelfBuffData {
                     buff: BuffKind::Fortitude,
@@ -1522,7 +1522,7 @@ impl<'a> AgentData<'a> {
                     min_range: 1.0,
                     max_range: 7.5,
                     angle: 7.5,
-                    energy: 10.0,
+                    energy: 15.0,
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
 

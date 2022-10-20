@@ -3,18 +3,18 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 10,
+                    damage: 16,
                     poise: 0,
                     knockback: 0,
-                    energy_regen: 10,
+                    energy_regen: 5,
                 ),
                 range: 6.0,
                 angle: 45.0,
             ),
-            buildup_duration: 0.2,
+            buildup_duration: 0.1,
             swing_duration: 0.1,
             hit_timing: 0.6,
-            recover_duration: 0.4,
+            recover_duration: 0.5,
             movement: (
                 buildup: None,
                 swing: None,

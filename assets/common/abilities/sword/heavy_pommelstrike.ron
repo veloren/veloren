@@ -3,10 +3,10 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Bash(
-                    damage: 10,
+                    damage: 20,
                     poise: 20,
                     knockback: 0,
-                    energy_regen: 10,
+                    energy_regen: 5,
                 ),
                 range: 4.0,
                 angle: 5.0,
@@ -19,7 +19,7 @@ ComboMelee2(
         ),
     ],
     is_stance: false,
-    energy_cost_per_strike: 10,
+    energy_cost_per_strike: 15,
     meta: (
         kind: Some(Sword(Heavy)),
     ),

@@ -4,7 +4,7 @@ RapidMelee(
     recover_duration: 0.5,
     melee_constructor: (
         kind: Stab(
-            damage: 8,
+            damage: 10,
             poise: 0,
             knockback: 0,
             energy_regen: 5,

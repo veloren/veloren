@@ -2,16 +2,16 @@ DashMelee(
     energy_cost: 10,
     melee_constructor: (
         kind: Stab(
-            damage: 4,
+            damage: 10,
             poise: 0,
             knockback: 0,
             energy_regen: 5,
         ),
         scaled: Some(Stab(
-            damage: 12,
+            damage: 30,
             poise: 0,
             knockback: 0,
-            energy_regen: 0,
+            energy_regen: 10,
         )),
         range: 4,
         angle: 15.0,
@@ -21,7 +21,7 @@ DashMelee(
     buildup_duration: 0.2,
     charge_duration: 1.0,
     swing_duration: 0.1,
-    recover_duration: 1.0,
+    recover_duration: 0.5,
     ori_modifier: 0.1,
     charge_through: false,
     meta: (

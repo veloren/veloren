@@ -1077,13 +1077,14 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
     }
 }
 
+/// Returns whether an interrupt occurred
 pub fn handle_interrupts(
     data: &JoinData,
     update: &mut StateUpdate,
     // Used when an input other than the one that activated the ability being pressed should block
     // an interrupt
     input_override: Option<InputKind>,
-) {
+) -> bool {
     // Check that the input used to enter current character state (if there was one)
     // is not pressed
     if input_override
@@ -1109,9 +1110,15 @@ pub fn handle_interrupts(
         });
         if can_dodge {
             handle_dodge_input(data, update);
+            true
         } else if can_block {
             handle_block_input(data, update);
+            true
+        } else {
+            false
         }
+    } else {
+        false
     }
 }
 

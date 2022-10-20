@@ -3,10 +3,10 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 7,
+                    damage: 18,
                     poise: 0,
                     knockback: 0,
-                    energy_regen: 5,
+                    energy_regen: 10,
                 ),
                 range: 3.0,
                 angle: 45.0,
@@ -20,10 +20,10 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 10,
+                    damage: 30,
                     poise: 0,
                     knockback: 0,
-                    energy_regen: 10,
+                    energy_regen: 15,
                 ),
                 range: 3.0,
                 angle: 45.0,

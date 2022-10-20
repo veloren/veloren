@@ -122,7 +122,7 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
-        handle_interrupts(data, &mut update, Some(ability_input));
+        let interrupted = handle_interrupts(data, &mut update, Some(ability_input));
 
         let strike_data = self.strike_data();
 
@@ -249,7 +249,7 @@ impl CharacterBehavior for Data {
 
                 if input_is_pressed(data, ability_input) {
                     next_strike(&mut update)
-                } else if !self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
+                } else if !self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) && !interrupted {
                     attempt_input(data, output_events, &mut update);
                 }
             },

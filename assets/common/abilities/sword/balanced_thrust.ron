@@ -3,16 +3,16 @@ ChargedMelee(
     energy_drain: 0,
     melee_constructor: (
         kind: Slash(
-            damage: 3,
+            damage: 2,
             poise: 0,
             knockback: 0,
-            energy_regen: 2,
+            energy_regen: 0,
         ),
         scaled: Some(Slash(
-            damage: 12,
+            damage: 20,
             poise: 0,
             knockback: 0,
-            energy_regen: 8,
+            energy_regen: 18,
         )),
         range: 4.5,
         angle: 10.0,
@@ -20,7 +20,7 @@ ChargedMelee(
     charge_duration: 0.7,
     swing_duration: 0.1,
     hit_timing: 0.2,
-    recover_duration: 0.4,
+    recover_duration: 0.2,
     meta: (
         kind: Some(Sword(Balanced)),
     ),

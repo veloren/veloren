@@ -1,11 +1,11 @@
 FinisherMelee(
     energy_cost: 40,
     buildup_duration: 0.4,
-    swing_duration: 0.1,
-    recover_duration: 0.4,
+    swing_duration: 0.2,
+    recover_duration: 0.6,
     melee_constructor: (
         kind: Slash(
-            damage: 10,
+            damage: 20,
             poise: 0,
             knockback: 0,
             energy_regen: 10,
@@ -14,7 +14,7 @@ FinisherMelee(
         angle: 15.0,
         damage_effect: Some(Buff((
             kind: Bleeding,
-            dur_secs: 5.0,
+            dur_secs: 10.0,
             strength: DamageFraction(0.5),
             chance: 1.0,
         ))),

@@ -52,7 +52,7 @@ pub enum BuffKind {
     /// increase, 1.0 is a 100% increase.
     Hastened,
     // TODO: Consider non linear scaling?
-    /// Increases resistance to incomin poise over time
+    /// Increases resistance to incoming poise over time
     /// Strength scales the resistance linearly, values over 1 will usually do
     /// nothing. 0.5 is 50%, 1.0 is 100%.
     Fortitude,
