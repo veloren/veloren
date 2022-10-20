@@ -2,8 +2,8 @@ use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
-        bird_large, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, InputKind,
-        Ori, PhysicsState,
+        bird_large, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, Ori,
+        PhysicsState,
     },
     states,
     terrain::{Block, BlockKind},
@@ -291,9 +291,10 @@ fn empty_ability_info() -> states::utils::AbilityInfo {
     states::utils::AbilityInfo {
         tool: None,
         hand: None,
-        input: InputKind::Primary,
+        input: None,
         input_attr: None,
         ability_meta: Default::default(),
         ability: None,
+        return_ability: None,
     }
 }

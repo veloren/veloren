@@ -36,7 +36,7 @@ fn main() {
     };
     for skill in skills {
         let prerequisites = SKILL_PREREQUISITES
-            .get(&skill)
+            .get(skill)
             .map_or(Vec::new(), |p| p.iter().collect::<Vec<_>>());
 
         let out_node = add_node(&mut graph, *skill);
