@@ -5,7 +5,6 @@
         (1, Item("common.items.armor.misc.head.boreal_warhelm")),
         (1, Item("common.items.armor.misc.head.crown")),
         (1, Item("common.items.armor.misc.head.facegourd")),
-        (1, Item("common.items.armor.misc.head.headband")),
         (1, Item("common.items.armor.misc.head.helmet")),
         (1, Item("common.items.armor.misc.head.hog_hood")),
         (1, Item("common.items.armor.misc.head.hood")),
