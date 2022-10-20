@@ -635,7 +635,7 @@
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-3.0, -3.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -6.0, -1.0)),
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.helmet"): (
@@ -978,7 +978,7 @@
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.facegourd"): (
-            vox_spec: ("armor.misc.head.facegourd", (-3.0, -3.0, -1.0)),
+            vox_spec: ("armor.misc.head.facegourd", (-3.0, -6.0, -1.0)),
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.facegourd"): (
