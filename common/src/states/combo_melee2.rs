@@ -105,7 +105,8 @@ pub struct Data {
     pub completed_strikes: usize,
 }
 
-pub const STANCE_TIME: Duration = Duration::from_secs(3);
+pub const STANCE_ENTER_TIME: Duration = Duration::from_millis(250);
+pub const STANCE_LEAVE_TIME: Duration = Duration::from_secs(3);
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
@@ -126,6 +127,17 @@ impl CharacterBehavior for Data {
         let strike_data = self.strike_data();
 
         match self.stage_section {
+            Some(StageSection::Charge) => {
+                // Adds a small duration to entering a stance to discourage spam swapping stances for ability activation benefits of matching stance
+                if self.timer < STANCE_ENTER_TIME {
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
+                } else if let CharacterState::ComboMelee2(c) = &mut update.character {
+                    c.timer = Duration::default();
+                    c.stage_section = None;
+                }
+            },
             Some(StageSection::Buildup) => {
                 if let Some(movement) = strike_data.movement.buildup {
                     handle_forced_movement(data, &mut update, movement);
@@ -221,7 +233,7 @@ impl CharacterBehavior for Data {
                 data.updater.remove::<Melee>(data.entity);
             },
             None => {
-                if self.timer < STANCE_TIME {
+                if self.timer < STANCE_LEAVE_TIME {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }

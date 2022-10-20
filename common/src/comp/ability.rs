@@ -2128,7 +2128,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 // If ability is a stance, enter the stance without beginning a strike, otherwise
                 // immediately begin the strike
                 stage_section: if *is_stance {
-                    None
+                    Some(StageSection::Charge)
                 } else {
                     Some(StageSection::Buildup)
                 },
