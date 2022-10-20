@@ -228,7 +228,8 @@ impl<'a> From<&'a Body> for Psyche {
                     humanoid::Species::Elf => 0.4,
                     humanoid::Species::Human => 0.4,
                     humanoid::Species::Orc => 0.3,
-                    humanoid::Species::Draugr => 0.3,
+                    // set back to 0.3 after halloween event
+                    humanoid::Species::Draugr => 1.0,
                 },
                 Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                     quadruped_small::Species::Pig => 0.5,

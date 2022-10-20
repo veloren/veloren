@@ -2,7 +2,7 @@
 (
     name: Name("Trickster"),
     body: RandomWith("draugr"),
-    alignment: Alignment(Enemy),
+    alignment: Alignment(Npc),
     loot: LootTable("common.loot_tables.calendar.halloween.trickster"),
     inventory: (
         loadout: Inline((
@@ -16,9 +16,6 @@
                 (1, Item("common.items.weapons.tool.shovel-1")),
             ]), None)),
         )),
-        items: [
-            (10, "common.items.consumable.potion_big"),
-        ],
     ),
     meta: [],
 )
