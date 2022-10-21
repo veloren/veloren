@@ -141,10 +141,8 @@ impl SkillGroupKind {
         match self {
             Self::Weapon(ToolKind::Sword) => {
                 let level = level as f32;
-                ((400.0 * (level / (level + 20.0)).powi(2)
-                    + 2.0 * level.sqrt()
-                    + 4.0 * E.powf(0.025 * level))
-                .min(u32::MAX as f32) as u32)
+                ((400.0 * (level / (level + 20.0)).powi(2) + 5.0 * E.powf(0.025 * level))
+                    .min(u32::MAX as f32) as u32)
                     .saturating_mul(25)
             },
             _ => {
