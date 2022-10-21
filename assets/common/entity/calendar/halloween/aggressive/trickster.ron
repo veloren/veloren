@@ -2,18 +2,21 @@
 (
     name: Name("Trickster"),
     body: RandomWith("draugr"),
-    alignment: Alignment(Npc),
+    alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.calendar.halloween.trickster"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.calendar.halloween.trickster"),
             active_hands: InHands((Choice([
-                (1, Item("common.items.weapons.tool.broom")),
-                (1, Item("common.items.weapons.tool.hoe")),
-                (1, Item("common.items.weapons.tool.pickaxe")),
-                (1, Item("common.items.weapons.tool.rake")),
-                (1, Item("common.items.weapons.tool.shovel-0")),
-                (1, Item("common.items.weapons.tool.shovel-1")),
+                (1, Item("common.items.tool.instruments.bass")),
+                (1, Item("common.items.tool.instruments.flute")),
+                (1, Item("common.items.tool.instruments.harp")),
+                (1, Item("common.items.tool.instruments.kalimba")),
+                (1, Item("common.items.tool.instruments.sitar")),
+                (1, Item("common.items.tool.instruments.perc")),
+                (1, Item("common.items.tool.instruments.lute")),
+                (1, Item("common.items.tool.instruments.guitar")),
+                (1, Item("common.items.tool.instruments.melodica")),
             ]), None)),
         )),
     ),

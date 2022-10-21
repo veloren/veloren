@@ -5,8 +5,8 @@ SpawnEntry (
         Pack(
             groups: [
                 (1, (1, 1, "common.entity.calendar.halloween.aggressive.halloween_harvester")),
-                (3, (1, 1, "common.entity.calendar.halloween.aggressive.halloween_dullahan")),
-                (5, (1, 1, "common.entity.calendar.halloween.aggressive.trickster")),
+                (2, (1, 1, "common.entity.calendar.halloween.aggressive.halloween_dullahan")),
+                (3, (3, 6, "common.entity.calendar.halloween.aggressive.trickster")),
             ],
             spawn_mode: Land,
             calendar_events: Some([Halloween]),
