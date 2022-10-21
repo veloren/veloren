@@ -1010,11 +1010,15 @@ pub fn handle_input(
         InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
             handle_ability(data, update, input);
         },
-        InputKind::Roll => handle_dodge_input(data, update),
+        InputKind::Roll => {
+            handle_dodge_input(data, update);
+        },
         InputKind::Jump => {
             handle_jump(data, output_events, update, 1.0);
         },
-        InputKind::Block => handle_block_input(data, update),
+        InputKind::Block => {
+            handle_block_input(data, update);
+        },
         InputKind::Fly => {},
     }
 }
@@ -1031,7 +1035,7 @@ pub fn attempt_input(
 }
 
 /// Checks that player can block, then attempts to block
-pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) {
+pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
     let can_block = |equip_slot| matches!(unwrap_tool_data(data, equip_slot), Some((kind, _)) if kind.can_block());
     let hands = get_hands(data);
     if input_is_pressed(data, InputKind::Block)
@@ -1045,13 +1049,18 @@ pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) {
                 AbilityInfo::from_input(data, false, InputKind::Block, Default::default()),
                 data,
             ));
+            true
+        } else {
+            false
         }
+    } else {
+        false
     }
 }
 
 /// Checks that player can perform a dodge, then
 /// attempts to perform their dodge ability
-pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
+pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
     if input_is_pressed(data, InputKind::Roll) && data.body.is_humanoid() {
         let ability = CharacterAbility::default_roll().adjusted_by_skills(data.skill_set, None);
         if ability.requirements_paid(data, update) {
@@ -1073,7 +1082,12 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
                     }
                 }
             }
+            true
+        } else {
+            false
         }
+    } else {
+        false
     }
 }
 
@@ -1109,11 +1123,9 @@ pub fn handle_interrupts(
                 .contains(Capability::BLOCK_INTERRUPT)
         });
         if can_dodge {
-            handle_dodge_input(data, update);
-            true
+            handle_dodge_input(data, update)
         } else if can_block {
-            handle_block_input(data, update);
-            true
+            handle_block_input(data, update)
         } else {
             false
         }
