@@ -498,10 +498,13 @@ pub enum ExperimentalShader {
     DirectionalShadowMapTexelGrid,
     /// Disable rainbows
     NoRainbows,
-    /// Make objects appear wet when appropriate.
-    Wetness,
+    /// Make the ground appear wet when appropriate.
+    Puddles,
+    /// Add extra detailing to puddles (requires [`Puddles`]).
+    PuddleDetails,
     /// Add screen-space reflections to water.
     ScreenSpaceReflections,
-    /// Use screen-space raycasting for reflections.
+    /// Use screen-space raycasting for reflections (requires
+    /// [`ScreenSpaceReflections`]).
     ScreenSpaceReflectionsCasting,
 }
