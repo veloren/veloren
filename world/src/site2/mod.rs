@@ -817,6 +817,38 @@ impl Site {
         site
     }
 
+    pub fn generate_savannah_pit(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: NameGen::location(&mut rng).generate_savannah_custom(),
+            ..Site::default()
+        };
+        let size = 11.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let savannah_pit =
+                plot::SavannahPit::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let savannah_pit_alt = savannah_pit.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::SavannahPit(savannah_pit),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(savannah_pit_alt),
+            });
+        }
+        site
+    }
+
     pub fn generate_desert_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
 
@@ -1196,6 +1228,7 @@ impl Site {
                 PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
+                PlotKind::SavannahPit(savannah_pit) => savannah_pit.render_collect(self, canvas),
                 PlotKind::DesertCityMultiPlot(desert_city_multi_plot) => {
                     desert_city_multi_plot.render_collect(self, canvas)
                 },
