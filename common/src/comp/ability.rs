@@ -5,7 +5,7 @@ use crate::{
         self, aura, beam, buff,
         inventory::{
             item::{
-                tool::{AbilityContext, AbilityItem, Stats, ToolKind},
+                tool::{AbilityContext, AbilityItem, AuxiliaryAbilityKind, Stats, ToolKind},
                 ItemKind,
             },
             slot::EquipSlot,
@@ -198,22 +198,25 @@ impl ActiveAbilities {
         }
     }
 
-    pub fn iter_unlocked_abilities<'a>(
+    pub fn iter_available_abilities<'a>(
         inv: Option<&'a Inventory>,
         skill_set: Option<&'a SkillSet>,
         equip_slot: EquipSlot,
-        context: Option<AbilityContext>,
     ) -> impl Iterator<Item = usize> + 'a {
         inv.and_then(|inv| inv.equipped(equip_slot))
             .into_iter()
             .flat_map(|i| &i.item_config_expect().abilities.abilities)
             .enumerate()
-            .filter_map(move |(i, a)| {
-                a.ability(context).and_then(|(skill, _)| {
-                    skill
-                        .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
-                        .then_some(i)
-                })
+            .filter_map(move |(i, a)| match a {
+                AuxiliaryAbilityKind::Simple(skill, _) => skill
+                    .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
+                    .then_some(i),
+                AuxiliaryAbilityKind::Contextualized(abilities) => abilities
+                    .values()
+                    .any(|(skill, _)| {
+                        skill.map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
+                    })
+                    .then_some(i),
             })
     }
 
@@ -221,13 +224,12 @@ impl ActiveAbilities {
         inv: Option<&'a Inventory>,
         skill_set: Option<&'a SkillSet>,
     ) -> [AuxiliaryAbility; MAX_ABILITIES] {
-        let mut iter =
-            Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand, None)
-                .map(AuxiliaryAbility::MainWeapon)
-                .chain(
-                    Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand, None)
-                        .map(AuxiliaryAbility::OffWeapon),
-                );
+        let mut iter = Self::iter_available_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
+            .map(AuxiliaryAbility::MainWeapon)
+            .chain(
+                Self::iter_available_abilities(inv, skill_set, EquipSlot::ActiveOffhand)
+                    .map(AuxiliaryAbility::OffWeapon),
+            );
 
         [(); MAX_ABILITIES].map(|()| iter.next().unwrap_or(AuxiliaryAbility::Empty))
     }
@@ -263,6 +265,28 @@ impl Ability {
                 .map(|i| &i.item_config_expect().abilities)
         };
 
+        let contextual_id = |auxiliary_kind: Option<&AuxiliaryAbilityKind<_>>, equip_slot| {
+            matches!(
+                auxiliary_kind,
+                Some(AuxiliaryAbilityKind::Contextualized(_))
+            )
+            .then_some(
+                match inv.and_then(|inv| inv.equipped(equip_slot)).and_then(|i| {
+                    if let ItemKind::Tool(tool) = &*i.kind() {
+                        Some(tool.kind)
+                    } else {
+                        None
+                    }
+                }) {
+                    Some(ToolKind::Sword) => {
+                        Some("veloren.core.pseudo_abilities.sword.stance_ability")
+                    },
+                    _ => None,
+                },
+            )
+            .flatten()
+        };
+
         match self {
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
                 .map(|abilities| abilities.primary.id.as_str()),
@@ -278,6 +302,10 @@ impl Ability {
                     abilities
                         .auxiliary(index, context)
                         .map(|(_, ability)| ability.id.as_str())
+                        .or_else(|| contextual_id(
+                            abilities.abilities.get(index),
+                            EquipSlot::ActiveMainhand,
+                        ))
                 })
             },
             Ability::OffWeaponAux(index) => {
@@ -285,6 +313,10 @@ impl Ability {
                     abilities
                         .auxiliary(index, context)
                         .map(|(_, ability)| ability.id.as_str())
+                        .or_else(|| contextual_id(
+                            abilities.abilities.get(index),
+                            EquipSlot::ActiveOffhand,
+                        ))
                 })
             },
             Ability::Empty => None,

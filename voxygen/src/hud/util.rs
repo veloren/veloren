@@ -368,6 +368,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.sword.reaching_charge" => imgs.sword_reaching_charge,
         "common.abilities.sword.reaching_flurry" => imgs.sword_reaching_flurry,
         "common.abilities.sword.reaching_skewer" => imgs.sword_reaching_skewer,
+        "veloren.core.pseudo_abilities.sword.stance_ability" => imgs.sword,
         // Axe
         "common.abilities.axe.doublestrike" => imgs.twohaxe_m1,
         "common.abilities.axe.spin" => imgs.axespin,

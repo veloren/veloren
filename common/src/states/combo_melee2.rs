@@ -106,7 +106,7 @@ pub struct Data {
 }
 
 pub const STANCE_ENTER_TIME: Duration = Duration::from_millis(250);
-pub const STANCE_LEAVE_TIME: Duration = Duration::from_secs(3);
+pub const STANCE_LEAVE_TIME: Duration = Duration::from_secs(20);
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
@@ -382,7 +382,7 @@ impl Data {
 }
 
 fn next_strike(update: &mut StateUpdate) {
-    if let CharacterState::ComboMelee2(c) = &mut update.character {
+    let revert_to_wield = if let CharacterState::ComboMelee2(c) = &mut update.character {
         if update
             .energy
             .try_change_by(-c.static_data.energy_cost_per_strike)
@@ -392,6 +392,14 @@ fn next_strike(update: &mut StateUpdate) {
             c.start_next_strike = false;
             c.timer = Duration::default();
             c.stage_section = Some(StageSection::Buildup);
+            false
+        } else {
+            true
         }
+    } else {
+        false
+    };
+    if revert_to_wield {
+        update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
     }
 }

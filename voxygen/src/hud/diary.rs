@@ -902,11 +902,10 @@ impl<'a> Widget for Diary<'a> {
                         }
                     });
 
-                let main_weap_abilities = ActiveAbilities::iter_unlocked_abilities(
+                let main_weap_abilities = ActiveAbilities::iter_available_abilities(
                     Some(self.inventory),
                     Some(self.skill_set),
                     EquipSlot::ActiveMainhand,
-                    self.context,
                 )
                 .map(AuxiliaryAbility::MainWeapon)
                 .map(|a| {
@@ -915,11 +914,10 @@ impl<'a> Widget for Diary<'a> {
                         a,
                     )
                 });
-                let off_weap_abilities = ActiveAbilities::iter_unlocked_abilities(
+                let off_weap_abilities = ActiveAbilities::iter_available_abilities(
                     Some(self.inventory),
                     Some(self.skill_set),
                     EquipSlot::ActiveOffhand,
-                    self.context,
                 )
                 .map(AuxiliaryAbility::OffWeapon)
                 .map(|a| {

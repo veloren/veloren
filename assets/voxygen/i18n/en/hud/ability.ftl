@@ -76,3 +76,5 @@ common-abilities-sword-reaching_flurry = Lunging Flurry
     .desc = Make multiple rapid thrusts at your foe.
 common-abilities-sword-reaching_skewer = Skewer
     .desc = Lunge forward with enough force to pierce multiple foes.
+veloren-core-pseudo_abilities-sword-stance_ability = Sword Stance Ability
+    .desc = When in a sword stance, this ability will have different effects.
