@@ -672,8 +672,10 @@ void main() {
             const vec3 underwater_col = vec3(0.0);
             float min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
             surf_color = mix(underwater_col, surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));
+            surf_alpha = passthrough;
+        #else
+            surf_alpha = 0.5;
         #endif
-        surf_alpha = 0.99;
     } else {
         surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
     }

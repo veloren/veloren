@@ -234,6 +234,11 @@ void main() {
     // Toggle to see rain_occlusion
     // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
     // return;
+    #ifdef EXPERIMENTAL_WETNESS
+        float f_alpha = 1.0;
+    #else
+        const float f_alpha = 1.0;
+    #endif
     #if (CLOUD_MODE != CLOUD_MODE_NONE)
         if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
             vec3 pos = f_pos + focus_off.xyz;
@@ -247,13 +252,14 @@ void main() {
             #ifdef EXPERIMENTAL_WETNESS
                 float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.03) - 0.5) * 20.0, 0.0, 1.0)
                     * min(rain_density * 10.0, 1.0)
-                    * clamp((f_sky_exposure - 0.9) * 50.0, 0.0, 1.0);
+                    * clamp((f_sky_exposure - 0.95) * 50.0, 0.0, 1.0);
             #else
                 const float puddle = 1.0;
             #endif
 
             #ifdef EXPERIMENTAL_WETNESS
                 if (puddle > 0.0) {
+                    f_alpha = 1.0 - puddle * 0.1;
                     float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
                         + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
                     float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
@@ -525,5 +531,5 @@ void main() {
     float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 : 0.0;
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
 
-    tgt_color = vec4(surf_color, 1.0);
+    tgt_color = vec4(surf_color, f_alpha);
 }

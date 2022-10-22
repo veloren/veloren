@@ -90,7 +90,6 @@ void main() {
 
     // Apply clouds
     float cloud_blend = 1.0;
-    bool is_reflection = false;
     if (color.a < 1.0 && medium.x != MEDIUM_WATER) {
         cloud_blend = 1.0 - color.a;
 
@@ -155,14 +154,13 @@ void main() {
                     clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.0, 0, 1),
                     // Depth merge factor
                     clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
-                ) * 0.85;
+                );
 
                 if (merge > 0.0) {
                     vec3 new_col = texture(sampler2D(t_src_color, s_src_color), new_uv).rgb;
                     new_col = get_cloud_color(new_col.rgb, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
-                    color.rgb = mix(color.rgb, new_col, merge);
+                    color.rgb = mix(color.rgb, new_col, merge * (1.0 - color.a));
                     cloud_blend = 1;
-                    is_reflection = true;
                 } else {
                     cloud_blend = 1;
                 }
@@ -180,7 +178,7 @@ void main() {
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
     #else
-        if (medium.x == MEDIUM_AIR && rain_density > 0.001 && !is_reflection) {
+        if (medium.x == MEDIUM_AIR && rain_density > 0.001) {
             vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
 
             vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;

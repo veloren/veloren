@@ -165,16 +165,19 @@ void main() {
 
     vec3 surf_color;
     // If the figure is large enough to be 'terrain-like', we apply a noise effect to it
-    if (scale >= 0.5) {
-        float noise = hash(vec4(floor(m_pos * 3.0 - f_norm * 0.5), 0));
+    #ifndef EXPERIMENTAL_NONOISE
+        if (scale >= 0.5) {
+            float noise = hash(vec4(floor(m_pos * 3.0 - f_norm * 0.5), 0));
 
-        const float A = 0.055;
-        const float W_INV = 1 / (1 + A);
-        const float W_2 = W_INV * W_INV;
-        const float NOISE_FACTOR = 0.015;
-        vec3 noise_delta = (sqrt(f_col) * W_INV + noise * NOISE_FACTOR);
-        surf_color = noise_delta * noise_delta * W_2;
-    } else {
+            const float A = 0.055;
+            const float W_INV = 1 / (1 + A);
+            const float W_2 = W_INV * W_INV;
+            const float NOISE_FACTOR = 0.015;
+            vec3 noise_delta = (sqrt(f_col) * W_INV + noise * NOISE_FACTOR);
+            surf_color = noise_delta * noise_delta * W_2;
+        } else
+    #endif
+    {
         surf_color = f_col;
     }
 
