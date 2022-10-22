@@ -121,7 +121,12 @@ impl CharacterBehavior for Data {
         };
 
         handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 0.7);
+        let move_eff = if self.stage_section.is_some() {
+            0.7
+        } else {
+            1.0
+        };
+        handle_move(data, &mut update, move_eff);
         let interrupted = handle_interrupts(data, &mut update, Some(ability_input));
 
         let strike_data = self.strike_data();

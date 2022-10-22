@@ -596,97 +596,81 @@ impl<'a> AgentData<'a> {
             match stance(agent.action_state.int_counter) {
                 SwordStance::Balanced => {
                     // Balanced finisher
-                    set_sword_ability(0, 0);
+                    set_sword_ability(0, 8);
                 },
                 SwordStance::Offensive => {
                     // Offensive combo
-                    set_sword_ability(0, 1);
+                    set_sword_ability(0, 0);
                     // Offensive advance
-                    set_sword_ability(1, 3);
+                    set_sword_ability(1, 9);
                     // Offensive finisher
-                    set_sword_ability(2, 2);
-                    // Balanced finisher
-                    set_sword_ability(3, 0);
+                    set_sword_ability(2, 8);
                 },
                 SwordStance::Defensive => {
                     // Defensive combo
-                    set_sword_ability(0, 12);
+                    set_sword_ability(0, 3);
                     // Defensive retreat
-                    set_sword_ability(1, 14);
+                    set_sword_ability(1, 9);
                     // Defensive bulwark
-                    set_sword_ability(2, 13);
-                    // Balanced finisher
-                    set_sword_ability(3, 0);
+                    set_sword_ability(2, 10);
                 },
                 SwordStance::Mobility => {
                     // Mobility combo
-                    set_sword_ability(0, 23);
+                    set_sword_ability(0, 6);
                     // Mobility feint
-                    set_sword_ability(1, 24);
+                    set_sword_ability(1, 9);
                     // Mobility agility
-                    set_sword_ability(2, 25);
-                    // Balanced finisher
-                    set_sword_ability(3, 0);
+                    set_sword_ability(2, 10);
                 },
                 SwordStance::Crippling => {
                     // Crippling combo
-                    set_sword_ability(0, 4);
+                    set_sword_ability(0, 1);
                     // Crippling finisher
-                    set_sword_ability(1, 5);
+                    set_sword_ability(1, 8);
                     // Crippling strike
-                    set_sword_ability(2, 6);
+                    set_sword_ability(2, 9);
                     // Crippling gouge
-                    set_sword_ability(3, 7);
-                    // Offensive advance
-                    set_sword_ability(4, 3);
+                    set_sword_ability(3, 10);
                 },
                 SwordStance::Cleaving => {
                     // Cleaving combo
-                    set_sword_ability(0, 8);
+                    set_sword_ability(0, 2);
                     // Cleaving finisher
-                    set_sword_ability(1, 9);
+                    set_sword_ability(1, 8);
                     // Cleaving spin
                     set_sword_ability(2, 10);
                     // Cleaving dive
-                    set_sword_ability(3, 11);
-                    // Offensive advance
-                    set_sword_ability(4, 3);
+                    set_sword_ability(3, 9);
                 },
                 SwordStance::Parrying => {
                     // Parrying combo
-                    set_sword_ability(0, 15);
+                    set_sword_ability(0, 4);
                     // Parrying parry
-                    set_sword_ability(1, 16);
+                    set_sword_ability(1, 10);
                     // Parrying riposte
-                    set_sword_ability(2, 17);
+                    set_sword_ability(2, 9);
                     // Parrying counter
-                    set_sword_ability(3, 18);
-                    // Defensive retreat
-                    set_sword_ability(4, 14);
+                    set_sword_ability(3, 8);
                 },
                 SwordStance::Heavy => {
                     // Heavy combo
-                    set_sword_ability(0, 19);
+                    set_sword_ability(0, 5);
                     // Heavy finisher
-                    set_sword_ability(1, 20);
+                    set_sword_ability(1, 8);
                     // Heavy pommelstrike
-                    set_sword_ability(2, 21);
+                    set_sword_ability(2, 10);
                     // Heavy fortitude
-                    set_sword_ability(3, 22);
-                    // Defensive bulwark
-                    set_sword_ability(4, 13);
+                    set_sword_ability(3, 9);
                 },
                 SwordStance::Reaching => {
                     // Reaching combo
-                    set_sword_ability(0, 26);
+                    set_sword_ability(0, 7);
                     // Reaching charge
-                    set_sword_ability(1, 27);
+                    set_sword_ability(1, 9);
                     // Reaching flurry
-                    set_sword_ability(2, 28);
+                    set_sword_ability(2, 8);
                     // Reaching skewer
-                    set_sword_ability(3, 29);
-                    // Mobility agility
-                    set_sword_ability(4, 25);
+                    set_sword_ability(3, 10);
                 },
             }
             agent.action_state.initialized = true;
@@ -757,35 +741,15 @@ impl<'a> AgentData<'a> {
             }
         };
 
-        const BALANCED_FINISHER: FinisherMeleeData = FinisherMeleeData {
-            range: 2.5,
-            angle: 12.5,
-            energy: 30.0,
-            combo: 10,
-        };
-        const OFFENSIVE_ADVANCE: ComboMeleeData = ComboMeleeData {
-            min_range: 6.0,
-            max_range: 10.0,
-            angle: 20.0,
-            energy: 10.0,
-        };
-        const DEFENSIVE_RETREAT: ComboMeleeData = ComboMeleeData {
-            min_range: 0.0,
-            max_range: 3.0,
-            angle: 35.0,
-            energy: 10.0,
-        };
-        const DEFENSIVE_BULWARK: SelfBuffData = SelfBuffData {
-            buff: BuffKind::ProtectingWard,
-            energy: 40.0,
-        };
-        const MOBILITY_AGILITY: SelfBuffData = SelfBuffData {
-            buff: BuffKind::Hastened,
-            energy: 40.0,
-        };
-
         match stance(agent.action_state.int_counter) {
             SwordStance::Balanced => {
+                const BALANCED_FINISHER: FinisherMeleeData = FinisherMeleeData {
+                    range: 2.5,
+                    angle: 12.5,
+                    energy: 30.0,
+                    combo: 10,
+                };
+
                 if self
                     .skill_set
                     .has_skill(Skill::Sword(SwordSkill::BalancedFinisher))
@@ -809,6 +773,12 @@ impl<'a> AgentData<'a> {
                     angle: 30.0,
                     energy: 4.0,
                 };
+                const OFFENSIVE_ADVANCE: ComboMeleeData = ComboMeleeData {
+                    min_range: 6.0,
+                    max_range: 10.0,
+                    angle: 20.0,
+                    energy: 10.0,
+                };
                 const OFFENSIVE_FINISHER: FinisherMeleeData = FinisherMeleeData {
                     range: 2.0,
                     angle: 10.0,
@@ -822,31 +792,15 @@ impl<'a> AgentData<'a> {
                 } else if !in_stance(SwordStance::Offensive) {
                     controller.push_basic_input(InputKind::Ability(0));
                 } else {
-                    let used_finisher = if self
-                        .skill_set
-                        .has_skill(Skill::Sword(SwordSkill::OffensiveFinisher))
+                    let used_finisher = if OFFENSIVE_FINISHER.could_use(attack_data, self)
+                        && OFFENSIVE_FINISHER.use_desirable(tgt_data, self)
                     {
-                        if OFFENSIVE_FINISHER.could_use(attack_data, self)
-                            && OFFENSIVE_FINISHER.use_desirable(tgt_data, self)
-                        {
-                            controller.push_basic_input(InputKind::Ability(2));
-                            advance(
-                                agent,
-                                controller,
-                                OFFENSIVE_FINISHER.range,
-                                OFFENSIVE_FINISHER.angle,
-                            );
-                            true
-                        } else {
-                            false
-                        }
-                    } else if BALANCED_FINISHER.could_use(attack_data, self) {
-                        controller.push_basic_input(InputKind::Ability(3));
+                        controller.push_basic_input(InputKind::Ability(2));
                         advance(
                             agent,
                             controller,
-                            BALANCED_FINISHER.range,
-                            BALANCED_FINISHER.angle,
+                            OFFENSIVE_FINISHER.range,
+                            OFFENSIVE_FINISHER.angle,
                         );
                         true
                     } else {
@@ -887,6 +841,16 @@ impl<'a> AgentData<'a> {
                     max_range: 2.5,
                     angle: 35.0,
                     energy: 3.0,
+                };
+                const DEFENSIVE_RETREAT: ComboMeleeData = ComboMeleeData {
+                    min_range: 0.0,
+                    max_range: 3.0,
+                    angle: 35.0,
+                    energy: 10.0,
+                };
+                const DEFENSIVE_BULWARK: SelfBuffData = SelfBuffData {
+                    buff: BuffKind::ProtectingWard,
+                    energy: 40.0,
                 };
                 const BASIC_BLOCK: BlockData = BlockData {
                     angle: 55.0,
@@ -938,16 +902,6 @@ impl<'a> AgentData<'a> {
                 } else if DEFENSIVE_BULWARK.could_use(self) && DEFENSIVE_BULWARK.use_desirable(self)
                 {
                     controller.push_basic_input(InputKind::Ability(2));
-                } else if BALANCED_FINISHER.could_use(attack_data, self)
-                    && BALANCED_FINISHER.use_desirable(tgt_data, self)
-                {
-                    controller.push_basic_input(InputKind::Ability(3));
-                    advance(
-                        agent,
-                        controller,
-                        BALANCED_FINISHER.range,
-                        BALANCED_FINISHER.angle,
-                    );
                 } else if try_block() {
                     controller.push_basic_input(InputKind::Block);
                 } else if DEFENSIVE_RETREAT.could_use(attack_data, self) && rng.gen::<f32>() < 0.2 {
@@ -992,6 +946,10 @@ impl<'a> AgentData<'a> {
                     angle: 35.0,
                     energy: 10.0,
                 };
+                const MOBILITY_AGILITY: SelfBuffData = SelfBuffData {
+                    buff: BuffKind::Hastened,
+                    energy: 40.0,
+                };
                 const DESIRED_ENERGY: f32 = 50.0;
 
                 let mut try_roll = || {
@@ -1026,16 +984,6 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Ability(0));
                 } else if MOBILITY_AGILITY.could_use(self) && MOBILITY_AGILITY.use_desirable(self) {
                     controller.push_basic_input(InputKind::Ability(2));
-                } else if BALANCED_FINISHER.could_use(attack_data, self)
-                    && BALANCED_FINISHER.use_desirable(tgt_data, self)
-                {
-                    controller.push_basic_input(InputKind::Ability(3));
-                    advance(
-                        agent,
-                        controller,
-                        BALANCED_FINISHER.range,
-                        BALANCED_FINISHER.angle,
-                    );
                 } else if try_roll() {
                     controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                         .xy()
@@ -1146,14 +1094,6 @@ impl<'a> AgentData<'a> {
                         CRIPPLING_COMBO.max_range,
                         CRIPPLING_COMBO.angle,
                     );
-                } else if OFFENSIVE_ADVANCE.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Ability(4));
-                    advance(
-                        agent,
-                        controller,
-                        OFFENSIVE_ADVANCE.max_range,
-                        OFFENSIVE_ADVANCE.angle,
-                    );
                 } else {
                     advance(
                         agent,
@@ -1263,14 +1203,6 @@ impl<'a> AgentData<'a> {
                         CLEAVING_COMBO.max_range,
                         CLEAVING_COMBO.angle,
                     );
-                } else if OFFENSIVE_ADVANCE.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Ability(4));
-                    advance(
-                        agent,
-                        controller,
-                        OFFENSIVE_ADVANCE.max_range,
-                        OFFENSIVE_ADVANCE.angle,
-                    );
                 } else {
                     advance(
                         agent,
@@ -1317,35 +1249,8 @@ impl<'a> AgentData<'a> {
                     }
                 };
 
-                if tgt_data
-                    .buffs
-                    .map_or(false, |b| b.contains(BuffKind::Parried))
-                {
-                    agent.action_state.condition = true;
-                }
-                if agent.action_state.condition {
-                    agent.action_state.timer += read_data.dt.0;
-                }
-                if agent.action_state.timer > 0.5 {
-                    agent.action_state.condition = false;
-                    agent.action_state.timer = 0.0;
-                }
-
                 if self.energy.current() < DESIRED_ENERGY {
                     fallback_tactics(agent, controller);
-                } else if agent.action_state.condition
-                    && agent.action_state.timer > 0.25
-                    && DEFENSIVE_RETREAT.could_use(attack_data, self)
-                {
-                    controller.push_basic_input(InputKind::Ability(4));
-                    if matches!(self.char_state.stage_section(), Some(StageSection::Buildup)) {
-                        advance(
-                            agent,
-                            controller,
-                            DEFENSIVE_RETREAT.max_range,
-                            DEFENSIVE_RETREAT.angle,
-                        );
-                    }
                 } else if !in_stance(SwordStance::Parrying) {
                     controller.push_basic_input(InputKind::Ability(0));
                 } else if matches!(
@@ -1382,14 +1287,12 @@ impl<'a> AgentData<'a> {
                         );
                     } else if PARRYING_COMBO.could_use(attack_data, self) {
                         controller.push_basic_input(InputKind::Primary);
-                        if !agent.action_state.condition {
-                            advance(
-                                agent,
-                                controller,
-                                PARRYING_COMBO.max_range,
-                                PARRYING_COMBO.angle,
-                            );
-                        }
+                        advance(
+                            agent,
+                            controller,
+                            PARRYING_COMBO.max_range,
+                            PARRYING_COMBO.angle,
+                        );
                     } else {
                         advance(
                             agent,
@@ -1400,14 +1303,12 @@ impl<'a> AgentData<'a> {
                     }
                 } else if PARRYING_COMBO.could_use(attack_data, self) {
                     controller.push_basic_input(InputKind::Primary);
-                    if !agent.action_state.condition {
-                        advance(
-                            agent,
-                            controller,
-                            PARRYING_COMBO.max_range,
-                            PARRYING_COMBO.angle,
-                        );
-                    }
+                    advance(
+                        agent,
+                        controller,
+                        PARRYING_COMBO.max_range,
+                        PARRYING_COMBO.angle,
+                    );
                 } else {
                     advance(
                         agent,
@@ -1454,15 +1355,6 @@ impl<'a> AgentData<'a> {
 
                 if self.energy.current() < DESIRED_ENERGY {
                     fallback_tactics(agent, controller);
-                } else if !agent.action_state.condition
-                    && DEFENSIVE_BULWARK.could_use(self)
-                    && DEFENSIVE_BULWARK.use_desirable(self)
-                {
-                    if in_stance(SwordStance::Heavy) {
-                        controller.push_basic_input(InputKind::Ability(0));
-                    } else {
-                        controller.push_basic_input(InputKind::Ability(4));
-                    }
                 } else if !in_stance(SwordStance::Heavy) {
                     controller.push_basic_input(InputKind::Ability(0));
                 } else if HEAVY_FORTITUDE.could_use(self)
@@ -1529,12 +1421,6 @@ impl<'a> AgentData<'a> {
 
                 if self.energy.current() < DESIRED_ENERGY {
                     fallback_tactics(agent, controller);
-                } else if MOBILITY_AGILITY.could_use(self) && MOBILITY_AGILITY.use_desirable(self) {
-                    if in_stance(SwordStance::Reaching) {
-                        controller.push_basic_input(InputKind::Ability(0));
-                    } else {
-                        controller.push_basic_input(InputKind::Ability(4));
-                    }
                 } else if !in_stance(SwordStance::Reaching) {
                     controller.push_basic_input(InputKind::Ability(0));
                 } else if matches!(self.char_state, CharacterState::DashMelee(s) if s.stage_section != StageSection::Recover)
