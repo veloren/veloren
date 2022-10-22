@@ -649,8 +649,8 @@ void main() {
     // f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
     vec3 surf_color;
     float surf_alpha = 1.0;
-    #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
-        if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+    if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+        #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
             vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
 
             vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
@@ -672,13 +672,11 @@ void main() {
             const vec3 underwater_col = vec3(0.0);
             float min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
             surf_color = mix(underwater_col, surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));
-            surf_alpha = 0.99;
-        } else {
-            surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
-        }
-    #else
+        #endif
+        surf_alpha = 0.99;
+    } else {
         surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
-    #endif
+    }
 
     // float mist_factor = max(1 - (f_pos.z + (texture(t_noise, f_pos.xy * 0.0005 + time_of_day.x * 0.0003).x - 0.5) * 128.0) / 400.0, 0.0);
     // //float mist_factor = f_norm.z * 2.0;

@@ -163,12 +163,15 @@ void main() {
                     color.rgb = mix(color.rgb, new_col, merge);
                     cloud_blend = 1;
                     is_reflection = true;
+                } else {
+                    cloud_blend = 1;
                 }
             } else {
         #else
             {
         #endif
-            dist = DIST_CAP;
+            cloud_blend = 1;
+            //dist = DIST_CAP;
         }
     }
     /* color.rgb = vec3(sin(depth_at(uv) * 3.14159 * 2) * 0.5 + 0.5); */
