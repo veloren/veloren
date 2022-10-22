@@ -30,7 +30,7 @@ impl Vertex {
                 | (norm_bits & 0x7) << 29,
             vel: river_velocity
                 .map2(Vec2::new(0, 16), |e, off| {
-                    (((e * 1000.0 + 32768.9) as u16 as u32) << off)
+                    ((e * 1000.0 + 32768.9) as u16 as u32) << off
                 })
                 .reduce_bitor(),
         }
