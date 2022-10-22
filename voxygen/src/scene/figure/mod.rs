@@ -32,7 +32,7 @@ use anim::{
 use common::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{Hands, ItemKind, ToolKind},
+        item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
         Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
         LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
@@ -917,10 +917,12 @@ impl FigureMgr {
             let second_tool_spec = second_tool_spec.as_deref();
             let hands = (active_tool_hand, second_tool_hand);
 
+            let context = AbilityContext::yeet(character);
+
             let ability_id = character.and_then(|c| {
                 c.ability_info()
                     .and_then(|a| a.ability)
-                    .and_then(|a| a.ability_id(inventory))
+                    .and_then(|a| a.ability_id(inventory, context))
             });
 
             let move_dir = {

@@ -7,6 +7,7 @@ use common::{
     comp::{
         ability::{self, Ability, AbilityKind, ActiveAbilities, AuxiliaryAbility, Capability},
         buff::BuffKind,
+        item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
         Controller, InputKind,
@@ -1754,9 +1755,16 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             ConditionStaffCanShockwave = 0,
         }
+        let context = AbilityContext::yeet(Some(self.char_state));
         let extract_ability = |input: AbilityInput| {
             self.active_abilities
-                .activate_ability(input, Some(self.inventory), self.skill_set, self.body)
+                .activate_ability(
+                    input,
+                    Some(self.inventory),
+                    self.skill_set,
+                    self.body,
+                    context,
+                )
                 .unwrap_or_default()
                 .0
         };

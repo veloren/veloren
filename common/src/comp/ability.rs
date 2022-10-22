@@ -5,7 +5,7 @@ use crate::{
         self, aura, beam, buff,
         inventory::{
             item::{
-                tool::{AbilityItem, Stats, ToolKind},
+                tool::{AbilityContext, AbilityItem, Stats, ToolKind},
                 ItemKind,
             },
             slot::EquipSlot,
@@ -141,6 +141,7 @@ impl ActiveAbilities {
         inv: Option<&Inventory>,
         skill_set: &SkillSet,
         body: Option<&Body>,
+        context: Option<AbilityContext>,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool)> {
         let ability = self.get_ability(input, inv, Some(skill_set));
@@ -160,8 +161,8 @@ impl ActiveAbilities {
             ability.adjusted_by_skills(skill_set, tool_kind)
         };
 
-        let unwrap_ability = |(skill_req, ability): &(Option<Skill>, AbilityItem)| {
-            (*skill_req, ability.ability.clone())
+        let unwrap_ability = |(skill_req, ability): (Option<Skill>, &AbilityItem)| {
+            (skill_req, ability.ability.clone())
         };
 
         let unlocked = |(s, a): (Option<Skill>, CharacterAbility)| {
@@ -186,11 +187,11 @@ impl ActiveAbilities {
                 .then(CharacterAbility::default_roll)
                 .map(|ability| (ability.adjusted_by_skills(skill_set, None), false)),
             Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| abilities.abilities.get(index).map(unwrap_ability))
+                .and_then(|abilities| abilities.auxiliary(index, context).map(unwrap_ability))
                 .and_then(unlocked)
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
             Ability::OffWeaponAux(index) => ability_set(EquipSlot::ActiveOffhand)
-                .and_then(|abilities| abilities.abilities.get(index).map(unwrap_ability))
+                .and_then(|abilities| abilities.auxiliary(index, context).map(unwrap_ability))
                 .and_then(unlocked)
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true)),
             Ability::Empty => None,
@@ -201,15 +202,18 @@ impl ActiveAbilities {
         inv: Option<&'a Inventory>,
         skill_set: Option<&'a SkillSet>,
         equip_slot: EquipSlot,
+        context: Option<AbilityContext>,
     ) -> impl Iterator<Item = usize> + 'a {
         inv.and_then(|inv| inv.equipped(equip_slot))
             .into_iter()
             .flat_map(|i| &i.item_config_expect().abilities.abilities)
             .enumerate()
-            .filter_map(move |(i, (skill, _))| {
-                skill
-                    .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
-                    .then_some(i)
+            .filter_map(move |(i, a)| {
+                a.ability(context).and_then(|(skill, _)| {
+                    skill
+                        .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
+                        .then_some(i)
+                })
             })
     }
 
@@ -217,12 +221,13 @@ impl ActiveAbilities {
         inv: Option<&'a Inventory>,
         skill_set: Option<&'a SkillSet>,
     ) -> [AuxiliaryAbility; MAX_ABILITIES] {
-        let mut iter = Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
-            .map(AuxiliaryAbility::MainWeapon)
-            .chain(
-                Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand)
-                    .map(AuxiliaryAbility::OffWeapon),
-            );
+        let mut iter =
+            Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand, None)
+                .map(AuxiliaryAbility::MainWeapon)
+                .chain(
+                    Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand, None)
+                        .map(AuxiliaryAbility::OffWeapon),
+                );
 
         [(); MAX_ABILITIES].map(|()| iter.next().unwrap_or(AuxiliaryAbility::Empty))
     }
@@ -248,7 +253,11 @@ pub enum Ability {
 }
 
 impl Ability {
-    pub fn ability_id(self, inv: Option<&Inventory>) -> Option<&str> {
+    pub fn ability_id(
+        self,
+        inv: Option<&Inventory>,
+        context: Option<AbilityContext>,
+    ) -> Option<&str> {
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
                 .map(|i| &i.item_config_expect().abilities)
@@ -267,16 +276,14 @@ impl Ability {
             Ability::MainWeaponAux(index) => {
                 ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                     abilities
-                        .abilities
-                        .get(index)
+                        .auxiliary(index, context)
                         .map(|(_, ability)| ability.id.as_str())
                 })
             },
             Ability::OffWeaponAux(index) => {
                 ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
                     abilities
-                        .abilities
-                        .get(index)
+                        .auxiliary(index, context)
                         .map(|(_, ability)| ability.id.as_str())
                 })
             },
@@ -1379,48 +1386,6 @@ impl CharacterAbility {
             | RiposteMelee { meta, .. }
             | RapidMelee { meta, .. } => *meta,
         }
-    }
-
-    #[must_use]
-    pub fn contextualize(mut self, data: &JoinData) -> Self {
-        if let Some(AbilityKind::Sword(old_stance)) = data
-            .character
-            .ability_info()
-            .and_then(|info| info.ability_meta)
-            .and_then(|meta| meta.kind)
-        {
-            if let Some(AbilityKind::Sword(new_stance)) = self.ability_meta().kind {
-                let energy_reduction = if old_stance == new_stance {
-                    0.75
-                } else if old_stance == SwordStance::Balanced {
-                    1.0
-                } else {
-                    1.5
-                };
-                use CharacterAbility::*;
-                match &mut self {
-                    BasicMelee { energy_cost, .. }
-                    | ComboMelee2 {
-                        energy_cost_per_strike: energy_cost,
-                        ..
-                    }
-                    | FinisherMelee { energy_cost, .. }
-                    | DashMelee { energy_cost, .. }
-                    | SpinMelee { energy_cost, .. }
-                    | ChargedMelee { energy_cost, .. }
-                    | Shockwave { energy_cost, .. }
-                    | BasicBlock { energy_cost, .. }
-                    | SelfBuff { energy_cost, .. }
-                    | DiveMelee { energy_cost, .. }
-                    | RiposteMelee { energy_cost, .. }
-                    | RapidMelee { energy_cost, .. } => {
-                        *energy_cost *= energy_reduction;
-                    },
-                    _ => {},
-                }
-            }
-        }
-        self
     }
 
     #[must_use = "method returns new ability and doesn't mutate the original value"]
@@ -2596,7 +2561,7 @@ pub enum AbilityKind {
     Sword(SwordStance),
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum SwordStance {
     Balanced,
     Offensive,

@@ -87,7 +87,10 @@ use common::{
         ability::{self, AuxiliaryAbility},
         fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
-        item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
+        item::{
+            tool::{AbilityContext, ToolKind},
+            ItemDesc, MaterialStatManifest, Quality,
+        },
         loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
@@ -2909,6 +2912,7 @@ impl Hud {
             skillsets.get(entity),
             bodies.get(entity),
         ) {
+            let context = AbilityContext::yeet(char_states.get(entity));
             Skillbar::new(
                 client,
                 &info,
@@ -2934,6 +2938,7 @@ impl Hud {
                 i18n,
                 &msm,
                 self.floaters.combo_floater,
+                context,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -3338,6 +3343,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
+                let context = AbilityContext::yeet(char_states.get(entity));
                 for event in Diary::new(
                     &self.show,
                     client,
@@ -3358,6 +3364,7 @@ impl Hud {
                     tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
+                    context,
                 )
                 .set(self.ids.diary, ui_widgets)
                 {

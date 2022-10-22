@@ -6,7 +6,7 @@ use crate::{
         arthropod, biped_large, biped_small,
         character_state::OutputEvents,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
-        item::{armor::Friction, Hands, ItemKind, ToolKind},
+        item::{armor::Friction, Hands, ItemKind, ToolKind, tool::AbilityContext},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -975,6 +975,7 @@ pub fn handle_jump(
 }
 
 fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) -> bool {
+    let context = AbilityContext::yeet(Some(data.character));
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
             .active_abilities
@@ -984,9 +985,9 @@ fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKin
                     data.inventory,
                     data.skill_set,
                     Some(data.body),
+                    context,
                 )
             })
-            .map(|(ability, from_offhand)| (ability.contextualize(data), from_offhand))
             .filter(|(ability, _)| ability.requirements_paid(data, update))
         {
             update.character = CharacterState::from((

@@ -24,7 +24,7 @@ use client::{self, Client};
 use common::comp::{
     self,
     ability::AbilityInput,
-    item::{ItemDesc, MaterialStatManifest},
+    item::{tool::AbilityContext, ItemDesc, MaterialStatManifest},
     Ability, ActiveAbilities, Body, Energy, Health, Inventory, Poise, PoiseState, SkillSet,
 };
 use conrod_core::{
@@ -277,6 +277,7 @@ pub struct Skillbar<'a> {
     common: widget::CommonBuilder,
     msm: &'a MaterialStatManifest,
     combo: Option<ComboFloater>,
+    context: Option<AbilityContext>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -306,6 +307,7 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         msm: &'a MaterialStatManifest,
         combo: Option<ComboFloater>,
+        context: Option<AbilityContext>,
     ) -> Self {
         Self {
             client,
@@ -333,6 +335,7 @@ impl<'a> Skillbar<'a> {
             localized_strings,
             msm,
             combo,
+            context,
         }
     }
 
@@ -601,6 +604,7 @@ impl<'a> Skillbar<'a> {
             self.skillset,
             self.active_abilities,
             self.body,
+            self.context,
         );
 
         let image_source = (self.item_imgs, self.imgs);
@@ -682,7 +686,7 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, skill_set, active_abilities, _) = content_source;
+            let (hotbar, inventory, _, skill_set, active_abilities, _, context) = content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
                     .get_by_hash(i)
@@ -691,7 +695,7 @@ impl<'a> Skillbar<'a> {
                     .and_then(|a| {
                         a.auxiliary_set(Some(inventory), Some(skill_set))
                             .get(i)
-                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
+                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory), context))
                     })
                     .map(|id| util::ability_description(id, self.localized_strings)),
             })
@@ -762,7 +766,7 @@ impl<'a> Skillbar<'a> {
 
         let primary_ability_id = self
             .active_abilities
-            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory)));
+            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory), self.context));
 
         Button::image(
             primary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -776,9 +780,9 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, slot_offset)
             .set(state.ids.m2_slot_bg, ui);
 
-        let secondary_ability_id = self
-            .active_abilities
-            .and_then(|a| Ability::from(a.secondary).ability_id(Some(self.inventory)));
+        let secondary_ability_id = self.active_abilities.and_then(|a| {
+            Ability::from(a.secondary).ability_id(Some(self.inventory), self.context)
+        });
 
         Button::image(
             secondary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -795,6 +799,7 @@ impl<'a> Skillbar<'a> {
                             Some(self.inventory),
                             self.skillset,
                             Some(self.body),
+                            self.context,
                         )
                     })
                     .map_or(0.0, |(a, _)| a.get_energy_cost())

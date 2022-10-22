@@ -33,7 +33,11 @@ use common::{
         self,
         ability::{Ability, ActiveAbilities, AuxiliaryAbility, MAX_ABILITIES},
         inventory::{
-            item::{item_key::ItemKey, tool::ToolKind, ItemKind, MaterialStatManifest},
+            item::{
+                item_key::ItemKey,
+                tool::{AbilityContext, ToolKind},
+                ItemKind, MaterialStatManifest,
+            },
             slot::EquipSlot,
         },
         skills::{
@@ -236,6 +240,7 @@ pub struct Diary<'a> {
     tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
+    context: Option<AbilityContext>,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -281,6 +286,7 @@ impl<'a> Diary<'a> {
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
+        context: Option<AbilityContext>,
     ) -> Self {
         Self {
             show,
@@ -302,6 +308,7 @@ impl<'a> Diary<'a> {
             tooltip_manager,
             slot_manager,
             pulse,
+            context,
             common: widget::CommonBuilder::default(),
             created_btns_top_l: 0,
             created_btns_top_r: 0,
@@ -802,7 +809,12 @@ impl<'a> Widget for Diary<'a> {
                     amount_margins: Vec2::new(-4.0, 0.0),
                     amount_font_size: self.fonts.cyri.scale(12),
                     amount_text_color: TEXT_COLOR,
-                    content_source: &(self.active_abilities, self.inventory, self.skill_set),
+                    content_source: &(
+                        self.active_abilities,
+                        self.inventory,
+                        self.skill_set,
+                        self.context,
+                    ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
                     pulse: 0.0,
@@ -816,7 +828,7 @@ impl<'a> Widget for Diary<'a> {
                             Some(self.inventory),
                             Some(self.skill_set),
                         )
-                        .ability_id(Some(self.inventory));
+                        .ability_id(Some(self.inventory), self.context);
                     let (ability_title, ability_desc) = if let Some(ability_id) = ability_id {
                         util::ability_description(ability_id, self.localized_strings)
                     } else {
@@ -894,16 +906,28 @@ impl<'a> Widget for Diary<'a> {
                     Some(self.inventory),
                     Some(self.skill_set),
                     EquipSlot::ActiveMainhand,
+                    self.context,
                 )
                 .map(AuxiliaryAbility::MainWeapon)
-                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a));
+                .map(|a| {
+                    (
+                        Ability::from(a).ability_id(Some(self.inventory), self.context),
+                        a,
+                    )
+                });
                 let off_weap_abilities = ActiveAbilities::iter_unlocked_abilities(
                     Some(self.inventory),
                     Some(self.skill_set),
                     EquipSlot::ActiveOffhand,
+                    self.context,
                 )
                 .map(AuxiliaryAbility::OffWeapon)
-                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a));
+                .map(|a| {
+                    (
+                        Ability::from(a).ability_id(Some(self.inventory), self.context),
+                        a,
+                    )
+                });
 
                 let abilities: Vec<_> = if same_weap_kinds {
                     // When the weapons have the same ability kind take only the main weapons,
@@ -1006,7 +1030,12 @@ impl<'a> Widget for Diary<'a> {
                     amount_margins: Vec2::new(-4.0, 0.0),
                     amount_font_size: self.fonts.cyri.scale(12),
                     amount_text_color: TEXT_COLOR,
-                    content_source: &(self.active_abilities, self.inventory, self.skill_set),
+                    content_source: &(
+                        self.active_abilities,
+                        self.inventory,
+                        self.skill_set,
+                        self.context,
+                    ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
                     pulse: 0.0,
