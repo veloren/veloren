@@ -278,7 +278,8 @@ fn mesh_worker(
                 for y in 0..TerrainChunk::RECT_SIZE.y as i32 {
                     for z in z_bounds.0 as i32..z_bounds.1 as i32 + 1 {
                         let rel_pos = Vec3::new(x, y, z);
-                        let wpos = Vec3::from(pos * TerrainChunk::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos;
+                        let wpos = Vec3::from(pos * TerrainChunk::RECT_SIZE.map(|e: u32| e as i32))
+                            + rel_pos;
 
                         let block = if let Ok(block) = volume.get(wpos) {
                             block

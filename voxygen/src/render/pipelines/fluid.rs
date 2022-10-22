@@ -29,7 +29,9 @@ impl Vertex {
                 | (((pos.z + EXTRA_NEG_Z).max(0.0).min((1 << 17) as f32) as u32) & 0x1FFFF) << 12
                 | (norm_bits & 0x7) << 29,
             vel: river_velocity
-                .map2(Vec2::new(0, 16), |e, off| (((e * 1000.0 + 32768.9) as u16 as u32) << off))
+                .map2(Vec2::new(0, 16), |e, off| {
+                    (((e * 1000.0 + 32768.9) as u16 as u32) << off)
+                })
                 .reduce_bitor(),
         }
     }
