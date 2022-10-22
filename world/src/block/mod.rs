@@ -273,7 +273,7 @@ pub fn block_from_structure(
                         1 | 2 => (Rgb::new(218.0, 53.0, 3.0), Rgb::new(226.0, 62.0, 5.0)),
                         _ => (Rgb::new(230.0, 120.0, 20.0), Rgb::new(242.0, 130.0, 25.0)),
                     };
-                    
+
                     Block::new(
                         BlockKind::Leaves,
                         Rgb::<f32>::lerp(c0, c1, lerp).map(|e| e as u8),

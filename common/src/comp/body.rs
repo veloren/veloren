@@ -280,6 +280,7 @@ impl Body {
                 bird_medium::Species::Parrot => 2.0,
                 bird_medium::Species::Penguin => 8.0,
                 bird_medium::Species::Peacock => 5.0,
+                bird_medium::Species::Bat => 2.0,
             },
             Body::BirdLarge(_) => 100.0,
 
@@ -702,6 +703,7 @@ impl Body {
                 bird_medium::Species::Eagle => 45,
                 bird_medium::Species::Owl => 45,
                 bird_medium::Species::Duck => 10,
+                bird_medium::Species::Bat => 20,
                 _ => 15,
             },
             Body::FishMedium(_) => 15,
