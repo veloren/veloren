@@ -74,6 +74,7 @@ impl AttackData {
 pub enum Tactic {
     // General tactics
     SimpleMelee,
+    SimpleFlyingMelee,
     SimpleBackstab,
     ElevatedRanged,
     Turret,

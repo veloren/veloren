@@ -322,6 +322,44 @@ impl<'a> AgentData<'a> {
                 }
             }
         } else {
+            // Bats should fly
+            // Use a proportional controller as the bouncing effect mimics bat flight
+            if self.traversal_config.can_fly
+                && self
+                    .inventory
+                    .equipped(EquipSlot::ActiveMainhand)
+                    .as_ref()
+                    .map_or(false, |item| {
+                        item.ability_spec().map_or(false, |a_s| match &*a_s {
+                            AbilitySpec::Custom(spec) => match spec.as_str() {
+                                "Simple Flying Melee" => true,
+                                _ => false,
+                            },
+                            _ => false,
+                        })
+                    })
+            {
+                // Bats don't like the ground, so make sure they are always flying
+                controller.push_basic_input(InputKind::Fly);
+                if read_data
+                    .terrain
+                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 5.0))
+                    .until(Block::is_solid)
+                    .cast()
+                    .1
+                    .map_or(true, |b| b.is_some())
+                {
+                    // Fly up
+                    controller.inputs.move_z = 1.0;
+                    // If on the ground, jump
+                    if self.physics_state.on_ground.is_some() {
+                        controller.push_basic_input(InputKind::Jump);
+                    }
+                } else {
+                    // Fly down
+                    controller.inputs.move_z = -1.0;
+                }
+            }
             agent.bearing += Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 0.1
                 - agent.bearing * 0.003
                 - agent.patrol_origin.map_or(Vec2::zero(), |patrol_origin| {
@@ -768,6 +806,7 @@ impl<'a> AgentData<'a> {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
                             "Oni" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
+                            "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
                             "Bow Simple" => Tactic::Bow,
                             "Stone Golem" => Tactic::StoneGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
@@ -1000,6 +1039,14 @@ impl<'a> AgentData<'a> {
         // Match on tactic. Each tactic has different controls depending on the distance
         // from the agent to the target.
         match tactic {
+            Tactic::SimpleFlyingMelee => self.handle_simple_flying_melee(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
             Tactic::SimpleMelee => {
                 self.handle_simple_melee(agent, controller, &attack_data, tgt_data, read_data, rng)
             },

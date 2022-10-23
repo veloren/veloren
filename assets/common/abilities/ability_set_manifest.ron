@@ -121,6 +121,11 @@
             (None, "common.abilities.custom.woodgolem.shockwave")
         ],
     ),
+    Custom("Simple Flying Melee"): (
+        primary: "common.abilities.custom.simpleflyingmelee.singlestrike",
+        secondary: "common.abilities.custom.simpleflyingmelee.singlestrike",
+        abilities: [],
+    ),
     Custom("Sword Simple"): (
         primary: "common.abilities.swordsimple.doublestrike",
         secondary: "common.abilities.swordsimple.dash",

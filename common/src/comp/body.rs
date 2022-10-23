@@ -27,7 +27,7 @@ use specs::{Component, DerefFlaggedStorage};
 use strum::Display;
 use vek::*;
 
-use super::{BuffKind, Collider, Density, Mass};
+use super::{BuffKind, Collider, Density, Mass, Scale};
 
 make_case_elim!(
     body,
@@ -229,6 +229,17 @@ impl Body {
             self,
             Body::Object(_) | Body::Ship(_) | Body::ItemDrop(_) | Body::Golem(_)
         )
+    }
+
+    pub fn scale(&self) -> Scale {
+        let s = match self {
+            Body::BirdMedium(bird_medium) => match bird_medium.species {
+                bird_medium::Species::Bat => 0.5,
+                _ => 1.0,
+            },
+            _ => 1.0,
+        };
+        Scale(s)
     }
 
     /// Average density of the body
