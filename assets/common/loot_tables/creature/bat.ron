@@ -5,5 +5,5 @@
 
     // crafting
      (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
-     (1.0, Item("common.items.crafting_ing.animal_misc.shar_fang")),
+     (1.0, Item("common.items.crafting_ing.animal_misc.sharp_fang")),
 ]

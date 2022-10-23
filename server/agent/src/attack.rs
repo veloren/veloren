@@ -57,12 +57,12 @@ impl<'a> AgentData<'a> {
     // and the agent is able to freely fly around
     pub fn handle_simple_flying_melee(
         &self,
-        agent: &mut Agent,
+        _agent: &mut Agent,
         controller: &mut Controller,
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        _rng: &mut impl Rng,
     ) {
         // Fly to target
         let dir_to_target = ((tgt_data.pos.0 + Vec3::unit_z() * 1.5) - self.pos.0)

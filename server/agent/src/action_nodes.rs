@@ -331,9 +331,8 @@ impl<'a> AgentData<'a> {
                     .as_ref()
                     .map_or(false, |item| {
                         item.ability_spec().map_or(false, |a_s| match &*a_s {
-                            AbilitySpec::Custom(spec) => match spec.as_str() {
-                                "Simple Flying Melee" => true,
-                                _ => false,
+                            AbilitySpec::Custom(spec) => {
+                                matches!(spec.as_str(), "Simple Flying Melee")
                             },
                             _ => false,
                         })

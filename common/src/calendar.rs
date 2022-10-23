@@ -38,7 +38,7 @@ impl Calendar {
             this.events.push(CalendarEvent::Christmas);
         }
 
-        if now.month() == 10 && (01..=31).contains(&now.day()) {
+        if now.month() == 10 && (24..=31).contains(&now.day()) {
             this.events.push(CalendarEvent::Halloween);
         }
 
