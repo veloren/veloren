@@ -6,7 +6,7 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_SPECULAR
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
 #elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
@@ -92,11 +92,12 @@ void main() {
     float cloud_blend = 1.0;
     if (color.a < 1.0) {
         vec2 nz = vec2(0);
-        #ifdef EXPERIMENTAL_SCREENSPACEREFRACTION
+        uvec2 col_sz = textureSize(sampler2D(t_src_color, s_src_color), 0);
+        #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
             nz = (vec2(
                 noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
                 noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
-            ) - 0.5) * color.a;
+            ) - 0.5) * (dir.z < 0.0 ? color.a : 1.0);
 
             const float n2 = 1.3325;
             vec3 refr_dir;
@@ -105,33 +106,25 @@ void main() {
             //     vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.1), 1));
             //     refr_dir = refract(dir, surf_norm * -sign(dir.z), 1.0 / n2);
             // } else {
-                refr_dir = normalize(dir + vec3(nz / dist, 0.0));
+                refr_dir = normalize(dir + vec3(nz * 1.5 / dist, 0.0));
             // }
 
             vec4 clip = (all_mat * vec4(cam_pos.xyz + refr_dir, 1.0));
             vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
 
             float uv_merge = clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 5.0, 0, 1);
+            new_uv = mix(uv, new_uv, uv_merge);
 
-            uvec2 sz = textureSize(sampler2D(t_src_color, s_src_color), 0);
-            vec4 new_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(mix(uv, new_uv, uv_merge) * sz), ivec2(0), ivec2(sz) - 1), 0);
+            vec4 new_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0);
             if (new_col.a < 1.0) {
                 color = new_col;
+                dir = refr_dir;
             }
-        #else
-            #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
-                if (dir.z < 0.0) {
-                    nz = (vec2(
-                        noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
-                        noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
-                    ) - 0.5);
-                }
-            #endif
         #endif
             {
             cloud_blend = 1.0 - color.a;
 
-            #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONS
+            #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
                 if (dir.z < 0.0) {
                     vec3 surf_norm = normalize(vec3(nz * 0.3 / (1.0 + dist * 0.1), 1));
                     vec3 refl_dir = reflect(dir, surf_norm);
@@ -139,7 +132,7 @@ void main() {
                     vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
                     vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
 
-                    #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONSCASTING
+                    #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
                         vec3 ray_end = wpos + refl_dir * 5.0 * dist;
                         // Trace through the screen-space depth buffer to find the ray intersection
                         const int MAIN_ITERS = 64;
@@ -153,7 +146,7 @@ void main() {
                             float d = -depth_at(suv);
                             if (d < svpos.z * 0.8 && d > svpos.z * 0.999) {
                                 // Don't cast into water!
-                                if (texture(sampler2D(t_src_color, s_src_color), suv).a >= 1.0) {
+                                if (texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(suv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).a >= 1.0) {
                                     /* t -= 1.0 / float(MAIN_ITERS); */
                                     // Do a bit of extra iteration to try to refine the estimate
                                     const int ITERS = 8;
@@ -187,23 +180,19 @@ void main() {
                     );
 
                     if (merge > 0.0) {
-                        vec3 new_col = texture(sampler2D(t_src_color, s_src_color), new_uv).rgb;
+                        vec3 new_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb;
                         new_col = get_cloud_color(new_col.rgb, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
-                        color.rgb = mix(color.rgb, new_col, merge * color.a);
-                        cloud_blend = 1;
-                    } else {
-                        cloud_blend = 1;
+                        color.rgb = mix(color.rgb, new_col, min(merge * (color.a * 2.0), 1.0));
                     }
+                    cloud_blend = 1;
                 } else {
             #else
                 {
             #endif
                 cloud_blend = 1;
-                //dist = DIST_CAP;
             }
         }
     }
-    /* color.rgb = vec3(sin(depth_at(uv) * 3.14159 * 2) * 0.5 + 0.5); */
     color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
 
     #if (CLOUD_MODE == CLOUD_MODE_NONE)

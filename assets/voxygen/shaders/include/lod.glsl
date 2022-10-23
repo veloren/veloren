@@ -138,7 +138,7 @@ float alt_at(vec2 pos) {
 
 float alt_at_real(vec2 pos) {
     // Basic idea: only really need the real altitude for an accurate water height estimation, so if we are in the cheap shader take a shortcut.
-// #if (FLUID_MODE == FLUID_MODE_CHEAP)
+// #if (FLUID_MODE == FLUID_MODE_LOW)
 //  return alt_at(pos);
 // #elif (FLUID_MODE == FLUID_MODE_SHINY)
     return (/*round*/(textureBicubic16(t_alt, s_alt, pos_to_tex(pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);

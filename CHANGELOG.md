@@ -25,8 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pets can now be traded with.
 - Crafting recipe for black lantern
 - Added redwood and dead trees
-- Experimental screen-space reflection and refraction shaders
 - Water will now move according to its apparent flow direction
+- Added screen-space reflection and refraction shaders
+- Added reflection quality setting
 
 ### Changed
 - Use fluent for translations

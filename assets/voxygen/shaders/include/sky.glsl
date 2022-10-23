@@ -503,7 +503,12 @@ float is_star_at(vec3 dir) {
 
     //return 0.0;
 
-    return 50.0 * max(sun_dir.z, 0.1) / (1.0 + pow(dist * 750, 8));
+    #if (CLOUD_MODE == CLOUD_MODE_NONE)
+        const float power = 5.0;
+    #else
+        const float power = 50.0;
+    #endif
+    return power * max(sun_dir.z, 0.1) / (1.0 + pow(dist * 750, 8));
 }
 
 vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
@@ -624,21 +629,22 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     vec3 moon_halo_color = MOON_HALO_COLOR;
 
     float moon_halo_power = 20.0;
+
+    vec3 moon_surf = vec3(0);
+    if (with_features) {
+        float angle = 0.00035;
+        moon_surf = clamp((dot(dir, -moon_dir) - (1.0 - angle)) * 4 / angle, 0, 1) * MOON_SURF_COLOR;
+    }
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         if (true) {
     #else
         if (fake_clouds || medium.x == MEDIUM_WATER) {
     #endif
         moon_halo_power = 50.0;
-        moon_halo_color *= 0.02;
+        moon_halo_color *= 0.2;
+        moon_surf *= 0.05;
     }
-
     vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), moon_halo_power);
-    vec3 moon_surf = vec3(0);
-    if (with_features) {
-        float angle = 0.00035;
-        moon_surf = clamp((dot(dir, -moon_dir) - (1.0 - angle)) * 4 / angle, 0, 1) * MOON_SURF_COLOR;
-    }
     vec3 moon_light = moon_halo + moon_surf;
 
     // Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1

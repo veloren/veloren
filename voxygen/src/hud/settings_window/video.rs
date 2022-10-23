@@ -7,7 +7,7 @@ use crate::{
     },
     render::{
         AaMode, BloomConfig, BloomFactor, BloomMode, CloudMode, FluidMode, LightingMode,
-        PresentMode, RenderMode, ShadowMapMode, ShadowMode, UpscaleMode,
+        PresentMode, ReflectionMode, RenderMode, ShadowMapMode, ShadowMode, UpscaleMode,
     },
     session::settings_change::Graphics as GraphicsChange,
     settings::Fps,
@@ -90,6 +90,8 @@ widget_ids! {
         cloud_mode_list,
         fluid_mode_text,
         fluid_mode_list,
+        reflection_mode_text,
+        reflection_mode_list,
         fullscreen_mode_text,
         fullscreen_mode_list,
         //
@@ -1038,10 +1040,10 @@ impl<'a> Widget for Video<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.fluid_mode_text, ui);
 
-        let mode_list = [FluidMode::Cheap, FluidMode::Medium, FluidMode::High];
+        let mode_list = [FluidMode::Low, FluidMode::Medium, FluidMode::High];
         let mode_label_list = [
             self.localized_strings
-                .get_msg("hud-settings-fluid_rendering_mode-cheap"),
+                .get_msg("hud-settings-fluid_rendering_mode-low"),
             self.localized_strings
                 .get_msg("hud-settings-fluid_rendering_mode-medium"),
             self.localized_strings
@@ -1065,13 +1067,56 @@ impl<'a> Widget for Video<'a> {
             })));
         }
 
+        // ReflectionMode
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-reflection_rendering_mode"),
+        )
+        .down_from(state.ids.fluid_mode_list, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.reflection_mode_text, ui);
+
+        let mode_list = [
+            ReflectionMode::Low,
+            ReflectionMode::Medium,
+            ReflectionMode::High,
+        ];
+        let mode_label_list = [
+            self.localized_strings
+                .get_msg("hud-settings-reflection_rendering_mode-low"),
+            self.localized_strings
+                .get_msg("hud-settings-reflection_rendering_mode-medium"),
+            self.localized_strings
+                .get_msg("hud-settings-reflection_rendering_mode-high"),
+        ];
+
+        // Get which fluid rendering mode is currently active
+        let selected = mode_list.iter().position(|x| *x == render_mode.reflection);
+
+        if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+            .w_h(400.0, 22.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.reflection_mode_text, 8.0)
+            .set(state.ids.reflection_mode_list, ui)
+        {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
+                reflection: mode_list[clicked],
+                ..render_mode.clone()
+            })));
+        }
+
         // LightingMode
         Text::new(
             &self
                 .localized_strings
                 .get_msg("hud-settings-lighting_rendering_mode"),
         )
-        .down_from(state.ids.fluid_mode_list, 8.0)
+        .down_from(state.ids.reflection_mode_list, 8.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)

@@ -7,7 +7,7 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
     #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
 #elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
     #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
@@ -211,7 +211,7 @@ void main() {
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float f_alt = alt_at(f_pos.xy);
-#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
+#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_LOW)
     float f_alt = f_pos.z;
 #endif
 
@@ -234,7 +234,7 @@ void main() {
     // Toggle to see rain_occlusion
     // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
     // return;
-    #ifdef EXPERIMENTAL_PUDDLES
+    #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
         float f_alpha = 1.0;
     #else
         const float f_alpha = 1.0;
@@ -249,17 +249,17 @@ void main() {
             drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
             vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
 
-            #ifdef EXPERIMENTAL_PUDDLES
-                float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.03) - 0.5) * 20.0, 0.0, 1.0)
+            #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+                float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.02) - 0.5) * 20.0, 0.0, 1.0)
                     * min(rain_density * 10.0, 1.0)
                     * clamp((f_sky_exposure - 0.95) * 50.0, 0.0, 1.0);
             #else
                 const float puddle = 1.0;
             #endif
 
-            #ifdef EXPERIMENTAL_PUDDLES
+            #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
                 if (puddle > 0.0) {
-                    f_alpha = puddle * 0.3 * max(1.0 + cam_to_frag.z, 0.3);
+                    f_alpha = puddle * 0.2 * max(1.0 + cam_to_frag.z, 0.3);
                     #ifdef EXPERIMENTAL_PUDDLEDETAILS
                         float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
                             + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
@@ -286,10 +286,6 @@ void main() {
                     k_a += distort;
                     k_d += distort;
                     k_s += distort;
-
-                    #ifdef EXPERIMENTAL_PUDDLES
-                        /* puddle = mix(puddle, 1.0, distort * 10); */
-                    #endif
 
                     f_norm.xy += (drop_pos - near_cell).xy
                         * max(1.0 - abs(dist - drop_rad) * 30, 0)
@@ -377,7 +373,7 @@ void main() {
     float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
 
     // To account for prior saturation
-    #if (FLUID_MODE == FLUID_MODE_CHEAP)
+    #if (FLUID_MODE == FLUID_MODE_LOW)
         f_light = f_light * sqrt(f_light);
     #else
         f_light = faces_fluid ? not_underground : f_light * sqrt(f_light);

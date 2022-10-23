@@ -6,7 +6,7 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
 #elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
@@ -448,7 +448,7 @@ void main() {
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float shadow_alt = /*f_pos.z;*/alt_at(f_pos.xy);//max(alt_at(f_pos.xy), f_pos.z);
     // float shadow_alt = f_pos.z;
-#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
+#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_LOW)
     float shadow_alt = f_pos.z;
 #endif
 
