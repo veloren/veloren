@@ -124,7 +124,7 @@ void main() {
             {
             cloud_blend = 1.0 - color.a;
 
-            #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
+            #if (FLUID_MODE >= FLUID_MODE_MEDIUM || REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
                 if (dir.z < 0.0) {
                     vec3 surf_norm = normalize(vec3(nz * 0.3 / (1.0 + dist * 0.1), 1));
                     vec3 refl_dir = reflect(dir, surf_norm);
@@ -182,7 +182,7 @@ void main() {
                     if (merge > 0.0) {
                         vec3 new_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb;
                         new_col = get_cloud_color(new_col.rgb, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
-                        color.rgb = mix(color.rgb, new_col, min(merge * (color.a * 2.0), 1.0));
+                        color.rgb = mix(color.rgb, new_col, min(merge * (color.a * 2.0), 0.75));
                     }
                     cloud_blend = 1;
                 } else {

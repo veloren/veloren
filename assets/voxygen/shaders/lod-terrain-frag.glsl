@@ -650,10 +650,10 @@ void main() {
     vec3 surf_color;
     float surf_alpha = 1.0;
     if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+        vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
         #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
             vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
 
-            vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
 
             float passthrough = dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag);
 
@@ -675,6 +675,7 @@ void main() {
             surf_alpha = 1.0 - passthrough;
         #else
             surf_alpha = 0.9;
+            surf_color = get_sky_color(reflect_ray, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
         #endif
     } else {
         surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
