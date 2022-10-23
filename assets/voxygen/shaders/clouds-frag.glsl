@@ -90,86 +90,117 @@ void main() {
 
     // Apply clouds
     float cloud_blend = 1.0;
-    if (color.a < 1.0 && medium.x != MEDIUM_WATER) {
-        cloud_blend = 1.0 - color.a;
+    if (color.a < 1.0) {
+        vec2 nz = vec2(0);
+        #ifdef EXPERIMENTAL_SCREENSPACEREFRACTION
+            nz = (vec2(
+                noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
+                noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
+            ) - 0.5) * color.a;
 
-        #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONS
-            if (dir.z < 0.0) {
-                #if (FLUID_MODE == FLUID_MODE_CHEAP)
-                    vec2 nz = vec2(0);
-                #else
-                    vec2 nz = (vec2(
+            const float n2 = 1.3325;
+            vec3 refr_dir;
+            // TODO: Proper refraction
+            // if (medium.x == MEDIUM_WATER) {
+            //     vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.1), 1));
+            //     refr_dir = refract(dir, surf_norm * -sign(dir.z), 1.0 / n2);
+            // } else {
+                refr_dir = normalize(dir + vec3(nz / dist, 0.0));
+            // }
+
+            vec4 clip = (all_mat * vec4(cam_pos.xyz + refr_dir, 1.0));
+            vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
+
+            float uv_merge = clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 5.0, 0, 1);
+
+            uvec2 sz = textureSize(sampler2D(t_src_color, s_src_color), 0);
+            vec4 new_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(mix(uv, new_uv, uv_merge) * sz), ivec2(0), ivec2(sz) - 1), 0);
+            if (new_col.a < 1.0) {
+                color = new_col;
+            }
+        #else
+            #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
+                if (dir.z < 0.0) {
+                    nz = (vec2(
                         noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
                         noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
-                    ) - 0.5) * 5.0;
-                #endif
-                vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.1), 1));
-                vec3 refl_dir = reflect(dir, surf_norm);
+                    ) - 0.5);
+                }
+            #endif
+        #endif
+            {
+            cloud_blend = 1.0 - color.a;
 
-                vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
-                vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
+            #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONS
+                if (dir.z < 0.0) {
+                    vec3 surf_norm = normalize(vec3(nz * 0.3 / (1.0 + dist * 0.1), 1));
+                    vec3 refl_dir = reflect(dir, surf_norm);
 
-                #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONSCASTING
-                    vec3 ray_end = wpos + refl_dir * 5.0 * dist;
-                    // Trace through the screen-space depth buffer to find the ray intersection
-                    const int MAIN_ITERS = 64;
-                    for (int i = 0; i < MAIN_ITERS; i ++) {
-                        float t = float(i) / float(MAIN_ITERS);
-                        // TODO: Trace in screen space, not world space
-                        vec3 swpos = mix(wpos, ray_end, t);
-                        vec3 svpos = (view_mat * vec4(swpos, 1)).xyz;
-                        vec4 clippos = proj_mat * vec4(svpos, 1);
-                        vec2 suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
-                        float d = -depth_at(suv);
-                        if (d < svpos.z * 0.8 && d > svpos.z * 0.999) {
-                            // Don't cast into water!
-                            if (texture(sampler2D(t_src_color, s_src_color), suv).a >= 1.0) {
-                                /* t -= 1.0 / float(MAIN_ITERS); */
-                                // Do a bit of extra iteration to try to refine the estimate
-                                const int ITERS = 8;
-                                float diff = 1.0 / float(MAIN_ITERS);
-                                for (int i = 0; i < ITERS; i ++) {
-                                    vec3 swpos = mix(wpos, ray_end, t);
-                                    svpos = (view_mat * vec4(swpos, 1)).xyz;
-                                    vec4 clippos = proj_mat * vec4(svpos, 1);
-                                    suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
-                                    float d = -depth_at(suv);
-                                    t += ((d > svpos.z * 0.999) ? -1.0 : 1.0) * diff;
-                                    diff *= 0.5;
+                    vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
+                    vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
+
+                    #ifdef EXPERIMENTAL_SCREENSPACEREFLECTIONSCASTING
+                        vec3 ray_end = wpos + refl_dir * 5.0 * dist;
+                        // Trace through the screen-space depth buffer to find the ray intersection
+                        const int MAIN_ITERS = 64;
+                        for (int i = 0; i < MAIN_ITERS; i ++) {
+                            float t = float(i) / float(MAIN_ITERS);
+                            // TODO: Trace in screen space, not world space
+                            vec3 swpos = mix(wpos, ray_end, t);
+                            vec3 svpos = (view_mat * vec4(swpos, 1)).xyz;
+                            vec4 clippos = proj_mat * vec4(svpos, 1);
+                            vec2 suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
+                            float d = -depth_at(suv);
+                            if (d < svpos.z * 0.8 && d > svpos.z * 0.999) {
+                                // Don't cast into water!
+                                if (texture(sampler2D(t_src_color, s_src_color), suv).a >= 1.0) {
+                                    /* t -= 1.0 / float(MAIN_ITERS); */
+                                    // Do a bit of extra iteration to try to refine the estimate
+                                    const int ITERS = 8;
+                                    float diff = 1.0 / float(MAIN_ITERS);
+                                    for (int i = 0; i < ITERS; i ++) {
+                                        vec3 swpos = mix(wpos, ray_end, t);
+                                        svpos = (view_mat * vec4(swpos, 1)).xyz;
+                                        vec4 clippos = proj_mat * vec4(svpos, 1);
+                                        suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
+                                        float d = -depth_at(suv);
+                                        t += ((d > svpos.z * 0.999) ? -1.0 : 1.0) * diff;
+                                        diff *= 0.5;
+                                    }
+                                    // Small offset to push us into obscured territory
+                                    new_uv = suv - vec2(0, 0.001);
+                                    break;
                                 }
-                                // Small offset to push us into obscured territory
-                                new_uv = suv - vec2(0, 0.001);
-                                break;
                             }
                         }
+                    #endif
+
+                    new_uv = clamp(new_uv, vec2(0), vec2(1));
+
+                    vec3 new_wpos = wpos_at(new_uv);
+                    float new_dist = distance(new_wpos, cam_pos.xyz);
+                    float merge = min(
+                        // Off-screen merge factor
+                        clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.0, 0, 1),
+                        // Depth merge factor
+                        clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
+                    );
+
+                    if (merge > 0.0) {
+                        vec3 new_col = texture(sampler2D(t_src_color, s_src_color), new_uv).rgb;
+                        new_col = get_cloud_color(new_col.rgb, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
+                        color.rgb = mix(color.rgb, new_col, merge * color.a);
+                        cloud_blend = 1;
+                    } else {
+                        cloud_blend = 1;
                     }
-                #endif
-
-                new_uv = clamp(new_uv, vec2(0), vec2(1));
-
-                vec3 new_wpos = wpos_at(new_uv);
-                float new_dist = distance(new_wpos, cam_pos.xyz);
-                float merge = min(
-                    // Off-screen merge factor
-                    clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.0, 0, 1),
-                    // Depth merge factor
-                    clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
-                );
-
-                if (merge > 0.0) {
-                    vec3 new_col = texture(sampler2D(t_src_color, s_src_color), new_uv).rgb;
-                    new_col = get_cloud_color(new_col.rgb, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
-                    color.rgb = mix(color.rgb, new_col, merge * (1.0 - color.a));
-                    cloud_blend = 1;
                 } else {
-                    cloud_blend = 1;
-                }
-            } else {
-        #else
-            {
-        #endif
-            cloud_blend = 1;
-            //dist = DIST_CAP;
+            #else
+                {
+            #endif
+                cloud_blend = 1;
+                //dist = DIST_CAP;
+            }
         }
     }
     /* color.rgb = vec3(sin(depth_at(uv) * 3.14159 * 2) * 0.5 + 0.5); */

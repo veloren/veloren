@@ -507,4 +507,6 @@ pub enum ExperimentalShader {
     /// Use screen-space raycasting for reflections (requires
     /// [`ScreenSpaceReflections`]).
     ScreenSpaceReflectionsCasting,
+    /// Add screen-space refractions to water.
+    ScreenSpaceRefraction,
 }

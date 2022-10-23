@@ -503,7 +503,7 @@ float is_star_at(vec3 dir) {
 
     //return 0.0;
 
-    return 5.0 / (1.0 + pow(dist * 750, 8));
+    return 50.0 * max(sun_dir.z, 0.1) / (1.0 + pow(dist * 750, 8));
 }
 
 vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {

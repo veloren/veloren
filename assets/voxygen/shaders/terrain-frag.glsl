@@ -259,7 +259,7 @@ void main() {
 
             #ifdef EXPERIMENTAL_PUDDLES
                 if (puddle > 0.0) {
-                    f_alpha = 1.0 - puddle * 0.1;
+                    f_alpha = puddle * 0.3 * max(1.0 + cam_to_frag.z, 0.3);
                     #ifdef EXPERIMENTAL_PUDDLEDETAILS
                         float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
                             + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
@@ -276,12 +276,12 @@ void main() {
             #endif
 
             if (rain_occlusion_at(f_pos.xyz + vec3(0, 0, 0.25)) > 0.5) {
-                if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * 2.0 && puddle > 0.3) {
+                if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * 2.0) {
                     vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
                     vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
 
                     float dist = length((drop_pos - near_cell) / vec3(1, 1, 2));
-                    float drop_rad = 0.1;
+                    float drop_rad = 0.075 + puddle * 0.05;
                     float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
                     k_a += distort;
                     k_d += distort;
