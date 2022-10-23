@@ -1,6 +1,6 @@
 SpawnEntry (
-    name: "Halloween NPCs",
-    note: "Search for them in forests.",
+    name: "Halloween Tundra Forest",
+    note: "Halloween NPCs",
     rules: [
         Pack(
             groups: [
