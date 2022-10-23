@@ -9,7 +9,7 @@ use crate::{
     scene::terrain::BlocksOfInterest,
 };
 use common::{
-    terrain::Block,
+    terrain::{Block, TerrainChunk},
     util::either_with,
     vol::{ReadVol, RectRasterableVol},
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
@@ -226,8 +226,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 }
 
 #[allow(clippy::type_complexity)]
-pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>(
-    vol: &'a VolGrid2d<V>,
+pub fn generate_mesh<'a>(
+    vol: &'a VolGrid2d<TerrainChunk>,
     (range, max_texture_size, _boi): (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest),
 ) -> MeshGen<
     TerrainVertex,
@@ -390,7 +390,37 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
     let mesh_delta = Vec3::new(0.0, 0.0, (z_start + range.min.z) as f32);
     let create_opaque =
         |atlas_pos, pos, norm, meta| TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta);
-    let create_transparent = |_atlas_pos, pos, norm| FluidVertex::new(pos + mesh_delta, norm);
+    let create_transparent = |_atlas_pos, pos: Vec3<f32>, norm| {
+        // TODO: It *should* be possible to pull most of this code out of this function
+        // and compute it per-chunk. For some reason, this doesn't work! If you,
+        // dear reader, feel like giving it a go then feel free. For now
+        // it's been kept as-is because I'm lazy and water vertices aren't nearly common
+        // enough for this to matter much. If you want to test whether your
+        // change works, look carefully at how waves interact between water
+        // polygons in different chunks. If the join is smooth, you've solved the
+        // problem!
+        let key = vol.pos_key(range.min + pos.as_());
+        let v00 = vol
+            .get_key(key + Vec2::new(0, 0))
+            .map_or(Vec3::zero(), |c| c.meta().river_velocity());
+        let v10 = vol
+            .get_key(key + Vec2::new(1, 0))
+            .map_or(Vec3::zero(), |c| c.meta().river_velocity());
+        let v01 = vol
+            .get_key(key + Vec2::new(0, 1))
+            .map_or(Vec3::zero(), |c| c.meta().river_velocity());
+        let v11 = vol
+            .get_key(key + Vec2::new(1, 1))
+            .map_or(Vec3::zero(), |c| c.meta().river_velocity());
+        let factor =
+            (range.min + pos.as_()).map(|e| e as f32) / TerrainChunk::RECT_SIZE.map(|e| e as f32);
+        let vel = Lerp::lerp(
+            Lerp::lerp(v00, v10, factor.x.rem_euclid(1.0)),
+            Lerp::lerp(v01, v11, factor.x.rem_euclid(1.0)),
+            factor.y.rem_euclid(1.0),
+        );
+        FluidVertex::new(pos + mesh_delta, norm, vel.xy())
+    };
 
     let mut greedy =
         GreedyMesh::<guillotiere::SimpleAtlasAllocator>::new(max_size, greedy::general_config());

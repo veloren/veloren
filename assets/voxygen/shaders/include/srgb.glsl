@@ -536,7 +536,7 @@ vec3 compute_attenuation(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, ve
 // from the default point.
 vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, vec3 defaultpos) {
 #if (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_IMPORTANCE)
-    return vec3(1.0);
+    return pow(1.0 - mu, vec3(3));
 #elif (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_RADIANCE)
     // return vec3(1.0);
     /*if (mu == vec3(0.0)) {

@@ -6,9 +6,9 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_SPECULAR
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -23,6 +23,7 @@
 
 layout(location = 0) in vec3 f_pos;
 layout(location = 1) flat in uint f_pos_norm;
+layout(location = 2) in vec2 f_vel;
 // in vec3 f_col;
 // in float f_light;
 // in vec3 light_pos[2];
@@ -49,6 +50,29 @@ layout(location = 0) out vec4 tgt_color;
 #include <sky.glsl>
 #include <light.glsl>
 #include <lod.glsl>
+
+vec4 water_col(vec4 posx, vec4 posy) {
+    posx = (posx + focus_off.x) * 0.1;
+    posy = (posy + focus_off.y) * 0.1;
+    return 0.5 + (vec4(
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.x, posy.x), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.y, posy.y), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.z, posy.z), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.w, posy.w), 0).x
+    ) - 0.5) * 1.0;
+}
+
+float water_col_vel(vec2 pos){
+    vec4 cols = water_col(
+        pos.x - tick.x * floor(f_vel.x) - vec2(0.0, tick.x).xyxy,
+        pos.y - tick.x * floor(f_vel.y) - vec2(0.0, tick.x).xxyy
+    );
+    return mix(
+        mix(cols.x, cols.y, fract(f_vel.x + 1.0)),
+        mix(cols.z, cols.w, fract(f_vel.x + 1.0)),
+        fract(f_vel.y + 1.0)
+    );
+}
 
 void main() {
     #ifdef EXPERIMENTAL_BAREMINIMUM
@@ -83,14 +107,15 @@ void main() {
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
     vec3 view_dir = -cam_to_frag;
     // vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
-    /*const */vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;//srgb_to_linear(vec3(0.2, 0.5, 1.0));
-    // /*const */vec3 water_color = srgb_to_linear(vec3(0.0, 0.25, 0.5));
+
+    float water_shade = water_col_vel(f_pos.xy);
+    vec3 water_color = (1.0 - mix(MU_WATER, pow(vec3(0.8, 0.9, 0.08), vec3(0.25)), water_shade)) * MU_SCATTER;
 
     /* vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float f_alt = alt_at(f_pos.xy);
-#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
+#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_LOW)
     float f_alt = f_pos.z;
 #endif
 
@@ -134,10 +159,18 @@ void main() {
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
 
+    vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
+
+    vec3 reflect_color = vec3(0.0);
+    #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
+        reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+    #endif
+
     vec3 emitted_light, reflected_light;
 
     // Prevent the sky affecting light when underground
     float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
+    reflect_color *= not_underground;
 
     // float point_shadow = shadow_at(f_pos, f_norm);
     // vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
@@ -191,15 +224,18 @@ void main() {
     // float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + specular_light_point;
 
-    float passthrough = max(dot(f_norm, -cam_to_frag), 0) * 0.75;
+    float passthrough = max(dot(cam_norm, -cam_to_frag), 0);
+
     float min_refl = 0.0;
-    if (medium.x != MEDIUM_WATER) {
-        min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
+    float opacity = (1.0 - passthrough) * 1.0 / (1.0 + min_refl);
+    if (medium.x == MEDIUM_WATER) {
+        // Hack to make the transparency of the surface fade when underwater to avoid artifacts
+        opacity = min(sqrt(max(opacity, clamp((f_pos.z - cam_pos.z) * 0.05, 0.0, 1.0))), 0.99);
     }
 
-    vec3 surf_color = illuminate(max_light, view_dir, water_color * /* fog_color * */emitted_light, /*surf_color * */water_color * reflected_light);
+    vec3 surf_color = illuminate(max_light, view_dir, water_color * /* fog_color * */emitted_light, /*surf_color * */reflect_color * water_shade + water_color * reflected_light);
     // vec4 color = vec4(surf_color, passthrough * 1.0 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
-    vec4 color = vec4(surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));
+    vec4 color = vec4(surf_color, opacity);
 
     tgt_color = color;
 }

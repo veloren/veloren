@@ -70,6 +70,8 @@ layout(location = 0) out vec3 f_pos;
 layout(location = 1) flat out vec3 f_norm;
 // float dummy;
 /*centroid */layout(location = 2) out vec2 f_uv_pos;
+layout(location = 3) out vec3 m_pos;
+layout(location = 4) out float scale;
 // out vec3 f_col;
 // out float f_ao;
 // out float f_alt;
@@ -89,6 +91,9 @@ void main() {
     vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
 
     // vec4 bone_pos = bones[bone_idx].bone_mat * vec4(pos, 1);
+
+    m_pos = pos;
+    scale = length(bones[bone_idx].bone_mat[0]);
 
     f_pos = (
         bones[bone_idx].bone_mat *

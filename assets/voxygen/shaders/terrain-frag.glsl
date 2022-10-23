@@ -7,9 +7,9 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
     #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
     #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -209,9 +209,9 @@ void main() {
     /* vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
 
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float f_alt = alt_at(f_pos.xy);
-#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
+#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_LOW)
     float f_alt = f_pos.z;
 #endif
 
@@ -234,6 +234,11 @@ void main() {
     // Toggle to see rain_occlusion
     // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
     // return;
+    #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+        float f_alpha = 1.0;
+    #else
+        const float f_alpha = 1.0;
+    #endif
     #if (CLOUD_MODE != CLOUD_MODE_NONE)
         if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
             vec3 pos = f_pos + focus_off.xyz;
@@ -244,23 +249,26 @@ void main() {
             drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
             vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
 
-            #ifdef EXPERIMENTAL_WETNESS
-                float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.03) - 0.5) * 20.0, 0.0, 1.0)
+            #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+                float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.02) - 0.5) * 20.0, 0.0, 1.0)
                     * min(rain_density * 10.0, 1.0)
-                    * clamp((f_sky_exposure - 0.9) * 50.0, 0.0, 1.0);
+                    * clamp((f_sky_exposure - 0.95) * 50.0, 0.0, 1.0);
             #else
                 const float puddle = 1.0;
             #endif
 
-            #ifdef EXPERIMENTAL_WETNESS
+            #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
                 if (puddle > 0.0) {
-                    float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
-                        + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
-                    float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
-                        + (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
-                    float hy = (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
-                        + (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
-                    f_norm.xy += mix(vec2(0), vec2(h - hx, h - hy) / 0.1 * 0.03, puddle);
+                    f_alpha = puddle * 0.2 * max(1.0 + cam_to_frag.z, 0.3);
+                    #ifdef EXPERIMENTAL_PUDDLEDETAILS
+                        float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        float hy = (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.3) - 0.5) * sin(tick.x * 8.0 + f_pos.x * 3)
+                            + (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.6) - 0.5) * sin(tick.x * 3.5 - f_pos.y * 6);
+                        f_norm.xy += mix(vec2(0), vec2(h - hx, h - hy) / 0.1 * 0.03, puddle);
+                    #endif
                     alpha = mix(1.0, 0.2, puddle);
                     f_col.rgb *= mix(1.0, 0.7, puddle);
                     k_s = mix(k_s, vec3(0.7, 0.7, 1.0), puddle);
@@ -268,20 +276,16 @@ void main() {
             #endif
 
             if (rain_occlusion_at(f_pos.xyz + vec3(0, 0, 0.25)) > 0.5) {
-                if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * 2.0 && puddle > 0.3) {
+                if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * 2.0) {
                     vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
                     vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
 
                     float dist = length((drop_pos - near_cell) / vec3(1, 1, 2));
-                    float drop_rad = 0.1;
+                    float drop_rad = 0.075 + puddle * 0.05;
                     float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
                     k_a += distort;
                     k_d += distort;
                     k_s += distort;
-
-                    #ifdef EXPERIMENTAL_WETNESS
-                        /* puddle = mix(puddle, 1.0, distort * 10); */
-                    #endif
 
                     f_norm.xy += (drop_pos - near_cell).xy
                         * max(1.0 - abs(dist - drop_rad) * 30, 0)
@@ -362,14 +366,18 @@ void main() {
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
     // Computing light attenuation from water.
     vec3 cam_attenuation =
-        medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
+        false/*medium.x == MEDIUM_WATER*/ ? compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
         : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
 
     // Prevent the sky affecting light when underground
     float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
 
     // To account for prior saturation
-    /*float */f_light = faces_fluid ? not_underground : f_light * sqrt(f_light);
+    #if (FLUID_MODE == FLUID_MODE_LOW)
+        f_light = f_light * sqrt(f_light);
+    #else
+        f_light = faces_fluid ? not_underground : f_light * sqrt(f_light);
+    #endif
 
     vec3 emitted_light = vec3(1.0);
     vec3 reflected_light = vec3(1.0);
@@ -396,7 +404,7 @@ void main() {
     reflected_light *= 0.4 + f_ao * 0.6;
 
     #ifndef EXPERIMENTAL_NOCAUSTICS
-        #if (FLUID_MODE == FLUID_MODE_SHINY)
+        #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
             if (faces_fluid) {
                 vec3 wpos = f_pos + vec3(focus_off.xy, 0);
                 vec3 spos = (wpos + (fluid_alt - wpos.z) * vec3(sun_dir.xy, 0)) * 0.25;
@@ -521,5 +529,5 @@ void main() {
     float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 : 0.0;
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
 
-    tgt_color = vec4(surf_color, 1.0);
+    tgt_color = vec4(surf_color, f_alpha);
 }

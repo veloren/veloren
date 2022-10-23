@@ -6,9 +6,9 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_SPECULAR
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -27,6 +27,7 @@
 #include <light.glsl>
 // This *MUST* come after `cloud.glsl`: it contains a function that depends on `cloud.glsl` when clouds are enabled
 #include <point_glow.glsl>
+#include <random.glsl>
 
 layout(set = 2, binding = 0)
 uniform texture2D t_src_color;
@@ -48,7 +49,9 @@ uniform u_locals {
 layout(location = 0) out vec4 tgt_color;
 
 vec3 wpos_at(vec2 uv) {
-    float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x;
+    uvec2 sz = textureSize(sampler2D(t_src_depth, s_src_depth), 0);
+    float buf_depth = texelFetch(sampler2D(t_src_depth, s_src_depth), clamp(ivec2(uv * sz), ivec2(0), ivec2(sz) - 1), 0).x;
+    //float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x;
     vec4 clip_space = vec4((uv * 2.0 - 1.0) * vec2(1, -1), buf_depth, 1.0);
     vec4 view_space = all_mat_inv * clip_space;
     view_space /= view_space.w;
@@ -57,6 +60,19 @@ vec3 wpos_at(vec2 uv) {
         return direction.xyz * 524288.0625 + cam_pos.xyz;
     } else {
         return view_space.xyz;
+    }
+}
+
+float depth_at(vec2 uv) {
+    uvec2 sz = textureSize(sampler2D(t_src_depth, s_src_depth), 0);
+    float buf_depth = texelFetch(sampler2D(t_src_depth, s_src_depth), clamp(ivec2(uv * sz), ivec2(0), ivec2(sz) - 1), 0).x;
+    if (buf_depth == 0.0) {
+        return 524288.0;
+    } else {
+        vec4 clip_space = vec4((uv * 2.0 - 1.0) * vec2(1, -1), buf_depth, 1.0);
+        vec4 view_space = all_mat_inv * clip_space;
+        view_space /= view_space.w;
+        return -(view_mat * view_space).z;
     }
 }
 
@@ -70,13 +86,113 @@ void main() {
 
     vec3 wpos = wpos_at(uv);
     float dist = distance(wpos, cam_pos.xyz);
-    vec3 dir = (wpos - cam_pos.xyz) / dist;
+    vec3 cam_dir = (wpos - cam_pos.xyz) / dist;
+    vec3 dir = cam_dir;
 
     // Apply clouds
     float cloud_blend = 1.0;
     if (color.a < 1.0) {
-        cloud_blend = 1.0 - color.a;
-        dist = DIST_CAP;
+        vec2 nz = vec2(0);
+        uvec2 col_sz = textureSize(sampler2D(t_src_color, s_src_color), 0);
+        #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
+            nz = (vec2(
+                noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
+                noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
+            ) - 0.5) * (dir.z < 0.0 ? color.a : 1.0);
+
+            const float n2 = 1.3325;
+            vec3 refr_dir;
+            // TODO: Proper refraction
+            // if (medium.x == MEDIUM_WATER) {
+            //     vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.1), 1));
+            //     refr_dir = refract(dir, surf_norm * -sign(dir.z), 1.0 / n2);
+            // } else {
+                refr_dir = normalize(dir + vec3(nz * 1.5 / dist, 0.0));
+            // }
+
+            vec4 clip = (all_mat * vec4(cam_pos.xyz + refr_dir, 1.0));
+            vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
+
+            float uv_merge = clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 5.0, 0, 1);
+            new_uv = mix(uv, new_uv, uv_merge);
+
+            vec4 new_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0);
+            if (new_col.a < 1.0) {
+                color = new_col;
+                dir = refr_dir;
+            }
+        #endif
+            {
+            cloud_blend = 1.0 - color.a;
+
+            #if (FLUID_MODE >= FLUID_MODE_MEDIUM || REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
+                if (dir.z < 0.0) {
+                    vec3 surf_norm = normalize(vec3(nz * 0.3 / (1.0 + dist * 0.1), 1));
+                    vec3 refl_dir = reflect(dir, surf_norm);
+
+                    vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
+                    vec2 new_uv = (clip.xy / max(clip.w, 0)) * 0.5 * vec2(1, -1) + 0.5;
+
+                    #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+                        vec3 ray_end = wpos + refl_dir * 5.0 * dist;
+                        // Trace through the screen-space depth buffer to find the ray intersection
+                        const int MAIN_ITERS = 64;
+                        for (int i = 0; i < MAIN_ITERS; i ++) {
+                            float t = float(i) / float(MAIN_ITERS);
+                            // TODO: Trace in screen space, not world space
+                            vec3 swpos = mix(wpos, ray_end, t);
+                            vec3 svpos = (view_mat * vec4(swpos, 1)).xyz;
+                            vec4 clippos = proj_mat * vec4(svpos, 1);
+                            vec2 suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
+                            float d = -depth_at(suv);
+                            if (d < svpos.z * 0.8 && d > svpos.z * 0.999) {
+                                // Don't cast into water!
+                                if (texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(suv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).a >= 1.0) {
+                                    /* t -= 1.0 / float(MAIN_ITERS); */
+                                    // Do a bit of extra iteration to try to refine the estimate
+                                    const int ITERS = 8;
+                                    float diff = 1.0 / float(MAIN_ITERS);
+                                    for (int i = 0; i < ITERS; i ++) {
+                                        vec3 swpos = mix(wpos, ray_end, t);
+                                        svpos = (view_mat * vec4(swpos, 1)).xyz;
+                                        vec4 clippos = proj_mat * vec4(svpos, 1);
+                                        suv = (clippos.xy / clippos.w) * 0.5 * vec2(1, -1) + 0.5;
+                                        float d = -depth_at(suv);
+                                        t += ((d > svpos.z * 0.999) ? -1.0 : 1.0) * diff;
+                                        diff *= 0.5;
+                                    }
+                                    // Small offset to push us into obscured territory
+                                    new_uv = suv - vec2(0, 0.001);
+                                    break;
+                                }
+                            }
+                        }
+                    #endif
+
+                    new_uv = clamp(new_uv, vec2(0), vec2(1));
+
+                    vec3 new_wpos = wpos_at(new_uv);
+                    float new_dist = distance(new_wpos, cam_pos.xyz);
+                    float merge = min(
+                        // Off-screen merge factor
+                        clamp((1.0 - abs(new_uv.y - 0.5) * 2) * 3.0, 0, 1),
+                        // Depth merge factor
+                        clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
+                    );
+
+                    if (merge > 0.0) {
+                        vec3 new_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb;
+                        new_col = get_cloud_color(new_col.rgb, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
+                        color.rgb = mix(color.rgb, new_col, min(merge * (color.a * 2.0), 0.75));
+                    }
+                    cloud_blend = 1;
+                } else {
+            #else
+                {
+            #endif
+                cloud_blend = 1;
+            }
+        }
     }
     color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
 
@@ -86,7 +202,7 @@ void main() {
         if (medium.x == MEDIUM_AIR && rain_density > 0.001) {
             vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
 
-            vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
+            vec3 adjusted_dir = (vec4(cam_dir, 0) * rain_dir_mat).xyz;
 
             vec2 dir2d = adjusted_dir.xy;
             vec3 rorigin = cam_pos.xyz + focus_off.xyz + 0.5;

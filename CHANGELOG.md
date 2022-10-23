@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pets can now be traded with.
 - Crafting recipe for black lantern
 - Added redwood and dead trees
+- Water will now move according to its apparent flow direction
+- Added screen-space reflection and refraction shaders
+- Added reflection quality setting
 
 ### Changed
 - Use fluent for translations
@@ -60,6 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pets no longer aggro on pet owners after being healed
 - Pets no longer lose their intrinsic weapons/armour when loaded on login.
 - Fixed npcs using `/say` instead of `/tell`
+- Camera jittering in third person has been significantly reduced
+- Many water shader issues have been fixed
 
 ## [0.13.0] - 2022-07-23
 
