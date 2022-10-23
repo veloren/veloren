@@ -391,6 +391,14 @@ pub fn generate_mesh<'a>(
     let create_opaque =
         |atlas_pos, pos, norm, meta| TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta);
     let create_transparent = |_atlas_pos, pos: Vec3<f32>, norm| {
+        // TODO: It *should* be possible to pull most of this code out of this function
+        // and compute it per-chunk. For some reason, this doesn't work! If you,
+        // dear reader, feel like giving it a go then feel free. For now
+        // it's been kept as-is because I'm lazy and water vertices aren't nearly common
+        // enough for this to matter much. If you want to test whether your
+        // change works, look carefully at how waves interact between water
+        // polygons in different chunks. If the join is smooth, you've solved the
+        // problem!
         let key = vol.pos_key(range.min + pos.as_());
         let v00 = vol
             .get_key(key + Vec2::new(0, 0))

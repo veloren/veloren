@@ -96,8 +96,8 @@ void main() {
     vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
     #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
         cam_attenuation =
-            medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz + focus_off.xyz, view_dir, mu, fluid_alt + focus_off.z, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos + focus_off.xyz)
-            : compute_attenuation_point(f_pos + focus_off.xyz, -view_dir, mu, fluid_alt + focus_off.z, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz + focus_off.xyz);
+            medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
+            : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
     #endif
 
     // Prevent the sky affecting light when underground

@@ -579,9 +579,9 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
-    vec3 mu = false/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
+    vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
-    vec3 cam_attenuation = compute_attenuation_point(cam_pos.xyz, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos);
+    vec3 cam_attenuation = compute_attenuation_point(f_pos, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
     // Use f_norm here for better shadows.
     // vec3 light_frac = light_reflection_factor(f_norm/*l_norm*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(/*1.0*/R_s), alpha);
 

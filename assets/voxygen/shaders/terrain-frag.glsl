@@ -366,8 +366,8 @@ void main() {
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
     // Computing light attenuation from water.
     vec3 cam_attenuation =
-        false/*medium.x == MEDIUM_WATER*/ ? compute_attenuation_point(cam_pos.xyz + focus_off.xyz, view_dir, MU_WATER, fluid_alt + focus_off.z, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos + focus_off.xyz)
-        : compute_attenuation_point(f_pos + focus_off.xyz, -view_dir, mu, fluid_alt + focus_off.z, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz + focus_off.xyz);
+        false/*medium.x == MEDIUM_WATER*/ ? compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
+        : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
 
     // Prevent the sky affecting light when underground
     float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);

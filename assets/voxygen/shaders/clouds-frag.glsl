@@ -86,7 +86,8 @@ void main() {
 
     vec3 wpos = wpos_at(uv);
     float dist = distance(wpos, cam_pos.xyz);
-    vec3 dir = (wpos - cam_pos.xyz) / dist;
+    vec3 cam_dir = (wpos - cam_pos.xyz) / dist;
+    vec3 dir = cam_dir;
 
     // Apply clouds
     float cloud_blend = 1.0;
@@ -201,7 +202,7 @@ void main() {
         if (medium.x == MEDIUM_AIR && rain_density > 0.001) {
             vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
 
-            vec3 adjusted_dir = (vec4(dir, 0) * rain_dir_mat).xyz;
+            vec3 adjusted_dir = (vec4(cam_dir, 0) * rain_dir_mat).xyz;
 
             vec2 dir2d = adjusted_dir.xy;
             vec3 rorigin = cam_pos.xyz + focus_off.xyz + 0.5;

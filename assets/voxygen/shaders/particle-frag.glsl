@@ -90,8 +90,8 @@ void main() {
     vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
     #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
         cam_attenuation =
-            medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz + focus_off.xyz, view_dir, MU_WATER, fluid_alt + focus_off.z, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos + focus_off.xyz)
-            : compute_attenuation_point(f_pos + focus_off.xyz, -view_dir, vec3(0), fluid_alt + focus_off.z, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz + focus_off.xyz);
+            medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
+            : compute_attenuation_point(f_pos, -view_dir, vec3(0), fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
     #endif
 
     max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);

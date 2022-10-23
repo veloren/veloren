@@ -409,7 +409,7 @@ void main() {
     if (medium.x != MEDIUM_WATER) {
         min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
     } else {
-        // Hack to make the opacity of the surface fade when underwater to avoid artifacts
+        // Hack to make the transparency of the surface fade when underwater to avoid artifacts
         if (dot(refract_ray_dir, cam_to_frag) > 0.0) {
             opacity = 0.99;
         } else {

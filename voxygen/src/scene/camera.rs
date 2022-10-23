@@ -12,7 +12,7 @@ const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
 const FREEFLY_INTERP_TIME: f32 = 0.0;
 const LERP_ORI_RATE: f32 = 15.0;
-const CLIPPING_MODE_DISTANCE: Range<f32> = 2.0..20.0;
+const CLIPPING_MODE_RANGE: Range<f32> = 2.0..20.0;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
@@ -368,7 +368,7 @@ impl Camera {
     ) {
         span!(_guard, "compute_dependents", "Camera::compute_dependents");
         // TODO: More intelligent function to decide on which strategy to use
-        if self.tgt_dist < CLIPPING_MODE_DISTANCE.end {
+        if self.tgt_dist < CLIPPING_MODE_RANGE.end {
             self.compute_dependents_near(terrain, is_transparent)
         } else {
             self.compute_dependents_far(terrain, is_transparent)
@@ -426,7 +426,7 @@ impl Camera {
         };
 
         // If the camera ends up being too close to the focus point, switch policies.
-        if dist < CLIPPING_MODE_DISTANCE.start {
+        if dist < CLIPPING_MODE_RANGE.start {
             self.compute_dependents_far(terrain, is_transparent);
         } else {
             if self.dist >= dist {

@@ -229,7 +229,7 @@ void main() {
     float min_refl = 0.0;
     float opacity = (1.0 - passthrough) * 1.0 / (1.0 + min_refl);
     if (medium.x == MEDIUM_WATER) {
-        // Hack to make the opacity of the surface fade when underwater to avoid artifacts
+        // Hack to make the transparency of the surface fade when underwater to avoid artifacts
         opacity = min(sqrt(max(opacity, clamp((f_pos.z - cam_pos.z) * 0.05, 0.0, 1.0))), 0.99);
     }
 
