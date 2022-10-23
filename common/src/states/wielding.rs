@@ -49,19 +49,18 @@ impl CharacterBehavior for Data {
         inv_action: InventoryAction,
     ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        match inv_action {
-            InventoryAction::Drop(EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand)
-            | InventoryAction::Swap(EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand, _)
-            | InventoryAction::Swap(
-                _,
-                Slot::Equip(EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand),
-            ) => {
-                update.character = CharacterState::Idle(idle::Data {
-                    is_sneaking: self.is_sneaking,
-                    footwear: None,
-                });
-            },
-            _ => (),
+        let reset_to_idle = match inv_action {
+            InventoryAction::Drop(slot)
+            | InventoryAction::Swap(slot, _)
+            | InventoryAction::Swap(_, Slot::Equip(slot)) if matches!(slot, EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand) => true,
+            InventoryAction::Use(_) => true,
+            _ => false,
+        };
+        if reset_to_idle {
+            update.character = CharacterState::Idle(idle::Data {
+                is_sneaking: data.character.is_stealthy(),
+                footwear: None,
+            });
         }
         handle_manipulate_loadout(data, output_events, &mut update, inv_action);
         update

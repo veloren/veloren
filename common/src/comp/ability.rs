@@ -302,10 +302,9 @@ impl Ability {
                     abilities
                         .auxiliary(index, context)
                         .map(|(_, ability)| ability.id.as_str())
-                        .or_else(|| contextual_id(
-                            abilities.abilities.get(index),
-                            EquipSlot::ActiveMainhand,
-                        ))
+                        .or_else(|| {
+                            contextual_id(abilities.abilities.get(index), EquipSlot::ActiveMainhand)
+                        })
                 })
             },
             Ability::OffWeaponAux(index) => {
@@ -313,10 +312,9 @@ impl Ability {
                     abilities
                         .auxiliary(index, context)
                         .map(|(_, ability)| ability.id.as_str())
-                        .or_else(|| contextual_id(
-                            abilities.abilities.get(index),
-                            EquipSlot::ActiveOffhand,
-                        ))
+                        .or_else(|| {
+                            contextual_id(abilities.abilities.get(index), EquipSlot::ActiveOffhand)
+                        })
                 })
             },
             Ability::Empty => None,
