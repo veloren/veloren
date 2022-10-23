@@ -1,8 +1,10 @@
 use common::{
     comp::{
-        buff::Buffs, group, item::MaterialStatManifest, ActiveAbilities, Alignment, Body,
-        CharacterState, Combo, Energy, Health, Inventory, LightEmitter, LootOwner, Ori,
-        PhysicsState, Poise, Pos, Scale, SkillSet, Stats, Vel,
+        buff::{BuffKind, Buffs},
+        group,
+        item::MaterialStatManifest,
+        ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
+        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Scale, SkillSet, Stats, Vel,
     },
     link::Is,
     mounting::Mount,
@@ -179,4 +181,150 @@ pub enum Path {
     Full,
     Separate,
     Partial,
+}
+
+pub struct ComboMeleeData {
+    pub min_range: f32,
+    pub max_range: f32,
+    pub angle: f32,
+    pub energy: f32,
+}
+
+impl ComboMeleeData {
+    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+        attack_data.dist_sqrd < self.max_range.powi(2)
+            && attack_data.dist_sqrd > self.min_range.powi(2)
+            && attack_data.angle < self.angle
+            && agent_data.energy.current() >= self.energy
+    }
+}
+
+pub struct FinisherMeleeData {
+    pub range: f32,
+    pub angle: f32,
+    pub energy: f32,
+    pub combo: u32,
+}
+
+impl FinisherMeleeData {
+    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+        attack_data.dist_sqrd < self.range.powi(2)
+            && attack_data.angle < self.angle
+            && agent_data.energy.current() >= self.energy
+            && agent_data
+                .combo
+                .map_or(false, |c| c.counter() >= self.combo)
+    }
+
+    pub fn use_desirable(&self, tgt_data: &TargetData, agent_data: &AgentData) -> bool {
+        let combo_factor =
+            agent_data.combo.map_or(0, |c| c.counter()) as f32 / self.combo as f32 * 2.0;
+        let tgt_health_factor = tgt_data.health.map_or(0.0, |h| h.current()) / 50.0;
+        let self_health_factor = agent_data.health.map_or(0.0, |h| h.current()) / 50.0;
+        // Use becomes more desirable if either self or target is close to death
+        combo_factor > tgt_health_factor.min(self_health_factor)
+    }
+}
+
+pub struct SelfBuffData {
+    pub buff: BuffKind,
+    pub energy: f32,
+}
+
+impl SelfBuffData {
+    pub fn could_use(&self, agent_data: &AgentData) -> bool {
+        agent_data.energy.current() >= self.energy
+    }
+
+    pub fn use_desirable(&self, agent_data: &AgentData) -> bool {
+        agent_data
+            .buffs
+            .map_or(false, |buffs| !buffs.contains(self.buff))
+    }
+}
+
+pub struct DiveMeleeData {
+    pub range: f32,
+    pub angle: f32,
+    pub energy: f32,
+}
+
+impl DiveMeleeData {
+    // Hack here refers to agents using the mildly unintended method of roll jumping
+    // to achieve the required downwards vertical speed to enter dive melee when on
+    // flat ground.
+    pub fn npc_should_use_hack(&self, agent_data: &AgentData, tgt_data: &TargetData) -> bool {
+        let dist_sqrd_2d = agent_data.pos.0.xy().distance_squared(tgt_data.pos.0.xy());
+        agent_data.energy.current() > self.energy
+            && agent_data.physics_state.on_ground.is_some()
+            && agent_data.pos.0.z >= tgt_data.pos.0.z
+            && dist_sqrd_2d > (self.range / 2.0).powi(2)
+            && dist_sqrd_2d < (self.range + 5.0).powi(2)
+    }
+}
+
+pub struct BlockData {
+    pub angle: f32,
+    // Should probably just always use 5 or so unless riposte melee
+    pub range: f32,
+    pub energy: f32,
+}
+
+impl BlockData {
+    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+        attack_data.dist_sqrd < self.range.powi(2)
+            && attack_data.angle < self.angle
+            && agent_data.energy.current() >= self.energy
+    }
+}
+
+pub struct DashMeleeData {
+    pub range: f32,
+    pub angle: f32,
+    pub initial_energy: f32,
+    pub energy_drain: f32,
+    pub speed: f32,
+    pub charge_dur: f32,
+}
+
+impl DashMeleeData {
+    // TODO: Maybe figure out better way of pulling in base accel from body and
+    // accounting for friction?
+    const BASE_SPEED: f32 = 3.0;
+    const ORI_RATE: f32 = 30.0;
+
+    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+        let charge_dur = self.charge_dur(agent_data);
+        let charge_dist = charge_dur * self.speed * Self::BASE_SPEED;
+        let attack_dist = charge_dist + self.range;
+        let ori_gap = Self::ORI_RATE * charge_dur;
+        attack_data.dist_sqrd < attack_dist.powi(2)
+            && attack_data.angle < self.angle + ori_gap
+            && agent_data.energy.current() > self.initial_energy
+    }
+
+    pub fn use_desirable(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+        let charge_dist = self.charge_dur(agent_data) * self.speed * Self::BASE_SPEED;
+        attack_data.dist_sqrd / charge_dist.powi(2) > 0.75_f32.powi(2)
+    }
+
+    fn charge_dur(&self, agent_data: &AgentData) -> f32 {
+        ((agent_data.energy.current() - self.initial_energy) / self.energy_drain)
+            .clamp(0.0, self.charge_dur)
+    }
+}
+
+pub struct RapidMeleeData {
+    pub range: f32,
+    pub angle: f32,
+    pub energy: f32,
+    pub strikes: u32,
+}
+
+impl RapidMeleeData {
+    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
+        attack_data.dist_sqrd < self.range.powi(2)
+            && attack_data.angle < self.angle
+            && agent_data.energy.current() > self.energy * self.strikes as f32
+    }
 }

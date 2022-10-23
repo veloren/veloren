@@ -337,8 +337,7 @@ pub enum AbilityContext {
 }
 
 impl AbilityContext {
-    // TODO: Come up with better name for function
-    pub fn yeet(char_state: Option<&CharacterState>) -> Option<Self> {
+    pub fn try_from(char_state: Option<&CharacterState>) -> Option<Self> {
         if let Some(AbilityKind::Sword(stance)) = char_state
             .and_then(|cs| cs.ability_info())
             .and_then(|info| info.ability_meta)

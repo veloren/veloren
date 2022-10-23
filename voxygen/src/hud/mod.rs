@@ -2912,7 +2912,7 @@ impl Hud {
             skillsets.get(entity),
             bodies.get(entity),
         ) {
-            let context = AbilityContext::yeet(char_states.get(entity));
+            let context = AbilityContext::try_from(char_states.get(entity));
             Skillbar::new(
                 client,
                 &info,
@@ -3343,7 +3343,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
-                let context = AbilityContext::yeet(char_states.get(entity));
+                let context = AbilityContext::try_from(char_states.get(entity));
                 for event in Diary::new(
                     &self.show,
                     client,

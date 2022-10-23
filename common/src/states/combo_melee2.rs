@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        character_state::OutputEvents, tool::Stats, CharacterState, InputKind, Melee,
+        character_state::OutputEvents, tool::Stats, CharacterState, InputKind,
         MeleeConstructor, StateUpdate, InputAttr, InventoryAction, slot::{Slot, EquipSlot},
     },
     states::{
@@ -132,7 +132,7 @@ impl CharacterBehavior for Data {
         let strike_data = self.strike_data();
 
         match self.stage_section {
-            Some(StageSection::Charge) => {
+            Some(StageSection::Ready) => {
                 // Adds a small duration to entering a stance to discourage spam swapping stances for ability activation benefits of matching stance
                 if self.timer < STANCE_ENTER_TIME {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
@@ -225,17 +225,13 @@ impl CharacterBehavior for Data {
                         }
                     } else {
                         // Return to wielding
-                        end_ability(data, &mut update);
-                        // Make sure attack component is removed
-                        data.updater.remove::<Melee>(data.entity);
+                        end_melee_ability(data, &mut update);
                     }
                 }
             },
             Some(_) => {
                 // If it somehow ends up in an incorrect stage section
-                end_ability(data, &mut update);
-                // Make sure attack component is removed
-                data.updater.remove::<Melee>(data.entity);
+                end_melee_ability(data, &mut update);
             },
             None => {
                 if self.timer < STANCE_LEAVE_TIME {
@@ -244,9 +240,7 @@ impl CharacterBehavior for Data {
                     }
                 } else {
                     // Done
-                    end_ability(data, &mut update);
-                    // Make sure melee component is removed
-                    data.updater.remove::<Melee>(data.entity);
+                    end_melee_ability(data, &mut update);
                 }
 
                 handle_climb(data, &mut update);
@@ -273,7 +267,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         if matches!(data.character, CharacterState::ComboMelee2(data) if data.static_data.ability_info.input == Some(input) && input != InputKind::Primary && data.stage_section.is_none()) {
-            end_ability(data, &mut update);
+            end_melee_ability(data, &mut update);
         } else {
             update.queued_inputs.insert(input, InputAttr {
                 select_pos,

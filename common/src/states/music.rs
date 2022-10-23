@@ -1,5 +1,5 @@
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, Melee, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -66,8 +66,6 @@ impl CharacterBehavior for Data {
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 end_ability(data, &mut update);
-                // Make sure attack component is removed
-                data.updater.remove::<Melee>(data.entity);
             },
         }
 

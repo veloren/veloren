@@ -2885,7 +2885,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         Skill::General(s) => general_skill_strings(s),
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
-        Skill::Sword(s) => sword_skill_strings(s),
         Skill::Axe(s) => axe_skill_strings(s),
         Skill::Hammer(s) => hammer_skill_strings(s),
         Skill::Bow(s) => bow_skill_strings(s),
@@ -2897,6 +2896,7 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         Skill::Swim(s) => swim_skill_strings(s),
         // mining
         Skill::Pick(s) => mining_skill_strings(s),
+        _ => SkillStrings::plain("", ""),
     }
 }
 
@@ -2953,8 +2953,6 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
         },
     }
 }
-
-fn sword_skill_strings(_skill: SwordSkill) -> SkillStrings<'static> { SkillStrings::plain("", "") }
 
 fn axe_skill_strings(skill: AxeSkill) -> SkillStrings<'static> {
     let modifiers = SKILL_MODIFIERS.axe_tree;

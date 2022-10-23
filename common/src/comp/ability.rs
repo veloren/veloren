@@ -2123,7 +2123,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 // If ability is a stance, enter the stance without beginning a strike, otherwise
                 // immediately begin the strike
                 stage_section: if *is_stance {
-                    Some(StageSection::Charge)
+                    Some(StageSection::Ready)
                 } else {
                     Some(StageSection::Buildup)
                 },
@@ -2611,7 +2611,7 @@ bitflags::bitflags! {
         const ROLL_INTERRUPT  = 0b00000001;
         // Allows blocking to interrupt the ability at any point
         const BLOCK_INTERRUPT = 0b00000010;
-        // When the ability is in the buyildup section, it counts as a parry
+        // When the ability is in the buildup section, it counts as a parry
         const BUILDUP_PARRIES = 0b00000100;
         // When in the ability, an entity only receives half as much poise damage
         const POISE_RESISTANT = 0b00001000;

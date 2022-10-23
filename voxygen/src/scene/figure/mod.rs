@@ -917,7 +917,7 @@ impl FigureMgr {
             let second_tool_spec = second_tool_spec.as_deref();
             let hands = (active_tool_hand, second_tool_hand);
 
-            let context = AbilityContext::yeet(character);
+            let context = AbilityContext::try_from(character);
 
             let ability_id = character.and_then(|c| {
                 c.ability_info()

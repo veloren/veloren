@@ -151,16 +151,12 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    end_ability(data, &mut update);
-                    // Make sure attack component is removed
-                    data.updater.remove::<Melee>(data.entity);
+                    end_melee_ability(data, &mut update);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                end_ability(data, &mut update);
-                // Make sure attack component is removed
-                data.updater.remove::<Melee>(data.entity);
+                end_melee_ability(data, &mut update);
             },
         }
 

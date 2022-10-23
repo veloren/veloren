@@ -647,6 +647,10 @@ impl CharacterState {
                     buildup: Some(strike.buildup_duration),
                     action: Some(strike.swing_duration),
                     recover: Some(strike.recover_duration),
+                    ready: data
+                        .static_data
+                        .is_stance
+                        .then_some(combo_melee2::STANCE_ENTER_TIME),
                     ..Default::default()
                 })
             },
@@ -847,6 +851,7 @@ pub struct DurationsInfo {
     pub recover: Option<Duration>,
     pub movement: Option<Duration>,
     pub charge: Option<Duration>,
+    pub ready: Option<Duration>,
 }
 
 impl Default for CharacterState {

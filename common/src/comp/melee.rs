@@ -27,6 +27,10 @@ pub struct Melee {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum MultiTarget {
     Normal,
+    /// Applies scaling to the power of the attack based on how many consecutive
+    /// enemies have been hit. First enemy hit will be at a power of 1.0, second
+    /// enemy hit will be at a power of `1.0 + scaling`, nth enemy hit will be
+    /// at a power of `1.0 + (n - 1) * scaling`.
     Scaling(f32),
 }
 

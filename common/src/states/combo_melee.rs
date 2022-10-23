@@ -344,15 +344,13 @@ impl CharacterBehavior for Data {
                     if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
                         reset_state(self, data, output_events, &mut update);
                     } else {
-                        end_ability(data, &mut update);
+                        end_melee_ability(data, &mut update);
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                end_ability(data, &mut update);
-                // Make sure attack component is removed
-                data.updater.remove::<Melee>(data.entity);
+                end_melee_ability(data, &mut update);
             },
         }
 

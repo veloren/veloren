@@ -1,8 +1,4 @@
-use crate::{
-    consts::MAX_PATH_DIST,
-    data::{AgentData, AttackData, Path, ReadData, TargetData},
-    util::entities_have_line_of_sight,
-};
+use crate::{consts::MAX_PATH_DIST, data::*, util::entities_have_line_of_sight};
 use common::{
     comp::{
         ability::{self, Ability, AbilityKind, ActiveAbilities, AuxiliaryAbility, Capability},
@@ -18,7 +14,7 @@ use common::{
     util::Dir,
     vol::ReadVol,
 };
-use rand::Rng;
+use rand::{prelude::SliceRandom, Rng};
 use specs::saveload::MarkerAllocator;
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
@@ -422,145 +418,16 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        struct ComboMeleeData {
-            min_range: f32,
-            max_range: f32,
-            angle: f32,
-            energy: f32,
-        }
-        impl ComboMeleeData {
-            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-                attack_data.dist_sqrd < self.max_range.powi(2)
-                    && attack_data.dist_sqrd > self.min_range.powi(2)
-                    && attack_data.angle < self.angle
-                    && agent_data.energy.current() >= self.energy
-            }
-        }
-        struct FinisherMeleeData {
-            range: f32,
-            angle: f32,
-            energy: f32,
-            combo: u32,
-        }
-        impl FinisherMeleeData {
-            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-                attack_data.dist_sqrd < self.range.powi(2)
-                    && attack_data.angle < self.angle
-                    && agent_data.energy.current() >= self.energy
-                    && agent_data
-                        .combo
-                        .map_or(false, |c| c.counter() >= self.combo)
-            }
-
-            fn use_desirable(&self, tgt_data: &TargetData, agent_data: &AgentData) -> bool {
-                let combo_factor =
-                    agent_data.combo.map_or(0, |c| c.counter()) as f32 / self.combo as f32 * 2.0;
-                let tgt_health_factor = tgt_data.health.map_or(0.0, |h| h.current()) / 50.0;
-                let self_health_factor = agent_data.health.map_or(0.0, |h| h.current()) / 50.0;
-                // Use becomes more desirable if either self or target is close to death
-                combo_factor > tgt_health_factor.min(self_health_factor)
-            }
-        }
-        struct SelfBuffData {
-            buff: BuffKind,
-            energy: f32,
-        }
-        impl SelfBuffData {
-            fn could_use(&self, agent_data: &AgentData) -> bool {
-                agent_data.energy.current() >= self.energy
-            }
-
-            fn use_desirable(&self, agent_data: &AgentData) -> bool {
-                agent_data
-                    .buffs
-                    .map_or(false, |buffs| !buffs.contains(self.buff))
-            }
-        }
-        struct DiveMeleeData {
-            range: f32,
-            angle: f32,
-            energy: f32,
-        }
-        impl DiveMeleeData {
-            fn npc_should_use_hack(&self, agent_data: &AgentData, tgt_data: &TargetData) -> bool {
-                let dist_sqrd_2d = agent_data.pos.0.xy().distance_squared(tgt_data.pos.0.xy());
-                agent_data.energy.current() > self.energy
-                    && agent_data.physics_state.on_ground.is_some()
-                    && agent_data.pos.0.z >= tgt_data.pos.0.z
-                    && dist_sqrd_2d > (self.range / 2.0).powi(2)
-                    && dist_sqrd_2d < (self.range + 5.0).powi(2)
-            }
-        }
-        struct BlockData {
-            angle: f32,
-            // Should probably just always use 5 or so unless riposte melee
-            range: f32,
-            energy: f32,
-        }
-        impl BlockData {
-            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-                attack_data.dist_sqrd < self.range.powi(2)
-                    && attack_data.angle < self.angle
-                    && agent_data.energy.current() >= self.energy
-            }
-        }
-        struct DashMeleeData {
-            range: f32,
-            angle: f32,
-            initial_energy: f32,
-            energy_drain: f32,
-            speed: f32,
-            charge_dur: f32,
-        }
-        impl DashMeleeData {
-            // TODO: Maybe figure out better way of pulling in base accel from body and
-            // accounting for friction?
-            const BASE_SPEED: f32 = 3.0;
-            const ORI_RATE: f32 = 30.0;
-
-            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-                let charge_dur = self.charge_dur(agent_data);
-                let charge_dist = charge_dur * self.speed * Self::BASE_SPEED;
-                let attack_dist = charge_dist + self.range;
-                let ori_gap = Self::ORI_RATE * charge_dur;
-                attack_data.dist_sqrd < attack_dist.powi(2)
-                    && attack_data.angle < self.angle + ori_gap
-                    && agent_data.energy.current() > self.initial_energy
-            }
-
-            fn use_desirable(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-                let charge_dist = self.charge_dur(agent_data) * self.speed * Self::BASE_SPEED;
-                attack_data.dist_sqrd / charge_dist.powi(2) > 0.75_f32.powi(2)
-            }
-
-            fn charge_dur(&self, agent_data: &AgentData) -> f32 {
-                ((agent_data.energy.current() - self.initial_energy) / self.energy_drain)
-                    .clamp(0.0, self.charge_dur)
-            }
-        }
-        struct RapidMeleeData {
-            range: f32,
-            angle: f32,
-            energy: f32,
-            strikes: u32,
-        }
-        impl RapidMeleeData {
-            fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-                attack_data.dist_sqrd < self.range.powi(2)
-                    && attack_data.angle < self.angle
-                    && agent_data.energy.current() > self.energy * self.strikes as f32
-            }
-        }
         use ability::SwordStance;
         let stance = |stance| match stance {
             1 => SwordStance::Offensive,
             2 => SwordStance::Defensive,
             3 => SwordStance::Mobility,
             4 => SwordStance::Crippling,
-            5 => SwordStance::Parrying,
-            6 => SwordStance::Heavy,
-            7 => SwordStance::Reaching,
-            8 => SwordStance::Cleaving,
+            5 => SwordStance::Cleaving,
+            6 => SwordStance::Parrying,
+            7 => SwordStance::Heavy,
+            8 => SwordStance::Reaching,
             _ => SwordStance::Balanced,
         };
         if !agent.action_state.initialized {
@@ -575,7 +442,9 @@ impl<'a> AgentData<'a> {
                 // Hack to make cleaving stance come up less often because agents cannot use it
                 // effectively due to only considering a single target
                 // Remove when agents properly consider multiple targets
-                4 + rng.gen_range(0..13) / 3
+                // (stance, weight)
+                let options = [(4, 3), (5, 1), (6, 3), (7, 3), (8, 3)];
+                options.choose_weighted(rng, |x| x.1).map_or(0, |x| x.0)
                 // rng.gen_range(4..9)
             } else if self
                 .skill_set
@@ -952,23 +821,32 @@ impl<'a> AgentData<'a> {
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
 
-                let mut try_roll = || {
+                let mut try_roll = |controller: &mut Controller| {
                     if let Some(char_state) = tgt_data.char_state {
-                        matches!(char_state.stage_section(), Some(StageSection::Buildup))
-                            && char_state.is_melee_attack()
-                            && char_state
-                                .timer()
-                                .map_or(false, |timer| rng.gen::<f32>() < timer.as_secs_f32() * 4.0)
-                            && matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Recover)
-                            )
-                            && self
-                                .char_state
-                                .ability_info()
-                                .and_then(|a| a.ability_meta)
-                                .map(|m| m.capabilities)
-                                .map_or(false, |c| c.contains(Capability::ROLL_INTERRUPT))
+                        let try_roll =
+                            matches!(char_state.stage_section(), Some(StageSection::Buildup))
+                                && char_state.is_melee_attack()
+                                && char_state.timer().map_or(false, |timer| {
+                                    rng.gen::<f32>() < timer.as_secs_f32() * 4.0
+                                })
+                                && matches!(
+                                    self.char_state.stage_section(),
+                                    Some(StageSection::Recover)
+                                )
+                                && self
+                                    .char_state
+                                    .ability_info()
+                                    .and_then(|a| a.ability_meta)
+                                    .map(|m| m.capabilities)
+                                    .map_or(false, |c| c.contains(Capability::ROLL_INTERRUPT));
+                        if try_roll {
+                            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                                .xy()
+                                .try_normalized()
+                                .unwrap_or_default();
+                            controller.push_basic_input(InputKind::Roll);
+                        }
+                        try_roll
                     } else {
                         false
                     }
@@ -984,12 +862,8 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Ability(0));
                 } else if MOBILITY_AGILITY.could_use(self) && MOBILITY_AGILITY.use_desirable(self) {
                     controller.push_basic_input(InputKind::Ability(2));
-                } else if try_roll() {
-                    controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
-                        .xy()
-                        .try_normalized()
-                        .unwrap_or_default();
-                    controller.push_basic_input(InputKind::Roll);
+                } else if try_roll(controller) {
+                    // Nothing here, rolling handled in try_roll function
                 } else if MOBILITY_FEINT.could_use(attack_data, self) && rng.gen::<f32>() < 0.3 {
                     controller.push_basic_input(InputKind::Ability(1));
                     advance(
@@ -1641,7 +1515,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             ConditionStaffCanShockwave = 0,
         }
-        let context = AbilityContext::yeet(Some(self.char_state));
+        let context = AbilityContext::try_from(Some(self.char_state));
         let extract_ability = |input: AbilityInput| {
             self.active_abilities
                 .activate_ability(

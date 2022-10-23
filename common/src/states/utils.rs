@@ -10,7 +10,7 @@ use crate::{
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
-        InventoryAction, StateUpdate,
+        InventoryAction, StateUpdate, Melee,
     },
     consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
     event::{LocalEvent, ServerEvent},
@@ -975,7 +975,7 @@ pub fn handle_jump(
 }
 
 fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) -> bool {
-    let context = AbilityContext::yeet(Some(data.character));
+    let context = AbilityContext::try_from(Some(data.character));
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
             .active_abilities
@@ -1259,6 +1259,7 @@ pub enum StageSection {
     Charge,
     Movement,
     Action,
+    Ready,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -1385,6 +1386,11 @@ pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
                 CharacterState::Idle(idle::Data { is_sneaking: data.character.is_stealthy(), footwear: None });
         }
     }
+}
+
+pub fn end_melee_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
+    end_ability(data, update);
+    data.updater.remove::<Melee>(data.entity);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
