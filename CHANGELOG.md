@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Water will now move according to its apparent flow direction
 - Added screen-space reflection and refraction shaders
 - Added reflection quality setting
+- UI: Added a poise indicator to the player's status bars
 
 ### Changed
 - Use fluent for translations
