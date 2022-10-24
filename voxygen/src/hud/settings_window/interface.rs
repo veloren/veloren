@@ -66,6 +66,8 @@ widget_ids! {
         show_bar_numbers_percentage_text,
         always_show_bars_button,
         always_show_bars_label,
+        enable_poise_bar_button,
+        enable_poise_bar_label,
         //
         show_shortcuts_button,
         show_shortcuts_text,
@@ -1153,13 +1155,41 @@ impl<'a> Widget for Interface<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.always_show_bars_label, ui);
 
+        // Enable poise bar
+        let enable_poise_bar = ToggleButton::new(
+            self.global_state.settings.interface.enable_poise_bar,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.always_show_bars_button, 20.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.enable_poise_bar_button, ui);
+
+        if enable_poise_bar != self.global_state.settings.interface.enable_poise_bar {
+            events.push(TogglePoiseBar(enable_poise_bar));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-enable_poise_bar"),
+        )
+        .right_from(state.ids.enable_poise_bar_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.enable_poise_bar_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.enable_poise_bar_label, ui);
+
         // Experience Numbers
         Text::new(
             &self
                 .localized_strings
                 .get_msg("hud-settings-experience_numbers"),
         )
-        .down_from(state.ids.always_show_bars_button, 20.0)
+        .down_from(state.ids.enable_poise_bar_button, 20.0)
         .font_size(self.fonts.cyri.scale(18))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)

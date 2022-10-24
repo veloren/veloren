@@ -55,6 +55,8 @@ pub struct Poise {
     pub regen_rate: f32,
     /// Time that entity was last in a poise state
     last_stun_time: Option<Time>,
+    /// The previous poise state
+    pub previous_state: PoiseState,
 }
 
 /// States to define effects of a poise change
@@ -146,11 +148,13 @@ impl Poise {
     const MAX_SCALED_POISE: u32 = Self::MAX_POISE as u32 * Self::SCALING_FACTOR_INT;
     /// The amount of time after being in a poise state before you can take
     /// poise damage again
-    const POISE_BUFFER_TIME: f64 = 1.0;
+    pub const POISE_BUFFER_TIME: f64 = 1.0;
     /// Used when comparisons to poise are needed outside this module.
     // This value is chosen as anything smaller than this is more precise than our
     // units of poise.
     pub const POISE_EPSILON: f32 = 0.5 / Self::MAX_SCALED_POISE as f32;
+    /// The thresholds where poise changes to a different state
+    pub const POISE_THRESHOLDS: [f32; 4] = [50.0, 30.0, 15.0, 5.0];
     /// The amount poise is scaled by within this module
     const SCALING_FACTOR_FLOAT: f32 = 256.;
     const SCALING_FACTOR_INT: u32 = Self::SCALING_FACTOR_FLOAT as u32;
@@ -187,6 +191,7 @@ impl Poise {
             last_change: Dir::default(),
             regen_rate: 0.0,
             last_stun_time: None,
+            previous_state: PoiseState::Normal,
         }
     }
 
@@ -194,6 +199,9 @@ impl Poise {
         match self.last_stun_time {
             Some(last_time) if last_time.0 + Poise::POISE_BUFFER_TIME > change.time.0 => {},
             _ => {
+                // if self.previous_state != self.poise_state() {
+                self.previous_state = self.poise_state();
+                // };
                 self.current = (((self.current() + change.amount)
                     .clamp(0.0, f32::from(Self::MAX_POISE))
                     * Self::SCALING_FACTOR_FLOAT) as u32)
@@ -216,10 +224,10 @@ impl Poise {
     /// Defines the poise states based on current poise value
     pub fn poise_state(&self) -> PoiseState {
         match self.current() {
-            x if x > 50.0 => PoiseState::Normal,
-            x if x > 30.0 => PoiseState::Interrupted,
-            x if x > 15.0 => PoiseState::Stunned,
-            x if x > 5.0 => PoiseState::Dazed,
+            x if x > Self::POISE_THRESHOLDS[0] => PoiseState::Normal,
+            x if x > Self::POISE_THRESHOLDS[1] => PoiseState::Interrupted,
+            x if x > Self::POISE_THRESHOLDS[2] => PoiseState::Stunned,
+            x if x > Self::POISE_THRESHOLDS[3] => PoiseState::Dazed,
             _ => PoiseState::KnockedDown,
         }
     }

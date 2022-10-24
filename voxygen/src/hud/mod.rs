@@ -145,6 +145,8 @@ const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 const STAMINA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 const ENEMY_HP_COLOR: Color = Color::Rgba(0.93, 0.1, 0.29, 1.0);
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
+const POISE_COLOR: Color = Color::Rgba(0.70, 0.0, 0.60, 1.0);
+const POISEBAR_TICK_COLOR: Color = Color::Rgba(0.70, 0.90, 0.0, 1.0);
 //const TRANSPARENT: Color = Color::Rgba(0.0, 0.0, 0.0, 0.0);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
@@ -2727,10 +2729,18 @@ impl Hud {
         });
         self.floaters.combo_floater = self.floaters.combo_floater.filter(|f| f.timer > 0_f64);
 
-        if let (Some(health), Some(inventory), Some(energy), Some(skillset), Some(body)) = (
+        if let (
+            Some(health),
+            Some(inventory),
+            Some(energy),
+            Some(poise),
+            Some(skillset),
+            Some(body),
+        ) = (
             healths.get(entity),
             inventories.get(entity),
             energies.get(entity),
+            poises.get(entity),
             skillsets.get(entity),
             bodies.get(entity),
         ) {
@@ -2745,6 +2755,7 @@ impl Hud {
                 health,
                 inventory,
                 energy,
+                poise,
                 skillset,
                 active_abilities.get(entity),
                 body,

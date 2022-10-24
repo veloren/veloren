@@ -122,6 +122,7 @@ pub enum Interface {
     ToggleXpBar(XpBar),
     ToggleBarNumbers(BarNumbers),
     ToggleAlwaysShowBars(bool),
+    TogglePoiseBar(bool),
     ToggleShortcutNumbers(ShortcutNumbers),
     BuffPosition(BuffPosition),
 
@@ -570,6 +571,9 @@ impl SettingsChange {
                     },
                     Interface::ToggleAlwaysShowBars(always_show_bars) => {
                         settings.interface.always_show_bars = always_show_bars;
+                    },
+                    Interface::TogglePoiseBar(enable_poise_bar) => {
+                        settings.interface.enable_poise_bar = enable_poise_bar;
                     },
                     Interface::ToggleShortcutNumbers(shortcut_numbers) => {
                         settings.interface.shortcut_numbers = shortcut_numbers;
