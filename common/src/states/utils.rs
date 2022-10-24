@@ -1096,40 +1096,28 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool
 pub fn handle_interrupts(
     data: &JoinData,
     update: &mut StateUpdate,
-    // Used when an input other than the one that activated the ability being pressed should block
-    // an interrupt
-    input_override: Option<InputKind>,
 ) -> bool {
-    // Check that the input used to enter current character state (if there was one)
-    // is not pressed
-    if input_override
-        .or_else(|| data.character.ability_info().and_then(|a| a.input))
-        .map_or(true, |input| !input_is_pressed(data, input))
-    {
-        let can_dodge = {
-            let in_buildup = data
-                .character
-                .stage_section()
-                .map_or(true, |stage_section| {
-                    matches!(stage_section, StageSection::Buildup)
-                });
-            let interruptible = data.character.ability_info().and_then(|info| info.ability_meta).map_or(false, |meta| {
-                meta.capabilities
-                    .contains(Capability::ROLL_INTERRUPT)
+    let can_dodge = {
+        let in_buildup = data
+            .character
+            .stage_section()
+            .map_or(true, |stage_section| {
+                matches!(stage_section, StageSection::Buildup)
             });
-            in_buildup || interruptible
-        };
-        let can_block = data.character.ability_info().and_then(|info| info.ability_meta).map_or(false, |meta| {
+        let interruptible = data.character.ability_info().and_then(|info| info.ability_meta).map_or(false, |meta| {
             meta.capabilities
-                .contains(Capability::BLOCK_INTERRUPT)
+                .contains(Capability::ROLL_INTERRUPT)
         });
-        if can_dodge {
-            handle_dodge_input(data, update)
-        } else if can_block {
-            handle_block_input(data, update)
-        } else {
-            false
-        }
+        in_buildup || interruptible
+    };
+    let can_block = data.character.ability_info().and_then(|info| info.ability_meta).map_or(false, |meta| {
+        meta.capabilities
+            .contains(Capability::BLOCK_INTERRUPT)
+    });
+    if can_dodge {
+        handle_dodge_input(data, update)
+    } else if can_block {
+        handle_block_input(data, update)
     } else {
         false
     }
@@ -1357,6 +1345,9 @@ impl AbilityInfo {
         } else {
             None
         };
+
+        // If this ability should not be returned to, check if this ability was going to return to another ability, and return to that one instead
+        let return_ability = return_ability.or_else(|| char_state.ability_info().and_then(|info| info.return_ability));
 
         Self {
             tool: None,

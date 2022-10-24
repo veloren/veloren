@@ -50,6 +50,7 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Movement => {
+                handle_move(data, &mut update, 1.0);
                 if data.physics.on_ground.is_some() {
                     // Transitions to swing portion of state upon hitting ground
                     if let CharacterState::DiveMelee(c) = &mut update.character {

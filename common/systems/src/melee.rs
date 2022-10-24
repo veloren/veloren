@@ -136,7 +136,8 @@ impl<'a> System<'a> for Sys {
                 let target_dodging = read_data
                     .char_states
                     .get(target)
-                    .map_or(false, |c_s| c_s.is_melee_dodge());
+                    .and_then(|cs| cs.attack_immunities())
+                    .map_or(false, |i| i.melee);
 
                 // Check if it is a hit
                 if attacker != target

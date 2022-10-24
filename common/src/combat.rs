@@ -2,6 +2,7 @@ use crate::comp::buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource};
 #[cfg(not(target_arch = "wasm32"))]
 use crate::{
     comp::{
+        ability::Capability,
         inventory::{
             item::{armor::Protection, tool::ToolKind, ItemDesc, ItemKind, MaterialStatManifest},
             slot::EquipSlot,
@@ -334,7 +335,8 @@ impl Attack {
                 for effect in damage.effects.iter() {
                     match effect {
                         CombatEffect::Knockback(kb) => {
-                            let impulse = kb.calculate_impulse(dir) * strength_modifier;
+                            let impulse =
+                                kb.calculate_impulse(dir, target.char_state) * strength_modifier;
                             if !impulse.is_approx_zero() {
                                 emit(ServerEvent::Knockback {
                                     entity: target.entity,
@@ -432,7 +434,10 @@ impl Attack {
                         },
                         CombatEffect::BuildupsVulnerable => {
                             if target.char_state.map_or(false, |cs| {
-                                matches!(cs.stage_section(), Some(StageSection::Buildup))
+                                matches!(
+                                    cs.stage_section(),
+                                    Some(StageSection::Buildup | StageSection::Charge)
+                                )
                             }) {
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
@@ -496,7 +501,8 @@ impl Attack {
                 is_applied = true;
                 match effect.effect {
                     CombatEffect::Knockback(kb) => {
-                        let impulse = kb.calculate_impulse(dir) * strength_modifier;
+                        let impulse =
+                            kb.calculate_impulse(dir, target.char_state) * strength_modifier;
                         if !impulse.is_approx_zero() {
                             emit(ServerEvent::Knockback {
                                 entity: target.entity,
@@ -951,18 +957,26 @@ pub enum KnockbackDir {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Knockback {
-    pub fn calculate_impulse(self, dir: Dir) -> Vec3<f32> {
-        // TEMP until source knockback values have been updated
-        50.0 * match self.direction {
-            KnockbackDir::Away => self.strength * *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
-            KnockbackDir::Towards => {
-                self.strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5)
-            },
-            KnockbackDir::Up => self.strength * Vec3::unit_z(),
-            KnockbackDir::TowardsUp => {
-                self.strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.85)
-            },
-        }
+    pub fn calculate_impulse(self, dir: Dir, char_state: Option<&CharacterState>) -> Vec3<f32> {
+        let from_char = {
+            let resistant = char_state
+                .and_then(|cs| cs.ability_info())
+                .and_then(|a| a.ability_meta)
+                .map_or(false, |a| {
+                    a.capabilities.contains(Capability::KNOCKBACK_RESISTANT)
+                });
+            if resistant { 0.5 } else { 1.0 }
+        };
+        // TEMP: 50.0 multiplication kept until source knockback values have been
+        // updated
+        50.0 * self.strength
+            * from_char
+            * match self.direction {
+                KnockbackDir::Away => *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
+                KnockbackDir::Towards => *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5),
+                KnockbackDir::Up => Vec3::unit_z(),
+                KnockbackDir::TowardsUp => *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.85),
+            }
     }
 
     #[must_use]

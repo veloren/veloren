@@ -70,7 +70,7 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
-    energy_cost_per_strike: 3,
+    energy_cost_per_strike: 2,
     meta: (
         kind: Some(Sword(Mobility)),
         capabilities: (

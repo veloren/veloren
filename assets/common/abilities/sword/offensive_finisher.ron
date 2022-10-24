@@ -21,7 +21,7 @@ FinisherMelee(
     ),
     scaling: Some((
         target: Attack,
-        kind: Linear,
+        kind: Sqrt,
     )),
     minimum_combo: 10,
     meta: (

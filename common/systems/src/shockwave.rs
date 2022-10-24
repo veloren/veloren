@@ -211,6 +211,17 @@ impl<'a> System<'a> for Sys {
                         energy: read_data.energies.get(target),
                     };
 
+                    let target_dodging = read_data
+                        .character_states
+                        .get(target)
+                        .and_then(|cs| cs.attack_immunities())
+                        .map_or(false, |i| {
+                            if shockwave.requires_ground {
+                                i.ground_shockwaves
+                            } else {
+                                i.air_shockwaves
+                            }
+                        });
                     // PvP check
                     let may_harm = combat::may_harm(
                         &read_data.alignments,
@@ -220,8 +231,7 @@ impl<'a> System<'a> for Sys {
                         target,
                     );
                     let attack_options = AttackOptions {
-                        // Trying roll during earthquake isn't the best idea
-                        target_dodging: false,
+                        target_dodging,
                         may_harm,
                         target_group,
                     };

@@ -84,7 +84,7 @@ use common::{
     combat,
     comp::{
         self,
-        ability::{self, AuxiliaryAbility},
+        ability::AuxiliaryAbility,
         fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
         item::{
@@ -565,39 +565,12 @@ impl<'a> BuffIcon<'a> {
     }
 
     fn from_char_state(char_state: &comp::CharacterState) -> Option<Self> {
-        use ability::{AbilityKind, SwordStance};
         if let Some(ability_kind) = char_state
             .ability_info()
             .and_then(|info| info.ability_meta)
             .and_then(|meta| meta.kind)
         {
-            let id = match ability_kind {
-                AbilityKind::Sword(SwordStance::Balanced) => {
-                    "common.abilities.sword.balanced_combo"
-                },
-                AbilityKind::Sword(SwordStance::Offensive) => {
-                    "common.abilities.sword.offensive_combo"
-                },
-                AbilityKind::Sword(SwordStance::Crippling) => {
-                    "common.abilities.sword.crippling_combo"
-                },
-                AbilityKind::Sword(SwordStance::Cleaving) => {
-                    "common.abilities.sword.cleaving_combo"
-                },
-                AbilityKind::Sword(SwordStance::Defensive) => {
-                    "common.abilities.sword.defensive_combo"
-                },
-                AbilityKind::Sword(SwordStance::Parrying) => {
-                    "common.abilities.sword.parrying_combo"
-                },
-                AbilityKind::Sword(SwordStance::Heavy) => "common.abilities.sword.heavy_combo",
-                AbilityKind::Sword(SwordStance::Mobility) => {
-                    "common.abilities.sword.mobility_combo"
-                },
-                AbilityKind::Sword(SwordStance::Reaching) => {
-                    "common.abilities.sword.reaching_combo"
-                },
-            };
+            let id = util::representative_ability_id(ability_kind);
             Some(BuffIcon {
                 kind: BuffIconKind::Ability { ability_id: id },
                 is_buff: true,
@@ -2890,6 +2863,7 @@ impl Hud {
         let active_abilities = ecs.read_storage::<comp::ActiveAbilities>();
         let bodies = ecs.read_storage::<comp::Body>();
         let poises = ecs.read_storage::<comp::Poise>();
+        let combos = ecs.read_storage::<comp::Combo>();
         // Combo floater stuffs
         self.floaters.combo_floater = self.floaters.combo_floater.map(|mut f| {
             f.timer -= dt.as_secs_f64();
@@ -2939,6 +2913,8 @@ impl Hud {
                 &msm,
                 self.floaters.combo_floater,
                 context,
+                combos.get(entity),
+                char_states.get(entity),
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -3642,6 +3618,12 @@ impl Hud {
                     } else if let (Crafting(c), Inventory(_)) = (a, b) {
                         // Remove item from crafting input
                         self.show.crafting_fields.recipe_inputs.remove(&c.index);
+                    } else if let (Ability(AbilitySlot::Ability(ability)), Hotbar(slot)) = (a, b) {
+                        if let Some(Some(HotbarSlotContents::Ability(index))) =
+                            self.hotbar.slots.get(slot as usize)
+                        {
+                            events.push(Event::ChangeAbility(*index, ability));
+                        }
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -4774,8 +4756,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
         BuffKind::Frenzied => imgs.buff_frenzy_0,
         BuffKind::Hastened => imgs.buff_haste_0,
-        // TODO: Get unique icon
-        BuffKind::Fortitude => imgs.buff_dmg_red_0,
+        BuffKind::Fortitude => imgs.buff_fortitude_0,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,
@@ -4785,8 +4766,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Wet => imgs.debuff_wet_0,
         BuffKind::Ensnared => imgs.debuff_ensnared_0,
         BuffKind::Poisoned => imgs.debuff_poisoned_0,
-        // TODO: Get unique icon
-        BuffKind::Parried => imgs.debuff_crippled_0,
+        BuffKind::Parried => imgs.debuff_parried_0,
     }
 }
 

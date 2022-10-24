@@ -682,6 +682,7 @@ image_ids! {
         buff_dmg_red_0: "voxygen.element.de_buffs.buff_damage_reduce_0",
         buff_frenzy_0: "voxygen.element.de_buffs.buff_frenzy_0",
         buff_haste_0: "voxygen.element.de_buffs.buff_haste_0",
+        buff_fortitude_0: "voxygen.element.de_buffs.buff_fortitude_0",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",
@@ -692,6 +693,7 @@ image_ids! {
         debuff_wet_0: "voxygen.element.de_buffs.debuff_wet_0",
         debuff_ensnared_0: "voxygen.element.de_buffs.debuff_ensnared_0",
         debuff_poisoned_0: "voxygen.element.de_buffs.debuff_poisoned_0",
+        debuff_parried_0: "voxygen.element.de_buffs.debuff_parried_0",
 
         // Animation Frames
         // Buff Frame

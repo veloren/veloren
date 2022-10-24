@@ -48,7 +48,7 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
-        handle_interrupts(data, &mut update, None);
+        handle_interrupts(data, &mut update);
 
         match self.stage_section {
             StageSection::Buildup => {

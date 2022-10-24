@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 7,
+                    damage: 6,
                     poise: 0,
                     knockback: 0,
                     energy_regen: 9,
@@ -20,7 +20,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 13,
+                    damage: 11,
                     poise: 0,
                     knockback: 0,
                     energy_regen: 13,
@@ -36,7 +36,7 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
-    energy_cost_per_strike: 6,
+    energy_cost_per_strike: 5,
     meta: (
         kind: Some(Sword(Parrying)),
         capabilities: (

@@ -48,7 +48,7 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
-    energy_cost_per_strike: 6,
+    energy_cost_per_strike: 5,
     meta: (
         kind: Some(Sword(Cleaving)),
     ),

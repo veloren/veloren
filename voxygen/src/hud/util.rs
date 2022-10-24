@@ -1,6 +1,7 @@
 use super::img_ids;
 use common::{
     comp::{
+        ability::{AbilityKind, SwordStance},
         inventory::trade_pricing::TradePricing,
         item::{
             armor::{Armor, ArmorKind, Protection},
@@ -417,4 +418,18 @@ pub fn ability_description<'a>(
     let ability = ability_id.replace('.', "-");
 
     (loc.get_msg(&ability), loc.get_attr(&ability, "desc"))
+}
+
+pub fn representative_ability_id(ability_kind: AbilityKind) -> &'static str {
+    match ability_kind {
+        AbilityKind::Sword(SwordStance::Balanced) => "common.abilities.sword.balanced_combo",
+        AbilityKind::Sword(SwordStance::Offensive) => "common.abilities.sword.offensive_combo",
+        AbilityKind::Sword(SwordStance::Crippling) => "common.abilities.sword.crippling_combo",
+        AbilityKind::Sword(SwordStance::Cleaving) => "common.abilities.sword.cleaving_combo",
+        AbilityKind::Sword(SwordStance::Defensive) => "common.abilities.sword.defensive_combo",
+        AbilityKind::Sword(SwordStance::Parrying) => "common.abilities.sword.parrying_combo",
+        AbilityKind::Sword(SwordStance::Heavy) => "common.abilities.sword.heavy_combo",
+        AbilityKind::Sword(SwordStance::Mobility) => "common.abilities.sword.mobility_combo",
+        AbilityKind::Sword(SwordStance::Reaching) => "common.abilities.sword.reaching_combo",
+    }
 }

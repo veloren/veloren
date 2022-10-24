@@ -1410,7 +1410,7 @@ impl<'a> AgentData<'a> {
                 // Use shotgun if target close and have sufficient energy
                 controller.push_basic_input(InputKind::Ability(0));
             } else if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicRanged(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else roll away if can roll and have enough energy, and not using shotgun
@@ -1536,10 +1536,10 @@ impl<'a> AgentData<'a> {
             CharacterAbility::BasicBeam { range, .. } => range,
             _ => 20.0_f32,
         };
-        let shockwave_cost = shockwave.get_energy_cost();
+        let shockwave_cost = shockwave.energy_cost();
         if self.body.map_or(false, |b| b.is_humanoid())
             && attack_data.in_min_range()
-            && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+            && self.energy.current() > CharacterAbility::default_roll().energy_cost()
             && !matches!(self.char_state, CharacterState::Shockwave(_))
         {
             // if a humanoid, have enough stamina, not in shockwave, and in melee range,
@@ -1576,7 +1576,7 @@ impl<'a> AgentData<'a> {
                         [ActionStateConditions::ConditionStaffCanShockwave as usize] = true;
                 }
             } else if self.energy.current()
-                > shockwave_cost + CharacterAbility::default_roll().get_energy_cost()
+                > shockwave_cost + CharacterAbility::default_roll().energy_cost()
                 && attack_data.dist_sqrd < flamethrower_range.powi(2)
             {
                 controller.push_basic_input(InputKind::Secondary);
@@ -1713,7 +1713,7 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if self.body.map_or(false, |b| b.is_humanoid())
-                && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else roll away if can roll and have enough energy, and not using aura or in
@@ -3610,7 +3610,7 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if self.body.map_or(false, |b| b.is_humanoid())
-                && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
+                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else use steam beam

@@ -828,7 +828,12 @@ impl Body {
 
     pub fn immune_to(&self, buff: BuffKind) -> bool {
         match buff {
-            BuffKind::Bleeding => matches!(self, Body::Object(_) | Body::Golem(_) | Body::Ship(_)),
+            BuffKind::Bleeding => match self {
+                Body::Object(_) | Body::Golem(_) | Body::Ship(_) => true,
+                Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Husk),
+                Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Huskbrute),
+                _ => false,
+            },
             BuffKind::Burning => match self {
                 Body::Golem(g) => matches!(g.species, golem::Species::ClayGolem),
                 Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Haniwa),

@@ -323,8 +323,12 @@ impl CharacterState {
 
     pub fn is_music(&self) -> bool { matches!(self, CharacterState::Music(_)) }
 
-    pub fn is_melee_dodge(&self) -> bool {
-        matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
+    pub fn attack_immunities(&self) -> Option<AttackImmunities> {
+        if let CharacterState::Roll(c) = self {
+            Some(c.static_data.attack_immunities)
+        } else {
+            None
+        }
     }
 
     pub fn is_stunned(&self) -> bool { matches!(self, CharacterState::Stunned(_)) }
@@ -852,6 +856,16 @@ pub struct DurationsInfo {
     pub movement: Option<Duration>,
     pub charge: Option<Duration>,
     pub ready: Option<Duration>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
+pub struct AttackImmunities {
+    pub melee: bool,
+    pub projectiles: bool,
+    pub beams: bool,
+    pub ground_shockwaves: bool,
+    pub air_shockwaves: bool,
+    pub explosions: bool,
 }
 
 impl Default for CharacterState {

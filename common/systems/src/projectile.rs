@@ -307,10 +307,13 @@ fn dispatch_hit(
                 target,
             );
 
+            let target_dodging = read_data
+                .character_states
+                .get(target)
+                .and_then(|cs| cs.attack_immunities())
+                .map_or(false, |i| i.projectiles);
             let attack_options = AttackOptions {
-                // They say witchers can dodge arrows,
-                // but we don't have witchers
-                target_dodging: false,
+                target_dodging,
                 may_harm,
                 target_group: projectile_target_info.target_group,
             };

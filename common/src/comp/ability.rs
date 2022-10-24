@@ -3,6 +3,7 @@ use crate::{
     combat::{self, CombatEffect, DamageKind, Knockback},
     comp::{
         self, aura, beam, buff,
+        character_state::AttackImmunities,
         inventory::{
             item::{
                 tool::{AbilityContext, AbilityItem, AuxiliaryAbilityKind, Stats, ToolKind},
@@ -534,7 +535,7 @@ pub enum CharacterAbility {
         movement_duration: f32,
         recover_duration: f32,
         roll_strength: f32,
-        immune_melee: bool,
+        attack_immunities: AttackImmunities,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -871,8 +872,15 @@ impl CharacterAbility {
             buildup_duration: 0.05,
             movement_duration: 0.33,
             recover_duration: 0.125,
-            roll_strength: 2.0,
-            immune_melee: true,
+            roll_strength: 2.5,
+            attack_immunities: AttackImmunities {
+                melee: true,
+                projectiles: false,
+                beams: true,
+                ground_shockwaves: false,
+                air_shockwaves: true,
+                explosions: true,
+            },
             meta: Default::default(),
         }
     }
@@ -1002,7 +1010,7 @@ impl CharacterAbility {
                 ref mut movement_duration,
                 ref mut recover_duration,
                 roll_strength: _,
-                immune_melee: _,
+                attack_immunities: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1346,7 +1354,7 @@ impl CharacterAbility {
         self
     }
 
-    pub fn get_energy_cost(&self) -> f32 {
+    pub fn energy_cost(&self) -> f32 {
         use CharacterAbility::*;
         match self {
             BasicMelee { energy_cost, .. }
@@ -1383,6 +1391,46 @@ impl CharacterAbility {
             | Music { .. }
             | BasicSummon { .. }
             | SpriteSummon { .. } => 0.0,
+        }
+    }
+
+    #[allow(clippy::bool_to_int_with_if)]
+    pub fn combo_cost(&self) -> u32 {
+        use CharacterAbility::*;
+        match self {
+            BasicAura {
+                scales_with_combo, ..
+            } => {
+                if *scales_with_combo {
+                    1
+                } else {
+                    0
+                }
+            },
+            FinisherMelee { minimum_combo, .. } => *minimum_combo,
+            BasicMelee { .. }
+            | BasicRanged { .. }
+            | RepeaterRanged { .. }
+            | DashMelee { .. }
+            | Roll { .. }
+            | LeapMelee { .. }
+            | SpinMelee { .. }
+            | ChargedMelee { .. }
+            | ChargedRanged { .. }
+            | Shockwave { .. }
+            | BasicBlock { .. }
+            | SelfBuff { .. }
+            | ComboMelee2 { .. }
+            | DiveMelee { .. }
+            | RiposteMelee { .. }
+            | RapidMelee { .. }
+            | BasicBeam { .. }
+            | Boost { .. }
+            | ComboMelee { .. }
+            | Blink { .. }
+            | Music { .. }
+            | BasicSummon { .. }
+            | SpriteSummon { .. } => 0,
         }
     }
 
@@ -2060,7 +2108,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 movement_duration,
                 recover_duration,
                 roll_strength,
-                immune_melee,
+                attack_immunities,
                 meta: _,
             } => CharacterState::Roll(roll::Data {
                 static_data: roll::StaticData {
@@ -2068,7 +2116,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     roll_strength: *roll_strength,
-                    immune_melee: *immune_melee,
+                    attack_immunities: *attack_immunities,
                     ability_info,
                 },
                 timer: Duration::default(),
@@ -2120,10 +2168,15 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 exhausted: false,
                 start_next_strike: false,
                 timer: Duration::default(),
-                // If ability is a stance, enter the stance without beginning a strike, otherwise
-                // immediately begin the strike
+                // If ability is a stance, if starting from wielding, get ready to enter stance,
+                // otherwise enter stance immediately, otherwise if not a stance immediately begin
+                // the strike
                 stage_section: if *is_stance {
-                    Some(StageSection::Ready)
+                    if matches!(data.character, CharacterState::Wielding(_)) {
+                        Some(StageSection::Ready)
+                    } else {
+                        None
+                    }
                 } else {
                     Some(StageSection::Buildup)
                 },
@@ -2608,12 +2661,14 @@ bitflags::bitflags! {
     #[derive(Default, Serialize, Deserialize)]
     pub struct Capability: u8 {
         // Allows rolls to interrupt the ability at any point, not just during buildup
-        const ROLL_INTERRUPT  = 0b00000001;
+        const ROLL_INTERRUPT      = 0b00000001;
         // Allows blocking to interrupt the ability at any point
-        const BLOCK_INTERRUPT = 0b00000010;
+        const BLOCK_INTERRUPT     = 0b00000010;
         // When the ability is in the buildup section, it counts as a parry
-        const BUILDUP_PARRIES = 0b00000100;
+        const BUILDUP_PARRIES     = 0b00000100;
         // When in the ability, an entity only receives half as much poise damage
-        const POISE_RESISTANT = 0b00001000;
+        const POISE_RESISTANT     = 0b00001000;
+        // WHen in the ability, an entity only receives half as much knockback
+        const KNOCKBACK_RESISTANT = 0b00010000;
     }
 }

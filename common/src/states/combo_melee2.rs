@@ -106,7 +106,7 @@ pub struct Data {
 }
 
 pub const STANCE_ENTER_TIME: Duration = Duration::from_millis(250);
-pub const STANCE_LEAVE_TIME: Duration = Duration::from_secs(20);
+pub const STANCE_LEAVE_TIME: Duration = Duration::from_secs(30);
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
@@ -127,7 +127,7 @@ impl CharacterBehavior for Data {
             1.0
         };
         handle_move(data, &mut update, move_eff);
-        let interrupted = handle_interrupts(data, &mut update, Some(ability_input));
+        let interrupted = handle_interrupts(data, &mut update);
 
         let strike_data = self.strike_data();
 

@@ -7,7 +7,7 @@ BasicBlock(
         buildup: true,
         recover: true,
     ),
-    energy_cost: 10,
+    energy_cost: 15,
     can_hold: false,
     meta: (
         kind: Some(Sword(Parrying)),

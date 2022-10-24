@@ -543,16 +543,23 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     let ecs = server.state.ecs();
 
     if vel.z <= -30.0 {
+        let char_states = ecs.read_storage::<CharacterState>();
+
+        let reduced_vel_z = if let Some(CharacterState::DiveMelee(c)) = char_states.get(entity) {
+            (vel.z + c.static_data.vertical_speed).min(0.0)
+        } else {
+            vel.z
+        };
+
         let mass = ecs
             .read_storage::<comp::Mass>()
             .get(entity)
             .copied()
             .unwrap_or_default();
-        let impact_energy = mass.0 * vel.z.powi(2) / 2.0;
+        let impact_energy = mass.0 * reduced_vel_z.powi(2) / 2.0;
         let falldmg = impact_energy / 1000.0;
 
         let inventories = ecs.read_storage::<Inventory>();
-        let char_states = ecs.read_storage::<CharacterState>();
         let stats = ecs.read_storage::<Stats>();
         let time = ecs.read_resource::<Time>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
@@ -583,7 +590,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         server_eventbus.emit_now(ServerEvent::HealthChange { entity, change });
 
         // Emit poise change
-        let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
+        let poise_damage = -(mass.0 * reduced_vel_z.powi(2) / 1500.0);
         let poise_change = Poise::apply_poise_reduction(
             poise_damage,
             inventories.get(entity),
@@ -929,6 +936,9 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             energy: energies.get(entity_b),
                         };
 
+                        let target_dodging = char_state_b_maybe
+                            .and_then(|cs| cs.attack_immunities())
+                            .map_or(false, |i| i.explosions);
                         // PvP check
                         let may_harm = combat::may_harm(
                             alignments,
@@ -938,9 +948,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             entity_b,
                         );
                         let attack_options = combat::AttackOptions {
-                            // cool guyz maybe don't look at explosions
-                            // but they still got hurt, it's not Hollywood
-                            target_dodging: false,
+                            target_dodging,
                             may_harm,
                             target_group,
                         };
@@ -1237,20 +1245,53 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
             .and_then(|info| info.return_ability)
             .is_some();
 
-        match &mut *char_state {
+        let return_to_wield = match &mut *char_state {
             CharacterState::RiposteMelee(c) => {
                 c.stage_section = StageSection::Action;
                 c.timer = Duration::default();
+                false
             },
             CharacterState::BasicBlock(c) if should_return => {
                 c.timer = c.static_data.recover_duration;
                 c.stage_section = StageSection::Recover;
+                // Refund half the energy of entering the block for a successful parry
+                server_eventbus.emit_now(ServerEvent::EnergyChange {
+                    entity: defender,
+                    change: c.static_data.energy_cost / 2.0,
+                });
+                false
             },
-            char_state @ CharacterState::BasicBlock(_) => {
-                *char_state =
-                    CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
+            CharacterState::BasicBlock(c) => {
+                // Refund half the energy of entering the block for a successful parry
+                server_eventbus.emit_now(ServerEvent::EnergyChange {
+                    entity: defender,
+                    change: c.static_data.energy_cost / 2.0,
+                });
+                true
             },
-            _char_state => {},
+            char_state => {
+                // If the character state is not one of the ones above, if it parried because it
+                // had the capability to parry in its buildup, subtract 5 energy from the
+                // defender
+                if char_state
+                    .ability_info()
+                    .and_then(|info| info.ability_meta)
+                    .map_or(false, |meta| {
+                        meta.capabilities
+                            .contains(comp::ability::Capability::BUILDUP_PARRIES)
+                    })
+                {
+                    server_eventbus.emit_now(ServerEvent::EnergyChange {
+                        entity: defender,
+                        change: -5.0,
+                    });
+                }
+                false
+            },
+        };
+        if return_to_wield {
+            *char_state =
+                CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
         }
     };
 

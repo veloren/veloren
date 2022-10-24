@@ -51,7 +51,7 @@ impl CharacterBehavior for Data {
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
         handle_jump(data, output_events, &mut update, 1.0);
-        handle_interrupts(data, &mut update, None);
+        handle_interrupts(data, &mut update);
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -87,6 +87,9 @@ impl CharacterBehavior for Data {
                             ScalingKind::Linear => {
                                 self.static_data.combo_on_use as f32
                                     / self.static_data.minimum_combo as f32
+                            },
+                            ScalingKind::Sqrt => {
+                                (self.static_data.combo_on_use as f32 / self.static_data.minimum_combo as f32).sqrt()
                             },
                         };
                         match scaling.target {
@@ -155,6 +158,8 @@ pub enum ScalingKind {
     // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at double minimum
     // combo
     Linear,
+    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at 4x minimum combo
+    Sqrt,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

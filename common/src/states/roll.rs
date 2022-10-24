@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
-        character_state::OutputEvents,
+        character_state::{OutputEvents, AttackImmunities},
         CharacterState, InputKind, StateUpdate,
     },
     event::ServerEvent,
@@ -24,8 +24,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Affects the speed and distance of the roll
     pub roll_strength: f32,
-    /// Affects whether you are immune to melee attacks while rolling
-    pub immune_melee: bool,
+    /// Affects whether you are immune to various attacks while rolling
+    pub attack_immunities: AttackImmunities,
     /// Information about the ability
     pub ability_info: AbilityInfo,
 }

@@ -15,13 +15,13 @@ FinisherMelee(
         damage_effect: Some(Buff((
             kind: Bleeding,
             dur_secs: 10.0,
-            strength: DamageFraction(0.5),
+            strength: DamageFraction(0.25),
             chance: 1.0,
         ))),
     ),
     scaling: Some((
         target: Buff,
-        kind: Linear,
+        kind: Sqrt,
     )),
     minimum_combo: 10,
     meta: (

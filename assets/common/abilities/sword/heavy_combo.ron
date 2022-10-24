@@ -4,8 +4,8 @@ ComboMelee2(
             melee_constructor: (
                 kind: Slash(
                     damage: 18,
-                    poise: 0,
-                    knockback: 0,
+                    poise: 5,
+                    knockback: 5,
                     energy_regen: 10,
                 ),
                 range: 3.0,
@@ -21,8 +21,8 @@ ComboMelee2(
             melee_constructor: (
                 kind: Slash(
                     damage: 30,
-                    poise: 0,
-                    knockback: 0,
+                    poise: 5,
+                    knockback: 5,
                     energy_regen: 15,
                 ),
                 range: 3.0,
@@ -36,12 +36,12 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
-    energy_cost_per_strike: 5,
+    energy_cost_per_strike: 4,
     meta: (
         kind: Some(Sword(Heavy)),
         capabilities: (
-            // Poise resistant during attack
-            bits: 0b00001000,
+            // Poise and knockback resistant during attack
+            bits: 0b00011000,
         ),
     ),
 )
