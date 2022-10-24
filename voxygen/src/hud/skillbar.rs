@@ -3,7 +3,8 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots, util, BarNumbers, HudInfo, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
-    LOW_HP_COLOR, POISE_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
+    LOW_HP_COLOR, POISEBAR_TICK_COLOR, POISE_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR,
+    UI_HIGHLIGHT_0,
 };
 use crate::{
     game_input::GameInput,
@@ -494,7 +495,7 @@ impl<'a> Skillbar<'a> {
             for i in 0..state.ids.poise_ticks.len() {
                 Image::new(self.imgs.poise_tick)
                     .w_h(3.0, 10.0)
-                    .color(Some(Color::Rgba(0.70, 0.90, 0.0, 1.0)))
+                    .color(Some(POISEBAR_TICK_COLOR))
                     .top_left_with_margins_on(
                         state.ids.poise_alignment,
                         0.0,
