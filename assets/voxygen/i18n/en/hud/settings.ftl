@@ -29,6 +29,7 @@ hud-settings-speech_bubble_dark_mode = Speech Bubble Dark Mode
 hud-settings-speech_bubble_icon = Speech Bubble Icon
 hud-settings-energybar_numbers = Energybar Numbers
 hud-settings-always_show_bars = Always show Energybars
+hud-settings-enable_poise_bar = Enable Poise bar
 hud-settings-experience_numbers = Experience Numbers
 hud-settings-accumulate_experience = Accumulate Experience Numbers
 hud-settings-values = Values
