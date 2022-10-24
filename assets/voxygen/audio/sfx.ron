@@ -992,6 +992,18 @@
             ],
             threshold: 0.3,
         ),
+        Inventory(Consumed("Honeycorn")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Pumpkin Spice Brew")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
 
         //
         //Combat
