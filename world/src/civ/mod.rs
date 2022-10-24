@@ -297,7 +297,7 @@ impl Civs {
                 SiteKind::Gnarling => (16i32, 10.0),
                 SiteKind::Citadel => (16i32, 0.0),
                 SiteKind::Bridge(_, _) => (0, 0.0),
-                SiteKind::Adlet => (16i32, 10.0),
+                SiteKind::Adlet => (16i32, 0.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
