@@ -4,10 +4,9 @@ ItemDef(
 	kind: Armor((
         kind: Head,
         stats: Direct((
-            protection: Some(Normal(4.0)),
-            poise_resilience: Some(Normal(0.5)),
-            energy_max: Some(4.0),
-            energy_reward: Some(0.03),
+            protection: Some(Normal(3.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(14.0),
         )),
     )),
     quality: High,

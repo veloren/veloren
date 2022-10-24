@@ -1838,6 +1838,7 @@ impl FigureMgr {
                                 (
                                     hands,
                                     (Some(s.static_data.ability_info), active_tool_spec, time),
+                                    rel_vel,
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,

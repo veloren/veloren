@@ -5,7 +5,8 @@ ItemDef(
         kind: Neck,
         stats: Direct((
             protection: Some(Normal(1.0)),
-            crit_power: Some(0.05),
+            energy_reward: Some(-0.0225),
+            crit_power: Some(0.0225),
         )),
     )),
     quality: Moderate,

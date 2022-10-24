@@ -8,9 +8,9 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
     #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
     #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -32,6 +32,8 @@ layout(location = 0) in vec3 f_pos;
 // flat in uint f_pos_norm;
 layout(location = 1) flat in vec3 f_norm;
 /*centroid */layout(location = 2) in vec2 f_uv_pos;
+layout(location = 3) in vec3 m_pos;
+layout(location = 4) in float scale;
 // in float f_alt;
 // in vec4 f_shadow;
 // in vec3 light_pos[2];
@@ -135,9 +137,9 @@ void main() {
     // float moon_light = get_moon_brightness(moon_dir);
     /* float sun_shade_frac = horizon_at(f_pos, sun_dir);
     float moon_shade_frac = horizon_at(f_pos, moon_dir); */
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float f_alt = alt_at(f_pos.xy);
-#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
+#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_LOW)
     float f_alt = f_pos.z;
 #endif
 
@@ -161,7 +163,24 @@ void main() {
     DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
     DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
 
-    vec3 surf_color = /*srgb_to_linear*/f_col;
+    vec3 surf_color;
+    // If the figure is large enough to be 'terrain-like', we apply a noise effect to it
+    #ifndef EXPERIMENTAL_NONOISE
+        if (scale >= 0.5) {
+            float noise = hash(vec4(floor(m_pos * 3.0 - f_norm * 0.5), 0));
+
+            const float A = 0.055;
+            const float W_INV = 1 / (1 + A);
+            const float W_2 = W_INV * W_INV;
+            const float NOISE_FACTOR = 0.015;
+            vec3 noise_delta = (sqrt(f_col) * W_INV + noise * NOISE_FACTOR);
+            surf_color = noise_delta * noise_delta * W_2;
+        } else
+    #endif
+    {
+        surf_color = f_col;
+    }
+
     float alpha = 1.0;
     const float n2 = 1.5;
 
@@ -206,7 +225,7 @@ void main() {
     vec3 cam_attenuation = vec3(1);
     float fluid_alt = max(f_pos.z + 1, floor(f_alt + 1));
     vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
-    #if (FLUID_MODE == FLUID_MODE_SHINY)
+    #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
         cam_attenuation =
             medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
             : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);

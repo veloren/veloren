@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Head,
         stats: Direct((
-            protection: Some(Normal(6.0)),
+            protection: Some(Normal(4.5)),
             poise_resilience: Some(Normal(1.0)),
             stealth: Some(0.2),
         )),
