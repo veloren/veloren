@@ -424,6 +424,7 @@ impl Body {
                 bird_medium::Species::Duck => Vec3::new(0.9, 1.0, 1.4),
                 bird_medium::Species::Goose => Vec3::new(1.0, 1.2, 1.5),
                 bird_medium::Species::Peacock => Vec3::new(1.3, 1.1, 1.4),
+                bird_medium::Species::Bat => Vec3::new(2.0, 2.0, 1.5),
                 _ => Vec3::new(2.0, 1.0, 1.5),
             },
             Body::BirdLarge(body) => match body.species {

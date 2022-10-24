@@ -289,37 +289,37 @@
     ),
     (Bat, Male): (
         wing_l: (
-            offset: (-1.0, 2.5, -18.0),
+            offset: (-13.0, 2.5, -3.5),
             lateral: ("npc.bat.male.wing_r"),
         ),
         wing_r: (
-            offset: (-1.0, 2.5, -18.0),
+            offset: (-1.0, 2.5, -3.5),
             lateral: ("npc.bat.male.wing_r"),
         ),
         foot_l: (
-            offset: (-2.0, -2.0, -7.0),
+            offset: (-2.0, 2.0, -8.5),
             lateral: ("npc.bat.male.leg_r"),
         ),
         foot_r: (
-            offset: (-2.0, -2.0, -7.0),
+            offset: (-2.0, 2.0, -8.5),
             lateral: ("npc.bat.male.leg_r"),
         )
     ),
     (Bat, Female): (
         wing_l: (
-            offset: (-1.0, 2.5, -18.0),
+            offset: (-13.0, 2.5, -3.5),
             lateral: ("npc.bat.male.wing_r"),
         ),
         wing_r: (
-            offset: (-1.0, 2.5, -18.0),
+            offset: (-1.0, 2.5, -3.5),
             lateral: ("npc.bat.male.wing_r"),
         ),
         foot_l: (
-            offset: (-2.0, -2.0, -7.0),
+            offset: (-2.0, 2.0, -8.5),
             lateral: ("npc.bat.male.leg_r"),
         ),
         foot_r: (
-            offset: (-2.0, -2.0, -7.0),
+            offset: (-2.0, 2.0, -8.5),
             lateral: ("npc.bat.male.leg_r"),
         )
     ),

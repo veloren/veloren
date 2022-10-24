@@ -225,29 +225,29 @@
     ),
     (Bat, Male): (
         head: (
-            offset: (-4.5, 2.0, -9.0),
+            offset: (-4.5, 2.0, -11.0),
             central: ("npc.bat.male.head"),
         ),
         torso: (
-            offset: (-3.5, -5.0, -4.5),
+            offset: (-3.5, -5.0, -6.5),
             central: ("npc.bat.male.torso"),
         ),
         tail: (
-            offset: (-2.5, -0.5, 1.5),
+            offset: (-2.5, -1.5, -1.5),
             central: ("npc.bat.male.tail"),
         )
     ),
     (Bat, Female): (
         head: (
-            offset: (-4.5, 2.0, -9.0),
+            offset: (-4.5, 2.0, -11.0),
             central: ("npc.bat.male.head"),
         ),
         torso: (
-            offset: (-3.5, -5.0, -4.5),
+            offset: (-3.5, -5.0, -6.5),
             central: ("npc.bat.male.torso"),
         ),
         tail: (
-            offset: (-2.5, -0.5, 1.5),
+            offset: (-2.5, -1.5, -1.5),
             central: ("npc.bat.male.tail"),
         )
     ),

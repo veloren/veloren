@@ -45,6 +45,7 @@ SpawnEntry (
                 // Pack
                 (5, (1, 3, "common.entity.wild.peaceful.rat")),
                 (5, (1, 3, "common.entity.wild.peaceful.squirrel")),
+                (10, (4, 8, "common.entity.wild.aggressive.bat")),
             ],
             spawn_mode: Land,
             day_period: [Night],

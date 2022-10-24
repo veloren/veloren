@@ -1,0 +1,9 @@
+[
+    // halloween event loot
+    (2.0, Item("common.items.food.pumpkin_spice_brew")),
+    (5.0, Item("common.items.food.honeycorn")),
+
+    // crafting
+     (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
+     (1.0, Item("common.items.crafting_ing.animal_misc.shar_fang")),
+]
