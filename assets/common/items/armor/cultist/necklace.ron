@@ -6,8 +6,8 @@ ItemDef(
         stats: Direct((
             protection: Some(Normal(2.0)),
             energy_max: Some(4.5),
-            energy_reward: Some(0.05),
-            crit_power: Some(0.03),
+            energy_reward: Some(0.0275),
+            crit_power: Some(0.015),
         )),
     )),
     quality: Epic,

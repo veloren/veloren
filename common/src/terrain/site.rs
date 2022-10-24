@@ -18,8 +18,9 @@ pub enum DungeonKindMeta {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SettlementKindMeta {
     Default,
-    Cliff,
-    Desert,
+    CliffTown,
+    DesertCity,
+    SavannahPit,
 }
 
 impl Default for SiteKindMeta {
