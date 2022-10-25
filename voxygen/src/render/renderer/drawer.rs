@@ -12,6 +12,7 @@ use super::{
     rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
     Renderer, ShadowMap, ShadowMapRenderer,
 };
+use common_base::prof_span;
 use core::{num::NonZeroU32, ops::Range};
 use std::sync::Arc;
 use vek::Aabr;
@@ -422,6 +423,44 @@ impl<'frame> Drawer<'frame> {
                 },
             );
         });
+    }
+
+    pub fn run_ui_premultiply_passes<'a>(
+        &mut self,
+        targets: impl Iterator<Item = (&'a super::super::Texture, Vec<ui::PremultiplyUpload>)>,
+    ) {
+        let encoder = self.encoder.as_mut().unwrap();
+        let device = self.borrow.device;
+
+        // TODO: What is the CPU overhead of each renderpass?
+        for (i, (target_texture, uploads)) in targets.enumerate() {
+            prof_span!("ui premultiply pass");
+            tracing::info!("{} uploads", uploads.len());
+            let profile_name = format!("ui_premultiply_pass {}", i);
+            let label = format!("ui premultiply pass {}", i);
+            // TODO: a GPU profile scope on each of the passes here may be a bit too fine
+            // grained.
+            let mut render_pass =
+                encoder.scoped_render_pass(&profile_name, device, &wgpu::RenderPassDescriptor {
+                    label: Some(&label),
+                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                        view: &target_texture.view,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: true,
+                        },
+                    }],
+                    depth_stencil_attachment: None,
+                });
+            for upload in &uploads {
+                let (source_bind_group, push_constant_data) = upload.draw_data(target_texture);
+                let bytes = bytemuck::bytes_of(&push_constant_data);
+                render_pass.set_bind_group(0, source_bind_group, &[]);
+                render_pass.set_push_constants(wgpu::ShaderStage::VERTEX, 0, bytes);
+                render_pass.draw_indexed(0..6, 0, 0..1);
+            }
+        }
     }
 
     pub fn third_pass(&mut self) -> ThirdPassDrawer {

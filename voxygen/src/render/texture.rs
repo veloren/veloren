@@ -224,6 +224,7 @@ impl Texture {
         );
     }
 
+    // TODO: remove `get` from this name
     /// Get dimensions of the represented image.
     pub fn get_dimensions(&self) -> vek::Vec3<u32> {
         vek::Vec3::new(

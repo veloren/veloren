@@ -63,6 +63,7 @@ struct ImmutableLayouts {
     clouds: clouds::CloudsLayout,
     bloom: bloom::BloomLayout,
     ui: ui::UiLayout,
+    premultiply_alpha: ui::PremultiplyAlphaLayout,
     blit: blit::BlitLayout,
 }
 
@@ -393,6 +394,7 @@ impl Renderer {
                 &pipeline_modes,
             ));
             let ui = ui::UiLayout::new(&device);
+            let premultiply_alpha = ui::PremultiplyAlphaLayout::new(&device);
             let blit = blit::BlitLayout::new(&device);
 
             let immutable = Arc::new(ImmutableLayouts {
@@ -407,6 +409,7 @@ impl Renderer {
                 clouds,
                 bloom,
                 ui,
+                premultiply_alpha,
                 blit,
             });
 
@@ -1432,6 +1435,20 @@ impl Renderer {
         data: &[[u8; 4]],
     ) {
         texture.update(&self.queue, offset, size, bytemuck::cast_slice(data))
+    }
+
+    pub fn prepare_premultiply_upload(
+        &self,
+        image: &image::RgbaImage,
+        offset: Vec2<u16>,
+    ) -> ui::PremultiplyUpload {
+        ui::PremultiplyUpload::prepare(
+            &self.device,
+            &self.queue,
+            &self.layouts.premultiply_alpha,
+            image,
+            offset,
+        )
     }
 
     /// Queue to obtain a screenshot on the next frame render

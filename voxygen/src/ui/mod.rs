@@ -1073,7 +1073,7 @@ impl Ui {
                         DrawKind::Image(tex_id) => self.cache.graphic_cache().get_tex(*tex_id),
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
-                    drawer.draw(&tex.1, verts.clone()); // Note: trivial clone
+                    drawer.draw(tex.1, verts.clone()); // Note: trivial clone
                 },
             }
         }

@@ -33,6 +33,7 @@ pub struct Pipelines {
     pub lod_object: lod_object::LodObjectPipeline,
     pub terrain: terrain::TerrainPipeline,
     pub ui: ui::UiPipeline,
+    pub premultiply_alpha: ui::PremultiplyAlphaPipeline,
     pub blit: blit::BlitPipeline,
 }
 
@@ -79,6 +80,7 @@ pub struct IngameAndShadowPipelines {
 /// Use to decouple interface pipeline creation when initializing the renderer
 pub struct InterfacePipelines {
     pub ui: ui::UiPipeline,
+    pub premultiply_alpha: ui::PremultiplyAlphaPipeline,
     pub blit: blit::BlitPipeline,
 }
 
@@ -100,6 +102,7 @@ impl Pipelines {
             lod_object: ingame.lod_object,
             terrain: ingame.terrain,
             ui: interface.ui,
+            premultiply_alpha: interface.premultiply_alpha,
             blit: interface.blit,
         }
     }
@@ -127,6 +130,8 @@ struct ShaderModules {
     trail_frag: wgpu::ShaderModule,
     ui_vert: wgpu::ShaderModule,
     ui_frag: wgpu::ShaderModule,
+    premultiply_alpha_vert: wgpu::ShaderModule,
+    premultiply_alpha_frag: wgpu::ShaderModule,
     lod_terrain_vert: wgpu::ShaderModule,
     lod_terrain_frag: wgpu::ShaderModule,
     clouds_vert: wgpu::ShaderModule,
@@ -336,6 +341,8 @@ impl ShaderModules {
             trail_frag: create_shader("trail-frag", ShaderKind::Fragment)?,
             ui_vert: create_shader("ui-vert", ShaderKind::Vertex)?,
             ui_frag: create_shader("ui-frag", ShaderKind::Fragment)?,
+            premultiply_alpha_vert: create_shader("premultiply-alpha-vert", ShaderKind::Vertex)?,
+            premultiply_alpha_frag: create_shader("premultiply-alpha-frag", ShaderKind::Fragment)?,
             lod_terrain_vert: create_shader("lod-terrain-vert", ShaderKind::Vertex)?,
             lod_terrain_frag: create_shader("lod-terrain-frag", ShaderKind::Fragment)?,
             clouds_vert: create_shader("clouds-vert", ShaderKind::Vertex)?,
@@ -416,11 +423,11 @@ struct PipelineNeeds<'a> {
 fn create_interface_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
-    tasks: [Task; 2],
+    tasks: [Task; 3],
 ) -> InterfacePipelines {
     prof_span!(_guard, "create_interface_pipelines");
 
-    let [ui_task, blit_task] = tasks;
+    let [ui_task, premultiply_alpha_task, blit_task] = tasks;
     // Construct a pipeline for rendering UI elements
     let create_ui = || {
         ui_task.run(
@@ -435,6 +442,20 @@ fn create_interface_pipelines(
                 )
             },
             "ui pipeline creation",
+        )
+    };
+
+    let create_premultiply_alpha = || {
+        premultiply_alpha_task.run(
+            || {
+                ui::PremultiplyAlphaPipeline::new(
+                    needs.device,
+                    &needs.shaders.premultiply_alpha_vert,
+                    &needs.shaders.premultiply_alpha_frag,
+                    &needs.layouts.premultiply_alpha,
+                )
+            },
+            "premultiply alpha pipeline creation",
         )
     };
 
@@ -454,9 +475,15 @@ fn create_interface_pipelines(
         )
     };
 
-    let (ui, blit) = pool.join(create_ui, create_blit);
+    let (ui, (premultiply_alpha, blit)) = pool.join(create_ui, || {
+        pool.join(create_premultiply_alpha, create_blit)
+    });
 
-    InterfacePipelines { ui, blit }
+    InterfacePipelines {
+        ui,
+        premultiply_alpha,
+        blit,
+    }
 }
 
 /// Create IngamePipelines and shadow pipelines in parallel

@@ -61,7 +61,9 @@ impl Cache {
         })
     }
 
-    pub fn glyph_cache_tex(&self) -> &(Texture, UiTextureBindGroup) { &self.glyph_cache_tex }
+    pub fn glyph_cache_tex(&self) -> (&Texture, &UiTextureBindGroup) {
+        (&self.glyph_cache_tex.0, &self.glyph_cache_tex.1)
+    }
 
     pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphBrush, &(Texture, UiTextureBindGroup)) {
         (self.glyph_brush.get_mut(), &self.glyph_cache_tex)

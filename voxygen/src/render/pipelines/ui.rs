@@ -1,7 +1,20 @@
 use super::super::{Bound, Consts, GlobalsLayouts, Quad, Texture, Tri, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
+use core::num::NonZeroU32;
 use std::mem;
 use vek::*;
+
+// TODO: profile UI rendering before and after on laptop.
+
+/// The format of textures that the UI sources image data from.
+///
+/// Note, the is not directly used in all relevant locations, but still helps to
+/// more clearly document the that this is the format being used. Notably,
+/// textures are created via `renderer.create_dynamic_texture(...)` and
+/// `renderer.create_texture(&DynamicImage::ImageRgba(image), ...)` (TODO:
+/// update if we have to refactor when implementing the RENDER_ATTACHMENT
+/// usage).
+const UI_IMAGE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8UnormSrgb;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
@@ -132,8 +145,8 @@ pub struct TextureBindGroup {
 }
 
 pub struct UiLayout {
-    pub locals: wgpu::BindGroupLayout,
-    pub texture: wgpu::BindGroupLayout,
+    locals: wgpu::BindGroupLayout,
+    texture: wgpu::BindGroupLayout,
 }
 
 impl UiLayout {
@@ -395,20 +408,77 @@ pub fn create_tri(
     )
 }
 
-// Steps:
-// 1. Upload new image via `Device::create_buffer_init`, with `MAP_WRITE` flag
-//    to avoid staging buffer.
-// 2. Run compute pipeline to multiply by alpha reading from this buffer and
-//    writing to the final texture (this may be in an atlas or an independent
-//    texture if the image is over a certain size threshold).
+// Premultiplying alpha on the GPU before placing images into the textures that
+// will be sampled from in the UI pipeline.
 //
-// Info needed in compute shader:
-// * source buffer
-// * target texture
-// * image dimensions
-// * position in the target texture
-// (what is the overhead of compute call? at some point we may be better off
-// converting small images on the cpu)
+// Steps:
+//
+// 1. Upload new image via `Device::create_texture_with_data`.
+//
+//    (NOTE: Initially considered: Creating a storage buffer to read from in the
+// shader via    `Device::create_buffer_init`, with `MAP_WRITE` flag to avoid
+// staging buffer. However, with    dedicated GPUs combining usages other than
+// `COPY_SRC` with `MAP_WRITE` may be less ideal.    Plus, by copying into a
+// texture first we can get free srgb conversion when fetching colors
+//    from the texture. In the future, we may want to branch based on the
+// whether the GPU is    integrated and avoid this extra copy.)
+//
+// 2. Run render pipeline to multiply by alpha reading from this texture and
+// writing to the final    texture (this can either be in an atlas or in an
+// independent texture if the image is over a    certain size threshold).
+//
+//    (NOTE: Initially considered: using a compute pipeline and writing to the
+// final texture as a    storage texture. However, the srgb format can't be used
+// with storage texture and there is not    yet the capability to create
+// non-srgb views of srgb textures.)
+//
+// Info needed:
+//
+// * source texture (texture binding)
+// * target texture (render attachment)
+// * source image dimensions (push constant)
+// * target texture dimensions (push constant)
+// * position in the target texture (push constant)
+//
+// TODO: potential optimizations
+// * what is the overhead of this draw call call? at some point we may be better
+//   off converting very small images on the cpu and/or batching these into a
+//   single draw call
+// * what is the overhead of creating new small textures? for processing many
+//   small images would it be useful to create a single texture the same size as
+//   our cache texture and use Queue::write_texture?
+// * is using create_buffer_init and reading directly from that (with manual
+//   srgb conversion) worth avoiding staging buffer/copy-to-texture for
+//   integrated GPUs?
+// * premultipying alpha in a release asset preparation step
+
+pub struct PremultiplyAlphaLayout {
+    source_texture: wgpu::BindGroupLayout,
+}
+
+impl PremultiplyAlphaLayout {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            source_texture: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: None,
+                entries: &[
+                    // source_texture
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
+                ],
+            }),
+        }
+    }
+}
+
 pub struct PremultiplyAlphaPipeline {
     pub pipeline: wgpu::RenderPipeline,
 }
@@ -416,22 +486,163 @@ pub struct PremultiplyAlphaPipeline {
 impl PremultiplyAlphaPipeline {
     pub fn new(
         device: &wgpu::Device,
-        module: &wgpu::ShaderModule,
-        layout: &PremultiplAlphaLayout,
+        vs_module: &wgpu::ShaderModule,
+        fs_module: &wgpu::ShaderModule,
+        layout: &PremultiplyAlphaLayout,
     ) -> Self {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Premultiply alpha pipeline layout"),
-            push_constant_ranges: &[],
-            bind_group_layouts: &[layout],
+            bind_group_layouts: &[&layout.source_texture],
+            push_constant_ranges: &[wgpu::PushConstantRange {
+                stages: wgpu::ShaderStage::VERTEX,
+                range: 0..core::mem::size_of::<PremultiplyAlphaParams>() as u32,
+            }],
         });
 
-        let pipeline = device.create_compute_pipeline(&wgpu::RenderPipelineDescriptor {
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Premultiply alpha pipeline"),
             layout: Some(&pipeline_layout),
-            module,
-            entry_point: "main",
+            vertex: wgpu::VertexState {
+                module: vs_module,
+                entry_point: "main",
+                buffers: &[],
+            },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back),
+                clamp_depth: false,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: fs_module,
+                entry_point: "main",
+                targets: &[wgpu::ColorTargetState {
+                    format: UI_IMAGE_FORMAT,
+                    blend: None,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
+            }),
         });
 
         Self { pipeline }
+    }
+}
+
+/// Uploaded as push constant.
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+pub struct PremultiplyAlphaParams {
+    /// Size of the source image.
+    source_size_xy: u32,
+    /// Offset to place the image at in the target texture.
+    ///
+    /// Origin is the top-left.
+    target_offset_xy: u32,
+    /// Size of the target texture.
+    target_size_xy: u32,
+}
+
+/// An image upload that needs alpha premultiplication and which is in a pending
+/// state.
+///
+/// From here we will use the `PremultiplyAlpha` pipeline to premultiply the
+/// alpha while transfering the image to its destination texture.
+pub struct PremultiplyUpload {
+    source_bg: wgpu::BindGroup,
+    source_size_xy: u32,
+    /// The location in the final texture this will be placed at. Technically,
+    /// we don't need this information at this point but it is convenient to
+    /// store it here.
+    offset: Vec2<u16>,
+}
+
+impl PremultiplyUpload {
+    pub fn prepare(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        layout: &PremultiplyAlphaLayout,
+        image: &image::RgbaImage,
+        offset: Vec2<u16>,
+    ) -> Self {
+        // TODO: duplicating some code from `Texture` since:
+        // 1. We don't need to create a sampler.
+        // 2. Texture::new accepts &DynamicImage which isn't possible to create from
+        //    &RgbaImage without cloning.
+        let image_size = wgpu::Extent3d {
+            width: image.width(),
+            height: image.height(),
+            depth_or_array_layers: 1,
+        };
+        let source_tex = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: image_size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+        });
+        queue.write_texture(
+            wgpu::ImageCopyTexture {
+                texture: &source_tex,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+            },
+            &(&**image)[..(image.width() as usize * image.height() as usize)],
+            wgpu::ImageDataLayout {
+                offset: 0,
+                bytes_per_row: NonZeroU32::new(image.width() * 4),
+                rows_per_image: NonZeroU32::new(image.height()),
+            },
+            image_size,
+        );
+        // Create view to use to create bind group
+        let view = source_tex.create_view(&wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::All,
+            base_mip_level: 0,
+            mip_level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
+        });
+        let source_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &layout.source_texture,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(&view),
+            }],
+        });
+
+        // NOTE: We assume the max texture size is less than u16::MAX.
+        let source_size_xy = image_size.width + image_size.height << 16;
+
+        Self {
+            source_bg,
+            source_size_xy,
+            offset,
+        }
+    }
+
+    /// Semantically, this consumes the `PremultiplyUpload` but we need to keep
+    /// the bind group alive to the end of the render pass and don't want to
+    /// bother storing it somewhere else.
+    pub fn draw_data(&self, target: &Texture) -> (&wgpu::BindGroup, PremultiplyAlphaParams) {
+        let target_offset_xy = u32::from(self.offset.x) + u32::from(self.offset.y) << 16;
+        let target_dims = target.get_dimensions();
+        // NOTE: We assume the max texture size is less than u16::MAX.
+        let target_size_xy = target_dims.x + target_dims.y << 16;
+        (&self.source_bg, PremultiplyAlphaParams {
+            source_size_xy: self.source_size_xy,
+            target_offset_xy,
+            target_size_xy,
+        })
     }
 }
