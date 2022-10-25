@@ -1,6 +1,6 @@
 common-username = ชื่อผู้ใช้
-common-singleplayer = โหมดเล่นคนเดียว
-common-multiplayer = โหมดเล่นหลายคน
+common-singleplayer = เล่นคนเดียว
+common-multiplayer = เล่นหลายคน
 common-servers = รายชื่อเซิร์ฟเวอร์
 common-quit = ปิดเกม
 common-settings = ตั้งค่า
@@ -11,14 +11,15 @@ common-controls = ปุ่มควบคุม
 common-video = จอภาพ
 common-sound = เสียง
 common-chat = พูดคุย
-common-resume = เริ่มเกมต่อ
+common-networking = เน็ตเวิร์ค
+common-resume = เล่นเกมต่อ
 common-characters = ตัวละคร
 common-close = ปิด
-common-yes = ตกลก
+common-yes = ใช่
 common-no = ปฏิเสธ
 common-back = กลับ
 common-create = สร้าง
-common-okay = โอเค
+common-okay = ตกลง
 common-add = เพิ่ม
 common-accept = ยอมรับ
 common-decline = ปฏิเสธ
@@ -40,9 +41,10 @@ common-video_settings = ตั้งค่ากราฟฟิก
 common-sound_settings = ตั้งค่าเสียง
 common-language_settings = ตั้งค่าภาษา
 common-chat_settings = ตั้งค่าการสนทนา
+common-networking_settings = ตั้งค่าเน็ตเวิร์ค
 common-connection_lost =
     โอ๊ะโอ้ว การเชื่อมต่อจะถูกจากเซิร์ฟเวอร์
-    อาจะเป็นเพราะเซิร์ฟเวอร์ถูกปิด
+    อาจจะเป็นเพราะเซิร์ฟเวอร์ถูกปิด
     หรือเพราะตัวเกมไม่ใช่เวอร์ชั่นล่าสุด
 common-species-orc = ออร์ค
 common-species-human = มนุษย์
@@ -72,6 +74,7 @@ common-tool-debug = ดีบัค
 common-tool-farming = เครื่องมือการเกษตร
 common-tool-pick = พลั่ว
 common-tool-mining = การขุดหิน
+common-tool-instrument = เครื่องมือ
 common-kind-modular_component = ส่วนประกอบ
 common-kind-modular_component_partial = วัสดุ
 common-kind-glider = เครื่องร่อน

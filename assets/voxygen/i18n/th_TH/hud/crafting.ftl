@@ -6,29 +6,29 @@ hud-crafting-tool_cata = สิ่งที่ต้องใช้:
 hud-crafting-req_crafting_station = สิ่งที่ต้องใช้:
 hud-crafting-anvil = ทั่ง
 hud-crafting-cauldron = หม้อต้มยา
-hud-crafting-cooking_pot = หม้อธรรมดา
-hud-crafting-crafting_bench = โต๊ะของช่าง
+hud-crafting-cooking_pot = หม้อทำอาหาร
+hud-crafting-crafting_bench = โต๊ะช่าง
 hud-crafting-forge = เตาหลอม
 hud-crafting-loom = กี่ทอผ้า
 hud-crafting-spinning_wheel = เครื่องกรอไหม
 hud-crafting-tanning_rack = ราวตากหนังสัตว์
-hud-crafting-salvaging_station = โต๊ะย่อย
+hud-crafting-salvaging_station = โต๊ะรื้อ
 hud-crafting-campfire = แคมป์ไฟ
 hud-crafting-tabs-all = ทุกอย่าง
 hud-crafting-tabs-armor = เกราะ
-hud-crafting-tabs-dismantle = ย่อย
+hud-crafting-tabs-dismantle = รื้อ
 hud-crafting-tabs-food = อาหาร
-hud-crafting-tabs-glider = เครื่องร่อย
+hud-crafting-tabs-glider = เครื่องร่อน
 hud-crafting-tabs-potion = ยา
 hud-crafting-tabs-tool = เครื่องมือ
 hud-crafting-tabs-utility = อื่น ๆ
 hud-crafting-tabs-weapon = อาวุธ
 hud-crafting-tabs-bag = กระเป๋า
 hud-crafting-tabs-processed_material = แร่หลอมแล้วและอัญมนี
-hud-crafting-dismantle_title = การย่อย
+hud-crafting-dismantle_title = การรื้อ
 hud-crafting-dismantle_explanation =
-    เอาไปในชี้ที่กระเป๋าเพื่อดูไอเทมที่สามารถย่อยได้
-    คลิกสองครั้งเพื่อย่อยไอเทม
+    ชี้ที่กระเป๋าเพื่อดูไอเทมที่สามารถรื้อได้
+    คลิกสองครั้งเพื่อรื้อไอเทม
 hud-crafting-modular_desc = หยิบส่วนประกอบมาวางเพื่อสร้างอาวุธ
 hud-crafting-mod_weap_prim_slot_title = ส่วนประกอบหลักของอาวุธ
 hud-crafting-mod_weap_prim_slot_desc = นำส่วนประกอบหลักของอาวุธมาวางที่นี้ (เช่น ตัวดาบ, หัวขวาน หรือคันธนู)
