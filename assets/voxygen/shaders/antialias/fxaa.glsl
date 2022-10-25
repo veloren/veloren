@@ -6,5 +6,5 @@ vec4 aa_apply(
     vec2 fragCoord,
     vec2 resolution
 ) {
-    return fxaa_apply(tex, smplr, fragCoord, resolution);
+    return fxaa_apply(tex, smplr, fragCoord, resolution, 1.0);
 }

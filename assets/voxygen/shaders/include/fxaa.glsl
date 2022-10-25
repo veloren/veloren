@@ -118,7 +118,8 @@ void texcoords(vec2 fragCoord, vec2 resolution,
 vec4 fxaa_apply(
     texture2D tex, sampler smplr,
     vec2 fragCoord,
-    vec2 resolution
+    vec2 resolution,
+    float sampleScale
 ) {
     mediump vec2 v_rgbNW;
     mediump vec2 v_rgbNE;
@@ -126,7 +127,7 @@ vec4 fxaa_apply(
     mediump vec2 v_rgbSE;
     mediump vec2 v_rgbM;
 
-    float fxaa_scale = textureSize(sampler2D(tex, smplr), 0).x / resolution.x;
+    float fxaa_scale = textureSize(sampler2D(tex, smplr), 0).x / resolution.x * sampleScale;
 
     vec2 scaled_fc = fragCoord * fxaa_scale;
     vec2 scaled_res = resolution * fxaa_scale;
