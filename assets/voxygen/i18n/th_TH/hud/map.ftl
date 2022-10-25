@@ -1,20 +1,20 @@
 hud-map-map_title = แผนที่
 hud-map-qlog_title = ภารกิจ
-hud-map-topo_map = แผ่นที่ความสูง
+hud-map-topo_map = แผนที่ความสูง
 hud-map-difficulty = ระดับความยาก
-hud-map-towns = หมู่บ้านแขนง
-hud-map-castles = ปราสาทแขนง
-hud-map-dungeons = ดันเจียนแขนง
-hud-map-caves = ถ้ำแขนง
-hud-map-cave = ถ้ำเดี่ยว
+hud-map-towns = หมู่บ้าน
+hud-map-castles = ปราสาท
+hud-map-dungeons = ดันเจียน
+hud-map-caves = ถ้ำหลายแขนง
+hud-map-cave = ถ้ำ
 hud-map-peaks = ภูเขา
 hud-map-biomes = เขตภูมิภาค
 hud-map-voxel_map = แผนที่ Voxel 
-hud-map-trees = ต้นไม้ยักษ์แขนง
-hud-map-tree = ต้นไม้ยักษ์เดี่ยว
-hud-map-town = หมู่บ้านเดี่ยว
-hud-map-castle = ปารสาทเดี่ยว
-hud-map-dungeon = ปราสาทเดี่ยว
+hud-map-trees = ต้นไม้ยักษ์หลายแขนง
+hud-map-tree = ต้นไม้ยักษ์
+hud-map-town = หมู่บ้าน
+hud-map-castle = ปารสาท
+hud-map-dungeon = ดันเจี่ยน
 hud-map-difficulty_dungeon =
     ดันเจี่ยน
     
