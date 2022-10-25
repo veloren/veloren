@@ -806,6 +806,7 @@ impl<'a> Widget for Video<'a> {
             /* AaMode::MsaaX4,
             AaMode::MsaaX8,
             AaMode::MsaaX16, */
+            AaMode::FxUpscale,
             AaMode::Hqx,
         ];
         let mode_label_list = [
@@ -814,6 +815,7 @@ impl<'a> Widget for Video<'a> {
             /* "MSAA x4",
             "MSAA x8",
             "MSAA x16 (experimental)", */
+            "FXUpscale",
             "HQX",
         ];
 
