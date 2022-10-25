@@ -27,7 +27,7 @@ use specs::{Component, DerefFlaggedStorage};
 use strum::Display;
 use vek::*;
 
-use super::{BuffKind, Collider, Density, Mass};
+use super::{BuffKind, Collider, Density, Mass, Scale};
 
 make_case_elim!(
     body,
@@ -231,6 +231,17 @@ impl Body {
         )
     }
 
+    pub fn scale(&self) -> Scale {
+        let s = match self {
+            Body::BirdMedium(bird_medium) => match bird_medium.species {
+                bird_medium::Species::Bat => 0.5,
+                _ => 1.0,
+            },
+            _ => 1.0,
+        };
+        Scale(s)
+    }
+
     /// Average density of the body
     // Units are based on kg/m³
     pub fn density(&self) -> Density {
@@ -280,6 +291,7 @@ impl Body {
                 bird_medium::Species::Parrot => 2.0,
                 bird_medium::Species::Penguin => 8.0,
                 bird_medium::Species::Peacock => 5.0,
+                bird_medium::Species::Bat => 2.0,
             },
             Body::BirdLarge(_) => 100.0,
 
@@ -412,6 +424,7 @@ impl Body {
                 bird_medium::Species::Duck => Vec3::new(0.9, 1.0, 1.4),
                 bird_medium::Species::Goose => Vec3::new(1.0, 1.2, 1.5),
                 bird_medium::Species::Peacock => Vec3::new(1.3, 1.1, 1.4),
+                bird_medium::Species::Bat => Vec3::new(2.0, 2.0, 1.5),
                 _ => Vec3::new(2.0, 1.0, 1.5),
             },
             Body::BirdLarge(body) => match body.species {
@@ -702,6 +715,7 @@ impl Body {
                 bird_medium::Species::Eagle => 45,
                 bird_medium::Species::Owl => 45,
                 bird_medium::Species::Duck => 10,
+                bird_medium::Species::Bat => 20,
                 _ => 15,
             },
             Body::FishMedium(_) => 15,

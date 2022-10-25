@@ -54,6 +54,64 @@ impl<'a> AgentData<'a> {
     }
 
     // Intended for any agent that has one attack, that attack is a melee attack,
+    // and the agent is able to freely fly around
+    pub fn handle_simple_flying_melee(
+        &self,
+        _agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        _rng: &mut impl Rng,
+    ) {
+        // Fly to target
+        let dir_to_target = ((tgt_data.pos.0 + Vec3::unit_z() * 1.5) - self.pos.0)
+            .try_normalized()
+            .unwrap_or_else(Vec3::zero);
+        let speed = 1.0;
+        controller.inputs.move_dir = dir_to_target.xy() * speed;
+
+        // Always fly! If the floor can't touch you, it can't hurt you...
+        controller.push_basic_input(InputKind::Fly);
+        // Flee from the ground! The internet told me it was lava!
+        // If on the ground, jump with every last ounce of energy, holding onto all that
+        // is dear in life and straining for the wide open skies.
+        if self.physics_state.on_ground.is_some() {
+            controller.push_basic_input(InputKind::Jump);
+        } else {
+            // Only fly down if close enough to target in the xy plane
+            // Otherwise fly towards the target bouncing around a 5 block altitude
+            let mut maintain_altitude = |altitude| {
+                if read_data
+                    .terrain
+                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * altitude))
+                    .until(Block::is_solid)
+                    .cast()
+                    .1
+                    .map_or(true, |b| b.is_some())
+                {
+                    // Fly up
+                    controller.inputs.move_z = 1.0;
+                } else {
+                    // Fly down
+                    controller.inputs.move_z = -1.0;
+                }
+            };
+            if (tgt_data.pos.0 - self.pos.0).xy().magnitude_squared() > (5.0_f32).powi(2) {
+                // If above 5 blocks, fly down
+                maintain_altitude(5.0);
+            } else {
+                maintain_altitude(2.0);
+
+                // Attack if in range
+                if attack_data.dist_sqrd < 3.5_f32.powi(2) && attack_data.angle < 150.0 {
+                    controller.push_basic_input(InputKind::Primary);
+                }
+            }
+        }
+    }
+
+    // Intended for any agent that has one attack, that attack is a melee attack,
     // the agent is able to freely walk around, and the agent is trying to attack
     // from behind its target
     pub fn handle_simple_backstab(

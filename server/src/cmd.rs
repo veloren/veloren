@@ -1212,6 +1212,7 @@ fn handle_spawn(
                         body,
                     )
                     .with(comp::Vel(vel))
+                    .with(body.scale())
                     .with(alignment);
 
                 if ai {

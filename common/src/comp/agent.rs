@@ -310,6 +310,7 @@ impl<'a> From<&'a Body> for Psyche {
                     bird_medium::Species::Peacock => 0.4,
                     bird_medium::Species::Eagle => 0.3,
                     bird_medium::Species::Parrot => 0.8,
+                    bird_medium::Species::Bat => 0.0,
                     _ => 0.5,
                 },
                 Body::BirdLarge(_) => 0.1,

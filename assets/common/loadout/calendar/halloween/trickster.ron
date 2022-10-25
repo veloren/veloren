@@ -1,0 +1,30 @@
+#![enable(implicit_some)]
+(
+    head: Choice([
+        (1, Item("common.items.armor.misc.head.bamboo_twig")),
+        (1, Item("common.items.armor.misc.head.boreal_warhelm")),
+        (1, Item("common.items.armor.misc.head.crown")),
+        (1, Item("common.items.armor.misc.head.facegourd")),
+        (1, Item("common.items.armor.misc.head.helmet")),
+        (1, Item("common.items.armor.misc.head.hog_hood")),
+        (1, Item("common.items.armor.misc.head.hood")),
+        (1, Item("common.items.armor.misc.head.hood_dark")),
+        (1, Item("common.items.armor.misc.head.mitre")),
+        (1, Item("common.items.armor.misc.head.spikeguard")),
+        (1, Item("common.items.armor.misc.head.straw")),
+        (1, Item("common.items.armor.misc.head.wanderers_hat")),
+        (1, Item("common.items.armor.misc.head.winged_coronet")),
+        (1, Item("common.items.armor.misc.head.bandana.red")),
+        (1, Item("common.items.armor.misc.head.bandana.thief")),
+    ]),
+    chest: Choice([
+        (1, Item("common.items.armor.leather_plate.chest")),
+    ]),
+    legs: Choice([
+        (1, Item("common.items.armor.leather_plate.pants")),
+    ]),
+    feet: Choice([
+        (1, Item("common.items.armor.misc.foot.sandals")),
+        (1, Item("common.items.armor.cloth_blue.foot")),
+    ]),
+)

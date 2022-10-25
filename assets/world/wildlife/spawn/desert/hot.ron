@@ -20,6 +20,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.peaceful.holladon")),
                 (1, (1, 1, "common.entity.wild.peaceful.porcupine")),
                 (1, (1, 1, "common.entity.wild.peaceful.pangolin")),
+                (1, (4, 8, "common.entity.wild.aggressive.bat")),
             ],
             spawn_mode: Land,
             day_period: [Night],

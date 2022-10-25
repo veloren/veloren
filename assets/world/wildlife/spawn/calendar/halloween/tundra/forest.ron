@@ -1,0 +1,17 @@
+SpawnEntry (
+    name: "Halloween Tundra Forest",
+    note: "Halloween NPCs",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.calendar.halloween.aggressive.halloween_harvester")),
+                (2, (1, 1, "common.entity.calendar.halloween.aggressive.halloween_dullahan")),
+                (3, (4, 8, "common.entity.wild.aggressive.bat")),
+                (3, (3, 6, "common.entity.calendar.halloween.aggressive.trickster")),
+            ],
+            spawn_mode: Land,
+            calendar_events: Some([Halloween]),
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

@@ -1,5 +1,8 @@
 use crate::{column::ColumnSample, sim::SimChunk, Canvas, CONFIG};
-use common::terrain::{Block, BlockKind, SpriteKind};
+use common::{
+    calendar::{Calendar, CalendarEvent},
+    terrain::{Block, BlockKind, SpriteKind},
+};
 use noise::NoiseFn;
 use num::traits::Pow;
 use rand::prelude::*;
@@ -27,7 +30,7 @@ pub fn density_factor_by_altitude(lower_limit: f32, altitude: f32, upper_limit: 
 const MUSH_FACT: f32 = 1.0e-4; // To balance things around the mushroom spawning rate
 const GRASS_FACT: f32 = 1.0e-3; // To balance things around the grass spawning rate
 const DEPTH_WATER_NORM: f32 = 15.0; // Water depth at which regular underwater sprites start spawning
-pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
+pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng, calendar: Option<&Calendar>) {
     enum WaterMode {
         Underwater,
         Floating,
@@ -283,16 +286,22 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             kind: Pumpkin,
             water_mode: Ground,
             permit: |b| matches!(b, BlockKind::Grass),
-            f: |_, col| {
-                (
-                    close(col.temp, CONFIG.temperate_temp, 0.5).min(close(
-                        col.humidity,
-                        CONFIG.forest_hum,
-                        0.5,
-                    )) * MUSH_FACT
-                        * 500.0,
-                    Some((0.0, 512.0, 0.05)),
-                )
+            f: if calendar.map_or(false, |calendar| {
+                calendar.is_event(CalendarEvent::Halloween)
+            }) {
+                |_, _| (0.1, Some((0.0003, 128.0, 0.1)))
+            } else {
+                |_, col| {
+                    (
+                        close(col.temp, CONFIG.temperate_temp, 0.5).min(close(
+                            col.humidity,
+                            CONFIG.forest_hum,
+                            0.5,
+                        )) * MUSH_FACT
+                            * 500.0,
+                        Some((0.0, 512.0, 0.05)),
+                    )
+                }
             },
         },
         // Collectable Objects

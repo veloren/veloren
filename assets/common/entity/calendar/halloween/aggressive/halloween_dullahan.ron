@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Dullahan"),
+    body: RandomWith("dullahan"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.calendar.halloween.halloween_dullahan"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)
