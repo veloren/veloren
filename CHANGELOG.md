@@ -44,7 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Item pickup UI now displays items that members of your group pick up.
 - Improved shiny water shaders
 - Tweaked armor stats
-
 ### Removed
 
 ### Fixed

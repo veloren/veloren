@@ -21,6 +21,27 @@ pub const TRADE_INTERACTION_TIME: f32 = 300.0;
 const AWARENESS_DECREMENT_CONSTANT: f32 = 2.1;
 const SECONDS_BEFORE_FORGET_SOUNDS: f64 = 180.0;
 
+//intentionally very few concurrent action state variables are allowed. This is
+// to keep the complexity of our AI from getting too large, too quickly.
+// Originally I was going to provide 30 of these, but if we decide later that
+// this is too many and somebody is already using 30 in one of their AI, it will
+// be difficult to go back.
+
+/// The number of timers that a single Action node can track concurrently
+/// Define constants within a given action node to index between them.
+const ACTIONSTATE_NUMBER_OF_CONCURRENT_TIMERS: usize = 5;
+/// The number of float counters that a single Action node can track
+/// concurrently Define constants within a given action node to index between
+/// them.
+const ACTIONSTATE_NUMBER_OF_CONCURRENT_COUNTERS: usize = 5;
+/// The number of integer counters that a single Action node can track
+/// concurrently Define constants within a given action node to index between
+/// them.
+const ACTIONSTATE_NUMBER_OF_CONCURRENT_INT_COUNTERS: usize = 5;
+/// The number of booleans that a single Action node can track concurrently
+/// Define constants within a given action node to index between them.
+const ACTIONSTATE_NUMBER_OF_CONCURRENT_CONDITIONS: usize = 5;
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Alignment {
     /// Wild animals and gentle giants
@@ -511,12 +532,16 @@ pub struct Agent {
     pub position_pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
 }
 
+/// State persistence object for the behavior tree
+/// Allows for state to be stored between subsequent, sequential calls of a
+/// single action node. If the executed action node changes between ticks, then
+/// the state should be considered lost.
 #[derive(Clone, Debug, Default)]
 pub struct ActionState {
-    pub timer: f32,
-    pub counter: f32,
-    pub condition: bool,
-    pub int_counter: u8,
+    pub timers: [f32; ACTIONSTATE_NUMBER_OF_CONCURRENT_TIMERS],
+    pub counters: [f32; ACTIONSTATE_NUMBER_OF_CONCURRENT_COUNTERS],
+    pub conditions: [bool; ACTIONSTATE_NUMBER_OF_CONCURRENT_CONDITIONS],
+    pub int_counters: [u8; ACTIONSTATE_NUMBER_OF_CONCURRENT_INT_COUNTERS],
     pub initialized: bool,
 }
 

@@ -163,6 +163,9 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
+        enum ActionTimers {
+            TimerIdle = 0,
+        }
         // Light lanterns at night
         // TODO Add a method to turn on NPC lanterns underground
         let lantern_equipped = self
@@ -196,15 +199,15 @@ impl<'a> AgentData<'a> {
                 true
             };
             if attempt_heal && self.heal_self(agent, controller, true) {
-                agent.action_state.timer = 0.01;
+                agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.01;
                 return;
             }
         } else {
-            agent.action_state.timer = 0.01;
+            agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.01;
             return;
         }
 
-        agent.action_state.timer = 0.0;
+        agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.0;
         if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
             // If it has an rtsim destination and can fly, then it should.
             // If it is flying and bumps something above it, then it should move down.
@@ -547,7 +550,10 @@ impl<'a> AgentData<'a> {
         event_emitter: &mut Emitter<ServerEvent>,
         will_ambush: bool,
     ) {
-        agent.action_state.timer = 0.0;
+        enum ActionStateTimers {
+            TimerChooseTarget = 0,
+        }
+        agent.action_state.timers[ActionStateTimers::TimerChooseTarget as usize] = 0.0;
         let mut aggro_on = false;
 
         // Search the area.
