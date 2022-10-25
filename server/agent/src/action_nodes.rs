@@ -1,4 +1,3 @@
-
 use crate::{
     consts::{
         AVG_FOLLOW_DIST, DEFAULT_ATTACK_RANGE, IDLE_HEALING_ITEM_THRESHOLD, PARTIAL_PATH_DIST,
@@ -43,9 +42,6 @@ use vek::*;
 
 #[cfg(feature = "use-dyn-lib")]
 use {crate::LIB, std::ffi::CStr};
-
-
-
 
 impl<'a> AgentData<'a> {
     ////////////////////////////////////////

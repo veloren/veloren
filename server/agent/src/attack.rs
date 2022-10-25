@@ -213,8 +213,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        enum ActionStateTimers
-        {
+        enum ActionStateTimers {
             TimerHandleAxeAttack = 0,
         }
         let has_leap = || self.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap));
@@ -228,15 +227,21 @@ impl<'a> AgentData<'a> {
             if agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] > 5.0 {
                 controller.push_cancel_input(InputKind::Secondary);
                 agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] = 0.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] > 2.5 && has_energy(10.0) {
+            } else if agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize]
+                > 2.5
+                && has_energy(10.0)
+            {
                 controller.push_basic_input(InputKind::Secondary);
-                agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] +=
+                    read_data.dt.0;
             } else if has_leap() && has_energy(45.0) && rng.gen_bool(0.5) {
                 controller.push_basic_input(InputKind::Ability(0));
-                agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] +=
+                    read_data.dt.0;
             } else {
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerHandleAxeAttack as usize] +=
+                    read_data.dt.0;
             }
         } else {
             self.path_toward_target(
@@ -279,8 +284,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        enum ActionStateTimers
-        {
+        enum ActionStateTimers {
             TimerHandleHammerAttack = 0,
         }
         let has_leap = || {
@@ -296,18 +300,25 @@ impl<'a> AgentData<'a> {
 
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
-            if agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] > 4.0 {
+            if agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] > 4.0
+            {
                 controller.push_cancel_input(InputKind::Secondary);
-                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] = 0.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] > 3.0 {
+                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] =
+                    0.0;
+            } else if agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize]
+                > 3.0
+            {
                 controller.push_basic_input(InputKind::Secondary);
-                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
+                    read_data.dt.0;
             } else if has_leap() && has_energy(50.0) && rng.gen_bool(0.9) {
                 use_leap(controller);
-                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
+                    read_data.dt.0;
             } else {
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
+                    read_data.dt.0;
             }
         } else {
             self.path_toward_target(
@@ -358,16 +369,21 @@ impl<'a> AgentData<'a> {
             if self
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::UnlockSpin))
-                && agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] < 2.0
+                && agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize]
+                    < 2.0
                 && self.energy.current() > 60.0
             {
                 controller.push_basic_input(InputKind::Ability(0));
-                agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] += read_data.dt.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] > 2.0 {
+                agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] +=
+                    read_data.dt.0;
+            } else if agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize]
+                > 2.0
+            {
                 agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] = 0.0;
             } else {
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] +=
+                    read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             if self.path_toward_target(
@@ -384,11 +400,16 @@ impl<'a> AgentData<'a> {
                 tgt_data.body,
                 read_data,
             ) {
-                if agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] > 4.0 && attack_data.angle < 45.0 {
+                if agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize]
+                    > 4.0
+                    && attack_data.angle < 45.0
+                {
                     controller.push_basic_input(InputKind::Secondary);
-                    agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] = 0.0;
+                    agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] =
+                        0.0;
                 } else {
-                    agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] += read_data.dt.0;
+                    agent.action_state.timers
+                        [ActionStateTimers::TimerHandleSwordAttack as usize] += read_data.dt.0;
                 }
             }
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
@@ -594,8 +615,10 @@ impl<'a> AgentData<'a> {
             // emergency roll
             controller.push_basic_input(InputKind::Roll);
         } else if matches!(self.char_state, CharacterState::Shockwave(_)) {
-            agent.action_state.conditions[ActionStateConditions::ConditionStaffCanShockwave as usize] = false;
-        } else if agent.action_state.conditions[ActionStateConditions::ConditionStaffCanShockwave as usize]
+            agent.action_state.conditions
+                [ActionStateConditions::ConditionStaffCanShockwave as usize] = false;
+        } else if agent.action_state.conditions
+            [ActionStateConditions::ConditionStaffCanShockwave as usize]
             && matches!(self.char_state, CharacterState::Wielding(_))
         {
             controller.push_basic_input(InputKind::Ability(0));
@@ -618,7 +641,8 @@ impl<'a> AgentData<'a> {
                 if matches!(self.char_state, CharacterState::Wielding(_)) {
                     controller.push_basic_input(InputKind::Ability(0));
                 } else {
-                    agent.action_state.conditions[ActionStateConditions::ConditionStaffCanShockwave as usize] = true;
+                    agent.action_state.conditions
+                        [ActionStateConditions::ConditionStaffCanShockwave as usize] = true;
                 }
             } else if self.energy.current()
                 > shockwave_cost + CharacterAbility::default_roll().get_energy_cost()
@@ -868,11 +892,16 @@ impl<'a> AgentData<'a> {
                 read_data,
             ) && attack_data.angle < 90.0
             {
-                if agent.action_state.timers[ActionStateTimers::TimerHandleStoneGolemAttack as usize] > 5.0 {
+                if agent.action_state.timers
+                    [ActionStateTimers::TimerHandleStoneGolemAttack as usize]
+                    > 5.0
+                {
                     controller.push_basic_input(InputKind::Secondary);
-                    agent.action_state.timers[ActionStateTimers::TimerHandleStoneGolemAttack as usize] = 0.0;
+                    agent.action_state.timers
+                        [ActionStateTimers::TimerHandleStoneGolemAttack as usize] = 0.0;
                 } else {
-                    agent.action_state.timers[ActionStateTimers::TimerHandleStoneGolemAttack as usize] += read_data.dt.0;
+                    agent.action_state.timers
+                        [ActionStateTimers::TimerHandleStoneGolemAttack as usize] += read_data.dt.0;
                 }
             }
         } else {
@@ -899,23 +928,31 @@ impl<'a> AgentData<'a> {
         circle_time: u32,
         rng: &mut impl Rng,
     ) {
-        enum ActionStateCountersF{
+        enum ActionStateCountersF {
             CounterFHandleCircleChargeAttack = 0,
         }
 
-        enum ActionStateCountersI{
+        enum ActionStateCountersI {
             CounterIHandleCircleChargeAttack = 0,
         }
 
-        if agent.action_state.counters[ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] >= circle_time as f32 {
+        if agent.action_state.counters
+            [ActionStateCountersF::CounterFHandleCircleChargeAttack as usize]
+            >= circle_time as f32
+        {
             // if circle charge is in progress and time hasn't expired, continue charging
             controller.push_basic_input(InputKind::Secondary);
         }
         if attack_data.in_min_range() {
-            if agent.action_state.counters[ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] > 0.0 {
+            if agent.action_state.counters
+                [ActionStateCountersF::CounterFHandleCircleChargeAttack as usize]
+                > 0.0
+            {
                 // set timer and rotation counter to zero if in minimum range
-                agent.action_state.counters[ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] = 0.0;
-                agent.action_state.int_counters[ActionStateCountersI::CounterIHandleCircleChargeAttack as usize] = 0;
+                agent.action_state.counters
+                    [ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] = 0.0;
+                agent.action_state.int_counters
+                    [ActionStateCountersI::CounterIHandleCircleChargeAttack as usize] = 0;
             } else {
                 // melee attack
                 controller.push_basic_input(InputKind::Primary);
@@ -923,13 +960,23 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < (radius as f32 + attack_data.min_attack_dist).powi(2) {
             // if in range to charge, circle, then charge
-            if agent.action_state.int_counters[ActionStateCountersI::CounterIHandleCircleChargeAttack as usize] == 0 {
+            if agent.action_state.int_counters
+                [ActionStateCountersI::CounterIHandleCircleChargeAttack as usize]
+                == 0
+            {
                 // if you haven't chosen a direction to go in, choose now
-                agent.action_state.int_counters[ActionStateCountersI::CounterIHandleCircleChargeAttack as usize] = 1 + rng.gen_bool(0.5) as u8;
+                agent.action_state.int_counters
+                    [ActionStateCountersI::CounterIHandleCircleChargeAttack as usize] =
+                    1 + rng.gen_bool(0.5) as u8;
             }
-            if agent.action_state.counters[ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] < circle_time as f32 {
+            if agent.action_state.counters
+                [ActionStateCountersF::CounterFHandleCircleChargeAttack as usize]
+                < circle_time as f32
+            {
                 // circle if circle timer not ready
-                let move_dir = match agent.action_state.int_counters[ActionStateCountersI::CounterIHandleCircleChargeAttack as usize] {
+                let move_dir = match agent.action_state.int_counters
+                    [ActionStateCountersI::CounterIHandleCircleChargeAttack as usize]
+                {
                     1 =>
                     // circle left if counter is 1
                     {
@@ -966,11 +1013,15 @@ impl<'a> AgentData<'a> {
                     .map_or(true, |b| b.is_some());
                 if obstacle {
                     // if obstacle detected, stop circling
-                    agent.action_state.counters[ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] = circle_time as f32;
+                    agent.action_state.counters
+                        [ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] =
+                        circle_time as f32;
                 }
                 controller.inputs.move_dir = move_dir;
                 // use counter as timer since timer may be modified in other parts of the code
-                agent.action_state.counters[ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] += read_data.dt.0;
+                agent.action_state.counters
+                    [ActionStateCountersF::CounterFHandleCircleChargeAttack as usize] +=
+                    read_data.dt.0;
             }
             // activating charge once circle timer expires is handled above
         } else {
@@ -1024,16 +1075,25 @@ impl<'a> AgentData<'a> {
                         read_data,
                     )
                 {
-                    if agent.action_state.timers[ActionStateTimers::TimerHandleQuadLowRanged as usize] > 5.0 {
-                        agent.action_state.timers[ActionStateTimers::TimerHandleQuadLowRanged as usize] = 0.0;
-                    } else if agent.action_state.timers[ActionStateTimers::TimerHandleQuadLowRanged as usize] > 2.5 {
+                    if agent.action_state.timers
+                        [ActionStateTimers::TimerHandleQuadLowRanged as usize]
+                        > 5.0
+                    {
+                        agent.action_state.timers
+                            [ActionStateTimers::TimerHandleQuadLowRanged as usize] = 0.0;
+                    } else if agent.action_state.timers
+                        [ActionStateTimers::TimerHandleQuadLowRanged as usize]
+                        > 2.5
+                    {
                         controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                             .xy()
                             .rotated_z(1.75 * PI)
                             .try_normalized()
                             .unwrap_or_else(Vec2::zero)
                             * speed;
-                        agent.action_state.timers[ActionStateTimers::TimerHandleQuadLowRanged as usize] += read_data.dt.0;
+                        agent.action_state.timers
+                            [ActionStateTimers::TimerHandleQuadLowRanged as usize] +=
+                            read_data.dt.0;
                     } else {
                         controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                             .xy()
@@ -1041,7 +1101,9 @@ impl<'a> AgentData<'a> {
                             .try_normalized()
                             .unwrap_or_else(Vec2::zero)
                             * speed;
-                        agent.action_state.timers[ActionStateTimers::TimerHandleQuadLowRanged as usize] += read_data.dt.0;
+                        agent.action_state.timers
+                            [ActionStateTimers::TimerHandleQuadLowRanged as usize] +=
+                            read_data.dt.0;
                     }
                     controller.push_basic_input(InputKind::Secondary);
                     self.jump_if(bearing.z > 1.5, controller);
@@ -1087,10 +1149,12 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timers[ActionStateTimers::TimerTailSlap as usize] = 0.0;
             } else if agent.action_state.timers[ActionStateTimers::TimerTailSlap as usize] > 1.0 {
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerTailSlap as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerTailSlap as usize] +=
+                    read_data.dt.0;
             } else {
                 controller.push_basic_input(InputKind::Secondary);
-                agent.action_state.timers[ActionStateTimers::TimerTailSlap as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerTailSlap as usize] +=
+                    read_data.dt.0;
             }
             controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                 .xy()
@@ -1180,12 +1244,15 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timers[ActionStateTimers::TimerQuadLowBasic as usize] > 5.0 {
                 agent.action_state.timers[ActionStateTimers::TimerQuadLowBasic as usize] = 0.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerQuadLowBasic as usize] > 2.0 {
+            } else if agent.action_state.timers[ActionStateTimers::TimerQuadLowBasic as usize] > 2.0
+            {
                 controller.push_basic_input(InputKind::Secondary);
-                agent.action_state.timers[ActionStateTimers::TimerQuadLowBasic as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerQuadLowBasic as usize] +=
+                    read_data.dt.0;
             } else {
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerQuadLowBasic as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerQuadLowBasic as usize] +=
+                    read_data.dt.0;
             }
         } else {
             let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
@@ -1261,10 +1328,13 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timers[ActionStateTimers::TimerQuadMedBasic as usize] < 2.0 {
                 controller.push_basic_input(InputKind::Secondary);
-                agent.action_state.timers[ActionStateTimers::TimerQuadMedBasic as usize] += read_data.dt.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerQuadMedBasic as usize] < 3.0 {
+                agent.action_state.timers[ActionStateTimers::TimerQuadMedBasic as usize] +=
+                    read_data.dt.0;
+            } else if agent.action_state.timers[ActionStateTimers::TimerQuadMedBasic as usize] < 3.0
+            {
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerQuadMedBasic as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerQuadMedBasic as usize] +=
+                    read_data.dt.0;
             } else {
                 agent.action_state.timers[ActionStateTimers::TimerQuadMedBasic as usize] = 0.0;
             }
@@ -1297,8 +1367,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        enum ActionStateTimers
-        {
+        enum ActionStateTimers {
             TimerQuadLowBeam = 0,
         }
         if attack_data.angle < 90.0
@@ -1316,18 +1385,25 @@ impl<'a> AgentData<'a> {
                     .try_normalized()
                     .unwrap_or_else(Vec2::unit_y);
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] += read_data.dt.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] < 4.0 && attack_data.angle < 15.0 {
+                agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] +=
+                    read_data.dt.0;
+            } else if agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] < 4.0
+                && attack_data.angle < 15.0
+            {
                 controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                     .xy()
                     .rotated_z(-0.47 * PI)
                     .try_normalized()
                     .unwrap_or_else(Vec2::unit_y);
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] += read_data.dt.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] < 6.0 && attack_data.angle < 15.0 {
+                agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] +=
+                    read_data.dt.0;
+            } else if agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] < 6.0
+                && attack_data.angle < 15.0
+            {
                 controller.push_basic_input(InputKind::Ability(0));
-                agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] +=
+                    read_data.dt.0;
             } else {
                 agent.action_state.timers[ActionStateTimers::TimerQuadLowBeam as usize] = 0.0;
             }
@@ -1366,15 +1442,19 @@ impl<'a> AgentData<'a> {
 
         const ORGAN_AURA_DURATION: f32 = 34.75;
         if attack_data.dist_sqrd < (7.0 * attack_data.min_attack_dist).powi(2) {
-            if agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] > ORGAN_AURA_DURATION {
+            if agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize]
+                > ORGAN_AURA_DURATION
+            {
                 agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] = 0.0;
             } else if agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] < 1.0 {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Primary));
-                agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] +=
+                    read_data.dt.0;
             } else {
-                agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] +=
+                    read_data.dt.0;
             }
         } else {
             agent.target = None;
@@ -1495,24 +1575,29 @@ impl<'a> AgentData<'a> {
             ConditionCounterInit = 0,
         }
 
-
         const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
         const MINION_SUMMON_THRESHOLD: f32 = 0.20;
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // Sets counter at start of combat, using `condition` to keep track of whether
         // it was already initialized
         if !agent.action_state.conditions[ActionStateConditions::ConditionCounterInit as usize] {
-            agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] = 1.0 - MINION_SUMMON_THRESHOLD;
-            agent.action_state.conditions[ActionStateConditions::ConditionCounterInit as usize] = true;
+            agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] =
+                1.0 - MINION_SUMMON_THRESHOLD;
+            agent.action_state.conditions[ActionStateConditions::ConditionCounterInit as usize] =
+                true;
         }
 
-        if agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] > health_fraction {
+        if agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize]
+            > health_fraction
+        {
             // Summon minions at particular thresholds of health
             controller.push_basic_input(InputKind::Ability(2));
 
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
-                agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] -= MINION_SUMMON_THRESHOLD;
+                agent.action_state.counters
+                    [ActionStateFCounters::FCounterHealthThreshold as usize] -=
+                    MINION_SUMMON_THRESHOLD;
             }
         } else if attack_data.dist_sqrd < MINDFLAYER_ATTACK_DIST.powi(2) {
             if entities_have_line_of_sight(
@@ -1552,7 +1637,8 @@ impl<'a> AgentData<'a> {
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // If too far from target, throw a random number of necrotic spheres at them and
             // then blink to them.
-            let num_fireballs = &mut agent.action_state.int_counters[ActionStateICounters::ICounterNumFireballs as usize];
+            let num_fireballs = &mut agent.action_state.int_counters
+                [ActionStateICounters::ICounterNumFireballs as usize];
             if *num_fireballs == 0 {
                 controller.push_action(ControlAction::StartInput {
                     input: InputKind::Ability(0),
@@ -1830,14 +1916,16 @@ impl<'a> AgentData<'a> {
                 Path::Separate,
                 Some(0.5),
             );
-            agent.action_state.timers[ActionStateTimers::TimerBirdLargeBreathe as usize] += read_data.dt.0;
+            agent.action_state.timers[ActionStateTimers::TimerBirdLargeBreathe as usize] +=
+                read_data.dt.0;
         } else if agent.action_state.timers[ActionStateTimers::TimerBirdLargeBreathe as usize] < 6.0
             && attack_data.angle < 90.0
             && attack_data.in_min_range()
         {
             // Triple strike
             controller.push_basic_input(InputKind::Secondary);
-            agent.action_state.timers[ActionStateTimers::TimerBirdLargeBreathe as usize] += read_data.dt.0;
+            agent.action_state.timers[ActionStateTimers::TimerBirdLargeBreathe as usize] +=
+                read_data.dt.0;
         } else {
             // Reset timer
             agent.action_state.timers[ActionStateTimers::TimerBirdLargeBreathe as usize] = 0.0;
@@ -1866,14 +1954,16 @@ impl<'a> AgentData<'a> {
         }
 
         enum ActionStateConditions {
-            ConditionBirdLargeBasic = 0, //FIXME: Not sure what this represents. This name should be reflective of the condition...
+            ConditionBirdLargeBasic = 0, /* FIXME: Not sure what this represents. This name
+                                          * should be reflective of the condition... */
         }
 
         const BIRD_ATTACK_RANGE: f32 = 4.0;
         const BIRD_CHARGE_DISTANCE: f32 = 15.0;
         let bird_attack_distance = self.body.map_or(0.0, |b| b.max_radius()) + BIRD_ATTACK_RANGE;
         // Increase action timer
-        agent.action_state.timers[ActionStateTimers::TimerBirdLargeBasic as usize] += read_data.dt.0;
+        agent.action_state.timers[ActionStateTimers::TimerBirdLargeBasic as usize] +=
+            read_data.dt.0;
         // If higher than 2 blocks
         if !read_data
             .terrain
@@ -1913,7 +2003,8 @@ impl<'a> AgentData<'a> {
         } else if attack_data.dist_sqrd < bird_attack_distance.powi(2) {
             // Combo melee target
             controller.push_basic_input(InputKind::Primary);
-            agent.action_state.conditions[ActionStateConditions::ConditionBirdLargeBasic as usize] = true;
+            agent.action_state.conditions
+                [ActionStateConditions::ConditionBirdLargeBasic as usize] = true;
         }
         // Make bird move towards target
         self.path_toward_target(
@@ -1934,12 +2025,12 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        enum ActionStateTimers
-        {
+        enum ActionStateTimers {
             TimerArthropodRanged = 0,
         }
 
-        agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize] += read_data.dt.0;
+        agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize] +=
+            read_data.dt.0;
         if agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize] > 6.0
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
@@ -1981,16 +2072,23 @@ impl<'a> AgentData<'a> {
                         read_data,
                     )
                 {
-                    if agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize] > 5.0 {
-                        agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize] = 0.0;
-                    } else if agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize] > 2.5 {
+                    if agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize]
+                        > 5.0
+                    {
+                        agent.action_state.timers
+                            [ActionStateTimers::TimerArthropodRanged as usize] = 0.0;
+                    } else if agent.action_state.timers
+                        [ActionStateTimers::TimerArthropodRanged as usize]
+                        > 2.5
+                    {
                         controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                             .xy()
                             .rotated_z(1.75 * PI)
                             .try_normalized()
                             .unwrap_or_else(Vec2::zero)
                             * speed;
-                        agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize] += read_data.dt.0;
+                        agent.action_state.timers
+                            [ActionStateTimers::TimerArthropodRanged as usize] += read_data.dt.0;
                     } else {
                         controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                             .xy()
@@ -1998,7 +2096,8 @@ impl<'a> AgentData<'a> {
                             .try_normalized()
                             .unwrap_or_else(Vec2::zero)
                             * speed;
-                        agent.action_state.timers[ActionStateTimers::TimerArthropodRanged as usize] += read_data.dt.0;
+                        agent.action_state.timers
+                            [ActionStateTimers::TimerArthropodRanged as usize] += read_data.dt.0;
                     }
                     controller.push_basic_input(InputKind::Ability(0));
                     self.jump_if(bearing.z > 1.5, controller);
@@ -2037,7 +2136,8 @@ impl<'a> AgentData<'a> {
             TimersArthropodAmbush = 0,
         }
 
-        agent.action_state.timers[ActionStateTimers::TimersArthropodAmbush as usize] += read_data.dt.0;
+        agent.action_state.timers[ActionStateTimers::TimersArthropodAmbush as usize] +=
+            read_data.dt.0;
         if agent.action_state.timers[ActionStateTimers::TimersArthropodAmbush as usize] > 12.0
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
@@ -2084,7 +2184,8 @@ impl<'a> AgentData<'a> {
         enum ActionStateTimers {
             TimersArthropodMelee = 0,
         }
-        agent.action_state.timers[ActionStateTimers::TimersArthropodMelee as usize] += read_data.dt.0;
+        agent.action_state.timers[ActionStateTimers::TimersArthropodMelee as usize] +=
+            read_data.dt.0;
         if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
         {
             // If already charging, keep charging if not in recover
@@ -2135,17 +2236,22 @@ impl<'a> AgentData<'a> {
             self.body.map_or(0.0, |b| b.max_radius()) + MINOTAUR_ATTACK_RANGE;
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());
         // Sets action counter at start of combat
-        if agent.action_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize] < MINOTAUR_FRENZY_THRESHOLD
+        if agent.action_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize]
+            < MINOTAUR_FRENZY_THRESHOLD
             && health_fraction > MINOTAUR_FRENZY_THRESHOLD
         {
-            agent.action_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize] = MINOTAUR_FRENZY_THRESHOLD;
+            agent.action_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize] =
+                MINOTAUR_FRENZY_THRESHOLD;
         }
-        if health_fraction < agent.action_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize] {
+        if health_fraction
+            < agent.action_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize]
+        {
             // Makes minotaur buff itself with frenzy
             controller.push_basic_input(InputKind::Ability(1));
             if matches!(self.char_state, CharacterState::SelfBuff(c) if matches!(c.stage_section, StageSection::Recover))
             {
-                agent.action_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize] = 0.0;
+                agent.action_state.counters
+                    [ActionStateFCounters::FCounterMinotaurAttack as usize] = 0.0;
             }
         } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
         {
@@ -2161,14 +2267,19 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Ability(0));
             }
         } else if attack_data.dist_sqrd < minotaur_attack_distance.powi(2) {
-            if agent.action_state.conditions[ActionStateConditions::ConditionJustCrippledOrCleaved as usize] && !self.char_state.is_attack() {
+            if agent.action_state.conditions
+                [ActionStateConditions::ConditionJustCrippledOrCleaved as usize]
+                && !self.char_state.is_attack()
+            {
                 // Cripple target if not just used cripple
                 controller.push_basic_input(InputKind::Secondary);
-                agent.action_state.conditions[ActionStateConditions::ConditionJustCrippledOrCleaved as usize] = false;
+                agent.action_state.conditions
+                    [ActionStateConditions::ConditionJustCrippledOrCleaved as usize] = false;
             } else if !self.char_state.is_attack() {
                 // Cleave target if not just used cleave
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.conditions[ActionStateConditions::ConditionJustCrippledOrCleaved as usize] = true;
+                agent.action_state.conditions
+                    [ActionStateConditions::ConditionJustCrippledOrCleaved as usize] = true;
             }
         }
         // Make minotaur move towards target
@@ -2215,16 +2326,20 @@ impl<'a> AgentData<'a> {
         };
 
         if attack_data.dist_sqrd < golem_melee_range.powi(2) {
-            if agent.action_state.counters[ActionStateFCounters::FCounterGlayGolemAttack as usize] < 7.5 {
+            if agent.action_state.counters[ActionStateFCounters::FCounterGlayGolemAttack as usize]
+                < 7.5
+            {
                 // If target is close, whack them
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.counters[ActionStateFCounters::FCounterGlayGolemAttack as usize] += read_data.dt.0;
+                agent.action_state.counters
+                    [ActionStateFCounters::FCounterGlayGolemAttack as usize] += read_data.dt.0;
             } else {
                 // If whacked for too long, nuke them
                 controller.push_basic_input(InputKind::Ability(1));
                 if matches!(self.char_state, CharacterState::BasicRanged(c) if matches!(c.stage_section, StageSection::Recover))
                 {
-                    agent.action_state.counters[ActionStateFCounters::FCounterGlayGolemAttack as usize] = 0.0;
+                    agent.action_state.counters
+                        [ActionStateFCounters::FCounterGlayGolemAttack as usize] = 0.0;
                 }
             }
         } else if attack_data.dist_sqrd < GOLEM_LASER_RANGE.powi(2) {
@@ -2274,13 +2389,11 @@ impl<'a> AgentData<'a> {
         const BUBBLE_RANGE: f32 = 20.0;
         const MINION_SUMMON_THRESHOLD: f32 = 0.20;
 
-        enum ActionStateConditions
-        {
+        enum ActionStateConditions {
             ConditionCounterInitialized = 0,
         }
 
-        enum ActionStateFCounters
-        {
+        enum ActionStateFCounters {
             FCounterMinionSummonThreshold = 0,
         }
 
@@ -2291,18 +2404,27 @@ impl<'a> AgentData<'a> {
 
         // Sets counter at start of combat, using `condition` to keep track of whether
         // it was already initialized
-        if !agent.action_state.conditions[ActionStateConditions::ConditionCounterInitialized as usize] {
-            agent.action_state.counters[ActionStateFCounters::FCounterMinionSummonThreshold as usize] = 1.0 - MINION_SUMMON_THRESHOLD;
-            agent.action_state.conditions[ActionStateConditions::ConditionCounterInitialized as usize] = true;
+        if !agent.action_state.conditions
+            [ActionStateConditions::ConditionCounterInitialized as usize]
+        {
+            agent.action_state.counters
+                [ActionStateFCounters::FCounterMinionSummonThreshold as usize] =
+                1.0 - MINION_SUMMON_THRESHOLD;
+            agent.action_state.conditions
+                [ActionStateConditions::ConditionCounterInitialized as usize] = true;
         }
 
-        if agent.action_state.counters[ActionStateFCounters::FCounterMinionSummonThreshold as usize] > health_fraction {
+        if agent.action_state.counters[ActionStateFCounters::FCounterMinionSummonThreshold as usize]
+            > health_fraction
+        {
             // Summon minions at particular thresholds of health
             controller.push_basic_input(InputKind::Ability(1));
 
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
-                agent.action_state.counters[ActionStateFCounters::FCounterMinionSummonThreshold as usize] -= MINION_SUMMON_THRESHOLD;
+                agent.action_state.counters
+                    [ActionStateFCounters::FCounterMinionSummonThreshold as usize] -=
+                    MINION_SUMMON_THRESHOLD;
             }
         } else if attack_data.dist_sqrd < SCUTTLE_RANGE.powi(2) {
             if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
@@ -2353,25 +2475,28 @@ impl<'a> AgentData<'a> {
         const ICE_BREATH_TIMER: f32 = 10.0;
         const SNOWBALL_MAX_RANGE: f32 = 50.0;
 
-        enum ActionStateFCounters
-        {
+        enum ActionStateFCounters {
             FCounterYetiAttack = 0,
         }
 
-        agent.action_state.counters[ActionStateFCounters::FCounterYetiAttack as usize] += read_data.dt.0;
+        agent.action_state.counters[ActionStateFCounters::FCounterYetiAttack as usize] +=
+            read_data.dt.0;
 
         if attack_data.dist_sqrd < ICE_BREATH_RANGE.powi(2) {
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(2))
             {
                 // Keep using ice breath for 2 second
                 controller.push_basic_input(InputKind::Ability(0));
-            } else if agent.action_state.counters[ActionStateFCounters::FCounterYetiAttack as usize] > ICE_BREATH_TIMER {
+            } else if agent.action_state.counters[ActionStateFCounters::FCounterYetiAttack as usize]
+                > ICE_BREATH_TIMER
+            {
                 // Use ice breath if timer has gone for long enough
                 controller.push_basic_input(InputKind::Ability(0));
 
                 if matches!(self.char_state, CharacterState::BasicBeam(_)) {
                     // Resets action counter when using beam
-                    agent.action_state.counters[ActionStateFCounters::FCounterYetiAttack as usize] = 0.0;
+                    agent.action_state.counters
+                        [ActionStateFCounters::FCounterYetiAttack as usize] = 0.0;
                 }
             } else if attack_data.in_min_range() {
                 // Basic attack if on top of them
@@ -2420,13 +2545,17 @@ impl<'a> AgentData<'a> {
             entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
         };
 
-        if health_fraction < VINE_CREATION_THRESHOLD && !agent.action_state.conditions[ActionStateConditions::ConditionHasSummonedVines as usize] {
+        if health_fraction < VINE_CREATION_THRESHOLD
+            && !agent.action_state.conditions
+                [ActionStateConditions::ConditionHasSummonedVines as usize]
+        {
             // Summon vines when reach threshold of health
             controller.push_basic_input(InputKind::Ability(0));
 
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
-                agent.action_state.conditions[ActionStateConditions::ConditionHasSummonedVines as usize] = true;
+                agent.action_state.conditions
+                    [ActionStateConditions::ConditionHasSummonedVines as usize] = true;
             }
         } else if attack_data.dist_sqrd < FIRE_BREATH_RANGE.powi(2) {
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5))
@@ -2474,26 +2603,33 @@ impl<'a> AgentData<'a> {
             ConditionCounterInitialized = 0,
         }
 
-        enum ActionStateFCounters
-        {
+        enum ActionStateFCounters {
             FCounterHealthThreshold = 0,
         }
 
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // Sets counter at start of combat, using `condition` to keep track of whether
         // it was already intitialized
-        if !agent.action_state.conditions[ActionStateConditions::ConditionCounterInitialized as usize] {
-            agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] = 1.0 - MINION_SUMMON_THRESHOLD;
-            agent.action_state.conditions[ActionStateConditions::ConditionCounterInitialized as usize] = true;
+        if !agent.action_state.conditions
+            [ActionStateConditions::ConditionCounterInitialized as usize]
+        {
+            agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] =
+                1.0 - MINION_SUMMON_THRESHOLD;
+            agent.action_state.conditions
+                [ActionStateConditions::ConditionCounterInitialized as usize] = true;
         }
 
-        if agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] > health_fraction {
+        if agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize]
+            > health_fraction
+        {
             // Summon minions at particular thresholds of health
             controller.push_basic_input(InputKind::Ability(1));
 
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
-                agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] -= MINION_SUMMON_THRESHOLD;
+                agent.action_state.counters
+                    [ActionStateFCounters::FCounterHealthThreshold as usize] -=
+                    MINION_SUMMON_THRESHOLD;
             }
         }
         // Logic to use abilities
@@ -2632,13 +2768,9 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        enum ActionStateTimers
-        {
+        enum ActionStateTimers {
             TimerDagon = 0,
         }
-
-
-
 
         if agent.action_state.timers[ActionStateTimers::TimerDagon as usize] > 2.5 {
             agent.action_state.timers[ActionStateTimers::TimerDagon as usize] = 0.0;
@@ -2742,30 +2874,31 @@ impl<'a> AgentData<'a> {
     ) {
         const SCREAM_RANGE: f32 = 10.0;
 
-        enum ActionStateFCounters
-        {
+        enum ActionStateFCounters {
             FCounterHealthThreshold = 0,
         }
 
-        enum ActionStateConditions
-        {
+        enum ActionStateConditions {
             ConditionHasScreamed = 0,
         }
 
         if !agent.action_state.initialized {
-            agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] = self.health.map_or(0.0, |h| h.maximum());
+            agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] =
+                self.health.map_or(0.0, |h| h.maximum());
             agent.action_state.initialized = true;
         }
 
         if !agent.action_state.conditions[ActionStateConditions::ConditionHasScreamed as usize] {
             // If mandragora is still "sleeping" and hasn't screamed yet, do nothing until
             // target in range or until it's taken damage
-            if self
-                .health
-                .map_or(false, |h| h.current() < agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize])
-                || attack_data.dist_sqrd < SCREAM_RANGE.powi(2)
+            if self.health.map_or(false, |h| {
+                h.current()
+                    < agent.action_state.counters
+                        [ActionStateFCounters::FCounterHealthThreshold as usize]
+            }) || attack_data.dist_sqrd < SCREAM_RANGE.powi(2)
             {
-                agent.action_state.conditions[ActionStateConditions::ConditionHasScreamed as usize] = true;
+                agent.action_state.conditions
+                    [ActionStateConditions::ConditionHasScreamed as usize] = true;
                 controller.push_basic_input(InputKind::Secondary);
             }
         } else {
@@ -2792,8 +2925,11 @@ impl<'a> AgentData<'a> {
                 );
             } else {
                 // Otherwise, go back to sleep
-                agent.action_state.conditions[ActionStateConditions::ConditionHasScreamed as usize] = false;
-                agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] = self.health.map_or(0.0, |h| h.maximum());
+                agent.action_state.conditions
+                    [ActionStateConditions::ConditionHasScreamed as usize] = false;
+                agent.action_state.counters
+                    [ActionStateFCounters::FCounterHealthThreshold as usize] =
+                    self.health.map_or(0.0, |h| h.maximum());
             }
         }
     }
@@ -2810,8 +2946,7 @@ impl<'a> AgentData<'a> {
         const SHOCKWAVE_WAIT_TIME: f32 = 7.5;
         const SPIN_WAIT_TIME: f32 = 3.0;
 
-        enum ActionStateTimers
-        {
+        enum ActionStateTimers {
             TimerSpinWait = 0,
             TimerShockwaveWait,
         }
@@ -2824,7 +2959,8 @@ impl<'a> AgentData<'a> {
 
         if attack_data.in_min_range() {
             // If in minimum range
-            if agent.action_state.timers[ActionStateTimers::TimerSpinWait as usize] > SPIN_WAIT_TIME {
+            if agent.action_state.timers[ActionStateTimers::TimerSpinWait as usize] > SPIN_WAIT_TIME
+            {
                 // If it's been too long since able to hit target, spin
                 controller.push_basic_input(InputKind::Secondary);
             } else if attack_data.angle < 30.0 {
@@ -2832,7 +2968,8 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Primary);
             } else {
                 // Else increment spin timer
-                agent.action_state.timers[ActionStateTimers::TimerSpinWait as usize] += read_data.dt.0;
+                agent.action_state.timers[ActionStateTimers::TimerSpinWait as usize] +=
+                    read_data.dt.0;
                 // If not in angle, apply slight movement so golem orients itself correctly
                 controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                     .xy()
@@ -2844,13 +2981,16 @@ impl<'a> AgentData<'a> {
             // Else if too far for melee
             if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) && attack_data.angle < 45.0 {
                 // Shockwave if close enough and haven't shockwaved too recently
-                if agent.action_state.timers[ActionStateTimers::TimerSpinWait as usize] > SHOCKWAVE_WAIT_TIME {
+                if agent.action_state.timers[ActionStateTimers::TimerSpinWait as usize]
+                    > SHOCKWAVE_WAIT_TIME
+                {
                     controller.push_basic_input(InputKind::Ability(0));
                 }
                 if matches!(self.char_state, CharacterState::Shockwave(_)) {
                     agent.action_state.timers[ActionStateTimers::TimerShockwaveWait as usize] = 0.0;
                 } else {
-                    agent.action_state.timers[ActionStateTimers::TimerShockwaveWait as usize] += read_data.dt.0;
+                    agent.action_state.timers[ActionStateTimers::TimerShockwaveWait as usize] +=
+                        read_data.dt.0;
                 }
             }
             // And always try to path towards target
@@ -2884,7 +3024,9 @@ impl<'a> AgentData<'a> {
         // Handle timers
         agent.action_state.timers[ActionStateTimers::TimerSummonTotem as usize] += read_data.dt.0;
         match self.char_state {
-            CharacterState::BasicSummon(_) => agent.action_state.timers[ActionStateTimers::TimerSummonTotem as usize] = 0.0,
+            CharacterState::BasicSummon(_) => {
+                agent.action_state.timers[ActionStateTimers::TimerSummonTotem as usize] = 0.0
+            },
             CharacterState::Shockwave(_) | CharacterState::BasicRanged(_) => {
                 agent.action_state.counters[ActionStateTimers::TimerShockwave as usize] = 0.0
             },
@@ -2898,7 +3040,9 @@ impl<'a> AgentData<'a> {
             {
                 agent.action_state.initialized = true;
             }
-        } else if agent.action_state.timers[ActionStateTimers::TimerSummonTotem as usize] > TOTEM_TIMER {
+        } else if agent.action_state.timers[ActionStateTimers::TimerSummonTotem as usize]
+            > TOTEM_TIMER
+        {
             // If time to summon a totem, do it
             let input = rng.gen_range(1..=3);
             let buff_kind = match input {
@@ -2916,7 +3060,9 @@ impl<'a> AgentData<'a> {
             } else {
                 controller.push_basic_input(InputKind::Ability(input));
             }
-        } else if agent.action_state.counters[ActionStateTimers::TimerShockwave as usize] > HEAVY_ATTACK_WAIT_TIME {
+        } else if agent.action_state.counters[ActionStateTimers::TimerShockwave as usize]
+            > HEAVY_ATTACK_WAIT_TIME
+        {
             // Else if time for a heavy attack
             if attack_data.in_min_range() {
                 // If in range, shockwave
@@ -2935,14 +3081,17 @@ impl<'a> AgentData<'a> {
             // Else if not time to use anything fancy, if in range and angle, strike them
             if attack_data.angle < 20.0 {
                 controller.push_basic_input(InputKind::Primary);
-                agent.action_state.counters[ActionStateTimers::TimerShockwave as usize] += read_data.dt.0;
+                agent.action_state.counters[ActionStateTimers::TimerShockwave as usize] +=
+                    read_data.dt.0;
             } else {
                 // If not in angle, charge heavy attack faster
-                agent.action_state.counters[ActionStateTimers::TimerShockwave as usize] += read_data.dt.0 * 5.0;
+                agent.action_state.counters[ActionStateTimers::TimerShockwave as usize] +=
+                    read_data.dt.0 * 5.0;
             }
         } else {
             // If not in range, charge heavy attack faster
-            agent.action_state.counters[ActionStateTimers::TimerShockwave as usize] += read_data.dt.0 * 3.3;
+            agent.action_state.counters[ActionStateTimers::TimerShockwave as usize] +=
+                read_data.dt.0 * 3.3;
         }
 
         self.path_toward_target(

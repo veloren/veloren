@@ -26,7 +26,6 @@ enum ActionStateInteractionTimers {
     TimerInteraction = 0,
 }
 
-
 /// Interact if incoming messages
 pub fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
     if !bdata.agent.inbox.is_empty() {
@@ -49,7 +48,8 @@ pub fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
                 Some(_) | None => {},
             }
         } else {
-            bdata.agent.action_state.timers[ActionStateInteractionTimers::TimerInteraction as usize] = 0.1;
+            bdata.agent.action_state.timers
+                [ActionStateInteractionTimers::TimerInteraction as usize] = 0.1;
         }
     }
     false
@@ -68,7 +68,8 @@ pub fn process_inbox_interaction(bdata: &mut BehaviorData) -> bool {
 
 /// Increment agent's action_state timer
 pub fn increment_timer_deltatime(bdata: &mut BehaviorData) -> bool {
-    bdata.agent.action_state.timers[ActionStateInteractionTimers::TimerInteraction as usize] += bdata.read_data.dt.0;
+    bdata.agent.action_state.timers[ActionStateInteractionTimers::TimerInteraction as usize] +=
+        bdata.read_data.dt.0;
     false
 }
 

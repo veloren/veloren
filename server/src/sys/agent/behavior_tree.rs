@@ -59,15 +59,17 @@ pub struct BehaviorTree {
 }
 
 /// Enumeration of the timers used by the behavior tree.
-// FIXME: We shouldnt have a global timer enumeration for the whole behavior tree.
-// It isnt entirely clear where a lot of the agents in some of the bdata objects in
-// behavior tree functions come from, so it's hard to granularly define these timers per action
-// node. As such, the behavior tree currently has one global enumeration for mapping timers
-// in all functions, regardless as to use case or action node currently executed -- even if the
-// agent might be different between calls. This doesn't break anything as each agent has its own
-// instance of timers, but it is much less clear than I would like.
+// FIXME: We shouldnt have a global timer enumeration for the whole behavior
+// tree. It isnt entirely clear where a lot of the agents in some of the bdata
+// objects in behavior tree functions come from, so it's hard to granularly
+// define these timers per action node. As such, the behavior tree currently has
+// one global enumeration for mapping timers in all functions, regardless as to
+// use case or action node currently executed -- even if the agent might be
+// different between calls. This doesn't break anything as each agent has its
+// own instance of timers, but it is much less clear than I would like.
 //
-// This may require some refactoring to fix, and I don't feel confident doing so.
+// This may require some refactoring to fix, and I don't feel confident doing
+// so.
 enum ActionStateBehaviorTreeTimers {
     TimerBehaviorTree = 0,
 }
@@ -488,13 +490,13 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
 
 /// Try to heal self if our damage went below a certain threshold
 fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
-
     if bdata.agent_data.damage < HEALING_ITEM_THRESHOLD
         && bdata
             .agent_data
             .heal_self(bdata.agent, bdata.controller, false)
     {
-        bdata.agent.action_state.timers[ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
+        bdata.agent.action_state.timers
+            [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
         return true;
     }
     false
@@ -558,18 +560,27 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
             let aggro_on = *aggro_on;
 
             if agent_data.below_flee_health(agent) {
-                let has_opportunity_to_flee = agent.action_state.timers[ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] < FLEE_DURATION;
+                let has_opportunity_to_flee = agent.action_state.timers
+                    [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize]
+                    < FLEE_DURATION;
                 let within_flee_distance = dist_sqrd < MAX_FLEE_DIST.powi(2);
 
                 // FIXME: Using action state timer to see if allowed to speak is a hack.
-                if agent.action_state.timers[ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] == 0.0 {
+                if agent.action_state.timers
+                    [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize]
+                    == 0.0
+                {
                     agent_data.cry_out(agent, event_emitter, read_data);
-                    agent.action_state.timers[ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
+                    agent.action_state.timers
+                        [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
                 } else if within_flee_distance && has_opportunity_to_flee {
                     agent_data.flee(agent, controller, tgt_pos, &read_data.terrain);
-                    agent.action_state.timers[ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] += read_data.dt.0;
+                    agent.action_state.timers
+                        [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] +=
+                        read_data.dt.0;
                 } else {
-                    agent.action_state.timers[ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.0;
+                    agent.action_state.timers
+                        [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.0;
                     agent.target = None;
                     agent_data.idle(agent, controller, read_data, rng);
                 }
