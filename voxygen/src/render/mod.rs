@@ -199,7 +199,7 @@ pub enum ReflectionMode {
 }
 
 impl Default for ReflectionMode {
-    fn default() -> Self { ReflectionMode::Medium }
+    fn default() -> Self { ReflectionMode::High }
 }
 
 /// Lighting modes

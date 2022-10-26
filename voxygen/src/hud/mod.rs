@@ -193,6 +193,7 @@ const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
+const UI_SUBTLE: Color = Color::Rgba(0.2, 0.24, 0.24, 1.0); // Dark Greenish Blue
 //const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
 // Pull-Down menu BG color
