@@ -192,8 +192,10 @@ pub struct ComboMeleeData {
 
 impl ComboMeleeData {
     pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        attack_data.dist_sqrd < self.max_range.powi(2)
-            && attack_data.dist_sqrd > self.min_range.powi(2)
+        attack_data.dist_sqrd
+            < (self.max_range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
+            && attack_data.dist_sqrd
+                > (self.min_range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
             && attack_data.angle < self.angle
             && agent_data.energy.current() >= self.energy
     }
@@ -208,7 +210,8 @@ pub struct FinisherMeleeData {
 
 impl FinisherMeleeData {
     pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        attack_data.dist_sqrd < self.range.powi(2)
+        attack_data.dist_sqrd
+            < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
             && attack_data.angle < self.angle
             && agent_data.energy.current() >= self.energy
             && agent_data
@@ -258,8 +261,10 @@ impl DiveMeleeData {
         agent_data.energy.current() > self.energy
             && agent_data.physics_state.on_ground.is_some()
             && agent_data.pos.0.z >= tgt_data.pos.0.z
-            && dist_sqrd_2d > (self.range / 2.0).powi(2)
-            && dist_sqrd_2d < (self.range + 5.0).powi(2)
+            && dist_sqrd_2d
+                > ((self.range + agent_data.body.map_or(0.0, |b| b.max_radius())) / 2.0).powi(2)
+            && dist_sqrd_2d
+                < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius()) + 5.0).powi(2)
     }
 }
 
@@ -272,7 +277,8 @@ pub struct BlockData {
 
 impl BlockData {
     pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        attack_data.dist_sqrd < self.range.powi(2)
+        attack_data.dist_sqrd
+            < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
             && attack_data.angle < self.angle
             && agent_data.energy.current() >= self.energy
     }
@@ -296,7 +302,8 @@ impl DashMeleeData {
     pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
         let charge_dur = self.charge_dur(agent_data);
         let charge_dist = charge_dur * self.speed * Self::BASE_SPEED;
-        let attack_dist = charge_dist + self.range;
+        let attack_dist =
+            charge_dist + self.range + agent_data.body.map_or(0.0, |b| b.max_radius());
         let ori_gap = Self::ORI_RATE * charge_dur;
         attack_data.dist_sqrd < attack_dist.powi(2)
             && attack_data.angle < self.angle + ori_gap
@@ -323,7 +330,8 @@ pub struct RapidMeleeData {
 
 impl RapidMeleeData {
     pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        attack_data.dist_sqrd < self.range.powi(2)
+        attack_data.dist_sqrd
+            < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
             && attack_data.angle < self.angle
             && agent_data.energy.current() > self.energy * self.strikes as f32
     }

@@ -547,7 +547,9 @@ impl<'a> AgentData<'a> {
         }
 
         let advance = |agent: &mut Agent, controller: &mut Controller, dist: f32, angle: f32| {
-            if attack_data.dist_sqrd > dist.powi(2) || attack_data.angle > angle {
+            if attack_data.dist_sqrd > (dist + self.body.map_or(0.0, |b| b.max_radius())).powi(2)
+                || attack_data.angle > angle
+            {
                 self.path_toward_target(
                     agent,
                     controller,
@@ -558,6 +560,30 @@ impl<'a> AgentData<'a> {
                 );
             }
         };
+
+        const AVERAGE_ROLL_FREQUENCY: f32 = 12.0;
+        const TIMER_LAST_ROLL: usize = 0;
+        const CONDITION_RANDOM_ROLL: usize = 0;
+        const MIN_ENERGY_FOR_ROLL: f32 = 30.0;
+        if self.energy.current() > MIN_ENERGY_FOR_ROLL {
+            agent.action_state.timers[TIMER_LAST_ROLL] += read_data.dt.0;
+        }
+        if (-agent.action_state.timers[TIMER_LAST_ROLL] / AVERAGE_ROLL_FREQUENCY).exp()
+            < rng.gen::<f32>() / std::f32::consts::E
+        {
+            agent.action_state.conditions[CONDITION_RANDOM_ROLL] = true;
+        }
+        if agent.action_state.conditions[CONDITION_RANDOM_ROLL] {
+            controller.push_basic_input(InputKind::Roll);
+            advance(agent, controller, 1.0, 30.0);
+            let random_angle = rng.gen_range(-PI..PI) / 4.0;
+            controller.inputs.move_dir.rotated_z(random_angle);
+        }
+        if matches!(self.char_state, CharacterState::Roll(c) if c.stage_section == StageSection::Recover)
+        {
+            agent.action_state.timers[TIMER_LAST_ROLL] = 0.0;
+            agent.action_state.conditions[CONDITION_RANDOM_ROLL] = false;
+        }
 
         // Called when out of energy, or the situation is not right to use another
         // ability. Only contains tactics for using M1 and M2
@@ -728,7 +754,10 @@ impl<'a> AgentData<'a> {
                     energy: 2.5,
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
-                const CONDITION_HOLD: usize = 0;
+                const CONDITION_HOLD: usize = 1;
+                const COUNTER_ANGLE: usize = 1;
+                const TIMER_HOLD_TIMEOUT: usize = 1;
+                const HOLD_TIMEOUT: f32 = 3.0;
 
                 let mut try_block = || {
                     if let Some(char_state) = tgt_data.char_state {
@@ -749,14 +778,20 @@ impl<'a> AgentData<'a> {
                     }
                 };
 
+                if agent.action_state.conditions[CONDITION_HOLD] {
+                    agent.action_state.timers[TIMER_HOLD_TIMEOUT] += read_data.dt.0;
+                }
+
                 if read_data.time.0
                     - self
                         .health
                         .map_or(read_data.time.0, |h| h.last_change.time.0)
                     < read_data.dt.0 as f64 * 2.0
+                    || agent.action_state.timers[TIMER_HOLD_TIMEOUT] > HOLD_TIMEOUT
                 {
                     // If attacked in last couple ticks, stop standing still
                     agent.action_state.conditions[CONDITION_HOLD] = false;
+                    agent.action_state.timers[TIMER_HOLD_TIMEOUT] = 0.0;
                 } else if matches!(
                     self.char_state.ability_info().and_then(|info| info.input),
                     Some(InputKind::Ability(1))
@@ -795,7 +830,11 @@ impl<'a> AgentData<'a> {
                             DEFENSIVE_COMBO.angle,
                         );
                     }
-                } else if !agent.action_state.conditions[CONDITION_HOLD] {
+                } else if agent.action_state.conditions[CONDITION_HOLD] {
+                    agent.action_state.counters[COUNTER_ANGLE] += rng.gen::<f32>() * read_data.dt.0;
+                    controller.inputs.move_dir =
+                        Vec2::unit_x().rotated_z(agent.action_state.counters[COUNTER_ANGLE]) * 0.25;
+                } else {
                     advance(
                         agent,
                         controller,
@@ -891,7 +930,7 @@ impl<'a> AgentData<'a> {
                     );
                 }
 
-                const CONDITION_FEINT_DIR: usize = 0;
+                const CONDITION_FEINT_DIR: usize = 1;
 
                 if rng.gen::<f32>() < read_data.dt.0 {
                     agent.action_state.conditions[CONDITION_FEINT_DIR] =
@@ -1033,8 +1072,8 @@ impl<'a> AgentData<'a> {
                     }
                 };
 
-                const CONDITION_SELF_ROLLING: usize = 0;
-                const TIMER_DIVE_TIMEOUT: usize = 0;
+                const CONDITION_SELF_ROLLING: usize = 1;
+                const TIMER_DIVE_TIMEOUT: usize = 1;
 
                 if matches!(self.char_state, CharacterState::Roll(_)) {
                     agent.action_state.conditions[CONDITION_SELF_ROLLING] = true;
@@ -1225,8 +1264,8 @@ impl<'a> AgentData<'a> {
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
 
-                const CONDITION_POISE_DMG: usize = 0;
-                const TIMER_POMMELSTRIKE: usize = 0;
+                const CONDITION_POISE_DMG: usize = 1;
+                const TIMER_POMMELSTRIKE: usize = 1;
 
                 agent.action_state.conditions[CONDITION_POISE_DMG] = self
                     .poise
