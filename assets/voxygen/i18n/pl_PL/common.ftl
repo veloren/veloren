@@ -11,6 +11,7 @@ common-controls = Sterowanie
 common-video = Grafika
 common-sound = Dźwięk
 common-chat = Czat
+common-networking = Sieć
 common-resume = Kontynuuj
 common-characters = Postacie
 common-close = Zamknij
@@ -40,6 +41,7 @@ common-video_settings = Ustawienia grafiki
 common-sound_settings = Ustawienia dźwięku
 common-language_settings = Ustawienia języka
 common-chat_settings = Ustawienia czatu
+common-networking_settings = Ustawienia sieci
 common-connection_lost =
     Stracono połączenie!
     Czy serwer nie jest właśnie restartowany?.
@@ -72,6 +74,7 @@ common-tool-debug = Debug
 common-tool-farming = Narzędzie Rolnicze
 common-tool-pick = Kilof
 common-tool-mining = Kopanie
+common-tool-instrument = Instrument
 common-kind-modular_component = Modularna część
 common-kind-modular_component_partial = Część
 common-kind-glider = Lotnia

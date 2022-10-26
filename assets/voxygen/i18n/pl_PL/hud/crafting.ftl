@@ -2,6 +2,7 @@ hud-crafting = Tworzenie
 hud-crafting-recipes = Receptury
 hud-crafting-ingredients = Składniki:
 hud-crafting-craft = Stwórz
+hud-crafting-craft_all = Stwórz wszystko
 hud-crafting-tool_cata = Wymaga:
 hud-crafting-req_crafting_station = Wymaga:
 hud-crafting-anvil = Kowadło
