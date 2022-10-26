@@ -418,6 +418,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
+        const INT_COUNTER_STANCE: usize = 0;
         use ability::SwordStance;
         let stance = |stance| match stance {
             1 => SwordStance::Offensive,
@@ -435,7 +436,7 @@ impl<'a> AgentData<'a> {
             // entire set of necessary skills to take full advantage of AI. Make sure to
             // change this to properly query for all required skills when AI dynamically get
             // new skills and don't have pre-created skill sets.
-            agent.action_state.int_counter = if self
+            agent.action_state.int_counters[INT_COUNTER_STANCE] = if self
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::CripplingFinisher))
             {
@@ -462,7 +463,7 @@ impl<'a> AgentData<'a> {
                     new_ability: AuxiliaryAbility::MainWeapon(skill),
                 })
             };
-            match stance(agent.action_state.int_counter) {
+            match stance(agent.action_state.int_counters[INT_COUNTER_STANCE]) {
                 SwordStance::Balanced => {
                     // Balanced finisher
                     set_sword_ability(0, 8);
@@ -610,7 +611,7 @@ impl<'a> AgentData<'a> {
             }
         };
 
-        match stance(agent.action_state.int_counter) {
+        match stance(agent.action_state.int_counters[INT_COUNTER_STANCE]) {
             SwordStance::Balanced => {
                 const BALANCED_FINISHER: FinisherMeleeData = FinisherMeleeData {
                     range: 2.5,
@@ -727,6 +728,7 @@ impl<'a> AgentData<'a> {
                     energy: 2.5,
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
+                const CONDITION_HOLD: usize = 0;
 
                 let mut try_block = || {
                     if let Some(char_state) = tgt_data.char_state {
@@ -754,14 +756,14 @@ impl<'a> AgentData<'a> {
                     < read_data.dt.0 as f64 * 2.0
                 {
                     // If attacked in last couple ticks, stop standing still
-                    agent.action_state.condition = false;
+                    agent.action_state.conditions[CONDITION_HOLD] = false;
                 } else if matches!(
                     self.char_state.ability_info().and_then(|info| info.input),
                     Some(InputKind::Ability(1))
                 ) {
                     // If used defensive retreat, stand still for a little bit to bait people
                     // forward
-                    agent.action_state.condition = true;
+                    agent.action_state.conditions[CONDITION_HOLD] = true;
                 };
 
                 if self.energy.current() < DESIRED_ENERGY {
@@ -775,7 +777,7 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Block);
                 } else if DEFENSIVE_RETREAT.could_use(attack_data, self) && rng.gen::<f32>() < 0.2 {
                     controller.push_basic_input(InputKind::Ability(1));
-                    if !agent.action_state.condition {
+                    if !agent.action_state.conditions[CONDITION_HOLD] {
                         advance(
                             agent,
                             controller,
@@ -785,7 +787,7 @@ impl<'a> AgentData<'a> {
                     }
                 } else if DEFENSIVE_COMBO.could_use(attack_data, self) {
                     controller.push_basic_input(InputKind::Primary);
-                    if !agent.action_state.condition {
+                    if !agent.action_state.conditions[CONDITION_HOLD] {
                         advance(
                             agent,
                             controller,
@@ -793,7 +795,7 @@ impl<'a> AgentData<'a> {
                             DEFENSIVE_COMBO.angle,
                         );
                     }
-                } else if !agent.action_state.condition {
+                } else if !agent.action_state.conditions[CONDITION_HOLD] {
                     advance(
                         agent,
                         controller,
@@ -889,10 +891,13 @@ impl<'a> AgentData<'a> {
                     );
                 }
 
+                const CONDITION_FEINT_DIR: usize = 0;
+
                 if rng.gen::<f32>() < read_data.dt.0 {
-                    agent.action_state.condition = !agent.action_state.condition;
+                    agent.action_state.conditions[CONDITION_FEINT_DIR] =
+                        !agent.action_state.conditions[CONDITION_FEINT_DIR];
                 }
-                let dir = if agent.action_state.condition {
+                let dir = if agent.action_state.conditions[CONDITION_FEINT_DIR] {
                     1.0
                 } else {
                     -1.0
@@ -1028,20 +1033,23 @@ impl<'a> AgentData<'a> {
                     }
                 };
 
+                const CONDITION_SELF_ROLLING: usize = 0;
+                const TIMER_DIVE_TIMEOUT: usize = 0;
+
                 if matches!(self.char_state, CharacterState::Roll(_)) {
-                    agent.action_state.condition = true;
+                    agent.action_state.conditions[CONDITION_SELF_ROLLING] = true;
                 }
 
-                if agent.action_state.condition {
+                if agent.action_state.conditions[CONDITION_SELF_ROLLING] {
                     if self.physics_state.on_ground.is_some() {
                         controller.push_basic_input(InputKind::Jump);
                     } else {
                         controller.push_basic_input(InputKind::Ability(3));
                     }
-                    agent.action_state.timer += read_data.dt.0;
-                    if agent.action_state.timer > 2.0 {
-                        agent.action_state.timer = 0.0;
-                        agent.action_state.condition = false;
+                    agent.action_state.timers[TIMER_DIVE_TIMEOUT] += read_data.dt.0;
+                    if agent.action_state.timers[TIMER_DIVE_TIMEOUT] > 2.0 {
+                        agent.action_state.timers[TIMER_DIVE_TIMEOUT] = 0.0;
+                        agent.action_state.conditions[CONDITION_SELF_ROLLING] = false;
                     }
                     advance(agent, controller, CLEAVING_DIVE.range, CLEAVING_DIVE.angle);
                 } else if self.energy.current() < DESIRED_ENERGY {
@@ -1217,14 +1225,17 @@ impl<'a> AgentData<'a> {
                 };
                 const DESIRED_ENERGY: f32 = 50.0;
 
-                agent.action_state.condition = self
+                const CONDITION_POISE_DMG: usize = 0;
+                const TIMER_POMMELSTRIKE: usize = 0;
+
+                agent.action_state.conditions[CONDITION_POISE_DMG] = self
                     .poise
                     .map_or(false, |p| p.current() < p.maximum() * 0.8);
                 if matches!(
                     self.char_state.ability_info().and_then(|info| info.ability),
                     Some(Ability::MainWeaponAux(21))
                 ) {
-                    agent.action_state.timer = 0.0;
+                    agent.action_state.timers[TIMER_POMMELSTRIKE] = 0.0;
                 }
 
                 if self.energy.current() < DESIRED_ENERGY {
@@ -1233,7 +1244,7 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Ability(0));
                 } else if HEAVY_FORTITUDE.could_use(self)
                     && HEAVY_FORTITUDE.use_desirable(self)
-                    && agent.action_state.condition
+                    && agent.action_state.conditions[CONDITION_POISE_DMG]
                 {
                     controller.push_basic_input(InputKind::Ability(3));
                 } else if HEAVY_FINISHER.could_use(attack_data, self)
@@ -1248,7 +1259,8 @@ impl<'a> AgentData<'a> {
                     );
                 } else if HEAVY_POMMELSTRIKE.could_use(attack_data, self)
                     && rng.gen::<f32>()
-                        < agent.action_state.timer * self.poise.map_or(0.5, |p| p.fraction())
+                        < agent.action_state.timers[TIMER_POMMELSTRIKE]
+                            * self.poise.map_or(0.5, |p| p.fraction())
                 {
                     controller.push_basic_input(InputKind::Ability(2));
                     advance(
@@ -1260,6 +1272,7 @@ impl<'a> AgentData<'a> {
                 } else if HEAVY_COMBO.could_use(attack_data, self) {
                     controller.push_basic_input(InputKind::Primary);
                     advance(agent, controller, HEAVY_COMBO.max_range, HEAVY_COMBO.angle);
+                    agent.action_state.timers[TIMER_POMMELSTRIKE] += read_data.dt.0;
                 } else {
                     advance(agent, controller, HEAVY_COMBO.max_range, HEAVY_COMBO.angle);
                 }
