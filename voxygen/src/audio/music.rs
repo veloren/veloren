@@ -47,6 +47,7 @@ use crate::audio::{AudioFrontend, MusicChannelTag};
 use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
+    calendar::{Calendar, CalendarEvent},
     terrain::{BiomeKind, SiteKindMeta},
     weather::WeatherKind,
 };
@@ -204,10 +205,10 @@ impl assets::Asset for MusicTransitionManifest {
     const EXTENSION: &'static str = "ron";
 }
 
-impl Default for MusicMgr {
-    fn default() -> Self {
+impl MusicMgr {
+    pub fn new(calendar: &Calendar) -> Self {
         Self {
-            soundtrack: Self::load_soundtrack_items(),
+            soundtrack: Self::load_soundtrack_items(calendar),
             began_playing: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
@@ -218,9 +219,7 @@ impl Default for MusicMgr {
             track_length: 0.0,
         }
     }
-}
 
-impl MusicMgr {
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
@@ -488,9 +487,26 @@ impl MusicMgr {
         }
     }
 
-    fn load_soundtrack_items() -> AssetHandle<SoundtrackCollection<SoundtrackItem>> {
+    fn load_soundtrack_items(
+        calendar: &Calendar,
+    ) -> AssetHandle<SoundtrackCollection<SoundtrackItem>> {
         // Cannot fail: A default value is always provided
-        SoundtrackCollection::load_expect("voxygen.audio.soundtrack")
+        let mut soundtrack = SoundtrackCollection::load_expect("voxygen.audio.soundtrack");
+        if calendar.events().len() == 0 {
+            soundtrack
+        } else {
+            for event in calendar.events() {
+                match event {
+                    CalendarEvent::Halloween => {
+                        soundtrack = SoundtrackCollection::load_expect(
+                            "voxygen.audio.calendar.halloween.soundtrack",
+                        );
+                    },
+                    _ => soundtrack = SoundtrackCollection::load_expect("voxygen.audio.soundtrack"),
+                }
+            }
+            soundtrack
+        }
     }
 }
 impl assets::Asset for SoundtrackCollection<RawSoundtrackItem> {
