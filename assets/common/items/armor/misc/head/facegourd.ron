@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pumpkin Head.",
-    description: "Halloween attire.",
+    name: "Facegourd",
+    description: "Pumpkin Head.",
     kind: Armor((
         kind: Head,
         stats: Direct((

@@ -5,5 +5,4 @@
     (5.0, LootTable("common.loot_tables.armor.tier-3")),
     // Misc
     (2.0, Item("common.items.armor.misc.head.facegourd")),
-    (2.0, Item("common.items.lantern.pumpkin")),
 ]
