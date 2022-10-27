@@ -71,3 +71,144 @@ impl Default for GraphicsSettings {
         }
     }
 }
+
+impl GraphicsSettings {
+    pub fn into_minimal(self) -> Self {
+        use crate::render::*;
+        Self {
+            terrain_view_distance: 4,
+            entity_view_distance: 4,
+            lod_distance: 0,
+            sprite_render_distance: 80,
+            figure_lod_render_distance: 100,
+            lod_detail: 80,
+            render_mode: RenderMode {
+                aa: AaMode::FxUpscale,
+                cloud: CloudMode::Minimal,
+                reflection: ReflectionMode::Low,
+                fluid: FluidMode::Low,
+                lighting: LightingMode::Lambertian,
+                shadow: ShadowMode::None,
+                rain_occlusion: ShadowMapMode { resolution: 0.25 },
+                bloom: BloomMode::Off,
+                point_glow: 0.0,
+                upscale_mode: UpscaleMode { factor: 0.35 },
+                ..self.render_mode
+            },
+            ..self
+        }
+    }
+
+    pub fn into_low(self) -> Self {
+        use crate::render::*;
+        Self {
+            terrain_view_distance: 7,
+            entity_view_distance: 7,
+            lod_distance: 75,
+            sprite_render_distance: 125,
+            figure_lod_render_distance: 200,
+            lod_detail: 200,
+            render_mode: RenderMode {
+                aa: AaMode::FxUpscale,
+                cloud: CloudMode::Low,
+                reflection: ReflectionMode::Medium,
+                fluid: FluidMode::Low,
+                lighting: LightingMode::Lambertian,
+                shadow: ShadowMode::Cheap,
+                rain_occlusion: ShadowMapMode { resolution: 0.25 },
+                bloom: BloomMode::Off,
+                point_glow: 0.35,
+                upscale_mode: UpscaleMode { factor: 0.65 },
+                ..self.render_mode
+            },
+            ..self
+        }
+    }
+
+    pub fn into_medium(self) -> Self {
+        use crate::render::*;
+        Self {
+            terrain_view_distance: 10,
+            entity_view_distance: 10,
+            lod_distance: 150,
+            sprite_render_distance: 250,
+            figure_lod_render_distance: 350,
+            lod_detail: 300,
+            render_mode: RenderMode {
+                aa: AaMode::Fxaa,
+                cloud: CloudMode::Medium,
+                reflection: ReflectionMode::High,
+                fluid: FluidMode::Medium,
+                lighting: LightingMode::BlinnPhong,
+                shadow: ShadowMode::Map(ShadowMapMode { resolution: 0.75 }),
+                rain_occlusion: ShadowMapMode { resolution: 0.25 },
+                bloom: BloomMode::On(BloomConfig {
+                    factor: BloomFactor::Medium,
+                    uniform_blur: false,
+                }),
+                point_glow: 0.35,
+                upscale_mode: UpscaleMode { factor: 0.85 },
+                ..self.render_mode
+            },
+            ..self
+        }
+    }
+
+    pub fn into_high(self) -> Self {
+        use crate::render::*;
+        Self {
+            terrain_view_distance: 16,
+            entity_view_distance: 16,
+            lod_distance: 200,
+            sprite_render_distance: 350,
+            figure_lod_render_distance: 450,
+            lod_detail: 375,
+            render_mode: RenderMode {
+                aa: AaMode::Fxaa,
+                cloud: CloudMode::Medium,
+                reflection: ReflectionMode::High,
+                fluid: FluidMode::Medium,
+                lighting: LightingMode::Ashikhmin,
+                shadow: ShadowMode::Map(ShadowMapMode { resolution: 1.0 }),
+                rain_occlusion: ShadowMapMode { resolution: 0.5 },
+                bloom: BloomMode::On(BloomConfig {
+                    factor: BloomFactor::Medium,
+                    uniform_blur: true,
+                }),
+                point_glow: 0.35,
+                upscale_mode: UpscaleMode { factor: 1.0 },
+                ..self.render_mode
+            },
+            ..self
+        }
+    }
+
+    pub fn into_ultra(self) -> Self {
+        use crate::render::*;
+        Self {
+            terrain_view_distance: 16,
+            entity_view_distance: 16,
+            lod_distance: 450,
+            sprite_render_distance: 800,
+            figure_lod_render_distance: 600,
+            lod_detail: 500,
+            render_mode: RenderMode {
+                aa: AaMode::Fxaa,
+                cloud: CloudMode::High,
+                reflection: ReflectionMode::High,
+                fluid: FluidMode::High,
+                lighting: LightingMode::Ashikhmin,
+                shadow: ShadowMode::Map(ShadowMapMode { resolution: 1.75 }),
+                rain_occlusion: ShadowMapMode { resolution: 0.5 },
+                bloom: BloomMode::On(BloomConfig {
+                    factor: BloomFactor::Medium,
+                    uniform_blur: true,
+                }),
+                point_glow: 0.35,
+                upscale_mode: UpscaleMode { factor: 1.25 },
+                ..self.render_mode
+            },
+            ..self
+        }
+    }
+}

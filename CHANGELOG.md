@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added screen-space reflection and refraction shaders
 - Added reflection quality setting
 - UI: Added a poise indicator to the player's status bars
+- FxUpscale AA mode for higher quality graphics at reduced internal resolutions
+- Graphics presets
 
 ### Changed
 - Use fluent for translations

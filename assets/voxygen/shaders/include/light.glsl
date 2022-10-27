@@ -110,7 +110,7 @@ float shadow_at(vec3 wpos, vec3 wnorm) {
             diff.z = -sign(diff.z) * diff.z * 0.1;
         }
 
-        float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.25) / pow(radius * radius * 0.5, 0.25), 0.5);
+        float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.35) / pow(radius * radius * 0.5, 0.5), 0.5);
         // float shade = max(pow(dot(diff, diff) / (radius * radius * 0.5), 0.25), 0.5);
         // float shade = dot(diff, diff) / (radius * radius * 0.5);
 

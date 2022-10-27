@@ -164,6 +164,7 @@ impl ShaderModules {
         let shadows = shaders.get("include.shadows").unwrap();
         let rain_occlusion = shaders.get("include.rain_occlusion").unwrap();
         let point_glow = shaders.get("include.point_glow").unwrap();
+        let fxaa = shaders.get("include.fxaa").unwrap();
 
         // We dynamically add extra configuration settings to the constants file.
         let mut constants = format!(
@@ -255,6 +256,7 @@ impl ShaderModules {
                 AaMode::MsaaX8 => "antialias.msaa-x8",
                 AaMode::MsaaX16 => "antialias.msaa-x16",
                 AaMode::Hqx => "antialias.hqx",
+                AaMode::FxUpscale => "antialias.fxupscale",
             })
             .unwrap();
 
@@ -285,6 +287,7 @@ impl ShaderModules {
                     "anti-aliasing.glsl" => anti_alias.0.to_owned(),
                     "cloud.glsl" => cloud.0.to_owned(),
                     "point_glow.glsl" => point_glow.0.to_owned(),
+                    "fxaa.glsl" => fxaa.0.to_owned(),
                     other => {
                         return Err(format!(
                             "Include {} in {} is not defined",

@@ -3,14 +3,14 @@ use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 use crate::{
     hud::{
         img_ids::Imgs, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR, MENU_BG, STAMINA_COLOR,
-        TEXT_COLOR,
+        TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, UI_SUBTLE,
     },
     render::{
         AaMode, BloomConfig, BloomFactor, BloomMode, CloudMode, FluidMode, LightingMode,
         PresentMode, ReflectionMode, RenderMode, ShadowMapMode, ShadowMode, UpscaleMode,
     },
     session::settings_change::Graphics as GraphicsChange,
-    settings::Fps,
+    settings::{Fps, GraphicsSettings},
     ui::{fonts::Fonts, ImageSlider, ToggleButton},
     window::{FullScreenSettings, FullscreenMode},
     GlobalState,
@@ -25,7 +25,7 @@ use core::convert::TryFrom;
 use i18n::Localization;
 
 use itertools::Itertools;
-use std::iter::once;
+use std::{iter::once, rc::Rc};
 use winit::monitor::VideoMode;
 
 widget_ids! {
@@ -34,6 +34,11 @@ widget_ids! {
         window_r,
         window_scrollbar,
         reset_graphics_button,
+        minimal_graphics_button,
+        low_graphics_button,
+        medium_graphics_button,
+        high_graphics_button,
+        ultra_graphics_button,
         fps_counter,
         pipeline_recreation_text,
         terrain_vd_slider,
@@ -284,9 +289,81 @@ impl<'a> Widget for Video<'a> {
                 .set(state.ids.pipeline_recreation_text, ui);
         }
 
+        // Reset the graphics settings to the default settings
+        if Button::image(self.imgs.button)
+            .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
+            .label(
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-reset_graphics"),
+            )
+            .label_font_size(self.fonts.cyri.scale(14))
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .label_y(Relative::Scalar(2.0))
+            .set(state.ids.reset_graphics_button, ui)
+            .was_clicked()
+        {
+            events.push(GraphicsChange::ResetGraphicsSettings);
+        }
+
+        // Graphics presets buttons
+        let preset_buttons: [(_, _, fn(_) -> _); 5] = [
+            (
+                "hud-settings-minimal_graphics",
+                state.ids.minimal_graphics_button,
+                GraphicsSettings::into_minimal,
+            ),
+            (
+                "hud-settings-low_graphics",
+                state.ids.low_graphics_button,
+                GraphicsSettings::into_low,
+            ),
+            (
+                "hud-settings-medium_graphics",
+                state.ids.medium_graphics_button,
+                GraphicsSettings::into_medium,
+            ),
+            (
+                "hud-settings-high_graphics",
+                state.ids.high_graphics_button,
+                GraphicsSettings::into_high,
+            ),
+            (
+                "hud-settings-ultra_graphics",
+                state.ids.ultra_graphics_button,
+                GraphicsSettings::into_ultra,
+            ),
+        ];
+
+        let mut lhs = state.ids.reset_graphics_button;
+
+        for (msg, id, change_fn) in preset_buttons {
+            if Button::new()
+                .label(&self.localized_strings.get_msg(msg))
+                .w_h(80.0, 34.0)
+                .color(UI_SUBTLE)
+                .hover_color(UI_MAIN)
+                .press_color(UI_HIGHLIGHT_0)
+                .right_from(lhs, 12.0)
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_y(Relative::Scalar(2.0))
+                .set(id, ui)
+                .was_clicked()
+            {
+                events.push(GraphicsChange::ChangeGraphicsSettings(Rc::new(change_fn)));
+            }
+            lhs = id;
+        }
+
         // View Distance
         Text::new(&self.localized_strings.get_msg("hud-settings-view_distance"))
-            .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
+            .down_from(state.ids.reset_graphics_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
@@ -806,6 +883,7 @@ impl<'a> Widget for Video<'a> {
             /* AaMode::MsaaX4,
             AaMode::MsaaX8,
             AaMode::MsaaX16, */
+            AaMode::FxUpscale,
             AaMode::Hqx,
         ];
         let mode_label_list = [
@@ -814,6 +892,7 @@ impl<'a> Widget for Video<'a> {
             /* "MSAA x4",
             "MSAA x8",
             "MSAA x16 (experimental)", */
+            "FXUpscale",
             "HQX",
         ];
 
@@ -1667,28 +1746,6 @@ impl<'a> Widget for Video<'a> {
                     .map(|e| e as u16)
                     .into_array(),
             ));
-        }
-
-        // Reset the graphics settings to the default settings
-        if Button::image(self.imgs.button)
-            .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .down_from(state.ids.fullscreen_mode_list, 12.0)
-            .right_from(state.ids.save_window_size_button, 12.0)
-            .label(
-                &self
-                    .localized_strings
-                    .get_msg("hud-settings-reset_graphics"),
-            )
-            .label_font_size(self.fonts.cyri.scale(14))
-            .label_color(TEXT_COLOR)
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .label_y(Relative::Scalar(2.0))
-            .set(state.ids.reset_graphics_button, ui)
-            .was_clicked()
-        {
-            events.push(GraphicsChange::ResetGraphicsSettings);
         }
 
         events
