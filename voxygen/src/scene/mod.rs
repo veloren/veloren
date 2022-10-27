@@ -30,6 +30,7 @@ use crate::{
 };
 use client::Client;
 use common::{
+    calendar::Calendar,
     comp,
     outcome::Outcome,
     resources::DeltaTime,
@@ -307,6 +308,8 @@ impl Scene {
             _ => CameraMode::ThirdPerson,
         };
 
+        let calendar = client.state().ecs().read_resource::<Calendar>();
+
         Self {
             data,
             globals_bind_group,
@@ -331,7 +334,7 @@ impl Scene {
             trail_mgr: TrailMgr::default(),
             figure_mgr: FigureMgr::new(renderer),
             sfx_mgr: SfxMgr::default(),
-            music_mgr: MusicMgr::default(),
+            music_mgr: MusicMgr::new(&calendar),
             ambient_mgr: AmbientMgr {
                 ambience: ambient::load_ambience_items(),
             },
