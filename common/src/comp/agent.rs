@@ -520,7 +520,7 @@ impl fmt::Display for Awareness {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:.2}", self.level) }
 }
 impl Awareness {
-    const AWARE: f32 = 1.0;
+    const ALERT: f32 = 1.0;
     const HIGH: f32 = 0.6;
     const LOW: f32 = 0.1;
     const MEDIUM: f32 = 0.3;
@@ -528,7 +528,7 @@ impl Awareness {
 
     pub fn new(level: f32) -> Self {
         Self {
-            level: level.clamp(Self::UNAWARE, Self::AWARE),
+            level: level.clamp(Self::UNAWARE, Self::ALERT),
             reached: false,
         }
     }
@@ -539,9 +539,9 @@ impl Awareness {
     /// The level of awareness in English. To see if awareness has been fully
     /// reached, use `self.reached()`.
     pub fn state(&self) -> AwarenessState {
-        if self.level == Self::AWARE {
-            AwarenessState::Aware
-        } else if self.level.is_between(Self::HIGH, Self::AWARE) {
+        if self.level == Self::ALERT {
+            AwarenessState::Alert
+        } else if self.level.is_between(Self::HIGH, Self::ALERT) {
             AwarenessState::High
         } else if self.level.is_between(Self::MEDIUM, Self::HIGH) {
             AwarenessState::Medium
@@ -557,9 +557,9 @@ impl Awareness {
 
     pub fn change_by(&mut self, amount: f32, dt: f32) {
         let change = amount * dt * 30.0;
-        self.level = (self.level + change).clamp(Self::UNAWARE, Self::AWARE);
+        self.level = (self.level + change).clamp(Self::UNAWARE, Self::ALERT);
 
-        if self.state() == AwarenessState::Aware {
+        if self.state() == AwarenessState::Alert {
             self.reached = true;
         } else if self.state() == AwarenessState::Unaware {
             self.reached = false;
@@ -573,7 +573,7 @@ pub enum AwarenessState {
     Low = 1,
     Medium = 2,
     High = 3,
-    Aware = 4,
+    Alert = 4,
 }
 
 #[derive(Clone, Debug, Default)]

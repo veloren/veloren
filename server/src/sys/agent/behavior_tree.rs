@@ -306,10 +306,10 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
 /// If target is hostile and agent is aware of target, do the hostile tree and
 /// stop the current BehaviorTree
 fn do_hostile_tree_if_hostile_and_aware(bdata: &mut BehaviorData) -> bool {
-    let aware = bdata.agent.awareness.reached();
+    let alert = bdata.agent.awareness.reached();
 
     if let Some(Target { hostile, .. }) = bdata.agent.target {
-        if aware && hostile {
+        if alert && hostile {
             BehaviorTree::hostile().run(bdata);
             return true;
         }
