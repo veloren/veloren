@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Added a poise indicator to the player's status bars
 - FxUpscale AA mode for higher quality graphics at reduced internal resolutions
 - Graphics presets
+- Sword
 
 ### Changed
 - Use fluent for translations
