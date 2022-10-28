@@ -1,6 +1,10 @@
 use super::*;
 use crate::{site2::gen::PrimitiveTransform, Land};
-use common::terrain::{BiomeKind, Block, BlockKind};
+use common::{
+    generation::EntityInfo,
+    terrain::{BiomeKind, Block, BlockKind},
+};
+use num::integer::Roots;
 use rand::prelude::*;
 use vek::*;
 
@@ -26,7 +30,9 @@ impl HeightenedViaduct {
             slope_inv: rng.gen_range(6..=8),
             bridge_start_offset: rng.gen_range(5..=12),
             vault_spacing: rng.gen_range(3..=4),
-            vault_size: *[(3, 16), (1, 4), (1, 4), (1, 4), (5, 32), (5, 32)].choose(rng).unwrap(),
+            vault_size: *[(3, 16), (1, 4), (1, 4), (1, 4), (5, 32), (5, 32)]
+                .choose(rng)
+                .unwrap(),
             side_vault_size: *[(4, 5), (7, 10), (7, 10), (13, 20)].choose(rng).unwrap(),
             holes: rng.gen_bool(0.5),
         }
@@ -38,6 +44,42 @@ enum BridgeKind {
     Tower(RoofKind),
     Short,
     HeightenedViaduct(HeightenedViaduct),
+    HangBridge,
+}
+
+impl BridgeKind {
+    fn random(
+        rng: &mut impl Rng,
+        start: Vec3<i32>,
+        center: Vec3<i32>,
+        end: Vec3<i32>,
+    ) -> BridgeKind {
+        let len = (start.xy() - end.xy()).map(|e| e.abs()).reduce_max();
+        (0..=3)
+            .filter_map(|bridge| match bridge {
+                0 if end.z - start.z > 17 => Some(BridgeKind::Tower(match rng.gen_range(0..=2) {
+                    0 => RoofKind::Crenelated,
+                    _ => RoofKind::Hipped,
+                })),
+                1 if len < 40 => Some(BridgeKind::Short),
+                2 if end.z - start.z < 5 && start.z - center.z < 16 => Some(
+                    BridgeKind::HeightenedViaduct(HeightenedViaduct::random(rng)),
+                ),
+                3 if end.z - start.z < 9 && start.z - center.z > 10 => Some(BridgeKind::HangBridge),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+            .into_iter()
+            .choose(rng)
+            .unwrap_or(BridgeKind::Flat)
+    }
+
+    fn width(&self) -> i32 {
+        match self {
+            BridgeKind::HangBridge => 2,
+            _ => 8,
+        }
+    }
 }
 
 fn aabb(min: Vec3<i32>, max: Vec3<i32>) -> Aabb<i32> {
@@ -162,7 +204,7 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
     let size = tweak!(8);
     let hole = painter
         .cylinder(aabb(
-            bridge.center.with_z(bridge.end.z - 3 - bridge.width * 2) - Vec2::broadcast(size),
+            bridge.center.with_z(bridge.end.z - 3 - bridge.width() * 2) - Vec2::broadcast(size),
             bridge.center.with_z(bridge.end.z + 2) + Vec2::broadcast(size),
         ))
         .rotate_about(
@@ -170,7 +212,7 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
             bridge
                 .center
                 .as_()
-                .with_z(bridge.end.z as f32 - 1.5 - bridge.width as f32),
+                .with_z(bridge.end.z as f32 - 1.5 - bridge.width() as f32),
         )
         .scale(
             bridge.dir.abs().to_vec3().as_()
@@ -182,9 +224,9 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
         .ramp(
             aabb(
                 bridge.start.with_z(bridge.start.z - inset)
-                    - orthogonal * bridge.width
+                    - orthogonal * bridge.width()
                     - forward * inset,
-                bridge.start.with_z(bridge.end.z) + orthogonal * bridge.width + forward * dz,
+                bridge.start.with_z(bridge.end.z) + orthogonal * bridge.width() + forward * dz,
             ),
             dz + inset + 1,
             bridge.dir,
@@ -192,10 +234,10 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
         .union(
             painter
                 .aabb(aabb(
-                    bridge.start.with_z(bridge.end.z - 3 - size) - orthogonal * bridge.width
+                    bridge.start.with_z(bridge.end.z - 3 - size) - orthogonal * bridge.width()
                         + forward * dz,
                     bridge.start.with_z(bridge.end.z)
-                        + orthogonal * bridge.width
+                        + orthogonal * bridge.width()
                         + forward * forward * (bridge.end.xy() - bridge.start.xy()),
                 ))
                 .without(hole),
@@ -226,7 +268,7 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
     // bridge.start.z)).with_z(bridge_start_z), ), bridge_start_z -
     // bridge.start.z, bridge.dir).fill(rock);
 
-    let bridge_width = bridge.width;
+    let bridge_width = bridge.width();
     let side = orthogonal * bridge_width;
 
     let aabr = Aabr {
@@ -317,6 +359,14 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
         orth_dir,
     );
 
+    let mut rng = thread_rng();
+    if rng.gen_bool(0.1) {
+        painter.spawn(
+            EntityInfo::at(c.with_z(bridge.center.z).as_())
+                .with_asset_expect("common.entity.wild.aggressive.swamp_troll", &mut rng),
+        );
+    }
+
     if side_vault * 2 + side_vault_offset < len / 2 + 5 {
         remove = remove.union(
             painter
@@ -339,35 +389,52 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
                     ),
                 ),
         );
-        
+
         if data.holes {
             remove = remove.union(
-                painter.vault(aabb(
-                    (c - side + forward * (vault_size + 1)).with_z(side_vault_top - 4),
-                    (c + side + forward * (vault_size + spacing)).with_z(side_vault_top + 2),
-                ), orth_dir).union(
-                    painter.vault(aabb(
-                        (c - side - forward * (vault_size + 1)).with_z(side_vault_top - 4),
-                        (c + side - forward * (vault_size + spacing)).with_z(side_vault_top + 2),
-                    ), orth_dir)
-                )
+                painter
+                    .vault(
+                        aabb(
+                            (c - side + forward * (vault_size + 1)).with_z(side_vault_top - 4),
+                            (c + side + forward * (vault_size + spacing))
+                                .with_z(side_vault_top + 2),
+                        ),
+                        orth_dir,
+                    )
+                    .union(
+                        painter.vault(
+                            aabb(
+                                (c - side - forward * (vault_size + 1)).with_z(side_vault_top - 4),
+                                (c + side - forward * (vault_size + spacing))
+                                    .with_z(side_vault_top + 2),
+                            ),
+                            orth_dir,
+                        ),
+                    ),
             );
         }
     }
 
-    bridge_prim(bridge_width)
-        .without(remove)
-        .fill(rock.clone());
+    bridge_prim(bridge_width).without(remove).fill(rock.clone());
     b.translate(-Vec3::unit_z()).fill(light_rock.clone());
 
     br.translate(Vec3::unit_z() * 5)
         .without(br.translate(-Vec3::unit_z()))
         .clear();
 
-
     let place_lights = |center: Vec3<i32>| {
-        painter.sprite(orth_dir.select_aabr_with(bridge_aabr, center.xy()).with_z(center.z), SpriteKind::FireBowlGround);
-        painter.sprite((-orth_dir).select_aabr_with(bridge_aabr, center.xy()).with_z(center.z), SpriteKind::FireBowlGround);
+        painter.sprite(
+            orth_dir
+                .select_aabr_with(bridge_aabr, center.xy())
+                .with_z(center.z),
+            SpriteKind::FireBowlGround,
+        );
+        painter.sprite(
+            (-orth_dir)
+                .select_aabr_with(bridge_aabr, center.xy())
+                .with_z(center.z),
+            SpriteKind::FireBowlGround,
+        );
     };
 
     place_lights(bridge_aabr.center().with_z(bridge_top + 1));
@@ -377,10 +444,20 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
 
     let place_lights = |i: i32| {
         let offset = i * light_spacing;
-        let z = bridge_start_z + 1 + (offset + if len / 2 % 2 == 0 { 4 } else { 3 }) / (slope_inv - 1);
-        
-        place_lights((bridge.dir.select_aabr_with(bridge_aabr, bridge_aabr.center()) - forward * offset).with_z(z));
-        place_lights(((-bridge.dir).select_aabr_with(bridge_aabr, bridge_aabr.center()) + forward * offset).with_z(z));
+        let z =
+            bridge_start_z + 1 + (offset + if len / 2 % 2 == 0 { 4 } else { 3 }) / (slope_inv - 1);
+
+        place_lights(
+            (bridge
+                .dir
+                .select_aabr_with(bridge_aabr, bridge_aabr.center())
+                - forward * offset)
+                .with_z(z),
+        );
+        place_lights(
+            ((-bridge.dir).select_aabr_with(bridge_aabr, bridge_aabr.center()) + forward * offset)
+                .with_z(z),
+        );
     };
     for i in 0..num_lights {
         place_lights(i);
@@ -603,10 +680,112 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
     }
 }
 
+fn render_hang(bridge: &Bridge, painter: &Painter) {
+    let orth_dir = bridge.dir.orthogonal();
+
+    let orthogonal = orth_dir.to_vec2();
+    let forward = bridge.dir.to_vec2();
+
+    let rock = Fill::Block(Block::new(BlockKind::Rock, Rgb::gray(50)));
+    let wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(133, 94, 66)));
+
+    let bridge_width = bridge.width();
+    let side = orthogonal * bridge_width;
+
+    let aabr = Aabr {
+        min: bridge.start.xy() - side,
+        max: bridge.end.xy() + side,
+    }
+    .made_valid();
+
+    let top_offset = 4;
+    let top = bridge.end.z + top_offset;
+
+    let [ramp_f, aabr] = bridge.dir.split_aabr(aabr, top - bridge.start.z + 1);
+
+    painter
+        .aabb(aabb(
+            ramp_f.min.with_z(bridge.start.z - 10),
+            ramp_f.max.with_z(bridge.start.z),
+        ))
+        .fill(rock.clone());
+    painter
+        .ramp(
+            aabb(ramp_f.min.with_z(bridge.start.z), ramp_f.max.with_z(top)),
+            top - bridge.start.z + 1,
+            bridge.dir,
+        )
+        .fill(rock.clone());
+
+    let [ramp_b, aabr] = (-bridge.dir).split_aabr(aabr, top_offset + 1);
+    painter
+        .aabb(aabb(
+            ramp_b.min.with_z(bridge.end.z - 10),
+            ramp_b.max.with_z(bridge.end.z),
+        ))
+        .fill(rock.clone());
+    painter
+        .ramp(
+            aabb(ramp_b.min.with_z(bridge.end.z), ramp_b.max.with_z(top)),
+            top - bridge.end.z,
+            -bridge.dir,
+        )
+        .fill(rock.clone());
+
+    let len = bridge.dir.select(aabr.size());
+
+    let h = 3 * len.sqrt() / 4;
+
+    let x = len / 2;
+
+    let xsqr = (x * x) as f32;
+    let hsqr = (h * h) as f32;
+    let w = ((xsqr + (xsqr * (4.0 * hsqr + xsqr)).sqrt()) / 2.0).sqrt().ceil() + 1.0;
+
+
+    let bottom = top - (h - (hsqr - hsqr * x as f32 / w).sqrt().ceil() as i32);
+
+    let w = w as i32;
+    let c = aabr.center();
+
+    let cylinder = painter
+        .horizontal_cylinder(
+            aabb(
+                (c - forward * w - side).with_z(bottom),
+                (c + forward * w + side).with_z(bottom + h * 2),
+            ),
+            orth_dir,
+        )
+        .intersect(painter.aabb(aabb(aabr.min.with_z(bottom), aabr.max.with_z(bottom + h * 2))));
+
+    cylinder.fill(wood.clone());
+
+    cylinder.translate(Vec3::unit_z()).clear();
+
+    let edges = cylinder
+        .without(cylinder.translate(Vec3::unit_z()))
+        .without(painter.aabb(aabb(
+            (c - forward * w - orthogonal * (bridge_width - 1)).with_z(bottom),
+            (c + forward * w + orthogonal * (bridge_width - 1)).with_z(bottom + h * 2),
+        )));
+
+    edges
+        .translate(Vec3::unit_z())
+        .fill(Fill::Sprite(SpriteKind::Rope));
+
+    edges.translate(Vec3::unit_z() * 2).fill(wood.clone());
+
+    let column_height = 3;
+    let column_range = top..=top + column_height;
+    painter.column(bridge.dir.select_aabr_with(ramp_f, ramp_f.min), column_range.clone()).fill(rock.clone());
+    painter.column(bridge.dir.select_aabr_with(ramp_f, ramp_f.max), column_range.clone()).fill(rock.clone());
+    painter.column((-bridge.dir).select_aabr_with(ramp_b, ramp_b.min), column_range.clone()).fill(rock.clone());
+    painter.column((-bridge.dir).select_aabr_with(ramp_b, ramp_b.max), column_range.clone()).fill(rock.clone());
+}
+
 pub struct Bridge {
     pub(crate) start: Vec3<i32>,
     pub(crate) end: Vec3<i32>,
-    pub(crate) width: i32,
     pub(crate) dir: Dir,
     center: Vec3<i32>,
     kind: BridgeKind,
@@ -658,17 +837,6 @@ impl Bridge {
                 } else {
                     break test_start.with_z(last_alt);
                 }
-
-                /*
-                let alt = land.get_alt_approx(test_start + dir);
-                let is_water = land.get_chunk_wpos(test_start + dir * 5).map_or(false, |chunk| chunk.river.river_kind.is_some());
-                if is_water || last_alt - alt as i32 > 1 || start.z - alt as i32 > 5 {
-                    break test_start.with_z(last_alt);
-                }
-                last_alt = alt as i32;
-
-                test_start += dir;
-                */
             }
         };
 
@@ -684,32 +852,20 @@ impl Bridge {
 
         let center = (start.xy() + end.xy()) / 2;
         let center = center.with_z(land.get_alt_approx(center) as i32);
-
-        let len = (start.xy() - end.xy()).map(|e| e.abs()).reduce_max();
-
+        let bridge = BridgeKind::random(rng, start, center, end);
         Self {
             start,
             end,
             center,
             dir: Dir::from_vector(end.xy() - start.xy()),
-            kind: if end.z - start.z > 17 {
-                BridgeKind::Tower(match rng.gen_range(0..=2) {
-                    0 => RoofKind::Crenelated,
-                    _ => RoofKind::Hipped,
-                })
-            } else if len < 40 {
-                BridgeKind::Short
-            } else if end.z - start.z < 5 && start.z - center.z < 16 {
-                BridgeKind::HeightenedViaduct(HeightenedViaduct::random(rng))
-            } else {
-                BridgeKind::Flat
-            },
-            width: 8,
+            kind: bridge,
             biome: land
                 .get_chunk_wpos(center.xy())
                 .map_or(BiomeKind::Void, |chunk| chunk.get_biome()),
         }
     }
+
+    pub fn width(&self) -> i32 { self.kind.width() }
 }
 
 impl Structure for Bridge {
@@ -719,6 +875,7 @@ impl Structure for Bridge {
             BridgeKind::Tower(roof) => render_tower(self, painter, roof),
             BridgeKind::Short => render_short(self, painter),
             BridgeKind::HeightenedViaduct(data) => render_heightened_viaduct(self, painter, data),
+            BridgeKind::HangBridge => render_hang(self, painter),
         }
     }
 }

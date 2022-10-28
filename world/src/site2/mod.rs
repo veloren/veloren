@@ -1024,7 +1024,7 @@ impl Site {
         let start_tile = site.wpos_tile_pos(bridge.start.xy());
         let end_tile = site.wpos_tile_pos(bridge.end.xy());
 
-        let width = (bridge.width + TILE_SIZE as i32 / 2) / TILE_SIZE as i32;
+        let width = (bridge.width() + TILE_SIZE as i32 / 2) / TILE_SIZE as i32;
         let aabr = Aabr {
             min: start_tile.map2(end_tile, |a, b| a.min(b)) - orth * width,
             max: start_tile.map2(end_tile, |a, b| a.max(b)) + 1 + orth * width,

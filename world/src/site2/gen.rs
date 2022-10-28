@@ -15,7 +15,7 @@ use common::{
     vol::ReadVol,
 };
 use num::cast::AsPrimitive;
-use std::{cell::RefCell, sync::Arc};
+use std::{cell::RefCell, sync::Arc, ops::RangeBounds};
 use vek::*;
 
 #[allow(dead_code)]
@@ -289,13 +289,10 @@ impl Fill {
                             - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
             },
             Primitive::Cylinder(aabb) => {
+                let fpos = pos.as_::<f32>().xy() - aabb.as_::<f32>().center().xy();
+                let size = Vec3::from(aabb.size().as_::<f32>()).xy();
                 (aabb.min.z..aabb.max.z).contains(&pos.z)
-                    && (pos
-                        .xy()
-                        .as_()
-                        .distance_squared(aabb.as_().center().xy() - 0.5)
-                        as f32)
-                        < (aabb.size().w.min(aabb.size().h) as f32 / 2.0).powi(2)
+                    && (2.0 * fpos / size).magnitude_squared() <= 1.0
             },
             Primitive::Cone(aabb) => {
                 (aabb.min.z..aabb.max.z).contains(&pos.z)
@@ -390,9 +387,9 @@ impl Fill {
             },
             Primitive::Scale(prim, vec) => {
                 let center =
-                    Self::get_bounds(tree, *prim).center().as_::<f32>() - Vec3::broadcast(0.5);
+                    Self::get_bounds(tree, *prim).as_::<f32>().center();
                 let fpos = pos.as_::<f32>();
-                let spos = (center + ((center - fpos) / vec))
+                let spos = (center + ((fpos - center) / vec))
                     .map(|x| x.round())
                     .as_::<i32>();
                 Self::contains_at(tree, *prim, spos)
@@ -782,6 +779,20 @@ impl Painter {
         self.prim(Primitive::Cylinder(aabb.made_valid()))
     }
 
+    
+    /// Returns a `PrimitiveRef` of the largest horizontal cylinder that fits in the
+    /// provided Aabb.
+    pub fn horizontal_cylinder(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+        let aabr = Aabr::from(aabb);
+        let length = dir.select(aabr.size());
+        let height = aabb.max.z - aabb.min.z;
+        let aabb = Aabb {
+            min: (aabr.min - dir.abs().to_vec2() * height).with_z(aabb.min.z),
+            max: (dir.abs().select_with(aabr.min, aabr.max)).with_z(aabb.min.z + length),
+        };
+        self.cylinder(aabb).rotate_about((-dir.abs()).from_z_mat3(), aabr.min.with_z(aabb.min.z))
+    }
+
     /// Returns a `PrimitiveRef` of a cylinder using a radius check where a
     /// radius and origin are parameters instead of a bounding box.
     pub fn cylinder_with_radius(
@@ -1169,6 +1180,21 @@ impl Painter {
         prim
     }
 
+    pub fn column(&self, point: Vec2<i32>, range: impl RangeBounds<i32>) -> PrimitiveRef {
+        self.aabb(Aabb {
+            min: point.with_z(match range.start_bound() {
+                std::ops::Bound::Included(n) => *n,
+                std::ops::Bound::Excluded(n) => n + 1,
+                std::ops::Bound::Unbounded => i32::MIN,
+            }),
+            max: (point + 1).with_z(match range.end_bound() {
+                std::ops::Bound::Included(n) => n + 1,
+                std::ops::Bound::Excluded(n) => *n,
+                std::ops::Bound::Unbounded => i32::MAX,
+            }),
+        })
+    }
+
     /// The area that the canvas is currently rendering.
     pub fn render_aabr(&self) -> Aabr<i32> { self.render_area }
 
@@ -1250,7 +1276,7 @@ pub trait PrimitiveTransform {
     /// Scales the primitive along each axis by the x, y, and z components of
     /// the `scale` vector respectively.
     #[must_use]
-    fn scale(self, scale: Vec3<f32>) -> Self;
+    fn scale(self, scale: Vec3<impl AsPrimitive<f32>>) -> Self;
     /// Returns a `PrimitiveRef` of the primitive in addition to the same
     /// primitive translated by `offset` and repeated `count` times, each time
     /// translated by an additional offset.
@@ -1267,7 +1293,7 @@ impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
         self.painter.prim(Primitive::rotate_about(self, rot, point))
     }
 
-    fn scale(self, scale: Vec3<f32>) -> Self { self.painter.prim(Primitive::scale(self, scale)) }
+    fn scale(self, scale: Vec3<impl AsPrimitive<f32>>) -> Self { self.painter.prim(Primitive::scale(self, scale.as_())) }
 
     fn repeat(self, offset: Vec3<i32>, count: u32) -> Self {
         self.painter.prim(Primitive::repeat(self, offset, count))
@@ -1289,7 +1315,7 @@ impl<'a, const N: usize> PrimitiveTransform for [PrimitiveRef<'a>; N] {
         self
     }
 
-    fn scale(mut self, scale: Vec3<f32>) -> Self {
+    fn scale(mut self, scale: Vec3<impl AsPrimitive<f32>>) -> Self {
         for prim in &mut self {
             *prim = prim.scale(scale);
         }
