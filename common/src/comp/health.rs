@@ -1,6 +1,6 @@
-use crate::DamageSource;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::{comp, consts::HP_PER_LEVEL};
+use crate::{uid::Uid, DamageSource};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
@@ -191,6 +191,12 @@ impl Health {
         self.damage_contributors
             .iter()
             .map(|(damage_contrib, (damage, _))| (damage_contrib, damage))
+    }
+
+    pub fn recent_damagers(&self) -> impl Iterator<Item = (Uid, Time)> + '_ {
+        self.damage_contributors
+            .iter()
+            .map(|(contrib, (_, time))| (contrib.uid(), *time))
     }
 
     pub fn should_die(&self) -> bool { self.current == 0 }

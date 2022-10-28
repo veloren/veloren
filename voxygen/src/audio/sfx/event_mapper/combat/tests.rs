@@ -4,7 +4,7 @@ use common::{
     combat::DamageKind,
     comp::{
         inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, melee,
-        CharacterAbilityType, CharacterState, InputKind, Item,
+        CharacterAbilityType, CharacterState, Item,
     },
     states,
 };
@@ -86,6 +86,7 @@ fn maps_basic_melee() {
                     range: 3.5,
                     angle: 15.0,
                     damage_effect: None,
+                    multi_target: None,
                 },
                 ori_modifier: 1.0,
                 ability_info: empty_ability_info(),
@@ -147,7 +148,6 @@ fn matches_ability_stage() {
                 speed_increase: 0.05,
                 max_speed_increase: 0.8,
                 scales_from_combo: 2,
-                is_interruptible: true,
                 ori_modifier: 1.0,
                 ability_info: empty_ability_info(),
             },
@@ -209,7 +209,6 @@ fn ignores_different_ability_stage() {
                 speed_increase: 0.05,
                 max_speed_increase: 0.8,
                 scales_from_combo: 2,
-                is_interruptible: true,
                 ori_modifier: 1.0,
                 ability_info: empty_ability_info(),
             },
@@ -239,7 +238,10 @@ fn empty_ability_info() -> states::utils::AbilityInfo {
     states::utils::AbilityInfo {
         tool: None,
         hand: None,
-        input: InputKind::Primary,
+        input: None,
         input_attr: None,
+        ability_meta: Default::default(),
+        ability: None,
+        return_ability: None,
     }
 }

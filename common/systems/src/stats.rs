@@ -9,6 +9,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, EntitiesDiedLastTick, Time},
+    states,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
@@ -145,16 +146,20 @@ impl<'a> System<'a> for Sys {
         {
             match character_state {
                 // Accelerate recharging energy.
-                CharacterState::Idle { .. }
-                | CharacterState::Talk { .. }
-                | CharacterState::Sit { .. }
-                | CharacterState::Dance { .. }
-                | CharacterState::Glide { .. }
-                | CharacterState::Skate { .. }
-                | CharacterState::GlideWield { .. }
-                | CharacterState::Wielding { .. }
-                | CharacterState::Equipping { .. }
-                | CharacterState::Boost { .. } => {
+                CharacterState::Idle(_)
+                | CharacterState::Talk
+                | CharacterState::Sit
+                | CharacterState::Dance
+                | CharacterState::Glide(_)
+                | CharacterState::Skate(_)
+                | CharacterState::GlideWield(_)
+                | CharacterState::Wielding(_)
+                | CharacterState::Equipping(_)
+                | CharacterState::Boost(_)
+                | CharacterState::ComboMelee2(states::combo_melee2::Data {
+                    stage_section: None,
+                    ..
+                }) => {
                     let res = { energy.current() < energy.maximum() };
 
                     if res {
@@ -179,35 +184,40 @@ impl<'a> System<'a> for Sys {
                     }
                 },
                 // Ability use does not regen and sets the rate back to zero.
-                CharacterState::BasicMelee { .. }
-                | CharacterState::DashMelee { .. }
-                | CharacterState::LeapMelee { .. }
-                | CharacterState::SpinMelee { .. }
-                | CharacterState::ComboMelee { .. }
-                | CharacterState::BasicRanged { .. }
-                | CharacterState::Music { .. }
-                | CharacterState::ChargedMelee { .. }
-                | CharacterState::ChargedRanged { .. }
-                | CharacterState::RepeaterRanged { .. }
-                | CharacterState::Shockwave { .. }
-                | CharacterState::BasicBeam { .. }
-                | CharacterState::BasicAura { .. }
-                | CharacterState::Blink { .. }
-                | CharacterState::BasicSummon { .. }
-                | CharacterState::SelfBuff { .. }
-                | CharacterState::SpriteSummon { .. } => {
+                CharacterState::BasicMelee(_)
+                | CharacterState::DashMelee(_)
+                | CharacterState::LeapMelee(_)
+                | CharacterState::SpinMelee(_)
+                | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
+                | CharacterState::BasicRanged(_)
+                | CharacterState::Music(_)
+                | CharacterState::ChargedMelee(_)
+                | CharacterState::ChargedRanged(_)
+                | CharacterState::RepeaterRanged(_)
+                | CharacterState::Shockwave(_)
+                | CharacterState::BasicBeam(_)
+                | CharacterState::BasicAura(_)
+                | CharacterState::Blink(_)
+                | CharacterState::BasicSummon(_)
+                | CharacterState::SelfBuff(_)
+                | CharacterState::SpriteSummon(_)
+                | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_) => {
                     if energy.regen_rate != 0.0 {
                         energy.regen_rate = 0.0
                     }
                 },
                 // Abilities that temporarily stall energy gain, but preserve regen_rate.
-                CharacterState::Roll { .. }
-                | CharacterState::Wallrun { .. }
-                | CharacterState::Climb { .. }
-                | CharacterState::Stunned { .. }
-                | CharacterState::BasicBlock { .. }
-                | CharacterState::UseItem { .. }
-                | CharacterState::SpriteInteract { .. } => {},
+                CharacterState::Roll(_)
+                | CharacterState::Wallrun(_)
+                | CharacterState::Climb(_)
+                | CharacterState::Stunned(_)
+                | CharacterState::BasicBlock(_)
+                | CharacterState::UseItem(_)
+                | CharacterState::SpriteInteract(_) => {},
             }
         }
 

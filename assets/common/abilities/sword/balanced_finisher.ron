@@ -1,0 +1,20 @@
+FinisherMelee(
+    energy_cost: 30,
+    buildup_duration: 0.3,
+    swing_duration: 0.1,
+    recover_duration: 0.4,
+    melee_constructor: (
+        kind: Slash(
+            damage: 30,
+            poise: 0,
+            knockback: 0,
+            energy_regen: 10,
+        ),
+        range: 3.0,
+        angle: 15.0,
+    ),
+    minimum_combo: 10,
+    meta: (
+        kind: Some(Sword(Balanced)),
+    ),
+)

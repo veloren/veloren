@@ -1,19 +1,19 @@
 use crate::{
     comp::{
-        inventory::item::armor::Friction, item::ConsumableKind, ControlAction, Density, Energy,
-        InputAttr, InputKind, Ori, Pos, Vel,
+        ability::Capability, inventory::item::armor::Friction, item::ConsumableKind, ControlAction,
+        Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
     },
     event::{LocalEvent, ServerEvent},
     states::{
         self,
         behavior::{CharacterBehavior, JoinData},
-        utils::StageSection,
+        utils::{AbilityInfo, StageSection},
         *,
     },
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::Duration};
 use strum::Display;
 
 /// Data returned from character behavior fn's to Character Behavior System.
@@ -91,6 +91,8 @@ pub enum CharacterState {
     /// A three-stage attack where each attack pushes player forward
     /// and successive attacks increase in damage, while player holds button.
     ComboMelee(combo_melee::Data),
+    /// A state where you progress through multiple melee attacks
+    ComboMelee2(combo_melee2::Data),
     /// A leap followed by a small aoe ground attack
     LeapMelee(leap_melee::Data),
     /// Spin around, dealing damage to enemies surrounding you
@@ -127,6 +129,16 @@ pub enum CharacterState {
     Skate(skate::Data),
     /// Play music instrument
     Music(music::Data),
+    /// Melee attack that scales off and consumes combo
+    FinisherMelee(finisher_melee::Data),
+    /// State entered when diving, melee attack triggered upon landing on the
+    /// ground
+    DiveMelee(dive_melee::Data),
+    /// Attack that attempts to parry, and if it parries moves to an attack
+    RiposteMelee(riposte_melee::Data),
+    /// A series of consecutive, identical attacks that only go through buildup
+    /// and recover once for the entire state
+    RapidMelee(rapid_melee::Data),
 }
 
 impl CharacterState {
@@ -138,6 +150,7 @@ impl CharacterState {
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
                 | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::SpinMelee(_)
@@ -160,7 +173,21 @@ impl CharacterState {
                     was_wielded: true,
                     ..
                 })
+                | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
         )
+    }
+
+    pub fn was_wielded(&self) -> bool {
+        match self {
+            CharacterState::Roll(data) => data.was_wielded,
+            CharacterState::Stunned(data) => data.was_wielded,
+            CharacterState::SpriteInteract(data) => data.static_data.was_wielded,
+            CharacterState::UseItem(data) => data.static_data.was_wielded,
+            _ => false,
+        }
     }
 
     pub fn is_stealthy(&self) -> bool {
@@ -186,6 +213,7 @@ impl CharacterState {
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
                 | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::SpinMelee(_)
                 | CharacterState::ChargedMelee(_)
@@ -198,6 +226,10 @@ impl CharacterState {
                 | CharacterState::Blink(_)
                 | CharacterState::BasicSummon(_)
                 | CharacterState::SpriteSummon(_)
+                | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
         )
     }
 
@@ -208,6 +240,7 @@ impl CharacterState {
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
                 | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::ChargedMelee(_)
@@ -219,6 +252,10 @@ impl CharacterState {
                 | CharacterState::UseItem(_)
                 | CharacterState::Wielding(_)
                 | CharacterState::Talk
+                | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
         )
     }
 
@@ -235,7 +272,48 @@ impl CharacterState {
         )
     }
 
-    pub fn is_block(&self) -> bool { matches!(self, CharacterState::BasicBlock(_)) }
+    pub fn block_strength(&self) -> Option<f32> {
+        let strength = match self {
+            CharacterState::BasicBlock(c) => c.static_data.block_strength,
+            _ => return None,
+        };
+        Some(strength)
+    }
+
+    pub fn is_parry(&self) -> bool {
+        let from_capability = if let Some(capabilities) = self
+            .ability_info()
+            .and_then(|a| a.ability_meta)
+            .map(|m| m.capabilities)
+        {
+            capabilities.contains(Capability::BUILDUP_PARRIES)
+                && matches!(self.stage_section(), Some(StageSection::Buildup))
+        } else {
+            false
+        };
+        let from_state = match self {
+            CharacterState::BasicBlock(c) => c.is_parry(),
+            CharacterState::RiposteMelee(c) => matches!(c.stage_section, StageSection::Buildup),
+            _ => false,
+        };
+        from_capability || from_state
+    }
+
+    /// In radians
+    pub fn block_angle(&self) -> f32 {
+        match self {
+            CharacterState::BasicBlock(c) => c.static_data.max_angle.to_radians(),
+            CharacterState::ComboMelee2(c) => {
+                let strike_data =
+                    c.static_data.strikes[c.completed_strikes % c.static_data.strikes.len()];
+                strike_data.melee_constructor.angle.to_radians()
+            },
+            CharacterState::RiposteMelee(c) => c.static_data.melee_constructor.angle.to_radians(),
+            // TODO: Add more here as needed, maybe look into having character state return the
+            // melee constructor if it has one and using that?
+            _ => 0.0,
+        }
+    }
 
     pub fn is_dodge(&self) -> bool { matches!(self, CharacterState::Roll(_)) }
 
@@ -245,8 +323,12 @@ impl CharacterState {
 
     pub fn is_music(&self) -> bool { matches!(self, CharacterState::Music(_)) }
 
-    pub fn is_melee_dodge(&self) -> bool {
-        matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
+    pub fn attack_immunities(&self) -> Option<AttackImmunities> {
+        if let CharacterState::Roll(c) = self {
+            Some(c.static_data.attack_immunities)
+        } else {
+            None
+        }
     }
 
     pub fn is_stunned(&self) -> bool { matches!(self, CharacterState::Stunned(_)) }
@@ -254,10 +336,28 @@ impl CharacterState {
     pub fn is_forced_movement(&self) -> bool {
         matches!(self,
             CharacterState::ComboMelee(s) if s.stage_section == StageSection::Action)
+            || matches!(self, CharacterState::ComboMelee2(s) if s.stage_section == Some(StageSection::Action))
             || matches!(self, CharacterState::DashMelee(s) if s.stage_section == StageSection::Charge)
             || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
             || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::Roll(s) if s.stage_section == StageSection::Movement)
+    }
+
+    pub fn is_melee_attack(&self) -> bool {
+        matches!(
+            self,
+            CharacterState::BasicMelee(_)
+                | CharacterState::DashMelee(_)
+                | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
+                | CharacterState::LeapMelee(_)
+                | CharacterState::SpinMelee(_)
+                | CharacterState::ChargedMelee(_)
+                | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
+        )
     }
 
     pub fn can_perform_mounted(&self) -> bool {
@@ -274,6 +374,7 @@ impl CharacterState {
                 | CharacterState::BasicMelee(_)
                 | CharacterState::BasicRanged(_)
                 | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::BasicBeam(_)
@@ -284,6 +385,8 @@ impl CharacterState {
                 | CharacterState::UseItem(_)
                 | CharacterState::SpriteInteract(_)
                 | CharacterState::Music(_)
+                | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
         )
     }
 
@@ -326,6 +429,7 @@ impl CharacterState {
             CharacterState::Wielding(data) => data.behavior(j, output_events),
             CharacterState::Equipping(data) => data.behavior(j, output_events),
             CharacterState::ComboMelee(data) => data.behavior(j, output_events),
+            CharacterState::ComboMelee2(data) => data.behavior(j, output_events),
             CharacterState::BasicMelee(data) => data.behavior(j, output_events),
             CharacterState::BasicRanged(data) => data.behavior(j, output_events),
             CharacterState::Boost(data) => data.behavior(j, output_events),
@@ -346,6 +450,10 @@ impl CharacterState {
             CharacterState::SpriteInteract(data) => data.behavior(j, output_events),
             CharacterState::Skate(data) => data.behavior(j, output_events),
             CharacterState::Music(data) => data.behavior(j, output_events),
+            CharacterState::FinisherMelee(data) => data.behavior(j, output_events),
+            CharacterState::DiveMelee(data) => data.behavior(j, output_events),
+            CharacterState::RiposteMelee(data) => data.behavior(j, output_events),
+            CharacterState::RapidMelee(data) => data.behavior(j, output_events),
         }
     }
 
@@ -374,6 +482,7 @@ impl CharacterState {
             CharacterState::Wielding(data) => data.handle_event(j, output_events, action),
             CharacterState::Equipping(data) => data.handle_event(j, output_events, action),
             CharacterState::ComboMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::ComboMelee2(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicRanged(data) => data.handle_event(j, output_events, action),
             CharacterState::Boost(data) => data.handle_event(j, output_events, action),
@@ -394,6 +503,10 @@ impl CharacterState {
             CharacterState::SpriteInteract(data) => data.handle_event(j, output_events, action),
             CharacterState::Skate(data) => data.handle_event(j, output_events, action),
             CharacterState::Music(data) => data.handle_event(j, output_events, action),
+            CharacterState::FinisherMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::DiveMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::RiposteMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::RapidMelee(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -404,6 +517,355 @@ impl CharacterState {
             _ => None,
         }
     }
+
+    pub fn ability_info(&self) -> Option<AbilityInfo> {
+        match &self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Skate(_) => None,
+            CharacterState::Glide(_) => None,
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(data) => Some(data.static_data.ability_info),
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(data) => Some(data.static_data.ability_info),
+            CharacterState::Roll(data) => Some(data.static_data.ability_info),
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(_) => None,
+            CharacterState::ComboMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::ComboMelee2(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicRanged(data) => Some(data.static_data.ability_info),
+            CharacterState::Boost(data) => Some(data.static_data.ability_info),
+            CharacterState::DashMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::LeapMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::SpinMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::ChargedMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::ChargedRanged(data) => Some(data.static_data.ability_info),
+            CharacterState::RepeaterRanged(data) => Some(data.static_data.ability_info),
+            CharacterState::Shockwave(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicBeam(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicAura(data) => Some(data.static_data.ability_info),
+            CharacterState::Blink(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicSummon(data) => Some(data.static_data.ability_info),
+            CharacterState::SelfBuff(data) => Some(data.static_data.ability_info),
+            CharacterState::SpriteSummon(data) => Some(data.static_data.ability_info),
+            CharacterState::UseItem(data) => Some(data.static_data.ability_info),
+            CharacterState::SpriteInteract(data) => Some(data.static_data.ability_info),
+            CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::Music(data) => Some(data.static_data.ability_info),
+            CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::RiposteMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::RapidMelee(data) => Some(data.static_data.ability_info),
+        }
+    }
+
+    pub fn stage_section(&self) -> Option<StageSection> {
+        match &self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Skate(_) => None,
+            CharacterState::Glide(_) => None,
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(data) => Some(data.stage_section),
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(data) => Some(data.stage_section),
+            CharacterState::Roll(data) => Some(data.stage_section),
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(_) => None,
+            CharacterState::ComboMelee(data) => Some(data.stage_section),
+            CharacterState::ComboMelee2(data) => data.stage_section,
+            CharacterState::BasicMelee(data) => Some(data.stage_section),
+            CharacterState::BasicRanged(data) => Some(data.stage_section),
+            CharacterState::Boost(_) => None,
+            CharacterState::DashMelee(data) => Some(data.stage_section),
+            CharacterState::LeapMelee(data) => Some(data.stage_section),
+            CharacterState::SpinMelee(data) => Some(data.stage_section),
+            CharacterState::ChargedMelee(data) => Some(data.stage_section),
+            CharacterState::ChargedRanged(data) => Some(data.stage_section),
+            CharacterState::RepeaterRanged(data) => Some(data.stage_section),
+            CharacterState::Shockwave(data) => Some(data.stage_section),
+            CharacterState::BasicBeam(data) => Some(data.stage_section),
+            CharacterState::BasicAura(data) => Some(data.stage_section),
+            CharacterState::Blink(data) => Some(data.stage_section),
+            CharacterState::BasicSummon(data) => Some(data.stage_section),
+            CharacterState::SelfBuff(data) => Some(data.stage_section),
+            CharacterState::SpriteSummon(data) => Some(data.stage_section),
+            CharacterState::UseItem(data) => Some(data.stage_section),
+            CharacterState::SpriteInteract(data) => Some(data.stage_section),
+            CharacterState::FinisherMelee(data) => Some(data.stage_section),
+            CharacterState::Music(data) => Some(data.stage_section),
+            CharacterState::DiveMelee(data) => Some(data.stage_section),
+            CharacterState::RiposteMelee(data) => Some(data.stage_section),
+            CharacterState::RapidMelee(data) => Some(data.stage_section),
+        }
+    }
+
+    pub fn durations(&self) -> Option<DurationsInfo> {
+        match &self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Skate(_) => None,
+            CharacterState::Glide(_) => None,
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Roll(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(_) => None,
+            CharacterState::ComboMelee(data) => {
+                let stage_index = data.stage_index();
+                let stage = data.static_data.stage_data[stage_index];
+                Some(DurationsInfo {
+                    buildup: Some(stage.base_buildup_duration),
+                    action: Some(stage.base_swing_duration),
+                    recover: Some(stage.base_recover_duration),
+                    ..Default::default()
+                })
+            },
+            CharacterState::ComboMelee2(data) => {
+                let strike = data.strike_data();
+                Some(DurationsInfo {
+                    buildup: Some(strike.buildup_duration),
+                    action: Some(strike.swing_duration),
+                    recover: Some(strike.recover_duration),
+                    ready: data
+                        .static_data
+                        .is_stance
+                        .then_some(combo_melee2::STANCE_ENTER_TIME),
+                    ..Default::default()
+                })
+            },
+            CharacterState::BasicMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::BasicRanged(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Boost(data) => Some(DurationsInfo {
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::DashMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                charge: Some(data.static_data.charge_duration),
+                ..Default::default()
+            }),
+            CharacterState::LeapMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::SpinMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::ChargedMelee(data) => Some(DurationsInfo {
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                charge: Some(data.static_data.charge_duration),
+                ..Default::default()
+            }),
+            CharacterState::ChargedRanged(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                charge: Some(data.static_data.charge_duration),
+                ..Default::default()
+            }),
+            CharacterState::RepeaterRanged(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.shoot_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Shockwave(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::BasicBeam(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::BasicAura(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Blink(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::BasicSummon(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::SelfBuff(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::SpriteSummon(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::UseItem(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.use_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::SpriteInteract(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.use_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::FinisherMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Music(data) => Some(DurationsInfo {
+                action: Some(data.static_data.play_duration),
+                ..Default::default()
+            }),
+            CharacterState::DiveMelee(data) => Some(DurationsInfo {
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::RiposteMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::RapidMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+        }
+    }
+
+    pub fn timer(&self) -> Option<Duration> {
+        match &self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Skate(_) => None,
+            CharacterState::Glide(data) => Some(data.timer),
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(data) => Some(data.timer),
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(data) => Some(data.timer),
+            CharacterState::Roll(data) => Some(data.timer),
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(data) => Some(data.timer),
+            CharacterState::ComboMelee(data) => Some(data.timer),
+            CharacterState::ComboMelee2(data) => Some(data.timer),
+            CharacterState::BasicMelee(data) => Some(data.timer),
+            CharacterState::BasicRanged(data) => Some(data.timer),
+            CharacterState::Boost(data) => Some(data.timer),
+            CharacterState::DashMelee(data) => Some(data.timer),
+            CharacterState::LeapMelee(data) => Some(data.timer),
+            CharacterState::SpinMelee(data) => Some(data.timer),
+            CharacterState::ChargedMelee(data) => Some(data.timer),
+            CharacterState::ChargedRanged(data) => Some(data.timer),
+            CharacterState::RepeaterRanged(data) => Some(data.timer),
+            CharacterState::Shockwave(data) => Some(data.timer),
+            CharacterState::BasicBeam(data) => Some(data.timer),
+            CharacterState::BasicAura(data) => Some(data.timer),
+            CharacterState::Blink(data) => Some(data.timer),
+            CharacterState::BasicSummon(data) => Some(data.timer),
+            CharacterState::SelfBuff(data) => Some(data.timer),
+            CharacterState::SpriteSummon(data) => Some(data.timer),
+            CharacterState::UseItem(data) => Some(data.timer),
+            CharacterState::SpriteInteract(data) => Some(data.timer),
+            CharacterState::FinisherMelee(data) => Some(data.timer),
+            CharacterState::Music(data) => Some(data.timer),
+            CharacterState::DiveMelee(data) => Some(data.timer),
+            CharacterState::RiposteMelee(data) => Some(data.timer),
+            CharacterState::RapidMelee(data) => Some(data.timer),
+        }
+    }
+
+    // Determines if a character state should be returned to when using another
+    // ability from that character state
+    pub fn should_be_returned_to(&self) -> bool {
+        match self {
+            CharacterState::ComboMelee2(data) => data.static_data.is_stance,
+            _ => false,
+        }
+    }
+}
+
+#[derive(Default, Copy, Clone)]
+pub struct DurationsInfo {
+    pub buildup: Option<Duration>,
+    pub action: Option<Duration>,
+    pub recover: Option<Duration>,
+    pub movement: Option<Duration>,
+    pub charge: Option<Duration>,
+    pub ready: Option<Duration>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
+pub struct AttackImmunities {
+    pub melee: bool,
+    pub projectiles: bool,
+    pub beams: bool,
+    pub ground_shockwaves: bool,
+    pub air_shockwaves: bool,
+    pub explosions: bool,
 }
 
 impl Default for CharacterState {

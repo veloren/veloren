@@ -3,5 +3,10 @@ BasicBlock(
     recover_duration: 0.1,
     max_angle: 90.0,
     block_strength: 0.8,
+    parry_window: (
+        buildup: true,
+        recover: false,
+    ),
     energy_cost: 0.0,
+    can_hold: true,
 )

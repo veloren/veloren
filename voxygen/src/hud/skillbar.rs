@@ -24,8 +24,9 @@ use client::{self, Client};
 use common::comp::{
     self,
     ability::AbilityInput,
-    item::{ItemDesc, MaterialStatManifest},
-    Ability, ActiveAbilities, Body, Energy, Health, Inventory, Poise, PoiseState, SkillSet,
+    item::{tool::AbilityContext, ItemDesc, MaterialStatManifest},
+    Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
+    PoiseState, SkillSet,
 };
 use conrod_core::{
     color,
@@ -276,7 +277,10 @@ pub struct Skillbar<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     msm: &'a MaterialStatManifest,
-    combo: Option<ComboFloater>,
+    combo_floater: Option<ComboFloater>,
+    context: Option<AbilityContext>,
+    combo: Option<&'a Combo>,
+    char_state: Option<&'a CharacterState>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -305,7 +309,10 @@ impl<'a> Skillbar<'a> {
         slot_manager: &'a mut slots::SlotManager,
         localized_strings: &'a Localization,
         msm: &'a MaterialStatManifest,
-        combo: Option<ComboFloater>,
+        combo_floater: Option<ComboFloater>,
+        context: Option<AbilityContext>,
+        combo: Option<&'a Combo>,
+        char_state: Option<&'a CharacterState>,
     ) -> Self {
         Self {
             client,
@@ -332,7 +339,10 @@ impl<'a> Skillbar<'a> {
             slot_manager,
             localized_strings,
             msm,
+            combo_floater,
+            context,
             combo,
+            char_state,
         }
     }
 
@@ -601,6 +611,8 @@ impl<'a> Skillbar<'a> {
             self.skillset,
             self.active_abilities,
             self.body,
+            self.context,
+            self.combo,
         );
 
         let image_source = (self.item_imgs, self.imgs);
@@ -682,7 +694,7 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, skill_set, active_abilities, _) = content_source;
+            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _) = content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
                     .get_by_hash(i)
@@ -691,7 +703,7 @@ impl<'a> Skillbar<'a> {
                     .and_then(|a| {
                         a.auxiliary_set(Some(inventory), Some(skill_set))
                             .get(i)
-                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
+                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory), context))
                     })
                     .map(|id| util::ability_description(id, self.localized_strings)),
             })
@@ -762,13 +774,35 @@ impl<'a> Skillbar<'a> {
 
         let primary_ability_id = self
             .active_abilities
-            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory)));
+            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory), self.context));
+
+        let primary_ability_id = if let Some(override_id) = self
+            .char_state
+            .and_then(|cs| cs.ability_info())
+            .and_then(|info| info.ability_meta)
+            .and_then(|meta| meta.kind)
+            .map(util::representative_ability_id)
+        {
+            Some(override_id)
+        } else {
+            primary_ability_id
+        };
+
+        let (primary_ability_title, primary_ability_desc) =
+            util::ability_description(primary_ability_id.unwrap_or(""), self.localized_strings);
 
         Button::image(
             primary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
         )
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m1_slot_bg)
+        .with_tooltip(
+            self.tooltip_manager,
+            &primary_ability_title,
+            &primary_ability_desc,
+            &tooltip,
+            TEXT_COLOR,
+        )
         .set(state.ids.m1_content, ui);
         // Slot M2
         Image::new(self.imgs.skillbar_slot)
@@ -776,9 +810,12 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, slot_offset)
             .set(state.ids.m2_slot_bg, ui);
 
-        let secondary_ability_id = self
-            .active_abilities
-            .and_then(|a| Ability::from(a.secondary).ability_id(Some(self.inventory)));
+        let secondary_ability_id = self.active_abilities.and_then(|a| {
+            Ability::from(a.secondary).ability_id(Some(self.inventory), self.context)
+        });
+
+        let (secondary_ability_title, secondary_ability_desc) =
+            util::ability_description(secondary_ability_id.unwrap_or(""), self.localized_strings);
 
         Button::image(
             secondary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -786,23 +823,33 @@ impl<'a> Skillbar<'a> {
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m2_slot_bg)
         .image_color(
-            if self.energy.current()
-                >= self
-                    .active_abilities
-                    .and_then(|a| {
-                        a.activate_ability(
-                            AbilityInput::Secondary,
-                            Some(self.inventory),
-                            self.skillset,
-                            Some(self.body),
-                        )
-                    })
-                    .map_or(0.0, |(a, _)| a.get_energy_cost())
+            if self
+                .active_abilities
+                .and_then(|a| {
+                    a.activate_ability(
+                        AbilityInput::Secondary,
+                        Some(self.inventory),
+                        self.skillset,
+                        Some(self.body),
+                        self.context,
+                    )
+                })
+                .map_or(false, |(a, _)| {
+                    self.energy.current() >= a.energy_cost()
+                        && self.combo.map_or(false, |c| c.counter() >= a.combo_cost())
+                })
             {
                 Color::Rgba(1.0, 1.0, 1.0, 1.0)
             } else {
                 Color::Rgba(0.3, 0.3, 0.3, 0.8)
             },
+        )
+        .with_tooltip(
+            self.tooltip_manager,
+            &secondary_ability_title,
+            &secondary_ability_desc,
+            &tooltip,
+            TEXT_COLOR,
         )
         .set(state.ids.m2_content, ui);
 
@@ -817,11 +864,11 @@ impl<'a> Skillbar<'a> {
             .set(state.ids.m2_ico, ui);
     }
 
-    fn show_combo_counter(&self, combo: ComboFloater, state: &State, ui: &mut UiCell) {
-        if combo.combo > 0 {
-            let combo_txt = format!("{} Combo", combo.combo);
-            let combo_cnt = combo.combo as f32;
-            let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
+    fn show_combo_counter(&self, combo_floater: ComboFloater, state: &State, ui: &mut UiCell) {
+        if combo_floater.combo > 0 {
+            let combo_txt = format!("{} Combo", combo_floater.combo);
+            let combo_cnt = combo_floater.combo as f32;
+            let time_since_last_update = comp::combo::COMBO_DECAY_START - combo_floater.timer;
             let alpha = (1.0 - time_since_last_update * 0.2).min(1.0) as f32;
             let fnt_col = Color::Rgba(
                 // White -> Yellow -> Red text color gradient depending on count
@@ -832,7 +879,7 @@ impl<'a> Skillbar<'a> {
             );
             // Increase size for higher counts,
             // "flash" on update by increasing the font size by 2.
-            let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
+            let fnt_size = ((14.0 + combo_floater.timer as f32 * 0.8).min(30.0)) as u32
                 + if (time_since_last_update) < 0.1 { 2 } else { 0 };
 
             Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
@@ -909,8 +956,8 @@ impl<'a> Widget for Skillbar<'a> {
         self.show_slotbar(state, ui, slot_offset);
 
         // Combo Counter
-        if let Some(combo) = self.combo {
-            self.show_combo_counter(combo, state, ui);
+        if let Some(combo_floater) = self.combo_floater {
+            self.show_combo_counter(combo_floater, state, ui);
         }
     }
 }

@@ -183,7 +183,16 @@ impl StateExt for State {
             },
             Effect::Poise(poise) => {
                 let inventories = self.ecs().read_storage::<Inventory>();
-                let change = Poise::apply_poise_reduction(poise, inventories.get(entity), &msm);
+                let char_states = self.ecs().read_storage::<comp::CharacterState>();
+                let stats = self.ecs().read_storage::<comp::Stats>();
+
+                let change = Poise::apply_poise_reduction(
+                    poise,
+                    inventories.get(entity),
+                    &msm,
+                    char_states.get(entity),
+                    stats.get(entity),
+                );
                 // Check to make sure the entity is not already stunned
                 if let Some(character_state) = self
                     .ecs()

@@ -1351,11 +1351,7 @@ impl<'a> AgentData<'a> {
 
                                 self.idle(agent, controller, read_data, rng);
                             } else {
-                                let target_data = TargetData::new(
-                                    tgt_pos,
-                                    read_data.bodies.get(target),
-                                    read_data.scales.get(target),
-                                );
+                                let target_data = TargetData::new(tgt_pos, target, read_data);
                                 if let Some(tgt_name) =
                                     read_data.stats.get(target).map(|stats| stats.name.clone())
                                 {

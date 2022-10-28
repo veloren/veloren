@@ -1,4 +1,4 @@
-use super::utils::handle_climb;
+use super::utils::*;
 use crate::{
     comp::{
         character_state::OutputEvents, fluid_dynamics::angle_of_attack, inventory::slot::EquipSlot,
@@ -13,7 +13,7 @@ use crate::{
     util::{Dir, Plane, Projection},
 };
 use serde::{Deserialize, Serialize};
-use std::f32::consts::PI;
+use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
 const PITCH_SLOW_TIME: f32 = 0.5;
@@ -26,7 +26,7 @@ pub struct Data {
     pub planform_area: f32,
     pub ori: Ori,
     last_vel: Vel,
-    timer: f32,
+    pub timer: Duration,
     inputs_disabled: bool,
 }
 
@@ -45,7 +45,7 @@ impl Data {
             planform_area,
             ori,
             last_vel: Vel::zero(),
-            timer: 0.0,
+            timer: Duration::default(),
             inputs_disabled: true,
         }
     }
@@ -66,7 +66,7 @@ impl Data {
                     .xy()
                     .try_normalized()
                     .map_or(0.0, |ld| {
-                        PI * 0.1 * ld.dot(move_dir) * self.timer.min(PITCH_SLOW_TIME)
+                        PI * 0.1 * ld.dot(move_dir) * self.timer.as_secs_f32().min(PITCH_SLOW_TIME)
                             / PITCH_SLOW_TIME
                     }),
             )
@@ -133,7 +133,7 @@ impl CharacterBehavior for Data {
                             .unwrap_or_else(Dir::up);
                         let global_roll = tgt_dir_up.rotation_between(tgt_up);
                         let global_pitch = angle_of_attack(&tgt_dir_ori, &flow_dir)
-                            * self.timer.min(PITCH_SLOW_TIME)
+                            * self.timer.as_secs_f32().min(PITCH_SLOW_TIME)
                             / PITCH_SLOW_TIME;
 
                         self.ori.slerped_towards(
@@ -192,7 +192,7 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::Glide(Self {
                 ori,
                 last_vel: *data.vel,
-                timer: self.timer + data.dt.0,
+                timer: tick_attack_or_default(data, self.timer, None),
                 inputs_disabled,
                 ..*self
             });

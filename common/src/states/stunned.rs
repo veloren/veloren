@@ -3,7 +3,6 @@ use crate::{
     comp::{character_state::OutputEvents, CharacterState, PoiseState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
-        idle, wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -20,6 +19,8 @@ pub struct StaticData {
     pub movement_speed: f32,
     /// Poise state (used for determining animation in the client)
     pub poise_state: PoiseState,
+    /// Miscellaneous information about the ability
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -68,22 +69,12 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self.was_wielded {
-                        update.character =
-                            CharacterState::Wielding(wielding::Data { is_sneaking: false });
-                    } else {
-                        update.character = CharacterState::Idle(idle::Data::default());
-                    }
+                    end_ability(data, &mut update);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                if self.was_wielded {
-                    update.character =
-                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
-                } else {
-                    update.character = CharacterState::Idle(idle::Data::default());
-                }
+                end_ability(data, &mut update);
             },
         }
 

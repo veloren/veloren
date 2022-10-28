@@ -48,7 +48,11 @@ impl<'a> System<'a> for Sys {
 
         (
             &read_data.entities,
-            (&read_data.energies, read_data.healths.maybe()),
+            (
+                &read_data.energies,
+                read_data.healths.maybe(),
+                read_data.combos.maybe(),
+            ),
             (
                 &read_data.positions,
                 &read_data.velocities,
@@ -78,7 +82,7 @@ impl<'a> System<'a> for Sys {
                 |_guard,
                  (
                     entity,
-                    (energy, health),
+                    (energy, health, combo),
                     (pos, vel, ori),
                     body,
                     inventory,
@@ -193,8 +197,11 @@ impl<'a> System<'a> for Sys {
                         health: read_data.healths.get(entity),
                         char_state,
                         active_abilities,
+                        combo,
+                        buffs: read_data.buffs.get(entity),
                         cached_spatial_grid: &read_data.cached_spatial_grid,
                         msm: &read_data.msm,
+                        poise: read_data.poises.get(entity),
                     };
                     ///////////////////////////////////////////////////////////
                     // Behavior tree

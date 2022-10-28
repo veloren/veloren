@@ -7,7 +7,6 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -85,7 +84,7 @@ impl CharacterBehavior for Data {
                             .unwrap_or_default(),
                         ..*self
                     });
-                } else if input_is_pressed(data, self.static_data.ability_info.input)
+                } else if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
                     && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Fire if input is pressed still
@@ -149,20 +148,17 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    update.character =
-                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                    end_ability(data, &mut update);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                end_ability(data, &mut update);
             },
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_state_interrupt(data, &mut update, false);
-        }
+        handle_interrupts(data, &mut update);
 
         update
     }

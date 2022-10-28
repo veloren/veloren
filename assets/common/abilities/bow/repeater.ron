@@ -1,5 +1,5 @@
 RepeaterRanged(
-    energy_cost: 5.0,
+    energy_cost: 6.0,
     buildup_duration: 0.2,
     shoot_duration: 0.3,
     recover_duration: 0.5,

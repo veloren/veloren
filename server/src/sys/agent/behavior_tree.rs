@@ -615,11 +615,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                 }
 
                 if aggro_on {
-                    let target_data = TargetData::new(
-                        tgt_pos,
-                        read_data.bodies.get(target),
-                        read_data.scales.get(target),
-                    );
+                    let target_data = TargetData::new(tgt_pos, target, read_data);
                     let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 
                     tgt_name.map(|tgt_name| agent.add_fight_to_memory(&tgt_name, read_data.time.0));

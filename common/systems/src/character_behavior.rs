@@ -17,7 +17,7 @@ use common::{
     resources::{DeltaTime, Time},
     states::{
         behavior::{JoinData, JoinStruct},
-        idle,
+        idle, utils,
     },
     terrain::TerrainGrid,
     uid::Uid,
@@ -148,10 +148,11 @@ impl<'a> System<'a> for Sys {
             // Enter stunned state if poise damage is enough
             if let Some(mut poise) = poises.get_mut(entity) {
                 let was_wielded = char_state.is_wield();
+                let ability_info = utils::AbilityInfo::from_forced_state_change(&char_state);
                 let poise_state = poise.poise_state();
                 let pos = pos.0;
                 if let (Some((stunned_state, stunned_duration)), impulse_strength) =
-                    poise_state.poise_effect(was_wielded)
+                    poise_state.poise_effect(was_wielded, ability_info)
                 {
                     // Reset poise if there is some stunned state to apply
                     poise.reset(*read_data.time, stunned_duration);

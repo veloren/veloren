@@ -24,5 +24,4 @@ DashMelee(
     recover_duration: 2.4,
     ori_modifier: 0.3,
     charge_through: false,
-    is_interruptible: true,
 )

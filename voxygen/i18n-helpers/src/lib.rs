@@ -101,11 +101,12 @@ pub fn localize_chat_message(
                 | BuffKind::Invulnerability
                 | BuffKind::ProtectingWard
                 | BuffKind::Frenzied
-                | BuffKind::Hastened => {
+                | BuffKind::Hastened
+                | BuffKind::Fortitude => {
                     tracing::error!("Player was killed by a positive buff!");
                     "hud-outcome-mysterious"
                 },
-                BuffKind::Wet | BuffKind::Ensnared | BuffKind::Poisoned => {
+                BuffKind::Wet | BuffKind::Ensnared | BuffKind::Poisoned | BuffKind::Parried => {
                     tracing::error!("Player was killed by a debuff that doesn't do damage!");
                     "hud-outcome-mysterious"
                 },

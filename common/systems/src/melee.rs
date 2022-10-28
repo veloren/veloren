@@ -2,6 +2,7 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
+        melee::MultiTarget,
         Alignment, Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori,
         Player, Pos, Scale, Stats,
     },
@@ -13,6 +14,7 @@ use common::{
     GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use itertools::Itertools;
 use specs::{
     shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
@@ -111,7 +113,14 @@ impl<'a> System<'a> for Sys {
                 &read_data.uids,
             )
                 .join()
+                .sorted_by_key(|(_, pos_b, _, _, _)| pos_b.0.distance_squared(pos.0) as u32)
             {
+                // Unless the melee attack can hit multiple targets, stop the attack if it has
+                // already hit 1 target
+                if melee_attack.multi_target.is_none() && melee_attack.hit_count > 0 {
+                    break;
+                }
+
                 let look_dir = *ori.look_dir();
 
                 // 2D versions
@@ -127,7 +136,8 @@ impl<'a> System<'a> for Sys {
                 let target_dodging = read_data
                     .char_states
                     .get(target)
-                    .map_or(false, |c_s| c_s.is_melee_dodge());
+                    .and_then(|cs| cs.attack_immunities())
+                    .map_or(false, |i| i.melee);
 
                 // Check if it is a hit
                 if attacker != target
@@ -189,12 +199,19 @@ impl<'a> System<'a> for Sys {
                         target_group,
                     };
 
+                    let strength =
+                        if let Some(MultiTarget::Scaling(scaling)) = melee_attack.multi_target {
+                            1.0 + melee_attack.hit_count as f32 * scaling
+                        } else {
+                            1.0
+                        };
+
                     let is_applied = melee_attack.attack.apply_attack(
                         attacker_info,
                         target_info,
                         dir,
                         attack_options,
-                        1.0,
+                        strength,
                         AttackSource::Melee,
                         *read_data.time,
                         |e| server_emitter.emit(e),

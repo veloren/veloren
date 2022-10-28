@@ -3,13 +3,13 @@ use super::{
     BUFF_COLOR, DEBUFF_COLOR, TEXT_COLOR,
 };
 use crate::{
-    hud::{self, animation::animation_timer, BuffPosition},
+    hud::{animation::animation_timer, BuffIcon, BuffIconKind, BuffPosition},
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
 };
 use i18n::Localization;
 
-use common::comp::{BuffKind, Buffs, Energy, Health};
+use common::comp::{BuffKind, Buffs, CharacterState, Energy, Health};
 use conrod_core::{
     color,
     image::Id,
@@ -41,6 +41,7 @@ pub struct BuffsBar<'a> {
     tooltip_manager: &'a mut TooltipManager,
     localized_strings: &'a Localization,
     buffs: &'a Buffs,
+    char_state: &'a CharacterState,
     pulse: f32,
     global_state: &'a GlobalState,
     health: &'a Health,
@@ -55,6 +56,7 @@ impl<'a> BuffsBar<'a> {
         tooltip_manager: &'a mut TooltipManager,
         localized_strings: &'a Localization,
         buffs: &'a Buffs,
+        char_state: &'a CharacterState,
         pulse: f32,
         global_state: &'a GlobalState,
         health: &'a Health,
@@ -68,6 +70,7 @@ impl<'a> BuffsBar<'a> {
             tooltip_manager,
             localized_strings,
             buffs,
+            char_state,
             pulse,
             global_state,
             health,
@@ -102,7 +105,6 @@ impl<'a> Widget for BuffsBar<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
         let mut event = Vec::new();
         let localized_strings = self.localized_strings;
-        let buffs = self.buffs;
         let buff_ani = animation_timer(self.pulse) + 0.5; //Animation timer
         let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
         let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
@@ -124,6 +126,7 @@ impl<'a> Widget for BuffsBar<'a> {
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
+        let buff_icons = BuffIcon::icons_vec(self.buffs, self.char_state);
         if let BuffPosition::Bar = buff_position {
             let decayed_health = 1.0 - self.health.maximum() / self.health.base_max();
             let show_health = self.global_state.settings.interface.always_show_bars
@@ -150,16 +153,17 @@ impl<'a> Widget for BuffsBar<'a> {
                 .set(state.ids.buffs_align, ui);
 
             // Buffs and Debuffs
-            let (buff_count, debuff_count) = buffs.iter_active().map(hud::get_buff_info).fold(
-                (0, 0),
-                |(buff_count, debuff_count), info| {
-                    if info.is_buff {
-                        (buff_count + 1, debuff_count)
-                    } else {
-                        (buff_count, debuff_count + 1)
-                    }
-                },
-            );
+            let (buff_count, debuff_count) =
+                buff_icons
+                    .iter()
+                    .fold((0, 0), |(buff_count, debuff_count), info| {
+                        if info.is_buff {
+                            (buff_count + 1, debuff_count)
+                        } else {
+                            (buff_count, debuff_count + 1)
+                        }
+                    });
+
             // Limit displayed buffs
             let buff_count = buff_count.min(12);
             let debuff_count = debuff_count.min(12);
@@ -185,12 +189,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .copied()
                 .zip(state.ids.buff_timers.iter().copied())
-                .zip(
-                    buffs
-                        .iter_active()
-                        .map(hud::get_buff_info)
-                        .filter(|info| info.is_buff),
-                )
+                .zip(buff_icons.iter().filter(|info| info.is_buff))
                 .collect::<Vec<_>>();
 
             // Sort the buffs by kind
@@ -200,13 +199,13 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .enumerate()
                 .for_each(|(i, ((id, timer_id), buff))| {
-                    let max_duration = buff.data.duration;
+                    let max_duration = buff.kind.max_duration();
                     let current_duration = buff.dur;
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                    let buff_img = hud::get_buff_image(buff.kind, self.imgs);
+                    let buff_img = buff.kind.image(self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 11 slots
                     let x = i % 6;
@@ -227,9 +226,8 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     // Create Buff tooltip
-                    let title = hud::get_buff_title(buff.kind, localized_strings);
-                    let desc_txt = hud::get_buff_desc(buff.kind, buff.data, localized_strings);
-                    let remaining_time = hud::get_buff_time(*buff);
+                    let (title, desc_txt) = buff.kind.title_description(localized_strings);
+                    let remaining_time = buff.get_buff_time();
                     let click_to_remove =
                         format!("<{}>", &localized_strings.get_msg("buff-remove"));
                     let desc = format!("{}\n\n{}\n\n{}", desc_txt, remaining_time, click_to_remove);
@@ -247,7 +245,10 @@ impl<'a> Widget for BuffsBar<'a> {
                         .set(*timer_id, ui)
                         .was_clicked()
                     {
-                        event.push(Event::RemoveBuff(buff.kind));
+                        match buff.kind {
+                            BuffIconKind::Buff { kind, .. } => event.push(Event::RemoveBuff(kind)),
+                            BuffIconKind::Ability { .. } => {},
+                        }
                     };
                 });
 
@@ -258,12 +259,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .copied()
                 .zip(state.ids.debuff_timers.iter().copied())
-                .zip(
-                    buffs
-                        .iter_active()
-                        .map(hud::get_buff_info)
-                        .filter(|info| !info.is_buff),
-                )
+                .zip(buff_icons.iter().filter(|info| !info.is_buff))
                 .collect::<Vec<_>>();
 
             // Sort the debuffs by kind
@@ -273,13 +269,13 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .enumerate()
                 .for_each(|(i, ((id, timer_id), debuff))| {
-                    let max_duration = debuff.data.duration;
+                    let max_duration = debuff.kind.max_duration();
                     let current_duration = debuff.dur;
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                    let debuff_img = hud::get_buff_image(debuff.kind, self.imgs);
+                    let debuff_img = debuff.kind.image(self.imgs);
                     let debuff_widget = Image::new(debuff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 11 slots
                     let x = i % 6;
@@ -300,9 +296,8 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     // Create Debuff tooltip
-                    let title = hud::get_buff_title(debuff.kind, localized_strings);
-                    let desc_txt = hud::get_buff_desc(debuff.kind, debuff.data, localized_strings);
-                    let remaining_time = hud::get_buff_time(*debuff);
+                    let (title, desc_txt) = debuff.kind.title_description(localized_strings);
+                    let remaining_time = debuff.get_buff_time();
                     let desc = format!("{}\n\n{}", desc_txt, remaining_time);
                     Image::new(self.get_duration_image(duration_percentage))
                         .w_h(40.0, 40.0)
@@ -325,7 +320,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .set(state.ids.align, ui);
 
             // Buffs and Debuffs
-            let buff_count = buffs.kinds.len().min(11);
+            let buff_count = buff_icons.len().min(11);
             // Limit displayed buffs
             let buff_count = buff_count.min(20);
 
@@ -349,7 +344,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .copied()
                 .zip(state.ids.buff_timers.iter().copied())
                 .zip(state.ids.buff_txts.iter().copied())
-                .zip(buffs.iter_active().map(hud::get_buff_info))
+                .zip(buff_icons.iter())
                 .collect::<Vec<_>>();
 
             // Sort the buffs by kind
@@ -359,14 +354,14 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .enumerate()
                 .for_each(|(i, (((id, timer_id), txt_id), buff))| {
-                    let max_duration = buff.data.duration;
+                    let max_duration = buff.kind.max_duration();
                     let current_duration = buff.dur;
                     // Percentage to determine which frame of the timer overlay is displayed
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32;
-                    let buff_img = hud::get_buff_image(buff.kind, self.imgs);
+                    let buff_img = buff.kind.image(self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 6 slots
                     let x = i % 6;
@@ -386,9 +381,8 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     // Create Buff tooltip
-                    let title = hud::get_buff_title(buff.kind, localized_strings);
-                    let desc_txt = hud::get_buff_desc(buff.kind, buff.data, localized_strings);
-                    let remaining_time = hud::get_buff_time(*buff);
+                    let (title, desc_txt) = buff.kind.title_description(localized_strings);
+                    let remaining_time = buff.get_buff_time();
                     let click_to_remove =
                         format!("<{}>", &localized_strings.get_msg("buff-remove"));
                     let desc = if buff.is_buff {
@@ -414,7 +408,10 @@ impl<'a> Widget for BuffsBar<'a> {
                         .set(*timer_id, ui)
                         .was_clicked()
                     {
-                        event.push(Event::RemoveBuff(buff.kind));
+                        match buff.kind {
+                            BuffIconKind::Buff { kind, .. } => event.push(Event::RemoveBuff(kind)),
+                            BuffIconKind::Ability { .. } => {},
+                        }
                     }
                     Text::new(&remaining_time)
                         .down_from(*timer_id, 1.0)

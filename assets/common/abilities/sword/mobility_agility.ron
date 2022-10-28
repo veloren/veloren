@@ -1,0 +1,12 @@
+SelfBuff(
+    buildup_duration: 0.15,
+    cast_duration: 0.4,
+    recover_duration: 0.25,
+    buff_kind: Hastened,
+    buff_strength: 0.2,
+    buff_duration: Some(20.0),
+    energy_cost: 40,
+    meta: (
+        kind: Some(Sword(Mobility)),
+    ),
+)

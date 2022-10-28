@@ -3,7 +3,11 @@
 
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
-    comp::{skills::Skill, CharacterAbility},
+    comp::{
+        ability::{AbilityKind, SwordStance},
+        skills::Skill,
+        CharacterAbility, CharacterState,
+    },
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -283,7 +287,67 @@ impl Tool {
 pub struct AbilitySet<T> {
     pub primary: T,
     pub secondary: T,
-    pub abilities: Vec<(Option<Skill>, T)>,
+    pub abilities: Vec<AuxiliaryAbilityKind<T>>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum AuxiliaryAbilityKind<T> {
+    Simple(Option<Skill>, T),
+    Contextualized(HashMap<AbilityContext, (Option<Skill>, T)>),
+}
+
+impl<T> AuxiliaryAbilityKind<T> {
+    pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AuxiliaryAbilityKind<U> {
+        match self {
+            Self::Simple(s, x) => AuxiliaryAbilityKind::<U>::Simple(s, f(x)),
+            Self::Contextualized(abilities) => AuxiliaryAbilityKind::<U>::Contextualized(
+                abilities
+                    .into_iter()
+                    .map(|(c, (s, x))| (c, (s, f(x))))
+                    .collect(),
+            ),
+        }
+    }
+
+    pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AuxiliaryAbilityKind<U> {
+        match self {
+            Self::Simple(s, x) => AuxiliaryAbilityKind::<U>::Simple(*s, f(x)),
+            Self::Contextualized(abilities) => AuxiliaryAbilityKind::<U>::Contextualized(
+                abilities
+                    .into_iter()
+                    .map(|(c, (s, x))| (*c, (*s, f(x))))
+                    .collect(),
+            ),
+        }
+    }
+
+    pub fn ability(&self, context: Option<AbilityContext>) -> Option<(Option<Skill>, &T)> {
+        match self {
+            AuxiliaryAbilityKind::Simple(s, a) => Some((*s, a)),
+            AuxiliaryAbilityKind::Contextualized(abilities) => {
+                context.and_then(|c| abilities.get(&c).map(|(s, a)| (*s, a)))
+            },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Copy, Eq, PartialEq, Hash)]
+pub enum AbilityContext {
+    Sword(SwordStance),
+}
+
+impl AbilityContext {
+    pub fn try_from(char_state: Option<&CharacterState>) -> Option<Self> {
+        if let Some(AbilityKind::Sword(stance)) = char_state
+            .and_then(|cs| cs.ability_info())
+            .and_then(|info| info.ability_meta)
+            .and_then(|meta| meta.kind)
+        {
+            Some(Self::Sword(stance))
+        } else {
+            None
+        }
+    }
 }
 
 impl AbilitySet<AbilityItem> {
@@ -301,7 +365,7 @@ impl<T> AbilitySet<T> {
         AbilitySet {
             primary: f(self.primary),
             secondary: f(self.secondary),
-            abilities: self.abilities.into_iter().map(|(s, x)| (s, f(x))).collect(),
+            abilities: self.abilities.into_iter().map(|x| x.map(&mut f)).collect(),
         }
     }
 
@@ -309,8 +373,16 @@ impl<T> AbilitySet<T> {
         AbilitySet {
             primary: f(&self.primary),
             secondary: f(&self.secondary),
-            abilities: self.abilities.iter().map(|(s, x)| (*s, f(x))).collect(),
+            abilities: self.abilities.iter().map(|x| x.map_ref(&mut f)).collect(),
         }
+    }
+
+    pub fn auxiliary(
+        &self,
+        index: usize,
+        context: Option<AbilityContext>,
+    ) -> Option<(Option<Skill>, &T)> {
+        self.abilities.get(index).and_then(|a| a.ability(context))
     }
 }
 

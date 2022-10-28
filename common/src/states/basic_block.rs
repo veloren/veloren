@@ -1,13 +1,18 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, InputKind, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParryWindow {
+    pub buildup: bool,
+    pub recover: bool,
+}
 
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -20,10 +25,14 @@ pub struct StaticData {
     pub max_angle: f32,
     /// What percentage incoming damage is reduced by
     pub block_strength: f32,
+    /// What durations are considered a parry
+    pub parry_window: ParryWindow,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Energy consumed to initiate the block
     pub energy_cost: f32,
+    /// Whether block can be held
+    pub can_hold: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -56,13 +65,19 @@ impl CharacterBehavior for Data {
                     // Transitions to swing section of stage
                     update.character = CharacterState::BasicBlock(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Action,
+                        stage_section: if self.static_data.can_hold {
+                            StageSection::Action
+                        } else {
+                            StageSection::Recover
+                        },
                         ..*self
                     });
                 }
             },
             StageSection::Action => {
-                if input_is_pressed(data, InputKind::Block) {
+                if self.static_data.can_hold
+                    && self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
+                {
                     // Block
                     update.character = CharacterState::BasicBlock(Data {
                         timer: tick_attack_or_default(data, self.timer, None),
@@ -86,21 +101,28 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    update.character =
-                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                    end_ability(data, &mut update);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                end_ability(data, &mut update);
             },
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_state_interrupt(data, &mut update, false);
-        }
+        handle_interrupts(data, &mut update);
 
         update
+    }
+}
+
+impl Data {
+    pub fn is_parry(&self) -> bool {
+        match self.stage_section {
+            StageSection::Buildup => self.static_data.parry_window.buildup,
+            StageSection::Recover => self.static_data.parry_window.recover,
+            _ => false,
+        }
     }
 }

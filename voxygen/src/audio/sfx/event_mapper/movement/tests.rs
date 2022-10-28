@@ -2,8 +2,8 @@ use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
-        bird_large, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, InputKind,
-        Ori, PhysicsState,
+        bird_large, character_state::AttackImmunities, humanoid, quadruped_medium, quadruped_small,
+        Body, CharacterState, Ori, PhysicsState,
     },
     states,
     terrain::{Block, BlockKind},
@@ -184,7 +184,14 @@ fn maps_roll() {
                 movement_duration: Duration::default(),
                 recover_duration: Duration::default(),
                 roll_strength: 0.0,
-                immune_melee: false,
+                attack_immunities: AttackImmunities {
+                    melee: false,
+                    projectiles: false,
+                    beams: false,
+                    ground_shockwaves: false,
+                    air_shockwaves: false,
+                    explosions: false,
+                },
                 ability_info: empty_ability_info(),
             },
             timer: Duration::default(),
@@ -291,7 +298,10 @@ fn empty_ability_info() -> states::utils::AbilityInfo {
     states::utils::AbilityInfo {
         tool: None,
         hand: None,
-        input: InputKind::Primary,
+        input: None,
         input_attr: None,
+        ability_meta: Default::default(),
+        ability: None,
+        return_ability: None,
     }
 }

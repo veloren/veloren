@@ -1,0 +1,12 @@
+SelfBuff(
+    buildup_duration: 0.2,
+    cast_duration: 0.2,
+    recover_duration: 0.6,
+    buff_kind: Fortitude,
+    buff_strength: 0.5,
+    buff_duration: Some(30.0),
+    energy_cost: 40,
+    meta: (
+        kind: Some(Sword(Heavy)),
+    ),
+)

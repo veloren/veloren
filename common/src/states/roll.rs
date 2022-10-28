@@ -1,15 +1,13 @@
 use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
-        character_state::OutputEvents,
+        character_state::{OutputEvents, AttackImmunities},
         CharacterState, InputKind, StateUpdate,
     },
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
-        idle,
         utils::*,
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -26,8 +24,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Affects the speed and distance of the roll
     pub roll_strength: f32,
-    /// Affects whether you are immune to melee attacks while rolling
-    pub immune_melee: bool,
+    /// Affects whether you are immune to various attacks while rolling
+    pub attack_immunities: AttackImmunities,
     /// Information about the ability
     pub ability_info: AbilityInfo,
 }
@@ -84,14 +82,18 @@ impl CharacterBehavior for Data {
             },
             StageSection::Movement => {
                 // Update velocity
-                handle_forced_movement(data, &mut update, ForcedMovement::Forward {
-                    strength: self.static_data.roll_strength
-                        * ((1.0
-                            - self.timer.as_secs_f32()
-                                / self.static_data.movement_duration.as_secs_f32())
-                            / 2.0
-                            + 0.25),
-                });
+                handle_forced_movement(
+                    data,
+                    &mut update,
+                    ForcedMovement::Forward(
+                        self.static_data.roll_strength
+                            * ((1.0
+                                - self.timer.as_secs_f32()
+                                    / self.static_data.movement_duration.as_secs_f32())
+                                / 2.0
+                                + 0.25),
+                    ),
+                );
 
                 if self.timer < self.static_data.movement_duration {
                     // Movement
@@ -130,30 +132,16 @@ impl CharacterBehavior for Data {
                                 c.stage = stage;
                             }
                         } else {
-                            update.character = CharacterState::Wielding(wielding::Data {
-                                is_sneaking: self.is_sneaking,
-                            });
+                            end_ability(data, &mut update);
                         }
                     } else {
-                        update.character = if self.was_wielded {
-                            CharacterState::Wielding(wielding::Data {
-                                is_sneaking: self.is_sneaking,
-                            })
-                        } else {
-                            CharacterState::Idle(idle::Data {
-                                is_sneaking: self.is_sneaking,
-                                footwear: None,
-                            })
-                        }
+                        end_ability(data, &mut update);
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Idle(idle::Data {
-                    is_sneaking: self.is_sneaking,
-                    footwear: None,
-                });
+                end_ability(data, &mut update);
             },
         }
 

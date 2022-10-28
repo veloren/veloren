@@ -18,6 +18,7 @@ BasicMelee(
             strength: Value(0.5),
             chance: 1.0,
         ))),
+        multi_target: Some(Normal),
     ),
     ori_modifier: 1.0,
 )
