@@ -458,7 +458,7 @@
             ],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
+                Settlement(CliffTown),
             ],
             music_state: Activity(Explore),
             artist: "GeekyGami",
@@ -472,8 +472,8 @@
             biomes:[],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
-                Settlement(Desert),
+                Settlement(CliffTown),
+                Settlement(DesertCity),
             ],
             music_state: Activity(Explore),
             artist: "Crow",
@@ -487,8 +487,8 @@
             biomes: [],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
-                Settlement(Desert),
+                Settlement(CliffTown),
+                Settlement(DesertCity),
             ],
             music_state: Activity(Explore),
             artist: "Tobias Thy - (Thy SFX)",
@@ -502,7 +502,7 @@
             biomes: [],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
+                Settlement(CliffTown),
             ],
             music_state: Activity(Explore),
             artist: "phoenix13032005",
@@ -516,8 +516,8 @@
             biomes: [],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
-                Settlement(Desert),
+                Settlement(CliffTown),
+                Settlement(DesertCity),
             ],
             music_state: Activity(Explore),
             artist: "Oolnokk; mixed by cereal7",
@@ -531,7 +531,7 @@
             biomes: [],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
+                Settlement(CliffTown),
             ],
             music_state: Activity(Explore),
             artist: "DaforLynx",
@@ -545,8 +545,8 @@
             biomes: [],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
-                Settlement(Desert),
+                Settlement(CliffTown),
+                Settlement(DesertCity),
             ],
             music_state: Activity(Explore),
             artist: "DaforLynx",
@@ -559,7 +559,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Settlement(Desert),
+                Settlement(DesertCity),
             ],
             music_state: Activity(Explore),
             artist: "Aeronic; mixed by Robotnik",
@@ -573,7 +573,7 @@
             biomes: [],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
+                Settlement(CliffTown),
             ],
             music_state: Activity(Explore),
             artist: "badbbad",
@@ -587,7 +587,7 @@
             biomes: [],
             sites: [
                 Settlement(Default), 
-                Settlement(Cliff),
+                Settlement(CliffTown),
             ],
             music_state: Activity(Explore),
             artist: "badbbad",

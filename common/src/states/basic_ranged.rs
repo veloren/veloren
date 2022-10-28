@@ -7,7 +7,6 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
     util::Dir,
 };
@@ -124,24 +123,21 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if input_is_pressed(data, self.static_data.ability_info.input) {
+                    if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
                         reset_state(self, data, output_events, &mut update);
                     } else {
-                        update.character =
-                            CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                        end_ability(data, &mut update);
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                end_ability(data, &mut update);
             },
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_state_interrupt(data, &mut update, false);
-        }
+        handle_interrupts(data, &mut update);
 
         update
     }
@@ -153,10 +149,12 @@ fn reset_state(
     output_events: &mut OutputEvents,
     update: &mut StateUpdate,
 ) {
-    handle_input(
-        join,
-        output_events,
-        update,
-        data.static_data.ability_info.input,
-    );
+    if let Some(input) = data.static_data.ability_info.input {
+        handle_input(
+            join,
+            output_events,
+            update,
+            input,
+        );
+    }
 }

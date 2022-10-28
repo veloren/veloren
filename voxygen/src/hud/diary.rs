@@ -33,7 +33,11 @@ use common::{
         self,
         ability::{Ability, ActiveAbilities, AuxiliaryAbility, MAX_ABILITIES},
         inventory::{
-            item::{item_key::ItemKey, tool::ToolKind, ItemKind, MaterialStatManifest},
+            item::{
+                item_key::ItemKey,
+                tool::{AbilityContext, ToolKind},
+                ItemKind, MaterialStatManifest,
+            },
             slot::EquipSlot,
         },
         skills::{
@@ -79,25 +83,9 @@ widget_ids! {
         skills_top_r[],
         skills_bot_l[],
         skills_bot_r[],
-        sword_render,
-        skill_sword_combo_0,
-        skill_sword_combo_1,
-        skill_sword_combo_2,
-        skill_sword_combo_3,
-        skill_sword_combo_4,
-        skill_sword_dash_0,
-        skill_sword_dash_1,
-        skill_sword_dash_2,
-        skill_sword_dash_3,
-        skill_sword_dash_4,
-        skill_sword_dash_5,
-        skill_sword_dash_6,
-        skill_sword_spin_0,
-        skill_sword_spin_1,
-        skill_sword_spin_2,
-        skill_sword_spin_3,
-        skill_sword_spin_4,
-        skill_sword_passive_0,
+        skills[],
+        skill_lock_imgs[],
+        sword_bg,
         axe_render,
         skill_axe_combo_0,
         skill_axe_combo_1,
@@ -252,6 +240,7 @@ pub struct Diary<'a> {
     tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
+    context: Option<AbilityContext>,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -297,6 +286,7 @@ impl<'a> Diary<'a> {
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
+        context: Option<AbilityContext>,
     ) -> Self {
         Self {
             show,
@@ -318,6 +308,7 @@ impl<'a> Diary<'a> {
             tooltip_manager,
             slot_manager,
             pulse,
+            context,
             common: widget::CommonBuilder::default(),
             created_btns_top_l: 0,
             created_btns_top_r: 0,
@@ -818,7 +809,12 @@ impl<'a> Widget for Diary<'a> {
                     amount_margins: Vec2::new(-4.0, 0.0),
                     amount_font_size: self.fonts.cyri.scale(12),
                     amount_text_color: TEXT_COLOR,
-                    content_source: &(self.active_abilities, self.inventory, self.skill_set),
+                    content_source: &(
+                        self.active_abilities,
+                        self.inventory,
+                        self.skill_set,
+                        self.context,
+                    ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
                     pulse: 0.0,
@@ -832,7 +828,7 @@ impl<'a> Widget for Diary<'a> {
                             Some(self.inventory),
                             Some(self.skill_set),
                         )
-                        .ability_id(Some(self.inventory));
+                        .ability_id(Some(self.inventory), self.context);
                     let (ability_title, ability_desc) = if let Some(ability_id) = ability_id {
                         util::ability_description(ability_id, self.localized_strings)
                     } else {
@@ -906,20 +902,30 @@ impl<'a> Widget for Diary<'a> {
                         }
                     });
 
-                let main_weap_abilities = ActiveAbilities::iter_unlocked_abilities(
+                let main_weap_abilities = ActiveAbilities::iter_available_abilities(
                     Some(self.inventory),
                     Some(self.skill_set),
                     EquipSlot::ActiveMainhand,
                 )
                 .map(AuxiliaryAbility::MainWeapon)
-                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a));
-                let off_weap_abilities = ActiveAbilities::iter_unlocked_abilities(
+                .map(|a| {
+                    (
+                        Ability::from(a).ability_id(Some(self.inventory), self.context),
+                        a,
+                    )
+                });
+                let off_weap_abilities = ActiveAbilities::iter_available_abilities(
                     Some(self.inventory),
                     Some(self.skill_set),
                     EquipSlot::ActiveOffhand,
                 )
                 .map(AuxiliaryAbility::OffWeapon)
-                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a));
+                .map(|a| {
+                    (
+                        Ability::from(a).ability_id(Some(self.inventory), self.context),
+                        a,
+                    )
+                });
 
                 let abilities: Vec<_> = if same_weap_kinds {
                     // When the weapons have the same ability kind take only the main weapons,
@@ -1022,7 +1028,12 @@ impl<'a> Widget for Diary<'a> {
                     amount_margins: Vec2::new(-4.0, 0.0),
                     amount_font_size: self.fonts.cyri.scale(12),
                     amount_text_color: TEXT_COLOR,
-                    content_source: &(self.active_abilities, self.inventory, self.skill_set),
+                    content_source: &(
+                        self.active_abilities,
+                        self.inventory,
+                        self.skill_set,
+                        self.context,
+                    ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
                     pulse: 0.0,
@@ -1190,8 +1201,12 @@ impl<'a> Widget for Diary<'a> {
                             }
                         },
                         "Stun-Resistance" => {
-                            let stun_res =
-                                Poise::compute_poise_damage_reduction(self.inventory, self.msm);
+                            let stun_res = Poise::compute_poise_damage_reduction(
+                                Some(self.inventory),
+                                self.msm,
+                                None,
+                                None,
+                            );
                             format!("{:.2}%", stun_res * 100.0)
                         },
                         "Crit-Power" => {
@@ -1323,6 +1338,11 @@ enum SkillIcon<'a> {
         image: image::Id,
         position: PositionSpecifier,
         id: widget::Id,
+    },
+    Ability {
+        skill: Skill,
+        ability_id: &'a str,
+        position: PositionSpecifier,
     },
 }
 
@@ -1499,7 +1519,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -1520,157 +1540,179 @@ impl<'a> Diary<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.tree_title_txt, ui);
 
-        // Number of skills per rectangle per weapon, start counting at 0
-        // Maximum of 9 skills/8 indices
-        let skills_top_l = 5;
-        let skills_top_r = 7;
-        let skills_bot_l = 5;
-        let skills_bot_r = 1;
-
-        self.setup_state_for_skill_icons(
-            state,
-            ui,
-            skills_top_l,
-            skills_top_r,
-            skills_bot_l,
-            skills_bot_r,
-        );
-
-        // Skill icons and buttons
-        use skills::SwordSkill::*;
         // Sword
-        Image::new(animate_by_pulse(
-            &self
-                .item_imgs
-                .img_ids_or_not_found_img(ItemKey::Simple("example_sword".to_string())),
-            self.pulse,
-        ))
-        .wh(ART_SIZE)
-        .middle_of(state.ids.content_align)
-        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.ids.sword_render, ui);
-        use PositionSpecifier::MidTopWithMarginOn;
+        Image::new(self.imgs.sword_bg)
+            .wh([1000.0, 600.0])
+            .mid_top_with_margin_on(state.ids.content_align, 80.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .set(state.ids.sword_bg, ui);
+
+        use PositionSpecifier::TopLeftWithMarginsOn;
         let skill_buttons = &[
-            // Top Left skills
-            //        5 1 6
-            //        3 0 4
-            //        8 2 7
-            SkillIcon::Descriptive {
-                title: "hud-skill-sw_trip_str_title",
-                desc: "hud-skill-sw_trip_str",
-                image: self.imgs.twohsword_m1,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
-                id: state.ids.skill_sword_combo_0,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::BalancedFinisher),
+                ability_id: "common.abilities.sword.balanced_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 462.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(TsCombo),
-                image: self.imgs.physical_combo_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
-                id: state.ids.skill_sword_combo_1,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::OffensiveCombo),
+                ability_id: "common.abilities.sword.offensive_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 389.0, 313.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(TsDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
-                id: state.ids.skill_sword_combo_2,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::OffensiveFinisher),
+                ability_id: "common.abilities.sword.offensive_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 265.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(TsSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
-                id: state.ids.skill_sword_combo_3,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::OffensiveAdvance),
+                ability_id: "common.abilities.sword.offensive_advance",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 361.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(TsRegen),
-                image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
-                id: state.ids.skill_sword_combo_4,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingCombo),
+                ability_id: "common.abilities.sword.crippling_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 164.0),
             },
-            // Top right skills
-            SkillIcon::Descriptive {
-                title: "hud-skill-sw_dash_title",
-                desc: "hud-skill-sw_dash",
-                image: self.imgs.twohsword_m2,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
-                id: state.ids.skill_sword_dash_0,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingFinisher),
+                ability_id: "common.abilities.sword.crippling_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 193.0, 164.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
-                id: state.ids.skill_sword_dash_1,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingStrike),
+                ability_id: "common.abilities.sword.crippling_strike",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 97.0, 164.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DDrain),
-                image: self.imgs.physical_energy_drain_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
-                id: state.ids.skill_sword_dash_2,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingGouge),
+                ability_id: "common.abilities.sword.crippling_gouge",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 164.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
-                id: state.ids.skill_sword_dash_3,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingCombo),
+                ability_id: "common.abilities.sword.cleaving_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 15.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
-                id: state.ids.skill_sword_dash_4,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingFinisher),
+                ability_id: "common.abilities.sword.cleaving_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 193.0, 15.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DChargeThrough),
-                image: self.imgs.physical_distance_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[5], 3.0),
-                id: state.ids.skill_sword_dash_5,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingSpin),
+                ability_id: "common.abilities.sword.cleaving_spin",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 97.0, 15.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DScaling),
-                image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[6], 3.0),
-                id: state.ids.skill_sword_dash_6,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingDive),
+                ability_id: "common.abilities.sword.cleaving_dive",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 15.0),
             },
-            // Bottom left skills
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(UnlockSpin),
-                image: self.imgs.sword_whirlwind,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
-                id: state.ids.skill_sword_spin_0,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveCombo),
+                ability_id: "common.abilities.sword.defensive_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 389.0, 611.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(SDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
-                id: state.ids.skill_sword_spin_1,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveBulwark),
+                ability_id: "common.abilities.sword.defensive_bulwark",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 659.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(SSpeed),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
-                id: state.ids.skill_sword_spin_2,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveRetreat),
+                ability_id: "common.abilities.sword.defensive_retreat",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 563.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(SCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
-                id: state.ids.skill_sword_spin_3,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ParryingCombo),
+                ability_id: "common.abilities.sword.parrying_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 760.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(SSpins),
-                image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
-                id: state.ids.skill_sword_spin_4,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ParryingParry),
+                ability_id: "common.abilities.sword.parrying_parry",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 193.0, 760.0),
             },
-            // Bottom right skills
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(InterruptingAttacks),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_r[0], 3.0),
-                id: state.ids.skill_sword_passive_0,
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ParryingRiposte),
+                ability_id: "common.abilities.sword.parrying_riposte",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 97.0, 760.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ParryingCounter),
+                ability_id: "common.abilities.sword.parrying_counter",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 760.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyCombo),
+                ability_id: "common.abilities.sword.heavy_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 909.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyFinisher),
+                ability_id: "common.abilities.sword.heavy_finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 193.0, 909.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyPommelStrike),
+                ability_id: "common.abilities.sword.heavy_pommelstrike",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 97.0, 909.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyFortitude),
+                ability_id: "common.abilities.sword.heavy_fortitude",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 909.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::MobilityCombo),
+                ability_id: "common.abilities.sword.mobility_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 462.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::MobilityFeint),
+                ability_id: "common.abilities.sword.mobility_feint",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 313.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::MobilityAgility),
+                ability_id: "common.abilities.sword.mobility_agility",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 611.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ReachingCombo),
+                ability_id: "common.abilities.sword.reaching_combo",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 141.0, 462.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ReachingCharge),
+                ability_id: "common.abilities.sword.reaching_charge",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 367.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ReachingFlurry),
+                ability_id: "common.abilities.sword.reaching_flurry",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 462.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::ReachingSkewer),
+                ability_id: "common.abilities.sword.reaching_skewer",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 558.0),
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        state.update(|s| {
+            s.ids
+                .skills
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+        state.update(|s| {
+            s.ids
+                .skill_lock_imgs
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -1828,7 +1870,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -1986,7 +2028,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2138,7 +2180,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2296,7 +2338,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2443,7 +2485,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2527,7 +2569,7 @@ impl<'a> Diary<'a> {
             },
         ];
 
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2537,8 +2579,9 @@ impl<'a> Diary<'a> {
         ui: &mut UiCell,
         events: &mut Vec<Event>,
         diary_tooltip: &Tooltip,
+        state: &mut State<DiaryState>,
     ) {
-        for icon in icons {
+        for (i, icon) in icons.iter().enumerate() {
             match icon {
                 SkillIcon::Descriptive {
                     title,
@@ -2573,6 +2616,20 @@ impl<'a> Diary<'a> {
                     ui,
                     events,
                     diary_tooltip,
+                ),
+                SkillIcon::Ability {
+                    skill,
+                    ability_id,
+                    position,
+                } => self.create_unlock_ability_button(
+                    *skill,
+                    ability_id,
+                    *position,
+                    i,
+                    ui,
+                    events,
+                    diary_tooltip,
+                    state,
                 ),
             }
         }
@@ -2764,6 +2821,59 @@ impl<'a> Diary<'a> {
             events.push(Event::UnlockSkill(skill));
         };
     }
+
+    fn create_unlock_ability_button(
+        &mut self,
+        skill: Skill,
+        ability_id: &str,
+        position: PositionSpecifier,
+        widget_index: usize,
+        ui: &mut UiCell,
+        events: &mut Vec<Event>,
+        diary_tooltip: &Tooltip,
+        state: &mut State<DiaryState>,
+    ) {
+        let locked = !self.skill_set.prerequisites_met(skill);
+        let owned = self.skill_set.has_skill(skill);
+        let image_color = if owned {
+            TEXT_COLOR
+        } else {
+            Color::Rgba(0.41, 0.41, 0.41, 0.7)
+        };
+
+        let (title, description) = util::ability_description(ability_id, self.localized_strings);
+
+        let sp_cost = sp(self.localized_strings, self.skill_set, skill);
+
+        let description = format!("{description}\n{sp_cost}");
+
+        let button = Button::image(util::ability_image(self.imgs, ability_id))
+            .w_h(76.0, 76.0)
+            .position(position)
+            .image_color(image_color)
+            .with_tooltip(
+                self.tooltip_manager,
+                &title,
+                &description,
+                diary_tooltip,
+                TEXT_COLOR,
+            )
+            .set(state.ids.skills[widget_index], ui);
+
+        // Lock Image
+        if locked {
+            Image::new(self.imgs.lock)
+                .w_h(76.0, 76.0)
+                .middle_of(state.ids.skills[widget_index])
+                .graphics_for(state.ids.skills[widget_index])
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
+                .set(state.ids.skill_lock_imgs[widget_index], ui);
+        }
+
+        if button.was_clicked() {
+            events.push(Event::UnlockSkill(skill));
+        };
+    }
 }
 
 /// Returns skill info as a tuple of title and description.
@@ -2775,7 +2885,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         Skill::General(s) => general_skill_strings(s),
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
-        Skill::Sword(s) => sword_skill_strings(s),
         Skill::Axe(s) => axe_skill_strings(s),
         Skill::Hammer(s) => hammer_skill_strings(s),
         Skill::Bow(s) => bow_skill_strings(s),
@@ -2787,6 +2896,7 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         Skill::Swim(s) => swim_skill_strings(s),
         // mining
         Skill::Pick(s) => mining_skill_strings(s),
+        _ => SkillStrings::plain("", ""),
     }
 }
 
@@ -2840,86 +2950,6 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
         ) => {
             tracing::warn!("Requesting title for unlocking unexpected skill group");
             SkillStrings::Empty
-        },
-    }
-}
-
-fn sword_skill_strings(skill: SwordSkill) -> SkillStrings<'static> {
-    let modifiers = SKILL_MODIFIERS.sword_tree;
-    match skill {
-        // triple strike
-        SwordSkill::TsCombo => SkillStrings::plain(
-            "hud-skill-sw_trip_str_combo_title",
-            "hud-skill-sw_trip_str_combo",
-        ),
-        SwordSkill::TsDamage => SkillStrings::plain(
-            "hud-skill-sw_trip_str_dmg_title",
-            "hud-skill-sw_trip_str_dmg",
-        ),
-        SwordSkill::TsSpeed => {
-            SkillStrings::plain("hud-skill-sw_trip_str_sp_title", "hud-skill-sw_trip_str_sp")
-        },
-        SwordSkill::TsRegen => SkillStrings::plain(
-            "hud-skill-sw_trip_str_reg_title",
-            "hud-skill-sw_trip_str_reg",
-        ),
-        // dash
-        SwordSkill::DDamage => SkillStrings::with_mult(
-            "hud-skill-sw_dash_dmg_title",
-            "hud-skill-sw_dash_dmg",
-            modifiers.dash.base_damage,
-        ),
-        SwordSkill::DDrain => SkillStrings::with_mult(
-            "hud-skill-sw_dash_drain_title",
-            "hud-skill-sw_dash_drain",
-            modifiers.dash.energy_drain,
-        ),
-        SwordSkill::DCost => SkillStrings::with_mult(
-            "hud-skill-sw_dash_cost_title",
-            "hud-skill-sw_dash_cost",
-            modifiers.dash.energy_cost,
-        ),
-        SwordSkill::DSpeed => SkillStrings::with_mult(
-            "hud-skill-sw_dash_speed_title",
-            "hud-skill-sw_dash_speed",
-            modifiers.dash.forward_speed,
-        ),
-        SwordSkill::DChargeThrough => SkillStrings::plain(
-            "hud-skill-sw_dash_charge_through_title",
-            "hud-skill-sw_dash_charge_through",
-        ),
-        SwordSkill::DScaling => SkillStrings::with_mult(
-            "hud-skill-sw_dash_scale_title",
-            "hud-skill-sw_dash_scale",
-            modifiers.dash.scaled_damage,
-        ),
-        // spin
-        SwordSkill::UnlockSpin => {
-            SkillStrings::plain("hud-skill-sw_spin_title", "hud-skill-sw_spin")
-        },
-        SwordSkill::SDamage => SkillStrings::with_mult(
-            "hud-skill-sw_spin_dmg_title",
-            "hud-skill-sw_spin_dmg",
-            modifiers.spin.base_damage,
-        ),
-        SwordSkill::SSpeed => SkillStrings::with_mult(
-            "hud-skill-sw_spin_spd_title",
-            "hud-skill-sw_spin_spd",
-            modifiers.spin.swing_duration,
-        ),
-        SwordSkill::SCost => SkillStrings::with_mult(
-            "hud-skill-sw_spin_cost_title",
-            "hud-skill-sw_spin_cost",
-            modifiers.spin.energy_cost,
-        ),
-        SwordSkill::SSpins => SkillStrings::with_const(
-            "hud-skill-sw_spin_spins_title",
-            "hud-skill-sw_spin_spins",
-            modifiers.spin.num,
-        ),
-        // independent skills
-        SwordSkill::InterruptingAttacks => {
-            SkillStrings::plain("hud-skill-sw_interrupt_title", "hud-skill-sw_interrupt")
         },
     }
 }

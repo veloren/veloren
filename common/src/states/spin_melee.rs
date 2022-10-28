@@ -4,7 +4,6 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -28,8 +27,6 @@ pub struct StaticData {
     pub is_infinite: bool,
     /// Used to dictate how movement functions in this state
     pub movement_behavior: MovementBehavior,
-    /// Whether the state can be interrupted by other abilities
-    pub is_interruptible: bool,
     /// Used for forced forward movement
     pub forward_speed: f32,
     /// Number of spins
@@ -109,9 +106,11 @@ impl CharacterBehavior for Data {
                         self.static_data.movement_behavior,
                         MovementBehavior::ForwardGround
                     ) {
-                        handle_forced_movement(data, &mut update, ForcedMovement::Forward {
-                            strength: self.static_data.forward_speed,
-                        });
+                        handle_forced_movement(
+                            data,
+                            &mut update,
+                            ForcedMovement::Forward(self.static_data.forward_speed),
+                        );
                     }
 
                     // Swings
@@ -122,7 +121,7 @@ impl CharacterBehavior for Data {
                 } else if update.energy.current() as f32 >= self.static_data.energy_cost
                     && (self.consecutive_spins < self.static_data.num_spins
                         || (self.static_data.is_infinite
-                            && input_is_pressed(data, self.static_data.ability_info.input)))
+                            && self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))))
                 {
                     update.character = CharacterState::SpinMelee(Data {
                         timer: Duration::default(),
@@ -152,24 +151,17 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    update.character =
-                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
-                    // Make sure attack component is removed
-                    data.updater.remove::<Melee>(data.entity);
+                    end_melee_ability(data, &mut update);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
-                // Make sure attack component is removed
-                data.updater.remove::<Melee>(data.entity);
+                end_melee_ability(data, &mut update);
             },
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_state_interrupt(data, &mut update, self.static_data.is_interruptible);
-        }
+        handle_interrupts(data, &mut update);
 
         update
     }

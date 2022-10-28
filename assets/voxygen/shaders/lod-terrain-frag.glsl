@@ -6,9 +6,9 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -445,10 +445,10 @@ void main() {
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
     // voxel_norm = vec3(0.0);
 
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE >= FLUID_MODE_MEDIUM)
     float shadow_alt = /*f_pos.z;*/alt_at(f_pos.xy);//max(alt_at(f_pos.xy), f_pos.z);
     // float shadow_alt = f_pos.z;
-#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
+#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_LOW)
     float shadow_alt = f_pos.z;
 #endif
 
@@ -579,9 +579,9 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
-    vec3 mu = medium.x == MEDIUM_WATER/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
+    vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
-    vec3 cam_attenuation = compute_attenuation_point(cam_pos.xyz, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos);
+    vec3 cam_attenuation = compute_attenuation_point(f_pos, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
     // Use f_norm here for better shadows.
     // vec3 light_frac = light_reflection_factor(f_norm/*l_norm*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(/*1.0*/R_s), alpha);
 
@@ -648,34 +648,43 @@ void main() {
     // vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
     // f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
     vec3 surf_color;
-    #if (FLUID_MODE == FLUID_MODE_SHINY)
-        if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+    float surf_alpha = 1.0;
+    if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+        vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
+        #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
             vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
 
-            vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
 
             float passthrough = dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag);
 
-            vec3 reflect_color = get_sky_color(reflect_ray, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-            reflect_color = get_cloud_color(reflect_color, reflect_ray, cam_pos.xyz, time_of_day.x, 100000.0, 0.1);
+            vec3 reflect_color;
+            #if (FLUID_MODE == FLUID_MODE_HIGH)
+                reflect_color = get_sky_color(reflect_ray, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+                reflect_color = get_cloud_color(reflect_color, reflect_ray, cam_pos.xyz, time_of_day.x, 100000.0, 0.1);
+            #else
+                reflect_color = get_sky_color(reflect_ray, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+            #endif
+            reflect_color *= sun_shade_frac * 0.75 + 0.25;
 
-            const float REFLECTANCE = 0.5;
+            const float REFLECTANCE = 1.0;
             surf_color = illuminate(max_light, view_dir, f_col * emitted_light, reflect_color * REFLECTANCE + water_color * reflected_light);
 
             const vec3 underwater_col = vec3(0.0);
             float min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
             surf_color = mix(underwater_col, surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));
-        } else {
-            surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
-        }
-    #else
+            surf_alpha = 1.0 - passthrough;
+        #else
+            surf_alpha = 0.9;
+            surf_color = get_sky_color(reflect_ray, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+        #endif
+    } else {
         surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
-    #endif
+    }
 
     // float mist_factor = max(1 - (f_pos.z + (texture(t_noise, f_pos.xy * 0.0005 + time_of_day.x * 0.0003).x - 0.5) * 128.0) / 400.0, 0.0);
     // //float mist_factor = f_norm.z * 2.0;
     // color = mix(color, vec3(1.0) * /*diffuse_light*/reflected_light, clamp(mist_factor * 0.00005 * distance(f_pos.xy, focus_pos.xy), 0, 0.3));
     // color = surf_color;
 
-    tgt_color = vec4(surf_color, 1.0);
+    tgt_color = vec4(surf_color, surf_alpha);
 }

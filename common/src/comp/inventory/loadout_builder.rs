@@ -1,7 +1,7 @@
 use crate::{
     assets::{self, AssetExt},
     comp::{
-        arthropod, biped_large, biped_small, bird_large, golem,
+        arthropod, biped_large, biped_small, bird_large, bird_medium, golem,
         inventory::{
             loadout::Loadout,
             slot::{ArmorSlot, EquipSlot},
@@ -777,6 +777,12 @@ fn default_main_tool(body: &Body) -> Item {
             (bird_large::Species::Roc, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.birdlargebasic",
             )),
+        },
+        Body::BirdMedium(bird_medium) => match bird_medium.species {
+            bird_medium::Species::Bat => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.simpleflyingbasic",
+            )),
+            _ => None,
         },
         _ => None,
     };

@@ -2,13 +2,12 @@ use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
     comp::{
         character_state::OutputEvents,
-        tool::{Stats, ToolKind},
+        tool::{Stats, ToolKind}, melee::MultiTarget,
         CharacterState, Melee, StateUpdate,
     },
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
     Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
@@ -132,8 +131,6 @@ pub struct StaticData {
     pub max_speed_increase: f32,
     /// Number of times damage scales with combo
     pub scales_from_combo: u32,
-    /// Whether the state can be interrupted by other abilities
-    pub is_interruptible: bool,
     /// Adjusts turning rate during the attack
     pub ori_modifier: f32,
     /// What key is used to press ability
@@ -164,14 +161,7 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.4);
 
-        // Index should be `self.stage - 1`, however in cases of client-server desync
-        // this can cause panics. This ensures that `self.stage - 1` is valid, and if it
-        // isn't, index of 0 is used, which is always safe.
-        let stage_index = self
-            .static_data
-            .stage_data
-            .get(self.stage as usize - 1)
-            .map_or(0, |_| self.stage as usize - 1);
+        let stage_index = self.stage_index();
 
         let speed_modifier = 1.0
             + self.static_data.max_speed_increase
@@ -287,6 +277,9 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,
                         hit_count: 0,
+                        // TODO: Evaluate if we want to leave this true. State will be removed at
+                        // some point anyways and this does preserve behavior
+                        multi_target: Some(MultiTarget::Normal),
                         break_block: data
                             .inputs
                             .break_block_pos
@@ -308,9 +301,13 @@ impl CharacterBehavior for Data {
                     );
 
                     // Forward movement
-                    handle_forced_movement(data, &mut update, ForcedMovement::Forward {
-                        strength: self.static_data.stage_data[stage_index].forward_movement,
-                    });
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Forward(
+                            self.static_data.stage_data[stage_index].forward_movement,
+                        ),
+                    );
 
                     // Swings
                     update.character = CharacterState::ComboMelee(Data {
@@ -344,28 +341,36 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if input_is_pressed(data, self.static_data.ability_info.input) {
+                    if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
                         reset_state(self, data, output_events, &mut update);
                     } else {
-                        update.character =
-                            CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                        end_melee_ability(data, &mut update);
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
-                // Make sure attack component is removed
-                data.updater.remove::<Melee>(data.entity);
+                end_melee_ability(data, &mut update);
             },
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_state_interrupt(data, &mut update, self.static_data.is_interruptible);
-        }
+        handle_interrupts(data, &mut update);
 
         update
+    }
+}
+
+impl Data {
+    /// Index should be `self.stage - 1`, however in cases of client-server desync
+    /// this can cause panics. This ensures that `self.stage - 1` is valid, and if it
+    /// isn't, index of 0 is used, which is always safe.
+    pub fn stage_index(&self) -> usize {
+        self
+            .static_data
+            .stage_data
+            .get(self.stage as usize - 1)
+            .map_or(0, |_| self.stage as usize - 1)
     }
 }
 
@@ -375,14 +380,16 @@ fn reset_state(
     output_events: &mut OutputEvents,
     update: &mut StateUpdate,
 ) {
-    handle_input(
-        join,
-        output_events,
-        update,
-        data.static_data.ability_info.input,
-    );
+    if let Some(input) = data.static_data.ability_info.input {
+        handle_input(
+            join,
+            output_events,
+            update,
+            input,
+        );
 
-    if let CharacterState::ComboMelee(c) = &mut update.character {
-        c.stage = (data.stage % data.static_data.num_stages) + 1;
+        if let CharacterState::ComboMelee(c) = &mut update.character {
+            c.stage = (data.stage % data.static_data.num_stages) + 1;
+        }
     }
 }

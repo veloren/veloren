@@ -163,6 +163,10 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
+        enum ActionTimers {
+            TimerIdle = 0,
+        }
+
         agent
             .awareness
             .change_by(STD_AWARENESS_DECREMENT, read_data.dt.0);
@@ -200,15 +204,15 @@ impl<'a> AgentData<'a> {
                 true
             };
             if attempt_heal && self.heal_self(agent, controller, true) {
-                agent.action_state.timer = 0.01;
+                agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.01;
                 return;
             }
         } else {
-            agent.action_state.timer = 0.01;
+            agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.01;
             return;
         }
 
-        agent.action_state.timer = 0.0;
+        agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.0;
         if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
             // If it has an rtsim destination and can fly, then it should.
             // If it is flying and bumps something above it, then it should move down.
@@ -326,6 +330,43 @@ impl<'a> AgentData<'a> {
                 }
             }
         } else {
+            // Bats should fly
+            // Use a proportional controller as the bouncing effect mimics bat flight
+            if self.traversal_config.can_fly
+                && self
+                    .inventory
+                    .equipped(EquipSlot::ActiveMainhand)
+                    .as_ref()
+                    .map_or(false, |item| {
+                        item.ability_spec().map_or(false, |a_s| match &*a_s {
+                            AbilitySpec::Custom(spec) => {
+                                matches!(spec.as_str(), "Simple Flying Melee")
+                            },
+                            _ => false,
+                        })
+                    })
+            {
+                // Bats don't like the ground, so make sure they are always flying
+                controller.push_basic_input(InputKind::Fly);
+                if read_data
+                    .terrain
+                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 5.0))
+                    .until(Block::is_solid)
+                    .cast()
+                    .1
+                    .map_or(true, |b| b.is_some())
+                {
+                    // Fly up
+                    controller.inputs.move_z = 1.0;
+                    // If on the ground, jump
+                    if self.physics_state.on_ground.is_some() {
+                        controller.push_basic_input(InputKind::Jump);
+                    }
+                } else {
+                    // Fly down
+                    controller.inputs.move_z = -1.0;
+                }
+            }
             agent.bearing += Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 0.1
                 - agent.bearing * 0.003
                 - agent.patrol_origin.map_or(Vec2::zero(), |patrol_origin| {
@@ -551,7 +592,10 @@ impl<'a> AgentData<'a> {
         event_emitter: &mut Emitter<ServerEvent>,
         will_ambush: bool,
     ) {
-        agent.action_state.timer = 0.0;
+        enum ActionStateTimers {
+            TimerChooseTarget = 0,
+        }
+        agent.action_state.timers[ActionStateTimers::TimerChooseTarget as usize] = 0.0;
         let mut aggro_on = false;
 
         // Search the area.
@@ -769,6 +813,7 @@ impl<'a> AgentData<'a> {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
                             "Oni" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
+                            "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
                             "Bow Simple" => Tactic::Bow,
                             "Stone Golem" => Tactic::StoneGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
@@ -1001,6 +1046,14 @@ impl<'a> AgentData<'a> {
         // Match on tactic. Each tactic has different controls depending on the distance
         // from the agent to the target.
         match tactic {
+            Tactic::SimpleFlyingMelee => self.handle_simple_flying_melee(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
             Tactic::SimpleMelee => {
                 self.handle_simple_melee(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
@@ -1297,11 +1350,7 @@ impl<'a> AgentData<'a> {
 
                                 self.idle(agent, controller, read_data, rng);
                             } else {
-                                let target_data = TargetData::new(
-                                    tgt_pos,
-                                    read_data.bodies.get(target),
-                                    read_data.scales.get(target),
-                                );
+                                let target_data = TargetData::new(tgt_pos, target, read_data);
                                 if let Some(tgt_name) =
                                     read_data.stats.get(target).map(|stats| stats.name.clone())
                                 {

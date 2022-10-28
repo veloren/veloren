@@ -179,9 +179,9 @@ pub enum ServerEvent {
         entity: EcsEntity,
         change: i32,
     },
-    Parry {
-        entity: EcsEntity,
-        energy_cost: f32,
+    ParryHook {
+        defender: EcsEntity,
+        attacker: Option<EcsEntity>,
     },
     RequestSiteInfo {
         entity: EcsEntity,

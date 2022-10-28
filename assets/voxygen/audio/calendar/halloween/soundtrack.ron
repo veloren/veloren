@@ -1,0 +1,304 @@
+// Times: Some(Day or Night) or None [both]
+// Weathers: Some(Clear, Cloudy, Rain, or Storm) or None [any weather]
+// Biomes: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean, Jungle, Savannah, Taiga
+//          planned biomes: Swamp
+// Number after biome indicates weighting; higher numbers are less frequent
+// Sites: Settlement(Default, Cliff, or Desert), Cave, Dungeon(Old or Gnarling), or Void [none]
+// Music states: Activity(Explore or Combat)
+// Combat music is looped. Needs three files: start, loop, and end. Start contains leadup to the loop.
+// It's recommended to also have appropriate metadata for those who listen via the game files :)
+
+(
+    tracks: 
+        [
+
+        // Overworld exploration tracks
+
+        Individual((   
+            title: "Down The Rabbit Hole",
+            path: "voxygen.audio.soundtrack.cave.down_the_rabbit_hole",
+            length: 244.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
+            music_state: Activity(Explore),
+            artist: "badbbad",
+        )),
+         Individual((
+            title: "Dank Dungeon",
+            path: "voxygen.audio.soundtrack.dungeon.dank_dungeon",
+            length: 130.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),
+        Individual((
+            title: "Ruination",
+            path: "voxygen.audio.soundtrack.dungeon.ruination",
+            length: 135.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),  
+        Individual((
+            title: "Moonlit Canopy",
+            path: "voxygen.audio.soundtrack.overworld.moonlit_canopy",
+            length: 170.0,
+            timing: Some(Night),
+            weather: None,
+            biomes: [],
+            sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
+            music_state: Activity(Explore),
+            artist: "GeekyGami",
+        )), 
+        Individual((
+            title: "Ethereal Bonds",
+            path: "voxygen.audio.soundtrack.overworld.ethereal_bonds",
+            length: 59.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),    
+        Individual((
+            title: "Raising Below Like Thunder",
+            path: "voxygen.audio.soundtrack.overworld.raising_below_like_thunder",
+            length: 120.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
+            music_state: Activity(Explore),
+            artist: "Rarnage",
+        )), 
+        Individual((
+            title: "Into The Dark Forest",
+            path: "voxygen.audio.soundtrack.overworld.into_the_dark_forest",
+            length: 184.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),
+        Individual((
+            title: "Ballerine Macabre",
+            path: "voxygen.audio.soundtrack.overworld.ballerine_macabre",
+            length: 193.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
+            music_state: Activity(Explore),
+            artist: "GeekyGami",
+        )),
+        
+        // Cave music
+
+        Individual((
+            title: "Stars Like Stalactites",
+            path: "voxygen.audio.soundtrack.cave.stars_like_stalactites",
+            length: 130.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Cave],
+            music_state: Activity(Explore),
+            artist: "DragonDee",
+        )),
+        Individual((
+            title: "Cavernous Hollow",
+            path: "voxygen.audio.soundtrack.cave.cavernous_hollow",
+            length: 256.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Cave],
+            music_state: Activity(Explore),
+            artist: "GeekyGami",
+        )),
+        Individual((
+            title: "Saturated Hallows",
+            path: "voxygen.audio.soundtrack.cave.saturated_hallows",
+            length: 227.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Cave],
+            music_state: Activity(Explore),
+            artist: "Flashbang",
+        )),
+        Individual((
+            title: "Mineral Deposits",
+            path: "voxygen.audio.soundtrack.cave.mineral_deposits",
+            length: 148.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Cave],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),
+        Individual((   
+            title: "Down The Rabbit Hole",
+            path: "voxygen.audio.soundtrack.cave.down_the_rabbit_hole",
+            length: 244.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [Cave],
+            music_state: Activity(Explore),
+            artist: "badbbad",
+        )),
+
+        // Dungeon music
+        
+        Individual((
+            title: "Mysty Temple",
+            path: "voxygen.audio.soundtrack.dungeon.mysty_temple",
+            length: 183.0,
+            timing: None,
+            weather: None,
+            biomes:[],
+            sites: [
+                Dungeon(Old),
+            ],
+            music_state: Activity(Explore),
+            artist: "Tiny",
+        )),
+        Individual((
+            title: "Cobbled Halls",
+            path: "voxygen.audio.soundtrack.dungeon.cobbled_halls",
+            length: 240.0,
+            timing: None,
+            weather: None,
+            biomes:[],
+            sites: [
+                Dungeon(Old),
+            ],
+            music_state: Activity(Explore),
+            artist: "Crow",
+        )),
+        Individual((
+            title: "Dank Dungeon",
+            path: "voxygen.audio.soundtrack.dungeon.dank_dungeon",
+            length: 130.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Old),
+            ],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),
+        Individual((
+            title: "Ruination",
+            path: "voxygen.audio.soundtrack.dungeon.ruination",
+            length: 135.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Old),
+            ],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),
+        Individual((
+            title: "Vast Onslaught",
+            path: "voxygen.audio.soundtrack.dungeon.vast_onslaught",
+            length: 237.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Old),
+            ],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),
+        Individual((
+            title: "Sacred Temple",
+            path: "voxygen.audio.soundtrack.dungeon.sacred_temple",
+            length: 75.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Old),
+            ],
+            music_state: Activity(Explore),
+            artist: "Aeronic",
+        )),
+        Individual((
+            title: "The Undergrowth",
+            path: "voxygen.audio.soundtrack.overworld.the_undergrowth",
+            length: 165.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Gnarling),
+            ],
+            music_state: Activity(Explore),
+            artist: "Oolnokk",
+        )),
+        Individual((
+            title: "Jungle Ambient",
+            path: "voxygen.audio.soundtrack.overworld.jungle_ambient",
+            length: 218.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Gnarling),
+            ],
+            music_state: Activity(Explore),
+            artist: "badbbad",
+        )),
+
+        // Combat Music
+
+        Segmented(
+            title: "Barred Paths",
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Old), 
+            ],
+            segments: [
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 56.0, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
+            ],
+            artist: "DaforLynx",
+        ),
+        Segmented(
+            title: "Reversal",
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Old),
+            ],
+            segments: [
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 60.0, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 60.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 4.0, Transition(Combat(High), Explore), None),
+            ],
+            artist: "DaforLynx",
+        ),
+    ]
+)

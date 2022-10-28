@@ -26,6 +26,7 @@ use common::{
     outcome::{HealthChangeInfo, Outcome},
     resources::Time,
     rtsim::RtSimEntity,
+    states::utils::{AbilityInfo, StageSection},
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -41,7 +42,7 @@ use rand_distr::Distribution;
 use specs::{
     join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
 };
-use std::{collections::HashMap, iter};
+use std::{collections::HashMap, iter, ops::Mul, time::Duration};
 use tracing::{debug, error};
 use vek::{Vec2, Vec3};
 
@@ -542,12 +543,20 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     let ecs = server.state.ecs();
 
     if vel.z <= -30.0 {
+        let char_states = ecs.read_storage::<CharacterState>();
+
+        let reduced_vel_z = if let Some(CharacterState::DiveMelee(c)) = char_states.get(entity) {
+            (vel.z + c.static_data.vertical_speed).min(0.0)
+        } else {
+            vel.z
+        };
+
         let mass = ecs
             .read_storage::<comp::Mass>()
             .get(entity)
             .copied()
             .unwrap_or_default();
-        let impact_energy = mass.0 * vel.z.powi(2) / 2.0;
+        let impact_energy = mass.0 * reduced_vel_z.powi(2) / 2.0;
         let falldmg = impact_energy / 1000.0;
 
         let inventories = ecs.read_storage::<Inventory>();
@@ -581,9 +590,14 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         server_eventbus.emit_now(ServerEvent::HealthChange { entity, change });
 
         // Emit poise change
-        let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
-        let poise_change =
-            Poise::apply_poise_reduction(poise_damage, inventories.get(entity), &msm);
+        let poise_damage = -(mass.0 * reduced_vel_z.powi(2) / 1500.0);
+        let poise_change = Poise::apply_poise_reduction(
+            poise_damage,
+            inventories.get(entity),
+            &msm,
+            char_states.get(entity),
+            stats.get(entity),
+        );
         let poise_change = comp::PoiseChange {
             amount: poise_change,
             impulse: Vec3::unit_z(),
@@ -922,6 +936,9 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             energy: energies.get(entity_b),
                         };
 
+                        let target_dodging = char_state_b_maybe
+                            .and_then(|cs| cs.attack_immunities())
+                            .map_or(false, |i| i.explosions);
                         // PvP check
                         let may_harm = combat::may_harm(
                             alignments,
@@ -931,9 +948,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             entity_b,
                         );
                         let attack_options = combat::AttackOptions {
-                            // cool guyz maybe don't look at explosions
-                            // but they still got hurt, it's not Hollywood
-                            target_dodging: false,
+                            target_dodging,
                             may_harm,
                             target_group,
                         };
@@ -1217,14 +1232,97 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
     }
 }
 
-pub fn handle_parry(server: &Server, entity: EcsEntity, energy_cost: f32) {
+pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<EcsEntity>) {
     let ecs = &server.state.ecs();
-    if let Some(mut character) = ecs.write_storage::<CharacterState>().get_mut(entity) {
-        *character =
-            CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
+    let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
+    // Reset character state of defender
+    if let Some(mut char_state) = ecs
+        .write_storage::<comp::CharacterState>()
+        .get_mut(defender)
+    {
+        let should_return = char_state
+            .ability_info()
+            .and_then(|info| info.return_ability)
+            .is_some();
+
+        let return_to_wield = match &mut *char_state {
+            CharacterState::RiposteMelee(c) => {
+                c.stage_section = StageSection::Action;
+                c.timer = Duration::default();
+                false
+            },
+            CharacterState::BasicBlock(c) if should_return => {
+                c.timer = c.static_data.recover_duration;
+                c.stage_section = StageSection::Recover;
+                // Refund half the energy of entering the block for a successful parry
+                server_eventbus.emit_now(ServerEvent::EnergyChange {
+                    entity: defender,
+                    change: c.static_data.energy_cost / 2.0,
+                });
+                false
+            },
+            CharacterState::BasicBlock(c) => {
+                // Refund half the energy of entering the block for a successful parry
+                server_eventbus.emit_now(ServerEvent::EnergyChange {
+                    entity: defender,
+                    change: c.static_data.energy_cost / 2.0,
+                });
+                true
+            },
+            char_state => {
+                // If the character state is not one of the ones above, if it parried because it
+                // had the capability to parry in its buildup, subtract 5 energy from the
+                // defender
+                if char_state
+                    .ability_info()
+                    .and_then(|info| info.ability_meta)
+                    .map_or(false, |meta| {
+                        meta.capabilities
+                            .contains(comp::ability::Capability::BUILDUP_PARRIES)
+                    })
+                {
+                    server_eventbus.emit_now(ServerEvent::EnergyChange {
+                        entity: defender,
+                        change: -5.0,
+                    });
+                }
+                false
+            },
+        };
+        if return_to_wield {
+            *char_state =
+                CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
+        }
     };
-    if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
-        energy.change_by(energy_cost);
+
+    if let Some(attacker) = attacker {
+        if let Some(char_state) = ecs.read_storage::<comp::CharacterState>().get(attacker) {
+            // By having a duration twice as long as either the recovery duration or 0.5 s,
+            // causes recover duration to effectively be either doubled or increased by 0.5
+            // s when a buff is applied that halves their attack speed.
+            let duration = char_state
+                .durations()
+                .and_then(|durs| durs.recover)
+                .map_or(0.5, |dur| dur.as_secs_f32())
+                .max(0.5)
+                .mul(2.0);
+            let data = buff::BuffData::new(1.0, Some(Duration::from_secs_f32(duration)));
+            let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
+                BuffSource::Character { by: *uid }
+            } else {
+                BuffSource::World
+            };
+            let buff = buff::Buff::new(
+                BuffKind::Parried,
+                data,
+                vec![buff::BuffCategory::Physical],
+                source,
+            );
+            server_eventbus.emit_now(ServerEvent::Buff {
+                entity: attacker,
+                buff_change: buff::BuffChange::Add(buff),
+            });
+        }
     }
 }
 
@@ -1267,8 +1365,9 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
         ) {
             let poise_state = comp::poise::PoiseState::Interrupted;
             let was_wielded = char_state.is_wield();
+            let ability_info = AbilityInfo::from_forced_state_change(&char_state);
             if let (Some((stunned_state, stunned_duration)), impulse_strength) =
-                poise_state.poise_effect(was_wielded)
+                poise_state.poise_effect(was_wielded, ability_info)
             {
                 // Reset poise if there is some stunned state to apply
                 poise.reset(*time, stunned_duration);

@@ -87,7 +87,10 @@ use common::{
         ability::AuxiliaryAbility,
         fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
-        item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
+        item::{
+            tool::{AbilityContext, ToolKind},
+            ItemDesc, MaterialStatManifest, Quality,
+        },
         loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
@@ -120,6 +123,7 @@ use rand::Rng;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::{
     borrow::Cow,
+    cmp::Ordering,
     collections::VecDeque,
     sync::Arc,
     time::{Duration, Instant},
@@ -145,6 +149,8 @@ const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 const STAMINA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 const ENEMY_HP_COLOR: Color = Color::Rgba(0.93, 0.1, 0.29, 1.0);
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
+const POISE_COLOR: Color = Color::Rgba(0.70, 0.0, 0.60, 1.0);
+const POISEBAR_TICK_COLOR: Color = Color::Rgba(0.70, 0.90, 0.0, 1.0);
 //const TRANSPARENT: Color = Color::Rgba(0.0, 0.0, 0.0, 0.0);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
@@ -191,6 +197,7 @@ const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
+const UI_SUBTLE: Color = Color::Rgba(0.2, 0.24, 0.24, 1.0); // Dark Greenish Blue
 //const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
 // Pull-Down menu BG color
@@ -416,8 +423,8 @@ impl<W: Positionable> Position for W {
     fn position(self, request: PositionSpecifier) -> Self {
         match request {
             // Place the widget near other widget with the given margins
-            PositionSpecifier::TopLeftWithMarginsOn(other, top, right) => {
-                self.top_left_with_margins_on(other, top, right)
+            PositionSpecifier::TopLeftWithMarginsOn(other, top, left) => {
+                self.top_left_with_margins_on(other, top, left)
             },
             PositionSpecifier::TopRightWithMarginsOn(other, top, right) => {
                 self.top_right_with_margins_on(other, top, right)
@@ -446,11 +453,144 @@ impl<W: Positionable> Position for W {
 }
 
 #[derive(Clone, Copy)]
-pub struct BuffInfo {
-    kind: BuffKind,
-    data: BuffData,
+pub enum BuffIconKind<'a> {
+    Buff { kind: BuffKind, data: BuffData },
+    Ability { ability_id: &'a str },
+}
+
+impl<'a> BuffIconKind<'a> {
+    pub fn image(&self, imgs: &Imgs) -> conrod_core::image::Id {
+        match self {
+            Self::Buff { kind, .. } => get_buff_image(*kind, imgs),
+            Self::Ability { ability_id, .. } => util::ability_image(imgs, ability_id),
+        }
+    }
+
+    pub fn max_duration(&self) -> Option<Duration> {
+        match self {
+            Self::Buff { data, .. } => data.duration,
+            Self::Ability { .. } => None,
+        }
+    }
+
+    pub fn title_description<'b>(
+        &self,
+        localized_strings: &'b Localization,
+    ) -> (Cow<'b, str>, Cow<'b, str>) {
+        match self {
+            Self::Buff { kind, data } => (
+                get_buff_title(*kind, localized_strings),
+                get_buff_desc(*kind, *data, localized_strings),
+            ),
+            Self::Ability { ability_id } => {
+                util::ability_description(ability_id, localized_strings)
+            },
+        }
+    }
+}
+
+impl<'a> PartialOrd for BuffIconKind<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self, other) {
+            (
+                BuffIconKind::Buff { kind, .. },
+                BuffIconKind::Buff {
+                    kind: other_kind, ..
+                },
+            ) => Some(kind.cmp(other_kind)),
+            (BuffIconKind::Buff { .. }, BuffIconKind::Ability { .. }) => Some(Ordering::Greater),
+            (BuffIconKind::Ability { .. }, BuffIconKind::Buff { .. }) => Some(Ordering::Less),
+            (
+                BuffIconKind::Ability { ability_id },
+                BuffIconKind::Ability {
+                    ability_id: other_id,
+                },
+            ) => Some(ability_id.cmp(other_id)),
+        }
+    }
+}
+
+impl<'a> Ord for BuffIconKind<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // We know this is safe since we can look at the partialord implementation and
+        // see that every variant is wrapped in Some
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl<'a> PartialEq for BuffIconKind<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                BuffIconKind::Buff { kind, .. },
+                BuffIconKind::Buff {
+                    kind: other_kind, ..
+                },
+            ) => kind == other_kind,
+            (
+                BuffIconKind::Ability { ability_id },
+                BuffIconKind::Ability {
+                    ability_id: other_id,
+                },
+            ) => ability_id == other_id,
+            _ => false,
+        }
+    }
+}
+
+impl<'a> Eq for BuffIconKind<'a> {}
+
+#[derive(Clone, Copy)]
+pub struct BuffIcon<'a> {
+    kind: BuffIconKind<'a>,
     is_buff: bool,
     dur: Option<Duration>,
+}
+
+impl<'a> BuffIcon<'a> {
+    pub fn get_buff_time(&self) -> String {
+        if let Some(dur) = self.dur {
+            format!("{:.0}s", dur.as_secs_f32())
+        } else {
+            "".to_string()
+        }
+    }
+
+    pub fn icons_vec(buffs: &comp::Buffs, char_state: &comp::CharacterState) -> Vec<Self> {
+        buffs
+            .iter_active()
+            .map(BuffIcon::from_buff)
+            .chain(BuffIcon::from_char_state(char_state).into_iter())
+            .collect::<Vec<_>>()
+    }
+
+    fn from_char_state(char_state: &comp::CharacterState) -> Option<Self> {
+        if let Some(ability_kind) = char_state
+            .ability_info()
+            .and_then(|info| info.ability_meta)
+            .and_then(|meta| meta.kind)
+        {
+            let id = util::representative_ability_id(ability_kind);
+            Some(BuffIcon {
+                kind: BuffIconKind::Ability { ability_id: id },
+                is_buff: true,
+                dur: None,
+            })
+        } else {
+            None
+        }
+    }
+
+    fn from_buff(buff: &comp::Buff) -> Self {
+        Self {
+            kind: BuffIconKind::Buff {
+                kind: buff.kind,
+                data: buff.data,
+            },
+            is_buff: buff.kind.is_buff(),
+            dur: buff.time,
+        }
+    }
 }
 
 pub struct ExpFloater {
@@ -1287,6 +1427,7 @@ impl Hud {
             let poises = ecs.read_storage::<comp::Poise>();
             let alignments = ecs.read_storage::<comp::Alignment>();
             let is_mount = ecs.read_storage::<Is<Mount>>();
+            let char_states = ecs.read_storage::<comp::CharacterState>();
 
             // Check if there was a persistence load error of the skillset, and if so
             // display a dialog prompt
@@ -1977,7 +2118,7 @@ impl Hud {
                 &uids,
                 &inventories,
                 poises.maybe(),
-                (alignments.maybe(), is_mount.maybe()),
+                (alignments.maybe(), is_mount.maybe(), &char_states),
             )
                 .join()
                 .filter(|t| {
@@ -2000,7 +2141,7 @@ impl Hud {
                         uid,
                         inventory,
                         poise,
-                        (alignment, is_mount),
+                        (alignment, is_mount, char_state),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2051,6 +2192,7 @@ impl Hud {
                             } else {
                                 0.0
                             },
+                            char_state,
                         });
                         // Only render bubble if nearby or if its me and setting is on
                         let bubble = if (dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) && !is_me)
@@ -2595,6 +2737,7 @@ impl Hud {
         let stats = ecs.read_storage::<comp::Stats>();
         let skill_sets = ecs.read_storage::<comp::SkillSet>();
         let buffs = ecs.read_storage::<comp::Buffs>();
+        let char_states = ecs.read_storage::<comp::CharacterState>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
         if let (Some(player_stats), Some(skill_set)) = (stats.get(entity), skill_sets.get(entity)) {
             match Buttons::new(
@@ -2720,6 +2863,7 @@ impl Hud {
         let active_abilities = ecs.read_storage::<comp::ActiveAbilities>();
         let bodies = ecs.read_storage::<comp::Body>();
         let poises = ecs.read_storage::<comp::Poise>();
+        let combos = ecs.read_storage::<comp::Combo>();
         // Combo floater stuffs
         self.floaters.combo_floater = self.floaters.combo_floater.map(|mut f| {
             f.timer -= dt.as_secs_f64();
@@ -2727,13 +2871,22 @@ impl Hud {
         });
         self.floaters.combo_floater = self.floaters.combo_floater.filter(|f| f.timer > 0_f64);
 
-        if let (Some(health), Some(inventory), Some(energy), Some(skillset), Some(body)) = (
+        if let (
+            Some(health),
+            Some(inventory),
+            Some(energy),
+            Some(poise),
+            Some(skillset),
+            Some(body),
+        ) = (
             healths.get(entity),
             inventories.get(entity),
             energies.get(entity),
+            poises.get(entity),
             skillsets.get(entity),
             bodies.get(entity),
         ) {
+            let context = AbilityContext::try_from(char_states.get(entity));
             Skillbar::new(
                 client,
                 &info,
@@ -2745,6 +2898,7 @@ impl Hud {
                 health,
                 inventory,
                 energy,
+                poise,
                 skillset,
                 active_abilities.get(entity),
                 body,
@@ -2758,6 +2912,9 @@ impl Hud {
                 i18n,
                 &msm,
                 self.floaters.combo_floater,
+                context,
+                combos.get(entity),
+                char_states.get(entity),
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -2869,10 +3026,11 @@ impl Hud {
         }
 
         // Buffs
-        if let (Some(player_buffs), Some(health), Some(energy)) = (
+        if let (Some(player_buffs), Some(health), Some(energy), Some(char_state)) = (
             buffs.get(info.viewpoint_entity),
             healths.get(entity),
             energies.get(entity),
+            char_states.get(entity),
         ) {
             for event in BuffsBar::new(
                 &self.imgs,
@@ -2881,6 +3039,7 @@ impl Hud {
                 tooltip_manager,
                 i18n,
                 player_buffs,
+                char_state,
                 self.pulse,
                 global_state,
                 health,
@@ -3160,6 +3319,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
+                let context = AbilityContext::try_from(char_states.get(entity));
                 for event in Diary::new(
                     &self.show,
                     client,
@@ -3180,6 +3340,7 @@ impl Hud {
                     tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
+                    context,
                 )
                 .set(self.ids.diary, ui_widgets)
                 {
@@ -3457,6 +3618,12 @@ impl Hud {
                     } else if let (Crafting(c), Inventory(_)) = (a, b) {
                         // Remove item from crafting input
                         self.show.crafting_fields.recipe_inputs.remove(&c.index);
+                    } else if let (Ability(AbilitySlot::Ability(ability)), Hotbar(slot)) = (a, b) {
+                        if let Some(Some(HotbarSlotContents::Ability(index))) =
+                            self.hotbar.slots.get(slot as usize)
+                        {
+                            events.push(Event::ChangeAbility(*index, ability));
+                        }
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -4536,15 +4703,6 @@ pub fn get_quality_col<I: ItemDesc + ?Sized>(item: &I) -> Color {
         Quality::Debug => QUALITY_DEBUG,
     }
 }
-// Get info about applied buffs
-fn get_buff_info(buff: &comp::Buff) -> BuffInfo {
-    BuffInfo {
-        kind: buff.kind,
-        data: buff.data,
-        is_buff: buff.kind.is_buff(),
-        dur: buff.time,
-    }
-}
 
 fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
     Some(match input {
@@ -4596,17 +4754,19 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
         BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
-        BuffKind::Frenzied { .. } => imgs.buff_frenzy_0,
-        BuffKind::Hastened { .. } => imgs.buff_haste_0,
+        BuffKind::Frenzied => imgs.buff_frenzy_0,
+        BuffKind::Hastened => imgs.buff_haste_0,
+        BuffKind::Fortitude => imgs.buff_fortitude_0,
         //  Debuffs
-        BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
-        BuffKind::Cursed { .. } => imgs.debuff_skull_0,
-        BuffKind::Burning { .. } => imgs.debuff_burning_0,
-        BuffKind::Crippled { .. } => imgs.debuff_crippled_0,
-        BuffKind::Frozen { .. } => imgs.debuff_frozen_0,
-        BuffKind::Wet { .. } => imgs.debuff_wet_0,
-        BuffKind::Ensnared { .. } => imgs.debuff_ensnared_0,
-        BuffKind::Poisoned { .. } => imgs.debuff_poisoned_0,
+        BuffKind::Bleeding => imgs.debuff_bleed_0,
+        BuffKind::Cursed => imgs.debuff_skull_0,
+        BuffKind::Burning => imgs.debuff_burning_0,
+        BuffKind::Crippled => imgs.debuff_crippled_0,
+        BuffKind::Frozen => imgs.debuff_frozen_0,
+        BuffKind::Wet => imgs.debuff_wet_0,
+        BuffKind::Ensnared => imgs.debuff_ensnared_0,
+        BuffKind::Poisoned => imgs.debuff_poisoned_0,
+        BuffKind::Parried => imgs.debuff_parried_0,
     }
 }
 
@@ -4628,6 +4788,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::ProtectingWard => localized_strings.get_msg("buff-title-protectingward"),
         BuffKind::Frenzied => localized_strings.get_msg("buff-title-frenzied"),
         BuffKind::Hastened => localized_strings.get_msg("buff-title-hastened"),
+        BuffKind::Fortitude => localized_strings.get_msg("buff-title-fortitude"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-title-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-title-cursed"),
@@ -4637,6 +4798,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Wet { .. } => localized_strings.get_msg("buff-title-wet"),
         BuffKind::Ensnared { .. } => localized_strings.get_msg("buff-title-ensnared"),
         BuffKind::Poisoned { .. } => localized_strings.get_msg("buff-title-poisoned"),
+        BuffKind::Parried { .. } => localized_strings.get_msg("buff-title-parried"),
     }
 }
 
@@ -4662,6 +4824,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::ProtectingWard => localized_strings.get_msg("buff-desc-protectingward"),
         BuffKind::Frenzied => localized_strings.get_msg("buff-desc-frenzied"),
         BuffKind::Hastened => localized_strings.get_msg("buff-desc-hastened"),
+        BuffKind::Fortitude => localized_strings.get_msg("buff-desc-fortitude"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-desc-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-desc-cursed"),
@@ -4671,6 +4834,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Wet { .. } => localized_strings.get_msg("buff-desc-wet"),
         BuffKind::Ensnared { .. } => localized_strings.get_msg("buff-desc-ensnared"),
         BuffKind::Poisoned { .. } => localized_strings.get_msg("buff-desc-poisoned"),
+        BuffKind::Parried { .. } => localized_strings.get_msg("buff-desc-parried"),
     }
 }
 
@@ -4699,14 +4863,6 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(localized_strings.get_msg(i18n_key))
-}
-
-pub fn get_buff_time(buff: BuffInfo) -> String {
-    if let Some(dur) = buff.dur {
-        format!("{:.0}s", dur.as_secs_f32())
-    } else {
-        "".to_string()
-    }
 }
 
 pub fn angle_of_attack_text(

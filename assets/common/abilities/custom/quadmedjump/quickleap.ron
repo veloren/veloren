@@ -13,8 +13,8 @@ LeapMelee(
         ),
         range: 4.5,
         angle: 180.0,
+        multi_target: Some(Normal),
     ),
     forward_leap_strength: 20.0,
     vertical_leap_strength: 5.0,
-    damage_kind: Crushing,
 )

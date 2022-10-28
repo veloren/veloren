@@ -143,7 +143,7 @@ impl CharacterCacheKey {
         // state.
         let are_tools_visible = !is_first_person
             || cs
-            .map(|cs| cs.is_attack() || cs.is_block() || cs.is_wield())
+            .map(|cs| cs.is_attack() || cs.block_strength().is_some() || cs.is_wield())
             // If there's no provided character state but we're still somehow in first person,
             // We currently assume there's no need to visually model tools.
             //

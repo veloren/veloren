@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Facegourd",
+    description: "Pumpkin Head.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            energy_max: Some(4.0),
+            energy_reward: Some(0.04),
+        )),
+    )),
+    quality: Common,
+    tags: [],
+)

@@ -824,6 +824,10 @@
                 keyword: "penguin",
                 generic: "Penguin"
             ),
+            bat: (
+                keyword: "bat",
+                generic: "Bat"
+            ),
         )
     ),
     biped_large: (

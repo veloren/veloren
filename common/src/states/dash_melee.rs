@@ -1,9 +1,11 @@
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, Melee, MeleeConstructor, StateUpdate},
+    comp::{
+        character_state::OutputEvents, CharacterState, Melee, MeleeConstructor,
+        MeleeConstructorKind, StateUpdate,
+    },
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -30,8 +32,6 @@ pub struct StaticData {
     pub melee_constructor: MeleeConstructor,
     /// How fast can you turn during charge
     pub ori_modifier: f32,
-    /// Whether the state can be interrupted by other abilities
-    pub is_interruptible: bool,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -60,6 +60,15 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.1);
 
+        let create_melee = |charge_frac: f32| {
+            let crit_data = get_crit_data(data, self.static_data.ability_info);
+            let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+            self.static_data
+                .melee_constructor
+                .handle_scaling(charge_frac)
+                .create_melee(crit_data, buff_strength)
+        };
+
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
@@ -72,7 +81,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        auto_charge: !input_is_pressed(data, self.static_data.ability_info.input),
+                        auto_charge: !self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)),
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self
@@ -81,7 +90,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Charge => {
                 if self.timer < self.charge_end_timer
-                    && (input_is_pressed(data, self.static_data.ability_info.input)
+                    && (self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0.0
                 {
@@ -91,25 +100,28 @@ impl CharacterBehavior for Data {
                     .min(1.0);
 
                     handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
-                    handle_forced_movement(data, &mut update, ForcedMovement::Forward {
-                        strength: self.static_data.forward_speed * charge_frac.sqrt(),
-                    });
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Forward(
+                            self.static_data.forward_speed * charge_frac.sqrt(),
+                        ),
+                    );
 
                     // This logic basically just decides if a charge should end,
                     // and prevents the character state spamming attacks
                     // while checking if it has hit something.
                     if !self.exhausted {
-                        // Hit attempt
-                        let crit_data = get_crit_data(data, self.static_data.ability_info);
-                        let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                        // If charge through, use actual melee strike, otherwise just use a test
+                        // strike to "probe" to see when to end charge
+                        let melee = if self.static_data.charge_through {
+                            create_melee(charge_frac)
+                        } else {
+                            create_test_melee(self.static_data)
+                        };
 
-                        data.updater.insert(
-                            data.entity,
-                            self.static_data
-                                .melee_constructor
-                                .handle_scaling(charge_frac)
-                                .create_melee(crit_data, buff_strength),
-                        );
+                        // Hit attempt
+                        data.updater.insert(data.entity, melee);
 
                         update.character = CharacterState::DashMelee(Data {
                             timer: tick_attack_or_default(data, self.timer, None),
@@ -157,6 +169,7 @@ impl CharacterBehavior for Data {
                                 timer: Duration::default(),
                                 stage_section: StageSection::Action,
                                 exhausted: false,
+                                charge_end_timer: self.timer,
                                 ..*self
                             });
                         }
@@ -179,13 +192,15 @@ impl CharacterBehavior for Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Action,
                         exhausted: false,
+                        charge_end_timer: self.timer,
                         ..*self
                     });
                 }
             },
             StageSection::Action => {
-                if self.static_data.charge_through && !self.exhausted {
+                if !self.exhausted {
                     // If can charge through and not exhausted, do one more melee attack
+                    // If not charge through, actual melee attack happens now
 
                     // Assumes charge got to charge_end_timer for damage calculations
                     let charge_frac = (self.charge_end_timer.as_secs_f32()
@@ -232,25 +247,35 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    update.character =
-                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
-                    // Make sure attack component is removed
-                    data.updater.remove::<Melee>(data.entity);
+                    end_melee_ability(data, &mut update);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
-                // Make sure attack component is removed
-                data.updater.remove::<Melee>(data.entity);
+                end_melee_ability(data, &mut update);
             },
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_state_interrupt(data, &mut update, self.static_data.is_interruptible);
-        }
+        handle_interrupts(data, &mut update);
 
         update
     }
+}
+
+fn create_test_melee(static_data: StaticData) -> Melee {
+    let melee = MeleeConstructor {
+        kind: MeleeConstructorKind::Slash {
+            damage: 0.0,
+            poise: 0.0,
+            knockback: 0.0,
+            energy_regen: 0.0,
+        },
+        scaled: None,
+        range: static_data.melee_constructor.range,
+        angle: static_data.melee_constructor.angle,
+        multi_target: None,
+        damage_effect: None,
+    };
+    melee.create_melee((0.0, 0.0), 0.0)
 }

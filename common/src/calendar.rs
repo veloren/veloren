@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 #[repr(u16)]
 pub enum CalendarEvent {
     Christmas = 0,
+    Halloween = 1,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -35,6 +36,10 @@ impl Calendar {
 
         if now.month() == 12 && (20..=30).contains(&now.day()) {
             this.events.push(CalendarEvent::Christmas);
+        }
+
+        if now.month() == 10 && (24..=31).contains(&now.day()) {
+            this.events.push(CalendarEvent::Halloween);
         }
 
         this

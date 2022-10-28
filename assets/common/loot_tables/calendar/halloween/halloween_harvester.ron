@@ -1,0 +1,8 @@
+[
+    // Weapons
+    (5.0, LootTable("common.loot_tables.weapons.tier-3")),
+    // Armor
+    (5.0, LootTable("common.loot_tables.armor.tier-3")),
+    // Misc
+    (2.0, Item("common.items.armor.misc.head.facegourd")),
+]

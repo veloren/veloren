@@ -3,7 +3,6 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
-        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -47,7 +46,7 @@ impl CharacterBehavior for Data {
             });
         } else {
             // Done
-            if input_is_pressed(data, self.static_data.ability_info.input) {
+            if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
                 reset_state(self, data, output_events, &mut update);
             } else {
                 update.vel.0 = update.vel.0.try_normalized().unwrap_or_default()
@@ -56,7 +55,7 @@ impl CharacterBehavior for Data {
                         .0
                         .magnitude()
                         .min(self.static_data.max_exit_velocity);
-                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                end_ability(data, &mut update);
             }
         }
 
@@ -70,10 +69,12 @@ fn reset_state(
     output_events: &mut OutputEvents,
     update: &mut StateUpdate,
 ) {
-    handle_input(
-        join,
-        output_events,
-        update,
-        data.static_data.ability_info.input,
-    );
+    if let Some(input) = data.static_data.ability_info.input {
+        handle_input(
+            join,
+            output_events,
+            update,
+            input,
+        );
+    }
 }

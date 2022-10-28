@@ -15,6 +15,7 @@ use crate::{
     GlobalState,
 };
 use i18n::{LanguageMetadata, LocalizationHandle};
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum Audio {
@@ -98,6 +99,7 @@ pub enum Graphics {
     AdjustWindowSize([u16; 2]),
 
     ResetGraphicsSettings,
+    ChangeGraphicsSettings(Rc<dyn Fn(GraphicsSettings) -> GraphicsSettings>),
 }
 #[derive(Clone)]
 pub enum Interface {
@@ -122,6 +124,7 @@ pub enum Interface {
     ToggleXpBar(XpBar),
     ToggleBarNumbers(BarNumbers),
     ToggleAlwaysShowBars(bool),
+    TogglePoiseBar(bool),
     ToggleShortcutNumbers(ShortcutNumbers),
     BuffPosition(BuffPosition),
 
@@ -409,6 +412,8 @@ impl SettingsChange {
                 }
             },
             SettingsChange::Graphics(graphics_change) => {
+                let mut change_all = false;
+
                 match graphics_change {
                     Graphics::AdjustTerrainViewDistance(terrain_vd) => {
                         adjust_terrain_view_distance(terrain_vd, settings, session_state)
@@ -485,28 +490,41 @@ impl SettingsChange {
                     },
                     Graphics::ResetGraphicsSettings => {
                         settings.graphics = GraphicsSettings::default();
-                        let graphics = &settings.graphics;
-                        // View distance
-                        client_set_view_distance(settings, session_state);
-                        // FOV
-                        session_state.scene.camera_mut().set_fov_deg(graphics.fov);
-                        session_state
-                            .scene
-                            .camera_mut()
-                            .compute_dependents(&session_state.client.borrow().state().terrain());
-                        // LoD
-                        session_state.scene.lod.set_detail(graphics.lod_detail);
-                        // Render mode
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_render_mode(graphics.render_mode.clone())
-                            .unwrap();
-                        // Fullscreen mode
-                        global_state.window.set_fullscreen_mode(graphics.fullscreen);
-                        // Window size
-                        global_state.window.set_size(graphics.window_size.into());
+                        change_all = true;
                     },
+                    Graphics::ChangeGraphicsSettings(f) => {
+                        settings.graphics = f(settings.graphics.clone());
+                        change_all = true;
+                    },
+                }
+
+                if change_all {
+                    let graphics = &settings.graphics;
+                    // View distance
+                    client_set_view_distance(settings, session_state);
+                    // FOV
+                    session_state.scene.camera_mut().set_fov_deg(graphics.fov);
+                    session_state
+                        .scene
+                        .camera_mut()
+                        .compute_dependents(&session_state.client.borrow().state().terrain());
+                    // LoD
+                    session_state.scene.lod.set_detail(graphics.lod_detail);
+                    // LoD distance
+                    session_state
+                        .client
+                        .borrow_mut()
+                        .set_lod_distance(graphics.lod_distance);
+                    // Render mode
+                    global_state
+                        .window
+                        .renderer_mut()
+                        .set_render_mode(graphics.render_mode.clone())
+                        .unwrap();
+                    // Fullscreen mode
+                    global_state.window.set_fullscreen_mode(graphics.fullscreen);
+                    // Window size
+                    global_state.window.set_size(graphics.window_size.into());
                 }
             },
             SettingsChange::Interface(interface_change) => {
@@ -570,6 +588,9 @@ impl SettingsChange {
                     },
                     Interface::ToggleAlwaysShowBars(always_show_bars) => {
                         settings.interface.always_show_bars = always_show_bars;
+                    },
+                    Interface::TogglePoiseBar(enable_poise_bar) => {
+                        settings.interface.enable_poise_bar = enable_poise_bar;
                     },
                     Interface::ToggleShortcutNumbers(shortcut_numbers) => {
                         settings.interface.shortcut_numbers = shortcut_numbers;

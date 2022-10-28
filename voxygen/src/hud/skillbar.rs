@@ -3,7 +3,8 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots, util, BarNumbers, HudInfo, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
-    LOW_HP_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
+    LOW_HP_COLOR, POISEBAR_TICK_COLOR, POISE_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR,
+    UI_HIGHLIGHT_0,
 };
 use crate::{
     game_input::GameInput,
@@ -23,8 +24,9 @@ use client::{self, Client};
 use common::comp::{
     self,
     ability::AbilityInput,
-    item::{ItemDesc, MaterialStatManifest},
-    Ability, ActiveAbilities, Body, Energy, Health, Inventory, SkillSet,
+    item::{tool::AbilityContext, ItemDesc, MaterialStatManifest},
+    Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
+    PoiseState, SkillSet,
 };
 use conrod_core::{
     color,
@@ -57,6 +59,8 @@ widget_ids! {
         frame_health,
         bg_energy,
         frame_energy,
+        bg_poise,
+        frame_poise,
         m1_ico,
         m2_ico,
         // Level
@@ -79,6 +83,13 @@ widget_ids! {
         energy_txt_alignment,
         energy_txt_bg,
         energy_txt,
+        // Poise-Bar
+        poise_alignment,
+        poise_filling,
+        poise_ticks[],
+        poise_txt_alignment,
+        poise_txt_bg,
+        poise_txt,
         // Combo Counter
         combo_align,
         combo_bg,
@@ -251,6 +262,7 @@ pub struct Skillbar<'a> {
     health: &'a Health,
     inventory: &'a Inventory,
     energy: &'a Energy,
+    poise: &'a Poise,
     skillset: &'a SkillSet,
     active_abilities: Option<&'a ActiveAbilities>,
     body: &'a Body,
@@ -265,7 +277,10 @@ pub struct Skillbar<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     msm: &'a MaterialStatManifest,
-    combo: Option<ComboFloater>,
+    combo_floater: Option<ComboFloater>,
+    context: Option<AbilityContext>,
+    combo: Option<&'a Combo>,
+    char_state: Option<&'a CharacterState>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -281,6 +296,7 @@ impl<'a> Skillbar<'a> {
         health: &'a Health,
         inventory: &'a Inventory,
         energy: &'a Energy,
+        poise: &'a Poise,
         skillset: &'a SkillSet,
         active_abilities: Option<&'a ActiveAbilities>,
         body: &'a Body,
@@ -293,7 +309,10 @@ impl<'a> Skillbar<'a> {
         slot_manager: &'a mut slots::SlotManager,
         localized_strings: &'a Localization,
         msm: &'a MaterialStatManifest,
-        combo: Option<ComboFloater>,
+        combo_floater: Option<ComboFloater>,
+        context: Option<AbilityContext>,
+        combo: Option<&'a Combo>,
+        char_state: Option<&'a CharacterState>,
     ) -> Self {
         Self {
             client,
@@ -306,6 +325,7 @@ impl<'a> Skillbar<'a> {
             health,
             inventory,
             energy,
+            poise,
             skillset,
             active_abilities,
             body,
@@ -319,7 +339,10 @@ impl<'a> Skillbar<'a> {
             slot_manager,
             localized_strings,
             msm,
+            combo_floater,
+            context,
             combo,
+            char_state,
         }
     }
 
@@ -365,16 +388,18 @@ impl<'a> Skillbar<'a> {
     }
 
     fn show_stat_bars(&self, state: &State, ui: &mut UiCell) {
-        let (hp_percentage, energy_percentage): (f64, f64) = if self.health.is_dead {
-            (0.0, 0.0)
-        } else {
-            let max_hp = f64::from(self.health.base_max().max(self.health.maximum()));
-            let current_hp = f64::from(self.health.current());
-            (
-                current_hp / max_hp * 100.0,
-                f64::from(self.energy.fraction() * 100.0),
-            )
-        };
+        let (hp_percentage, energy_percentage, poise_percentage): (f64, f64, f64) =
+            if self.health.is_dead {
+                (0.0, 0.0, 0.0)
+            } else {
+                let max_hp = f64::from(self.health.base_max().max(self.health.maximum()));
+                let current_hp = f64::from(self.health.current());
+                (
+                    current_hp / max_hp * 100.0,
+                    f64::from(self.energy.fraction() * 100.0),
+                    f64::from(self.poise.fraction() * 100.0),
+                )
+            };
 
         // Animation timer
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
@@ -384,6 +409,9 @@ impl<'a> Skillbar<'a> {
             || (self.health.current() - self.health.maximum()).abs() > Health::HEALTH_EPSILON;
         let show_energy = self.global_state.settings.interface.always_show_bars
             || (self.energy.current() - self.energy.maximum()).abs() > Energy::ENERGY_EPSILON;
+        let show_poise = self.global_state.settings.interface.enable_poise_bar
+            && (self.global_state.settings.interface.always_show_bars
+                || (self.poise.current() - self.poise.maximum()).abs() > Poise::POISE_EPSILON);
         let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
 
         if show_health && !self.health.is_dead || decayed_health > 0.0 {
@@ -452,9 +480,52 @@ impl<'a> Skillbar<'a> {
                 .middle_of(state.ids.bg_energy)
                 .set(state.ids.frame_energy, ui);
         }
+        if show_poise && !self.health.is_dead {
+            let offset = 17.0;
+
+            let poise_colour = match self.poise.previous_state {
+                self::PoiseState::KnockedDown => BLACK,
+                self::PoiseState::Dazed => Color::Rgba(0.25, 0.0, 0.15, 1.0),
+                self::PoiseState::Stunned => Color::Rgba(0.40, 0.0, 0.30, 1.0),
+                self::PoiseState::Interrupted => Color::Rgba(0.55, 0.0, 0.45, 1.0),
+                _ => POISE_COLOR,
+            };
+
+            Image::new(self.imgs.poise_bg)
+                .w_h(323.0, 14.0)
+                .mid_top_with_margin_on(state.ids.frame, -offset)
+                .set(state.ids.bg_poise, ui);
+            Rectangle::fill_with([319.0, 10.0], color::TRANSPARENT)
+                .top_left_with_margins_on(state.ids.bg_poise, 2.0, 2.0)
+                .set(state.ids.poise_alignment, ui);
+            Image::new(self.imgs.bar_content)
+                .w_h(319.0 * poise_percentage / 100.0, 10.0)
+                .color(Some(poise_colour))
+                .top_left_with_margins_on(state.ids.poise_alignment, 0.0, 0.0)
+                .set(state.ids.poise_filling, ui);
+            for i in 0..state.ids.poise_ticks.len() {
+                Image::new(self.imgs.poise_tick)
+                    .w_h(3.0, 10.0)
+                    .color(Some(POISEBAR_TICK_COLOR))
+                    .top_left_with_margins_on(
+                        state.ids.poise_alignment,
+                        0.0,
+                        319.0f64 * (self::Poise::POISE_THRESHOLDS[i] / self.poise.maximum()) as f64,
+                    )
+                    .set(state.ids.poise_ticks[i], ui);
+            }
+            Image::new(self.imgs.poise_frame)
+                .w_h(323.0, 16.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .middle_of(state.ids.bg_poise)
+                .set(state.ids.frame_poise, ui);
+        }
         // Bar Text
         let bar_text = if self.health.is_dead {
             Some((
+                self.localized_strings
+                    .get_msg("hud-group-dead")
+                    .into_owned(),
                 self.localized_strings
                     .get_msg("hud-group-dead")
                     .into_owned(),
@@ -475,16 +546,18 @@ impl<'a> Skillbar<'a> {
                     self.energy.current().round() as u32,
                     self.energy.maximum().round() as u32
                 ),
+                String::new(), // Don't obscure the tick mark
             ))
         } else if let BarNumbers::Percent = bar_values {
             Some((
                 format!("{}%", hp_percentage as u32),
                 format!("{}%", energy_percentage as u32),
+                String::new(), // Don't obscure the tick mark
             ))
         } else {
             None
         };
-        if let Some((hp_txt, energy_txt)) = bar_text {
+        if let Some((hp_txt, energy_txt, poise_txt)) = bar_text {
             Text::new(&hp_txt)
                 .middle_of(state.ids.frame_health)
                 .font_size(self.fonts.cyri.scale(12))
@@ -510,6 +583,19 @@ impl<'a> Skillbar<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.energy_txt, ui);
+
+            Text::new(&poise_txt)
+                .middle_of(state.ids.frame_poise)
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.poise_txt_bg, ui);
+            Text::new(&poise_txt)
+                .bottom_left_with_margins_on(state.ids.poise_txt_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(12))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.poise_txt, ui);
         }
     }
 
@@ -525,6 +611,8 @@ impl<'a> Skillbar<'a> {
             self.skillset,
             self.active_abilities,
             self.body,
+            self.context,
+            self.combo,
         );
 
         let image_source = (self.item_imgs, self.imgs);
@@ -606,7 +694,7 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, skill_set, active_abilities, _) = content_source;
+            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _) = content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
                     .get_by_hash(i)
@@ -615,7 +703,7 @@ impl<'a> Skillbar<'a> {
                     .and_then(|a| {
                         a.auxiliary_set(Some(inventory), Some(skill_set))
                             .get(i)
-                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
+                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory), context))
                     })
                     .map(|id| util::ability_description(id, self.localized_strings)),
             })
@@ -686,13 +774,35 @@ impl<'a> Skillbar<'a> {
 
         let primary_ability_id = self
             .active_abilities
-            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory)));
+            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory), self.context));
+
+        let primary_ability_id = if let Some(override_id) = self
+            .char_state
+            .and_then(|cs| cs.ability_info())
+            .and_then(|info| info.ability_meta)
+            .and_then(|meta| meta.kind)
+            .map(util::representative_ability_id)
+        {
+            Some(override_id)
+        } else {
+            primary_ability_id
+        };
+
+        let (primary_ability_title, primary_ability_desc) =
+            util::ability_description(primary_ability_id.unwrap_or(""), self.localized_strings);
 
         Button::image(
             primary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
         )
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m1_slot_bg)
+        .with_tooltip(
+            self.tooltip_manager,
+            &primary_ability_title,
+            &primary_ability_desc,
+            &tooltip,
+            TEXT_COLOR,
+        )
         .set(state.ids.m1_content, ui);
         // Slot M2
         Image::new(self.imgs.skillbar_slot)
@@ -700,9 +810,12 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, slot_offset)
             .set(state.ids.m2_slot_bg, ui);
 
-        let secondary_ability_id = self
-            .active_abilities
-            .and_then(|a| Ability::from(a.secondary).ability_id(Some(self.inventory)));
+        let secondary_ability_id = self.active_abilities.and_then(|a| {
+            Ability::from(a.secondary).ability_id(Some(self.inventory), self.context)
+        });
+
+        let (secondary_ability_title, secondary_ability_desc) =
+            util::ability_description(secondary_ability_id.unwrap_or(""), self.localized_strings);
 
         Button::image(
             secondary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -710,23 +823,33 @@ impl<'a> Skillbar<'a> {
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m2_slot_bg)
         .image_color(
-            if self.energy.current()
-                >= self
-                    .active_abilities
-                    .and_then(|a| {
-                        a.activate_ability(
-                            AbilityInput::Secondary,
-                            Some(self.inventory),
-                            self.skillset,
-                            Some(self.body),
-                        )
-                    })
-                    .map_or(0.0, |(a, _)| a.get_energy_cost())
+            if self
+                .active_abilities
+                .and_then(|a| {
+                    a.activate_ability(
+                        AbilityInput::Secondary,
+                        Some(self.inventory),
+                        self.skillset,
+                        Some(self.body),
+                        self.context,
+                    )
+                })
+                .map_or(false, |(a, _)| {
+                    self.energy.current() >= a.energy_cost()
+                        && self.combo.map_or(false, |c| c.counter() >= a.combo_cost())
+                })
             {
                 Color::Rgba(1.0, 1.0, 1.0, 1.0)
             } else {
                 Color::Rgba(0.3, 0.3, 0.3, 0.8)
             },
+        )
+        .with_tooltip(
+            self.tooltip_manager,
+            &secondary_ability_title,
+            &secondary_ability_desc,
+            &tooltip,
+            TEXT_COLOR,
         )
         .set(state.ids.m2_content, ui);
 
@@ -741,11 +864,11 @@ impl<'a> Skillbar<'a> {
             .set(state.ids.m2_ico, ui);
     }
 
-    fn show_combo_counter(&self, combo: ComboFloater, state: &State, ui: &mut UiCell) {
-        if combo.combo > 0 {
-            let combo_txt = format!("{} Combo", combo.combo);
-            let combo_cnt = combo.combo as f32;
-            let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
+    fn show_combo_counter(&self, combo_floater: ComboFloater, state: &State, ui: &mut UiCell) {
+        if combo_floater.combo > 0 {
+            let combo_txt = format!("{} Combo", combo_floater.combo);
+            let combo_cnt = combo_floater.combo as f32;
+            let time_since_last_update = comp::combo::COMBO_DECAY_START - combo_floater.timer;
             let alpha = (1.0 - time_since_last_update * 0.2).min(1.0) as f32;
             let fnt_col = Color::Rgba(
                 // White -> Yellow -> Red text color gradient depending on count
@@ -756,7 +879,7 @@ impl<'a> Skillbar<'a> {
             );
             // Increase size for higher counts,
             // "flash" on update by increasing the font size by 2.
-            let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
+            let fnt_size = ((14.0 + combo_floater.timer as f32 * 0.8).min(30.0)) as u32
                 + if (time_since_last_update) < 0.1 { 2 } else { 0 };
 
             Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
@@ -811,21 +934,30 @@ impl<'a> Widget for Skillbar<'a> {
         }
 
         // Skillbar
+
+        // Poise bar ticks
+        state.update(|s| {
+            s.ids.poise_ticks.resize(
+                self::Poise::POISE_THRESHOLDS.len(),
+                &mut ui.widget_id_generator(),
+            )
+        });
+
         // Alignment and BG
         let alignment_size = 40.0 * 12.0 + slot_offset * 11.0;
         Rectangle::fill_with([alignment_size, 80.0], color::TRANSPARENT)
             .mid_bottom_with_margin_on(ui.window, 10.0)
             .set(state.ids.frame, ui);
 
-        // Health and Energy bar
+        // Health, Energy and Poise bars
         self.show_stat_bars(state, ui);
 
         // Slots
         self.show_slotbar(state, ui, slot_offset);
 
         // Combo Counter
-        if let Some(combo) = self.combo {
-            self.show_combo_counter(combo, state, ui);
+        if let Some(combo_floater) = self.combo_floater {
+            self.show_combo_counter(combo_floater, state, ui);
         }
     }
 }

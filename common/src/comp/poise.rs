@@ -2,8 +2,9 @@ use crate::{
     combat::{DamageContributor, DamageSource},
     comp::{
         self,
+        ability::Capability,
         inventory::item::{armor::Protection, ItemKind, MaterialStatManifest},
-        CharacterState, Inventory,
+        CharacterState, Inventory, Stats,
     },
     resources::Time,
     states,
@@ -55,6 +56,8 @@ pub struct Poise {
     pub regen_rate: f32,
     /// Time that entity was last in a poise state
     last_stun_time: Option<Time>,
+    /// The previous poise state
+    pub previous_state: PoiseState,
 }
 
 /// States to define effects of a poise change
@@ -75,7 +78,11 @@ pub enum PoiseState {
 impl PoiseState {
     /// Returns the optional stunned character state and duration of stun, and
     /// optional impulse strength corresponding to a particular poise state
-    pub fn poise_effect(&self, was_wielded: bool) -> (Option<(CharacterState, f64)>, Option<f32>) {
+    pub fn poise_effect(
+        &self,
+        was_wielded: bool,
+        ability_info: states::utils::AbilityInfo,
+    ) -> (Option<(CharacterState, f64)>, Option<f32>) {
         use states::{
             stunned::{Data, StaticData},
             utils::StageSection,
@@ -110,6 +117,7 @@ impl PoiseState {
                             recover_duration,
                             movement_speed,
                             poise_state: *self,
+                            ability_info,
                         },
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
@@ -146,11 +154,13 @@ impl Poise {
     const MAX_SCALED_POISE: u32 = Self::MAX_POISE as u32 * Self::SCALING_FACTOR_INT;
     /// The amount of time after being in a poise state before you can take
     /// poise damage again
-    const POISE_BUFFER_TIME: f64 = 1.0;
+    pub const POISE_BUFFER_TIME: f64 = 1.0;
     /// Used when comparisons to poise are needed outside this module.
     // This value is chosen as anything smaller than this is more precise than our
     // units of poise.
     pub const POISE_EPSILON: f32 = 0.5 / Self::MAX_SCALED_POISE as f32;
+    /// The thresholds where poise changes to a different state
+    pub const POISE_THRESHOLDS: [f32; 4] = [50.0, 30.0, 15.0, 5.0];
     /// The amount poise is scaled by within this module
     const SCALING_FACTOR_FLOAT: f32 = 256.;
     const SCALING_FACTOR_INT: u32 = Self::SCALING_FACTOR_FLOAT as u32;
@@ -187,6 +197,7 @@ impl Poise {
             last_change: Dir::default(),
             regen_rate: 0.0,
             last_stun_time: None,
+            previous_state: PoiseState::Normal,
         }
     }
 
@@ -194,6 +205,9 @@ impl Poise {
         match self.last_stun_time {
             Some(last_time) if last_time.0 + Poise::POISE_BUFFER_TIME > change.time.0 => {},
             _ => {
+                // if self.previous_state != self.poise_state() {
+                self.previous_state = self.poise_state();
+                // };
                 self.current = (((self.current() + change.amount)
                     .clamp(0.0, f32::from(Self::MAX_POISE))
                     * Self::SCALING_FACTOR_FLOAT) as u32)
@@ -216,49 +230,67 @@ impl Poise {
     /// Defines the poise states based on current poise value
     pub fn poise_state(&self) -> PoiseState {
         match self.current() {
-            x if x > 50.0 => PoiseState::Normal,
-            x if x > 30.0 => PoiseState::Interrupted,
-            x if x > 15.0 => PoiseState::Stunned,
-            x if x > 5.0 => PoiseState::Dazed,
+            x if x > Self::POISE_THRESHOLDS[0] => PoiseState::Normal,
+            x if x > Self::POISE_THRESHOLDS[1] => PoiseState::Interrupted,
+            x if x > Self::POISE_THRESHOLDS[2] => PoiseState::Stunned,
+            x if x > Self::POISE_THRESHOLDS[3] => PoiseState::Dazed,
             _ => PoiseState::KnockedDown,
         }
     }
 
     /// Returns the total poise damage reduction provided by all equipped items
     pub fn compute_poise_damage_reduction(
-        inventory: &Inventory,
+        inventory: Option<&Inventory>,
         msm: &MaterialStatManifest,
+        char_state: Option<&CharacterState>,
+        stats: Option<&Stats>,
     ) -> f32 {
-        let protection = inventory
-            .equipped_items()
-            .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.stats(msm).poise_resilience
-                } else {
-                    None
-                }
-            })
-            .map(|protection| match protection {
-                Protection::Normal(protection) => Some(protection),
-                Protection::Invincible => None,
-            })
-            .sum::<Option<f32>>();
-        match protection {
+        let protection = inventory.map_or(Some(0.0), |inv| {
+            inv.equipped_items()
+                .filter_map(|item| {
+                    if let ItemKind::Armor(armor) = &*item.kind() {
+                        armor.stats(msm).poise_resilience
+                    } else {
+                        None
+                    }
+                })
+                .map(|protection| match protection {
+                    Protection::Normal(protection) => Some(protection),
+                    Protection::Invincible => None,
+                })
+                .sum::<Option<f32>>()
+        });
+        let from_inventory = match protection {
             Some(dr) => dr / (60.0 + dr.abs()),
             None => 1.0,
-        }
+        };
+        let from_char = {
+            let resistant = char_state
+                .and_then(|cs| cs.ability_info())
+                .and_then(|a| a.ability_meta)
+                .map_or(false, |a| {
+                    a.capabilities.contains(Capability::POISE_RESISTANT)
+                });
+            if resistant { 0.5 } else { 0.0 }
+        };
+        let from_stats = if let Some(stats) = stats {
+            stats.poise_reduction
+        } else {
+            0.0
+        };
+        1.0 - (1.0 - from_inventory) * (1.0 - from_char) * (1.0 - from_stats)
     }
 
-    /// Modifies a poise change when optionally given an inventory to aid in
-    /// calculation of poise damage reduction
+    /// Modifies a poise change when optionally given an inventory and character
+    /// state to aid in calculation of poise damage reduction
     pub fn apply_poise_reduction(
         value: f32,
         inventory: Option<&Inventory>,
         msm: &MaterialStatManifest,
+        char_state: Option<&CharacterState>,
+        stats: Option<&Stats>,
     ) -> f32 {
-        inventory.map_or(value, |inv| {
-            value * (1.0 - Poise::compute_poise_damage_reduction(inv, msm))
-        })
+        value * (1.0 - Poise::compute_poise_damage_reduction(inventory, msm, char_state, stats))
     }
 }
 

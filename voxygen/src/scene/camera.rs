@@ -1,6 +1,6 @@
 use common::{terrain::TerrainGrid, vol::ReadVol};
 use common_base::span;
-use core::{f32::consts::PI, fmt::Debug};
+use core::{f32::consts::PI, fmt::Debug, ops::Range};
 use num::traits::{real::Real, FloatConst};
 use treeculler::Frustum;
 use vek::*;
@@ -12,7 +12,7 @@ const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
 const FREEFLY_INTERP_TIME: f32 = 0.0;
 const LERP_ORI_RATE: f32 = 15.0;
-const CLIPPING_MODE_DISTANCE: f32 = 20.0;
+const CLIPPING_MODE_RANGE: Range<f32> = 2.0..20.0;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
@@ -368,7 +368,7 @@ impl Camera {
     ) {
         span!(_guard, "compute_dependents", "Camera::compute_dependents");
         // TODO: More intelligent function to decide on which strategy to use
-        if self.tgt_dist < CLIPPING_MODE_DISTANCE {
+        if self.tgt_dist < CLIPPING_MODE_RANGE.end {
             self.compute_dependents_near(terrain, is_transparent)
         } else {
             self.compute_dependents_far(terrain, is_transparent)
@@ -425,18 +425,23 @@ impl Camera {
                 .unwrap_or(0.0)
         };
 
-        if self.dist >= dist {
-            self.dist = dist;
-        }
-
-        // Recompute only if needed
-        if (dist - self.tgt_dist).abs() > f32::EPSILON {
-            let dependents = self.compute_dependents_helper(dist);
-            self.frustum = self.compute_frustum(&dependents);
-            self.dependents = dependents;
+        // If the camera ends up being too close to the focus point, switch policies.
+        if dist < CLIPPING_MODE_RANGE.start {
+            self.compute_dependents_far(terrain, is_transparent);
         } else {
-            self.dependents = local_dependents;
-            self.frustum = frustum;
+            if self.dist >= dist {
+                self.dist = dist;
+            }
+
+            // Recompute only if needed
+            if (dist - self.tgt_dist).abs() > f32::EPSILON {
+                let dependents = self.compute_dependents_helper(dist);
+                self.frustum = self.compute_frustum(&dependents);
+                self.dependents = dependents;
+            } else {
+                self.dependents = local_dependents;
+                self.frustum = frustum;
+            }
         }
     }
 

@@ -13,6 +13,7 @@ pub struct MusicAnimation;
 type MusicAnimationDependency<'a> = (
     (Option<Hands>, Option<Hands>),
     (Option<AbilityInfo>, Option<&'a AbilitySpec>, f32),
+    Vec3<f32>,
 );
 impl Animation for MusicAnimation {
     type Dependency<'a> = MusicAnimationDependency<'a>;
@@ -24,7 +25,7 @@ impl Animation for MusicAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_music")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_hands, (ability_info, active_tool_spec, global_time)): Self::Dependency<'a>,
+        (_hands, (ability_info, active_tool_spec, global_time), rel_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -62,22 +63,24 @@ impl Animation for MusicAnimation {
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_z(foot * 0.35);
 
-        next.foot_l.position = Vec3::new(
-            -s_a.foot.0 + foot * 0.8,
-            1.5 + -s_a.foot.1 + foot * -4.0,
-            s_a.foot.2,
-        );
-        next.foot_l.orientation =
-            Quaternion::rotation_x(foot * -0.3) * Quaternion::rotation_z(short * -0.15);
+        // don't override run animation when instruments are played moving
+        if rel_vel.magnitude() < 0.1 {
+            next.foot_l.position = Vec3::new(
+                -s_a.foot.0 + foot * 0.8,
+                1.5 + -s_a.foot.1 + foot * -4.0,
+                s_a.foot.2,
+            );
+            next.foot_l.orientation =
+                Quaternion::rotation_x(foot * -0.3) * Quaternion::rotation_z(short * -0.15);
 
-        next.foot_r.position = Vec3::new(
-            s_a.foot.0 + foot * 0.8,
-            1.5 + -s_a.foot.1 + foot * 4.0,
-            s_a.foot.2,
-        );
-        next.foot_r.orientation =
-            Quaternion::rotation_x(foot * 0.3) * Quaternion::rotation_z(short * 0.15);
-
+            next.foot_r.position = Vec3::new(
+                s_a.foot.0 + foot * 0.8,
+                1.5 + -s_a.foot.1 + foot * 4.0,
+                s_a.foot.2,
+            );
+            next.foot_r.orientation =
+                Quaternion::rotation_x(foot * 0.3) * Quaternion::rotation_z(short * 0.15);
+        };
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation = Quaternion::rotation_x(shorte * 0.15);
 

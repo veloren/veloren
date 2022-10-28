@@ -144,7 +144,7 @@ impl World {
                             name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
                             // TODO: Probably unify these, at some point
                             kind: match &site.kind {
-                                civ::SiteKind::Settlement | civ::SiteKind::Refactor | civ::SiteKind::CliffTown | civ::SiteKind::DesertCity => world_msg::SiteKind::Town,
+                                civ::SiteKind::Settlement | civ::SiteKind::Refactor | civ::SiteKind::CliffTown | civ::SiteKind::SavannahPit | civ::SiteKind::DesertCity => world_msg::SiteKind::Town,
                                 civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
                                     difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
                                         Some(SiteKind::Dungeon(d)) => d.dungeon_difficulty().unwrap_or(0),
@@ -375,7 +375,7 @@ impl World {
             layer::apply_trees_to(&mut canvas, &mut dynamic_rng, calendar);
         }
         if index.features.scatter {
-            layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
+            layer::apply_scatter_to(&mut canvas, &mut dynamic_rng, calendar);
         }
         if index.features.paths {
             layer::apply_paths_to(&mut canvas);

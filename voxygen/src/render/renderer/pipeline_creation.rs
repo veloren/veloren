@@ -6,8 +6,8 @@ use super::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle,
             postprocess, shadow, skybox, sprite, terrain, trail, ui,
         },
-        AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, RenderError,
-        ShadowMode,
+        AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, ReflectionMode,
+        RenderError, ShadowMode,
     },
     shaders::Shaders,
     ImmutableLayouts, Layouts,
@@ -164,6 +164,7 @@ impl ShaderModules {
         let shadows = shaders.get("include.shadows").unwrap();
         let rain_occlusion = shaders.get("include.rain_occlusion").unwrap();
         let point_glow = shaders.get("include.point_glow").unwrap();
+        let fxaa = shaders.get("include.fxaa").unwrap();
 
         // We dynamically add extra configuration settings to the constants file.
         let mut constants = format!(
@@ -173,6 +174,7 @@ impl ShaderModules {
 #define VOXYGEN_COMPUTATION_PREFERENCE {}
 #define FLUID_MODE {}
 #define CLOUD_MODE {}
+#define REFLECTION_MODE {}
 #define LIGHTING_ALGORITHM {}
 #define SHADOW_MODE {}
 
@@ -181,8 +183,9 @@ impl ShaderModules {
             // TODO: Configurable vertex/fragment shader preference.
             "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
             match pipeline_modes.fluid {
-                FluidMode::Cheap => "FLUID_MODE_CHEAP",
-                FluidMode::Shiny => "FLUID_MODE_SHINY",
+                FluidMode::Low => "FLUID_MODE_LOW",
+                FluidMode::Medium => "FLUID_MODE_MEDIUM",
+                FluidMode::High => "FLUID_MODE_HIGH",
             },
             match pipeline_modes.cloud {
                 CloudMode::None => "CLOUD_MODE_NONE",
@@ -191,6 +194,11 @@ impl ShaderModules {
                 CloudMode::Medium => "CLOUD_MODE_MEDIUM",
                 CloudMode::High => "CLOUD_MODE_HIGH",
                 CloudMode::Ultra => "CLOUD_MODE_ULTRA",
+            },
+            match pipeline_modes.reflection {
+                ReflectionMode::Low => "REFLECTION_MODE_LOW",
+                ReflectionMode::Medium => "REFLECTION_MODE_MEDIUM",
+                ReflectionMode::High => "REFLECTION_MODE_HIGH",
             },
             match pipeline_modes.lighting {
                 LightingMode::Ashikhmin => "LIGHTING_ALGORITHM_ASHIKHMIN",
@@ -248,6 +256,7 @@ impl ShaderModules {
                 AaMode::MsaaX8 => "antialias.msaa-x8",
                 AaMode::MsaaX16 => "antialias.msaa-x16",
                 AaMode::Hqx => "antialias.hqx",
+                AaMode::FxUpscale => "antialias.fxupscale",
             })
             .unwrap();
 
@@ -278,6 +287,7 @@ impl ShaderModules {
                     "anti-aliasing.glsl" => anti_alias.0.to_owned(),
                     "cloud.glsl" => cloud.0.to_owned(),
                     "point_glow.glsl" => point_glow.0.to_owned(),
+                    "fxaa.glsl" => fxaa.0.to_owned(),
                     other => {
                         return Err(format!(
                             "Include {} in {} is not defined",
@@ -298,8 +308,8 @@ impl ShaderModules {
         };
 
         let selected_fluid_shader = ["fluid-frag.", match pipeline_modes.fluid {
-            FluidMode::Cheap => "cheap",
-            FluidMode::Shiny => "shiny",
+            FluidMode::Low => "cheap",
+            _ => "shiny",
         }]
         .concat();
 

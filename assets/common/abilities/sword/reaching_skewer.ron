@@ -1,0 +1,32 @@
+ComboMelee2(
+    strikes: [
+        (
+            melee_constructor: (
+                kind: Stab(
+                    damage: 24,
+                    poise: 0,
+                    knockback: 0,
+                    energy_regen: 5,
+                ),
+                range: 8.0,
+                angle: 10.0,
+                multi_target: Some(Normal),
+            ),
+            buildup_duration: 0.3,
+            swing_duration: 0.1,
+            hit_timing: 0.6,
+            recover_duration: 0.3,
+            movement: (
+                buildup: None,
+                swing: Some(Forward(1.0)),
+                recover: None,
+            ),
+            ori_modifier: 0.6,
+        ),
+    ],
+    is_stance: false,
+    energy_cost_per_strike: 15,
+    meta: (
+        kind: Some(Sword(Reaching)),
+    ),
+)

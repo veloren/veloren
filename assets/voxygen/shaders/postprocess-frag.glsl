@@ -6,9 +6,9 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_SPECULAR
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
-#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#elif (FLUID_MODE >= FLUID_MODE_MEDIUM)
 #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
@@ -217,7 +217,6 @@ void main() {
 
     vec4 aa_color = aa_apply(t_src_color, s_src_color, t_src_depth, s_src_depth, sample_uv * screen_res.xy, screen_res.xy);
 
-
     #ifdef EXPERIMENTAL_SOBEL
         vec3 s[8];
         s[0] = aa_sample(uv, vec2(-1,  1));
@@ -288,7 +287,7 @@ void main() {
 
     vec4 final_color = aa_color;
 
-#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#if (FLUID_MODE == FLUID_MODE_LOW)
     if (medium.x == MEDIUM_WATER) {
         final_color *= vec4(0.2, 0.2, 0.8, 1.0);
     }

@@ -20,7 +20,18 @@ pub struct Melee {
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
+    pub multi_target: Option<MultiTarget>,
     pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum MultiTarget {
+    Normal,
+    /// Applies scaling to the power of the attack based on how many consecutive
+    /// enemies have been hit. First enemy hit will be at a power of 1.0, second
+    /// enemy hit will be at a power of `1.0 + scaling`, nth enemy hit will be
+    /// at a power of `1.0 + (n - 1) * scaling`.
+    Scaling(f32),
 }
 
 impl Melee {
@@ -39,12 +50,14 @@ impl Component for Melee {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MeleeConstructor {
     pub kind: MeleeConstructorKind,
     // This multiplied by a fraction is added to what is specified in kind
     pub scaled: Option<MeleeConstructorKind>,
     pub range: f32,
     pub angle: f32,
+    pub multi_target: Option<MultiTarget>,
     pub damage_effect: Option<CombatEffect>,
 }
 
@@ -282,6 +295,7 @@ impl MeleeConstructor {
             max_angle: self.angle.to_radians(),
             applied: false,
             hit_count: 0,
+            multi_target: self.multi_target,
             break_block: None,
         }
     }
@@ -399,11 +413,11 @@ impl MeleeConstructor {
     }
 
     #[must_use]
-    pub fn adjusted_by_stats(mut self, stats: Stats, regen: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
         self.range *= stats.range;
-        self.kind = self.kind.adjusted_by_stats(stats, regen);
+        self.kind = self.kind.adjusted_by_stats(stats);
         if let Some(ref mut scaled) = &mut self.scaled {
-            *scaled = scaled.adjusted_by_stats(stats, regen);
+            *scaled = scaled.adjusted_by_stats(stats);
         }
         if let Some(CombatEffect::Buff(CombatBuff { strength, .. })) = &mut self.damage_effect {
             *strength *= stats.buff_strength;
@@ -447,38 +461,35 @@ pub enum MeleeConstructorKind {
 
 impl MeleeConstructorKind {
     #[must_use]
-    pub fn adjusted_by_stats(mut self, stats: Stats, regen: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
         use MeleeConstructorKind::*;
         match self {
             Slash {
                 ref mut damage,
                 ref mut poise,
                 knockback: _,
-                ref mut energy_regen,
+                energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
-                *energy_regen *= regen;
             },
             Stab {
                 ref mut damage,
                 ref mut poise,
                 knockback: _,
-                ref mut energy_regen,
+                energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
-                *energy_regen *= regen;
             },
             Bash {
                 ref mut damage,
                 ref mut poise,
                 knockback: _,
-                ref mut energy_regen,
+                energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
-                *energy_regen *= regen;
             },
             NecroticVortex {
                 ref mut damage,

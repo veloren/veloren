@@ -1,0 +1,30 @@
+FinisherMelee(
+    energy_cost: 40,
+    buildup_duration: 0.4,
+    swing_duration: 0.2,
+    recover_duration: 0.4,
+    melee_constructor: (
+        kind: Bash(
+            damage: 40,
+            poise: 40,
+            knockback: 0,
+            energy_regen: 10,
+        ),
+        scaled: Some(Bash(
+            damage: 10,
+            poise: 20,
+            knockback: 0,
+            energy_regen: 0,
+        )),
+        range: 3.0,
+        angle: 15.0,
+    ),
+    scaling: Some((
+        target: Attack,
+        kind: Linear,
+    )),
+    minimum_combo: 10,
+    meta: (
+        kind: Some(Sword(Heavy)),
+    ),
+)

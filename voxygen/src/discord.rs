@@ -116,8 +116,9 @@ impl ActivityUpdate {
                     Dungeon(Gnarling) => format!("Hunting Gnarlings in {chunk_name}"),
                     Cave => "In a Cave".to_string(),
                     Settlement(Default) => format!("Visiting {chunk_name}"),
-                    Settlement(Cliff) => format!("Climbing the towers of {chunk_name}"),
-                    Settlement(Desert) => format!("Hiding from the sun in {chunk_name}"),
+                    Settlement(CliffTown) => format!("Climbing the towers of {chunk_name}"),
+                    Settlement(DesertCity) => format!("Hiding from the sun in {chunk_name}"),
+                    Settlement(SavannahPit) => format!("Shop at the market down in {chunk_name}"),
                     _ => format!("In {chunk_name}"),
                 };
 
