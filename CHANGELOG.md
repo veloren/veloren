@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed npcs using `/say` instead of `/tell`
 - Camera jittering in third person has been significantly reduced
 - Many water shader issues have been fixed
+- Flee if attacked even if attacker is not close.
 
 ## [0.13.0] - 2022-07-23
 

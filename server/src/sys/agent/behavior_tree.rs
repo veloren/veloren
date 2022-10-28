@@ -5,17 +5,18 @@ use common::{
             AgentEvent, Target, TimerAction, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME,
         },
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, ControlAction,
-        ControlEvent, Controller, InputKind, InventoryEvent, UtteranceKind,
+        ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
     },
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
 };
-use rand::{prelude::ThreadRng, Rng};
+use rand::{prelude::ThreadRng, thread_rng, Rng};
+use server_agent::consts::NORMAL_FLEE_DIR_DIST;
 use specs::{
     saveload::{Marker, MarkerAllocator},
     Entity as EcsEntity,
 };
-use vek::Vec2;
+use vek::{Vec2, Vec3};
 
 use self::interaction::{
     handle_inbox_cancel_interactions, handle_inbox_finished_trade, handle_inbox_talk,
@@ -25,8 +26,8 @@ use self::interaction::{
 
 use super::{
     consts::{
-        DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST,
-        MAX_FOLLOW_DIST, NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
+        DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, MAX_FOLLOW_DIST,
+        NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
     },
     data::{AgentData, ReadData, TargetData},
     util::{get_entity_by_id, is_dead, is_dead_or_invulnerable, is_invulnerable, stop_pursuing},
@@ -560,10 +561,10 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
             let aggro_on = *aggro_on;
 
             if agent_data.below_flee_health(agent) {
-                let has_opportunity_to_flee = agent.action_state.timers
+                let flee_timer_done = agent.action_state.timers
                     [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize]
-                    < FLEE_DURATION;
-                let within_flee_distance = dist_sqrd < MAX_FLEE_DIST.powi(2);
+                    > FLEE_DURATION;
+                let within_normal_flee_dir_dist = dist_sqrd < NORMAL_FLEE_DIR_DIST.powi(2);
 
                 // FIXME: Using action state timer to see if allowed to speak is a hack.
                 if agent.action_state.timers
@@ -573,8 +574,21 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     agent_data.cry_out(agent, event_emitter, read_data);
                     agent.action_state.timers
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
-                } else if within_flee_distance && has_opportunity_to_flee {
-                    agent_data.flee(agent, controller, tgt_pos, &read_data.terrain);
+                    agent.flee_from_pos = {
+                        let random = || thread_rng().gen_range(-1.0..1.0);
+                        Some(Pos(
+                            agent_data.pos.0 + Vec3::new(random(), random(), random())
+                        ))
+                    };
+                } else if !flee_timer_done {
+                    if within_normal_flee_dir_dist {
+                        agent_data.flee(agent, controller, tgt_pos, &read_data.terrain);
+                    } else if let Some(random_pos) = agent.flee_from_pos {
+                        agent_data.flee(agent, controller, &random_pos, &read_data.terrain);
+                    } else {
+                        agent_data.flee(agent, controller, tgt_pos, &read_data.terrain);
+                    }
+
                     agent.action_state.timers
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] +=
                         read_data.dt.0;
@@ -582,6 +596,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     agent.action_state.timers
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.0;
                     agent.target = None;
+                    agent.flee_from_pos = None;
                     agent_data.idle(agent, controller, read_data, rng);
                 }
             } else if is_dead(target, read_data) {
