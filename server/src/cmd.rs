@@ -61,10 +61,10 @@ use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt,
 };
-use std::{str::FromStr, sync::Arc};
+use std::{str::FromStr, fmt::Write, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
-use world::util::Sampler;
+use world::util::{Sampler, LOCALITY};
 
 use common::comp::Alignment;
 use tracing::{error, info, warn};
@@ -136,6 +136,7 @@ fn do_command(
         ServerChatCommand::BuildAreaRemove => handle_build_area_remove,
         ServerChatCommand::Campfire => handle_spawn_campfire,
         ServerChatCommand::DebugColumn => handle_debug_column,
+        ServerChatCommand::DebugWays => handle_debug_ways,
         ServerChatCommand::DisconnectAllPlayers => handle_disconnect_all_players,
         ServerChatCommand::DropAll => handle_drop_all,
         ServerChatCommand::Dummy => handle_spawn_training_dummy,
@@ -2829,6 +2830,51 @@ path {:?} "#,
         ))
     };
     if let Some(s) = msg_generator(&calendar) {
+        server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, s));
+        Ok(())
+    } else {
+        Err("Not a pre-generated chunk.".into())
+    }
+}
+
+#[cfg(not(feature = "worldgen"))]
+fn handle_debug_ways(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    Err("Unsupported without worldgen enabled".into())
+}
+
+#[cfg(feature = "worldgen")]
+fn handle_debug_ways(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let sim = server.world.sim();
+    let wpos = if let (Some(x), Some(y)) = parse_cmd_args!(args, i32, i32) {
+        Vec2::new(x, y)
+    } else {
+        let pos = position(server, target, "target")?;
+        // FIXME: Deal with overflow, if needed.
+        pos.0.xy().map(|x| x as i32)
+    };
+    let msg_generator = || {
+        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+        let mut ret = String::new();
+        for delta in LOCALITY {
+            let pos = chunk_pos + delta;
+            let chunk = sim.get(pos)?;
+            writeln!(ret, "{:?}: {:?}", pos, chunk.path).ok()?;
+        }
+        Some(ret)
+    };
+    if let Some(s) = msg_generator() {
         server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, s));
         Ok(())
     } else {
