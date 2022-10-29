@@ -98,7 +98,13 @@ impl DebugShape {
             DebugShape::Line([a, b]) => {
                 //let h = Vec3::new(0.0, 1.0, 0.0);
                 //mesh.push_quad(quad(*a, a + h, b + h, *b));
-                box_along_line(LineSegment3 { start: *a, end: *b }, 0.1, 0.1, [1.0; 4], &mut mesh);
+                box_along_line(
+                    LineSegment3 { start: *a, end: *b },
+                    0.1,
+                    0.1,
+                    [1.0; 4],
+                    &mut mesh,
+                );
             },
             DebugShape::Cylinder { radius, height } => {
                 const SUBDIVISIONS: u8 = 16;
@@ -221,7 +227,8 @@ impl DebugShape {
                     let start = path.evaluate(i as f32 * step_size);
                     let end = path.evaluate((i + 1) as f32 * step_size);
                     let center = LineSegment3 { start, end };
-                    let dx = *rail_sep * Vec3::unit_z().cross(center.end - center.start).normalized();
+                    let dx =
+                        *rail_sep * Vec3::unit_z().cross(center.end - center.start).normalized();
                     let dz = -dx.cross(center.end - center.start).normalized();
                     let left = LineSegment3 {
                         start: center.start + dx,

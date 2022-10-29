@@ -61,7 +61,7 @@ use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt,
 };
-use std::{str::FromStr, fmt::Write, sync::Arc};
+use std::{fmt::Write, str::FromStr, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
 use world::util::{Sampler, LOCALITY};

@@ -2137,7 +2137,16 @@ impl WorldSim {
         &'a self,
         wpos: Vec2<i32>,
         get_way: &'a impl Fn(&SimChunk) -> Option<(Way, M)>,
-    ) -> impl Iterator<Item=(usize, f32, Vec2<f32>, M, QuadraticBezier2<f32>, impl FnOnce() -> Vec2<f32>)> + 'a {
+    ) -> impl Iterator<
+        Item = (
+            usize,
+            f32,
+            Vec2<f32>,
+            M,
+            QuadraticBezier2<f32>,
+            impl FnOnce() -> Vec2<f32>,
+        ),
+    > + 'a {
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e.div_euclid(sz as i32)
         });
@@ -2182,7 +2191,9 @@ impl WorldSim {
                     NEIGHBORS
                         .iter()
                         .enumerate()
-                        .filter(move |(i, _)| way.neighbors & (1 << *i as u8) != 0 && Some(*i) != start_idx)
+                        .filter(move |(i, _)| {
+                            way.neighbors & (1 << *i as u8) != 0 && Some(*i) != start_idx
+                        })
                         .filter_map(move |(i, end_rpos)| {
                             let end_pos_chunk = chunk_pos + *ctrl + end_rpos;
                             let (end_way, end_meta) = get_way(self.get(end_pos_chunk)?)?;
@@ -2236,13 +2247,18 @@ impl WorldSim {
         self.get_nearest_way(wpos, |chunk| Some(chunk.cave))
     }
 
-    pub fn get_nearest_path_for_direction(&self, wpos: Vec2<i32>, dir: usize) -> Option<(f32, Vec2<f32>, Path, QuadraticBezier2<f32>, Vec2<f32>)> {
+    pub fn get_nearest_path_for_direction(
+        &self,
+        wpos: Vec2<i32>,
+        dir: usize,
+    ) -> Option<(f32, Vec2<f32>, Path, QuadraticBezier2<f32>, Vec2<f32>)> {
         self.get_nearest_ways(wpos, &|chunk| Some(chunk.path))
             .filter(|(i, _, _, _, _, _)| *i == dir)
             .min_by_key(|(_, dist_sqrd, _, _, _, _)| (dist_sqrd * 1024.0) as i32)
-            .map(|(_, dist, pos, meta, bez, calc_tangent)| (dist.sqrt(), pos, meta, bez, calc_tangent()))
+            .map(|(_, dist, pos, meta, bez, calc_tangent)| {
+                (dist.sqrt(), pos, meta, bez, calc_tangent())
+            })
     }
-
 
     /// Create a [`Lottery<Option<ForestKind>>`] that generates [`ForestKind`]s
     /// according to the conditions at the given position. If no or fewer

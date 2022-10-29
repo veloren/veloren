@@ -1311,7 +1311,7 @@ impl Scene {
                     let mut ret = Vec::new();
                     for bezier in chunk.meta().tracks().iter() {
                         let shape_id = self.debug.add_shape(DebugShape::TrainTrack {
-                            path: *bezier, 
+                            path: *bezier,
                             rail_width: 0.25,
                             rail_sep: 1.0,
                             plank_width: 0.5,
@@ -1319,7 +1319,8 @@ impl Scene {
                             plank_sep: 2.0,
                         });
                         ret.push(shape_id);
-                        self.debug.set_context(shape_id, [0.0; 4], [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
+                        self.debug
+                            .set_context(shape_id, [0.0; 4], [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
                     }
                     for point in chunk.meta().debug_points().iter() {
                         let shape_id = self.debug.add_shape(DebugShape::Cylinder {
@@ -1327,12 +1328,20 @@ impl Scene {
                             height: 0.1,
                         });
                         ret.push(shape_id);
-                        self.debug.set_context(shape_id, point.with_w(0.0).into_array(), [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
+                        self.debug.set_context(
+                            shape_id,
+                            point.with_w(0.0).into_array(),
+                            [1.0; 4],
+                            [0.0, 0.0, 0.0, 1.0],
+                        );
                     }
                     for line in chunk.meta().debug_lines().iter() {
-                        let shape_id = self.debug.add_shape(DebugShape::Line([line.start.into(), line.end.into()]));
+                        let shape_id = self
+                            .debug
+                            .add_shape(DebugShape::Line([line.start, line.end]));
                         ret.push(shape_id);
-                        self.debug.set_context(shape_id, [0.0; 4], [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
+                        self.debug
+                            .set_context(shape_id, [0.0; 4], [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
                     }
                     ret
                 });

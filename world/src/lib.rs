@@ -42,7 +42,7 @@ use crate::{
     index::Index,
     layer::spot::Spot,
     site::{SiteKind, SpawnRules},
-    util::{Grid, Sampler, NEIGHBORS},
+    util::{Grid, Sampler},
 };
 use common::{
     assets,
@@ -359,11 +359,11 @@ impl World {
             entities: Vec::new(),
         };
 
-        {
+        if index.features.train_tracks {
             let mut splines = Vec::new();
             let g = |v: Vec2<f32>| -> Vec3<f32> {
-                let path_nearest = 
-                self.sim
+                let path_nearest = self
+                    .sim
                     .get_nearest_path(v.as_::<i32>())
                     .map(|x| x.1)
                     .unwrap_or(v.as_::<f32>());
@@ -375,7 +375,12 @@ impl World {
                 };
                 v.with_z(alt)
             };
-            fn hermit_to_bezier(p0: Vec3<f32>, m0: Vec3<f32>, p3: Vec3<f32>, m3: Vec3<f32>) -> CubicBezier3<f32> {
+            fn hermite_to_bezier(
+                p0: Vec3<f32>,
+                m0: Vec3<f32>,
+                p3: Vec3<f32>,
+                m3: Vec3<f32>,
+            ) -> CubicBezier3<f32> {
                 let hermite = Vec4::new(p0, p3, m0, m3);
                 let hermite = hermite.map(|v| v.with_w(0.0));
                 let hermite: [[f32; 4]; 4] =
@@ -390,27 +395,25 @@ impl World {
                 m.invert();
                 let bezier = m * Mat4::from_row_arrays(hermite);
                 let bezier: Vec4<Vec4<f32>> =
-                    Vec4::<[f32; 4]>::from(bezier.into_row_arrays())
-                        .map(Vec4::from);
-                let bezier = bezier.map(|v| Vec3::from(v));
+                    Vec4::<[f32; 4]>::from(bezier.into_row_arrays()).map(Vec4::from);
+                let bezier = bezier.map(Vec3::from);
                 CubicBezier3::from(bezier)
             }
-            for (_, _, _, _, bez, _) in self.sim.get_nearest_ways(chunk_center_wpos2d, &|chunk| Some(chunk.path)) {
+            for (_, _, _, _, bez, _) in self
+                .sim
+                .get_nearest_ways(chunk_center_wpos2d, &|chunk| Some(chunk.path))
+            {
                 if bez.length_by_discretization(16) < 0.125 {
                     continue;
                 }
-                /*if bez.ctrl.as_::<i32>().distance_squared(chunk_center_wpos2d) > 20i32.pow(2) {
-                    continue;
-                }*/
-                //println!("chunk: {:?}, bez: {:?}", chunk_center_wpos2d, bez);
                 let a = 0.0;
                 let b = 1.0;
                 for bez in bez.split((a + b) / 2.0) {
                     let p0 = g(bez.evaluate(a));
                     let p1 = g(bez.evaluate(a + (b - a) / 3.0));
-                    let p2 = g(bez.evaluate(a + 2.0 * (b-a)/3.0));
+                    let p2 = g(bez.evaluate(a + 2.0 * (b - a) / 3.0));
                     let p3 = g(bez.evaluate(b));
-                    splines.push(hermit_to_bezier(p0, 3.0 * (p1 - p0), p3, 3.0 * (p3 - p2)));
+                    splines.push(hermite_to_bezier(p0, 3.0 * (p1 - p0), p3, 3.0 * (p3 - p2)));
                 }
             }
             for spline in splines.into_iter() {

@@ -223,8 +223,8 @@ impl<'a> Widget for Chat<'a> {
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
             for message in self.new_messages.iter() {
-                // Log the output of commands since the ingame terminal doesn't support copying the
-                // output to the clipboard
+                // Log the output of commands since the ingame terminal doesn't support copying
+                // the output to the clipboard
                 if let ChatType::CommandInfo = message.chat_type {
                     tracing::info!("{}", message.message);
                 }
