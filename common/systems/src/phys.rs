@@ -1102,19 +1102,21 @@ impl<'a> PhysicsData<'a> {
 
                                     // TODO: Cache the matrices here to avoid recomputing
 
-                                    let transform_last_from = Mat4::<f32>::translation_3d(
-                                        previous_cache_other.pos.unwrap_or(*pos_other).0
-                                            - previous_cache.pos.unwrap_or(Pos(wpos)).0,
-                                    ) * Mat4::from(
-                                        previous_cache_other.ori,
-                                    ) * Mat4::<f32>::translation_3d(
-                                        voxel_collider.translation,
-                                    );
+                                    let transform_last_from =
+                                        Mat4::<f32>::translation_3d(
+                                            previous_cache_other.pos.unwrap_or(*pos_other).0
+                                                - previous_cache.pos.unwrap_or(Pos(wpos)).0,
+                                        ) * Mat4::from(previous_cache_other.ori)
+                                            * Mat4::<f32>::scaling_3d(previous_cache_other.scale)
+                                            * Mat4::<f32>::translation_3d(
+                                                voxel_collider.translation,
+                                            );
                                     let transform_last_to = transform_last_from.inverted();
 
                                     let transform_from =
                                         Mat4::<f32>::translation_3d(pos_other.0 - wpos)
                                             * Mat4::from(ori_other.to_quat())
+                                            * Mat4::<f32>::scaling_3d(previous_cache_other.scale)
                                             * Mat4::<f32>::translation_3d(
                                                 voxel_collider.translation,
                                             );

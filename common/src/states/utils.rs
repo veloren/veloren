@@ -220,7 +220,7 @@ impl Body {
                 _ => 2.0,
             },
             Body::Ship(ship) if ship.has_water_thrust() => 0.1,
-            Body::Ship(_) => 0.035,
+            Body::Ship(_) => 0.12,
             Body::Arthropod(_) => 3.5,
         }
     }

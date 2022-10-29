@@ -33,7 +33,7 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
-        Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
+        ship, Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
         LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, SkillSet, Stance,
         Vel,
     },
@@ -6709,10 +6709,22 @@ impl FigureMgr {
         } {
             let model_entry = model_entry?;
 
-            let figure_low_detail_distance =
-                figure_lod_render_distance * scale.map_or(1.0, |s| s.0) * 0.75;
-            let figure_mid_detail_distance =
-                figure_lod_render_distance * scale.map_or(1.0, |s| s.0) * 0.5;
+            let figure_low_detail_distance = figure_lod_render_distance
+                * if matches!(body, Body::Ship(_)) {
+                    ship::AIRSHIP_SCALE
+                } else {
+                    1.0
+                }
+                * scale.map_or(1.0, |s| s.0)
+                * 0.75;
+            let figure_mid_detail_distance = figure_lod_render_distance
+                * if matches!(body, Body::Ship(_)) {
+                    ship::AIRSHIP_SCALE
+                } else {
+                    1.0
+                }
+                * scale.map_or(1.0, |s| s.0)
+                * 0.5;
 
             let model = if pos.distance_squared(cam_pos) > figure_low_detail_distance.powi(2) {
                 model_entry.lod_model(2)

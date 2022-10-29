@@ -351,7 +351,6 @@ impl StateExt for State {
             .with(body.density())
             .with(make_collider(ship))
             .with(body)
-            .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
             .with(comp::Controller::default())
             .with(Inventory::with_empty())
             .with(comp::CharacterState::default())

@@ -31,7 +31,8 @@ impl Skeleton for ShipSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
     ) -> Offsets {
-        let scale_mat = Mat4::scaling_3d(1.0 / 11.0);
+        // Ships are normal scale
+        let scale_mat = Mat4::scaling_3d(1.0);
 
         let bone0_mat = base_mat * scale_mat * Mat4::<f32>::from(self.bone0);
 
