@@ -14,7 +14,7 @@ use std::{collections::VecDeque, fmt};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
-use super::dialogue::Subject;
+use super::{dialogue::Subject, Pos};
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
@@ -529,6 +529,10 @@ pub struct Agent {
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
     pub position_pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
+    /// Position from which to flee. Intended to be the agent's position plus a
+    /// random position offset, to be used when a random flee direction is
+    /// required and reset each time the flee timer is reset.
+    pub flee_from_pos: Option<Pos>,
     pub awareness: Awareness,
 }
 
@@ -627,6 +631,7 @@ impl Agent {
             bearing: Vec2::zero(),
             sounds_heard: Vec::new(),
             position_pid_controller: None,
+            flee_from_pos: None,
             awareness: Awareness::new(0.0),
         }
     }

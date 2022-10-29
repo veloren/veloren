@@ -412,7 +412,7 @@ impl SettingsChange {
                 }
             },
             SettingsChange::Graphics(graphics_change) => {
-                let mut change_all = false;
+                let mut change_preset = false;
 
                 match graphics_change {
                     Graphics::AdjustTerrainViewDistance(terrain_vd) => {
@@ -490,15 +490,23 @@ impl SettingsChange {
                     },
                     Graphics::ResetGraphicsSettings => {
                         settings.graphics = GraphicsSettings::default();
-                        change_all = true;
+                        change_preset = true;
+                        // Fullscreen mode
+                        global_state
+                            .window
+                            .set_fullscreen_mode(settings.graphics.fullscreen);
+                        // Window size
+                        global_state
+                            .window
+                            .set_size(settings.graphics.window_size.into());
                     },
                     Graphics::ChangeGraphicsSettings(f) => {
                         settings.graphics = f(settings.graphics.clone());
-                        change_all = true;
+                        change_preset = true;
                     },
                 }
 
-                if change_all {
+                if change_preset {
                     let graphics = &settings.graphics;
                     // View distance
                     client_set_view_distance(settings, session_state);
@@ -521,10 +529,6 @@ impl SettingsChange {
                         .renderer_mut()
                         .set_render_mode(graphics.render_mode.clone())
                         .unwrap();
-                    // Fullscreen mode
-                    global_state.window.set_fullscreen_mode(graphics.fullscreen);
-                    // Window size
-                    global_state.window.set_size(graphics.window_size.into());
                 }
             },
             SettingsChange::Interface(interface_change) => {
