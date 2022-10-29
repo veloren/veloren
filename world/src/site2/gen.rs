@@ -15,7 +15,7 @@ use common::{
     vol::ReadVol,
 };
 use num::cast::AsPrimitive;
-use std::{cell::RefCell, sync::Arc, ops::RangeBounds};
+use std::{cell::RefCell, ops::RangeBounds, sync::Arc};
 use vek::*;
 
 #[allow(dead_code)]
@@ -386,8 +386,7 @@ impl Fill {
                 Self::contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
             },
             Primitive::Scale(prim, vec) => {
-                let center =
-                    Self::get_bounds(tree, *prim).as_::<f32>().center();
+                let center = Self::get_bounds(tree, *prim).as_::<f32>().center();
                 let fpos = pos.as_::<f32>();
                 let spos = (center + ((fpos - center) / vec))
                     .map(|x| x.round())
@@ -779,9 +778,8 @@ impl Painter {
         self.prim(Primitive::Cylinder(aabb.made_valid()))
     }
 
-    
-    /// Returns a `PrimitiveRef` of the largest horizontal cylinder that fits in the
-    /// provided Aabb.
+    /// Returns a `PrimitiveRef` of the largest horizontal cylinder that fits in
+    /// the provided Aabb.
     pub fn horizontal_cylinder(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
         let aabr = Aabr::from(aabb);
         let length = dir.select(aabr.size());
@@ -790,7 +788,8 @@ impl Painter {
             min: (aabr.min - dir.abs().to_vec2() * height).with_z(aabb.min.z),
             max: (dir.abs().select_with(aabr.min, aabr.max)).with_z(aabb.min.z + length),
         };
-        self.cylinder(aabb).rotate_about((-dir.abs()).from_z_mat3(), aabr.min.with_z(aabb.min.z))
+        self.cylinder(aabb)
+            .rotate_about((-dir.abs()).from_z_mat3(), aabr.min.with_z(aabb.min.z))
     }
 
     /// Returns a `PrimitiveRef` of a cylinder using a radius check where a
@@ -1072,40 +1071,21 @@ impl Painter {
     /// |_____|/
     /// ```
     pub fn vault(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
-        let aabr = Aabr::from(aabb);
-        let a = dir.select_aabr(aabr);
-        let b = (-dir).select_aabr(aabr);
-        let dmin = a.min(b);
-        let dmax = a.max(b);
-        let length = dmax - dmin;
+        let h = dir.orthogonal().select(Vec3::from(aabb.size()).xy());
 
-        let c = dir.rotated_cw().select_aabr(aabr);
-        let d = dir.rotated_ccw().select_aabr(aabr);
-        let omin = c.min(d);
-        let omax = c.max(d);
-        let diameter = omax - omin;
-        let radius = (diameter + 1) / 2;
-        let min = (a * dir.to_vec2() + c * dir.orthogonal().to_vec2()).with_z(aabb.max.z);
+        let mut prim = self.horizontal_cylinder(Aabb {
+            min: aabb.min.with_z(aabb.max.z - h),
+            max: aabb.max,
+        }, dir);
 
-        self.cylinder(
-            Aabb {
-                min,
-                max: (a * dir.to_vec2()
-                    + diameter * (-dir).to_vec2()
-                    + d * dir.orthogonal().to_vec2())
-                .with_z(aabb.max.z + length),
-            }
-            .made_valid(),
-        )
-        .rotate_about(dir.abs().from_z_mat3(), min)
-        .without(self.aabb(Aabb {
-            min: aabb.min.with_z(aabb.min.z - radius),
-            max: aabb.max.with_z(aabb.min.z),
-        }))
-        .union(self.aabb(Aabb {
+        if aabb.size().d < h {
+            prim = prim.intersect(self.aabb(aabb));
+        }
+
+        self.aabb(Aabb {
             min: aabb.min,
-            max: aabb.max.with_z(aabb.max.z - radius),
-        }))
+            max: aabb.max.with_z(aabb.max.z - h / 2),
+        }).union(prim)
     }
 
     /// Place aabbs around another aabb in a symmetric and distributed manner.
@@ -1293,7 +1273,9 @@ impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
         self.painter.prim(Primitive::rotate_about(self, rot, point))
     }
 
-    fn scale(self, scale: Vec3<impl AsPrimitive<f32>>) -> Self { self.painter.prim(Primitive::scale(self, scale.as_())) }
+    fn scale(self, scale: Vec3<impl AsPrimitive<f32>>) -> Self {
+        self.painter.prim(Primitive::scale(self, scale.as_()))
+    }
 
     fn repeat(self, offset: Vec3<i32>, count: u32) -> Self {
         self.painter.prim(Primitive::repeat(self, offset, count))

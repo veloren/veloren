@@ -1,7 +1,8 @@
 use crate::{
     column::ColumnSample,
     sim::{RiverKind, WorldSim},
-    CONFIG, IndexRef, site::SiteKind,
+    site::SiteKind,
+    IndexRef, CONFIG,
 };
 use common::{
     terrain::{
@@ -118,17 +119,21 @@ pub fn sample_pos(
                 sample.river.river_kind,
                 sample.river.spline_derivative,
                 sample.path.0.is_way(),
-                sample.sites.iter().any(|site| match &index.sites.get(*site).kind {
-                    SiteKind::Bridge(bridge) => if let Some(plot) = bridge.wpos_tile(TerrainChunkSize::center_wpos(pos)).plot {
-                        match bridge.plot(plot).kind {
-                            crate::site2::PlotKind::Bridge(_) => true,
-                            _ => false
-                        }
-                    } else {
-                        false
-                    },
-                    _ => false,
-                }),
+                sample
+                    .sites
+                    .iter()
+                    .any(|site| match &index.sites.get(*site).kind {
+                        SiteKind::Bridge(bridge) => {
+                            if let Some(plot) =
+                                bridge.wpos_tile(TerrainChunkSize::center_wpos(pos)).plot
+                            {
+                                matches!(bridge.plot(plot).kind, crate::site2::PlotKind::Bridge(_))
+                            } else {
+                                false
+                            }
+                        },
+                        _ => false,
+                    }),
             )
         })
         .unwrap_or((

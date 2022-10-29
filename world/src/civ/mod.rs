@@ -189,10 +189,7 @@ impl Civs {
                 SiteKind::GiantTree => (12i32, 8.0),
                 SiteKind::Gnarling => (16i32, 10.0),
                 SiteKind::Citadel => (16i32, 0.0),
-                SiteKind::Bridge(start, end) => {
-                    let e = (end - start).map(|e| e.abs()).reduce_max();
-                    ((e + 1) / 2, ((e + 1) / 2) as f32 / 2.0)
-                },
+                SiteKind::Bridge(_, _) => (0, 0.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -1264,9 +1261,9 @@ fn walk_in_dir(
             3.0 // + (1.0 - b_chunk.tree_density) * 20.0 // Prefer going through forests, for aesthetics
         };
         Some((a + dir, 1.0 + hill_cost + water_cost + wild_cost))
-    } else if dir.x == 0 || dir.y == 0 {
+    } else if NEIGHBORS.iter().all(|p| get_bridge(a + p).is_none()) && (dir.x == 0 || dir.y == 0) {
         (4..=5).find_map(|i| {
-            loc_suitable_for_walking(sim, a + dir * i).then(|| (a + dir * i, i as f32 * 30.0))
+            loc_suitable_for_walking(sim, a + dir * i).then(|| (a + dir * i, 400.0 + (i - 4) as f32 * 10.0))
         })
     } else {
         None
@@ -1276,13 +1273,10 @@ fn walk_in_dir(
 /// Return true if a position is suitable for walking on
 fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if sim.get(loc).is_some() {
-        NEIGHBORS
-            .iter()
-            .find(|n| {
-                sim.get(loc + *n)
-                    .map_or(false, |chunk| chunk.river.near_water())
-            })
-            .is_none()
+        !NEIGHBORS.iter().any(|n| {
+            sim.get(loc + *n)
+                .map_or(false, |chunk| chunk.river.near_water())
+        })
     } else {
         false
     }
@@ -1626,7 +1620,7 @@ impl Site {
     }
 
     pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
-    
+
     pub fn is_bridge(&self) -> bool { matches!(self.kind, SiteKind::Bridge(_, _)) }
 }
 

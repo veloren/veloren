@@ -221,7 +221,10 @@ impl Dir {
         }
     }
 
-    pub fn split_aabr<T>(self, aabr: Aabr<T>, offset: T) -> [Aabr<T>; 2] where T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T> {
+    pub fn split_aabr<T>(self, aabr: Aabr<T>, offset: T) -> [Aabr<T>; 2]
+    where
+        T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T>,
+    {
         match self {
             Dir::X => aabr.split_at_x(aabr.min.x + offset),
             Dir::Y => aabr.split_at_y(aabr.min.y + offset),
@@ -233,6 +236,13 @@ impl Dir {
                 let res = aabr.split_at_y(aabr.max.y - offset);
                 [res[1], res[0]]
             },
+        }
+    }
+
+    pub fn trim_aabr(self, aabr: Aabr<i32>, offset: i32) -> Aabr<i32> {
+        Aabr {
+            min: aabr.min + self.abs().to_vec2() * offset,
+            max: aabr.max - self.abs().to_vec2() * offset,
         }
     }
 

@@ -1018,7 +1018,6 @@ impl Site {
             max: start_tile.map2(end_tile, |a, b| a.max(b)) + 1 + orth * width,
         };
 
-
         let bridge = plot::Bridge::generate(land, index, &mut rng, &site, start_tile, end_tile);
 
         let start_tile = site.wpos_tile_pos(bridge.start.xy());
@@ -1044,7 +1043,7 @@ impl Site {
             (-bridge.dir).select_aabr_with(start_aabr, aabr.center()),
             2,
         );
-        
+
         let plot = site.create_plot(Plot {
             kind: PlotKind::Bridge(bridge),
             root_tile: start_tile,
