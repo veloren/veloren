@@ -1246,7 +1246,8 @@ fn walk_in_dir(
     a: Vec2<i32>,
     dir: Vec2<i32>,
 ) -> Option<(Vec2<i32>, f32)> {
-    if let Some(p) = get_bridge(a).filter(|p| (a - p).map(|e| e.signum()) == dir) {
+    if let Some(p) = get_bridge(a).filter(|p| (p - a).map(|e| e.signum()) == dir) {
+        // Traversing an existing bridge has no cost.
         Some((p, 0.0))
     } else if loc_suitable_for_walking(sim, a + dir) {
         let a_chunk = sim.get(a)?;
@@ -1261,9 +1262,9 @@ fn walk_in_dir(
             3.0 // + (1.0 - b_chunk.tree_density) * 20.0 // Prefer going through forests, for aesthetics
         };
         Some((a + dir, 1.0 + hill_cost + water_cost + wild_cost))
-    } else if NEIGHBORS.iter().all(|p| get_bridge(a + p).is_none()) && (dir.x == 0 || dir.y == 0) {
+    } else if dir.x == 0 || dir.y == 0 {
         (4..=5).find_map(|i| {
-            loc_suitable_for_walking(sim, a + dir * i).then(|| (a + dir * i, 400.0 + (i - 4) as f32 * 10.0))
+            loc_suitable_for_walking(sim, a + dir * i).then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
         })
     } else {
         None

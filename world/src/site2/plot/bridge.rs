@@ -26,7 +26,7 @@ struct HeightenedViaduct {
 
 impl HeightenedViaduct {
     fn random(rng: &mut impl Rng, height: i32) -> Self {
-        let vault_spacing = *[3, 4, 5, 7].choose(rng).unwrap();
+        let vault_spacing = *[3, 4, 5, 6].choose(rng).unwrap();
         Self {
             slope_inv: rng.gen_range(6..=8),
             bridge_start_offset: rng.gen_range({
@@ -38,7 +38,7 @@ impl HeightenedViaduct {
                 .choose(rng)
                 .unwrap(),
             side_vault_size: *[(4, 5), (7, 10), (7, 10), (13, 20)].choose(rng).unwrap(),
-            holes: vault_spacing > 4 && rng.gen_bool(0.8),
+            holes: vault_spacing >= 4 && vault_spacing % 2 == 0 && rng.gen_bool(0.8),
         }
     }
 }
@@ -55,34 +55,44 @@ impl BridgeKind {
     fn random(
         rng: &mut impl Rng,
         start: Vec3<i32>,
+        start_dist: i32,
         center: Vec3<i32>,
         end: Vec3<i32>,
+        end_dist: i32,
+        water_alt: i32,
 
         name: &str,
     ) -> BridgeKind {
         let len = (start.xy() - end.xy()).map(|e| e.abs()).reduce_max();
         let height = end.z - start.z;
-        let down = start.z - center.z;
-        (0..=3)
+        let down = start.z - water_alt;
+        let res = (0..=4)
             .filter_map(|bridge| match bridge {
                 0 if height >= 16 => Some(BridgeKind::Tower(match rng.gen_range(0..=2) {
                     0 => RoofKind::Crenelated,
                     _ => RoofKind::Hipped,
                 })),
-                1 if len < 40 => Some(BridgeKind::Short),
-                2 if height < 15 && down < 16 => Some(BridgeKind::HeightenedViaduct(
+                1 if len < 60 => { println!("possible short"); Some(BridgeKind::Short)},
+                2 if len >= 50 && height < 13 && down < 20 && ((start_dist > 13 && end_dist > 13) || (start_dist - end_dist).abs() < 6) => Some(BridgeKind::HeightenedViaduct(
                     HeightenedViaduct::random(rng, height),
                 )),
-                3 if height < 9 && down > 10 => Some(BridgeKind::HangBridge),
+                3 if height < 10 && down > 10 => Some(BridgeKind::HangBridge),
+                4 if down > 8 => Some(BridgeKind::Flat),
                 _ => None,
             })
             .collect::<Vec<_>>()
             .into_iter()
             .choose(rng)
-            .unwrap_or_else(|| {
-                println!("Pick: {name}\n\tlen: {len}\n\theight: {height}\n\tdown: {down}\n");
-                BridgeKind::Flat
-            })
+            .unwrap_or_else(|| BridgeKind::Flat);
+        
+        match &res {
+            BridgeKind::Flat => println!("Flat {name}"),
+            BridgeKind::Tower(_) => println!("Tower {name}"),
+            BridgeKind::Short => println!("Short {name}"),
+            BridgeKind::HeightenedViaduct(_) => println!("HeightenedViaduct {name}"),
+            BridgeKind::HangBridge => println!("HangBridge {name}"),
+        }
+        res
     }
 
     fn width(&self) -> i32 {
@@ -394,14 +404,6 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
         orth_dir,
     );
 
-    let mut rng = thread_rng();
-    if rng.gen_bool(0.1) {
-        painter.spawn(
-            EntityInfo::at(c.with_z(bridge.center.z).as_())
-                .with_asset_expect("common.entity.wild.aggressive.swamp_troll", &mut rng),
-        );
-    }
-
     if side_vault * 2 + side_vault_offset < len / 2 + 5 {
         remove = remove.union(
             painter
@@ -457,6 +459,7 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
         .without(br.translate(-Vec3::unit_z()))
         .clear();
 
+    /*
     let place_lights = |center: Vec3<i32>| {
         painter.sprite(
             orth_dir
@@ -497,6 +500,17 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
     for i in 0..num_lights {
         place_lights(i);
     }
+    */
+
+    // Small chance to spawn a troll.
+    let mut rng = thread_rng();
+    if rng.gen_bool(0.1) {
+        painter.spawn(
+            EntityInfo::at(c.with_z(bridge.center.z).as_())
+                .with_asset_expect("common.entity.wild.aggressive.swamp_troll", &mut rng),
+        );
+    }
+
 }
 
 fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
@@ -864,30 +878,30 @@ impl Bridge {
         let start = site.tile_wpos(start);
         let end = site.tile_wpos(end);
 
-        let min_water_dist = 5;
+        let min_water_dist = 6;
         let find_edge = |start: Vec2<i32>, end: Vec2<i32>| {
             let mut test_start = start;
             let dir = Dir::from_vector(end - start).to_vec2();
             let mut last_alt = if let Some(col) = land.column_sample(start, index) {
                 col.alt as i32
             } else {
-                return test_start.with_z(land.get_alt_approx(start) as i32);
+                return (test_start.with_z(land.get_alt_approx(start) as i32), i32::MAX);
             };
             let mut step = 0;
             loop {
                 if let Some(sample) = land.column_sample(test_start + step * dir, index) {
                     let alt = sample.alt as i32;
-                    if last_alt - alt > 1 + (step + 3) / 4
+                    let water_dist = sample.water_dist.unwrap_or(16.0) as i32;
+                    if last_alt - alt > 1 + (step + 2) / 3
                         || sample.riverless_alt - sample.alt > 2.0
                     {
-                        break test_start.with_z(last_alt);
+                        break (test_start.with_z(last_alt), water_dist);
                     } else {
-                        let water_dist = sample.water_dist.unwrap_or(16.0) as i32;
 
                         test_start += step * dir;
 
                         if water_dist <= min_water_dist {
-                            break test_start.with_z(alt);
+                            break (test_start.with_z(alt), water_dist);
                         }
 
                         step = water_dist - min_water_dist;
@@ -895,24 +909,26 @@ impl Bridge {
                         last_alt = alt;
                     }
                 } else {
-                    break test_start.with_z(last_alt);
+                    break (test_start.with_z(last_alt), i32::MAX);
                 }
             }
         };
 
-        let test_start = find_edge(start, end);
+        let (test_start, start_dist) = find_edge(start, end);
 
-        let test_end = find_edge(end, start);
+        let (test_end, end_dist) = find_edge(end, start);
 
-        let (start, end) = if test_start.z < test_end.z {
-            (test_start, test_end)
+        let (start, start_dist, end, end_dist) = if test_start.z < test_end.z {
+            (test_start, start_dist, test_end, end_dist)
         } else {
-            (test_end, test_start)
+            (test_end, end_dist, test_start, start_dist)
         };
 
         let center = (start.xy() + end.xy()) / 2;
-        let center = center.with_z(land.get_alt_approx(center) as i32);
-        let bridge = BridgeKind::random(rng, start, center, end, site.name());
+        let col = land.column_sample(center, index).unwrap();
+        let center = center.with_z(col.alt as i32);
+        let water_alt = col.water_level as i32;
+        let bridge = BridgeKind::random(rng, start, start_dist, center, end, end_dist, water_alt, site.name());
         Self {
             start,
             end,

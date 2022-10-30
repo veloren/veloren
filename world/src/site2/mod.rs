@@ -68,7 +68,7 @@ impl Site {
                 // 25 Seems to be big enough for the current scale of 4.0
                 25
             } else {
-                1
+                5
             })
             * TILE_SIZE as i32) as f32
     }
