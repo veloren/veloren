@@ -244,7 +244,7 @@ impl<'a> System<'a> for Sys {
 impl Sys {
     fn publish_state_update(
         join: &mut JoinStruct,
-        mut state_update: StateUpdate,
+        state_update: StateUpdate,
         output_events: &mut OutputEvents,
     ) {
         // Here we check for equality with the previous value of these components before
@@ -269,11 +269,15 @@ impl Sys {
         *join.vel = state_update.vel;
         *join.ori = state_update.ori;
 
-        join.controller
-            .queued_inputs
-            .append(&mut state_update.queued_inputs);
-        for input in state_update.removed_inputs {
+        for (input, attr) in state_update.queued_inputs {
+            join.controller.queued_inputs.insert(input, attr);
+            join.controller.held_inputs.insert(input, attr);
+        }
+        for input in state_update.used_inputs {
             join.controller.queued_inputs.remove(&input);
+        }
+        for input in state_update.removed_inputs {
+            join.controller.held_inputs.remove(&input);
         }
         if state_update.swap_equipped_weapons {
             output_events.emit_server(ServerEvent::InventoryManip(

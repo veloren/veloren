@@ -246,6 +246,7 @@ pub struct ControllerInputs {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Controller {
     pub inputs: ControllerInputs,
+    pub held_inputs: BTreeMap<InputKind, InputAttr>,
     pub queued_inputs: BTreeMap<InputKind, InputAttr>,
     // TODO: consider SmallVec
     pub events: Vec<ControlEvent>,
@@ -282,6 +283,7 @@ impl Controller {
     pub fn reset(&mut self) {
         self.inputs = Default::default();
         self.queued_inputs = Default::default();
+        self.held_inputs = Default::default();
     }
 
     pub fn clear_events(&mut self) { self.events.clear(); }

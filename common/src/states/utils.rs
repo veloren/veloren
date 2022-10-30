@@ -1017,8 +1017,7 @@ pub fn attempt_glide_wield(
 pub fn handle_jump(
     data: &JoinData<'_>,
     output_events: &mut OutputEvents,
-    // TODO: remove?
-    _update: &mut StateUpdate,
+    update: &mut StateUpdate,
     strength: f32,
 ) -> bool {
     (input_is_pressed(data, InputKind::Jump) && data.physics.on_ground.is_some())
@@ -1029,6 +1028,7 @@ pub fn handle_jump(
                 data.entity,
                 strength * impulse / data.mass.0 * data.stats.move_speed_modifier,
             ));
+            update.used_inputs.push(InputKind::Jump);
         })
         .is_some()
 }
@@ -1054,6 +1054,7 @@ fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKin
                 AbilityInfo::from_input(data, from_offhand, input, ability.ability_meta()),
                 data,
             ));
+            update.used_inputs.push(input);
             return true;
         }
     }
@@ -1109,6 +1110,7 @@ pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool
                 AbilityInfo::from_input(data, false, InputKind::Block, Default::default()),
                 data,
             ));
+            update.used_inputs.push(InputKind::Block);
             true
         } else {
             false
@@ -1129,6 +1131,7 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool
                 AbilityInfo::from_input(data, false, InputKind::Roll, Default::default()),
                 data,
             ));
+            update.used_inputs.push(InputKind::Roll);
             if let CharacterState::Roll(roll) = &mut update.character {
                 if let CharacterState::ComboMelee(c) = data.character {
                     roll.was_combo = c
@@ -1276,11 +1279,7 @@ pub fn get_buff_strength(data: &JoinData<'_>, ai: AbilityInfo) -> f32 {
 }
 
 pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {
-    data.controller.queued_inputs.contains_key(&input)
-}
-
-pub fn input_just_pressed(update: &StateUpdate, input: InputKind) -> bool {
-    update.queued_inputs.contains_key(&input)
+    data.controller.queued_inputs.contains_key(&input) || data.controller.held_inputs.contains_key(&input)
 }
 
 /// Checked `Duration` addition. Computes `timer` + `dt`, applying relevant stat
