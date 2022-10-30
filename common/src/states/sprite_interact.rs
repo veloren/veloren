@@ -39,8 +39,6 @@ pub struct StaticData {
     ///
     /// If third field is true, item should be consumed on collection
     pub required_item: Option<(ItemDefinitionIdOwned, InvSlotId, bool)>,
-    /// Miscellaneous information about the ability
-    pub ability_info: AbilityInfo,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

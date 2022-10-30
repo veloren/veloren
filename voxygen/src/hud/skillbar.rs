@@ -310,7 +310,7 @@ pub struct Skillbar<'a> {
     common: widget::CommonBuilder,
     msm: &'a MaterialStatManifest,
     combo_floater: Option<ComboFloater>,
-    context: Option<AbilityContext>,
+    context: AbilityContext,
     combo: Option<&'a Combo>,
 }
 
@@ -341,7 +341,7 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         msm: &'a MaterialStatManifest,
         combo_floater: Option<ComboFloater>,
-        context: Option<AbilityContext>,
+        context: AbilityContext,
         combo: Option<&'a Combo>,
     ) -> Self {
         Self {

@@ -27,7 +27,7 @@ use common::{
     outcome::{HealthChangeInfo, Outcome},
     resources::{Secs, Time},
     rtsim::RtSimEntity,
-    states::utils::{AbilityInfo, StageSection},
+    states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -1245,25 +1245,10 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
         .write_storage::<comp::CharacterState>()
         .get_mut(defender)
     {
-        let should_return = char_state
-            .ability_info()
-            .and_then(|info| info.return_ability)
-            .is_some();
-
         let return_to_wield = match &mut *char_state {
             CharacterState::RiposteMelee(c) => {
                 c.stage_section = StageSection::Action;
                 c.timer = Duration::default();
-                false
-            },
-            CharacterState::BasicBlock(c) if should_return => {
-                c.timer = c.static_data.recover_duration;
-                c.stage_section = StageSection::Recover;
-                // Refund half the energy of entering the block for a successful parry
-                server_eventbus.emit_now(ServerEvent::EnergyChange {
-                    entity: defender,
-                    change: c.static_data.energy_cost / 2.0,
-                });
                 false
             },
             CharacterState::BasicBlock(c) => {
@@ -1280,7 +1265,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 // defender
                 if char_state
                     .ability_info()
-                    .and_then(|info| info.ability_meta)
+                    .map(|info| info.ability_meta)
                     .map_or(false, |meta| {
                         meta.capabilities
                             .contains(comp::ability::Capability::BUILDUP_PARRIES)
@@ -1374,9 +1359,8 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
         ) {
             let poise_state = comp::poise::PoiseState::Interrupted;
             let was_wielded = char_state.is_wield();
-            let ability_info = AbilityInfo::from_forced_state_change(&char_state);
             if let (Some((stunned_state, stunned_duration)), impulse_strength) =
-                poise_state.poise_effect(was_wielded, ability_info)
+                poise_state.poise_effect(was_wielded)
             {
                 // Reset poise if there is some stunned state to apply
                 poise.reset(*time, stunned_duration);

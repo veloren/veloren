@@ -143,6 +143,8 @@ pub enum CharacterState {
     /// A series of consecutive, identical attacks that only go through buildup
     /// and recover once for the entire state
     RapidMelee(rapid_melee::Data),
+    /// Causes the character to enter a new stance, or leave the current stance
+    BasicStance(basic_stance::Data),
 }
 
 impl CharacterState {
@@ -182,6 +184,7 @@ impl CharacterState {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
+                | CharacterState::BasicStance(_)
         )
     }
 
@@ -263,6 +266,7 @@ impl CharacterState {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
+                | CharacterState::BasicStance(_)
         )
     }
 
@@ -290,7 +294,7 @@ impl CharacterState {
     pub fn is_parry(&self) -> bool {
         let from_capability = if let Some(capabilities) = self
             .ability_info()
-            .and_then(|a| a.ability_meta)
+            .map(|a| a.ability_meta)
             .map(|m| m.capabilities)
         {
             capabilities.contains(Capability::BUILDUP_PARRIES)
@@ -343,7 +347,7 @@ impl CharacterState {
     pub fn is_forced_movement(&self) -> bool {
         matches!(self,
             CharacterState::ComboMelee(s) if s.stage_section == StageSection::Action)
-            || matches!(self, CharacterState::ComboMelee2(s) if s.stage_section == Some(StageSection::Action))
+            || matches!(self, CharacterState::ComboMelee2(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::DashMelee(s) if s.stage_section == StageSection::Charge)
             || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
             || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Action)
@@ -394,6 +398,7 @@ impl CharacterState {
                 | CharacterState::Music(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
+                | CharacterState::BasicStance(_)
         )
     }
 
@@ -462,6 +467,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => data.behavior(j, output_events),
             CharacterState::RiposteMelee(data) => data.behavior(j, output_events),
             CharacterState::RapidMelee(data) => data.behavior(j, output_events),
+            CharacterState::BasicStance(data) => data.behavior(j, output_events),
         }
     }
 
@@ -516,6 +522,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RiposteMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RapidMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::BasicStance(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -536,7 +543,7 @@ impl CharacterState {
             CharacterState::Skate(_) => None,
             CharacterState::Glide(_) => None,
             CharacterState::GlideWield(_) => None,
-            CharacterState::Stunned(data) => Some(data.static_data.ability_info),
+            CharacterState::Stunned(_) => None,
             CharacterState::Sit => None,
             CharacterState::Dance => None,
             CharacterState::BasicBlock(data) => Some(data.static_data.ability_info),
@@ -562,13 +569,14 @@ impl CharacterState {
             CharacterState::BasicSummon(data) => Some(data.static_data.ability_info),
             CharacterState::SelfBuff(data) => Some(data.static_data.ability_info),
             CharacterState::SpriteSummon(data) => Some(data.static_data.ability_info),
-            CharacterState::UseItem(data) => Some(data.static_data.ability_info),
-            CharacterState::SpriteInteract(data) => Some(data.static_data.ability_info),
+            CharacterState::UseItem(_) => None,
+            CharacterState::SpriteInteract(_) => None,
             CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Music(data) => Some(data.static_data.ability_info),
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RiposteMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RapidMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicStance(data) => Some(data.static_data.ability_info),
         }
     }
 
@@ -586,10 +594,10 @@ impl CharacterState {
             CharacterState::Dance => None,
             CharacterState::BasicBlock(data) => Some(data.stage_section),
             CharacterState::Roll(data) => Some(data.stage_section),
+            CharacterState::Equipping(_) => Some(StageSection::Buildup),
             CharacterState::Wielding(_) => None,
-            CharacterState::Equipping(_) => None,
             CharacterState::ComboMelee(data) => Some(data.stage_section),
-            CharacterState::ComboMelee2(data) => data.stage_section,
+            CharacterState::ComboMelee2(data) => Some(data.stage_section),
             CharacterState::BasicMelee(data) => Some(data.stage_section),
             CharacterState::BasicRanged(data) => Some(data.stage_section),
             CharacterState::Boost(_) => None,
@@ -614,6 +622,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.stage_section),
             CharacterState::RiposteMelee(data) => Some(data.stage_section),
             CharacterState::RapidMelee(data) => Some(data.stage_section),
+            CharacterState::BasicStance(_) => Some(StageSection::Buildup),
         }
     }
 
@@ -645,7 +654,10 @@ impl CharacterState {
                 ..Default::default()
             }),
             CharacterState::Wielding(_) => None,
-            CharacterState::Equipping(_) => None,
+            CharacterState::Equipping(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                ..Default::default()
+            }),
             CharacterState::ComboMelee(data) => {
                 let stage_index = data.stage_index();
                 let stage = data.static_data.stage_data[stage_index];
@@ -662,10 +674,6 @@ impl CharacterState {
                     buildup: Some(strike.buildup_duration),
                     action: Some(strike.swing_duration),
                     recover: Some(strike.recover_duration),
-                    ready: data
-                        .static_data
-                        .is_stance
-                        .then_some(combo_melee2::STANCE_ENTER_TIME),
                     ..Default::default()
                 })
             },
@@ -809,6 +817,10 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
+            CharacterState::BasicStance(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                ..Default::default()
+            }),
         }
     }
 
@@ -854,15 +866,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.timer),
             CharacterState::RiposteMelee(data) => Some(data.timer),
             CharacterState::RapidMelee(data) => Some(data.timer),
-        }
-    }
-
-    // Determines if a character state should be returned to when using another
-    // ability from that character state
-    pub fn should_be_returned_to(&self) -> bool {
-        match self {
-            CharacterState::ComboMelee2(data) => data.static_data.is_stance,
-            _ => false,
+            CharacterState::BasicStance(data) => Some(data.timer),
         }
     }
 }
@@ -874,7 +878,6 @@ pub struct DurationsInfo {
     pub recover: Option<Duration>,
     pub movement: Option<Duration>,
     pub charge: Option<Duration>,
-    pub ready: Option<Duration>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]

@@ -820,7 +820,7 @@ impl<'a> AgentData<'a> {
                             && self
                                 .char_state
                                 .ability_info()
-                                .and_then(|a| a.ability_meta)
+                                .map(|a| a.ability_meta)
                                 .map(|m| m.capabilities)
                                 .map_or(false, |c| c.contains(Capability::BLOCK_INTERRUPT))
                     } else {
@@ -843,7 +843,7 @@ impl<'a> AgentData<'a> {
                     agent.action_state.conditions[CONDITION_HOLD] = false;
                     agent.action_state.timers[TIMER_HOLD_TIMEOUT] = 0.0;
                 } else if matches!(
-                    self.char_state.ability_info().and_then(|info| info.input),
+                    self.char_state.ability_info().map(|info| info.input),
                     Some(InputKind::Ability(1))
                 ) {
                     // If used defensive retreat, stand still for a little bit to bait people
@@ -927,7 +927,7 @@ impl<'a> AgentData<'a> {
                                 && self
                                     .char_state
                                     .ability_info()
-                                    .and_then(|a| a.ability_meta)
+                                    .map(|a| a.ability_meta)
                                     .map(|m| m.capabilities)
                                     .map_or(false, |c| c.contains(Capability::ROLL_INTERRUPT));
                         if try_roll {
@@ -1617,7 +1617,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             ConditionStaffCanShockwave = 0,
         }
-        let context = AbilityContext::try_from(self.stance);
+        let context = AbilityContext::from(self.stance);
         let extract_ability = |input: AbilityInput| {
             self.active_abilities
                 .activate_ability(

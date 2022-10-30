@@ -1,0 +1,4 @@
+BasicStance(
+    buildup_duration: 0.25,
+    stance: Sword(Defensive),
+)

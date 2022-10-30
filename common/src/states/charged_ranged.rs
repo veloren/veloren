@@ -99,13 +99,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Charge => {
-                if !self
-                    .static_data
-                    .ability_info
-                    .input
-                    .map_or(false, |input| input_is_pressed(data, input))
-                    && !self.exhausted
-                {
+                if !input_is_pressed(data, self.static_data.ability_info.input) && !self.exhausted {
                     let charge_frac = self.charge_frac();
                     let arrow = ProjectileConstructor::Arrow {
                         damage: self.static_data.initial_damage
@@ -148,11 +142,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if self.timer < self.static_data.charge_duration
-                    && self
-                        .static_data
-                        .ability_info
-                        .input
-                        .map_or(false, |input| input_is_pressed(data, input))
+                    && input_is_pressed(data, self.static_data.ability_info.input)
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
@@ -164,12 +154,7 @@ impl CharacterBehavior for Data {
                     update
                         .energy
                         .change_by(-self.static_data.energy_drain * data.dt.0);
-                } else if self
-                    .static_data
-                    .ability_info
-                    .input
-                    .map_or(false, |input| input_is_pressed(data, input))
-                {
+                } else if input_is_pressed(data, self.static_data.ability_info.input) {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: tick_attack_or_default(data, self.timer, None),

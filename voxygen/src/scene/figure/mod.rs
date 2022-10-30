@@ -920,7 +920,7 @@ impl FigureMgr {
             let second_tool_spec = second_tool_spec.as_deref();
             let hands = (active_tool_hand, second_tool_hand);
 
-            let context = AbilityContext::try_from(stance);
+            let context = AbilityContext::from(stance);
 
             let ability_id = character.and_then(|c| {
                 c.ability_info()
@@ -1759,45 +1759,38 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::ComboMelee2(s) => {
-                            if matches!(
-                                s.stage_section,
-                                Some(
-                                    StageSection::Buildup
-                                        | StageSection::Action
-                                        | StageSection::Recover
-                                )
-                            ) {
-                                let timer = s.timer.as_secs_f32();
-                                let current_strike =
-                                    s.completed_strikes % s.static_data.strikes.len();
-                                let strike_data = s.static_data.strikes[current_strike];
-                                let progress = match s.stage_section {
-                                    Some(StageSection::Buildup) => {
-                                        timer / strike_data.buildup_duration.as_secs_f32()
-                                    },
-                                    Some(StageSection::Action) => {
-                                        timer / strike_data.swing_duration.as_secs_f32()
-                                    },
-                                    Some(StageSection::Recover) => {
-                                        timer / strike_data.recover_duration.as_secs_f32()
-                                    },
-                                    _ => 0.0,
-                                };
+                            let timer = s.timer.as_secs_f32();
+                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                            let strike_data = s.static_data.strikes[current_strike];
+                            let progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    timer / strike_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Action => {
+                                    timer / strike_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    timer / strike_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
 
-                                anim::character::ComboAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        ability_id,
-                                        s.stage_section,
-                                        Some(s.static_data.ability_info),
-                                        current_strike,
-                                        move_dir,
-                                    ),
-                                    progress,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else if physics.in_liquid().is_some() {
+                            anim::character::ComboAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    ability_id,
+                                    Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
+                                    current_strike,
+                                    move_dir,
+                                ),
+                                progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::BasicStance(_) => {
+                            if physics.in_liquid().is_some() {
                                 anim::character::SwimWieldAnimation::update_skeleton(
                                     &target_base,
                                     (
@@ -1805,25 +1798,6 @@ impl FigureMgr {
                                         second_tool_kind,
                                         hands,
                                         rel_vel.magnitude(),
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else if false {
-                                // Check for sneaking here if we want combo melee 2 to be able to
-                                // sneak when not actively swinging
-                                anim::character::SneakWieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        (active_tool_kind, active_tool_spec),
-                                        second_tool_kind,
-                                        hands,
-                                        rel_vel,
-                                        // TODO: Update to use the quaternion.
-                                        ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                         time,
                                     ),
                                     state.state_time,

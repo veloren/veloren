@@ -667,7 +667,9 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
 /// Checks if an input related to an attack is held. If one is, moves entity
 /// into wielding state
 pub fn handle_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
-    if data.controller.queued_inputs.keys().any(|i| i.is_ability()) {
+    if data.controller.queued_inputs.keys().any(|i| i.is_ability())
+        || data.controller.held_inputs.keys().any(|i| i.is_ability())
+    {
         attempt_wield(data, update);
     }
 }
@@ -818,7 +820,6 @@ pub fn handle_manipulate_loadout(
                         item_hash: item.item_hash(),
                         was_wielded: data.character.is_wield(),
                         was_sneak: data.character.is_stealthy(),
-                        ability_info: AbilityInfo::from_forced_state_change(data.character),
                     },
                     timer: Duration::default(),
                     stage_section: StageSection::Buildup,
@@ -950,9 +951,6 @@ pub fn handle_manipulate_loadout(
                                         was_wielded: data.character.is_wield(),
                                         was_sneak: data.character.is_stealthy(),
                                         required_item,
-                                        ability_info: AbilityInfo::from_forced_state_change(
-                                            data.character,
-                                        ),
                                     },
                                     timer: Duration::default(),
                                     stage_section: StageSection::Buildup,
@@ -1034,7 +1032,7 @@ pub fn handle_jump(
 }
 
 fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) -> bool {
-    let context = AbilityContext::try_from(data.stance);
+    let context = AbilityContext::from(data.stance);
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
             .active_abilities
@@ -1090,7 +1088,13 @@ pub fn attempt_input(
     update: &mut StateUpdate,
 ) {
     // TODO: look into using first() when it becomes stable
-    if let Some(input) = data.controller.queued_inputs.keys().next() {
+    if let Some(input) = data
+        .controller
+        .queued_inputs
+        .keys()
+        .next()
+        .or_else(|| data.controller.held_inputs.keys().next())
+    {
         handle_input(data, output_events, update, *input);
     }
 }
@@ -1134,11 +1138,7 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool
             update.used_inputs.push(InputKind::Roll);
             if let CharacterState::Roll(roll) = &mut update.character {
                 if let CharacterState::ComboMelee(c) = data.character {
-                    roll.was_combo = c
-                        .static_data
-                        .ability_info
-                        .input
-                        .map(|input| (input, c.stage));
+                    roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
                     roll.was_wielded = true;
                 } else {
                     if data.character.is_wield() {
@@ -1170,7 +1170,7 @@ pub fn handle_interrupts(data: &JoinData, update: &mut StateUpdate) -> bool {
         let interruptible = data
             .character
             .ability_info()
-            .and_then(|info| info.ability_meta)
+            .map(|info| info.ability_meta)
             .map_or(false, |meta| {
                 meta.capabilities.contains(Capability::ROLL_INTERRUPT)
             });
@@ -1179,7 +1179,7 @@ pub fn handle_interrupts(data: &JoinData, update: &mut StateUpdate) -> bool {
     let can_block = data
         .character
         .ability_info()
-        .and_then(|info| info.ability_meta)
+        .map(|info| info.ability_meta)
         .map_or(false, |meta| {
             meta.capabilities.contains(Capability::BLOCK_INTERRUPT)
         });
@@ -1313,7 +1313,6 @@ pub enum StageSection {
     Charge,
     Movement,
     Action,
-    Ready,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -1359,11 +1358,10 @@ impl MovementDirection {
 pub struct AbilityInfo {
     pub tool: Option<ToolKind>,
     pub hand: Option<HandInfo>,
-    pub input: Option<InputKind>,
+    pub input: InputKind,
     pub input_attr: Option<InputAttr>,
-    pub ability_meta: Option<AbilityMeta>,
+    pub ability_meta: AbilityMeta,
     pub ability: Option<Ability>,
-    pub return_ability: Option<InputKind>,
 }
 
 impl AbilityInfo {
@@ -1388,78 +1386,32 @@ impl AbilityInfo {
             .zip(data.active_abilities)
             .map(|(i, a)| a.get_ability(i, data.inventory, Some(data.skill_set)));
 
-        let return_ability = if data.character.should_be_returned_to() {
-            data.character.ability_info().and_then(|info| info.input)
-        } else {
-            None
-        };
-
         Self {
             tool,
             hand,
-            input: Some(input),
-            input_attr: data.controller.queued_inputs.get(&input).copied(),
-            ability_meta: Some(ability_meta),
+            input,
+            input_attr: data
+                .controller
+                .queued_inputs
+                .get(&input)
+                .or_else(|| data.controller.held_inputs.get(&input))
+                .copied(),
+            ability_meta,
             ability,
-            return_ability,
-        }
-    }
-
-    pub fn from_forced_state_change(char_state: &CharacterState) -> Self {
-        let return_ability = if char_state.should_be_returned_to() {
-            char_state.ability_info().and_then(|info| info.input)
-        } else {
-            None
-        };
-
-        // If this ability should not be returned to, check if this ability was going to
-        // return to another ability, and return to that one instead
-        let return_ability = return_ability.or_else(|| {
-            char_state
-                .ability_info()
-                .and_then(|info| info.return_ability)
-        });
-
-        Self {
-            tool: None,
-            hand: None,
-            input: None,
-            input_attr: None,
-            ability_meta: None,
-            ability: None,
-            return_ability,
         }
     }
 }
 
 pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
-    // If an ability has a return ability specified, and is not itself an ability
-    // that should be returned to (to prevent bouncing between two abilities),
-    // attempt to return to the specified ability, otherwise return to wield or idle
-    // depending on whether or not leaving a wield state
-    let returned = if let Some(return_ability) = (!data.character.should_be_returned_to())
-        .then_some(
-            data.character
-                .ability_info()
-                .and_then(|info| info.return_ability),
-        )
-        .flatten()
-    {
-        handle_ability(data, update, return_ability)
+    if data.character.is_wield() || data.character.was_wielded() {
+        update.character = CharacterState::Wielding(wielding::Data {
+            is_sneaking: data.character.is_stealthy(),
+        });
     } else {
-        false
-    };
-    if !returned {
-        if data.character.is_wield() || data.character.was_wielded() {
-            update.character = CharacterState::Wielding(wielding::Data {
-                is_sneaking: data.character.is_stealthy(),
-            });
-        } else {
-            update.character = CharacterState::Idle(idle::Data {
-                is_sneaking: data.character.is_stealthy(),
-                footwear: None,
-            });
-        }
+        update.character = CharacterState::Idle(idle::Data {
+            is_sneaking: data.character.is_stealthy(),
+            footwear: None,
+        });
     }
 }
 

@@ -242,7 +242,7 @@ pub struct Diary<'a> {
     tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
-    context: Option<AbilityContext>,
+    context: AbilityContext,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -288,7 +288,7 @@ impl<'a> Diary<'a> {
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
-        context: Option<AbilityContext>,
+        context: AbilityContext,
     ) -> Self {
         Self {
             show,
@@ -1596,7 +1596,7 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 462.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::OffensiveCombo),
+                skill: Skill::Sword(SwordSkill::OffensiveStance),
                 ability_id: "common.abilities.sword.offensive_combo",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 389.0, 313.0),
             },
@@ -1611,7 +1611,7 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 361.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::CripplingCombo),
+                skill: Skill::Sword(SwordSkill::CripplingStance),
                 ability_id: "common.abilities.sword.crippling_combo",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 164.0),
             },
@@ -1631,7 +1631,7 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 164.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::CleavingCombo),
+                skill: Skill::Sword(SwordSkill::CleavingStance),
                 ability_id: "common.abilities.sword.cleaving_combo",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 15.0),
             },
@@ -1651,7 +1651,7 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 15.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::DefensiveCombo),
+                skill: Skill::Sword(SwordSkill::DefensiveStance),
                 ability_id: "common.abilities.sword.defensive_combo",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 389.0, 611.0),
             },
@@ -1666,7 +1666,7 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 563.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::ParryingCombo),
+                skill: Skill::Sword(SwordSkill::ParryingStance),
                 ability_id: "common.abilities.sword.parrying_combo",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 760.0),
             },
@@ -1686,7 +1686,7 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 760.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::HeavyCombo),
+                skill: Skill::Sword(SwordSkill::HeavyStance),
                 ability_id: "common.abilities.sword.heavy_combo",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 909.0),
             },
@@ -1706,7 +1706,7 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 909.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::MobilityCombo),
+                skill: Skill::Sword(SwordSkill::MobilityStance),
                 ability_id: "common.abilities.sword.mobility_combo",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 462.0),
             },
@@ -1721,7 +1721,7 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 611.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::ReachingCombo),
+                skill: Skill::Sword(SwordSkill::ReachingStance),
                 ability_id: "common.abilities.sword.reaching_combo",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 141.0, 462.0),
             },

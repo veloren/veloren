@@ -281,22 +281,22 @@ impl Tool {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AbilitySet<T> {
-    pub primary: T,
-    pub secondary: T,
-    pub abilities: Vec<AuxiliaryAbilityKind<T>>,
+    pub primary: AbilityKind<T>,
+    pub secondary: AbilityKind<T>,
+    pub abilities: Vec<AbilityKind<T>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum AuxiliaryAbilityKind<T> {
+pub enum AbilityKind<T> {
     Simple(Option<Skill>, T),
     Contextualized(HashMap<AbilityContext, (Option<Skill>, T)>),
 }
 
-impl<T> AuxiliaryAbilityKind<T> {
-    pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AuxiliaryAbilityKind<U> {
+impl<T> AbilityKind<T> {
+    pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AbilityKind<U> {
         match self {
-            Self::Simple(s, x) => AuxiliaryAbilityKind::<U>::Simple(s, f(x)),
-            Self::Contextualized(abilities) => AuxiliaryAbilityKind::<U>::Contextualized(
+            Self::Simple(s, x) => AbilityKind::<U>::Simple(s, f(x)),
+            Self::Contextualized(abilities) => AbilityKind::<U>::Contextualized(
                 abilities
                     .into_iter()
                     .map(|(c, (s, x))| (c, (s, f(x))))
@@ -305,10 +305,10 @@ impl<T> AuxiliaryAbilityKind<T> {
         }
     }
 
-    pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AuxiliaryAbilityKind<U> {
+    pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AbilityKind<U> {
         match self {
-            Self::Simple(s, x) => AuxiliaryAbilityKind::<U>::Simple(*s, f(x)),
-            Self::Contextualized(abilities) => AuxiliaryAbilityKind::<U>::Contextualized(
+            Self::Simple(s, x) => AbilityKind::<U>::Simple(*s, f(x)),
+            Self::Contextualized(abilities) => AbilityKind::<U>::Contextualized(
                 abilities
                     .into_iter()
                     .map(|(c, (s, x))| (*c, (*s, f(x))))
@@ -317,12 +317,10 @@ impl<T> AuxiliaryAbilityKind<T> {
         }
     }
 
-    pub fn ability(&self, context: Option<AbilityContext>) -> Option<(Option<Skill>, &T)> {
+    pub fn ability(&self, context: AbilityContext) -> Option<(Option<Skill>, &T)> {
         match self {
-            AuxiliaryAbilityKind::Simple(s, a) => Some((*s, a)),
-            AuxiliaryAbilityKind::Contextualized(abilities) => {
-                context.and_then(|c| abilities.get(&c).map(|(s, a)| (*s, a)))
-            },
+            AbilityKind::Simple(s, a) => Some((*s, a)),
+            AbilityKind::Contextualized(abilities) => abilities.get(&context).map(|(s, a)| (*s, a)),
         }
     }
 }
@@ -330,11 +328,16 @@ impl<T> AuxiliaryAbilityKind<T> {
 #[derive(Clone, Debug, Serialize, Deserialize, Copy, Eq, PartialEq, Hash)]
 pub enum AbilityContext {
     Stance(Stance),
+    None,
 }
 
 impl AbilityContext {
-    pub fn try_from(stance: Option<&Stance>) -> Option<Self> {
-        stance.map(|stance| Self::Stance(*stance))
+    pub fn from(stance: Option<&Stance>) -> Self {
+        match stance {
+            Some(Stance::None) => AbilityContext::None,
+            Some(stance) => AbilityContext::Stance(*stance),
+            None => AbilityContext::None,
+        }
     }
 }
 
@@ -351,25 +354,29 @@ impl AbilitySet<AbilityItem> {
 impl<T> AbilitySet<T> {
     pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AbilitySet<U> {
         AbilitySet {
-            primary: f(self.primary),
-            secondary: f(self.secondary),
+            primary: self.primary.map(&mut f),
+            secondary: self.secondary.map(&mut f),
             abilities: self.abilities.into_iter().map(|x| x.map(&mut f)).collect(),
         }
     }
 
     pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AbilitySet<U> {
         AbilitySet {
-            primary: f(&self.primary),
-            secondary: f(&self.secondary),
+            primary: self.primary.map_ref(&mut f),
+            secondary: self.secondary.map_ref(&mut f),
             abilities: self.abilities.iter().map(|x| x.map_ref(&mut f)).collect(),
         }
     }
 
-    pub fn auxiliary(
-        &self,
-        index: usize,
-        context: Option<AbilityContext>,
-    ) -> Option<(Option<Skill>, &T)> {
+    pub fn primary(&self, context: AbilityContext) -> Option<(Option<Skill>, &T)> {
+        self.primary.ability(context)
+    }
+
+    pub fn secondary(&self, context: AbilityContext) -> Option<(Option<Skill>, &T)> {
+        self.secondary.ability(context)
+    }
+
+    pub fn auxiliary(&self, index: usize, context: AbilityContext) -> Option<(Option<Skill>, &T)> {
         self.abilities.get(index).and_then(|a| a.ability(context))
     }
 }
@@ -377,14 +384,14 @@ impl<T> AbilitySet<T> {
 impl Default for AbilitySet<AbilityItem> {
     fn default() -> Self {
         AbilitySet {
-            primary: AbilityItem {
+            primary: AbilityKind::Simple(None, AbilityItem {
                 id: String::new(),
                 ability: CharacterAbility::default(),
-            },
-            secondary: AbilityItem {
+            }),
+            secondary: AbilityKind::Simple(None, AbilityItem {
                 id: String::new(),
                 ability: CharacterAbility::default(),
-            },
+            }),
             abilities: Vec::new(),
         }
     }

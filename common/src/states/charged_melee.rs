@@ -61,11 +61,7 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Charge => {
-                if self
-                    .static_data
-                    .ability_info
-                    .input
-                    .map_or(false, |input| input_is_pressed(data, input))
+                if input_is_pressed(data, self.static_data.ability_info.input)
                     && update.energy.current() >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
                 {
@@ -84,11 +80,7 @@ impl CharacterBehavior for Data {
                     update
                         .energy
                         .change_by(-self.static_data.energy_drain * data.dt.0);
-                } else if self
-                    .static_data
-                    .ability_info
-                    .input
-                    .map_or(false, |input| input_is_pressed(data, input))
+                } else if input_is_pressed(data, self.static_data.ability_info.input)
                     && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Maintains charge

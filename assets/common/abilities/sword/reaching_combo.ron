@@ -35,7 +35,5 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    is_stance: true,
-    stance: Some(Sword(Reaching)),
     energy_cost_per_strike: 4,
 )

@@ -6,7 +6,7 @@ use crate::{
         character_state::AttackImmunities,
         inventory::{
             item::{
-                tool::{AbilityContext, AbilityItem, AuxiliaryAbilityKind, Stats, ToolKind},
+                tool::{AbilityContext, AbilityItem, AbilityKind, Stats, ToolKind},
                 ItemKind,
             },
             slot::EquipSlot,
@@ -143,7 +143,7 @@ impl ActiveAbilities {
         inv: Option<&Inventory>,
         skill_set: &SkillSet,
         body: Option<&Body>,
-        context: Option<AbilityContext>,
+        context: AbilityContext,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool)> {
         let ability = self.get_ability(input, inv, Some(skill_set));
@@ -175,14 +175,17 @@ impl ActiveAbilities {
 
         match ability {
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
-                .map(|abilities| abilities.primary.ability.clone())
+                .and_then(|abilities| abilities.primary(context).map(unwrap_ability))
+                .and_then(unlocked)
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
-                .map(|abilities| abilities.secondary.ability.clone())
+                .and_then(|abilities| abilities.secondary(context).map(unwrap_ability))
+                .and_then(unlocked)
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true))
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveMainhand)
-                        .map(|abilities| abilities.secondary.ability.clone())
+                        .and_then(|abilities| abilities.secondary(context).map(unwrap_ability))
+                        .and_then(unlocked)
                         .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false))
                 }),
             Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
@@ -210,10 +213,10 @@ impl ActiveAbilities {
             .flat_map(|i| &i.item_config_expect().abilities.abilities)
             .enumerate()
             .filter_map(move |(i, a)| match a {
-                AuxiliaryAbilityKind::Simple(skill, _) => skill
+                AbilityKind::Simple(skill, _) => skill
                     .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
                     .then_some(i),
-                AuxiliaryAbilityKind::Contextualized(abilities) => abilities
+                AbilityKind::Contextualized(abilities) => abilities
                     .values()
                     .any(|(skill, _)| {
                         skill.map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
@@ -257,46 +260,40 @@ pub enum Ability {
 }
 
 impl Ability {
-    pub fn ability_id(
-        self,
-        inv: Option<&Inventory>,
-        context: Option<AbilityContext>,
-    ) -> Option<&str> {
+    pub fn ability_id(self, inv: Option<&Inventory>, context: AbilityContext) -> Option<&str> {
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
                 .map(|i| &i.item_config_expect().abilities)
         };
 
-        let contextual_id = |auxiliary_kind: Option<&AuxiliaryAbilityKind<_>>, equip_slot| {
-            matches!(
-                auxiliary_kind,
-                Some(AuxiliaryAbilityKind::Contextualized(_))
-            )
-            .then_some(
-                match inv.and_then(|inv| inv.equipped(equip_slot)).and_then(|i| {
-                    if let ItemKind::Tool(tool) = &*i.kind() {
-                        Some(tool.kind)
-                    } else {
-                        None
-                    }
-                }) {
-                    Some(ToolKind::Sword) => {
-                        Some("veloren.core.pseudo_abilities.sword.stance_ability")
+        let contextual_id = |auxiliary_kind: Option<&AbilityKind<_>>, equip_slot| {
+            matches!(auxiliary_kind, Some(AbilityKind::Contextualized(_)))
+                .then_some(
+                    match inv.and_then(|inv| inv.equipped(equip_slot)).and_then(|i| {
+                        if let ItemKind::Tool(tool) = &*i.kind() {
+                            Some(tool.kind)
+                        } else {
+                            None
+                        }
+                    }) {
+                        Some(ToolKind::Sword) => {
+                            Some("veloren.core.pseudo_abilities.sword.stance_ability")
+                        },
+                        _ => None,
                     },
-                    _ => None,
-                },
-            )
-            .flatten()
+                )
+                .flatten()
         };
 
         match self {
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
-                .map(|abilities| abilities.primary.id.as_str()),
+                .and_then(|abilities| abilities.primary(context).map(|(_, a)| a.id.as_str())),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
-                .map(|abilities| abilities.secondary.id.as_str())
+                .and_then(|abilities| abilities.secondary(context).map(|(_, a)| a.id.as_str()))
                 .or_else(|| {
-                    ability_set(EquipSlot::ActiveMainhand)
-                        .map(|abilities| abilities.secondary.id.as_str())
+                    ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
+                        abilities.secondary(context).map(|(_, a)| a.id.as_str())
+                    })
                 }),
             Ability::SpeciesMovement => None, // TODO: Make not None
             Ability::MainWeaponAux(index) => {
@@ -428,9 +425,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::LeapMelee(data) => Self::LeapMelee(data.stage_section),
             CharacterState::LeapShockwave(data) => Self::LeapShockwave(data.stage_section),
             CharacterState::ComboMelee(data) => Self::ComboMelee(data.stage_section, data.stage),
-            CharacterState::ComboMelee2(data) => {
-                data.stage_section.map_or(Self::Other, Self::ComboMelee2)
-            },
+            CharacterState::ComboMelee2(data) => Self::ComboMelee2(data.stage_section),
             CharacterState::FinisherMelee(data) => Self::FinisherMelee(data.stage_section),
             CharacterState::DiveMelee(data) => Self::DiveMelee(data.stage_section),
             CharacterState::RiposteMelee(data) => Self::RiposteMelee(data.stage_section),
@@ -461,7 +456,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::UseItem(_)
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
-            | CharacterState::Wallrun(_) => Self::Other,
+            | CharacterState::Wallrun(_)
+            | CharacterState::BasicStance(_) => Self::Other,
         }
     }
 }
@@ -565,8 +561,6 @@ pub enum CharacterAbility {
     },
     ComboMelee2 {
         strikes: Vec<combo_melee2::Strike<f32>>,
-        is_stance: bool,
-        stance: Option<Stance>,
         energy_cost_per_strike: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -793,6 +787,12 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    BasicStance {
+        buildup_duration: f32,
+        stance: Stance,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -847,9 +847,11 @@ impl CharacterAbility {
             | CharacterAbility::BasicBlock { energy_cost, .. }
             | CharacterAbility::SelfBuff { energy_cost, .. }
             | CharacterAbility::RiposteMelee { energy_cost, .. }
-            | CharacterAbility::RapidMelee { energy_cost, .. } => {
-                update.energy.try_change_by(-*energy_cost).is_ok()
-            },
+            | CharacterAbility::RapidMelee { energy_cost, .. }
+            | CharacterAbility::ComboMelee2 {
+                energy_cost_per_strike: energy_cost,
+                ..
+            } => update.energy.try_change_by(-*energy_cost).is_ok(),
             // Consumes energy within state, so value only checked before entering state
             CharacterAbility::RepeaterRanged { energy_cost, .. } => {
                 update.energy.current() >= *energy_cost
@@ -868,22 +870,6 @@ impl CharacterAbility {
                 ((*scales_with_combo && data.combo.map_or(false, |c| c.counter() > 0))
                     | !*scales_with_combo)
                     && update.energy.try_change_by(-*energy_cost).is_ok()
-            },
-            CharacterAbility::ComboMelee2 {
-                is_stance,
-                energy_cost_per_strike,
-                ..
-            } => {
-                // If it is a stance, just check that enough energy is present, otherwise
-                // consume the required energy now
-                if *is_stance {
-                    update.energy.current() > *energy_cost_per_strike
-                } else {
-                    update
-                        .energy
-                        .try_change_by(-*energy_cost_per_strike)
-                        .is_ok()
-                }
             },
             CharacterAbility::FinisherMelee {
                 energy_cost,
@@ -907,7 +893,8 @@ impl CharacterAbility {
             | CharacterAbility::Blink { .. }
             | CharacterAbility::Music { .. }
             | CharacterAbility::BasicSummon { .. }
-            | CharacterAbility::SpriteSummon { .. } => true,
+            | CharacterAbility::SpriteSummon { .. }
+            | CharacterAbility::BasicStance { .. } => true,
         }
     }
 
@@ -1083,10 +1070,8 @@ impl CharacterAbility {
             },
             ComboMelee2 {
                 ref mut strikes,
-                is_stance: _,
                 ref mut energy_cost_per_strike,
                 meta: _,
-                stance: _,
             } => {
                 *energy_cost_per_strike /= stats.energy_efficiency;
                 *strikes = strikes
@@ -1463,6 +1448,13 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
+            BasicStance {
+                ref mut buildup_duration,
+                stance: _,
+                meta: _,
+            } => {
+                *buildup_duration /= stats.speed;
+            },
         }
         self
     }
@@ -1504,7 +1496,8 @@ impl CharacterAbility {
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
-            | SpriteSummon { .. } => 0.0,
+            | SpriteSummon { .. }
+            | BasicStance { .. } => 0.0,
         }
     }
 
@@ -1545,7 +1538,8 @@ impl CharacterAbility {
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
-            | SpriteSummon { .. } => 0,
+            | SpriteSummon { .. }
+            | BasicStance { .. } => 0,
         }
     }
 
@@ -1578,7 +1572,8 @@ impl CharacterAbility {
             | Music { meta, .. }
             | DiveMelee { meta, .. }
             | RiposteMelee { meta, .. }
-            | RapidMelee { meta, .. } => *meta,
+            | RapidMelee { meta, .. }
+            | BasicStance { meta, .. } => *meta,
         }
     }
 
@@ -2274,14 +2269,10 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             CharacterAbility::ComboMelee2 {
                 strikes,
                 energy_cost_per_strike,
-                is_stance,
-                stance,
                 meta: _,
             } => CharacterState::ComboMelee2(combo_melee2::Data {
                 static_data: combo_melee2::StaticData {
                     strikes: strikes.iter().map(|s| s.to_duration()).collect(),
-                    is_stance: *is_stance,
-                    stance: *stance,
                     energy_cost_per_strike: *energy_cost_per_strike,
                     ability_info,
                 },
@@ -2291,15 +2282,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 // If ability is a stance, if starting from wielding, get ready to enter stance,
                 // otherwise enter stance immediately, otherwise if not a stance immediately begin
                 // the strike
-                stage_section: if *is_stance {
-                    if matches!(data.character, CharacterState::Wielding(_)) {
-                        Some(StageSection::Ready)
-                    } else {
-                        None
-                    }
-                } else {
-                    Some(StageSection::Buildup)
-                },
+                stage_section: StageSection::Buildup,
                 completed_strikes: 0,
             }),
             CharacterAbility::LeapMelee {
@@ -2805,6 +2788,18 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 current_strike: 1,
                 stage_section: StageSection::Buildup,
                 exhausted: false,
+            }),
+            CharacterAbility::BasicStance {
+                buildup_duration,
+                stance,
+                meta: _,
+            } => CharacterState::BasicStance(basic_stance::Data {
+                static_data: basic_stance::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    stance: *stance,
+                    ability_info,
+                },
+                timer: Duration::default(),
             }),
         }
     }

@@ -2995,7 +2995,7 @@ impl Hud {
             skillsets.get(entity),
             bodies.get(entity),
         ) {
-            let context = AbilityContext::try_from(stances.get(entity));
+            let context = AbilityContext::from(stances.get(entity));
             match Skillbar::new(
                 client,
                 &info,
@@ -3466,7 +3466,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
-                let context = AbilityContext::try_from(stances.get(entity));
+                let context = AbilityContext::from(stances.get(entity));
                 for event in Diary::new(
                     &self.show,
                     client,

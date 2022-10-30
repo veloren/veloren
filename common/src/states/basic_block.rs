@@ -74,11 +74,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Action => {
                 if self.static_data.can_hold
-                    && self
-                        .static_data
-                        .ability_info
-                        .input
-                        .map_or(false, |input| input_is_pressed(data, input))
+                    && input_is_pressed(data, self.static_data.ability_info.input)
                 {
                     // Block
                     update.character = CharacterState::BasicBlock(Data {

@@ -968,7 +968,7 @@ impl Knockback {
         let from_char = {
             let resistant = char_state
                 .and_then(|cs| cs.ability_info())
-                .and_then(|a| a.ability_meta)
+                .map(|a| a.ability_meta)
                 .map_or(false, |a| {
                     a.capabilities.contains(Capability::KNOCKBACK_RESISTANT)
                 });
