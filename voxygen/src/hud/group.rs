@@ -359,9 +359,7 @@ impl<'a> Widget for Group<'a> {
             let uid_allocator = client_state.ecs().read_resource::<UidAllocator>();
             let bodies = client_state.ecs().read_storage::<common::comp::Body>();
             let poises = client_state.ecs().read_storage::<common::comp::Poise>();
-            let char_states = client_state
-                .ecs()
-                .read_storage::<common::comp::CharacterState>();
+            let stances = client_state.ecs().read_storage::<common::comp::Stance>();
 
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;
@@ -377,7 +375,7 @@ impl<'a> Widget for Group<'a> {
                 let is_leader = uid == leader;
                 let body = entity.and_then(|entity| bodies.get(entity));
                 let poise = entity.and_then(|entity| poises.get(entity));
-                let char_state = entity.and_then(|entity| char_states.get(entity));
+                let stance = entity.and_then(|entity| stances.get(entity));
 
                 if let (
                     Some(stats),
@@ -387,10 +385,8 @@ impl<'a> Widget for Group<'a> {
                     Some(energy),
                     Some(body),
                     Some(poise),
-                    Some(char_state),
-                ) = (
-                    stats, skill_set, inventory, health, energy, body, poise, char_state,
-                ) {
+                ) = (stats, skill_set, inventory, health, energy, body, poise)
+                {
                     let combat_rating = combat::combat_rating(
                         inventory, health, energy, poise, skill_set, *body, self.msm,
                     );
@@ -509,7 +505,7 @@ impl<'a> Widget for Group<'a> {
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
                         .set(state.ids.member_energy[i], ui);
                     if let Some(buffs) = buffs {
-                        let buff_icons = BuffIcon::icons_vec(buffs, char_state);
+                        let buff_icons = BuffIcon::icons_vec(buffs, stance);
                         // Limit displayed buffs to 11
                         let buff_count = buff_icons.len().min(11);
                         total_buff_count += buff_count;

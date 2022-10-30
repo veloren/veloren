@@ -51,7 +51,7 @@ pub mod visual;
 #[cfg(not(target_arch = "wasm32"))]
 pub use self::{
     ability::{
-        Ability, AbilityInput, ActiveAbilities, CharacterAbility, CharacterAbilityType,
+        Ability, AbilityInput, ActiveAbilities, CharacterAbility, CharacterAbilityType, Stance,
         MAX_ABILITIES,
     },
     admin::{Admin, AdminRole},

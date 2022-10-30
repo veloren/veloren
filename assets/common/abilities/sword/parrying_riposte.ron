@@ -13,7 +13,4 @@ RiposteMelee(
         range: 4.0,
         angle: 20.0,
     ),
-    meta: (
-        kind: Some(Sword(Parrying)),
-    )
 )

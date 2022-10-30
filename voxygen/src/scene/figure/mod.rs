@@ -34,7 +34,7 @@ use common::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
         Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
-        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
+        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Stance, Vel,
     },
     link::Is,
     mounting::Rider,
@@ -747,7 +747,7 @@ impl FigureMgr {
                 item,
                 light_emitter,
                 is_rider,
-                collider,
+                (collider, stance),
             ),
         ) in (
             &ecs.entities(),
@@ -765,7 +765,10 @@ impl FigureMgr {
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
             ecs.read_storage::<Is<Rider>>().maybe(),
-            ecs.read_storage::<Collider>().maybe(),
+            (
+                ecs.read_storage::<Collider>().maybe(),
+                ecs.read_storage::<Stance>().maybe(),
+            ),
         )
             .join()
             .enumerate()
@@ -917,7 +920,7 @@ impl FigureMgr {
             let second_tool_spec = second_tool_spec.as_deref();
             let hands = (active_tool_hand, second_tool_hand);
 
-            let context = AbilityContext::try_from(character);
+            let context = AbilityContext::try_from(stance);
 
             let ability_id = character.and_then(|c| {
                 c.ability_info()

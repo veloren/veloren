@@ -238,6 +238,10 @@ pub enum ServerEvent {
         requesting_player_uuid: String,
         character_id: CharacterId,
     },
+    ChangeStance {
+        entity: EcsEntity,
+        stance: comp::Stance,
+    },
 }
 
 pub struct EventBus<E> {

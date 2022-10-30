@@ -58,8 +58,6 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
+    stance: Some(Sword(Offensive)),
     energy_cost_per_strike: 3,
-    meta: (
-        kind: Some(Sword(Offensive)),
-    ),
 )

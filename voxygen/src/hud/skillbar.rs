@@ -30,8 +30,7 @@ use common::comp::{
         ItemDesc, MaterialStatManifest,
     },
     skillset::SkillGroupKind,
-    Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
-    PoiseState, SkillSet,
+    Ability, ActiveAbilities, Body, Combo, Energy, Health, Inventory, Poise, PoiseState, SkillSet,
 };
 use conrod_core::{
     color,
@@ -313,7 +312,6 @@ pub struct Skillbar<'a> {
     combo_floater: Option<ComboFloater>,
     context: Option<AbilityContext>,
     combo: Option<&'a Combo>,
-    char_state: Option<&'a CharacterState>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -345,7 +343,6 @@ impl<'a> Skillbar<'a> {
         combo_floater: Option<ComboFloater>,
         context: Option<AbilityContext>,
         combo: Option<&'a Combo>,
-        char_state: Option<&'a CharacterState>,
     ) -> Self {
         Self {
             client,
@@ -375,7 +372,6 @@ impl<'a> Skillbar<'a> {
             combo_floater,
             context,
             combo,
-            char_state,
         }
     }
 
@@ -1087,18 +1083,6 @@ impl<'a> Skillbar<'a> {
         let primary_ability_id = self
             .active_abilities
             .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory), self.context));
-
-        let primary_ability_id = if let Some(override_id) = self
-            .char_state
-            .and_then(|cs| cs.ability_info())
-            .and_then(|info| info.ability_meta)
-            .and_then(|meta| meta.kind)
-            .map(util::representative_ability_id)
-        {
-            Some(override_id)
-        } else {
-            primary_ability_id
-        };
 
         let (primary_ability_title, primary_ability_desc) =
             util::ability_description(primary_ability_id.unwrap_or(""), self.localized_strings);

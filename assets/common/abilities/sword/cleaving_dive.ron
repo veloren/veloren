@@ -21,7 +21,4 @@ DiveMelee(
         angle: 15.0,
         multi_target: Some(Normal),
     ),
-    meta: (
-        kind: Some(Sword(Cleaving)),
-    ),
 )

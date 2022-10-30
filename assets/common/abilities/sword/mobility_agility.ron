@@ -6,7 +6,4 @@ SelfBuff(
     buff_strength: 0.2,
     buff_duration: Some(20.0),
     energy_cost: 40,
-    meta: (
-        kind: Some(Sword(Mobility)),
-    ),
 )

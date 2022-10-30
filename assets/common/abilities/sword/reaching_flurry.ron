@@ -14,7 +14,4 @@ RapidMelee(
     ),
     energy_cost: 8,
     max_strikes: 6,
-    meta: (
-        kind: Some(Sword(Reaching)),
-    ),
 )

@@ -3,8 +3,10 @@ use crate::{
         character_state::OutputEvents,
         slot::{EquipSlot, Slot},
         tool::Stats,
-        CharacterState, InputAttr, InputKind, InventoryAction, MeleeConstructor, StateUpdate,
+        CharacterState, InputAttr, InputKind, InventoryAction, MeleeConstructor, Stance,
+        StateUpdate,
     },
+    event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         idle,
@@ -83,6 +85,9 @@ pub struct StaticData {
     /// Whether or not combo melee should function as a stance (where it remains
     /// in the character state after a strike has finished)
     pub is_stance: bool,
+    /// If a stance is added, character state will attempt to enter that stance
+    /// if not already in it
+    pub stance: Option<Stance>,
     /// The amount of energy consumed with each swing
     pub energy_cost_per_strike: f32,
     /// What key is used to press ability
@@ -115,6 +120,15 @@ pub const STANCE_LEAVE_TIME: Duration = Duration::from_secs(30);
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        if let Some(stance) = self.static_data.stance {
+            if data.stance != Some(&stance) {
+                output_events.emit_server(ServerEvent::ChangeStance {
+                    entity: data.entity,
+                    stance,
+                });
+            }
+        }
 
         // If is a stance, use M1 to control strikes, otherwise use the input that
         // activated the ability

@@ -5,7 +5,8 @@ use crate::{
         item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterState, Combo, ControlAction, Controller,
         ControllerInputs, Density, Energy, Health, InputAttr, InputKind, Inventory,
-        InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, SkillSet, StateUpdate, Stats, Vel,
+        InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, SkillSet, Stance, StateUpdate, Stats,
+        Vel,
     },
     link::Is,
     mounting::Rider,
@@ -144,6 +145,7 @@ pub struct JoinData<'a> {
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
     pub mount_data: Option<&'a Is<Rider>>,
+    pub stance: Option<&'a Stance>,
 }
 
 pub struct JoinStruct<'a> {
@@ -170,6 +172,7 @@ pub struct JoinStruct<'a> {
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
     pub mount_data: Option<&'a Is<Rider>>,
+    pub stance: Option<&'a Stance>,
 }
 
 impl<'a> JoinData<'a> {
@@ -210,6 +213,7 @@ impl<'a> JoinData<'a> {
             terrain: j.terrain,
             active_abilities: j.active_abilities,
             mount_data: j.mount_data,
+            stance: j.stance,
         }
     }
 }

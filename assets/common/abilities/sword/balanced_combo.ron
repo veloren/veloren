@@ -37,7 +37,4 @@ ComboMelee2(
     ],
     is_stance: true,
     energy_cost_per_strike: 0,
-    meta: (
-        kind: Some(Sword(Balanced)),
-    ),
 )

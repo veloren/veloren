@@ -24,7 +24,4 @@ FinisherMelee(
         kind: Sqrt,
     )),
     minimum_combo: 10,
-    meta: (
-        kind: Some(Sword(Crippling)),
-    ),
 )

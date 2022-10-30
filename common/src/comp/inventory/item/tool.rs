@@ -3,11 +3,7 @@
 
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
-    comp::{
-        ability::{AbilityKind, SwordStance},
-        skills::Skill,
-        CharacterAbility, CharacterState,
-    },
+    comp::{ability::Stance, skills::Skill, CharacterAbility},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -333,20 +329,12 @@ impl<T> AuxiliaryAbilityKind<T> {
 
 #[derive(Clone, Debug, Serialize, Deserialize, Copy, Eq, PartialEq, Hash)]
 pub enum AbilityContext {
-    Sword(SwordStance),
+    Stance(Stance),
 }
 
 impl AbilityContext {
-    pub fn try_from(char_state: Option<&CharacterState>) -> Option<Self> {
-        if let Some(AbilityKind::Sword(stance)) = char_state
-            .and_then(|cs| cs.ability_info())
-            .and_then(|info| info.ability_meta)
-            .and_then(|meta| meta.kind)
-        {
-            Some(Self::Sword(stance))
-        } else {
-            None
-        }
+    pub fn try_from(stance: Option<&Stance>) -> Option<Self> {
+        stance.map(|stance| Self::Stance(*stance))
     }
 }
 

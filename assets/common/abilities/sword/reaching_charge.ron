@@ -24,7 +24,4 @@ DashMelee(
     recover_duration: 0.5,
     ori_modifier: 0.1,
     charge_through: false,
-    meta: (
-        kind: Some(Sword(Reaching)),
-    ),
 )

@@ -1,12 +1,12 @@
 use crate::{consts::MAX_PATH_DIST, data::*, util::entities_have_line_of_sight};
 use common::{
     comp::{
-        ability::{self, Ability, AbilityKind, ActiveAbilities, AuxiliaryAbility, Capability},
+        ability::{self, Ability, ActiveAbilities, AuxiliaryAbility, Capability},
         buff::BuffKind,
         item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
-        Controller, InputKind,
+        Controller, InputKind, Stance,
     },
     path::TraversalConfig,
     states::{self_buff, sprite_summon, utils::StageSection},
@@ -476,15 +476,15 @@ impl<'a> AgentData<'a> {
         const INT_COUNTER_STANCE: usize = 0;
         use ability::SwordStance;
         let stance = |stance| match stance {
-            1 => SwordStance::Offensive,
-            2 => SwordStance::Defensive,
-            3 => SwordStance::Mobility,
-            4 => SwordStance::Crippling,
-            5 => SwordStance::Cleaving,
-            6 => SwordStance::Parrying,
-            7 => SwordStance::Heavy,
-            8 => SwordStance::Reaching,
-            _ => SwordStance::Balanced,
+            1 => Stance::Sword(SwordStance::Offensive),
+            2 => Stance::Sword(SwordStance::Defensive),
+            3 => Stance::Sword(SwordStance::Mobility),
+            4 => Stance::Sword(SwordStance::Crippling),
+            5 => Stance::Sword(SwordStance::Cleaving),
+            6 => Stance::Sword(SwordStance::Parrying),
+            7 => Stance::Sword(SwordStance::Heavy),
+            8 => Stance::Sword(SwordStance::Reaching),
+            _ => Stance::None,
         };
         if !agent.action_state.initialized {
             // TODO: Don't always assume that if they have skill checked for, they have
@@ -519,11 +519,11 @@ impl<'a> AgentData<'a> {
                 })
             };
             match stance(agent.action_state.int_counters[INT_COUNTER_STANCE]) {
-                SwordStance::Balanced => {
+                Stance::None => {
                     // Balanced finisher
                     set_sword_ability(0, 8);
                 },
-                SwordStance::Offensive => {
+                Stance::Sword(SwordStance::Offensive) => {
                     // Offensive combo
                     set_sword_ability(0, 0);
                     // Offensive advance
@@ -531,7 +531,7 @@ impl<'a> AgentData<'a> {
                     // Offensive finisher
                     set_sword_ability(2, 8);
                 },
-                SwordStance::Defensive => {
+                Stance::Sword(SwordStance::Defensive) => {
                     // Defensive combo
                     set_sword_ability(0, 3);
                     // Defensive retreat
@@ -539,7 +539,7 @@ impl<'a> AgentData<'a> {
                     // Defensive bulwark
                     set_sword_ability(2, 10);
                 },
-                SwordStance::Mobility => {
+                Stance::Sword(SwordStance::Mobility) => {
                     // Mobility combo
                     set_sword_ability(0, 6);
                     // Mobility feint
@@ -547,7 +547,7 @@ impl<'a> AgentData<'a> {
                     // Mobility agility
                     set_sword_ability(2, 10);
                 },
-                SwordStance::Crippling => {
+                Stance::Sword(SwordStance::Crippling) => {
                     // Crippling combo
                     set_sword_ability(0, 1);
                     // Crippling finisher
@@ -557,7 +557,7 @@ impl<'a> AgentData<'a> {
                     // Crippling gouge
                     set_sword_ability(3, 10);
                 },
-                SwordStance::Cleaving => {
+                Stance::Sword(SwordStance::Cleaving) => {
                     // Cleaving combo
                     set_sword_ability(0, 2);
                     // Cleaving finisher
@@ -567,7 +567,7 @@ impl<'a> AgentData<'a> {
                     // Cleaving dive
                     set_sword_ability(3, 9);
                 },
-                SwordStance::Parrying => {
+                Stance::Sword(SwordStance::Parrying) => {
                     // Parrying combo
                     set_sword_ability(0, 4);
                     // Parrying parry
@@ -577,7 +577,7 @@ impl<'a> AgentData<'a> {
                     // Parrying counter
                     set_sword_ability(3, 8);
                 },
-                SwordStance::Heavy => {
+                Stance::Sword(SwordStance::Heavy) => {
                     // Heavy combo
                     set_sword_ability(0, 5);
                     // Heavy finisher
@@ -587,7 +587,7 @@ impl<'a> AgentData<'a> {
                     // Heavy fortitude
                     set_sword_ability(3, 9);
                 },
-                SwordStance::Reaching => {
+                Stance::Sword(SwordStance::Reaching) => {
                     // Reaching combo
                     set_sword_ability(0, 7);
                     // Reaching charge
@@ -680,20 +680,15 @@ impl<'a> AgentData<'a> {
         };
 
         let in_stance = |stance| {
-            if let CharacterState::ComboMelee2(c) = self.char_state {
-                c.static_data.is_stance
-                    && c.static_data
-                        .ability_info
-                        .ability_meta
-                        .and_then(|meta| meta.kind)
-                        .map_or(false, |kind| AbilityKind::Sword(stance) == kind)
+            if let Some(Stance::Sword(sword_stance)) = self.stance {
+                stance == *sword_stance
             } else {
                 false
             }
         };
 
         match stance(agent.action_state.int_counters[INT_COUNTER_STANCE]) {
-            SwordStance::Balanced => {
+            Stance::None => {
                 const BALANCED_FINISHER: FinisherMeleeData = FinisherMeleeData {
                     range: 2.5,
                     angle: 12.5,
@@ -717,7 +712,7 @@ impl<'a> AgentData<'a> {
                     fallback_tactics(agent, controller);
                 }
             },
-            SwordStance::Offensive => {
+            Stance::Sword(SwordStance::Offensive) => {
                 const OFFENSIVE_COMBO: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 2.0,
@@ -786,7 +781,7 @@ impl<'a> AgentData<'a> {
                     }
                 }
             },
-            SwordStance::Defensive => {
+            Stance::Sword(SwordStance::Defensive) => {
                 const DEFENSIVE_COMBO: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 2.5,
@@ -898,7 +893,7 @@ impl<'a> AgentData<'a> {
                     );
                 }
             },
-            SwordStance::Mobility => {
+            Stance::Sword(SwordStance::Mobility) => {
                 const MOBILITY_COMBO: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 2.5,
@@ -998,7 +993,7 @@ impl<'a> AgentData<'a> {
                 };
                 controller.inputs.move_dir.rotated_z(PI / 4.0 * dir);
             },
-            SwordStance::Crippling => {
+            Stance::Sword(SwordStance::Crippling) => {
                 const CRIPPLING_COMBO: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 2.5,
@@ -1076,7 +1071,7 @@ impl<'a> AgentData<'a> {
                     );
                 }
             },
-            SwordStance::Cleaving => {
+            Stance::Sword(SwordStance::Cleaving) => {
                 // TODO: Rewrite cleaving stance tactics when agents can consider multiple
                 // targets at once. Remove hack to make cleaving AI appear less frequently above
                 // when doing so.
@@ -1188,7 +1183,7 @@ impl<'a> AgentData<'a> {
                     );
                 }
             },
-            SwordStance::Parrying => {
+            Stance::Sword(SwordStance::Parrying) => {
                 const PARRYING_COMBO: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 2.5,
@@ -1294,7 +1289,7 @@ impl<'a> AgentData<'a> {
                     );
                 }
             },
-            SwordStance::Heavy => {
+            Stance::Sword(SwordStance::Heavy) => {
                 const HEAVY_COMBO: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 2.5,
@@ -1371,7 +1366,7 @@ impl<'a> AgentData<'a> {
                     advance(agent, controller, HEAVY_COMBO.max_range, HEAVY_COMBO.angle);
                 }
             },
-            SwordStance::Reaching => {
+            Stance::Sword(SwordStance::Reaching) => {
                 const REACHING_COMBO: ComboMeleeData = ComboMeleeData {
                     min_range: 0.0,
                     max_range: 4.5,
@@ -1622,7 +1617,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             ConditionStaffCanShockwave = 0,
         }
-        let context = AbilityContext::try_from(Some(self.char_state));
+        let context = AbilityContext::try_from(self.stance);
         let extract_ability = |input: AbilityInput| {
             self.active_abilities
                 .activate_ability(

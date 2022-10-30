@@ -1034,7 +1034,7 @@ pub fn handle_jump(
 }
 
 fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) -> bool {
-    let context = AbilityContext::try_from(Some(data.character));
+    let context = AbilityContext::try_from(data.stance);
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
             .active_abilities
@@ -1279,7 +1279,8 @@ pub fn get_buff_strength(data: &JoinData<'_>, ai: AbilityInfo) -> f32 {
 }
 
 pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {
-    data.controller.queued_inputs.contains_key(&input) || data.controller.held_inputs.contains_key(&input)
+    data.controller.queued_inputs.contains_key(&input)
+        || data.controller.held_inputs.contains_key(&input)
 }
 
 /// Checked `Duration` addition. Computes `timer` + `dt`, applying relevant stat

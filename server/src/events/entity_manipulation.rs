@@ -1480,3 +1480,14 @@ pub fn handle_make_admin(server: &mut Server, entity: EcsEntity, admin: comp::Ad
             .write_component_ignore_entity_dead(entity, admin);
     }
 }
+
+pub fn handle_stance_change(server: &mut Server, entity: EcsEntity, new_stance: comp::Stance) {
+    if let Some(mut stance) = server
+        .state
+        .ecs_mut()
+        .write_storage::<comp::Stance>()
+        .get_mut(entity)
+    {
+        *stance = new_stance;
+    }
+}

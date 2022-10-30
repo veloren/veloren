@@ -566,6 +566,7 @@ pub enum CharacterAbility {
     ComboMelee2 {
         strikes: Vec<combo_melee2::Strike<f32>>,
         is_stance: bool,
+        stance: Option<Stance>,
         energy_cost_per_strike: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1085,6 +1086,7 @@ impl CharacterAbility {
                 is_stance: _,
                 ref mut energy_cost_per_strike,
                 meta: _,
+                stance: _,
             } => {
                 *energy_cost_per_strike /= stats.energy_efficiency;
                 *strikes = strikes
@@ -2273,11 +2275,13 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 strikes,
                 energy_cost_per_strike,
                 is_stance,
+                stance,
                 meta: _,
             } => CharacterState::ComboMelee2(combo_melee2::Data {
                 static_data: combo_melee2::StaticData {
                     strikes: strikes.iter().map(|s| s.to_duration()).collect(),
                     is_stance: *is_stance,
+                    stance: *stance,
                     energy_cost_per_strike: *energy_cost_per_strike,
                     ability_info,
                 },
@@ -2809,21 +2813,12 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct AbilityMeta {
-    pub kind: Option<AbilityKind>,
     #[serde(default)]
     pub capabilities: Capability,
 }
 
-// Only extend this if it is needed to control certain functionality of
-// abilities
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum AbilityKind {
-    Sword(SwordStance),
-}
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum SwordStance {
-    Balanced,
     Offensive,
     Crippling,
     Cleaving,
@@ -2848,4 +2843,18 @@ bitflags::bitflags! {
         // WHen in the ability, an entity only receives half as much knockback
         const KNOCKBACK_RESISTANT = 0b00010000;
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
+pub enum Stance {
+    None,
+    Sword(SwordStance),
+}
+
+impl Default for Stance {
+    fn default() -> Self { Self::None }
+}
+
+impl Component for Stance {
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }

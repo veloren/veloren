@@ -6,7 +6,4 @@ SelfBuff(
     buff_strength: 0.5,
     buff_duration: Some(30.0),
     energy_cost: 40,
-    meta: (
-        kind: Some(Sword(Heavy)),
-    ),
 )

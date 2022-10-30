@@ -70,9 +70,9 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
+    stance: Some(Sword(Mobility)),
     energy_cost_per_strike: 2,
     meta: (
-        kind: Some(Sword(Mobility)),
         capabilities: (
             // Rolling can interrupt attack
             bits: 0b00000001,

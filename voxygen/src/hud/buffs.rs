@@ -10,7 +10,7 @@ use crate::{
 use i18n::Localization;
 
 use common::{
-    comp::{BuffKind, Buffs, CharacterState, Energy, Health},
+    comp::{BuffKind, Buffs, Energy, Health, Stance},
     resources::Time,
 };
 use conrod_core::{
@@ -47,7 +47,7 @@ pub struct BuffsBar<'a> {
     tooltip_manager: &'a mut TooltipManager,
     localized_strings: &'a Localization,
     buffs: &'a Buffs,
-    char_state: &'a CharacterState,
+    stance: Option<&'a Stance>,
     pulse: f32,
     global_state: &'a GlobalState,
     health: &'a Health,
@@ -63,7 +63,7 @@ impl<'a> BuffsBar<'a> {
         tooltip_manager: &'a mut TooltipManager,
         localized_strings: &'a Localization,
         buffs: &'a Buffs,
-        char_state: &'a CharacterState,
+        stance: Option<&'a Stance>,
         pulse: f32,
         global_state: &'a GlobalState,
         health: &'a Health,
@@ -78,7 +78,7 @@ impl<'a> BuffsBar<'a> {
             tooltip_manager,
             localized_strings,
             buffs,
-            char_state,
+            stance,
             pulse,
             global_state,
             health,
@@ -138,7 +138,7 @@ impl<'a> Widget for BuffsBar<'a> {
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
-        let buff_icons = BuffIcon::icons_vec(self.buffs, self.char_state);
+        let buff_icons = BuffIcon::icons_vec(self.buffs, self.stance);
         if let BuffPosition::Bar = buff_position {
             let decayed_health = 1.0 - self.health.maximum() / self.health.base_max();
             let show_health = self.global_state.settings.interface.always_show_bars

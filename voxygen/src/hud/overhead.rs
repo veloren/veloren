@@ -10,7 +10,7 @@ use crate::{
     ui::{fonts::Fonts, Ingameable},
 };
 use common::{
-    comp::{Buffs, CharacterState, Energy, Health, SpeechBubble, SpeechBubbleType},
+    comp::{Buffs, Energy, Health, SpeechBubble, SpeechBubbleType, Stance},
     resources::Time,
 };
 use conrod_core::{
@@ -72,7 +72,7 @@ pub struct Info<'a> {
     pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
     pub combat_rating: f32,
-    pub char_state: &'a CharacterState,
+    pub stance: Option<&'a Stance>,
 }
 
 /// Determines whether to show the healthbar
@@ -168,9 +168,7 @@ impl<'a> Ingameable for Overhead<'a> {
         self.info.map_or(0, |info| {
             2 + 1
                 + if self.bubble.is_none() {
-                    2 * BuffIcon::icons_vec(info.buffs, info.char_state)
-                        .len()
-                        .min(11)
+                    2 * BuffIcon::icons_vec(info.buffs, info.stance).len().min(11)
                 } else {
                     0
                 }
@@ -209,7 +207,7 @@ impl<'a> Widget for Overhead<'a> {
             buffs,
             energy,
             combat_rating,
-            char_state,
+            stance,
         }) = self.info
         {
             // Used to set healthbar colours based on hp_percentage
@@ -239,7 +237,7 @@ impl<'a> Widget for Overhead<'a> {
             };
             // Buffs
             // Alignment
-            let buff_icons = BuffIcon::icons_vec(buffs, char_state);
+            let buff_icons = BuffIcon::icons_vec(buffs, stance);
             let buff_count = buff_icons.len().min(11);
             Rectangle::fill_with([168.0, 100.0], color::TRANSPARENT)
                 .x_y(-1.0, name_y + 60.0)

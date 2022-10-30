@@ -4,7 +4,8 @@ use common::{
         group,
         item::MaterialStatManifest,
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
-        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Scale, SkillSet, Stats, Vel,
+        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Scale, SkillSet, Stance, Stats,
+        Vel,
     },
     link::Is,
     mounting::Mount,
@@ -47,6 +48,7 @@ pub struct AgentData<'a> {
     pub buffs: Option<&'a Buffs>,
     pub stats: Option<&'a Stats>,
     pub poise: Option<&'a Poise>,
+    pub stance: Option<&'a Stance>,
     pub cached_spatial_grid: &'a common::CachedSpatialGrid,
     pub msm: &'a MaterialStatManifest,
 }
@@ -182,6 +184,7 @@ pub struct ReadData<'a> {
     pub loot_owners: ReadStorage<'a, LootOwner>,
     pub msm: ReadExpect<'a, MaterialStatManifest>,
     pub poises: ReadStorage<'a, Poise>,
+    pub stances: ReadStorage<'a, Stance>,
 }
 
 pub enum Path {

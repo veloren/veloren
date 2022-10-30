@@ -580,29 +580,34 @@ impl<'a> BuffIcon<'a> {
         }
     }
 
-    pub fn icons_vec(buffs: &comp::Buffs, char_state: &comp::CharacterState) -> Vec<Self> {
+    pub fn icons_vec(buffs: &comp::Buffs, stance: Option<&comp::Stance>) -> Vec<Self> {
         buffs
             .iter_active()
             .filter_map(BuffIcon::from_buffs)
-            .chain(BuffIcon::from_char_state(char_state).into_iter())
+            .chain(stance.and_then(BuffIcon::from_stance).into_iter())
             .collect::<Vec<_>>()
     }
 
-    fn from_char_state(char_state: &comp::CharacterState) -> Option<Self> {
-        if let Some(ability_kind) = char_state
-            .ability_info()
-            .and_then(|info| info.ability_meta)
-            .and_then(|meta| meta.kind)
-        {
-            let id = util::representative_ability_id(ability_kind);
-            Some(BuffIcon {
-                kind: BuffIconKind::Ability { ability_id: id },
-                is_buff: true,
-                end_time: None,
-            })
-        } else {
-            None
-        }
+    fn from_stance(stance: &comp::Stance) -> Option<Self> {
+        use comp::ability::{Stance, SwordStance};
+        let id = match stance {
+            Stance::Sword(SwordStance::Offensive) => "common.abilities.sword.offensive_combo",
+            Stance::Sword(SwordStance::Crippling) => "common.abilities.sword.crippling_combo",
+            Stance::Sword(SwordStance::Cleaving) => "common.abilities.sword.cleaving_combo",
+            Stance::Sword(SwordStance::Defensive) => "common.abilities.sword.defensive_combo",
+            Stance::Sword(SwordStance::Parrying) => "common.abilities.sword.parrying_combo",
+            Stance::Sword(SwordStance::Heavy) => "common.abilities.sword.heavy_combo",
+            Stance::Sword(SwordStance::Mobility) => "common.abilities.sword.mobility_combo",
+            Stance::Sword(SwordStance::Reaching) => "common.abilities.sword.reaching_combo",
+            Stance::None => {
+                return None;
+            },
+        };
+        Some(BuffIcon {
+            kind: BuffIconKind::Ability { ability_id: id },
+            is_buff: true,
+            end_time: None,
+        })
     }
 
     fn from_buffs<'b, I: Iterator<Item = &'b comp::Buff>>(buffs: I) -> Option<Self> {
@@ -1489,7 +1494,7 @@ impl Hud {
             let poises = ecs.read_storage::<comp::Poise>();
             let alignments = ecs.read_storage::<comp::Alignment>();
             let is_mount = ecs.read_storage::<Is<Mount>>();
-            let char_states = ecs.read_storage::<comp::CharacterState>();
+            let stances = ecs.read_storage::<comp::Stance>();
             let time = ecs.read_resource::<Time>();
 
             // Check if there was a persistence load error of the skillset, and if so
@@ -2230,7 +2235,7 @@ impl Hud {
                 &uids,
                 &inventories,
                 poises.maybe(),
-                (alignments.maybe(), is_mount.maybe(), &char_states),
+                (alignments.maybe(), is_mount.maybe(), stances.maybe()),
             )
                 .join()
                 .filter(|t| {
@@ -2253,7 +2258,7 @@ impl Hud {
                         uid,
                         inventory,
                         poise,
-                        (alignment, is_mount, char_state),
+                        (alignment, is_mount, stance),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2304,7 +2309,7 @@ impl Hud {
                             } else {
                                 0.0
                             },
-                            char_state,
+                            stance,
                         });
                         // Only render bubble if nearby or if its me and setting is on
                         let bubble = if (dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) && !is_me)
@@ -2849,7 +2854,6 @@ impl Hud {
         let stats = ecs.read_storage::<comp::Stats>();
         let skill_sets = ecs.read_storage::<comp::SkillSet>();
         let buffs = ecs.read_storage::<comp::Buffs>();
-        let char_states = ecs.read_storage::<comp::CharacterState>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
         let time = ecs.read_resource::<Time>();
 
@@ -2968,6 +2972,7 @@ impl Hud {
         let poises = ecs.read_storage::<comp::Poise>();
         let combos = ecs.read_storage::<comp::Combo>();
         let time = ecs.read_resource::<Time>();
+        let stances = ecs.read_storage::<comp::Stance>();
         // Combo floater stuffs
         self.floaters.combo_floater = self.floaters.combo_floater.map(|mut f| {
             f.timer -= dt.as_secs_f64();
@@ -2990,7 +2995,7 @@ impl Hud {
             skillsets.get(entity),
             bodies.get(entity),
         ) {
-            let context = AbilityContext::try_from(char_states.get(entity));
+            let context = AbilityContext::try_from(stances.get(entity));
             match Skillbar::new(
                 client,
                 &info,
@@ -3018,7 +3023,6 @@ impl Hud {
                 self.floaters.combo_floater,
                 context,
                 combos.get(entity),
-                char_states.get(entity),
             )
             .set(self.ids.skillbar, ui_widgets)
             {
@@ -3138,11 +3142,10 @@ impl Hud {
         }
 
         // Buffs
-        if let (Some(player_buffs), Some(health), Some(energy), Some(char_state)) = (
+        if let (Some(player_buffs), Some(health), Some(energy)) = (
             buffs.get(info.viewpoint_entity),
             healths.get(entity),
             energies.get(entity),
-            char_states.get(entity),
         ) {
             for event in BuffsBar::new(
                 &self.imgs,
@@ -3151,7 +3154,7 @@ impl Hud {
                 tooltip_manager,
                 i18n,
                 player_buffs,
-                char_state,
+                stances.get(entity),
                 self.pulse,
                 global_state,
                 health,
@@ -3463,7 +3466,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
-                let context = AbilityContext::try_from(char_states.get(entity));
+                let context = AbilityContext::try_from(stances.get(entity));
                 for event in Diary::new(
                     &self.show,
                     client,

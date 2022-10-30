@@ -9,7 +9,7 @@ use common::{
         character_state::OutputEvents,
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterState, Combo, Controller, Density, Energy, Health,
-        Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos, SkillSet,
+        Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos, SkillSet, Stance,
         StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -51,6 +51,7 @@ pub struct ReadData<'a> {
     alignments: ReadStorage<'a, comp::Alignment>,
     terrain: ReadExpect<'a, TerrainGrid>,
     inventories: ReadStorage<'a, Inventory>,
+    stances: ReadStorage<'a, Stance>,
 }
 
 /// ## Character Behavior System
@@ -200,6 +201,7 @@ impl<'a> System<'a> for Sys {
                 alignment: read_data.alignments.get(entity),
                 terrain: &read_data.terrain,
                 mount_data: read_data.is_riders.get(entity),
+                stance: read_data.stances.get(entity),
             };
 
             for action in actions {

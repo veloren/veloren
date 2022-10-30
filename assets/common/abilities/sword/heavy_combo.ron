@@ -36,9 +36,9 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
+    stance: Some(Sword(Heavy)),
     energy_cost_per_strike: 4,
     meta: (
-        kind: Some(Sword(Heavy)),
         capabilities: (
             // Poise and knockback resistant during attack
             bits: 0b00011000,

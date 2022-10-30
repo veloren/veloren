@@ -15,7 +15,4 @@ FinisherMelee(
         multi_target: Some(Scaling(0.5)),
     ),
     minimum_combo: 10,
-    meta: (
-        kind: Some(Sword(Cleaving)),
-    ),
 )

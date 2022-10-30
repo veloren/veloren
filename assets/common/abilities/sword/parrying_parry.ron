@@ -9,7 +9,4 @@ BasicBlock(
     ),
     energy_cost: 15,
     can_hold: false,
-    meta: (
-        kind: Some(Sword(Parrying)),
-    ),
 )

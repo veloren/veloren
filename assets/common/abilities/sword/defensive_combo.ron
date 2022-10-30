@@ -36,9 +36,9 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
+    stance: Some(Sword(Defensive)),
     energy_cost_per_strike: 2,
     meta: (
-        kind: Some(Sword(Defensive)),
         capabilities: (
             // Blocking can interrupt attack
             bits: 0b00000010,

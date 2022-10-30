@@ -36,9 +36,9 @@ ComboMelee2(
         ),
     ],
     is_stance: true,
+    stance: Some(Sword(Parrying)),
     energy_cost_per_strike: 5,
     meta: (
-        kind: Some(Sword(Parrying)),
         capabilities: (
             // Buildup auto parries melee attacks
             bits: 0b00000100,
