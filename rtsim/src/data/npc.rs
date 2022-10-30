@@ -10,12 +10,16 @@ use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::{
-    any::Any,
+    any::{Any, TypeId},
     collections::VecDeque,
-    ops::{ControlFlow, Deref, DerefMut},
+    ops::{ControlFlow, Deref, DerefMut, Generator, GeneratorState},
+    sync::{Arc, atomic::{AtomicPtr, Ordering}},
+    pin::Pin,
+    marker::PhantomData,
 };
 use vek::*;
 use world::{civ::Track, site::Site as WorldSite, util::RandomPerm};
+use crate::rule::npc_ai;
 
 #[derive(Copy, Clone, Default)]
 pub enum NpcMode {
@@ -153,6 +157,110 @@ impl TaskState {
     }
 }
 
+pub unsafe trait Context {
+    // TODO: Somehow we need to enforce this bound, I think?
+    // Hence, this trait is unsafe for now.
+    type Ty<'a>;// where for<'a> Self::Ty<'a>: 'a;
+}
+
+pub struct Data<C: Context>(Arc<AtomicPtr<()>>, PhantomData<C>);
+
+impl<C: Context> Clone for Data<C> {
+    fn clone(&self) -> Self { Self(self.0.clone(), PhantomData) }
+}
+
+impl<C: Context> Data<C> {
+    pub fn with<R>(&mut self, f: impl FnOnce(&mut C::Ty<'_>) -> R) -> R {
+        let ptr = self.0.swap(std::ptr::null_mut(), Ordering::Acquire);
+        if ptr.is_null() {
+            panic!("Data pointer was null, you probably tried to access data recursively")
+        } else {
+            // Safety: We have exclusive access to the pointer within this scope.
+            // TODO: Do we need a panic guard here?
+            let r = f(unsafe { &mut *(ptr as *mut C::Ty<'_>) });
+            self.0.store(ptr, Ordering::Release);
+            r
+        }
+    }
+}
+
+pub type Priority = usize;
+
+pub struct TaskBox<C: Context, A = ()> {
+    task: Option<(
+        TypeId,
+        Box<dyn Generator<Data<C>, Yield = A, Return = ()> + Unpin + Send + Sync>,
+        Priority,
+    )>,
+    data: Data<C>,
+}
+
+impl<C: Context, A> TaskBox<C, A> {
+    pub fn new(data: Data<C>) -> Self {
+        Self {
+            task: None,
+            data,
+        }
+    }
+
+    #[must_use]
+    pub fn finish(&mut self, prio: Priority) -> ControlFlow<A> {
+        if let Some((_, task, _)) = &mut self.task.as_mut().filter(|(_, _, p)| *p <= prio) {
+            match Pin::new(task).resume(self.data.clone()) {
+                GeneratorState::Yielded(action) => ControlFlow::Break(action),
+                GeneratorState::Complete(_) => {
+                    self.task = None;
+                    ControlFlow::Continue(())
+                },
+            }
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+
+    #[must_use]
+    pub fn perform<T: Generator<Data<C>, Yield = A, Return = ()> + Unpin + Any + Send + Sync>(
+        &mut self,
+        prio: Priority,
+        task: T,
+    ) -> ControlFlow<A> {
+        let ty = TypeId::of::<T>();
+        if self.task.as_mut().filter(|(ty1, _, _)| *ty1 == ty).is_none() {
+            self.task = Some((ty, Box::new(task), prio));
+        };
+
+        self.finish(prio)
+    }
+}
+
+pub struct Brain<C: Context, A = ()> {
+    task: Box<dyn Generator<Data<C>, Yield = A, Return = !> + Unpin + Send + Sync>,
+    data: Data<C>,
+}
+
+impl<C: Context, A> Brain<C, A> {
+    pub fn new<T: Generator<Data<C>, Yield = A, Return = !> + Unpin + Any + Send + Sync>(task: T) -> Self {
+        Self {
+            task: Box::new(task),
+            data: Data(Arc::new(AtomicPtr::new(std::ptr::null_mut())), PhantomData),
+        }
+    }
+
+    pub fn tick(
+        &mut self,
+        ctx_ref: &mut C::Ty<'_>,
+    ) -> A {
+        self.data.0.store(ctx_ref as *mut C::Ty<'_> as *mut (), Ordering::SeqCst);
+        match Pin::new(&mut self.task).resume(self.data.clone()) {
+            GeneratorState::Yielded(action) => {
+                self.data.0.store(std::ptr::null_mut(), Ordering::Release);
+                action
+            },
+            GeneratorState::Complete(ret) => match ret {},
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Npc {
     // Persisted state
@@ -181,6 +289,9 @@ pub struct Npc {
 
     #[serde(skip_serializing, skip_deserializing)]
     pub task_state: Option<TaskState>,
+
+    #[serde(skip_serializing, skip_deserializing)]
+    pub brain: Option<Brain<npc_ai::NpcData<'static>>>,
 }
 
 impl Clone for Npc {
@@ -196,6 +307,7 @@ impl Clone for Npc {
             goto: Default::default(),
             mode: Default::default(),
             task_state: Default::default(),
+            brain: Default::default(),
         }
     }
 }
@@ -215,6 +327,7 @@ impl Npc {
             goto: None,
             mode: NpcMode::Simulated,
             task_state: Default::default(),
+            brain: Some(npc_ai::brain()),
         }
     }
 

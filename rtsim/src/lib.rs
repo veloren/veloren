@@ -1,8 +1,10 @@
 #![feature(
-    explicit_generic_args_with_impl_trait,
     generic_associated_types,
     never_type,
-    try_blocks
+    try_blocks,
+    generator_trait,
+    generators,
+    trait_alias
 )]
 
 pub mod data;

@@ -2,7 +2,7 @@ use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use crate::{
     data::{
-        npc::{Controller, Npc, NpcId, PathData, PathingMemory, Task, TaskState, CONTINUE, FINISH},
+        npc::{Controller, Npc, NpcId, PathData, PathingMemory, Task, TaskState, CONTINUE, FINISH, TaskBox, Brain, Data, Context},
         Sites,
     },
     event::OnTick,
@@ -241,6 +241,10 @@ impl Rule for NpcAi {
                     .task_state
                     .take()
                     .unwrap_or_default();
+                let mut brain = ctx.state.data_mut().npcs[npc_id]
+                    .brain
+                    .take()
+                    .unwrap_or_else(brain);
 
                 let (controller, task_state) = {
                     let data = &*ctx.state.data();
@@ -295,6 +299,13 @@ impl Rule for NpcAi {
                                 )?;
                             }
                         } else {
+                            brain.tick(&mut NpcData {
+                                ctx: &ctx,
+                                npc,
+                                npc_id,
+                                controller: &mut controller,
+                            });
+                            /*
                             // // Choose a random plaza in the npcs home site (which should be the
                             // // current here) to go to.
                             let task =
@@ -327,6 +338,7 @@ impl Rule for NpcAi {
                                 .repeat();
 
                             task_state.perform(task, &(npc_id, &*npc, &ctx), &mut controller)?;
+                            */
                         }
                     };
 
@@ -335,6 +347,7 @@ impl Rule for NpcAi {
 
                 ctx.state.data_mut().npcs[npc_id].goto = controller.goto;
                 ctx.state.data_mut().npcs[npc_id].task_state = Some(task_state);
+                ctx.state.data_mut().npcs[npc_id].brain = Some(brain);
             }
         });
 
@@ -597,5 +610,135 @@ impl Task for TravelTo {
         } else {
             FINISH
         }
+    }
+}
+
+/*
+let data = ctx.state.data();
+let site2 =
+    npc.home.and_then(|home| data.sites.get(home)).and_then(
+        |home| match &ctx.index.sites.get(home.world_site?).kind
+        {
+            SiteKind::Refactor(site2)
+            | SiteKind::CliffTown(site2)
+            | SiteKind::DesertCity(site2) => Some(site2),
+            _ => None,
+        },
+    );
+
+let wpos = site2
+    .and_then(|site2| {
+        let plaza = &site2.plots
+            [site2.plazas().choose(&mut thread_rng())?];
+        Some(site2.tile_center_wpos(plaza.root_tile()).as_())
+    })
+    .unwrap_or(npc.wpos.xy());
+
+TravelTo {
+    wpos,
+    use_paths: true,
+}
+*/
+
+trait IsTask = core::ops::Generator<Data<NpcData<'static>>, Yield = (), Return = ()> + Any + Send + Sync;
+
+pub struct NpcData<'a> {
+    ctx: &'a EventCtx<'a, NpcAi, OnTick>,
+    npc_id: NpcId,
+    npc: &'a Npc,
+    controller: &'a mut Controller,
+}
+
+unsafe impl Context for NpcData<'static> {
+    type Ty<'a> = NpcData<'a>;
+}
+
+pub fn brain() -> Brain<NpcData<'static>> {
+    Brain::new(|mut data: Data<NpcData>| {
+        let mut task = TaskBox::<_, ()>::new(data.clone());
+
+        loop {
+            println!("Started");
+            while let ControlFlow::Break(end) = task.finish(0) {
+                yield end;
+            }
+
+            // Choose a new plaza in the NPC's home site to path towards
+            let path = data.with(|d| {
+                let data = d.ctx.state.data();
+
+                let current_site = data.sites.get(d.npc.current_site?)?;
+                let site2 = match &d.ctx.index.sites.get(current_site.world_site?).kind {
+                    SiteKind::Refactor(site2)
+                    | SiteKind::CliffTown(site2)
+                    | SiteKind::DesertCity(site2) => Some(site2),
+                    _ => None,
+                }?;
+
+                let plaza = &site2.plots[site2.plazas().choose(&mut thread_rng())?];
+                let end_wpos = site2.tile_center_wpos(plaza.root_tile());
+
+                if end_wpos.as_::<f32>().distance(d.npc.wpos.xy()) < 32.0 {
+                    return None;
+                }
+
+                let start = site2.wpos_tile_pos(d.npc.wpos.xy().as_());
+                let end = site2.wpos_tile_pos(plaza.root_tile());
+
+                let path = match path_in_site(start, end, site2) {
+                    PathResult::Path(path) => path,
+                    _ => return None,
+                };
+                println!("CHOSE PATH, len = {}, start = {:?}, end = {:?}\nnpc = {:?}", path.len(), start, end, d.npc_id);
+                Some((current_site.world_site?, path))
+            });
+
+            if let Some((site, path)) = path {
+                println!("Begin path");
+                task.perform(0, walk_path(site, path));
+            } else {
+                println!("No path, waiting...");
+                for _ in 0..100 {
+                    yield ();
+                }
+                println!("Waited.");
+            }
+        }
+    })
+}
+
+fn walk_path(site: Id<WorldSite>, path: Path<Vec2<i32>>) -> impl IsTask {
+    move |mut data: Data<NpcData>| {
+        for tile in path {
+            println!("TILE");
+            let wpos = data.with(|d| match &d.ctx.index.sites.get(site).kind {
+                SiteKind::Refactor(site2)
+                | SiteKind::CliffTown(site2)
+                | SiteKind::DesertCity(site2) => Some(site2),
+                _ => None,
+            }
+                .expect("intrasite path should only be started on a site2 site")
+                .tile_center_wpos(tile)
+                .as_()
+                + 0.5);
+
+            println!("Walking to next tile... tile wpos = {:?} npc wpos = {:?}", wpos, data.with(|d| d.npc.wpos));
+            while data.with(|d| d.npc.wpos.xy().distance_squared(wpos) > 2.0) {
+                data.with(|d| d.controller.goto = Some((
+                    wpos.with_z(d.ctx.world
+                        .sim()
+                        .get_alt_approx(wpos.map(|e| e as i32))
+                        .unwrap_or(0.0)),
+                    1.0,
+                )));
+                yield ();
+            }
+        }
+
+        println!("Waiting..");
+        for _ in 0..100 {
+            yield ();
+        }
+        println!("Waited.");
     }
 }
