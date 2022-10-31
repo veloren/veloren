@@ -10,6 +10,7 @@ pub use self::{
     util::Dir,
 };
 use crate::{
+    sim::Path,
     site::{namegen::NameGen, SpawnRules},
     util::{attempt, DHashSet, Grid, CARDINALS, SQUARE_4, SQUARE_9},
     Canvas, Land,
@@ -323,15 +324,23 @@ impl Site {
         Spiral2d::new()
             .take((SEARCH_RADIUS * 2 + 1).pow(2) as usize)
             .for_each(|tile| {
+                let wpos = self.tile_center_wpos(tile);
                 if let Some(kind) = Spiral2d::new()
                     .take(9)
-                    .find_map(|rpos| wpos_is_hazard(land, self.tile_center_wpos(tile) + rpos))
+                    .find_map(|rpos| wpos_is_hazard(land, wpos + rpos))
                 {
                     for &rpos in &SQUARE_4 {
                         // `get_mut` doesn't increase generation bounds
                         self.tiles
                             .get_mut(tile - rpos - 1)
                             .map(|tile| tile.kind = TileKind::Hazard(kind));
+                    }
+                }
+                if let Some((dist, _, Path { width }, _)) = land.get_nearest_path(wpos) {
+                    if dist < 2.0 * width {
+                        self.tiles
+                            .get_mut(tile)
+                            .map(|tile| tile.kind = TileKind::Path);
                     }
                 }
             });
@@ -1004,7 +1013,7 @@ impl Site {
 
         #[allow(clippy::single_match)]
         match &tile.kind {
-            TileKind::Plaza => {
+            TileKind::Plaza | TileKind::Path => {
                 let near_roads = CARDINALS.iter().filter_map(|rpos| {
                     if self.tiles.get(tpos + rpos) == tile {
                         Some(Aabr {
