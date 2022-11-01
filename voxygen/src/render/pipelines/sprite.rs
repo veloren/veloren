@@ -99,7 +99,7 @@ pub struct Instance {
     inst_mat1: [f32; 4],
     inst_mat2: [f32; 4],
     inst_mat3: [f32; 4],
-    pos_ori: u32,
+    pos_ori_door: u32,
     inst_vert_page: u32,
     inst_light: f32,
     inst_glow: f32,
@@ -117,6 +117,7 @@ impl Instance {
         light: f32,
         glow: f32,
         vert_page: u32,
+        is_door: bool,
     ) -> Self {
         const EXTRA_NEG_Z: i32 = 32768;
 
@@ -126,10 +127,11 @@ impl Instance {
             inst_mat1: mat_arr[1],
             inst_mat2: mat_arr[2],
             inst_mat3: mat_arr[3],
-            pos_ori: ((pos.x as u32) & 0x003F)
+            pos_ori_door: ((pos.x as u32) & 0x003F)
                 | ((pos.y as u32) & 0x003F) << 6
                 | (((pos.z + EXTRA_NEG_Z).max(0).min(1 << 16) as u32) & 0xFFFF) << 12
-                | (u32::from(ori_bits) & 0x7) << 29,
+                | (u32::from(ori_bits) & 0x7) << 29
+                | (u32::from(is_door) & 1) << 28,
             inst_vert_page: vert_page,
             inst_light: light,
             inst_glow: glow,
@@ -160,7 +162,19 @@ impl Instance {
 }
 
 impl Default for Instance {
-    fn default() -> Self { Self::new(Mat4::identity(), 0.0, 0.0, Vec3::zero(), 0, 1.0, 0.0, 0) }
+    fn default() -> Self {
+        Self::new(
+            Mat4::identity(),
+            0.0,
+            0.0,
+            Vec3::zero(),
+            0,
+            1.0,
+            0.0,
+            0,
+            false,
+        )
+    }
 }
 
 // TODO: ColLightsWrapper instead?

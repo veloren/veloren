@@ -15,6 +15,7 @@
 #include <globals.glsl>
 #include <srgb.glsl>
 #include <sky.glsl>
+#include <light.glsl>
 
 layout(location = 0) in vec4 inst_mat0;
 layout(location = 1) in vec4 inst_mat1;
@@ -22,7 +23,7 @@ layout(location = 2) in vec4 inst_mat2;
 layout(location = 3) in vec4 inst_mat3;
 // TODO: is there a better way to pack the various vertex attributes?
 // TODO: ori is unused
-layout(location = 4) in uint inst_pos_ori;
+layout(location = 4) in uint inst_pos_ori_door;
 layout(location = 5) in uint inst_vert_page; // NOTE: this could fit in less bits
 // TODO: do we need this many bits for light and glow?
 layout(location = 6) in float inst_light;
@@ -77,6 +78,41 @@ void main() {
     // Expand the model vertex position bits into float values
     vec3 v_pos = vec3(v_pos_norm & 0xFFu, (v_pos_norm >> 8) & 0xFFu, float((v_pos_norm >> 16) & 0x0FFFu) - VERT_EXTRA_NEG_Z);
 
+    // Position of the sprite block in the chunk
+    // Used for highlighting the selected sprite, and for opening doors
+    vec3 inst_chunk_pos = vec3(inst_pos_ori_door & 0x3Fu, (inst_pos_ori_door >> 6) & 0x3Fu, float((inst_pos_ori_door >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
+    vec3 sprite_pos = inst_chunk_pos + chunk_offs;
+    float sprite_ori = (inst_pos_ori_door >> 29) & 0x7u;
+
+    #ifndef EXPERIMENTAL_BAREMINIMUM
+        if((inst_pos_ori_door & (1 << 28)) != 0) {
+            float min_entity_distance = 65536.0;
+
+            for (uint i = 0u; i < light_shadow_count.y; i ++) {
+                // Only access the array once
+                Shadow S = shadows[i];
+                vec3 shadow_pos = S.shadow_pos_radius.xyz - focus_off.xyz;
+                min_entity_distance = min(min_entity_distance, distance(sprite_pos, shadow_pos));
+            }
+
+            const float DOOR_RADIUS = 3.0;
+            if(min_entity_distance <= DOOR_RADIUS) {
+                float flip = sprite_ori <= 3 ? 1.0 : -1.0;
+                float theta = mix(PI/2.0, 0, max(0.0, (min_entity_distance - 1.0)/DOOR_RADIUS));
+                float costheta = cos(flip * theta);
+                float sintheta = sin(flip * theta);
+                mat3 rot_z = mat3(
+                    vec3(costheta, -sintheta, 0),
+                    vec3(sintheta, costheta, 0),
+                    vec3(0, 0, 1)
+                );
+
+                vec3 delta = vec3(-0.0, -5.5, 0);
+                v_pos = (rot_z * (v_pos + delta)) - delta;
+            }
+        }
+    #endif
+
     // Transform into chunk space and scale
     f_pos = (inst_mat * vec4(v_pos, 1.0)).xyz;
     // Transform info world space
@@ -127,11 +163,7 @@ void main() {
     // NOTE: Could defer to fragment shader if we are vert heavy
     f_uv_pos = vec2((uvec2(v_atlas_pos) >> uvec2(0, 16)) & uvec2(0xFFFFu, 0xFFFFu));;
 
-    // Position of the sprite block in the chunk
-    // Used solely for highlighting the selected sprite
-    vec3 inst_chunk_pos = vec3(inst_pos_ori & 0x3Fu, (inst_pos_ori >> 6) & 0x3Fu, float((inst_pos_ori >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
     // Select glowing
-    vec3 sprite_pos = inst_chunk_pos + chunk_offs;
     f_select = (select_pos.w > 0 && select_pos.xyz == sprite_pos) ? 1.0 : 0.0;
 
     gl_Position =

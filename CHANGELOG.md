@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FxUpscale AA mode for higher quality graphics at reduced internal resolutions
 - Graphics presets
 - Sword
+- Doors now animate opening when entities are near them.
 
 ### Changed
 - Use fluent for translations
