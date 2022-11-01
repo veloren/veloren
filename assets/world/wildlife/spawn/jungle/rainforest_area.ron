@@ -22,7 +22,7 @@ SpawnEntry (
             groups: [
                 (5, (1, 1, "common.entity.wild.peaceful.quokka")),
                 (1, (1, 1, "common.entity.wild.peaceful.tortoise")),
-                (5, (4, 8, "common.entity.wild.aggressive.bat")),
+                (5, (2, 4, "common.entity.wild.aggressive.bat")),
             ],
             spawn_mode: Land,
             day_period: [Night],
