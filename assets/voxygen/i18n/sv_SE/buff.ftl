@@ -61,6 +61,12 @@ buff-desc-wet = Marken skyr dina fötter, vilket gör det svårt att stanna.
 ## Ensnared
 buff-title-ensnared = Intrasslad
 buff-desc-ensnared = Rankor greppar tag i dina ben vilket begränsar dina rörelser.
+## Fortitude
+buff-title-fortitude = Slagtålig
+buff-desc-fortitude = Du kan stå emot vacklande attacker.
+## Parried
+buff-title-parried = Parerad
+buff-desc-parried = Du parerades och är nu långsam med att återhämta dig.
 ## Util
 buff-text-over_seconds = under { $dur_secs } sekunder
 buff-text-for_seconds = i { $dur_secs } sekunder
