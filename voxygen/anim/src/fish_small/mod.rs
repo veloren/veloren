@@ -43,6 +43,7 @@ impl Skeleton for FishSmallSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: Some((chest_mat * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::FishSmall(body)

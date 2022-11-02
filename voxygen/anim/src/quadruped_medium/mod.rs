@@ -105,6 +105,30 @@ impl Skeleton for QuadrupedMediumSkeleton {
 
         Offsets {
             lantern: None,
+            viewpoint: match body.species {
+                Akhlut | Catoblepas | Lion => {
+                    Some((head_mat * Vec4::new(0.0, 8.0, 0.0, 1.0)).xyz())
+                },
+                Barghest | Saber => Some((head_mat * Vec4::new(0.0, 8.0, 3.0, 1.0)).xyz()),
+                Cattle | Highland | Bonerattler | Ngoubou | Yak => {
+                    Some((head_mat * Vec4::new(0.0, 6.0, -1.0, 1.0)).xyz())
+                },
+                Antelope | Deer | Donkey | Bear | Mouflon | Panda => {
+                    Some((head_mat * Vec4::new(0.0, 3.0, 3.0, 1.0)).xyz())
+                },
+                Camel | Hirdrasil | Horse | Kelpie | Zebra => {
+                    Some((head_mat * Vec4::new(0.0, 2.0, 5.0, 1.0)).xyz())
+                },
+                Darkhound | Llama | Snowleopard | Tiger | Wolf => {
+                    Some((head_mat * Vec4::new(0.0, 4.0, 1.0, 1.0)).xyz())
+                },
+                Dreadhorn | Mammoth | Moose | Tarasque => {
+                    Some((head_mat * Vec4::new(0.0, 13.0, -3.0, 1.0)).xyz())
+                },
+                Frostfang => Some((head_mat * Vec4::new(0.0, 5.0, 3.0, 1.0)).xyz()),
+                Grolgar | Roshwalr => Some((head_mat * Vec4::new(0.0, 8.0, 6.0, 1.0)).xyz()),
+                _ => Some((head_mat * Vec4::new(0.0, 2.0, 0.0, 1.0)).xyz()),
+            },
             mount_bone: Transform {
                 position: mount_position,
                 orientation: mount_orientation,

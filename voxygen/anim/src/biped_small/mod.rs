@@ -62,8 +62,9 @@ impl Skeleton for BipedSmallSkeleton {
         let control_mat = chest_mat * Mat4::<f32>::from(self.control);
         let control_l_mat = Mat4::<f32>::from(self.control_l);
         let control_r_mat = Mat4::<f32>::from(self.control_r);
+        let head_mat = chest_mat * Mat4::<f32>::from(self.head);
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(chest_mat * Mat4::<f32>::from(self.head)),
+            make_bone(head_mat),
             make_bone(chest_mat),
             make_bone(pants_mat),
             make_bone(pants_mat * Mat4::<f32>::from(self.tail)),
@@ -75,6 +76,7 @@ impl Skeleton for BipedSmallSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::BipedSmall(body)

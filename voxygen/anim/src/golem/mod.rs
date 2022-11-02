@@ -58,9 +58,10 @@ impl Skeleton for GolemSkeleton {
         let leg_r_mat = lower_torso_mat * Mat4::<f32>::from(self.leg_r);
         let shoulder_l_mat = upper_torso_mat * Mat4::<f32>::from(self.shoulder_l);
         let shoulder_r_mat = upper_torso_mat * Mat4::<f32>::from(self.shoulder_r);
+        let head_mat = upper_torso_mat * Mat4::<f32>::from(self.head);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(upper_torso_mat * Mat4::<f32>::from(self.head)),
+            make_bone(head_mat),
             make_bone(upper_torso_mat * Mat4::<f32>::from(self.head) * Mat4::<f32>::from(self.jaw)),
             make_bone(upper_torso_mat),
             make_bone(lower_torso_mat),
@@ -75,6 +76,7 @@ impl Skeleton for GolemSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 5.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::Golem(body).mount_offset().into_tuple().into(),

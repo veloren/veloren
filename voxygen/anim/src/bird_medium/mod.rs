@@ -40,9 +40,10 @@ impl Skeleton for BirdMediumSkeleton {
     ) -> Offsets {
         let base_mat = base_mat * Mat4::scaling_3d(1.0 / 11.0);
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
+        let head_mat = torso_mat * Mat4::<f32>::from(self.head);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(torso_mat * Mat4::<f32>::from(self.head)),
+            make_bone(head_mat),
             make_bone(torso_mat),
             make_bone(torso_mat * Mat4::<f32>::from(self.tail)),
             make_bone(torso_mat * Mat4::<f32>::from(self.wing_l)),
@@ -50,8 +51,13 @@ impl Skeleton for BirdMediumSkeleton {
             make_bone(base_mat * Mat4::<f32>::from(self.leg_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.leg_r)),
         ];
+        use common::comp::body::bird_medium::Species::*;
         Offsets {
             lantern: None,
+            viewpoint: match body.species {
+                Bat => Some((head_mat * Vec4::new(0.0, 5.0, -4.0, 1.0)).xyz()),
+                _ => Some((head_mat * Vec4::new(0.0, 3.0, 2.0, 1.0)).xyz()),
+            },
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::BirdMedium(body)

@@ -6517,6 +6517,103 @@ impl FigureMgr {
         }
     }
 
+    pub fn viewpoint_offset(&self, scene_data: &SceneData, entity: EcsEntity) -> Vec3<f32> {
+        scene_data
+            .state
+            .ecs()
+            .read_storage::<Body>()
+            .get(entity)
+            .and_then(|b| match b {
+                Body::Humanoid(_) => self
+                    .states
+                    .character_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::QuadrupedSmall(_) => self
+                    .states
+                    .quadruped_small_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::QuadrupedMedium(_) => self
+                    .states
+                    .quadruped_medium_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::BirdMedium(_) => self
+                    .states
+                    .bird_medium_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::FishMedium(_) => self
+                    .states
+                    .fish_medium_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::Dragon(_) => self
+                    .states
+                    .dragon_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::BirdLarge(_) => self
+                    .states
+                    .bird_large_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::FishSmall(_) => self
+                    .states
+                    .fish_small_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::BipedLarge(_) => self
+                    .states
+                    .biped_large_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::BipedSmall(_) => self
+                    .states
+                    .biped_small_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::Golem(_) => self
+                    .states
+                    .golem_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::Theropod(_) => self
+                    .states
+                    .theropod_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::QuadrupedLow(_) => self
+                    .states
+                    .quadruped_low_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::Arthropod(_) => self
+                    .states
+                    .arthropod_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::Object(_) => self
+                    .states
+                    .object_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::Ship(_) => self
+                    .states
+                    .ship_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::ItemDrop(_) => self
+                    .states
+                    .item_drop_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+            })
+            .map(|viewpoint| viewpoint.into())
+            .unwrap_or_else(Vec3::zero)
+    }
+
     pub fn figure_count(&self) -> usize { self.states.count() }
 
     pub fn figure_count_visible(&self) -> usize { self.states.count_visible() }
@@ -6625,6 +6722,7 @@ impl FigureColLights {
 
 pub struct FigureStateMeta {
     lantern_offset: Option<anim::vek::Vec3<f32>>,
+    viewpoint_offset: Option<anim::vek::Vec3<f32>>,
     main_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     off_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     // Animation to be applied to rider of this entity
@@ -6710,6 +6808,7 @@ impl<S: Skeleton> FigureState<S> {
         Self {
             meta: FigureStateMeta {
                 lantern_offset: offsets.lantern,
+                viewpoint_offset: offsets.viewpoint,
                 main_abs_trail_points: None,
                 off_abs_trail_points: None,
                 mount_transform: offsets.mount_bone,
@@ -6890,6 +6989,7 @@ impl<S: Skeleton> FigureState<S> {
 
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
         self.lantern_offset = offsets.lantern;
+        self.viewpoint_offset = offsets.viewpoint;
         // Handle weapon trails
         fn handle_weapon_trails(
             trail_mgr: &mut TrailMgr,

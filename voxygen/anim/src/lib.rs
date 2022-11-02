@@ -107,6 +107,7 @@ pub fn init() { lazy_static::initialize(&LIB); }
 // Offsets that will be returned after computing the skeleton matrices
 pub struct Offsets {
     pub lantern: Option<Vec3<f32>>,
+    pub viewpoint: Option<Vec3<f32>>,
     pub mount_bone: Transform<f32, f32, f32>,
     pub primary_trail_mat: Option<(Mat4<f32>, TrailSource)>,
     pub secondary_trail_mat: Option<(Mat4<f32>, TrailSource)>,

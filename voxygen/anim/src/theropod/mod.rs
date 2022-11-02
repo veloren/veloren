@@ -76,6 +76,7 @@ impl Skeleton for TheropodSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: Some((head_mat * Vec4::new(0.0, 2.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::Theropod(body)

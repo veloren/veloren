@@ -104,9 +104,11 @@ impl Skeleton for BipedLargeSkeleton {
         let head_mat = upper_torso_mat * Mat4::<f32>::from(self.head);
         let hand_l_mat = Mat4::<f32>::from(self.hand_l);
 
+        let jaw_mat = head_mat * Mat4::<f32>::from(self.jaw);
+
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
-            make_bone(head_mat * Mat4::<f32>::from(self.jaw)),
+            make_bone(jaw_mat),
             make_bone(upper_torso_mat),
             make_bone(lower_torso_mat),
             make_bone(lower_torso_mat * Mat4::<f32>::from(self.tail)),
@@ -129,6 +131,7 @@ impl Skeleton for BipedLargeSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: Some((jaw_mat * Vec4::new(0.0, 4.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::BipedLarge(body)
