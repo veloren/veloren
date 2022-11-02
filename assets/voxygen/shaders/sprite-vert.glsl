@@ -56,6 +56,24 @@ const float EXTRA_NEG_Z = 32768.0;
 const float VERT_EXTRA_NEG_Z = 128.0;
 const uint VERT_PAGE_SIZE = 256;
 
+// vec4(vec3(position), distance)
+vec4 nearest_entity(in vec3 sprite_pos, const float entity_radius_factor) {
+    vec4 closest = vec4(vec3(0), 65536);
+
+    for (uint i = 0u; i < light_shadow_count.y; i ++) {
+        // Only access the array once
+        Shadow S = shadows[i];
+        vec3 shadow_pos = S.shadow_pos_radius.xyz - focus_off.xyz;
+        float dist_sq = dot(sprite_pos - shadow_pos, sprite_pos - shadow_pos)
+            - S.shadow_pos_radius.w * S.shadow_pos_radius.w * entity_radius_factor;
+        if (dist_sq < closest.w) {
+            closest = vec4(shadow_pos, dist_sq);
+        }
+    }
+    closest.w = sqrt(max(closest.w, 0));
+    return closest;
+}
+
 void main() {
     // Matrix to transform this sprite instance from model space to chunk space
     mat4 inst_mat;
@@ -86,19 +104,13 @@ void main() {
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
         if((inst_pos_ori_door & (1 << 28)) != 0) {
-            float min_entity_distance = 65536.0;
+            const float MIN_OPEN_DIST = 0.2;
+            const float MAX_OPEN_DIST = 1.5;
+            float min_entity_dist = nearest_entity(sprite_pos + 0.5, 1.0).w;
 
-            for (uint i = 0u; i < light_shadow_count.y; i ++) {
-                // Only access the array once
-                Shadow S = shadows[i];
-                vec3 shadow_pos = S.shadow_pos_radius.xyz - focus_off.xyz;
-                min_entity_distance = min(min_entity_distance, distance(sprite_pos, shadow_pos));
-            }
-
-            const float DOOR_RADIUS = 3.0;
-            if(min_entity_distance <= DOOR_RADIUS) {
+            if (min_entity_dist < MAX_OPEN_DIST) {
                 float flip = sprite_ori <= 3 ? 1.0 : -1.0;
-                float theta = mix(PI/2.0, 0, max(0.0, (min_entity_distance - 1.0)/DOOR_RADIUS));
+                float theta = mix(PI/2.0, 0, pow(max(0.0, min_entity_dist - MIN_OPEN_DIST) / (MAX_OPEN_DIST - MIN_OPEN_DIST), 1.0));
                 float costheta = cos(flip * theta);
                 float sintheta = sin(flip * theta);
                 mat3 rot_z = mat3(
@@ -139,6 +151,17 @@ void main() {
             // NOTE: could potentially replace `v_pos.z * model_z_scale` with a calculation using `inst_chunk_pos` from below
             //) * pow(abs(v_pos.z * model_z_scale), 1.3) * SCALE_FACTOR;
             ) * v_pos.z * model_z_scale * SCALE_FACTOR;
+
+        if (model_wind_sway > 0.0) {
+            vec2 center = sprite_pos.xy + 0.5;
+            vec4 min_entity = nearest_entity(vec3(center, sprite_pos.z), 0.0);
+
+            const float PUSH_FACTOR = 5;
+
+            float push_dist = max(1.0 - min_entity.w, 0.0);
+
+            f_pos.xy += normalize(center - min_entity.xy) * v_pos.z * model_z_scale * SCALE_FACTOR * PUSH_FACTOR * push_dist;
+        }
     #endif
 
     // Determine normal
