@@ -226,7 +226,7 @@ impl<'a> Widget for Chat<'a> {
                 // Log the output of commands since the ingame terminal doesn't support copying
                 // the output to the clipboard
                 if let ChatType::CommandInfo = message.chat_type {
-                    tracing::info!("{}", message.message);
+                    tracing::info!("Chat command info: {}", message.message);
                 }
             }
             //new messages - update chat w/ them & scroll down if at bottom of chat

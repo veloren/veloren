@@ -60,17 +60,20 @@ void main() {
     float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
 
     vec3 k_a = vec3(1.0);
-    vec3 k_d = vec3(1.0);
+    vec3 k_d = vec3(0.8);
     vec3 k_s = vec3(R_s);
     float max_light = 0.0;
     vec3 cam_attenuation = vec3(1);
     float fluid_alt = max(f_pos.z + 1, floor(f_alt + 1));
     vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
-    vec3 emitted_light, reflected_light;
+    vec3 emitted_light = vec3(1);
+    vec3 reflected_light = vec3(1);
+
     max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light * 1.0);
 
     tgt_color = vec4(surf_color, 1.0);
+    //tgt_color = vec4(f_norm, 1.0);
 }

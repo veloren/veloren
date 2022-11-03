@@ -51,7 +51,7 @@ fn box_along_line(
 ) {
     // dx is along b-a
     // dz is along b-d
-    let dx = Vec3::unit_z().cross(line.end - line.start).normalized();
+    let dx = -Vec3::unit_z().cross(line.end - line.start).normalized();
     let dz = dx.cross(line.end - line.start).normalized();
     let w = width / 2.0;
     let h = height / 2.0;
@@ -66,7 +66,7 @@ fn box_along_line(
     let h = r + w * dx - h * dz;
 
     let quad = |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>, w: Vec3<f32>| {
-        let normal = x.cross(y);
+        let normal = (y - x).cross(z - y).normalized();
         Quad::<DebugVertex>::new(
             (x, color, normal).into(),
             (y, color, normal).into(),
@@ -228,8 +228,8 @@ impl DebugShape {
                     let end = path.evaluate((i + 1) as f32 * step_size);
                     let center = LineSegment3 { start, end };
                     let dx =
-                        *rail_sep * Vec3::unit_z().cross(center.end - center.start).normalized();
-                    let dz = -dx.cross(center.end - center.start).normalized();
+                        *rail_sep * -Vec3::unit_z().cross(center.end - center.start).normalized();
+                    let dz = dx.cross(center.end - center.start).normalized();
                     let left = LineSegment3 {
                         start: center.start + dx,
                         end: center.end + dx,

@@ -1305,8 +1305,10 @@ impl Scene {
     ) {
         let ecs = client.state().ecs();
         {
+            let mut current_chunks = hashbrown::HashSet::new();
             let terrain_grid = ecs.read_resource::<TerrainGrid>();
             for (key, chunk) in terrain_grid.iter() {
+                current_chunks.insert(key);
                 tracks.entry(key).or_insert_with(|| {
                     let mut ret = Vec::new();
                     for bezier in chunk.meta().tracks().iter() {
@@ -1346,6 +1348,15 @@ impl Scene {
                     ret
                 });
             }
+            tracks.retain(|k, v| {
+                let keep = current_chunks.contains(k);
+                if !keep {
+                    for shape in v.iter() {
+                        self.debug.remove_shape(*shape);
+                    }
+                }
+                keep
+            });
         }
         let mut current_entities = hashbrown::HashSet::new();
         if settings.interface.toggle_hitboxes {
