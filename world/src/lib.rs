@@ -30,6 +30,7 @@ pub use crate::{
     canvas::{Canvas, CanvasInfo},
     config::{Features, CONFIG},
     land::Land,
+    layer::PathLocals,
 };
 pub use block::BlockGen;
 pub use column::ColumnSample;
@@ -357,6 +358,10 @@ impl World {
             chunk: &mut chunk,
             entities: Vec::new(),
         };
+
+        if index.features.train_tracks {
+            layer::apply_trains_to(&mut canvas, &self.sim, sim_chunk, chunk_center_wpos2d);
+        }
 
         if index.features.caverns {
             layer::apply_caverns_to(&mut canvas, &mut dynamic_rng);

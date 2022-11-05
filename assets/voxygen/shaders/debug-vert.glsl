@@ -4,6 +4,10 @@
 
 layout (location = 0)
 in vec3 v_pos;
+layout (location = 1)
+in vec4 v_color;
+layout (location = 2)
+in vec3 v_norm;
 
 layout (std140, set = 1, binding = 0)
 uniform u_locals {
@@ -14,9 +18,13 @@ uniform u_locals {
 
 layout (location = 0)
 out vec4 f_color;
+layout (location = 1)
+out vec3 f_pos;
+layout (location = 2)
+out vec3 f_norm;
 
 void main() {
-    f_color = w_color;
+    f_color = w_color * v_color;
 
     // Build rotation matrix
     // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Rotation_matrices
@@ -41,5 +49,7 @@ void main() {
     float r22 = 1 - 2 * (pow(q1, 2) + pow(q2, 2));
     rotation_matrix[2] = vec3(r20, r21, r22);
 
-    gl_Position = all_mat * vec4((v_pos * rotation_matrix + w_pos.xyz) - focus_off.xyz, 1);
+    f_pos = (v_pos * rotation_matrix + w_pos.xyz) - focus_off.xyz;
+    f_norm = normalize(v_norm);
+    gl_Position = all_mat * vec4(f_pos, 1);
 }

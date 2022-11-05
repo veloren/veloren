@@ -93,6 +93,7 @@ pub struct Features {
     pub wildlife_density: f32,
     pub peak_naming: bool,
     pub biome_naming: bool,
+    pub train_tracks: bool,
 }
 
 impl assets::Asset for Features {

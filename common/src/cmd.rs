@@ -252,6 +252,7 @@ pub enum ServerChatCommand {
     BuildAreaRemove,
     Campfire,
     DebugColumn,
+    DebugWays,
     DisconnectAllPlayers,
     DropAll,
     Dummy,
@@ -409,6 +410,11 @@ impl ServerChatCommand {
             ServerChatCommand::DebugColumn => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column",
+                Some(Moderator),
+            ),
+            ServerChatCommand::DebugWays => cmd(
+                vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
+                "Prints some debug information about a column's ways",
                 Some(Moderator),
             ),
             ServerChatCommand::DisconnectAllPlayers => cmd(
@@ -738,6 +744,7 @@ impl ServerChatCommand {
             ServerChatCommand::BuildAreaRemove => "build_area_remove",
             ServerChatCommand::Campfire => "campfire",
             ServerChatCommand::DebugColumn => "debug_column",
+            ServerChatCommand::DebugWays => "debug_ways",
             ServerChatCommand::DisconnectAllPlayers => "disconnect_all_players",
             ServerChatCommand::DropAll => "dropall",
             ServerChatCommand::Dummy => "dummy",

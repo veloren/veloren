@@ -38,4 +38,11 @@ impl<'a> Land<'a> {
     pub fn get_chunk_wpos(&self, wpos: Vec2<i32>) -> Option<&sim::SimChunk> {
         self.sim.and_then(|sim| sim.get_wpos(wpos))
     }
+
+    pub fn get_nearest_path(
+        &self,
+        wpos: Vec2<i32>,
+    ) -> Option<(f32, Vec2<f32>, sim::Path, Vec2<f32>)> {
+        self.sim.and_then(|sim| sim.get_nearest_path(wpos))
+    }
 }

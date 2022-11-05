@@ -530,4 +530,5 @@ void main() {
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
 
     tgt_color = vec4(surf_color, f_alpha);
+    //tgt_color = vec4(f_norm, f_alpha);
 }

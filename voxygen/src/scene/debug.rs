@@ -19,6 +19,68 @@ pub enum DebugShape {
         radius: f32,
         height: f32,
     },
+    TrainTrack {
+        path: CubicBezier3<f32>,
+        rail_width: f32,
+        rail_sep: f32,
+        plank_width: f32,
+        plank_height: f32,
+        plank_sep: f32,
+    },
+}
+
+/// If (q, r) is the given `line`, append the following mesh to `mesh`, where
+/// the distance between a-b is `width` and b-d is `height`:
+///       e-----f
+///      /|    /|
+///     / |  r/ |
+///    /  |  /  |
+///   /   g-/-- h
+///  /   / /   /
+/// a-----b   /
+/// |  /  |  /
+/// | /q  | /
+/// |/    |/
+/// c-----d
+fn box_along_line(
+    line: LineSegment3<f32>,
+    width: f32,
+    height: f32,
+    color: [f32; 4],
+    mesh: &mut Mesh<DebugVertex>,
+) {
+    // dx is along b-a
+    // dz is along b-d
+    let dx = -Vec3::unit_z().cross(line.end - line.start).normalized();
+    let dz = dx.cross(line.end - line.start).normalized();
+    let w = width / 2.0;
+    let h = height / 2.0;
+    let LineSegment3 { start: q, end: r } = line;
+    let a = q - w * dx + h * dz;
+    let b = q + w * dx + h * dz;
+    let c = q - w * dx - h * dz;
+    let d = q + w * dx - h * dz;
+    let e = r - w * dx + h * dz;
+    let f = r + w * dx + h * dz;
+    let g = r - w * dx - h * dz;
+    let h = r + w * dx - h * dz;
+
+    let quad = |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>, w: Vec3<f32>| {
+        let normal = (y - x).cross(z - y).normalized();
+        Quad::<DebugVertex>::new(
+            (x, color, normal).into(),
+            (y, color, normal).into(),
+            (z, color, normal).into(),
+            (w, color, normal).into(),
+        )
+    };
+
+    mesh.push_quad(quad(a, c, d, b));
+    mesh.push_quad(quad(a, b, f, e));
+    mesh.push_quad(quad(a, e, g, c));
+    mesh.push_quad(quad(b, d, h, f));
+    mesh.push_quad(quad(e, f, h, g));
+    mesh.push_quad(quad(d, c, g, h));
 }
 
 impl DebugShape {
@@ -34,8 +96,15 @@ impl DebugShape {
 
         match self {
             DebugShape::Line([a, b]) => {
-                let h = Vec3::new(0.0, 1.0, 0.0);
-                mesh.push_quad(quad(*a, a + h, b + h, *b));
+                //let h = Vec3::new(0.0, 1.0, 0.0);
+                //mesh.push_quad(quad(*a, a + h, b + h, *b));
+                box_along_line(
+                    LineSegment3 { start: *a, end: *b },
+                    0.1,
+                    0.1,
+                    [1.0; 4],
+                    &mut mesh,
+                );
             },
             DebugShape::Cylinder { radius, height } => {
                 const SUBDIVISIONS: u8 = 16;
@@ -139,6 +208,47 @@ impl DebugShape {
 
                 // 3) Draw second half-cylinder
                 draw_cylinder_sector(&mut mesh, p1, HALF_SECTORS, TOTAL);
+            },
+            DebugShape::TrainTrack {
+                path,
+                rail_width,
+                rail_sep,
+                plank_width,
+                plank_height,
+                plank_sep,
+            } => {
+                const STEEL_COLOR: [f32; 4] = [0.6, 0.6, 0.6, 1.0];
+                const WOOD_COLOR: [f32; 4] = [0.6, 0.2, 0.0, 1.0];
+                const SUBPLANK_LENGTH: usize = 5;
+                let length = path.length_by_discretization(100);
+                let num_planks = (length / (plank_sep + plank_width)).ceil() as usize;
+                let step_size = 1.0 / (SUBPLANK_LENGTH * num_planks) as f32;
+                for i in 0..(SUBPLANK_LENGTH * num_planks) {
+                    let start = path.evaluate(i as f32 * step_size);
+                    let end = path.evaluate((i + 1) as f32 * step_size);
+                    let center = LineSegment3 { start, end };
+                    let dx =
+                        *rail_sep * -Vec3::unit_z().cross(center.end - center.start).normalized();
+                    let dz = dx.cross(center.end - center.start).normalized();
+                    let left = LineSegment3 {
+                        start: center.start + dx,
+                        end: center.end + dx,
+                    };
+                    let right = LineSegment3 {
+                        start: center.start - dx,
+                        end: center.end - dx,
+                    };
+                    box_along_line(left, *rail_width, *rail_width, STEEL_COLOR, &mut mesh);
+                    box_along_line(right, *rail_width, *rail_width, STEEL_COLOR, &mut mesh);
+                    //box_along_line(center, 0.1, 0.1, [1.0, 0.0, 0.0, 1.0], &mut mesh);
+                    if i % SUBPLANK_LENGTH == 0 {
+                        let across = LineSegment3 {
+                            start: center.start - 1.5 * dx - *rail_width * dz,
+                            end: center.start + 1.5 * dx - *rail_width * dz,
+                        };
+                        box_along_line(across, *plank_width, *plank_height, WOOD_COLOR, &mut mesh);
+                    }
+                }
             },
         }
         mesh
