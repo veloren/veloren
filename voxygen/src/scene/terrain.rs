@@ -330,6 +330,7 @@ fn mesh_worker(
                                         light,
                                         glow,
                                         page,
+                                        matches!(sprite, SpriteKind::Door),
                                     );
                                     lod_level.push(instance);
                                 }
