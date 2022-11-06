@@ -249,7 +249,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                                 .push_event(ControlEvent::Utterance(UtteranceKind::Angry));
                         }
 
-                        bdata.agent.awareness.change_by(1.0, bdata.read_data.dt.0);
+                        bdata.agent.awareness.change_by(1.0);
 
                         // Determine whether the new target should be a priority
                         // over the old one (i.e: because it's either close or
@@ -539,16 +539,12 @@ fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
             || agent_data.can_sense_directly_near(tgt_pos);
 
         if perceives_target {
-            agent.awareness.change_by(0.04, read_data.dt.0);
+            agent.awareness.change_by(0.04);
         } else {
-            agent
-                .awareness
-                .change_by(STD_AWARENESS_DECREMENT, read_data.dt.0);
+            agent.awareness.change_by(STD_AWARENESS_DECREMENT);
         }
     } else {
-        agent
-            .awareness
-            .change_by(STD_AWARENESS_DECREMENT, read_data.dt.0);
+        agent.awareness.change_by(STD_AWARENESS_DECREMENT);
     }
 
     if bdata.agent.awareness.state() == AwarenessState::Unaware {

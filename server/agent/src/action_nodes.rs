@@ -167,9 +167,7 @@ impl<'a> AgentData<'a> {
             TimerIdle = 0,
         }
 
-        agent
-            .awareness
-            .change_by(STD_AWARENESS_DECREMENT, read_data.dt.0);
+        agent.awareness.change_by(STD_AWARENESS_DECREMENT);
 
         // Light lanterns at night
         // TODO Add a method to turn on NPC lanterns underground

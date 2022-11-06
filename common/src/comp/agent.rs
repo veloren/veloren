@@ -581,8 +581,8 @@ impl Awareness {
     /// Awareness was reached at some point and has not been reset.
     pub fn reached(&self) -> bool { self.reached }
 
-    pub fn change_by(&mut self, amount: f32, dt: f32) {
-        let change = amount * dt * 30.0;
+    pub fn change_by(&mut self, amount: f32) {
+        let change = amount;
         self.level = (self.level + change).clamp(Self::UNAWARE, Self::ALERT);
 
         if self.state() == AwarenessState::Alert {
