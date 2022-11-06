@@ -9,7 +9,7 @@ in vec4 v_color;
 layout (location = 2)
 in vec3 v_norm;
 
-layout (std140, set = 1, binding = 0)
+layout (std140, set = 3, binding = 0)
 uniform u_locals {
     vec4 w_pos;
     vec4 w_color;

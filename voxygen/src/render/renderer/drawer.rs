@@ -6,7 +6,6 @@ use super::{
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, shadow,
             skybox, sprite, terrain, trail, ui, ColLights, GlobalsBindGroup,
-            ShadowTexturesBindGroup,
         },
     },
     rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
@@ -250,7 +249,6 @@ impl<'frame> Drawer<'frame> {
             borrow: &self.borrow,
             pipelines,
             globals: self.globals,
-            shadows: &shadow.bind,
         })
     }
 
@@ -757,7 +755,6 @@ pub struct FirstPassDrawer<'pass> {
     borrow: &'pass RendererBorrow<'pass>,
     pipelines: &'pass super::Pipelines,
     globals: &'pass GlobalsBindGroup,
-    shadows: &'pass ShadowTexturesBindGroup,
 }
 
 impl<'pass> FirstPassDrawer<'pass> {
@@ -778,7 +775,6 @@ impl<'pass> FirstPassDrawer<'pass> {
 
         DebugDrawer {
             render_pass,
-            shadows: self.shadows,
         }
     }
 
@@ -862,7 +858,6 @@ impl<'pass> FirstPassDrawer<'pass> {
 #[must_use]
 pub struct DebugDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
-    shadows: &'pass ShadowTexturesBindGroup,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
@@ -871,18 +866,9 @@ impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
         model: &'data Model<debug::Vertex>,
         locals: &'data debug::BoundLocals,
     ) {
-        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.draw(0..model.len() as u32, 0..1);
-    }
-}
-
-impl<'pass_ref, 'pass: 'pass_ref> Drop for DebugDrawer<'pass_ref, 'pass> {
-    fn drop(&mut self) {
-        // Maintain that the shadow bind group is set in
-        // slot 1 by default during the main pass
-        self.render_pass
-            .set_bind_group(1, &self.shadows.bind_group, &[]);
     }
 }
 

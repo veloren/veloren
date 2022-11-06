@@ -80,7 +80,12 @@ impl DebugPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Debug pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layouts.globals, &layout.locals],
+                bind_group_layouts: &[
+                    &global_layouts.globals,
+                    &global_layouts.shadow_textures,
+                    &global_layouts.col_light,
+                    &layout.locals
+                ],
             });
 
         let samples = aa_mode.samples();
