@@ -56,7 +56,7 @@ use hashbrown::HashMap;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;
-use tracing::{debug, trace, warn};
+use tracing::{debug, trace};
 
 /// Collection of all the tracks
 #[derive(Debug, Deserialize)]
@@ -151,7 +151,7 @@ enum PlayState {
 /// Provides methods to control music playback
 pub struct MusicMgr {
     /// Collection of all the tracks
-    soundtrack: AssetHandle<SoundtrackCollection<SoundtrackItem>>,
+    soundtrack: SoundtrackCollection<SoundtrackItem>,
     /// Instant at which the current track began playing
     began_playing: Instant,
     /// Time until the next track should be played
@@ -310,7 +310,7 @@ impl MusicMgr {
         }
 
         if audio.music_enabled()
-            && !self.soundtrack.read().tracks.is_empty()
+            && !self.soundtrack.tracks.is_empty()
             && (self.began_playing.elapsed().as_secs_f32() > self.next_track_change || interrupt)
         {
             if interrupt {
@@ -378,10 +378,10 @@ impl MusicMgr {
         // too many constraints. Returning Err(()) signals that we couldn't find
         // an appropriate track for the current state, and hence the state
         // machine for the activity shouldn't be updated.
-        let soundtrack = self.soundtrack.read();
         // First, filter out tracks not matching the timing, site, biome, and current
         // activity
-        let mut maybe_tracks = soundtrack
+        let mut maybe_tracks = self
+            .soundtrack
             .tracks
             .iter()
             .filter(|track| {
@@ -487,24 +487,60 @@ impl MusicMgr {
         }
     }
 
-    fn load_soundtrack_items(
-        calendar: &Calendar,
-    ) -> AssetHandle<SoundtrackCollection<SoundtrackItem>> {
-        // Cannot fail: A default value is always provided
-        let mut soundtrack = SoundtrackCollection::load_expect("voxygen.audio.soundtrack");
+    /// Loads default soundtrack if no events are active. Otherwise, attempts to
+    /// compile and load all active event soundtracks, falling back to default
+    /// if they are empty.
+    fn load_soundtrack_items(calendar: &Calendar) -> SoundtrackCollection<SoundtrackItem> {
+        let mut soundtrack = SoundtrackCollection::default();
+        // Loads default soundtrack if no events are active
         if calendar.events().len() == 0 {
-            soundtrack
+            for track in SoundtrackCollection::load_expect("voxygen.audio.soundtrack")
+                .read()
+                .tracks
+                .clone()
+            {
+                soundtrack.tracks.push(track)
+            }
         } else {
+            // Compiles event-specific soundtracks if any are active
             for event in calendar.events() {
                 match event {
                     CalendarEvent::Halloween => {
-                        soundtrack = SoundtrackCollection::load_expect(
+                        for track in SoundtrackCollection::load_expect(
                             "voxygen.audio.calendar.halloween.soundtrack",
-                        );
+                        )
+                        .read()
+                        .tracks
+                        .clone()
+                        {
+                            soundtrack.tracks.push(track)
+                        }
                     },
-                    _ => soundtrack = SoundtrackCollection::load_expect("voxygen.audio.soundtrack"),
+                    CalendarEvent::Christmas => {
+                        for track in SoundtrackCollection::load_expect(
+                            "voxygen.audio.calendar.christmas.soundtrack",
+                        )
+                        .read()
+                        .tracks
+                        .clone()
+                        {
+                            soundtrack.tracks.push(track)
+                        }
+                    },
                 }
             }
+        }
+        // Fallback if events are active but give an empty tracklist
+        if soundtrack.tracks.is_empty() {
+            for track in SoundtrackCollection::load_expect("voxygen.audio.soundtrack")
+                .read()
+                .tracks
+                .clone()
+            {
+                soundtrack.tracks.push(track)
+            }
+            soundtrack
+        } else {
             soundtrack
         }
     }
@@ -517,47 +553,65 @@ impl assets::Asset for SoundtrackCollection<RawSoundtrackItem> {
 
 impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
     fn load(_: assets::AnyCache, id: &str) -> Result<Self, assets::BoxedError> {
-        let inner = || -> Result<_, assets::Error> {
-            let manifest: AssetHandle<SoundtrackCollection<RawSoundtrackItem>> =
-                AssetExt::load(id)?;
-            let mut soundtracks = SoundtrackCollection::default();
-            for item in manifest.read().tracks.iter().cloned() {
-                match item {
-                    RawSoundtrackItem::Individual(track) => soundtracks.tracks.push(track),
-                    RawSoundtrackItem::Segmented {
-                        title,
-                        timing,
-                        weather,
-                        biomes,
-                        sites,
-                        segments,
-                        artist,
-                    } => {
-                        for (path, length, music_state, activity_override) in segments.into_iter() {
-                            soundtracks.tracks.push(SoundtrackItem {
-                                title: title.clone(),
-                                path,
-                                length,
-                                timing: timing.clone(),
-                                weather,
-                                biomes: biomes.clone(),
-                                sites: sites.clone(),
-                                music_state,
-                                activity_override,
-                                artist: artist.clone(),
-                            });
-                        }
-                    },
-                }
+        let manifest: AssetHandle<SoundtrackCollection<RawSoundtrackItem>> = AssetExt::load(id)?;
+        let mut soundtrack = SoundtrackCollection::default();
+        for item in manifest.read().tracks.iter().cloned() {
+            match item {
+                RawSoundtrackItem::Individual(track) => soundtrack.tracks.push(track),
+                RawSoundtrackItem::Segmented {
+                    title,
+                    timing,
+                    weather,
+                    biomes,
+                    sites,
+                    segments,
+                    artist,
+                } => {
+                    for (path, length, music_state, activity_override) in segments.into_iter() {
+                        soundtrack.tracks.push(SoundtrackItem {
+                            title: title.clone(),
+                            path,
+                            length,
+                            timing: timing.clone(),
+                            weather,
+                            biomes: biomes.clone(),
+                            sites: sites.clone(),
+                            music_state,
+                            activity_override,
+                            artist: artist.clone(),
+                        });
+                    }
+                },
             }
-            Ok(soundtracks)
-        };
-        match inner() {
-            Ok(soundtracks) => Ok(soundtracks),
-            Err(e) => {
-                warn!("Error loading soundtracks: {:?}", e);
-                Ok(SoundtrackCollection::default())
-            },
+        }
+        Ok(soundtrack)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use strum::IntoEnumIterator;
+
+    #[test]
+    fn test_load_soundtracks() {
+        let _: AssetHandle<SoundtrackCollection<SoundtrackItem>> =
+            SoundtrackCollection::load_expect("voxygen.audio.soundtrack");
+        for event in CalendarEvent::iter() {
+            match event {
+                CalendarEvent::Halloween => {
+                    let _: AssetHandle<SoundtrackCollection<SoundtrackItem>> =
+                        SoundtrackCollection::load_expect(
+                            "voxygen.audio.calendar.halloween.soundtrack",
+                        );
+                },
+                CalendarEvent::Christmas => {
+                    let _: AssetHandle<SoundtrackCollection<SoundtrackItem>> =
+                        SoundtrackCollection::load_expect(
+                            "voxygen.audio.calendar.christmas.soundtrack",
+                        );
+                },
+            }
         }
     }
 }
