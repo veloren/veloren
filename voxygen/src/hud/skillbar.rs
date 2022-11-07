@@ -1011,7 +1011,13 @@ impl<'a> Skillbar<'a> {
                     .and_then(|a| {
                         a.auxiliary_set(Some(inventory), Some(skill_set))
                             .get(i)
-                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory), context))
+                            .and_then(|a| {
+                                Ability::from(*a).ability_id(
+                                    Some(inventory),
+                                    Some(skill_set),
+                                    context,
+                                )
+                            })
                     })
                     .map(|id| util::ability_description(id, self.localized_strings)),
             })
@@ -1080,9 +1086,13 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.slot5, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
 
-        let primary_ability_id = self
-            .active_abilities
-            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory), self.context));
+        let primary_ability_id = self.active_abilities.and_then(|a| {
+            Ability::from(a.primary).ability_id(
+                Some(self.inventory),
+                Some(self.skillset),
+                self.context,
+            )
+        });
 
         let (primary_ability_title, primary_ability_desc) =
             util::ability_description(primary_ability_id.unwrap_or(""), self.localized_strings);
@@ -1107,7 +1117,11 @@ impl<'a> Skillbar<'a> {
             .set(state.ids.m2_slot_bg, ui);
 
         let secondary_ability_id = self.active_abilities.and_then(|a| {
-            Ability::from(a.secondary).ability_id(Some(self.inventory), self.context)
+            Ability::from(a.secondary).ability_id(
+                Some(self.inventory),
+                Some(self.skillset),
+                self.context,
+            )
         });
 
         let (secondary_ability_title, secondary_ability_desc) =

@@ -153,7 +153,9 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 let ability_id = active_abilities.and_then(|a| {
                     a.auxiliary_set(Some(inventory), Some(skillset))
                         .get(i)
-                        .and_then(|a| Ability::from(*a).ability_id(Some(inventory), *context))
+                        .and_then(|a| {
+                            Ability::from(*a).ability_id(Some(inventory), Some(skillset), *context)
+                        })
                 });
 
                 ability_id
@@ -236,8 +238,10 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
                     Some(inventory),
                     Some(skillset),
                 )
-                .ability_id(Some(inventory), *context),
-            Self::Ability(ability) => Ability::from(*ability).ability_id(Some(inventory), *context),
+                .ability_id(Some(inventory), Some(skillset), *context),
+            Self::Ability(ability) => {
+                Ability::from(*ability).ability_id(Some(inventory), Some(skillset), *context)
+            },
         };
 
         ability_id.map(|id| (String::from(id), None))

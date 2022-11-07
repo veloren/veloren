@@ -869,7 +869,7 @@ impl<'a> Widget for Diary<'a> {
                             Some(self.inventory),
                             Some(self.skill_set),
                         )
-                        .ability_id(Some(self.inventory), self.context);
+                        .ability_id(Some(self.inventory), Some(self.skill_set), self.context);
                     let (ability_title, ability_desc) = if let Some(ability_id) = ability_id {
                         util::ability_description(ability_id, self.localized_strings)
                     } else {
@@ -951,7 +951,11 @@ impl<'a> Widget for Diary<'a> {
                 .map(AuxiliaryAbility::MainWeapon)
                 .map(|a| {
                     (
-                        Ability::from(a).ability_id(Some(self.inventory), self.context),
+                        Ability::from(a).ability_id(
+                            Some(self.inventory),
+                            Some(self.skill_set),
+                            self.context,
+                        ),
                         a,
                     )
                 });
@@ -963,7 +967,11 @@ impl<'a> Widget for Diary<'a> {
                 .map(AuxiliaryAbility::OffWeapon)
                 .map(|a| {
                     (
-                        Ability::from(a).ability_id(Some(self.inventory), self.context),
+                        Ability::from(a).ability_id(
+                            Some(self.inventory),
+                            Some(self.skill_set),
+                            self.context,
+                        ),
                         a,
                     )
                 });

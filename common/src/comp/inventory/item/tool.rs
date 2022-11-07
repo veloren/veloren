@@ -3,7 +3,7 @@
 
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
-    comp::{ability::Stance, skills::Skill, CharacterAbility},
+    comp::{ability::Stance, skills::Skill, CharacterAbility, SkillSet},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -317,10 +317,24 @@ impl<T> AbilityKind<T> {
         }
     }
 
-    pub fn ability(&self, context: AbilityContext) -> Option<(Option<Skill>, &T)> {
+    pub fn ability(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
+        let unlocked = |s: Option<Skill>, a| {
+            // If there is a skill requirement and the skillset does not contain the
+            // required skill, return None
+            s.map_or(true, |s| skillset.map_or(false, |ss| ss.has_skill(s)))
+                .then_some(a)
+        };
+
         match self {
-            AbilityKind::Simple(s, a) => Some((*s, a)),
-            AbilityKind::Contextualized(abilities) => abilities.get(&context).map(|(s, a)| (*s, a)),
+            AbilityKind::Simple(s, a) => unlocked(*s, a),
+            AbilityKind::Contextualized(abilities) => abilities
+                .get(&context)
+                .and_then(|(s, a)| unlocked(*s, a))
+                .or_else(|| {
+                    abilities
+                        .get(&AbilityContext::None)
+                        .and_then(|(s, a)| unlocked(*s, a))
+                }),
         }
     }
 }
@@ -368,16 +382,23 @@ impl<T> AbilitySet<T> {
         }
     }
 
-    pub fn primary(&self, context: AbilityContext) -> Option<(Option<Skill>, &T)> {
-        self.primary.ability(context)
+    pub fn primary(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
+        self.primary.ability(skillset, context)
     }
 
-    pub fn secondary(&self, context: AbilityContext) -> Option<(Option<Skill>, &T)> {
-        self.secondary.ability(context)
+    pub fn secondary(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
+        self.secondary.ability(skillset, context)
     }
 
-    pub fn auxiliary(&self, index: usize, context: AbilityContext) -> Option<(Option<Skill>, &T)> {
-        self.abilities.get(index).and_then(|a| a.ability(context))
+    pub fn auxiliary(
+        &self,
+        index: usize,
+        skillset: Option<&SkillSet>,
+        context: AbilityContext,
+    ) -> Option<&T> {
+        self.abilities
+            .get(index)
+            .and_then(|a| a.ability(skillset, context))
     }
 }
 

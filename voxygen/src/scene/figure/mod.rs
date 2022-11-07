@@ -34,7 +34,8 @@ use common::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
         Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
-        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Stance, Vel,
+        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, SkillSet, Stance,
+        Vel,
     },
     link::Is,
     mounting::Rider,
@@ -747,7 +748,7 @@ impl FigureMgr {
                 item,
                 light_emitter,
                 is_rider,
-                (collider, stance),
+                (collider, stance, skillset),
             ),
         ) in (
             &ecs.entities(),
@@ -768,6 +769,7 @@ impl FigureMgr {
             (
                 ecs.read_storage::<Collider>().maybe(),
                 ecs.read_storage::<Stance>().maybe(),
+                ecs.read_storage::<SkillSet>().maybe(),
             ),
         )
             .join()
@@ -925,7 +927,7 @@ impl FigureMgr {
             let ability_id = character.and_then(|c| {
                 c.ability_info()
                     .and_then(|a| a.ability)
-                    .and_then(|a| a.ability_id(inventory, context))
+                    .and_then(|a| a.ability_id(inventory, skillset, context))
             });
 
             let move_dir = {

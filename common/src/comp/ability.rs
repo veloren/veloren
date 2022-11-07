@@ -6,7 +6,7 @@ use crate::{
         character_state::AttackImmunities,
         inventory::{
             item::{
-                tool::{AbilityContext, AbilityItem, AbilityKind, Stats, ToolKind},
+                tool::{AbilityContext, AbilityKind, Stats, ToolKind},
                 ItemKind,
             },
             slot::EquipSlot,
@@ -163,41 +163,46 @@ impl ActiveAbilities {
             ability.adjusted_by_skills(skill_set, tool_kind)
         };
 
-        let unwrap_ability = |(skill_req, ability): (Option<Skill>, &AbilityItem)| {
-            (skill_req, ability.ability.clone())
-        };
-
-        let unlocked = |(s, a): (Option<Skill>, CharacterAbility)| {
-            // If there is a skill requirement and the skillset does not contain the
-            // required skill, return None
-            s.map_or(true, |s| skill_set.has_skill(s)).then_some(a)
-        };
-
         match ability {
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| abilities.primary(context).map(unwrap_ability))
-                .and_then(unlocked)
+                .and_then(|abilities| {
+                    abilities
+                        .primary(Some(skill_set), context)
+                        .map(|a| a.ability.clone())
+                })
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
-                .and_then(|abilities| abilities.secondary(context).map(unwrap_ability))
-                .and_then(unlocked)
+                .and_then(|abilities| {
+                    abilities
+                        .secondary(Some(skill_set), context)
+                        .map(|a| a.ability.clone())
+                })
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true))
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveMainhand)
-                        .and_then(|abilities| abilities.secondary(context).map(unwrap_ability))
-                        .and_then(unlocked)
+                        .and_then(|abilities| {
+                            abilities
+                                .secondary(Some(skill_set), context)
+                                .map(|a| a.ability.clone())
+                        })
                         .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false))
                 }),
             Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
                 .then(CharacterAbility::default_roll)
                 .map(|ability| (ability.adjusted_by_skills(skill_set, None), false)),
             Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| abilities.auxiliary(index, context).map(unwrap_ability))
-                .and_then(unlocked)
+                .and_then(|abilities| {
+                    abilities
+                        .auxiliary(index, Some(skill_set), context)
+                        .map(|a| a.ability.clone())
+                })
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
             Ability::OffWeaponAux(index) => ability_set(EquipSlot::ActiveOffhand)
-                .and_then(|abilities| abilities.auxiliary(index, context).map(unwrap_ability))
-                .and_then(unlocked)
+                .and_then(|abilities| {
+                    abilities
+                        .auxiliary(index, Some(skill_set), context)
+                        .map(|a| a.ability.clone())
+                })
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true)),
             Ability::Empty => None,
         }
@@ -260,7 +265,12 @@ pub enum Ability {
 }
 
 impl Ability {
-    pub fn ability_id(self, inv: Option<&Inventory>, context: AbilityContext) -> Option<&str> {
+    pub fn ability_id<'a>(
+        self,
+        inv: Option<&'a Inventory>,
+        skillset: Option<&'a SkillSet>,
+        context: AbilityContext,
+    ) -> Option<&'a str> {
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
                 .map(|i| &i.item_config_expect().abilities)
@@ -287,20 +297,26 @@ impl Ability {
 
         match self {
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| abilities.primary(context).map(|(_, a)| a.id.as_str())),
+                .and_then(|abilities| abilities.primary(skillset, context).map(|a| a.id.as_str())),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
-                .and_then(|abilities| abilities.secondary(context).map(|(_, a)| a.id.as_str()))
+                .and_then(|abilities| {
+                    abilities
+                        .secondary(skillset, context)
+                        .map(|a| a.id.as_str())
+                })
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
-                        abilities.secondary(context).map(|(_, a)| a.id.as_str())
+                        abilities
+                            .secondary(skillset, context)
+                            .map(|a| a.id.as_str())
                     })
                 }),
             Ability::SpeciesMovement => None, // TODO: Make not None
             Ability::MainWeaponAux(index) => {
                 ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                     abilities
-                        .auxiliary(index, context)
-                        .map(|(_, ability)| ability.id.as_str())
+                        .auxiliary(index, skillset, context)
+                        .map(|a| a.id.as_str())
                         .or_else(|| {
                             contextual_id(abilities.abilities.get(index), EquipSlot::ActiveMainhand)
                         })
@@ -309,8 +325,8 @@ impl Ability {
             Ability::OffWeaponAux(index) => {
                 ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
                     abilities
-                        .auxiliary(index, context)
-                        .map(|(_, ability)| ability.id.as_str())
+                        .auxiliary(index, skillset, context)
+                        .map(|a| a.id.as_str())
                         .or_else(|| {
                             contextual_id(abilities.abilities.get(index), EquipSlot::ActiveOffhand)
                         })

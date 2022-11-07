@@ -13,7 +13,17 @@
             Stance(Sword(Mobility)): (Some(Sword(MobilityStance)), "common.abilities.sword.mobility_combo"),
             Stance(Sword(Reaching)): (Some(Sword(ReachingStance)), "common.abilities.sword.reaching_combo"),
         }),
-        secondary: Simple(None, "common.abilities.sword.balanced_thrust"),
+        secondary: Contextualized({
+            None: (None, "common.abilities.sword.balanced_thrust"),
+            Stance(Sword(Offensive)): (Some(Sword(OffensiveAdvance)), "common.abilities.sword.offensive_advance"),
+            Stance(Sword(Defensive)): (Some(Sword(DefensiveRetreat)), "common.abilities.sword.defensive_retreat"),
+            Stance(Sword(Mobility)): (Some(Sword(MobilityFeint)), "common.abilities.sword.mobility_feint"),
+            Stance(Sword(Heavy)): (Some(Sword(HeavyPommelStrike)), "common.abilities.sword.heavy_pommelstrike"),
+            Stance(Sword(Parrying)): (Some(Sword(ParryingParry)), "common.abilities.sword.parrying_parry"),
+            Stance(Sword(Reaching)): (Some(Sword(ReachingSkewer)), "common.abilities.sword.reaching_skewer"),
+            Stance(Sword(Crippling)): (Some(Sword(CripplingGouge)), "common.abilities.sword.crippling_gouge"),
+            Stance(Sword(Cleaving)): (Some(Sword(CleavingSpin)), "common.abilities.sword.cleaving_spin"),
+        }),
         abilities: [
             Simple(Some(Sword(OffensiveStance)), "common.abilities.sword.offensive_stance"),
             Simple(Some(Sword(CripplingStance)), "common.abilities.sword.crippling_stance"),
@@ -35,24 +45,13 @@
             }),
             // Movementy ones
             Contextualized({
-                Stance(Sword(Offensive)): (Some(Sword(OffensiveAdvance)), "common.abilities.sword.offensive_advance"),
                 Stance(Sword(Crippling)): (Some(Sword(CripplingStrike)), "common.abilities.sword.crippling_strike"),
                 Stance(Sword(Cleaving)): (Some(Sword(CleavingDive)), "common.abilities.sword.cleaving_dive"),
-                Stance(Sword(Defensive)): (Some(Sword(DefensiveRetreat)), "common.abilities.sword.defensive_retreat"),
                 Stance(Sword(Parrying)): (Some(Sword(ParryingRiposte)), "common.abilities.sword.parrying_riposte"),
                 Stance(Sword(Heavy)): (Some(Sword(HeavyFortitude)), "common.abilities.sword.heavy_fortitude"),
-                Stance(Sword(Mobility)): (Some(Sword(MobilityFeint)), "common.abilities.sword.mobility_feint"),
                 Stance(Sword(Reaching)): (Some(Sword(ReachingCharge)), "common.abilities.sword.reaching_charge"),
-            }),
-            // Utilityy ones
-            Contextualized({
-                Stance(Sword(Crippling)): (Some(Sword(CripplingGouge)), "common.abilities.sword.crippling_gouge"),
-                Stance(Sword(Cleaving)): (Some(Sword(CleavingSpin)), "common.abilities.sword.cleaving_spin"),
                 Stance(Sword(Defensive)): (Some(Sword(DefensiveBulwark)), "common.abilities.sword.defensive_bulwark"),
-                Stance(Sword(Parrying)): (Some(Sword(ParryingParry)), "common.abilities.sword.parrying_parry"),
-                Stance(Sword(Heavy)): (Some(Sword(HeavyPommelStrike)), "common.abilities.sword.heavy_pommelstrike"),
                 Stance(Sword(Mobility)): (Some(Sword(MobilityAgility)), "common.abilities.sword.mobility_agility"),
-                Stance(Sword(Reaching)): (Some(Sword(ReachingSkewer)), "common.abilities.sword.reaching_skewer"),
             }),
         ],
     ),
