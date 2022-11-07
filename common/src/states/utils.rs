@@ -1390,12 +1390,7 @@ impl AbilityInfo {
             tool,
             hand,
             input,
-            input_attr: data
-                .controller
-                .queued_inputs
-                .get(&input)
-                .or_else(|| data.controller.held_inputs.get(&input))
-                .copied(),
+            input_attr: data.controller.queued_inputs.get(&input).map(|x| x.1).or_else(|| data.controller.held_inputs.get(&input).copied()),
             ability_meta,
             ability,
         }

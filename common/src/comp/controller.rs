@@ -8,6 +8,7 @@ use crate::{
         invite::{InviteKind, InviteResponse},
         BuffKind,
     },
+    resources::Time,
     trade::{TradeAction, TradeId},
     uid::Uid,
     util::Dir,
@@ -247,7 +248,7 @@ pub struct ControllerInputs {
 pub struct Controller {
     pub inputs: ControllerInputs,
     pub held_inputs: BTreeMap<InputKind, InputAttr>,
-    pub queued_inputs: BTreeMap<InputKind, InputAttr>,
+    pub queued_inputs: BTreeMap<InputKind, (Time, InputAttr)>,
     // TODO: consider SmallVec
     pub events: Vec<ControlEvent>,
     pub actions: Vec<ControlAction>,
@@ -310,6 +311,12 @@ impl Controller {
 
     pub fn push_cancel_input(&mut self, input: InputKind) {
         self.push_action(ControlAction::CancelInput(input));
+    }
+
+    pub fn cull_queued_inputs(&mut self, time: Time) {
+        const QUEUED_CULL_DUR: f64 = 0.5;
+        self.queued_inputs
+            .retain(|_, (init_time, _)| init_time.0 + QUEUED_CULL_DUR > time.0);
     }
 }
 
