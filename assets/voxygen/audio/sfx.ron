@@ -142,7 +142,7 @@
                 "voxygen.audio.sfx.footsteps.stepdirt_4",
                 "voxygen.audio.sfx.footsteps.stepdirt_5",
             ],
-            threshold: 1.6,
+            threshold: 1.8,
         ),
         QuadRun(Earth): (
             files: [
@@ -152,7 +152,7 @@
                 "voxygen.audio.sfx.footsteps.stepdirt_4",
                 "voxygen.audio.sfx.footsteps.stepdirt_5",
             ],
-            threshold: 0.8,
+            threshold: 0.9,
         ),
         Run(Grass): (
             files: [

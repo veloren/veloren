@@ -1,8 +1,9 @@
 use chrono::{DateTime, Datelike, Local, TimeZone, Utc};
 use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
+use strum::EnumIter;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
 #[repr(u16)]
 pub enum CalendarEvent {
     Christmas = 0,
