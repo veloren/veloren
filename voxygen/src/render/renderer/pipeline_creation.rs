@@ -60,6 +60,7 @@ pub struct ShadowPipelines {
     pub point: Option<shadow::PointShadowPipeline>,
     pub directed: Option<shadow::ShadowPipeline>,
     pub figure: Option<shadow::ShadowFigurePipeline>,
+    pub debug: Option<shadow::ShadowDebugPipeline>,
 }
 
 pub struct RainOcclusionPipelines {
@@ -140,6 +141,7 @@ struct ShaderModules {
     point_light_shadows_vert: wgpu::ShaderModule,
     light_shadows_directed_vert: wgpu::ShaderModule,
     light_shadows_figure_vert: wgpu::ShaderModule,
+    light_shadows_debug_vert: wgpu::ShaderModule,
     rain_occlusion_directed_vert: wgpu::ShaderModule,
     rain_occlusion_figure_vert: wgpu::ShaderModule,
 }
@@ -360,6 +362,10 @@ impl ShaderModules {
                 "light-shadows-figure-vert",
                 ShaderKind::Vertex,
             )?,
+            light_shadows_debug_vert: create_shader(
+                "light-shadows-debug-vert",
+                ShaderKind::Vertex,
+            )?,
             rain_occlusion_directed_vert: create_shader(
                 "rain-occlusion-directed-vert",
                 ShaderKind::Vertex,
@@ -458,7 +464,7 @@ fn create_ingame_and_shadow_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
     // TODO: Reduce the boilerplate in this file
-    tasks: [Task; 18],
+    tasks: [Task; 19],
 ) -> IngameAndShadowPipelines {
     prof_span!(_guard, "create_ingame_and_shadow_pipelines");
 
@@ -490,6 +496,7 @@ fn create_ingame_and_shadow_pipelines(
         point_shadow_task,
         terrain_directed_shadow_task,
         figure_directed_shadow_task,
+        debug_directed_shadow_task,
         terrain_directed_rain_occlusion_task,
         figure_directed_rain_occlusion_task,
     ] = tasks;
@@ -777,6 +784,21 @@ fn create_ingame_and_shadow_pipelines(
             "figure directed shadow pipeline creation",
         )
     };
+    // Pipeline for rendering directional light debug shadow maps.
+    let create_debug_directed_shadow = || {
+        debug_directed_shadow_task.run(
+            || {
+                shadow::ShadowDebugPipeline::new(
+                    device,
+                    &shaders.light_shadows_debug_vert,
+                    &layouts.global,
+                    &layouts.debug,
+                    pipeline_modes.aa,
+                )
+            },
+            "figure directed shadow pipeline creation",
+        )
+    };
     // Pipeline for rendering directional light terrain rain occlusion maps.
     let create_terrain_directed_rain_occlusion = || {
         terrain_directed_rain_occlusion_task.run(
@@ -818,10 +840,9 @@ fn create_ingame_and_shadow_pipelines(
     };
     let j5 = || pool.join(create_postprocess, create_point_shadow);
     let j6 = || {
-        pool.join(
-            create_terrain_directed_shadow,
-            create_figure_directed_shadow,
-        )
+        pool.join(create_terrain_directed_shadow, || {
+            pool.join(create_figure_directed_shadow, create_debug_directed_shadow)
+        })
     };
     let j7 = || {
         pool.join(create_lod_object, || {
@@ -839,7 +860,10 @@ fn create_ingame_and_shadow_pipelines(
             ((sprite, particle), (lod_terrain, (clouds, trail))),
         ),
         (
-            ((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)),
+            (
+                (postprocess, point_shadow),
+                (terrain_directed_shadow, (figure_directed_shadow, debug_directed_shadow)),
+            ),
             (lod_object, (terrain_directed_rain_occlusion, figure_directed_rain_occlusion)),
         ),
     ) = pool.join(
@@ -869,6 +893,7 @@ fn create_ingame_and_shadow_pipelines(
             point: Some(point_shadow),
             directed: Some(terrain_directed_shadow),
             figure: Some(figure_directed_shadow),
+            debug: Some(debug_directed_shadow),
         },
         rain_occlusion: RainOcclusionPipelines {
             terrain: Some(terrain_directed_rain_occlusion),

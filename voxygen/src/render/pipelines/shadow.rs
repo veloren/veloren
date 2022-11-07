@@ -1,6 +1,6 @@
 use super::super::{
-    AaMode, Bound, ColLightInfo, Consts, FigureLayout, GlobalsLayouts, Renderer, TerrainLayout,
-    TerrainVertex, Texture,
+    AaMode, Bound, ColLightInfo, Consts, DebugLayout, DebugVertex, FigureLayout, GlobalsLayouts,
+    Renderer, TerrainLayout, TerrainVertex, Texture,
 };
 use bytemuck::{Pod, Zeroable};
 use vek::*;
@@ -299,6 +299,74 @@ impl PointShadowPipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
                 clamp_depth: false,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth24Plus,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil: wgpu::StencilState {
+                    front: wgpu::StencilFaceState::IGNORE,
+                    back: wgpu::StencilFaceState::IGNORE,
+                    read_mask: !0,
+                    write_mask: !0,
+                },
+                bias: wgpu::DepthBiasState {
+                    constant: 0,
+                    slope_scale: 0.0,
+                    clamp: 0.0,
+                },
+            }),
+            multisample: wgpu::MultisampleState {
+                count: samples,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            fragment: None,
+        });
+
+        Self {
+            pipeline: render_pipeline,
+        }
+    }
+}
+
+pub struct ShadowDebugPipeline {
+    pub pipeline: wgpu::RenderPipeline,
+}
+
+impl ShadowDebugPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        vs_module: &wgpu::ShaderModule,
+        global_layout: &GlobalsLayouts,
+        debug_layout: &DebugLayout,
+        aa_mode: AaMode,
+    ) -> Self {
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Directed shadow debug pipeline layout"),
+                push_constant_ranges: &[],
+                bind_group_layouts: &[&global_layout.globals, &debug_layout.locals],
+            });
+
+        let samples = aa_mode.samples();
+
+        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Directed shadow debug pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: vs_module,
+                entry_point: "main",
+                buffers: &[DebugVertex::desc()],
+            },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Front),
+                clamp_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },

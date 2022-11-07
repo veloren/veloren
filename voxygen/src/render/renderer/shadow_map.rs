@@ -14,6 +14,7 @@ pub struct ShadowMapRenderer {
     pub point_pipeline: shadow::PointShadowPipeline,
     pub terrain_directed_pipeline: shadow::ShadowPipeline,
     pub figure_directed_pipeline: shadow::ShadowFigurePipeline,
+    pub debug_directed_pipeline: shadow::ShadowDebugPipeline,
     pub layout: shadow::ShadowLayout,
 }
 
@@ -32,14 +33,16 @@ impl ShadowMap {
         point: Option<shadow::PointShadowPipeline>,
         directed: Option<shadow::ShadowPipeline>,
         figure: Option<shadow::ShadowFigurePipeline>,
+        debug: Option<shadow::ShadowDebugPipeline>,
         shadow_views: Option<(Texture, Texture)>,
     ) -> Self {
         if let (
             Some(point_pipeline),
             Some(terrain_directed_pipeline),
             Some(figure_directed_pipeline),
+            Some(debug_directed_pipeline),
             Some(shadow_views),
-        ) = (point, directed, figure, shadow_views)
+        ) = (point, directed, figure, debug, shadow_views)
         {
             let (point_depth, directed_depth) = shadow_views;
 
@@ -52,6 +55,7 @@ impl ShadowMap {
                 point_pipeline,
                 terrain_directed_pipeline,
                 figure_directed_pipeline,
+                debug_directed_pipeline,
 
                 layout,
             })

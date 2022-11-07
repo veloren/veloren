@@ -1,5 +1,6 @@
 use crate::render::{
-    Bound, Consts, DebugDrawer, DebugLocals, DebugVertex, Mesh, Model, Quad, Renderer, Tri,
+    Bound, Consts, DebugDrawer, DebugLocals, DebugShadowDrawer, DebugVertex, Mesh, Model, Quad,
+    Renderer, Tri,
 };
 use common::util::srgba_to_linear;
 use hashbrown::{HashMap, HashSet};
@@ -328,6 +329,12 @@ impl Debug {
     }
 
     pub fn render<'a>(&'a self, drawer: &mut DebugDrawer<'_, 'a>) {
+        for (model, locals) in self.models.values() {
+            drawer.draw(model, locals);
+        }
+    }
+
+    pub fn render_shadows<'a>(&'a self, drawer: &mut DebugShadowDrawer<'_, 'a>) {
         for (model, locals) in self.models.values() {
             drawer.draw(model, locals);
         }

@@ -9,11 +9,17 @@ in vec4 v_color;
 layout (location = 2)
 in vec3 v_norm;
 
-layout (std140, set = 2, binding = 0)
+layout (std140, set = 1, binding = 0)
 uniform u_locals {
     vec4 w_pos;
     vec4 w_color;
     vec4 w_ori;
+};
+
+layout (std140, set = 0, binding = 9)
+uniform u_light_shadows {
+    mat4 shadowMatrices;
+    mat4 texture_mat;
 };
 
 layout (location = 0)
@@ -51,5 +57,5 @@ void main() {
 
     f_pos = (v_pos * rotation_matrix + w_pos.xyz) - focus_off.xyz;
     f_norm = normalize(v_norm);
-    gl_Position = all_mat * vec4(f_pos, 1);
+    gl_Position = shadowMatrices * vec4(f_pos, 1);
 }

@@ -12,7 +12,7 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         const ATTRIBUTES: [wgpu::VertexAttribute; 3] =
             wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x4, 2 => Float32x3];
         wgpu::VertexBufferLayout {
@@ -83,8 +83,7 @@ impl DebugPipeline {
                 bind_group_layouts: &[
                     &global_layouts.globals,
                     &global_layouts.shadow_textures,
-                    &global_layouts.col_light,
-                    &layout.locals
+                    &layout.locals,
                 ],
             });
 

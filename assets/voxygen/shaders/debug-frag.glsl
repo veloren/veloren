@@ -16,7 +16,7 @@ in vec3 f_pos;
 layout (location = 2)
 in vec3 f_norm;
 
-layout (std140, set = 3, binding = 0)
+layout (std140, set = 2, binding = 0)
 uniform u_locals {
     vec4 w_pos;
     vec4 w_color;
