@@ -582,8 +582,7 @@ impl Awareness {
     pub fn reached(&self) -> bool { self.reached }
 
     pub fn change_by(&mut self, amount: f32) {
-        let change = amount;
-        self.level = (self.level + change).clamp(Self::UNAWARE, Self::ALERT);
+        self.level = (self.level + amount).clamp(Self::UNAWARE, Self::ALERT);
 
         if self.state() == AwarenessState::Alert {
             self.reached = true;

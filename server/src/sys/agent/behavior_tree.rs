@@ -28,7 +28,7 @@ use super::{
     consts::{
         DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, MAX_FOLLOW_DIST,
         NORMAL_FLEE_DIR_DIST, NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
-        STD_AWARENESS_DECREMENT,
+        STD_AWARENESS_DECAY_RATE,
     },
     data::{AgentData, ReadData, TargetData},
     util::{get_entity_by_id, is_dead, is_dead_or_invulnerable, is_invulnerable, stop_pursuing},
@@ -534,17 +534,19 @@ fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
     let tgt_pos = target.and_then(|t| read_data.positions.get(t));
 
     if let (Some(target), Some(tgt_pos)) = (target, tgt_pos) {
-        let perceives_target = agent_data
-            .can_see_entity(agent, controller, target, tgt_pos, read_data)
-            || agent_data.can_sense_directly_near(tgt_pos);
-
-        if perceives_target {
-            agent.awareness.change_by(0.04);
+        if agent_data.can_see_entity(agent, controller, target, tgt_pos, read_data) {
+            agent.awareness.change_by(1.75 * read_data.dt.0);
+        } else if agent_data.can_sense_directly_near(tgt_pos) {
+            agent.awareness.change_by(0.25);
         } else {
-            agent.awareness.change_by(STD_AWARENESS_DECREMENT);
+            agent
+                .awareness
+                .change_by(STD_AWARENESS_DECAY_RATE * read_data.dt.0);
         }
     } else {
-        agent.awareness.change_by(STD_AWARENESS_DECREMENT);
+        agent
+            .awareness
+            .change_by(STD_AWARENESS_DECAY_RATE * read_data.dt.0);
     }
 
     if bdata.agent.awareness.state() == AwarenessState::Unaware {

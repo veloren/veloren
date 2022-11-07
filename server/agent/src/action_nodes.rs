@@ -1,7 +1,7 @@
 use crate::{
     consts::{
         AVG_FOLLOW_DIST, DEFAULT_ATTACK_RANGE, IDLE_HEALING_ITEM_THRESHOLD, PARTIAL_PATH_DIST,
-        SEPARATION_BIAS, SEPARATION_DIST, STD_AWARENESS_DECREMENT,
+        SEPARATION_BIAS, SEPARATION_DIST, STD_AWARENESS_DECAY_RATE,
     },
     data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
     util::{
@@ -167,7 +167,9 @@ impl<'a> AgentData<'a> {
             TimerIdle = 0,
         }
 
-        agent.awareness.change_by(STD_AWARENESS_DECREMENT);
+        agent
+            .awareness
+            .change_by(STD_AWARENESS_DECAY_RATE * read_data.dt.0);
 
         // Light lanterns at night
         // TODO Add a method to turn on NPC lanterns underground
@@ -700,9 +702,7 @@ impl<'a> AgentData<'a> {
         };
 
         let is_detected = |entity: EcsEntity, e_pos: &Pos| {
-            let chance = thread_rng().gen_bool(0.3);
-
-            (self.can_sense_directly_near(e_pos) && chance)
+            self.can_sense_directly_near(e_pos)
                 || self.can_see_entity(agent, controller, entity, e_pos, read_data)
         };
 
@@ -1548,7 +1548,8 @@ impl<'a> AgentData<'a> {
     }
 
     pub fn can_sense_directly_near(&self, e_pos: &Pos) -> bool {
-        e_pos.0.distance_squared(self.pos.0) < 5_f32.powi(2)
+        let chance = thread_rng().gen_bool(0.3);
+        e_pos.0.distance_squared(self.pos.0) < 5_f32.powi(2) && chance
     }
 
     pub fn menacing(
