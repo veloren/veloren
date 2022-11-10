@@ -292,7 +292,7 @@ impl Animation for SneakWieldAnimation {
                 Some(ToolKind::Instrument) => {
                     if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
                         match spec.as_str() {
-                            "Perc" => {
+                            "Washboard" => {
                                 next.hand_l.position = Vec3::new(-7.0, 0.0, 3.0);
                                 next.hand_l.orientation = Quaternion::rotation_x(1.27);
                                 next.main.position = Vec3::new(-5.0, -4.5, -5.0);

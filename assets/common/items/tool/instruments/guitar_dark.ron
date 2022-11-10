@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Waschbrett",
-    description: "Waschbrett.",
+    name: "Dark Guitar",
+    description: "Sounds edgy.",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -16,6 +16,6 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [],
-    ability_spec: Some(Custom("Perc")),
+    tags: [Utility],
+    ability_spec: Some(Custom("Guitar")),
 )

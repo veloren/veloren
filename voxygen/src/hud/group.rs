@@ -393,8 +393,8 @@ impl<'a> Widget for Group<'a> {
                     let char_name = stats.name.to_string();
                     let health_perc = health.current() / health.base_max().max(health.maximum());
                     // change panel positions when debug info is shown
-                    let x = if debug_on { i / 8 } else { i / 12 };
-                    let y = if debug_on { i % 8 } else { i % 12 };
+                    let x = if debug_on { i / 8 } else { i / 11 };
+                    let y = if debug_on { i % 8 } else { i % 11 };
                     let back = Image::new(self.imgs.member_bg).top_left_with_margins_on(
                         ui.window,
                         50.0 + offset + y as f64 * 77.0,

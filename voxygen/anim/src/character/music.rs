@@ -104,9 +104,9 @@ impl Animation for MusicAnimation {
                 if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
                     // instrument specific head_bop
                     let head_bop = match spec.as_str() {
-                        "Flute" | "Melodica" => 0.2,
+                        "Flute" | "GlassFlute" | "Melodica" => 0.2,
                         "Guitar" | "Lute" | "Sitar" => 0.5,
-                        "Harp" | "Kalimba" => 0.3,
+                        "Lyre" | "Kalimba" => 0.3,
                         _ => 1.0,
                     };
                     next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
@@ -116,7 +116,7 @@ impl Animation for MusicAnimation {
                         );
                     // instrument specific hand and instrument animations
                     match spec.as_str() {
-                        "Bass" => {
+                        "DoubleBass" => {
                             next.hand_l.position = Vec3::new(
                                 3.5 - s_a.hand.0,
                                 7.0 + s_a.hand.1 + shortealt * -3.0,
@@ -138,7 +138,7 @@ impl Animation for MusicAnimation {
                                 * Quaternion::rotation_y(3.0)
                                 * Quaternion::rotation_z(PI / -3.0);
                         },
-                        "Flute" => {
+                        "Flute" | "GlassFlute" => {
                             next.hand_l.position = Vec3::new(
                                 4.0 - s_a.hand.0,
                                 6.0 + s_a.hand.1 + shortealt * -0.5,
@@ -183,7 +183,7 @@ impl Animation for MusicAnimation {
                                 * Quaternion::rotation_y(2.0)
                                 * Quaternion::rotation_z(PI / -3.0);
                         },
-                        "Harp" => {
+                        "Lyre" => {
                             next.hand_l.position = Vec3::new(
                                 3.0 - s_a.hand.0,
                                 4.0 + s_a.hand.1 + shortealt * -0.1,
@@ -273,7 +273,7 @@ impl Animation for MusicAnimation {
                                 * Quaternion::rotation_y(PI)
                                 * Quaternion::rotation_z(PI / -2.0);
                         },
-                        "Perc" => {
+                        "Washboard" => {
                             next.hand_l.position = Vec3::new(
                                 3.0 - s_a.hand.0,
                                 4.0 + s_a.hand.1 + shortealt * -0.1,
@@ -313,7 +313,7 @@ impl Animation for MusicAnimation {
                             next.hand_r.orientation = Quaternion::rotation_x(1.0 + foot * -0.15)
                                 * Quaternion::rotation_y(0.6);
 
-                            next.main.position = Vec3::new(-14.0, 6.0, 4.0);
+                            next.main.position = Vec3::new(-15.0, 6.0, 4.0);
                             next.main.orientation = Quaternion::rotation_x(0.1)
                                 * Quaternion::rotation_y(2.0)
                                 * Quaternion::rotation_z(PI / -3.0);

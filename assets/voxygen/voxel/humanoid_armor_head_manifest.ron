@@ -635,11 +635,11 @@
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-3.0, -6.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -7.0, -1.0)),
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-3.0, -6.0, 2.0)),
+            vox_spec: ("armor.misc.head.helmet_orc_m", (-3.0, -4.0, 0.0)),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.misc.head.helmet"): (

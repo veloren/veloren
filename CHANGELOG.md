@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Setting for disabling flashing lights
 - Spectate mode for moderators.
 - Currently playing music track and artist now shows in the debug menu.
@@ -33,8 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Graphics presets
 - Sword
 - Doors now animate opening when entities are near them.
+- Musical instruments can now be crafted, looted and played
 
 ### Changed
+
 - Use fluent for translations
 - First tab on Login screen triggers username focus
 - Certain NPCs will now attack when alone with victim
@@ -48,9 +51,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Item pickup UI now displays items that members of your group pick up.
 - Improved shiny water shaders
 - Tweaked armor stats
+
 ### Removed
 
 ### Fixed
+
 - Fixed npc not handling interactions while fighting (especially merchants in trade)
 - Fixed bug where you would still be burning after dying in lava.
 - Workaround for rayon bug that caused lag spikes in slowjobs
@@ -74,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.13.0] - 2022-07-23
 
 ### Added
+
 - Chat commands to mute and unmute players
 - Waypoints saved between sessions and shared with group members.
 - New rocks
@@ -129,9 +135,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled caves: they're now a multi-layer network spanning the entire world
 
 ### Removed
+
 - Removed the options for single and cumulated damage.
 
 ### Fixed
+
 - Fixed bug that would sometimes cause taking a screenshot to panic because a buffer was mapped at the wrong time.
 - Players can no longer push waypoints around
 - Sites will now also be placed near the edge of the map
@@ -821,7 +829,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New attack animation
 - Weapon control system
 - Game pauses when in single player and pause menu
-- Added authentication system (to play on the official server register on https://account.veloren.net)
+- Added authentication system (to play on the official server register on <https://account.veloren.net>)
 - Added gamepad/controller support
 - Added player feedback when attempting to pickup an item with a full inventory
 - Added free look

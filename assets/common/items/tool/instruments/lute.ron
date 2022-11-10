@@ -1,6 +1,6 @@
 ItemDef(
     name: "Lute",
-    description: "Common Lute.",
+    description: "Wooden Lute.",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -16,6 +16,6 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [],
+    tags: [Utility],
     ability_spec: Some(Custom("Lute")),
 )

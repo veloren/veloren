@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sitar",
-    description: "Wooden Sitar.",
+    name: "Washboard",
+    description: "Washboard.",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Common,
     tags: [Utility],
-    ability_spec: Some(Custom("Sitar")),
+    ability_spec: Some(Custom("Washboard")),
 )

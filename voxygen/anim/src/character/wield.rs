@@ -308,7 +308,7 @@ impl Animation for WieldAnimation {
                 Some(ToolKind::Instrument) => {
                     if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
                         match spec.as_str() {
-                            "Harp" => {
+                            "Lyre" => {
                                 if speed < 0.5 {
                                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                                         * Quaternion::rotation_x(
@@ -329,7 +329,7 @@ impl Animation for WieldAnimation {
                                     * Quaternion::rotation_y(2.0 + u_slow * 0.1)
                                     * Quaternion::rotation_z(u_slowalt * 0.1);
                             },
-                            "Flute" => {
+                            "Flute" | "GlassFlute" => {
                                 if speed < 0.5 {
                                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                                         * Quaternion::rotation_x(
@@ -351,14 +351,14 @@ impl Animation for WieldAnimation {
                                     * Quaternion::rotation_y(2.0 + u_slow * 0.1)
                                     * Quaternion::rotation_z(u_slowalt * 0.1);
                             },
-                            "Bass" => {
+                            "DoubleBass" => {
                                 if speed < 0.5 {
                                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                                         * Quaternion::rotation_x(
                                             0.0 + head_look.y.abs() + look_dir.z * 0.7,
                                         );
                                 }
-                                next.hand_l.position = Vec3::new(-6.0, 5.0, -5.0);
+                                next.hand_l.position = Vec3::new(-6.0, 6.0, -5.0);
                                 next.hand_l.orientation = Quaternion::rotation_x((PI / 2.0) + 0.3)
                                     * Quaternion::rotation_y(0.7)
                                     * Quaternion::rotation_y(0.25)
@@ -366,7 +366,7 @@ impl Animation for WieldAnimation {
                                 next.hand_r.position = Vec3::new(-2.0, 4.0, 5.0);
                                 next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                                     * Quaternion::rotation_z(PI / 2.0);
-                                next.main.position = Vec3::new(-14.0, 4.0, -6.0);
+                                next.main.position = Vec3::new(-14.0, 6.0, -6.0);
                                 next.main.orientation = Quaternion::rotation_x(-0.2)
                                     * Quaternion::rotation_y(1.2)
                                     * Quaternion::rotation_z(-1.2);
@@ -376,7 +376,7 @@ impl Animation for WieldAnimation {
                                     * Quaternion::rotation_y(2.0 + u_slow * 0.1)
                                     * Quaternion::rotation_z(u_slowalt * 0.1);
                             },
-                            "Perc" => {
+                            "Washboard" => {
                                 if speed < 0.5 {
                                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                                         * Quaternion::rotation_x(

@@ -474,9 +474,9 @@
         secondary: "common.abilities.tool.golf_club.charged",
         abilities: [],
     ),
-    Custom("Bass"): (
-        primary: "common.abilities.music.bass",
-        secondary: "common.abilities.music.bass",
+    Custom("DoubleBass"): (
+        primary: "common.abilities.music.double_bass",
+        secondary: "common.abilities.music.double_bass",
         abilities: [],
     ),
     Custom("Flute"): (
@@ -484,14 +484,19 @@
         secondary: "common.abilities.music.flute",
         abilities: [],
     ),
-    Custom("Harp"): (
-        primary: "common.abilities.music.harp",
-        secondary: "common.abilities.music.harp",
+    Custom("GlassFlute"): (
+        primary: "common.abilities.music.glass_flute",
+        secondary: "common.abilities.music.glass_flute",
         abilities: [],
     ),
-    Custom("Perc"): (
-        primary: "common.abilities.music.perc",
-        secondary: "common.abilities.music.perc",
+    Custom("Lyre"): (
+        primary: "common.abilities.music.lyre",
+        secondary: "common.abilities.music.lyre",
+        abilities: [],
+    ),
+    Custom("Washboard"): (
+        primary: "common.abilities.music.washboard",
+        secondary: "common.abilities.music.washboard",
         abilities: [],
     ),
     Custom("Kalimba"): (

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Harp",
-    description: "Common Harp.",
+    name: "Double Bass",
+    description: "Wooden Bass.",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -16,6 +16,6 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [],
-    ability_spec: Some(Custom("Harp")),
+    tags: [Utility],
+    ability_spec: Some(Custom("DoubleBass")),
 )
