@@ -1,7 +1,4 @@
-use common::{
-    comp::Ori, 
-    outcome::HealthChangeInfo
-};
+use common::{comp::Ori, outcome::HealthChangeInfo};
 use specs::{Component, VecStorage};
 use vek::*;
 

@@ -135,7 +135,7 @@ pub struct SceneData<'a> {
     pub flashing_lights_enabled: bool,
     pub figure_lod_render_distance: f32,
     pub is_aiming: bool,
-    pub interpolated_time_of_day: f64
+    pub interpolated_time_of_day: f64,
 }
 
 impl<'a> SceneData<'a> {
@@ -503,7 +503,7 @@ impl Scene {
         audio: &mut AudioFrontend,
         scene_data: &SceneData,
         client: &Client,
-    ) { 
+    ) {
         span!(_guard, "maintain", "Scene::maintain");
         // Get player position.
         let ecs = scene_data.state.ecs();
@@ -718,16 +718,18 @@ impl Scene {
 
         // Update light projection matrices for the shadow map.
 
-        // When the target time of day and time of day have a large discrepancy 
-        // (i.e two days), the linear interpolation causes brght flashing effects 
-        // in the sky. This will snap the time of day to the target time of day 
-        // for the client to avoid the flashing effect if flashing lights is 
-        // disabled. 
+        // When the target time of day and time of day have a large discrepancy
+        // (i.e two days), the linear interpolation causes brght flashing effects
+        // in the sky. This will snap the time of day to the target time of day
+        // for the client to avoid the flashing effect if flashing lights is
+        // disabled.
         const DAY: f64 = 60.0 * 60.0 * 24.0;
         let time_of_day = scene_data.state.get_time_of_day();
-        self.interpolated_time_of_day = if (self.interpolated_time_of_day - time_of_day).abs() > DAY*2.0 
-            && !scene_data.flashing_lights_enabled{
-                time_of_day
+        self.interpolated_time_of_day = if (self.interpolated_time_of_day - time_of_day).abs()
+            > DAY * 2.0
+            && !scene_data.flashing_lights_enabled
+        {
+            time_of_day
         } else {
             Lerp::lerp(self.interpolated_time_of_day, time_of_day, dt as f64)
         };

@@ -1008,7 +1008,7 @@ impl Client {
         self.lod_distance = lod_distance;
     }
 
-    pub fn set_flashing_lights_enabled(&mut self, flashing_lights_enabled: bool){
+    pub fn set_flashing_lights_enabled(&mut self, flashing_lights_enabled: bool) {
         self.flashing_lights_enabled = flashing_lights_enabled;
     }
 

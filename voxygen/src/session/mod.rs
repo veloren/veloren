@@ -1818,7 +1818,7 @@ impl PlayState for SessionState {
             weapon_trails_enabled: settings.graphics.weapon_trails_enabled,
             flashing_lights_enabled: settings.graphics.render_mode.flashing_lights_enabled,
             is_aiming: self.is_aiming,
-            interpolated_time_of_day: self.scene.interpolated_time_of_day
+            interpolated_time_of_day: self.scene.interpolated_time_of_day,
         };
 
         // Render world
