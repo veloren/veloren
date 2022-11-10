@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Musical instruments can now be crafted, looted and played
 - NPCs now move to their target's last known position.
 - Experience bar below the hotbar
+- Bridges.
 
 ### Changed
 
