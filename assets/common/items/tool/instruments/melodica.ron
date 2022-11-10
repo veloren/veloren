@@ -1,6 +1,6 @@
 ItemDef(
     name: "Melodica",
-    description: "Common Melodica.",
+    description: "Wooden Melodica.",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -16,6 +16,6 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [],
+    tags: [Utility],
     ability_spec: Some(Custom("Melodica")),
 )

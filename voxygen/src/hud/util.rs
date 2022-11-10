@@ -407,6 +407,10 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.music.lute" => imgs.instrument,
         "common.abilities.music.guitar" => imgs.instrument,
         "common.abilities.music.sitar" => imgs.instrument,
+        "common.abilities.music.double_bass" => imgs.instrument,
+        "common.abilities.music.glass_flute" => imgs.instrument,
+        "common.abilities.music.lyre" => imgs.instrument,
+        "common.abilities.music.washboard" => imgs.instrument,
         _ => imgs.not_found,
     }
 }

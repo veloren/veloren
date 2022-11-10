@@ -2067,4 +2067,101 @@
         craft_sprite: Some(Cauldron),
         is_recycling: false,
     ),
+    // musical instruments
+    "double_bass": (
+        output: ("common.items.tool.instruments.double_bass", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 6, false),
+            (Item("common.items.crafting_ing.resin"), 3, false),
+            (Item("common.items.flowers.plant_fiber"), 4, false),
+            (Item("common.items.mineral.ore.iron"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "flute": (
+        output: ("common.items.tool.instruments.flute", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 1, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "guitar": (
+        output: ("common.items.tool.instruments.guitar", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 4, false),
+            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.flowers.plant_fiber"), 6, false),
+            (Item("common.items.mineral.ore.iron"), 4, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),    
+    "lyre": (
+        output: ("common.items.tool.instruments.lyre", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 3, false),
+            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.flowers.plant_fiber"), 5, false),
+            (Item("common.items.mineral.ore.iron"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "kalimba": (
+        output: ("common.items.tool.instruments.kalimba", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 2, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.mineral.ore.iron"), 8, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "lute": (
+        output: ("common.items.tool.instruments.lute", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 2, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.flowers.plant_fiber"), 3, false),
+            (Item("common.items.mineral.ore.iron"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "melodica": (
+        output: ("common.items.tool.instruments.melodica", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 1, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.mineral.ore.tin"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "washboard": (
+        output: ("common.items.tool.instruments.washboard", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 2, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.mineral.ore.copper"), 2, false),
+            (Item("common.items.mineral.ore.tin"), 2, false),
+            (Item("common.items.mineral.ore.iron"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "sitar": (
+        output: ("common.items.tool.instruments.sitar", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 4, false),
+            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.mineral.ore.iron"), 2, false),
+            (Item("common.items.mineral.ore.silver"), 12, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
 }

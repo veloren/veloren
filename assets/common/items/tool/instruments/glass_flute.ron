@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bass",
-    description: "Common Bass.",
+    name: "Glass Flute",
+    description: "What's the Cardinal doing with it?",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -16,6 +16,6 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [],
-    ability_spec: Some(Custom("Bass")),
+    tags: [Utility],
+    ability_spec: Some(Custom("GlassFlute")),
 )

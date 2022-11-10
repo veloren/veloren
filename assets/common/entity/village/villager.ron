@@ -14,6 +14,9 @@
                 (1, Item("common.items.weapons.tool.rake")),
                 (1, Item("common.items.weapons.tool.shovel-0")),
                 (1, Item("common.items.weapons.tool.shovel-1")),
+                (1, Item("common.items.tool.instruments.lyre")),
+                (1, Item("common.items.tool.instruments.lute")),
+                (1, Item("common.items.tool.instruments.guitar")),
             ]), None)),
         )),
         items: [

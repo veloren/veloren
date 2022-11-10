@@ -6,6 +6,7 @@
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.poor")),
     // Crafting ingredients
-    (1.0, ItemQuantity("common.items.log.wood", 5, 10)),
+    (1.0, ItemQuantity("common.items.log.hardwood", 5, 10)),
     (0.5, LootTable("common.loot_tables.weapons.components.secondary.sceptre")),
+    (1.0, Item("common.items.crafting_ing.resin")),
 ]

@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Resin",
+    description: "Used for woodworking.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)
