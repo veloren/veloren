@@ -3529,7 +3529,7 @@ impl<'a> AgentData<'a> {
         {
             // If already charging, keep charging if not in recover
             controller.push_basic_input(InputKind::Ability(0));
-        } else if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) {
+        } else if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) && attack_data.angle < 45.0 {
             if agent.action_state.counters[ActionStateFCounters::FCounterRoshwalrAttack as usize]
                 > SHOCKWAVE_TIMER
             {
