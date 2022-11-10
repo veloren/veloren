@@ -3507,6 +3507,63 @@ impl<'a> AgentData<'a> {
         );
     }
 
+    pub fn handle_roshwalr_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const SLOW_CHARGE_RANGE: f32 = 20.0;
+        const SHOCKWAVE_RANGE: f32 = 12.5;
+        const SHOCKWAVE_TIMER: f32 = 10.0;
+
+        enum ActionStateFCounters {
+            FCounterRoshwalrAttack = 0,
+        }
+
+        agent.action_state.counters[ActionStateFCounters::FCounterRoshwalrAttack as usize] +=
+            read_data.dt.0;
+        if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already charging, keep charging if not in recover
+            controller.push_basic_input(InputKind::Ability(0));
+        } else if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) {
+            if agent.action_state.counters[ActionStateFCounters::FCounterRoshwalrAttack as usize]
+                > SHOCKWAVE_TIMER
+            {
+                // Use shockwave if timer has gone for long enough
+                controller.push_basic_input(InputKind::Ability(0));
+
+                if matches!(self.char_state, CharacterState::Shockwave(_)) {
+                    // Resets action counter when using shockwave
+                    agent.action_state.counters
+                        [ActionStateFCounters::FCounterRoshwalrAttack as usize] = 0.0;
+                }
+            } else if attack_data.in_min_range() {
+                // Basic attack if on top of them
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                // Use slow charge if too far for other abilities
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        } else if attack_data.dist_sqrd < SLOW_CHARGE_RANGE.powi(2) {
+            // Use slow charge if in range
+            controller.push_basic_input(InputKind::Secondary);
+        }
+
+        // Always attempt to path towards target
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Partial,
+            None,
+        );
+    }
+
     pub fn handle_harvester_attack(
         &self,
         agent: &mut Agent,

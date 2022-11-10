@@ -258,6 +258,13 @@
         secondary: "common.abilities.custom.quadmedbasic.triplestrike",
         abilities: [],
     ),
+    Custom("Roshwalr"): (
+        primary: "common.abilities.custom.roshwalr.doublehusk",
+        secondary: "common.abilities.custom.roshwalr.slowcharge",
+        abilities: [
+            Simple(None, "common.abilities.custom.roshwalr.freezeshockwave"),
+        ],
+    ),
     Custom("Basilisk"): (
         primary: "common.abilities.custom.basilisk.petrify",
         secondary: "common.abilities.custom.basilisk.triplestrike",
