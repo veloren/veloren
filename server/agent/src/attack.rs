@@ -3515,9 +3515,10 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        const SLOW_CHARGE_RANGE: f32 = 20.0;
+        const SLOW_CHARGE_RANGE: f32 = 12.5;
         const SHOCKWAVE_RANGE: f32 = 12.5;
-        const SHOCKWAVE_TIMER: f32 = 10.0;
+        const SHOCKWAVE_TIMER: f32 = 15.0;
+        const MELEE_RANGE: f32 = 4.0;
 
         enum ActionStateFCounters {
             FCounterRoshwalrAttack = 0,
@@ -3529,7 +3530,7 @@ impl<'a> AgentData<'a> {
         {
             // If already charging, keep charging if not in recover
             controller.push_basic_input(InputKind::Ability(0));
-        } else if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) && attack_data.angle < 45.0 {
+        } else if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) && attack_data.angle < 270.0 {
             if agent.action_state.counters[ActionStateFCounters::FCounterRoshwalrAttack as usize]
                 > SHOCKWAVE_TIMER
             {
@@ -3541,15 +3542,12 @@ impl<'a> AgentData<'a> {
                     agent.action_state.counters
                         [ActionStateFCounters::FCounterRoshwalrAttack as usize] = 0.0;
                 }
-            } else if attack_data.in_min_range() {
-                // Basic attack if on top of them
+            } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) && attack_data.angle < 90.0{
+                // Basic attack if in melee range
                 controller.push_basic_input(InputKind::Primary);
-            } else {
-                // Use slow charge if too far for other abilities
-                controller.push_basic_input(InputKind::Secondary);
             }
-        } else if attack_data.dist_sqrd < SLOW_CHARGE_RANGE.powi(2) {
-            // Use slow charge if in range
+        } else if attack_data.dist_sqrd > SLOW_CHARGE_RANGE.powi(2) {
+            // Use slow charge if outside the range
             controller.push_basic_input(InputKind::Secondary);
         }
 
