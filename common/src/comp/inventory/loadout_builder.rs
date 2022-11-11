@@ -923,6 +923,12 @@ impl LoadoutBuilder {
                 },
                 _ => None,
             },
+            Body::QuadrupedMedium(body) => match body.species {
+                quadruped_medium::Species::Roshwalr => {
+                    Some("common.items.npc_armor.quadruped_medium.roshwalr")
+                },
+                _ => None,
+            },
             Body::Theropod(body) => match body.species {
                 theropod::Species::Archaeos
                 | theropod::Species::Yale
