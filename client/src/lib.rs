@@ -252,8 +252,10 @@ pub struct Client {
     tick: u64,
     state: State,
 
-    server_view_distance_limit: Option<u32>,
+    flashing_lights_enabled: bool,
+
     /// Terrrain view distance
+    server_view_distance_limit: Option<u32>,
     view_distance: Option<u32>,
     lod_distance: f32,
     // TODO: move into voxygen
@@ -731,6 +733,9 @@ impl Client {
 
             tick: 0,
             state,
+
+            flashing_lights_enabled: true,
+
             server_view_distance_limit: None,
             view_distance: None,
             lod_distance: 4.0,
@@ -1001,6 +1006,10 @@ impl Client {
     pub fn set_lod_distance(&mut self, lod_distance: u32) {
         let lod_distance = lod_distance.max(0).min(1000) as f32 / lod::ZONE_SIZE as f32;
         self.lod_distance = lod_distance;
+    }
+
+    pub fn set_flashing_lights_enabled(&mut self, flashing_lights_enabled: bool) {
+        self.flashing_lights_enabled = flashing_lights_enabled;
     }
 
     pub fn use_slot(&mut self, slot: Slot) {
@@ -1764,14 +1773,10 @@ impl Client {
         // Lerp the clientside weather.
         self.weather.update(&mut self.state.weather_grid_mut());
 
-        // Lerp towards the target time of day - this ensures a smooth transition for
-        // large jumps in TimeOfDay such as when using /time
         if let Some(target_tod) = self.target_time_of_day {
             let mut tod = self.state.ecs_mut().write_resource::<TimeOfDay>();
-            tod.0 = Lerp::lerp(tod.0, target_tod.0, dt.as_secs_f64());
-            if tod.0 >= target_tod.0 {
-                self.target_time_of_day = None;
-            }
+            tod.0 = target_tod.0;
+            self.target_time_of_day = None;
         }
 
         // 4) Tick the client's LocalState

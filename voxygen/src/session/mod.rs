@@ -1736,6 +1736,7 @@ impl PlayState for SessionState {
                         .figure_lod_render_distance
                         as f32,
                     is_aiming,
+                    interpolated_time_of_day: self.scene.interpolated_time_of_day,
                 };
 
                 // Runs if either in a multiplayer server or the singleplayer server is unpaused
@@ -1817,6 +1818,7 @@ impl PlayState for SessionState {
             weapon_trails_enabled: settings.graphics.weapon_trails_enabled,
             flashing_lights_enabled: settings.graphics.render_mode.flashing_lights_enabled,
             is_aiming: self.is_aiming,
+            interpolated_time_of_day: self.scene.interpolated_time_of_day,
         };
 
         // Render world
