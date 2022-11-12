@@ -830,7 +830,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.bat"),
-                (biome.mushroom + 0.1) * 0.5,
+                (biome.mushroom + 0.1) * 0.25,
             ),
             // Leafy biome
             (
@@ -875,7 +875,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.bat"),
-                (biome.leafy + 0.1) * 0.5,
+                (biome.leafy + 0.1) * 0.25,
             ),
             // Dusty biome
             (
@@ -900,7 +900,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.bat"),
-                (biome.dusty + 0.1) * 0.5,
+                (biome.dusty + 0.1) * 0.25,
             ),
             // Icy biome
             (
