@@ -2,7 +2,8 @@ use crate::rtsim::Entity as RtSimEntity;
 use common::{
     comp::{
         agent::{
-            AgentEvent, Target, TimerAction, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME,
+            AgentEvent, AwarenessState, Target, TimerAction, DEFAULT_INTERACTION_TIME,
+            TRADE_INTERACTION_TIME,
         },
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, ControlAction,
         ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
@@ -11,7 +12,6 @@ use common::{
     path::TraversalConfig,
 };
 use rand::{prelude::ThreadRng, thread_rng, Rng};
-use server_agent::consts::NORMAL_FLEE_DIR_DIST;
 use specs::{
     saveload::{Marker, MarkerAllocator},
     Entity as EcsEntity,
@@ -27,7 +27,8 @@ use self::interaction::{
 use super::{
     consts::{
         DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, MAX_FOLLOW_DIST,
-        NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
+        NORMAL_FLEE_DIR_DIST, NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
+        STD_AWARENESS_DECAY_RATE,
     },
     data::{AgentData, ReadData, TargetData},
     util::{get_entity_by_id, is_dead, is_dead_or_invulnerable, is_invulnerable, stop_pursuing},
@@ -100,7 +101,8 @@ impl BehaviorTree {
         Self {
             tree: vec![
                 untarget_if_dead,
-                do_hostile_tree_if_hostile,
+                update_target_awareness,
+                do_hostile_tree_if_hostile_and_aware,
                 do_pet_tree_if_owned,
                 do_pickup_loot,
                 do_idle_tree,
@@ -247,6 +249,8 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                                 .push_event(ControlEvent::Utterance(UtteranceKind::Angry));
                         }
 
+                        bdata.agent.awareness.change_by(1.0);
+
                         // Determine whether the new target should be a priority
                         // over the old one (i.e: because it's either close or
                         // because they attacked us).
@@ -316,10 +320,13 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-/// If target is hostile, do the hostile tree and stop the current BehaviorTree
-fn do_hostile_tree_if_hostile(bdata: &mut BehaviorData) -> bool {
+/// If target is hostile and agent is aware of target, do the hostile tree and
+/// stop the current BehaviorTree
+fn do_hostile_tree_if_hostile_and_aware(bdata: &mut BehaviorData) -> bool {
+    let alert = bdata.agent.awareness.reached();
+
     if let Some(Target { hostile, .. }) = bdata.agent.target {
-        if hostile {
+        if alert && hostile {
             BehaviorTree::hostile().run(bdata);
             return true;
         }
@@ -511,6 +518,41 @@ fn hurt_utterance(bdata: &mut BehaviorData) -> bool {
         }
         bdata.agent.inbox.pop_front();
     }
+    false
+}
+
+fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
+    let BehaviorData {
+        agent,
+        agent_data,
+        read_data,
+        controller,
+        ..
+    } = bdata;
+
+    let target = agent.target.map(|t| t.target);
+    let tgt_pos = target.and_then(|t| read_data.positions.get(t));
+
+    if let (Some(target), Some(tgt_pos)) = (target, tgt_pos) {
+        if agent_data.can_see_entity(agent, controller, target, tgt_pos, read_data) {
+            agent.awareness.change_by(1.75 * read_data.dt.0);
+        } else if agent_data.can_sense_directly_near(tgt_pos) {
+            agent.awareness.change_by(0.25);
+        } else {
+            agent
+                .awareness
+                .change_by(STD_AWARENESS_DECAY_RATE * read_data.dt.0);
+        }
+    } else {
+        agent
+            .awareness
+            .change_by(STD_AWARENESS_DECAY_RATE * read_data.dt.0);
+    }
+
+    if bdata.agent.awareness.state() == AwarenessState::Unaware {
+        bdata.agent.target = None;
+    }
+
     false
 }
 

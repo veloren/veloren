@@ -203,6 +203,7 @@ impl<'a> System<'a> for Sys {
                         msm: &read_data.msm,
                         poise: read_data.poises.get(entity),
                     };
+
                     ///////////////////////////////////////////////////////////
                     // Behavior tree
                     ///////////////////////////////////////////////////////////

@@ -1,7 +1,7 @@
 use crate::{
     consts::{
         AVG_FOLLOW_DIST, DEFAULT_ATTACK_RANGE, IDLE_HEALING_ITEM_THRESHOLD, PARTIAL_PATH_DIST,
-        SEPARATION_BIAS, SEPARATION_DIST,
+        SEPARATION_BIAS, SEPARATION_DIST, STD_AWARENESS_DECAY_RATE,
     },
     data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
     util::{
@@ -166,6 +166,11 @@ impl<'a> AgentData<'a> {
         enum ActionTimers {
             TimerIdle = 0,
         }
+
+        agent
+            .awareness
+            .change_by(STD_AWARENESS_DECAY_RATE * read_data.dt.0);
+
         // Light lanterns at night
         // TODO Add a method to turn on NPC lanterns underground
         let lantern_equipped = self
@@ -696,13 +701,8 @@ impl<'a> AgentData<'a> {
             },
         };
 
-        let can_sense_directly_near =
-            { |e_pos: &Pos| e_pos.0.distance_squared(self.pos.0) < 5_f32.powi(2) };
-
         let is_detected = |entity: EcsEntity, e_pos: &Pos| {
-            let chance = thread_rng().gen_bool(0.3);
-
-            (can_sense_directly_near(e_pos) && chance)
+            self.can_sense_directly_near(e_pos)
                 || self.can_see_entity(agent, controller, entity, e_pos, read_data)
         };
 
@@ -1306,9 +1306,6 @@ impl<'a> AgentData<'a> {
                 .map_or(false, |stats| stats.name == *"Guard".to_string());
             let follows_threatening_sounds = has_enemy_alignment || is_village_guard;
 
-            // TODO: Awareness currently doesn't influence anything.
-            //agent.awareness += 0.5 * sound.vol;
-
             if sound_was_threatening && is_close {
                 if !self.below_flee_health(agent) && follows_threatening_sounds {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
@@ -1517,7 +1514,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn can_see_entity(
+    pub fn can_see_entity(
         &self,
         agent: &Agent,
         controller: &Controller,
@@ -1548,6 +1545,11 @@ impl<'a> AgentData<'a> {
         (within_sight_dist)
             && within_fov
             && entities_have_line_of_sight(self.pos, self.body, other_pos, other_body, read_data)
+    }
+
+    pub fn can_sense_directly_near(&self, e_pos: &Pos) -> bool {
+        let chance = thread_rng().gen_bool(0.3);
+        e_pos.0.distance_squared(self.pos.0) < 5_f32.powi(2) && chance
     }
 
     pub fn menacing(

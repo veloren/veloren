@@ -18,7 +18,6 @@ use super::{dialogue::Subject, Pos};
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
-const AWARENESS_DECREMENT_CONSTANT: f32 = 2.1;
 const SECONDS_BEFORE_FORGET_SOUNDS: f64 = 180.0;
 
 //intentionally very few concurrent action state variables are allowed. This is
@@ -529,12 +528,77 @@ pub struct Agent {
     pub timer: Timer,
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
-    pub awareness: f32,
     pub position_pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
     /// Position from which to flee. Intended to be the agent's position plus a
     /// random position offset, to be used when a random flee direction is
     /// required and reset each time the flee timer is reset.
     pub flee_from_pos: Option<Pos>,
+    pub awareness: Awareness,
+}
+
+#[derive(Clone, Debug)]
+/// Always clamped between `0.0` and `1.0`.
+pub struct Awareness {
+    level: f32,
+    reached: bool,
+}
+impl fmt::Display for Awareness {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:.2}", self.level) }
+}
+impl Awareness {
+    const ALERT: f32 = 1.0;
+    const HIGH: f32 = 0.6;
+    const LOW: f32 = 0.1;
+    const MEDIUM: f32 = 0.3;
+    const UNAWARE: f32 = 0.0;
+
+    pub fn new(level: f32) -> Self {
+        Self {
+            level: level.clamp(Self::UNAWARE, Self::ALERT),
+            reached: false,
+        }
+    }
+
+    /// The level of awareness as a decimal.
+    pub fn level(&self) -> f32 { self.level }
+
+    /// The level of awareness in English. To see if awareness has been fully
+    /// reached, use `self.reached()`.
+    pub fn state(&self) -> AwarenessState {
+        if self.level == Self::ALERT {
+            AwarenessState::Alert
+        } else if self.level.is_between(Self::HIGH, Self::ALERT) {
+            AwarenessState::High
+        } else if self.level.is_between(Self::MEDIUM, Self::HIGH) {
+            AwarenessState::Medium
+        } else if self.level.is_between(Self::LOW, Self::MEDIUM) {
+            AwarenessState::Low
+        } else {
+            AwarenessState::Unaware
+        }
+    }
+
+    /// Awareness was reached at some point and has not been reset.
+    pub fn reached(&self) -> bool { self.reached }
+
+    pub fn change_by(&mut self, amount: f32) {
+        self.level = (self.level + amount).clamp(Self::UNAWARE, Self::ALERT);
+
+        if self.state() == AwarenessState::Alert {
+            self.reached = true;
+        } else if self.state() == AwarenessState::Unaware {
+            self.reached = false;
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialOrd, PartialEq, Eq)]
+pub enum AwarenessState {
+    Unaware = 0,
+    Low = 1,
+    Medium = 2,
+    High = 3,
+    Alert = 4,
 }
 
 /// State persistence object for the behavior tree
@@ -565,9 +629,9 @@ impl Agent {
             timer: Timer::default(),
             bearing: Vec2::zero(),
             sounds_heard: Vec::new(),
-            awareness: 0.0,
             position_pid_controller: None,
             flee_from_pos: None,
+            awareness: Awareness::new(0.0),
         }
     }
 
@@ -616,34 +680,6 @@ impl Agent {
     pub fn with_aggro_no_warn(mut self) -> Self {
         self.psyche.aggro_dist = None;
         self
-    }
-
-    pub fn decrement_awareness(&mut self, dt: f32) {
-        let mut decrement = dt * AWARENESS_DECREMENT_CONSTANT;
-        let awareness = self.awareness;
-
-        let too_high = awareness >= 100.0;
-        let high = awareness >= 50.0;
-        let medium = awareness >= 30.0;
-        let low = awareness > 15.0;
-        let positive = awareness >= 0.0;
-        let negative = awareness < 0.0;
-
-        if too_high {
-            decrement *= 3.0;
-        } else if high {
-            decrement *= 1.0;
-        } else if medium {
-            decrement *= 2.5;
-        } else if low {
-            decrement *= 0.70;
-        } else if positive {
-            decrement *= 0.5;
-        } else if negative {
-            return;
-        }
-
-        self.awareness -= decrement;
     }
 
     pub fn forget_old_sounds(&mut self, time: f64) {
