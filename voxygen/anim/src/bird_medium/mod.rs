@@ -153,7 +153,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Female) => (3.5, -6.0, 3.5),
                 (Parrot, _) => (2.0, -4.5, 3.0),
                 (Penguin, _) => (4.0, 0.5, 1.0),
-                (Bat, _) => (3.0, -8.0, -1.0),
+                (Bat, _) => (1.0, -8.0, -2.0),
             },
             foot: match (body.species, body.body_type) {
                 (Duck, _) => (2.5, -2.0, 4.0),

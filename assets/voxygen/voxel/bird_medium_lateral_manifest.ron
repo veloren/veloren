@@ -289,11 +289,11 @@
     ),
     (Bat, Male): (
         wing_l: (
-            offset: (-13.0, 2.5, -3.5),
+            offset: (-15.0, 2.5, -2.5),
             lateral: ("npc.bat.male.wing_r"),
         ),
         wing_r: (
-            offset: (-1.0, 2.5, -3.5),
+            offset: (1.0, 2.5, -2.5),
             lateral: ("npc.bat.male.wing_r"),
         ),
         foot_l: (
@@ -307,11 +307,11 @@
     ),
     (Bat, Female): (
         wing_l: (
-            offset: (-13.0, 2.5, -3.5),
+            offset: (-15.0, 2.5, -2.5),
             lateral: ("npc.bat.male.wing_r"),
         ),
         wing_r: (
-            offset: (-1.0, 2.5, -3.5),
+            offset: (1.0, 2.5, -2.5),
             lateral: ("npc.bat.male.wing_r"),
         ),
         foot_l: (
