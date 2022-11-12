@@ -3542,7 +3542,7 @@ impl<'a> AgentData<'a> {
                     agent.action_state.counters
                         [ActionStateFCounters::FCounterRoshwalrAttack as usize] = 0.0;
                 }
-            } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) && attack_data.angle < 90.0{
+            } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) && attack_data.angle < 135.0{
                 // Basic attack if in melee range
                 controller.push_basic_input(InputKind::Primary);
             }
