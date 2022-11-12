@@ -1,0 +1,6 @@
+[
+    (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
+    (1.0, Item("common.items.crafting_ing.resin")),
+    (1.0, Item("common.items.log.hardwood")),
+    (1.0, Item("common.items.flowers.plant_fiber")),
+]

@@ -135,6 +135,7 @@ impl Body {
                 quadruped_low::Species::Icedrake => 100.0,
                 quadruped_low::Species::Basilisk => 90.0,
                 quadruped_low::Species::Deadwood => 140.0,
+                quadruped_low::Species::Mossdrake => 100.0,
             },
             Body::Ship(_) => 0.0,
             Body::Arthropod(arthropod) => match arthropod.species {
@@ -206,6 +207,7 @@ impl Body {
                 quadruped_low::Species::Rootsnapper => 1.8,
                 quadruped_low::Species::Lavadrake => 1.7,
                 quadruped_low::Species::Icedrake => 1.7,
+                quadruped_low::Species::Mossdrake => 1.7,
                 _ => 2.0,
             },
             Body::Ship(ship) if ship.has_water_thrust() => 0.1,

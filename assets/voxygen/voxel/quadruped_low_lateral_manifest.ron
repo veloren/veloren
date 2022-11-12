@@ -719,4 +719,40 @@
             lateral: ("npc.deadwood.male.foot_br", false),
         ),
     ),
+    (Mossdrake, Male): (
+        front_left: (
+            offset: (-14.0, -1.0, -10.0),
+            lateral: ("npc.mossdrake.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, -1.0, -10.0),
+            lateral: ("npc.mossdrake.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-14.0, -7.5, -10.0),
+            lateral: ("npc.mossdrake.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -7.5, -10.0),
+            lateral: ("npc.mossdrake.male.foot_br", false),
+        ),
+    ),
+    (Mossdrake, Female): (
+        front_left: (
+            offset: (-14.0, -1.0, -10.0),
+            lateral: ("npc.mossdrake.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, -1.0, -10.0),
+            lateral: ("npc.mossdrake.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-14.0, -7.5, -10.0),
+            lateral: ("npc.mossdrake.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -7.5, -10.0),
+            lateral: ("npc.mossdrake.male.foot_br", false),
+        ),
+    ),
 })

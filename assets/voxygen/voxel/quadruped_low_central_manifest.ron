@@ -1040,4 +1040,56 @@
             central: ("armor.empty"),
         ),
     ),
+    (Mossdrake, Male): (
+        upper: (
+            offset: (-6.5, -2.0, -5.5),
+            central: ("npc.mossdrake.male.head_upper"),
+        ),
+        lower: (
+            offset: (-6.5, -1.0, -3.0),
+            central: ("npc.mossdrake.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, -2.0, -5.0),
+            central: ("npc.mossdrake.male.jaw"),
+        ),
+        chest: (
+            offset: (-13.5, -11.5, -12.5),
+            central: ("npc.mossdrake.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-6.5, -24.0, -3.5),
+            central: ("npc.mossdrake.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-5.5, -12.0, -6.5),
+            central: ("npc.mossdrake.male.tail_front"),
+        ),
+    ),
+    (Mossdrake, Female): (
+        upper: (
+            offset: (-6.5, -2.0, -5.5),
+            central: ("npc.mossdrake.male.head_upper"),
+        ),
+        lower: (
+            offset: (-6.5, -1.0, -3.0),
+            central: ("npc.mossdrake.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, -2.0, -5.0),
+            central: ("npc.mossdrake.male.jaw"),
+        ),
+        chest: (
+            offset: (-13.5, -11.5, -12.5),
+            central: ("npc.mossdrake.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-6.5, -24.0, -3.5),
+            central: ("npc.mossdrake.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-5.5, -12.0, -6.5),
+            central: ("npc.mossdrake.male.tail_front"),
+        ),
+    ),
 })

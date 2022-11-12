@@ -326,6 +326,7 @@ impl Body {
                 quadruped_low::Species::Salamander => 65.0,
                 quadruped_low::Species::Elbst => 65.0,
                 quadruped_low::Species::Tortoise => 200.0,
+                quadruped_low::Species::Mossdrake => 500.0,
                 _ => 200.0,
             },
             Body::QuadrupedMedium(body) => match body.species {
@@ -496,6 +497,7 @@ impl Body {
                 quadruped_low::Species::Salamander => Vec3::new(1.7, 4.0, 1.3),
                 quadruped_low::Species::Elbst => Vec3::new(1.7, 4.0, 1.3),
                 quadruped_low::Species::Tortoise => Vec3::new(1.7, 2.7, 1.5),
+                quadruped_low::Species::Mossdrake => Vec3::new(2.0, 4.7, 2.5),
                 _ => Vec3::new(1.0, 1.6, 1.3),
             },
             Body::Ship(ship) => ship.dimensions(),
@@ -796,6 +798,7 @@ impl Body {
                 quadruped_low::Species::Lavadrake => 160,
                 quadruped_low::Species::Basilisk => 200,
                 quadruped_low::Species::Deadwood => 120,
+                quadruped_low::Species::Mossdrake => 160,
                 _ => 70,
             },
             Body::Arthropod(arthropod) => match arthropod.species {
