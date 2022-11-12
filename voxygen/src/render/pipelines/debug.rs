@@ -12,7 +12,7 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         const ATTRIBUTES: [wgpu::VertexAttribute; 3] =
             wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x4, 2 => Float32x3];
         wgpu::VertexBufferLayout {
@@ -80,7 +80,11 @@ impl DebugPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Debug pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layouts.globals, &layout.locals],
+                bind_group_layouts: &[
+                    &global_layouts.globals,
+                    &global_layouts.shadow_textures,
+                    &layout.locals,
+                ],
             });
 
         let samples = aa_mode.samples();

@@ -1017,6 +1017,7 @@ impl Renderer {
                         shadow.point,
                         shadow.directed,
                         shadow.figure,
+                        shadow.debug,
                         shadow_views,
                     );
 
@@ -1076,16 +1077,19 @@ impl Renderer {
                         Some(point_pipeline),
                         Some(terrain_directed_pipeline),
                         Some(figure_directed_pipeline),
+                        Some(debug_directed_pipeline),
                         ShadowMap::Enabled(shadow_map),
                     ) = (
                         shadow_pipelines.point,
                         shadow_pipelines.directed,
                         shadow_pipelines.figure,
+                        shadow_pipelines.debug,
                         &mut shadow.map,
                     ) {
                         shadow_map.point_pipeline = point_pipeline;
                         shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
                         shadow_map.figure_directed_pipeline = figure_directed_pipeline;
+                        shadow_map.debug_directed_pipeline = debug_directed_pipeline;
                     }
 
                     if let (

@@ -1244,6 +1244,8 @@ impl Scene {
                         tick,
                         camera_data,
                     );
+                    self.debug
+                        .render_shadows(&mut shadow_pass.draw_debug_shadows());
                 }
             }
 

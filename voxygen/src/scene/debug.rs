@@ -1,5 +1,6 @@
 use crate::render::{
-    Bound, Consts, DebugDrawer, DebugLocals, DebugVertex, Mesh, Model, Quad, Renderer, Tri,
+    Bound, Consts, DebugDrawer, DebugLocals, DebugShadowDrawer, DebugVertex, Mesh, Model, Quad,
+    Renderer, Tri,
 };
 use common::util::srgba_to_linear;
 use hashbrown::{HashMap, HashSet};
@@ -264,6 +265,7 @@ pub struct Debug {
     pending_locals: HashMap<DebugShapeId, ([f32; 4], [f32; 4], [f32; 4])>,
     pending_deletes: HashSet<DebugShapeId>,
     models: HashMap<DebugShapeId, (Model<DebugVertex>, Bound<Consts<DebugLocals>>)>,
+    casts_shadow: HashSet<DebugShapeId>,
 }
 
 impl Debug {
@@ -274,12 +276,16 @@ impl Debug {
             pending_locals: HashMap::new(),
             pending_deletes: HashSet::new(),
             models: HashMap::new(),
+            casts_shadow: HashSet::new(),
         }
     }
 
     pub fn add_shape(&mut self, shape: DebugShape) -> DebugShapeId {
         let id = DebugShapeId(self.next_shape_id.0);
         self.next_shape_id.0 += 1;
+        if matches!(shape, DebugShape::TrainTrack { .. }) {
+            self.casts_shadow.insert(id);
+        }
         self.pending_shapes.insert(id, shape);
         id
     }
@@ -330,6 +336,14 @@ impl Debug {
     pub fn render<'a>(&'a self, drawer: &mut DebugDrawer<'_, 'a>) {
         for (model, locals) in self.models.values() {
             drawer.draw(model, locals);
+        }
+    }
+
+    pub fn render_shadows<'a>(&'a self, drawer: &mut DebugShadowDrawer<'_, 'a>) {
+        for id in self.casts_shadow.iter() {
+            if let Some((model, locals)) = self.models.get(id) {
+                drawer.draw(model, locals);
+            }
         }
     }
 }

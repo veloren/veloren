@@ -6,7 +6,6 @@ use super::{
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, shadow,
             skybox, sprite, terrain, trail, ui, ColLights, GlobalsBindGroup,
-            ShadowTexturesBindGroup,
         },
     },
     rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
@@ -250,7 +249,6 @@ impl<'frame> Drawer<'frame> {
             borrow: &self.borrow,
             pipelines,
             globals: self.globals,
-            shadows: &shadow.bind,
         })
     }
 
@@ -681,6 +679,17 @@ impl<'pass> ShadowPassDrawer<'pass> {
 
         TerrainShadowDrawer { render_pass }
     }
+
+    pub fn draw_debug_shadows(&mut self) -> DebugShadowDrawer<'_, 'pass> {
+        let mut render_pass = self
+            .render_pass
+            .scope("directed_debug_shadows", self.borrow.device);
+
+        render_pass.set_pipeline(&self.shadow_renderer.debug_directed_pipeline.pipeline);
+        set_quad_index_buffer::<debug::Vertex>(&mut render_pass, self.borrow);
+
+        DebugShadowDrawer { render_pass }
+    }
 }
 
 #[must_use]
@@ -750,6 +759,23 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
     }
 }
 
+#[must_use]
+pub struct DebugShadowDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> DebugShadowDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: &'data Model<debug::Vertex>,
+        locals: &'data debug::BoundLocals,
+    ) {
+        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.draw(0..model.len() as u32, 0..1);
+    }
+}
+
 // First pass
 #[must_use]
 pub struct FirstPassDrawer<'pass> {
@@ -757,7 +783,6 @@ pub struct FirstPassDrawer<'pass> {
     borrow: &'pass RendererBorrow<'pass>,
     pipelines: &'pass super::Pipelines,
     globals: &'pass GlobalsBindGroup,
-    shadows: &'pass ShadowTexturesBindGroup,
 }
 
 impl<'pass> FirstPassDrawer<'pass> {
@@ -776,10 +801,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         render_pass.set_pipeline(&self.pipelines.debug.pipeline);
         set_quad_index_buffer::<debug::Vertex>(&mut render_pass, self.borrow);
 
-        DebugDrawer {
-            render_pass,
-            shadows: self.shadows,
-        }
+        DebugDrawer { render_pass }
     }
 
     pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
@@ -862,7 +884,6 @@ impl<'pass> FirstPassDrawer<'pass> {
 #[must_use]
 pub struct DebugDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
-    shadows: &'pass ShadowTexturesBindGroup,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
@@ -871,18 +892,9 @@ impl<'pass_ref, 'pass: 'pass_ref> DebugDrawer<'pass_ref, 'pass> {
         model: &'data Model<debug::Vertex>,
         locals: &'data debug::BoundLocals,
     ) {
-        self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
+        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.draw(0..model.len() as u32, 0..1);
-    }
-}
-
-impl<'pass_ref, 'pass: 'pass_ref> Drop for DebugDrawer<'pass_ref, 'pass> {
-    fn drop(&mut self) {
-        // Maintain that the shadow bind group is set in
-        // slot 1 by default during the main pass
-        self.render_pass
-            .set_bind_group(1, &self.shadows.bind_group, &[]);
     }
 }
 

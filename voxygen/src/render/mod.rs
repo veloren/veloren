@@ -20,7 +20,7 @@ pub use self::{
     model::{DynamicModel, Model, SubModel},
     pipelines::{
         clouds::Locals as CloudsLocals,
-        debug::{DebugPipeline, Locals as DebugLocals, Vertex as DebugVertex},
+        debug::{DebugLayout, DebugPipeline, Locals as DebugLocals, Vertex as DebugVertex},
         figure::{
             BoneData as FigureBoneData, BoneMeshes, FigureLayout, FigureModel,
             Locals as FigureLocals,
@@ -49,9 +49,10 @@ pub use self::{
     },
     renderer::{
         drawer::{
-            DebugDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer,
-            PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer, SpriteDrawer, TerrainDrawer,
-            TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer, UiDrawer,
+            DebugDrawer, DebugShadowDrawer, Drawer, FigureDrawer, FigureShadowDrawer,
+            FirstPassDrawer, ParticleDrawer, PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer,
+            SpriteDrawer, TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer,
+            UiDrawer,
         },
         ColLightInfo, Renderer,
     },

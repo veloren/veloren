@@ -49,6 +49,7 @@ impl assets::Compound for Shaders {
             "figure-vert",
             "light-shadows-figure-vert",
             "light-shadows-directed-vert",
+            "light-shadows-debug-vert",
             "rain-occlusion-figure-vert",
             "rain-occlusion-directed-vert",
             "point-light-shadows-vert",
