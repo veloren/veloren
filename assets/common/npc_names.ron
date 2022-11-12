@@ -1253,6 +1253,10 @@
                 keyword: "deadwood",
                 generic: "Deadwood"
             ),
+            mossdrake: (
+                keyword: "mossdrake",
+                generic: "Moss Drake"
+            ),
         )
     ),
     arthropod: (
