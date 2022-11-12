@@ -221,7 +221,10 @@ impl ActiveAbilities {
                 AbilityKind::Simple(skill, _) => skill
                     .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
                     .then_some(i),
-                AbilityKind::Contextualized(abilities) => abilities
+                AbilityKind::Contextualized {
+                    pseudo_id: _,
+                    abilities,
+                } => abilities
                     .values()
                     .any(|(skill, _)| {
                         skill.map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
@@ -276,39 +279,38 @@ impl Ability {
                 .map(|i| &i.item_config_expect().abilities)
         };
 
-        let contextual_id = |auxiliary_kind: Option<&AbilityKind<_>>, equip_slot| {
-            matches!(auxiliary_kind, Some(AbilityKind::Contextualized(_)))
-                .then_some(
-                    match inv.and_then(|inv| inv.equipped(equip_slot)).and_then(|i| {
-                        if let ItemKind::Tool(tool) = &*i.kind() {
-                            Some(tool.kind)
-                        } else {
-                            None
-                        }
-                    }) {
-                        Some(ToolKind::Sword) => {
-                            Some("veloren.core.pseudo_abilities.sword.stance_ability")
-                        },
-                        _ => None,
-                    },
-                )
-                .flatten()
+        let contextual_id = |auxiliary_kind: Option<&'a AbilityKind<_>>| -> Option<&'a str> {
+            if let Some(AbilityKind::Contextualized {
+                pseudo_id,
+                abilities: _,
+            }) = auxiliary_kind
+            {
+                Some(pseudo_id.as_str())
+            } else {
+                None
+            }
         };
 
         match self {
-            Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| abilities.primary(skillset, context).map(|a| a.id.as_str())),
+            Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
+                abilities
+                    .primary(skillset, context)
+                    .map(|a| a.id.as_str())
+                    .or_else(|| contextual_id(Some(&abilities.primary)))
+            }),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
                 .and_then(|abilities| {
                     abilities
                         .secondary(skillset, context)
                         .map(|a| a.id.as_str())
+                        .or_else(|| contextual_id(Some(&abilities.secondary)))
                 })
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                         abilities
                             .secondary(skillset, context)
                             .map(|a| a.id.as_str())
+                            .or_else(|| contextual_id(Some(&abilities.secondary)))
                     })
                 }),
             Ability::SpeciesMovement => None, // TODO: Make not None
@@ -317,9 +319,7 @@ impl Ability {
                     abilities
                         .auxiliary(index, skillset, context)
                         .map(|a| a.id.as_str())
-                        .or_else(|| {
-                            contextual_id(abilities.abilities.get(index), EquipSlot::ActiveMainhand)
-                        })
+                        .or_else(|| contextual_id(abilities.abilities.get(index)))
                 })
             },
             Ability::OffWeaponAux(index) => {
@@ -327,9 +327,7 @@ impl Ability {
                     abilities
                         .auxiliary(index, skillset, context)
                         .map(|a| a.id.as_str())
-                        .or_else(|| {
-                            contextual_id(abilities.abilities.get(index), EquipSlot::ActiveOffhand)
-                        })
+                        .or_else(|| contextual_id(abilities.abilities.get(index)))
                 })
             },
             Ability::Empty => None,
@@ -2830,14 +2828,11 @@ pub struct AbilityMeta {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum SwordStance {
-    Offensive,
     Crippling,
     Cleaving,
     Defensive,
-    Parrying,
     Heavy,
-    Mobility,
-    Reaching,
+    Agile,
 }
 
 bitflags::bitflags! {

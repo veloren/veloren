@@ -1,5 +1,5 @@
 use crate::comp::skillset::{
-    SkillGroupKind, SKILL_GROUP_LOOKUP, SKILL_MAX_LEVEL, SKILL_PREREQUISITES,
+    SkillGroupKind, SkillPrerequisite, SKILL_GROUP_LOOKUP, SKILL_MAX_LEVEL, SKILL_PREREQUISITES,
 };
 use serde::{Deserialize, Serialize};
 
@@ -27,36 +27,32 @@ pub enum Skill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum SwordSkill {
-    BalancedFinisher,
-    OffensiveStance,
-    OffensiveFinisher,
-    OffensiveAdvance,
-    CripplingStance,
-    CripplingFinisher,
-    CripplingStrike,
-    CripplingGouge,
-    CleavingStance,
-    CleavingFinisher,
-    CleavingSpin,
-    CleavingDive,
-    DefensiveStance,
-    DefensiveBulwark,
-    DefensiveRetreat,
-    ParryingStance,
-    ParryingParry,
-    ParryingRiposte,
-    ParryingCounter,
-    HeavyStance,
-    HeavyFinisher,
+    CrescentSlash,
+    FellStrike,
+    Skewer,
+    Cascade,
+    CrossCut,
+    Finisher,
+    HeavyWindmillSlash,
     HeavyPommelStrike,
     HeavyFortitude,
-    MobilityStance,
-    MobilityFeint,
-    MobilityAgility,
-    ReachingStance,
-    ReachingCharge,
-    ReachingFlurry,
-    ReachingSkewer,
+    HeavyPillarThrust,
+    AgileQuickDraw,
+    AgileFeint,
+    AgileDancingEdge,
+    AgileFlurry,
+    DefensiveRiposte,
+    DefensiveDisengage,
+    DefensiveDeflect,
+    DefensiveStalwartSword,
+    CripplingGouge,
+    CripplingHamstring,
+    CripplingBloodyGash,
+    CripplingEviscerate,
+    CleavingWhirlwindSlice,
+    CleavingEarthSplitter,
+    CleavingSkySplitter,
+    CleavingBladeFever,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
@@ -194,18 +190,10 @@ pub enum MiningSkill {
 }
 
 impl Skill {
-    /// Returns a vec of prerequisite skills (it should only be necessary to
-    /// note direct prerequisites)
-    /// Automatically filters itself from the skills returned
     /// Is unable to detect cyclic dependencies, so ensure that there are no
     /// cycles if you modify the prerequisite map.
-    pub fn prerequisite_skills(&self) -> impl Iterator<Item = (Skill, u16)> + '_ {
-        SKILL_PREREQUISITES
-            .get(self)
-            .into_iter()
-            .flatten()
-            .filter(move |(skill, _)| self != *skill)
-            .map(|(skill, level)| (*skill, *level))
+    pub fn prerequisite_skills(&self) -> Option<&SkillPrerequisite> {
+        SKILL_PREREQUISITES.get(self)
     }
 
     /// Returns the cost in skill points of unlocking a particular skill

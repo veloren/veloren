@@ -289,31 +289,42 @@ pub struct AbilitySet<T> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AbilityKind<T> {
     Simple(Option<Skill>, T),
-    Contextualized(HashMap<AbilityContext, (Option<Skill>, T)>),
+    Contextualized {
+        pseudo_id: String,
+        abilities: HashMap<AbilityContext, (Option<Skill>, T)>,
+    },
 }
 
 impl<T> AbilityKind<T> {
     pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AbilityKind<U> {
         match self {
             Self::Simple(s, x) => AbilityKind::<U>::Simple(s, f(x)),
-            Self::Contextualized(abilities) => AbilityKind::<U>::Contextualized(
-                abilities
+            Self::Contextualized {
+                pseudo_id,
+                abilities,
+            } => AbilityKind::<U>::Contextualized {
+                pseudo_id,
+                abilities: abilities
                     .into_iter()
                     .map(|(c, (s, x))| (c, (s, f(x))))
                     .collect(),
-            ),
+            },
         }
     }
 
     pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AbilityKind<U> {
         match self {
             Self::Simple(s, x) => AbilityKind::<U>::Simple(*s, f(x)),
-            Self::Contextualized(abilities) => AbilityKind::<U>::Contextualized(
-                abilities
+            Self::Contextualized {
+                pseudo_id,
+                abilities,
+            } => AbilityKind::<U>::Contextualized {
+                pseudo_id: pseudo_id.clone(),
+                abilities: abilities
                     .into_iter()
                     .map(|(c, (s, x))| (*c, (*s, f(x))))
                     .collect(),
-            ),
+            },
         }
     }
 
@@ -327,7 +338,10 @@ impl<T> AbilityKind<T> {
 
         match self {
             AbilityKind::Simple(s, a) => unlocked(*s, a),
-            AbilityKind::Contextualized(abilities) => abilities
+            AbilityKind::Contextualized {
+                pseudo_id: _,
+                abilities,
+            } => abilities
                 .get(&context)
                 .and_then(|(s, a)| unlocked(*s, a))
                 .or_else(|| {

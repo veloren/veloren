@@ -314,7 +314,7 @@ impl Controller {
     }
 
     pub fn cull_queued_inputs(&mut self, time: Time) {
-        const QUEUED_CULL_DUR: f64 = 0.5;
+        const QUEUED_CULL_DUR: f64 = 0.35;
         self.queued_inputs
             .retain(|_, (init_time, _)| init_time.0 + QUEUED_CULL_DUR > time.0);
     }
