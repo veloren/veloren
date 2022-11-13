@@ -275,7 +275,7 @@ impl PlayState for CharSelectionState {
 
     fn globals_bind_group(&self) -> &GlobalsBindGroup { self.scene.global_bind_group() }
 
-    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, _: &Settings) {
+    fn render(&self, drawer: &mut Drawer<'_>, _: &Settings) {
         let client = self.client.borrow();
         let (humanoid_body, loadout) =
             Self::get_humanoid_body_inventory(&self.char_selection_ui, &client);

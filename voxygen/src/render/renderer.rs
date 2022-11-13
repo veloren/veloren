@@ -178,6 +178,8 @@ pub struct Renderer {
     profile_times: Vec<wgpu_profiler::GpuTimerScopeResult>,
     profiler_features_enabled: bool,
 
+    ui_premultiply_uploads: ui::BatchedUploads,
+
     #[cfg(feature = "egui-ui")]
     egui_renderpass: egui_wgpu_backend::RenderPass,
 
@@ -544,6 +546,8 @@ impl Renderer {
             profiler,
             profile_times: Vec::new(),
             profiler_features_enabled,
+
+            ui_premultiply_uploads: Default::default(),
 
             #[cfg(feature = "egui-ui")]
             egui_renderpass,
@@ -1437,18 +1441,23 @@ impl Renderer {
         texture.update(&self.queue, offset, size, bytemuck::cast_slice(data))
     }
 
-    pub fn prepare_premultiply_upload(
-        &self,
+    /// See docs on [`ui::BatchedUploads::submit`].
+    pub fn ui_premultiply_upload(
+        &mut self,
+        target_texture: &Arc<Texture>,
+        batch: ui::UploadBatchId,
         image: &image::RgbaImage,
         offset: Vec2<u16>,
-    ) -> ui::PremultiplyUpload {
-        ui::PremultiplyUpload::prepare(
+    ) -> ui::UploadBatchId {
+        let upload = ui::PremultiplyUpload::prepare(
             &self.device,
             &self.queue,
             &self.layouts.premultiply_alpha,
             image,
             offset,
-        )
+        );
+        self.ui_premultiply_uploads
+            .submit(target_texture, batch, upload)
     }
 
     /// Queue to obtain a screenshot on the next frame render

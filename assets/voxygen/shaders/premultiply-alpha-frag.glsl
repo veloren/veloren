@@ -1,4 +1,5 @@
 #version 420 core
+#extension GL_EXT_samplerless_texture_functions : enable
 
 layout(set = 0, binding = 0)
 uniform texture2D source_texture;

@@ -5,7 +5,6 @@
 #![feature(
     array_methods,
     array_zip,
-    array_from_fn,
     drain_filter,
     once_cell,
     trait_alias,
@@ -13,7 +12,6 @@
     map_try_insert,
     slice_as_chunks,
     let_chains
-    portable_simd
 )]
 #![recursion_limit = "2048"]
 
@@ -157,7 +155,7 @@ pub trait PlayState {
     fn globals_bind_group(&self) -> &GlobalsBindGroup;
 
     /// Draw the play state.
-    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, settings: &Settings);
+    fn render(&self, drawer: &mut Drawer<'_>, settings: &Settings);
 
     /// Determines whether egui will be rendered for this play state
     fn egui_enabled(&self) -> bool;

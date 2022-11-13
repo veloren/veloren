@@ -1232,9 +1232,9 @@ impl Scene {
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
 
     /// Render the scene using the provided `Drawer`.
-    pub fn render<'a>(
-        &'a self,
-        drawer: &mut Drawer<'a>,
+    pub fn render(
+        &self,
+        drawer: &mut Drawer<'_>,
         state: &State,
         viewpoint_entity: EcsEntity,
         tick: u64,

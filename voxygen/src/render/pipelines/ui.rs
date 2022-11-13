@@ -552,7 +552,7 @@ pub struct PremultiplyAlphaParams {
 ///
 /// From here we will use the `PremultiplyAlpha` pipeline to premultiply the
 /// alpha while transfering the image to its destination texture.
-pub struct PremultiplyUpload {
+pub(in super::super) struct PremultiplyUpload {
     source_bg: wgpu::BindGroup,
     source_size_xy: u32,
     /// The location in the final texture this will be placed at. Technically,
@@ -562,7 +562,7 @@ pub struct PremultiplyUpload {
 }
 
 impl PremultiplyUpload {
-    pub fn prepare(
+    pub(in super::super) fn prepare(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         layout: &PremultiplyAlphaLayout,
@@ -593,7 +593,7 @@ impl PremultiplyUpload {
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            &(&**image)[..(image.width() as usize * image.height() as usize)],
+            &(&**image)[..(image.width() as usize * image.height() as usize * 4)],
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: NonZeroU32::new(image.width() * 4),
@@ -622,7 +622,7 @@ impl PremultiplyUpload {
         });
 
         // NOTE: We assume the max texture size is less than u16::MAX.
-        let source_size_xy = image_size.width + image_size.height << 16;
+        let source_size_xy = image_size.width + (image_size.height << 16);
 
         Self {
             source_bg,
@@ -634,15 +634,74 @@ impl PremultiplyUpload {
     /// Semantically, this consumes the `PremultiplyUpload` but we need to keep
     /// the bind group alive to the end of the render pass and don't want to
     /// bother storing it somewhere else.
-    pub fn draw_data(&self, target: &Texture) -> (&wgpu::BindGroup, PremultiplyAlphaParams) {
-        let target_offset_xy = u32::from(self.offset.x) + u32::from(self.offset.y) << 16;
+    pub(in super::super) fn draw_data(
+        &self,
+        target: &Texture,
+    ) -> (&wgpu::BindGroup, PremultiplyAlphaParams) {
+        let target_offset_xy = u32::from(self.offset.x) + (u32::from(self.offset.y) << 16);
         let target_dims = target.get_dimensions();
         // NOTE: We assume the max texture size is less than u16::MAX.
-        let target_size_xy = target_dims.x + target_dims.y << 16;
+        let target_size_xy = target_dims.x + (target_dims.y << 16);
         (&self.source_bg, PremultiplyAlphaParams {
             source_size_xy: self.source_size_xy,
             target_offset_xy,
             target_size_xy,
         })
+    }
+
+    pub fn area_dbg(&self) -> f32 {
+        (self.source_size_xy & 0xFFFF) as f32 * (self.source_size_xy >> 16) as f32
+    }
+}
+
+use std::sync::Arc;
+/// Per-target texture batched uploads
+#[derive(Default)]
+pub(in super::super) struct BatchedUploads {
+    batches: Vec<(Arc<Texture>, Vec<PremultiplyUpload>)>,
+}
+#[derive(Default, Clone, Copy)]
+pub struct UploadBatchId(usize);
+
+impl BatchedUploads {
+    /// Adds the provided upload to the batch indicated by the provided target
+    /// texture and optional batch id. A new batch will be created if the batch
+    /// id is invalid (doesn't refer to an existing batch) or the provided
+    /// target texture isn't the same as the one associated with the
+    /// provided batch id. Creating a new batch involves cloning the
+    /// provided texture `Arc`.
+    ///
+    /// The id of the batch where the upload is ultimately submitted will be
+    /// returned. This id can be used in subsequent calls to add items to
+    /// the same batch (i.e. uploads for the same texture).
+    ///
+    /// Batch ids will reset every frame, however since we check that the
+    /// texture matches, it is perfectly fine to use a stale id (just keep
+    /// in mind that this will create a new batch). This also means that it is
+    /// sufficient to use `UploadBatchId::default()` when calling this with
+    /// new textures.
+    pub(in super::super) fn submit(
+        &mut self,
+        target_texture: &Arc<Texture>,
+        batch_id: UploadBatchId,
+        upload: PremultiplyUpload,
+    ) -> UploadBatchId {
+        if let Some(batch) = self
+            .batches
+            .get_mut(batch_id.0)
+            .filter(|b| Arc::ptr_eq(&b.0, target_texture))
+        {
+            batch.1.push(upload);
+            batch_id
+        } else {
+            let new_batch_id = UploadBatchId(self.batches.len());
+            self.batches
+                .push((Arc::clone(target_texture), vec![upload]));
+            new_batch_id
+        }
+    }
+
+    pub(in super::super) fn take(&mut self) -> Vec<(Arc<Texture>, Vec<PremultiplyUpload>)> {
+        core::mem::take(&mut self.batches)
     }
 }

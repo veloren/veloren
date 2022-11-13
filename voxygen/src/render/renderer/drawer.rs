@@ -37,6 +37,14 @@ impl<'frame> Pipelines<'frame> {
         }
     }
 
+    fn premultiply_alpha(&self) -> Option<&ui::PremultiplyAlphaPipeline> {
+        match self {
+            Pipelines::Interface(pipelines) => Some(&pipelines.premultiply_alpha),
+            Pipelines::All(pipelines) => Some(&pipelines.premultiply_alpha),
+            Pipelines::None => None,
+        }
+    }
+
     fn blit(&self) -> Option<&blit::BlitPipeline> {
         match self {
             Pipelines::Interface(pipelines) => Some(&pipelines.blit),
@@ -67,6 +75,7 @@ struct RendererBorrow<'frame> {
     pipeline_modes: &'frame super::PipelineModes,
     quad_index_buffer_u16: &'frame Buffer<u16>,
     quad_index_buffer_u32: &'frame Buffer<u32>,
+    ui_premultiply_uploads: &'frame mut ui::BatchedUploads,
     #[cfg(feature = "egui-ui")]
     egui_render_pass: &'frame mut egui_wgpu_backend::RenderPass,
 }
@@ -118,6 +127,7 @@ impl<'frame> Drawer<'frame> {
             pipeline_modes: &renderer.pipeline_modes,
             quad_index_buffer_u16: &renderer.quad_index_buffer_u16,
             quad_index_buffer_u32: &renderer.quad_index_buffer_u32,
+            ui_premultiply_uploads: &mut renderer.ui_premultiply_uploads,
             #[cfg(feature = "egui-ui")]
             egui_render_pass: &mut renderer.egui_renderpass,
         };
@@ -425,15 +435,19 @@ impl<'frame> Drawer<'frame> {
         });
     }
 
-    pub fn run_ui_premultiply_passes<'a>(
-        &mut self,
-        targets: impl Iterator<Item = (&'a super::super::Texture, Vec<ui::PremultiplyUpload>)>,
-    ) {
+    /// Runs render passes with alpha premultiplication pipeline to complete any
+    /// pending uploads.
+    fn run_ui_premultiply_passes<'a>(&mut self) {
+        prof_span!("run_ui_premultiply_passes");
+        let Some(premultiply_alpha) = self.borrow.pipelines.premultiply_alpha() else { return };
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
 
+        let targets = self.borrow.ui_premultiply_uploads.take();
+
         // TODO: What is the CPU overhead of each renderpass?
-        for (i, (target_texture, uploads)) in targets.enumerate() {
+        for (i, (target_texture, uploads)) in targets.into_iter().enumerate() {
+            let mut area = 0.0;
             prof_span!("ui premultiply pass");
             tracing::info!("{} uploads", uploads.len());
             let profile_name = format!("ui_premultiply_pass {}", i);
@@ -447,23 +461,31 @@ impl<'frame> Drawer<'frame> {
                         view: &target_texture.view,
                         resolve_target: None,
                         ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            load: wgpu::LoadOp::Load,
                             store: true,
                         },
                     }],
                     depth_stencil_attachment: None,
                 });
+            render_pass.set_pipeline(&premultiply_alpha.pipeline);
             for upload in &uploads {
-                let (source_bind_group, push_constant_data) = upload.draw_data(target_texture);
+                area += upload.area_dbg();
+                let (source_bind_group, push_constant_data) = upload.draw_data(&target_texture);
                 let bytes = bytemuck::bytes_of(&push_constant_data);
                 render_pass.set_bind_group(0, source_bind_group, &[]);
                 render_pass.set_push_constants(wgpu::ShaderStage::VERTEX, 0, bytes);
-                render_pass.draw_indexed(0..6, 0, 0..1);
+                render_pass.draw(0..6, 0..1);
             }
+            let avg_area = area as f32 / uploads.len() as f32;
+            tracing::info!("avg area sqrt {}", f32::sqrt(avg_area));
         }
     }
 
+    /// Note, this automatically calls the internal `run_ui_premultiply_passes`
+    /// to complete any pending image uploads for the UI.
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
+        self.run_ui_premultiply_passes();
+
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
@@ -537,7 +559,7 @@ impl<'frame> Drawer<'frame> {
 
     /// Does nothing if the shadow pipelines are not available or shadow map
     /// rendering is disabled
-    pub fn draw_point_shadows<'data: 'frame>(
+    pub fn draw_point_shadows<'data>(
         &mut self,
         matrices: &[shadow::PointLightMatrix; 126],
         chunks: impl Clone

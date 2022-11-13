@@ -4,10 +4,11 @@ pub mod renderer;
 pub use renderer::{SampleStrat, Transform};
 
 use crate::{
-    render::{Renderer, Texture, UiPremultiplyUpload, UiTextureBindGroup},
+    render::{Renderer, Texture, UiTextureBindGroup, UiUploadBatchId},
     ui::KeyedJobs,
 };
 use common::{figure::Segment, slowjob::SlowJobPool};
+use common_base::prof_span;
 use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
@@ -86,7 +87,7 @@ impl CachedDetails {
     fn info(
         &self,
         atlases: &[(SimpleAtlasAllocator, usize)],
-        textures: &Slab<(Texture, UiTextureBindGroup, Vec<UiPremultiplyUpload>)>,
+        textures: &Slab<(Arc<Texture>, UiTextureBindGroup, UiUploadBatchId)>,
     ) -> (usize, bool, Aabr<u16>) {
         match *self {
             CachedDetails::Atlas {
@@ -116,6 +117,17 @@ impl CachedDetails {
             },
             Self::Texture { ref mut valid, .. } => {
                 *valid = false;
+            },
+        }
+    }
+
+    fn set_valid(&mut self) {
+        match self {
+            Self::Atlas { ref mut valid, .. } => {
+                *valid = true;
+            },
+            Self::Texture { ref mut valid, .. } => {
+                *valid = true;
             },
         }
     }
@@ -241,7 +253,7 @@ pub struct GraphicCache {
     /// for this frame. The purpose of this is to collect all the operations
     /// together so that a single renderpass is performed for each target
     /// texture.
-    textures: Slab<(Texture, UiTextureBindGroup, Vec<UiPremultiplyUpload>)>,
+    textures: Slab<(Arc<Texture>, UiTextureBindGroup, UiUploadBatchId)>,
     /// The location and details of graphics cached on the GPU.
     ///
     /// Graphic::Voxel images include the dimensions they were rasterized at in
@@ -257,7 +269,7 @@ impl GraphicCache {
         let (atlas, (tex, bind)) = create_atlas_texture(renderer);
 
         let mut textures = Slab::new();
-        let tex_id = textures.insert((tex, bind, Vec::new()));
+        let tex_id = textures.insert((tex, bind, UiUploadBatchId::default()));
 
         Self {
             graphic_map: HashMap::default(),
@@ -336,7 +348,7 @@ impl GraphicCache {
 
     /// Used to acquire textures for rendering
     pub fn get_tex(&self, id: TexId) -> (&Texture, &UiTextureBindGroup) {
-        let (tex, bind, _uploads) = self.textures.get(id.0).expect("Invalid TexId used");
+        let (tex, bind, _upload_batch) = self.textures.get(id.0).expect("Invalid TexId used");
         (tex, bind)
     }
 
@@ -368,18 +380,13 @@ impl GraphicCache {
 
         let (atlas, (tex, bind)) = create_atlas_texture(renderer);
         let mut textures = Slab::new();
-        let tex_id = textures.insert((tex, bind, Vec::new()));
+        let tex_id = textures.insert((tex, bind, UiUploadBatchId::default()));
         self.atlases = vec![(atlas, tex_id)];
         self.textures = textures;
     }
 
     /// Source rectangle should be from 0 to 1, and represents a bounding box
     /// for the source image of the graphic.
-    ///
-    /// [`complete_premultiply_uploads`](Self::complete_premultiply_uploads)
-    /// needs to be called to finalize updates on the GPU that are initiated
-    /// here. Thus, ideally that would be called before drawing UI elements
-    /// using the images cached here.
     pub fn cache_res(
         &mut self,
         renderer: &mut Renderer,
@@ -465,19 +472,18 @@ impl GraphicCache {
             requirements.to_key_and_tex_parameters(graphic_id, requested_dims_upright);
 
         let details = match cache_map.entry(key) {
-            Entry::Occupied(details) => {
-                let details = details.get();
+            Entry::Occupied(mut details) => {
+                let details = details.get_mut();
                 let (idx, valid, aabr) = details.info(atlases, textures);
 
                 // Check if the cached version has been invalidated by replacing the underlying
                 // graphic
                 if !valid {
                     // Create image
-                    let image = prepare_graphic(
+                    let (image, gpu_premul) = prepare_graphic(
                         graphic,
                         key,
                         requested_dims_upright,
-                        false,
                         &mut self.keyed_jobs,
                         pool,
                     )?;
@@ -489,7 +495,9 @@ impl GraphicCache {
                         texture_parameters.size.map(u32::from).into_tuple()
                     );
                     // Transfer to the gpu
-                    upload_image(renderer, aabr, &mut textures[idx].2, &image);
+                    let (ref texture, _, ref mut upload_batch) = &mut textures[idx];
+                    upload_image(renderer, texture, upload_batch, &image, aabr, gpu_premul);
+                    details.set_valid();
                 }
 
                 return Some((transformed_aabr(aabr.map(|e| e as f64)), TexId(idx)));
@@ -498,11 +506,10 @@ impl GraphicCache {
         };
 
         // Construct image in an optional threadpool.
-        let image = prepare_graphic(
+        let (image, gpu_premul) = prepare_graphic(
             graphic,
             key,
             requested_dims_upright,
-            false,
             &mut self.keyed_jobs,
             pool,
         )?;
@@ -540,7 +547,8 @@ impl GraphicCache {
                         valid: true,
                         aabr,
                     });
-                    upload_image(renderer, aabr, &mut textures[texture_idx].2, &image);
+                    let (ref texture, _, ref mut upload_batch) = &mut textures[texture_idx];
+                    upload_image(renderer, texture, upload_batch, &image, aabr, gpu_premul);
                     break;
                 }
             }
@@ -555,10 +563,11 @@ impl GraphicCache {
                         .map(aabr_from_alloc_rect)
                         .unwrap();
                     // NOTE: All mutations happen only after the texture creation succeeds!
-                    let tex_idx = textures.insert((tex, bind, Vec::new()));
+                    let tex_idx = textures.insert((tex, bind, UiUploadBatchId::default()));
                     let atlas_idx = atlases.len();
                     atlases.push((atlas, tex_idx));
-                    upload_image(renderer, aabr, &mut textures[tex_idx].2, &image);
+                    let (ref texture, _, ref mut upload_batch) = &mut textures[tex_idx];
+                    upload_image(renderer, texture, upload_batch, &image, aabr, gpu_premul);
                     CachedDetails::Atlas {
                         atlas_idx,
                         valid: true,
@@ -568,11 +577,12 @@ impl GraphicCache {
             }
         } else {
             // Create a texture just for this
-            let (tex, bind, uploads) = create_image(renderer, &image, texture_parameters);
+            let (tex, bind, upload_batch) =
+                create_image(renderer, &image, texture_parameters, gpu_premul);
             // NOTE: All mutations happen only after the texture creation and upload
-            // initiation succeeds! (completing the upload does not have any failure cases
-            // afaik)
-            let index = textures.insert((tex, bind, uploads));
+            // initiation succeeds! (completing the upload does not have any
+            // failure cases afaik)
+            let index = textures.insert((tex, bind, upload_batch));
             CachedDetails::Texture { index, valid: true }
         };
 
@@ -584,77 +594,76 @@ impl GraphicCache {
 
         Some((transformed_aabr(aabr.map(|e| e as f64)), TexId(idx)))
     }
-
-    /// Runs render passes with alpha premultiplication pipeline to complete any
-    /// pending uploads.
-    ///
-    /// This should be called before starting the pass where the ui is rendered.
-    pub fn complete_premultiply_uploads(&mut self, drawer: &mut crate::render::Drawer<'_>) {
-        drawer.run_ui_premultiply_passes(
-            self.textures
-                .iter_mut()
-                .map(|(_tex_id, (texture, _, uploads))| (&*texture, core::mem::take(uploads))),
-        );
-    }
 }
 
 /// Prepare the graphic into the form that will be uploaded to the GPU.
 ///
 /// For voxel graphics, draws the graphic at the specified dimensions.
 ///
-/// Also can pre-multiplies alpha in images so they can be linearly filtered on
-/// the GPU (this is optional since we also have a path to do this
-/// premultiplication on the GPU).
+/// Alpha premultiplication is necessary so that  images so they can be linearly
+/// filtered on the GPU. Premultiplication can either occur here or on the GPU
+/// depending on the size of the image and other factors. If premultiplication
+/// on the GPU is needed the returned bool will be `true`.
 fn prepare_graphic<'graphic>(
     graphic: &'graphic Graphic,
     cache_key: CacheKey,
     dims: Vec2<u16>,
-    premultiply_on_cpu: bool, // TODO: currently unused
     keyed_jobs: &mut KeyedJobs<CacheKey, RgbaImage>,
     pool: Option<&SlowJobPool>,
-) -> Option<Cow<'graphic, RgbaImage>> {
+) -> Option<(Cow<'graphic, RgbaImage>, bool)> {
+    prof_span!("prepare_graphic");
     match graphic {
-        // Short-circuit spawning a job on the threadpool for blank graphics
         Graphic::Blank => None,
         Graphic::Image(image, _border_color) => {
-            if premultiply_on_cpu {
-                keyed_jobs
-                    .spawn(pool, cache_key, || {
-                        let image = Arc::clone(image);
-                        move |_| {
-                            // Image will be rescaled when sampling from it on the GPU so we don't
-                            // need to resize it here.
-                            let mut image = image.to_rgba8();
-                            // TODO: could potentially do this when loading the image and for voxel
-                            // images maybe at some point in the `draw_vox` processing. Or we could
-                            // push it in the other direction and do conversion on the GPU.
-                            premultiply_alpha(&mut image);
-                            image
-                        }
-                    })
-                    .map(|(_, v)| Cow::Owned(v))
-            } else if let Some(rgba) = image.as_rgba8() {
-                Some(Cow::Borrowed(rgba))
-            } else {
-                // TODO: we should require rgba8 format
-                warn!("Non-rgba8 image in UI used this may be deprecated.");
-                Some(Cow::Owned(image.to_rgba8()))
-            }
+            // Image will be rescaled when sampling from it on the GPU so we don't
+            // need to resize it here.
+            //
+            // TODO: We could potentially push premultiplication even earlier (e.g. to the
+            // time of loading images or packaging veloren for distribution).
+            let mut rgba_cow = image.as_rgba8().map_or_else(
+                || {
+                    // TODO: we may want to require loading in as the rgba8 format so we don't have
+                    // to perform conversion here. On the other hand, we can take advantage of
+                    // certain formats to know that alpha premultiplication doesn't need to be
+                    // performed (but we would probably just want to store that with the loaded
+                    // rgba8 format).
+                    Cow::Owned(image.to_rgba8())
+                },
+                Cow::Borrowed,
+            );
+            // NOTE: We do premultiplication on the main thread since if it would be
+            // expensive enough to do in the background we would just do it on
+            // the GPU. Could still use `rayon` to parallelize this work, if
+            // needed.
+            let premultiply_strategy = PremultiplyStrategy::determine(&*rgba_cow);
+            let needs_gpu_premultiply = match premultiply_strategy {
+                PremultiplyStrategy::UseGpu => true,
+                PremultiplyStrategy::NotNeeded => false,
+                PremultiplyStrategy::UseCpu => {
+                    // NOTE: to_mut will clone the image if it was Cow::Borrowed
+                    premultiply_alpha(rgba_cow.to_mut());
+                    false
+                },
+            };
+
+            Some((rgba_cow, needs_gpu_premultiply))
         },
         Graphic::Voxel(segment, trans, sample_strat) => keyed_jobs
             .spawn(pool, cache_key, || {
                 let segment = Arc::clone(segment);
                 let (trans, sample_strat) = (*trans, *sample_strat);
                 move |_| {
+                    // TODO: for now we always use CPU premultiplication for these, may want to
+                    // re-evaluate this after zoomy worldgen branch is merged (and it is more clear
+                    // when these jobs go to the background thread pool or not).
+
                     // Render voxel model at requested resolution
                     let mut image = renderer::draw_vox(&segment, dims, trans, sample_strat);
-                    if premultiply_on_cpu {
-                        premultiply_alpha(&mut image);
-                    }
+                    premultiply_alpha(&mut image);
                     image
                 }
             })
-            .map(|(_, v)| Cow::Owned(v)),
+            .map(|(_, v)| (Cow::Owned(v), false)),
     }
 }
 
@@ -672,7 +681,11 @@ fn create_image_texture(
     renderer: &mut Renderer,
     size: Vec2<u32>,
     address_mode: Option<wgpu::AddressMode>,
-) -> (Texture, UiTextureBindGroup) {
+) -> (Arc<Texture>, UiTextureBindGroup) {
+    // TODO: Right now we have to manually clear images to workaround AMD DX bug,
+    // for this we use Queue::write_texture which needs this usage. I think this
+    // may be fixed in newer wgpu versions that auto-clear the texture.
+    let workaround_usage = wgpu::TextureUsage::COPY_DST;
     let tex_info = wgpu::TextureDescriptor {
         label: None,
         size: wgpu::Extent3d {
@@ -684,7 +697,10 @@ fn create_image_texture(
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::RENDER_ATTACHMENT | wgpu::TextureUsage::SAMPLED,
+        usage: wgpu::TextureUsage::RENDER_ATTACHMENT // GPU premultiply
+            | wgpu::TextureUsage::COPY_DST // CPU premultiply
+            | wgpu::TextureUsage::SAMPLED // using image in ui rendering
+            | workaround_usage,
     };
     let view_info = wgpu::TextureViewDescriptor {
         format: Some(tex_info.format),
@@ -701,12 +717,12 @@ fn create_image_texture(
     };
     let tex = renderer.create_texture_raw(&tex_info, &view_info, &sampler_info);
     let bind = renderer.ui_bind_texture(&tex);
-    (tex, bind)
+    (Arc::new(tex), bind)
 }
 
 fn create_atlas_texture(
     renderer: &mut Renderer,
-) -> (SimpleAtlasAllocator, (Texture, UiTextureBindGroup)) {
+) -> (SimpleAtlasAllocator, (Arc<Texture>, UiTextureBindGroup)) {
     let size = atlas_size(renderer);
     // Note: here we assume the max texture size is under i32::MAX.
     let atlas = SimpleAtlasAllocator::new(size2(size.x as i32, size.y as i32));
@@ -726,23 +742,34 @@ fn aabr_from_alloc_rect(rect: guillotiere::Rectangle) -> Aabr<u16> {
 
 fn upload_image(
     renderer: &mut Renderer,
-    aabr: Aabr<u16>,
-    target_texture_uploads: &mut Vec<UiPremultiplyUpload>,
+    target_texture: &Arc<Texture>,
+    upload_batch: &mut UiUploadBatchId,
     image: &RgbaImage,
+    aabr: Aabr<u16>,
+    premultiply_on_gpu: bool,
 ) {
-    let aabr = aabr.map(u32::from);
     // Check that this image and the target aabr are the same size (otherwise there
     // is a bug in this module).
-    debug_assert_eq!(aabr.size().into_tuple(), image.dimensions());
-    let offset = aabr.min.into_array();
-
-    // TODO: can we transparently have cpu based version behind this (actually this
-    // would introduce more complexity to be able to do it in the background,
-    // but we could to it not in the background here especially for smaller
-    // things this would work well)
-    let upload = UiPremultiplyUpload::prepare(renderer, image, offset);
-    target_texture_uploads.push(upload);
-    //todo!()
+    debug_assert_eq!(aabr.map(u32::from).size().into_tuple(), image.dimensions());
+    if premultiply_on_gpu {
+        *upload_batch =
+            renderer.ui_premultiply_upload(target_texture, *upload_batch, image, aabr.min);
+    } else {
+        let aabr = aabr.map(u32::from);
+        let offset = aabr.min.into_array();
+        let size = aabr.size().into_array();
+        // upload directly
+        renderer.update_texture(
+            &*target_texture,
+            offset,
+            size,
+            // NOTE: Rgba texture, so each pixel is 4 bytes, ergo this cannot fail.
+            // We make the cast parameters explicit for clarity.
+            bytemuck::cast_slice::<u8, [u8; 4]>(
+                &(&**image)[..size[0] as usize * size[1] as usize * 4],
+            ),
+        )
+    }
 }
 
 // This is used for border_color.is_some() images (ie the map image).
@@ -750,7 +777,8 @@ fn create_image(
     renderer: &mut Renderer,
     image: &RgbaImage,
     texture_parameters: TextureParameters,
-) -> (Texture, UiTextureBindGroup, Vec<UiPremultiplyUpload>) {
+    premultiply_on_gpu: bool,
+) -> (Arc<Texture>, UiTextureBindGroup, UiUploadBatchId) {
     let (tex, bind) = create_image_texture(
         renderer,
         texture_parameters.size.map(u32::from),
@@ -760,17 +788,82 @@ fn create_image(
             //.map(|c| c.into_array().into()),
             .map(|_| wgpu::AddressMode::ClampToBorder),
     );
-    let mut uploads = Vec::new();
+    let mut upload_batch = UiUploadBatchId::default();
     let aabr = Aabr {
         min: Vec2::zero(),
         max: texture_parameters.size,
     };
-    upload_image(renderer, aabr, &mut uploads, image);
-    (tex, bind, uploads)
+    upload_image(
+        renderer,
+        &tex,
+        &mut upload_batch,
+        image,
+        aabr,
+        premultiply_on_gpu,
+    );
+    (tex, bind, upload_batch)
+}
+
+// CPU-side alpha premultiplication implementation.
+
+pub struct PremultiplyLookupTable {
+    alpha: [u16; 256],
+    // This is for both colors that are always below the linear transform threshold (of the
+    // transform between linear/non-linear srgb) and colors that start above the threshold when
+    // transforming into linear srgb and then fall below it after being multiplied by alpha (before
+    // being transformed out of linear srgb).
+    color: [u16; 256],
+}
+
+impl Default for PremultiplyLookupTable {
+    fn default() -> Self {
+        #[rustfmt::skip]
+        fn accurate_to_linear(c: u8) -> f32 {
+            let c = c as f32 / 255.0;
+            // https://en.wikipedia.org/wiki/SRGB#Transformation
+            if c <= 0.04045 {
+                c / 12.92
+            } else {
+                // 0.055 ~= 14
+                ((c + 0.055) / 1.055).powf(2.4)
+            }
+        }
+
+        use core::array;
+        let alpha = array::from_fn(|alpha| {
+            // NOTE: u16::MAX + 1 here relies on the max alpha being short-circuited (and
+            // not using this table). We multiply by this factor since it is a
+            // power of 2, which means later demultiplying it will optimize to a
+            // bitshift.
+            (((alpha as f32 / 255.0).powf(1.0 / 2.4) * (u16::MAX as f32 + 1.0)) + 0.5) as u16
+        });
+        let color = array::from_fn(|color| {
+            (if color <= 10 {
+                //  <= 10 means the transform is linear!
+                color as f32 / 255.0
+            } else {
+                // Here the transform into linear srgb isn't linear but the transform out of it is. 
+                //
+                // This is transform into and out of linear srgb with the theoretical alpha
+                // multiplication factored out.
+                accurate_to_linear(color as u8) * 12.92
+            }
+            // take advantage of the precision offered by u16
+            * (1 << 13) as f32
+            // round to the nearest integer when the cast truncates
+            + 0.5) as u16
+        });
+        Self { alpha, color }
+    }
 }
 
 fn premultiply_alpha(image: &mut RgbaImage) {
-    use fast_srgb8::{f32x4_to_srgb8, srgb8_to_f32};
+    prof_span!("premultiply alpha");
+
+    lazy_static::lazy_static! {
+        static ref LOOKUP: PremultiplyLookupTable = Default::default();
+    }
+    let lookup = &*LOOKUP;
     // TODO: Apparently it is possible for ImageBuffer raw vec to have more pixels
     // than the dimensions of the actual image (I don't think we actually have
     // this occuring but we should probably fix other spots that use the raw
@@ -779,52 +872,200 @@ fn premultiply_alpha(image: &mut RgbaImage) {
     let dims = image.dimensions();
     let image_buffer_len = dims.0 as usize * dims.1 as usize * 4;
     let (arrays, end) = (&mut **image)[..image_buffer_len].as_chunks_mut::<{ 4 * 4 }>();
-    // Rgba8 has 4 bytes per pixel they should be no remainder when dividing by 4.
+    // Rgba8 has 4 bytes per pixel there should be no remainder when dividing by 4.
     let (end, _) = end.as_chunks_mut::<4>();
     end.iter_mut().for_each(|pixel| {
         let alpha = pixel[3];
         if alpha == 0 {
             *pixel = [0; 4];
-        } else if alpha != 255 {
-            let linear_alpha = alpha as f32 / 255.0;
-            let [r, g, b] = core::array::from_fn(|i| srgb8_to_f32(pixel[i]) * linear_alpha);
-            let srgb8 = f32x4_to_srgb8([r, g, b, 0.0]);
-            (pixel[0], pixel[1], pixel[3]) = (srgb8[0], srgb8[1], srgb8[3]);
+            return;
+        } else if alpha == 255 {
+            return;
+        };
+
+        for color in &mut pixel[..3] {
+            let predicted = ((lookup.alpha[alpha as usize] as u32) * (*color as u32 + 14) + 32433)
+                / (u16::MAX as u32 + 1);
+            let multiplied_color = (if predicted < 9 + 14 {
+                (lookup.color[*color as usize] as u32 * alpha as u32 + 4096) >> 13
+            } else {
+                predicted - 14
+            }) as u8;
+            *color = multiplied_color;
         }
     });
     arrays.iter_mut().for_each(|pixelx4| {
-        use core::simd::{f32x4, u8x4, Simd};
-        let alpha = Simd::from_array([pixelx4[3], pixelx4[7], pixelx4[11], pixelx4[15]]);
-        if alpha == Simd::splat(0) {
-            *pixelx4 = [0; 16];
-        } else if alpha != Simd::splat(255) {
-            let linear_simd = |array: [u8; 4]| Simd::from_array(array.map(srgb8_to_f32));
-            // Pack rgb components from the 4th pixel into the the last position for each of
-            // the other 3 pixels.
-            let a = linear_simd([pixelx4[0], pixelx4[1], pixelx4[2], pixelx4[12]]);
-            let b = linear_simd([pixelx4[4], pixelx4[5], pixelx4[6], pixelx4[13]]);
-            let c = linear_simd([pixelx4[8], pixelx4[9], pixelx4[10], pixelx4[14]]);
-            let linear_alpha = alpha.cast::<f32>() * Simd::splat(1.0 / 255.0);
-
-            // Multiply by alpha and then convert back into srgb8.
-            let premultiply = |x: f32x4, i| {
-                let mut a = f32x4::splat(linear_alpha[i]);
-                a[3] = linear_alpha[3];
-                u8x4::from_array(f32x4_to_srgb8((x * a).to_array()))
-            };
-            let pa = premultiply(a, 0);
-            let pb = premultiply(b, 1);
-            let pc = premultiply(c, 2);
-
-            (pixelx4[0], pixelx4[1], pixelx4[2]) = (pa[0], pa[1], pa[2]);
-            (pixelx4[4], pixelx4[5], pixelx4[6]) = (pb[0], pb[1], pb[2]);
-            (pixelx4[8], pixelx4[9], pixelx4[10]) = (pc[0], pc[1], pc[2]);
-            (pixelx4[12], pixelx4[13], pixelx4[14]) = (pa[3], pb[3], pc[3]);
+        // Short-circuit for alpha == 0 or 255
+        // This adds ~7 us (worst case) for a 256x256 image.
+        // Best case is decreased to 20 us total time.
+        if pixelx4[3] == pixelx4[7] && pixelx4[3] == pixelx4[11] && pixelx4[3] == pixelx4[15] {
+            if pixelx4[3] == 0 {
+                *pixelx4 = [0; 16];
+                return;
+            } else if pixelx4[3] == u8::MAX {
+                return;
+            }
         }
-    })
+
+        // Lookup transformed alpha values for each pixel first.
+        // Putting this here seems to make things slightly faster.
+        let factors = [
+            lookup.alpha[pixelx4[3] as usize],
+            lookup.alpha[pixelx4[7] as usize],
+            lookup.alpha[pixelx4[11] as usize],
+            lookup.alpha[pixelx4[15] as usize],
+        ];
+        for pixel_index in 0..4 {
+            let alpha_factor = factors[pixel_index];
+            let alpha = pixelx4[pixel_index * 4 + 3];
+            // Putting this code outside the loop makes things take ~25% less time.
+            let color_factors = [
+                lookup.color[pixelx4[pixel_index * 4 + 0] as usize] as u32 * alpha as u32 + 4096,
+                lookup.color[pixelx4[pixel_index * 4 + 1] as usize] as u32 * alpha as u32 + 4096,
+                lookup.color[pixelx4[pixel_index * 4 + 2] as usize] as u32 * alpha as u32 + 4096,
+            ];
+            for i in 0..3 {
+                let color = &mut pixelx4[pixel_index * 4 + i];
+                // Loosely based on transform to linear and back (above threshold) (this is
+                // where use of 14 comes from).
+                // `32433` selected via trial and error to reduce the number of mismatches.
+                // `/ (u16::MAX as u32 + 1)` transforms back to `u8` precision (we add 1 so it
+                // will be a division by a power of 2 which optimizes well).
+                let predicted =
+                    ((alpha_factor as u32) * (*color as u32 + 14) + 32328) / (u16::MAX as u32 + 1);
+                let multiplied_color = (if predicted < 9 + 14 {
+                    // Here we handle two cases:
+                    // 1. When the transform starts and ends as linear.
+                    // 2. When the color is over the linear threshold for the transform into linear
+                    //    space but below this threshold when transforming back out (due to being
+                    //    multiplied with a small alpha).
+                    // (in both cases the result is linearly related to alpha and we can encode how
+                    // it is related to the color in a lookup table)
+                    // NOTE: 212 is the largest color value used here (when alpha isn't 0)
+                    color_factors[i] >> 13
+                } else {
+                    predicted - 14
+                }) as u8;
+                *color = multiplied_color;
+            }
+        }
+    });
 }
 
-// Next step: Handling invalidation / removal of old textures when
-// replace_graphic is used under new resizing scheme.
-//
-// TODO: does screenshot texture have COPY_DST? I don't think it needs this.
+/// Strategy for how alpha premultiplication will be applied to an image.
+enum PremultiplyStrategy {
+    UseCpu,
+    UseGpu,
+    // Image is fully opaque.
+    NotNeeded,
+}
+
+impl PremultiplyStrategy {
+    #[rustfmt::skip] // please don't format comment with 'ns/pixel' to a separate line from the value
+    fn determine(image: &RgbaImage) -> Self {
+        // TODO: Would be useful to re-time this after a wgpu update.
+        //
+        // Thresholds below are based on the timing measurements of the CPU based premultiplication
+        // vs ovehead of interacting with the GPU API to perform premultiplication on the GPU.
+        // These timings are quite circumstantial and could vary between machines, wgpu updates,
+        // and changes to the structure of the GPU based path.  
+        //
+        // GPU path costs (For calculations I used `57.6 us` as a roughly reasonable estimate of
+        // total time here but that can vary lower and higher. Everything is a bit imprecise here
+        // so I won't list individual timings. The key takeaway is that this can be made more
+        // efficient by avoidiing the create/drop of a texture, texture view, and bind group for
+        // each image. Also, if we didn't need a separate render pass for each target image that
+        // would be helpful as well. Using compute passes and passing data in as a raw buffer may
+        // help with both of these but initial attempts with that ran into issues (e.g. when we get
+        // the ability to have non-srgb views of srgb textures that will be useful)):
+        // * create/drop texture
+        // * create/drop texture view
+        // * create/drop bind group
+        // * run render pass (NOTE: if many images are processed at once with the same target
+        //   texture this portion of the cost can be split between them)
+        //
+        // CPU path costs:
+        // * clone image (0.17 ns/pixel (benchmark) - 0.73 ns/pixel (in voxygen))
+        // * run premultiplication (0.305 ns/pixel (when shortcircuits are always hit) -
+        //   3.81 ns/pixel (with random alpha))
+        //
+        // Shared costs include:
+        // * write_texture
+        // * (optional) check for fraction of shortcircuit blocks in image (0.223 ns/pixel)
+        //
+        // `ALWAYS_CPU_THRESHOLD` is roughly:
+        // ("cost of GPU path" + "shortcircuit count cost") / "worst case cost of CPU path per pixel"
+        //
+        // `ALWAYS_GPU_THRESHOLD` is NOT: "cost of GPU path" / "best case cost of CPU path per pixel"
+        // since the cost of checking for whether the CPU path is better at this quantity of pixels
+        // becomes more than the on the amount of overhead we are willing to add to the worst case
+        // scenario where we run the short-circuit count check and end up using the GPU path. The
+        // currently selected value of 200x200 adds at most about ~20% of the cost of the GPU path.
+        // (TODO: maybe we could have the check bail out early if the results aren't looking
+        // favorable for the CPU path and/or sample a random subset of the pixels).
+        //
+        // `CHECKED_THRESHOLD` is roughly: "cost of GPU path / "best case cost of CPU path per pixel"
+        const ALWAYS_CPU_THRESHOLD: usize = 120 * 120;
+        const ALWAYS_GPU_THRESHOLD: usize = 200 * 200;
+        const CHECKED_THRESHOLD: usize = 240 * 240;
+
+        let dims = image.dimensions();
+        let pixel_count = dims.0 as usize * dims.1 as usize;
+        if pixel_count <= ALWAYS_CPU_THRESHOLD {
+            Self::UseCpu
+        } else if pixel_count > ALWAYS_GPU_THRESHOLD {
+            Self::UseGpu
+        } else if let Some(fraction) = fraction_shortcircuit_blocks(image) {
+            // This seems correct...?
+            // TODO: I think we technically can exit the fraction checking early if we know the
+            // total fraction value will be over: (threshold - ALWAYS_CPU_THRESHOLD) /
+            // (CHECKED_THRESHOLD - ALWAYS_CPU_THRESHOLD).
+            let threshold = fraction * CHECKED_THRESHOLD as f32
+                + (1.0 - fraction) * ALWAYS_CPU_THRESHOLD as f32;
+            if pixel_count as f32 <= threshold {
+                Self::UseCpu
+            } else {
+                Self::UseGpu
+            }
+        } else {
+            Self::NotNeeded
+        }
+    }
+}
+
+/// Useful to estimates cost of premultiplying alpha in the provided image via
+/// the CPU method.
+///
+/// Computes the fraction of 4 pixel chunks that are fully translucent or
+/// opaque. Returns `None` if no premultiplication is needed (i.e. all alpha
+/// values are 255).
+fn fraction_shortcircuit_blocks(image: &RgbaImage) -> Option<f32> {
+    let dims = image.dimensions();
+    let pixel_count = dims.0 as usize * dims.1 as usize;
+    let (arrays, end) = (&**image)[..pixel_count * 4].as_chunks::<{ 4 * 4 }>();
+
+    // Rgba8 has 4 bytes per pixel there should be no remainder when dividing by 4.
+    let (end, _) = end.as_chunks::<4>();
+    let end_is_opaque = end.iter().all(|pixel| pixel[3] == 255);
+
+    // 14.6 us for 256x256 image
+    let num_chunks = arrays.len();
+    let mut num_translucent = 0;
+    let mut num_opaque = 0;
+    arrays.iter().for_each(|pixelx4| {
+        let v = u128::from_ne_bytes(*pixelx4);
+        let alpha_mask = 0x000000FF_000000FF_000000FF_000000FF;
+        let masked = v & alpha_mask;
+        if masked == 0 {
+            num_translucent += 1;
+        } else if masked == alpha_mask {
+            num_opaque += 1;
+        }
+    });
+
+    if num_chunks == num_opaque && num_translucent == 0 && end_is_opaque {
+        None
+    } else {
+        Some((num_translucent as f32 + num_opaque as f32) / num_chunks as f32)
+    }
+}

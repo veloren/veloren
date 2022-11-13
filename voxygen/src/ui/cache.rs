@@ -7,6 +7,9 @@ use conrod_core::{text::GlyphCache, widget::Id};
 use hashbrown::HashMap;
 use vek::*;
 
+// TODO: probably make cache fields where we have mut getters into just public
+// fields
+
 // Multiplied by current window size
 const GLYPH_CACHE_SIZE: u32 = 1;
 // Glyph cache tolerances

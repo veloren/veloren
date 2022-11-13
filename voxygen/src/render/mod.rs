@@ -43,7 +43,7 @@ pub use self::{
             create_quad as create_ui_quad,
             create_quad_vert_gradient as create_ui_quad_vert_gradient, create_tri as create_ui_tri,
             BoundLocals as UiBoundLocals, Locals as UiLocals, Mode as UiMode,
-            PremultiplyUpload as UiPremultiplyUpload, TextureBindGroup as UiTextureBindGroup,
+            TextureBindGroup as UiTextureBindGroup, UploadBatchId as UiUploadBatchId,
             Vertex as UiVertex,
         },
         GlobalModel, Globals, GlobalsBindGroup, GlobalsLayouts, Light, Shadow,

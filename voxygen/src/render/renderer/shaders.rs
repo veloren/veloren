@@ -74,7 +74,7 @@ impl assets::Compound for Shaders {
             "ui-vert",
             "ui-frag",
             "premultiply-alpha-vert",
-            "premultiply_alpha-frag",
+            "premultiply-alpha-frag",
             "lod-terrain-vert",
             "lod-terrain-frag",
             "clouds-vert",

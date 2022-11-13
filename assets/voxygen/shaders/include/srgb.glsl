@@ -44,7 +44,7 @@ vec3 linear_to_srgb(vec3 col) {
 }
 
 vec4 srgba8_to_linear(uint srgba8) {
-    uvec4 nonlinear = vec4(uvec4(
+    vec4 nonlinear = vec4(uvec4(
         (srgba8 >> 24) & 0xFFu,
         (srgba8 >> 16) & 0xFFu,
         (srgba8 >>  8) & 0xFFu,

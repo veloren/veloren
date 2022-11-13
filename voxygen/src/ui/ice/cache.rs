@@ -8,6 +8,9 @@ use glyph_brush::GlyphBrushBuilder;
 use std::cell::{RefCell, RefMut};
 use vek::*;
 
+// TODO: probably make cache fields where we have mut getters into just public
+// fields
+
 // Multiplied by current window size
 const GLYPH_CACHE_SIZE: u32 = 1;
 // Glyph cache tolerances
