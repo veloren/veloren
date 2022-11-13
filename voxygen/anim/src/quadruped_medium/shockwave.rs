@@ -29,8 +29,8 @@ impl Animation for ShockwaveAnimation {
             match stage_section {
                 Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0, 0.0, anim_time),
                 Some(StageSection::Charge) => (1.0, 1.0, 0.0, 0.0, 0.0),
-                Some(StageSection::Action) => (1.0, 1.0, anim_time.powi(4), 0.0, 1.0),
-                Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time, 1.0),
+                Some(StageSection::Action) => (1.0, 1.0, anim_time.powi(4), 0.0, 0.2),
+                Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time, 0.0),
                 _ => (0.0, 0.0, 0.0, 0.0, 0.0),
             };
         let pullback = 1.0 - movement3;
@@ -44,7 +44,7 @@ impl Animation for ShockwaveAnimation {
         //let movement2 = mirror * movement2base * pullback;
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
-        let legtwitch = (legtell * 6.0).sin() * pullback;
+        //let legtwitch = (legtell * 6.0).sin() * pullback;
         let legswing = legtell * pullback;
         let short = ((1.0 / (0.72 + 0.28 * ((anim_time * 16.0_f32 + PI * 0.25).sin()).powi(2)))
             .sqrt())
@@ -65,47 +65,44 @@ impl Animation for ShockwaveAnimation {
                 + movement2abs * 1.2
                 + chargemovementbase * -0.5,
         );
-        next.torso_front.orientation =
-            Quaternion::rotation_z(twitch1 * 0.06) * Quaternion::rotation_y(short * 0.06);
+        next.torso_front.orientation = Quaternion::rotation_z(twitch1 * 0.06)
+            * Quaternion::rotation_y(short * 0.06)
+            * Quaternion::rotation_x(legswing * 0.06);
 
         next.tail.orientation = Quaternion::rotation_x(
             0.15 + movement1abs * -0.4 + movement2abs * 0.2 + chargemovementbase * 0.2,
         ) * Quaternion::rotation_z(shortalt * 0.15);
         if legtell > 0.0 {
             if mirror.is_sign_positive() {
-                next.leg_fl.orientation = Quaternion::rotation_x(legswing * 1.1);
+                next.leg_fl.orientation = Quaternion::rotation_x(legswing * 1.4);
 
-                next.foot_fl.orientation =
-                    Quaternion::rotation_x(legswing * -1.1 + legtwitch * 0.5);
-                next.leg_bl.orientation = Quaternion::rotation_x(legswing * 1.1);
+                next.foot_fl.orientation = Quaternion::rotation_x(legswing * -0.5);
+                next.leg_bl.orientation = Quaternion::rotation_x(legswing * 0.3);
 
-                next.foot_bl.orientation =
-                    Quaternion::rotation_x(legswing * -1.1 + legtwitch * 0.5);
+                next.foot_bl.orientation = Quaternion::rotation_x(legswing * -0.3);
 
-                next.leg_fr.orientation = Quaternion::rotation_x(0.0);
+                next.leg_fr.orientation = Quaternion::rotation_x(legswing * 1.4);
 
-                next.foot_fr.orientation = Quaternion::rotation_x(0.0);
+                next.foot_fr.orientation = Quaternion::rotation_x(legswing * -0.5);
 
-                next.leg_br.orientation = Quaternion::rotation_x(0.0);
+                next.leg_br.orientation = Quaternion::rotation_x(legswing * 0.3);
 
-                next.foot_br.orientation = Quaternion::rotation_x(0.0);
+                next.foot_br.orientation = Quaternion::rotation_x(legswing * -0.3);
             } else {
-                next.leg_fl.orientation = Quaternion::rotation_x(0.0);
+                next.leg_fl.orientation = Quaternion::rotation_x(legswing * 1.4);
 
-                next.foot_fl.orientation = Quaternion::rotation_x(0.0);
-                next.leg_bl.orientation = Quaternion::rotation_x(0.0);
+                next.foot_fl.orientation = Quaternion::rotation_x(legswing * -0.5);
+                next.leg_bl.orientation = Quaternion::rotation_x(legswing * 0.3);
 
-                next.foot_bl.orientation = Quaternion::rotation_x(0.0);
+                next.foot_bl.orientation = Quaternion::rotation_x(legswing * -0.3);
 
-                next.leg_fr.orientation = Quaternion::rotation_x(legswing * 1.1);
+                next.leg_fr.orientation = Quaternion::rotation_x(legswing * 1.4);
 
-                next.foot_fr.orientation =
-                    Quaternion::rotation_x(legswing * -1.1 + legtwitch * 0.5);
+                next.foot_fr.orientation = Quaternion::rotation_x(legswing * -0.5);
 
-                next.leg_br.orientation = Quaternion::rotation_x(legswing * 1.1);
+                next.leg_br.orientation = Quaternion::rotation_x(legswing * 0.3);
 
-                next.foot_br.orientation =
-                    Quaternion::rotation_x(legswing * -1.1 + legtwitch * 0.5);
+                next.foot_br.orientation = Quaternion::rotation_x(legswing * -0.3);
             }
         };
         next

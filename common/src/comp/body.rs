@@ -691,7 +691,7 @@ impl Body {
                 quadruped_medium::Species::Bonerattler => 50,
                 quadruped_medium::Species::Deer => 50,
                 quadruped_medium::Species::Hirdrasil => 70,
-                quadruped_medium::Species::Roshwalr => 350,
+                quadruped_medium::Species::Roshwalr => 500,
                 quadruped_medium::Species::Donkey => 55,
                 quadruped_medium::Species::Zebra => 55,
                 quadruped_medium::Species::Antelope => 45,
