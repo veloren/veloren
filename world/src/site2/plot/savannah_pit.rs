@@ -1581,6 +1581,12 @@ impl Structure for SavannahPit {
             }
             let lantern_pos = tower_center - 3;
             painter.sprite(lantern_pos.with_z(base + (length / 2)), SpriteKind::Lantern);
+            // tunnel lanterns
+            let tunnel_lantern_pos = tower_center - 3;
+            painter.sprite(
+                tunnel_lantern_pos.with_z(base - (2 * length) - 2),
+                SpriteKind::Lantern,
+            );
         }
         // watchtowers with entries
         for dir in CARDINALS {
@@ -1644,6 +1650,12 @@ impl Structure for SavannahPit {
             }
             let lantern_pos = center + dir * (7 * wall_length);
             painter.sprite(lantern_pos.with_z(base + (length / 2)), SpriteKind::Lantern);
+            // tunnel lanterns
+            let tunnel_lantern_pos = tower_center;
+            painter.sprite(
+                tunnel_lantern_pos.with_z(base - (2 * length) - 2),
+                SpriteKind::Lantern,
+            );
         }
     }
 }
