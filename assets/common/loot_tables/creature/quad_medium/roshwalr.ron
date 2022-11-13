@@ -1,5 +1,5 @@
 [
-    (2.0, Item("common.items.crafting_ing.hide.rugged_hide")),
+    (2.0, Item("common.items.crafting_ing.hide.rugged_hide", 1, 3)),
     (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.icy_fang", 2, 4)),
     (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.long_tusk", 2, 2)),
 ]
