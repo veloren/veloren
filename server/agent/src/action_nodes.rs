@@ -1140,13 +1140,9 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
-            Tactic::Roshwalr => self.handle_roshwalr_attack(
-                agent,
-                controller,
-                &attack_data,
-                tgt_data,
-                read_data,
-            ),
+            Tactic::Roshwalr => {
+                self.handle_roshwalr_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::OrganAura => {
                 self.handle_organ_aura_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
