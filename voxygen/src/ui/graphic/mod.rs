@@ -858,8 +858,6 @@ impl Default for PremultiplyLookupTable {
 }
 
 fn premultiply_alpha(image: &mut RgbaImage) {
-    prof_span!("premultiply alpha");
-
     lazy_static::lazy_static! {
         static ref LOOKUP: PremultiplyLookupTable = Default::default();
     }

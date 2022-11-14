@@ -648,10 +648,6 @@ impl PremultiplyUpload {
             target_size_xy,
         })
     }
-
-    pub fn area_dbg(&self) -> f32 {
-        (self.source_size_xy & 0xFFFF) as f32 * (self.source_size_xy >> 16) as f32
-    }
 }
 
 use std::sync::Arc;

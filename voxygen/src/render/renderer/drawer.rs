@@ -445,14 +445,11 @@ impl<'frame> Drawer<'frame> {
 
         let targets = self.borrow.ui_premultiply_uploads.take();
 
-        // TODO: What is the CPU overhead of each renderpass?
         for (i, (target_texture, uploads)) in targets.into_iter().enumerate() {
-            let mut area = 0.0;
             prof_span!("ui premultiply pass");
-            tracing::info!("{} uploads", uploads.len());
             let profile_name = format!("ui_premultiply_pass {}", i);
             let label = format!("ui premultiply pass {}", i);
-            // TODO: a GPU profile scope on each of the passes here may be a bit too fine
+            // S-TODO: a GPU profile scope on each of the passes here may be a bit too fine
             // grained.
             let mut render_pass =
                 encoder.scoped_render_pass(&profile_name, device, &wgpu::RenderPassDescriptor {
@@ -469,15 +466,12 @@ impl<'frame> Drawer<'frame> {
                 });
             render_pass.set_pipeline(&premultiply_alpha.pipeline);
             for upload in &uploads {
-                area += upload.area_dbg();
                 let (source_bind_group, push_constant_data) = upload.draw_data(&target_texture);
                 let bytes = bytemuck::bytes_of(&push_constant_data);
                 render_pass.set_bind_group(0, source_bind_group, &[]);
                 render_pass.set_push_constants(wgpu::ShaderStage::VERTEX, 0, bytes);
                 render_pass.draw(0..6, 0..1);
             }
-            let avg_area = area as f32 / uploads.len() as f32;
-            tracing::info!("avg area sqrt {}", f32::sqrt(avg_area));
         }
     }
 
