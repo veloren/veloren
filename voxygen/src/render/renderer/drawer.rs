@@ -20,6 +20,9 @@ use wgpu_profiler::scope::{ManualOwningScope, OwningScope, Scope};
 #[cfg(feature = "egui-ui")]
 use {common_base::span, egui_wgpu_backend::ScreenDescriptor, egui_winit_platform::Platform};
 
+/// Gpu timing label prefix associated with the UI alpha premultiplication pass.
+pub const UI_PREMULTIPLY_PASS: &str = "ui_premultiply_pass";
+
 // Currently available pipelines
 enum Pipelines<'frame> {
     Interface(&'frame super::InterfacePipelines),
@@ -447,10 +450,8 @@ impl<'frame> Drawer<'frame> {
 
         for (i, (target_texture, uploads)) in targets.into_iter().enumerate() {
             prof_span!("ui premultiply pass");
-            let profile_name = format!("ui_premultiply_pass {}", i);
-            let label = format!("ui premultiply pass {}", i);
-            // S-TODO: a GPU profile scope on each of the passes here may be a bit too fine
-            // grained.
+            let profile_name = format!("{UI_PREMULTIPLY_PASS} {i}");
+            let label = format!("ui premultiply pass {i}");
             let mut render_pass =
                 encoder.scoped_render_pass(&profile_name, device, &wgpu::RenderPassDescriptor {
                     label: Some(&label),

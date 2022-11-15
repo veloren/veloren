@@ -2769,11 +2769,13 @@ impl Hud {
                 }
 
                 for (i, timing) in gpu_timings.iter().enumerate() {
-                    let timings_text = &format!(
-                        "{:16}{:.3} ms",
-                        &format!("{}:", timing.1),
-                        timing.2 * 1000.0,
-                    );
+                    let label = timing.1;
+                    // We skip displaying these since they aren't present every frame.
+                    if label.starts_with(crate::render::UI_PREMULTIPLY_PASS) {
+                        continue;
+                    }
+                    let timings_text =
+                        &format!("{:16}{:.3} ms", &format!("{label}:"), timing.2 * 1000.0,);
                     let timings_widget = Text::new(timings_text)
                         .color(TEXT_COLOR)
                         .down(V_PAD)

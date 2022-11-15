@@ -53,7 +53,7 @@ pub use self::{
             DebugDrawer, DebugShadowDrawer, Drawer, FigureDrawer, FigureShadowDrawer,
             FirstPassDrawer, ParticleDrawer, PreparedUiDrawer, ShadowPassDrawer, SpriteDrawer,
             TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer,
-            TransparentPassDrawer, UiDrawer, VolumetricPassDrawer,
+            TransparentPassDrawer, UiDrawer, VolumetricPassDrawer, UI_PREMULTIPLY_PASS,
         },
         AltIndices, ColLightInfo, CullingMode, Renderer,
     },

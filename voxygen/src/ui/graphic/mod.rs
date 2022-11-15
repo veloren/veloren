@@ -214,8 +214,6 @@ impl TextureRequirements {
         }
     }
 
-    // TODO: what if requested size is 0? Do we currently panic on this case and
-    // expect caller not to ask for 0 size? (if so document that)
     fn to_key_and_tex_parameters(
         self,
         graphic_id: Id,
@@ -387,6 +385,10 @@ impl GraphicCache {
 
     /// Source rectangle should be from 0 to 1, and represents a bounding box
     /// for the source image of the graphic.
+    ///
+    /// # Panics
+    ///
+    /// Panics if one of the lengths in requested_dims is zero.
     pub fn cache_res(
         &mut self,
         renderer: &mut Renderer,
@@ -399,6 +401,7 @@ impl GraphicCache {
         source: Aabr<f64>,
         rotation: Rotation,
     ) -> Option<((Aabr<f64>, Vec2<f32>), TexId)> {
+        assert!(requested_dims.map(|e| e != 0).reduce_and());
         let requested_dims_upright = match rotation {
             // The image is stored on the GPU with no rotation, so we need to swap the dimensions
             // here to get the resolution that the image will be displayed at but re-oriented into
@@ -433,15 +436,13 @@ impl GraphicCache {
         };
         // Apply all transformations.
         // TODO: Verify rotation is being applied correctly.
-        let transformed_aabr = |aabr| {
+        let transformed_aabr_and_scale = |aabr| {
             let scaled = scaled_aabr(aabr);
             // Calculate how many displayed pixels there are for each pixel in the source
             // image. We need this to calculate where to sample in the shader to
             // retain crisp pixel borders when scaling the image.
-            // S-TODO: A bit hacky inserting this here, just to get things working initially
             let scale = requested_dims_upright.map2(
                 Vec2::from(scaled.size()),
-                // S-TODO div by zero potential? If so, is NaN an issue in that case?
                 |screen_pixels, sample_pixels: f64| screen_pixels as f32 / sample_pixels as f32,
             );
             let transformed = rotated_aabr(scaled);
@@ -500,7 +501,10 @@ impl GraphicCache {
                     details.set_valid();
                 }
 
-                return Some((transformed_aabr(aabr.map(|e| e as f64)), TexId(idx)));
+                return Some((
+                    transformed_aabr_and_scale(aabr.map(|e| e as f64)),
+                    TexId(idx),
+                ));
             },
             Entry::Vacant(details) => details,
         };
@@ -592,7 +596,10 @@ impl GraphicCache {
         // Insert into cached map
         details.insert(location);
 
-        Some((transformed_aabr(aabr.map(|e| e as f64)), TexId(idx)))
+        Some((
+            transformed_aabr_and_scale(aabr.map(|e| e as f64)),
+            TexId(idx),
+        ))
     }
 }
 
