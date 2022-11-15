@@ -100,68 +100,64 @@ impl Civs {
         // this.generate_caves(&mut ctx);
 
         info!("starting civilisation creation");
-        let mut start_locations: Vec<Vec2<i32>> = Vec::new();
         for _ in 0..initial_civ_count {
             debug!("Creating civilisation...");
-            if this
-                .birth_civ(&mut ctx.reseed(), &mut start_locations)
-                .is_none()
-            {
+            if this.birth_civ(&mut ctx.reseed()).is_none() {
                 warn!("Failed to find starting site for civilisation.");
             }
         }
         info!(?initial_civ_count, "all civilisations created");
 
-        let mut gnarling_enemies: Vec<Vec2<i32>> = start_locations.clone();
-        let mut chapel_site_enemies: Vec<Vec2<i32>> = start_locations.clone();
-        let mut dungeon_enemies: Vec<Vec2<i32>> = start_locations.clone();
-        let mut tree_enemies: Vec<Vec2<i32>> = start_locations.clone();
-        let mut castle_enemies: Vec<Vec2<i32>> = Vec::new();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (kind, avoid) = match ctx.rng.gen_range(0..64) {
-                    0..=5 => (SiteKind::Castle, (&castle_enemies, 40)),
+                let (loc, kind) = match ctx.rng.gen_range(0..64) {
+                    0..=5 => (
+                        find_site_loc(&mut ctx, (&this.castle_enemies(), 40), SiteKind::Castle)?,
+                        SiteKind::Castle,
+                    ),
                     28..=31 => {
                         if index.features().site2_giant_trees {
-                            (SiteKind::GiantTree, (&tree_enemies, 40))
+                            (
+                                find_site_loc(
+                                    &mut ctx,
+                                    (&this.tree_enemies(), 40),
+                                    SiteKind::GiantTree,
+                                )?,
+                                SiteKind::GiantTree,
+                            )
                         } else {
-                            (SiteKind::Tree, (&tree_enemies, 40))
+                            (
+                                find_site_loc(
+                                    &mut ctx,
+                                    (&this.tree_enemies(), 40),
+                                    SiteKind::Tree,
+                                )?,
+                                SiteKind::Tree,
+                            )
                         }
                     },
-                    32..=37 => (SiteKind::Gnarling, (&gnarling_enemies, 40)),
+                    32..=37 => (
+                        find_site_loc(
+                            &mut ctx,
+                            (&this.gnarling_enemies(), 40),
+                            SiteKind::Gnarling,
+                        )?,
+                        SiteKind::Gnarling,
+                    ),
                     // 32..=37 => (SiteKind::Citadel, (&castle_enemies, 20)),
-                    38..=43 => (SiteKind::ChapelSite, (&chapel_site_enemies, 40)),
-                    _ => (SiteKind::Dungeon, (&dungeon_enemies, 40)),
+                    38..=43 => (
+                        find_site_loc(
+                            &mut ctx,
+                            (&this.chapel_site_enemies(), 40),
+                            SiteKind::ChapelSite,
+                        )?,
+                        SiteKind::ChapelSite,
+                    ),
+                    _ => (
+                        find_site_loc(&mut ctx, (&this.dungeon_enemies(), 40), SiteKind::Dungeon)?,
+                        SiteKind::Dungeon,
+                    ),
                 };
-                let loc = find_site_loc(&mut ctx, avoid, kind)?;
-                match kind {
-                    SiteKind::Castle => {
-                        gnarling_enemies.push(loc);
-                        chapel_site_enemies.push(loc);
-                        dungeon_enemies.push(loc);
-                        tree_enemies.push(loc);
-                        castle_enemies.push(loc);
-                    },
-                    SiteKind::Gnarling => {
-                        castle_enemies.push(loc);
-                        dungeon_enemies.push(loc);
-                        gnarling_enemies.push(loc);
-                        chapel_site_enemies.push(loc);
-                    },
-                    SiteKind::ChapelSite => {
-                        castle_enemies.push(loc);
-                        dungeon_enemies.push(loc);
-                        gnarling_enemies.push(loc);
-                        chapel_site_enemies.push(loc);
-                    },
-                    SiteKind::Dungeon => {
-                        gnarling_enemies.push(loc);
-                        chapel_site_enemies.push(loc);
-                        dungeon_enemies.push(loc);
-                        castle_enemies.push(loc);
-                    },
-                    _ => (),
-                }
                 Some(this.establish_site(&mut ctx.reseed(), loc, |place| Site {
                     kind,
                     center: loc,
@@ -578,11 +574,7 @@ impl Civs {
             .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
     }
 
-    fn birth_civ(
-        &mut self,
-        ctx: &mut GenCtx<impl Rng>,
-        start_locations: &mut Vec<Vec2<i32>>,
-    ) -> Option<Id<Civ>> {
+    fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         // TODO: specify SiteKind based on where a suitable location is found
         let kind = match ctx.rng.gen_range(0..64) {
             0..=10 => SiteKind::CliffTown,
@@ -591,8 +583,7 @@ impl Civs {
             _ => SiteKind::Refactor,
         };
         let site = attempt(100, || {
-            let loc = find_site_loc(ctx, (start_locations, 60), kind)?;
-            start_locations.push(loc);
+            let loc = find_site_loc(ctx, (&self.town_enemies(), 60), kind)?;
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
                 site_tmp: None,
@@ -1072,6 +1063,62 @@ impl Civs {
         }
 
         site
+    }
+
+    fn gnarling_enemies(&self) -> Vec<Vec2<i32>> {
+        self.sites()
+            .filter_map(|s| match s.kind {
+                SiteKind::Tree | SiteKind::GiantTree => None,
+                _ => Some(s.center),
+            })
+            .collect()
+    }
+
+    fn chapel_site_enemies(&self) -> Vec<Vec2<i32>> {
+        self.sites()
+            .filter_map(|s| match s.kind {
+                SiteKind::Tree | SiteKind::GiantTree => None,
+                _ => Some(s.center),
+            })
+            .collect()
+    }
+
+    fn dungeon_enemies(&self) -> Vec<Vec2<i32>> {
+        self.sites()
+            .filter_map(|s| match s.kind {
+                SiteKind::Tree | SiteKind::GiantTree => None,
+                _ => Some(s.center),
+            })
+            .collect()
+    }
+
+    fn tree_enemies(&self) -> Vec<Vec2<i32>> {
+        self.sites()
+            .filter_map(|s| match s.kind {
+                SiteKind::Castle => Some(s.center),
+                _ if s.is_settlement() => Some(s.center),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn castle_enemies(&self) -> Vec<Vec2<i32>> {
+        self.sites()
+            .filter_map(|s| match s.kind {
+                SiteKind::Tree | SiteKind::GiantTree => None,
+                _ if s.is_settlement() => None,
+                _ => Some(s.center),
+            })
+            .collect()
+    }
+
+    fn town_enemies(&self) -> Vec<Vec2<i32>> {
+        self.sites()
+            .filter_map(|s| match s.kind {
+                SiteKind::Castle | SiteKind::Citadel => None,
+                _ => Some(s.center),
+            })
+            .collect()
     }
 }
 
