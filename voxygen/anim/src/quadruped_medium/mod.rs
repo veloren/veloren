@@ -7,13 +7,14 @@ pub mod idle;
 pub mod jump;
 pub mod leapmelee;
 pub mod run;
+pub mod shockwave;
 pub mod stunned;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beta::BetaAnimation, dash::DashAnimation, feed::FeedAnimation,
     hoof::HoofAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapMeleeAnimation,
-    run::RunAnimation, stunned::StunnedAnimation,
+    run::RunAnimation, shockwave::ShockwaveAnimation, stunned::StunnedAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

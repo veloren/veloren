@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Roshwalr's Thick Skin",
+    description: "testing123",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(100.0)),
+            poise_resilience: Some(Normal(2.0)),
+            energy_max: Some(10),
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)

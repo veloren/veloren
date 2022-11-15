@@ -137,6 +137,7 @@ pub enum Tactic {
     OrganAura,
     Dagon,
     Cardinal,
+    Roshwalr,
 }
 
 #[derive(SystemData)]

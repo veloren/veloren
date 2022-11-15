@@ -556,12 +556,14 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.quadmedjump",
             )),
             quadruped_medium::Species::Tuskram
-            | quadruped_medium::Species::Roshwalr
             | quadruped_medium::Species::Moose
             | quadruped_medium::Species::Dreadhorn
             | quadruped_medium::Species::Mammoth
             | quadruped_medium::Species::Ngoubou => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedcharge",
+            )),
+            quadruped_medium::Species::Roshwalr => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.roshwalr",
             )),
             quadruped_medium::Species::Highland
             | quadruped_medium::Species::Cattle
@@ -918,6 +920,12 @@ impl LoadoutBuilder {
                 quadruped_low::Species::Dagon => Some("common.items.npc_armor.quadruped_low.dagon"),
                 quadruped_low::Species::Tortoise => {
                     Some("common.items.npc_armor.quadruped_low.shell")
+                },
+                _ => None,
+            },
+            Body::QuadrupedMedium(body) => match body.species {
+                quadruped_medium::Species::Roshwalr => {
+                    Some("common.items.npc_armor.quadruped_medium.roshwalr")
                 },
                 _ => None,
             },

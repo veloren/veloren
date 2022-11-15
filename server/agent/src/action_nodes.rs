@@ -824,6 +824,7 @@ impl<'a> AgentData<'a> {
                                 circle_time: 1,
                             },
                             "Quad Med Basic" => Tactic::QuadMedBasic,
+                            "Roshwalr" => Tactic::Roshwalr,
                             "Asp" | "Maneater" => Tactic::QuadLowRanged,
                             "Quad Low Breathe" | "Quad Low Beam" | "Basilisk" => {
                                 Tactic::QuadLowBeam
@@ -1139,6 +1140,9 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::Roshwalr => {
+                self.handle_roshwalr_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::OrganAura => {
                 self.handle_organ_aura_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
