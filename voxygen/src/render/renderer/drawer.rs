@@ -440,7 +440,7 @@ impl<'frame> Drawer<'frame> {
 
     /// Runs render passes with alpha premultiplication pipeline to complete any
     /// pending uploads.
-    fn run_ui_premultiply_passes<'a>(&mut self) {
+    fn run_ui_premultiply_passes(&mut self) {
         prof_span!("run_ui_premultiply_passes");
         let Some(premultiply_alpha) = self.borrow.pipelines.premultiply_alpha() else { return };
         let encoder = self.encoder.as_mut().unwrap();

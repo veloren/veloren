@@ -180,10 +180,6 @@ void main() {
         // worry about bleeding in the atlas and/or what the border behavior
         // should be.
 
-        // TODO: benchmark before and after by viewing zoomed out map in the UI
-        // (at particular ui scale and map zoom out, far enough to trigger downscaling)
-        // (seems like ~10% increase if any)
-        
         // Convert to sampled pixel coordinates.
         vec2 uv_pixel = f_uv * texture_size;
         vec4 image_color;

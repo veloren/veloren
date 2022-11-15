@@ -4,8 +4,6 @@ use core::num::NonZeroU32;
 use std::mem;
 use vek::*;
 
-// TODO: profile UI rendering before and after on laptop.
-
 /// The format of textures that the UI sources image data from.
 ///
 /// Note, the is not directly used in all relevant locations, but still helps to

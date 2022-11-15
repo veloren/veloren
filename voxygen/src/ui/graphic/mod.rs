@@ -214,6 +214,7 @@ impl TextureRequirements {
         }
     }
 
+    #[allow(clippy::wrong_self_convention)] // type is spiritually Copy
     fn to_key_and_tex_parameters(
         self,
         graphic_id: Id,
@@ -304,7 +305,7 @@ impl GraphicCache {
         };
 
         let old_requirements = TextureRequirements::from_graphic(&old);
-        let new_requirements = TextureRequirements::from_graphic(&new);
+        let new_requirements = TextureRequirements::from_graphic(new);
         let should_invalidate = old_requirements == new_requirements && old_requirements.is_some();
 
         // Invalidate if possible or remove from caches.
@@ -468,7 +469,7 @@ impl GraphicCache {
             },
         };
 
-        let requirements = TextureRequirements::from_graphic(&graphic)?;
+        let requirements = TextureRequirements::from_graphic(graphic)?;
         let (key, texture_parameters) =
             requirements.to_key_and_tex_parameters(graphic_id, requested_dims_upright);
 
@@ -642,7 +643,7 @@ fn prepare_graphic<'graphic>(
             // expensive enough to do in the background we would just do it on
             // the GPU. Could still use `rayon` to parallelize this work, if
             // needed.
-            let premultiply_strategy = PremultiplyStrategy::determine(&*rgba_cow);
+            let premultiply_strategy = PremultiplyStrategy::determine(&rgba_cow);
             let needs_gpu_premultiply = match premultiply_strategy {
                 PremultiplyStrategy::UseGpu => true,
                 PremultiplyStrategy::NotNeeded => false,
@@ -767,7 +768,7 @@ fn upload_image(
         let size = aabr.size().into_array();
         // upload directly
         renderer.update_texture(
-            &*target_texture,
+            target_texture,
             offset,
             size,
             // NOTE: Rgba texture, so each pixel is 4 bytes, ergo this cannot fail.
@@ -1044,6 +1045,7 @@ impl PremultiplyStrategy {
 /// Computes the fraction of 4 pixel chunks that are fully translucent or
 /// opaque. Returns `None` if no premultiplication is needed (i.e. all alpha
 /// values are 255).
+#[allow(clippy::unusual_byte_groupings)]
 fn fraction_shortcircuit_blocks(image: &RgbaImage) -> Option<f32> {
     let dims = image.dimensions();
     let pixel_count = dims.0 as usize * dims.1 as usize;
