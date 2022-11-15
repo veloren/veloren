@@ -416,21 +416,21 @@ pub fn create_tri(
 // 1. Upload new image via `Device::create_texture_with_data`.
 //
 //    (NOTE: Initially considered: Creating a storage buffer to read from in the
-// shader via    `Device::create_buffer_init`, with `MAP_WRITE` flag to avoid
-// staging buffer. However, with    dedicated GPUs combining usages other than
-// `COPY_SRC` with `MAP_WRITE` may be less ideal.    Plus, by copying into a
-// texture first we can get free srgb conversion when fetching colors
-//    from the texture. In the future, we may want to branch based on the
-// whether the GPU is    integrated and avoid this extra copy.)
+//    shader via `Device::create_buffer_init`, with `MAP_WRITE` flag to avoid
+//    staging buffer. However, with GPUs combining usages other than `COPY_SRC`
+//    with `MAP_WRITE` may be less ideal. Plus, by copying into a texture first
+//    we can get free srgb conversion when fetching colors from the texture. In
+//    the future, we may want to branch based on the whether the GPU is
+//    integrated and avoid this extra copy.)
 //
 // 2. Run render pipeline to multiply by alpha reading from this texture and
-// writing to the final    texture (this can either be in an atlas or in an
-// independent texture if the image is over a    certain size threshold).
+//    writing to the final texture (this can either be in an atlas or in an
+//    independent texture if the image is over a certain size threshold).
 //
 //    (NOTE: Initially considered: using a compute pipeline and writing to the
-// final texture as a    storage texture. However, the srgb format can't be used
-// with storage texture and there is not    yet the capability to create
-// non-srgb views of srgb textures.)
+//     final texture as a storage texture. However, the srgb format can't be
+//     used with storage texture and there is not yet the capability to create
+//     non-srgb views of srgb textures.)
 //
 // Info needed:
 //
