@@ -2,7 +2,8 @@ use super::{ScaleChange, RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
     hud::{
-        img_ids::Imgs, BarNumbers, BuffPosition, CrosshairType, ShortcutNumbers, Show, TEXT_COLOR,
+        img_ids::Imgs, BarNumbers, BuffPosition, CrosshairType, ShortcutNumbers, Show, MENU_BG,
+        TEXT_COLOR,
     },
     session::settings_change::{Interface as InterfaceChange, Interface::*},
     ui::{fonts::Fonts, ImageSlider, ScaleMode, ToggleButton},
@@ -11,7 +12,7 @@ use crate::{
 use conrod_core::{
     color,
     position::{Align, Relative},
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
+    widget::{self, Button, DropDownList, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
@@ -27,6 +28,7 @@ widget_ids! {
         ui_scale_label,
         ui_scale_slider,
         ui_scale_value,
+        ui_scale_list,
         relative_to_win_button,
         relative_to_win_text,
         absolute_scale_button,
@@ -436,6 +438,27 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.ui_scale_slider, ui)
             {
                 events.push(UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
+            }
+            let mode_label_list = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+            let selected = mode_label_list
+                .iter()
+                .position(|factor| (*factor - scale).abs() < 0.24);
+            // Dropdown menu for custom scaling
+            if let Some(clicked) = DropDownList::new(
+                &mode_label_list
+                    .iter()
+                    .map(|factor| format!("{n:.*}", 2, n = factor))
+                    .collect::<Vec<String>>(),
+                selected,
+            )
+            .w_h(208.0, 22.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_size(self.fonts.cyri.scale(10))
+            .down_from(state.ids.ui_scale_slider, 6.0)
+            .set(state.ids.ui_scale_list, ui)
+            {
+                events.push(UiScale(ScaleChange::Adjust(mode_label_list[clicked])));
             }
             // Custom Scaling Text
             Text::new(&format!("{:.2}", scale))
