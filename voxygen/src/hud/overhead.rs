@@ -165,7 +165,6 @@ impl<'a> Ingameable for Overhead<'a> {
                     2 * BuffIcon::icons_vec(info.buffs, info.char_state)
                         .len()
                         .min(11)
-                        + 1
                 } else {
                     0
                 }
