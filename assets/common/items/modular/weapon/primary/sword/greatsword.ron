@@ -8,7 +8,7 @@ ItemDef(
                 equip_time_secs: 0.25,
                 power: 1.2,
                 effect_power: 1.5,
-                speed: 0.8,
+                speed: 0.9,
                 crit_chance: 0.1,
                 range: 1.0,
                 energy_efficiency: 0.7,

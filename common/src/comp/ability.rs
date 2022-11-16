@@ -872,7 +872,7 @@ impl CharacterAbility {
             buildup_duration: 0.05,
             movement_duration: 0.33,
             recover_duration: 0.125,
-            roll_strength: 2.5,
+            roll_strength: 3.0,
             attack_immunities: AttackImmunities {
                 melee: true,
                 projectiles: false,
@@ -1085,7 +1085,7 @@ impl CharacterAbility {
             ChargedMelee {
                 ref mut energy_cost,
                 ref mut energy_drain,
-                charge_duration: _,
+                ref mut charge_duration,
                 ref mut swing_duration,
                 hit_timing: _,
                 ref mut recover_duration,
@@ -1094,9 +1094,10 @@ impl CharacterAbility {
                 meta: _,
             } => {
                 *swing_duration /= stats.speed;
+                *charge_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *energy_drain /= stats.energy_efficiency;
+                *energy_drain *= stats.speed / stats.energy_efficiency;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
             ChargedRanged {
@@ -1109,7 +1110,7 @@ impl CharacterAbility {
                 initial_knockback: _,
                 scaled_knockback: _,
                 ref mut buildup_duration,
-                charge_duration: _,
+                ref mut charge_duration,
                 ref mut recover_duration,
                 projectile_body: _,
                 projectile_light: _,
@@ -1121,11 +1122,12 @@ impl CharacterAbility {
                 *initial_damage *= stats.power;
                 *scaled_damage *= stats.power;
                 *buildup_duration /= stats.speed;
+                *charge_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *initial_projectile_speed *= stats.range;
                 *scaled_projectile_speed *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
-                *energy_drain /= stats.energy_efficiency;
+                *energy_drain *= stats.speed / stats.energy_efficiency;
             },
             Shockwave {
                 ref mut energy_cost,

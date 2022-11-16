@@ -152,7 +152,9 @@ impl<'a> Ingameable for Overhead<'a> {
         //   - 1 Rect::new for mana
         // If there are Buffs
         // - 1 Alignment Rectangle
-        // - 10 + 10 Buffs and Timer Overlays (only if there is no speech bubble)
+        // - 2 per buff (1 for buff and 1 for timer overlay) (only if there is no speech
+        //   bubble)
+        //   - 22 total with current max of 11 displayed buffs
         // If there's a speech bubble
         // - 2 Text::new for speech bubble
         // - 1 Image::new for icon
@@ -160,7 +162,9 @@ impl<'a> Ingameable for Overhead<'a> {
         self.info.map_or(0, |info| {
             2 + 1
                 + if self.bubble.is_none() {
-                    info.buffs.kinds.len().min(10) * 2
+                    2 * BuffIcon::icons_vec(info.buffs, info.char_state)
+                        .len()
+                        .min(11)
                 } else {
                     0
                 }
