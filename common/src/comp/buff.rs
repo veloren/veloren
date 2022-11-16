@@ -258,6 +258,8 @@ pub enum BuffChange {
         any_required: Vec<BuffCategory>,
         none_required: Vec<BuffCategory>,
     },
+    // Refreshes durations of all buffs with this kind
+    Refresh(BuffKind),
 }
 
 #[cfg(not(target_arch = "wasm32"))]

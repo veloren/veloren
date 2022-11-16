@@ -1156,6 +1156,17 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                     buffs.remove(id);
                 }
             },
+            BuffChange::Refresh(kind) => {
+                let (buff_comp_kinds, buff_comp_buffs) = buffs.parts();
+                if let Some(buff_ids) = buff_comp_kinds.get(&kind) {
+                    for id in buff_ids {
+                        if let Some(buff) = buff_comp_buffs.get_mut(id) {
+                            // Resets buff timer to the original duration
+                            buff.time = buff.data.duration;
+                        }
+                    }
+                }
+            },
         }
     }
 }
@@ -1259,25 +1270,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 });
                 true
             },
-            char_state => {
-                // If the character state is not one of the ones above, if it parried because it
-                // had the capability to parry in its buildup, subtract 5 energy from the
-                // defender
-                if char_state
-                    .ability_info()
-                    .map(|info| info.ability_meta)
-                    .map_or(false, |meta| {
-                        meta.capabilities
-                            .contains(comp::ability::Capability::BUILDUP_PARRIES)
-                    })
-                {
-                    server_eventbus.emit_now(ServerEvent::EnergyChange {
-                        entity: defender,
-                        change: -5.0,
-                    });
-                }
-                false
-            },
+            _ => false,
         };
         if return_to_wield {
             *char_state =

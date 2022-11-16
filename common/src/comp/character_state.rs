@@ -284,30 +284,34 @@ impl CharacterState {
     }
 
     pub fn block_strength(&self) -> Option<f32> {
-        let strength = match self {
-            CharacterState::BasicBlock(c) => c.static_data.block_strength,
-            _ => return None,
-        };
-        Some(strength)
-    }
-
-    pub fn is_parry(&self) -> bool {
         let from_capability = if let Some(capabilities) = self
             .ability_info()
             .map(|a| a.ability_meta)
             .map(|m| m.capabilities)
         {
-            capabilities.contains(Capability::BUILDUP_PARRIES)
-                && matches!(self.stage_section(), Some(StageSection::Buildup))
+            (capabilities.contains(Capability::BUILDUP_BLOCKS)
+                && matches!(self.stage_section(), Some(StageSection::Buildup)))
+            .then_some(0.5)
         } else {
-            false
+            None
         };
         let from_state = match self {
+            CharacterState::BasicBlock(c) => Some(c.static_data.block_strength),
+            _ => None,
+        };
+        match (from_capability, from_state) {
+            (Some(a), Some(b)) => Some(a.max(b)),
+            (Some(a), None) | (None, Some(a)) => Some(a),
+            (None, None) => None,
+        }
+    }
+
+    pub fn is_parry(&self) -> bool {
+        match self {
             CharacterState::BasicBlock(c) => c.is_parry(),
             CharacterState::RiposteMelee(c) => matches!(c.stage_section, StageSection::Buildup),
             _ => false,
-        };
-        from_capability || from_state
+        }
     }
 
     /// In radians

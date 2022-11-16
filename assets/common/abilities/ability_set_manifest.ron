@@ -84,7 +84,7 @@
             Contextualized(
                 pseudo_id: "veloren.core.psuedo_abilities.sword.finisher",
                 abilities: {
-                    None: (Sword(Finisher), "common.abilities.sword.basic_finisher"),
+                    None: (Sword(Finisher), "common.abilities.sword.basic_mighty_strike"),
                     Stance(Sword(Heavy)): (Sword(Finisher), "common.abilities.sword.heavy_guillotine"),
                     Stance(Sword(Agile)): (Sword(Finisher), "common.abilities.sword.agile_hundred_cuts"),
                     Stance(Sword(Defensive)): (Sword(Finisher), "common.abilities.sword.defensive_counter"),

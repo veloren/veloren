@@ -45,7 +45,14 @@ impl Animation for ComboAnimation {
 
         for strike in 0..=current_strike {
             match ability_id {
-                Some("common.abilities.sword.balanced_combo") => {
+                Some(
+                    "common.abilities.sword.basic_double_slash"
+                    | "common.abilities.sword.heavy_double_slash"
+                    | "common.abilities.sword.agile_double_slash"
+                    | "common.abilities.sword.defensive_double_slash"
+                    | "common.abilities.sword.crippling_double_slash"
+                    | "common.abilities.sword.cleaving_double_slash",
+                ) => {
                     let (move1, move2, move2alt) = if strike == current_strike {
                         match stage_section {
                             Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),

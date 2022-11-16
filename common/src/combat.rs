@@ -199,6 +199,7 @@ impl Attack {
     ) -> bool {
         // TODO: Maybe move this higher and pass it as argument into this function?
         let msm = &MaterialStatManifest::load().read();
+        let mut rng = thread_rng();
 
         let AttackOptions {
             target_dodging,
@@ -219,7 +220,7 @@ impl Attack {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
                 && (target_dodging || !may_harm)
         };
-        let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
+        let is_crit = rng.gen::<f32>() < self.crit_chance;
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         for damage in self
@@ -360,7 +361,7 @@ impl Attack {
                             }
                         },
                         CombatEffect::Buff(b) => {
-                            if thread_rng().gen::<f32>() < b.chance {
+                            if rng.gen::<f32>() < b.chance {
                                 emit(ServerEvent::Buff {
                                     entity: target.entity,
                                     buff_change: BuffChange::Add(b.to_buff(
@@ -452,6 +453,14 @@ impl Attack {
                                 });
                             }
                         },
+                        CombatEffect::RefreshBuff(chance, b) => {
+                            if rng.gen::<f32>() < *chance {
+                                emit(ServerEvent::Buff {
+                                    entity: target.entity,
+                                    buff_change: BuffChange::Refresh(*b),
+                                });
+                            }
+                        },
                     }
                 }
             }
@@ -528,7 +537,7 @@ impl Attack {
                         }
                     },
                     CombatEffect::Buff(b) => {
-                        if thread_rng().gen::<f32>() < b.chance {
+                        if rng.gen::<f32>() < b.chance {
                             emit(ServerEvent::Buff {
                                 entity: target.entity,
                                 buff_change: BuffChange::Add(b.to_buff(
@@ -609,6 +618,14 @@ impl Attack {
                     },
                     // Only has an effect when attached to a damage
                     CombatEffect::BuildupsVulnerable => {},
+                    CombatEffect::RefreshBuff(chance, b) => {
+                        if rng.gen::<f32>() < chance {
+                            emit(ServerEvent::Buff {
+                                entity: target.entity,
+                                buff_change: BuffChange::Refresh(b),
+                            });
+                        }
+                    },
                 }
             }
         }
@@ -742,9 +759,12 @@ pub enum CombatEffect {
     Combo(i32),
     // If the attack hits the target while they are in the buildup portion of a character state,
     // deal double damage Only has an effect when attached to a damage, otherwise does nothing
-    // if only attached to the attack TODO: Maybe try to make it do something if tied to
+    // if only attached to the attack
+    // TODO: Maybe try to make it do something if tied to
     // attack, not sure if it should double count in that instance?
     BuildupsVulnerable,
+    // Resets duration of all buffs of this buffkind, with some probability
+    RefreshBuff(f32, BuffKind),
 }
 
 #[cfg(not(target_arch = "wasm32"))]

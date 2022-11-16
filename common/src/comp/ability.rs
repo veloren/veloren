@@ -2842,8 +2842,8 @@ bitflags::bitflags! {
         const ROLL_INTERRUPT      = 0b00000001;
         // Allows blocking to interrupt the ability at any point
         const BLOCK_INTERRUPT     = 0b00000010;
-        // When the ability is in the buildup section, it counts as a parry
-        const BUILDUP_PARRIES     = 0b00000100;
+        // When the ability is in the buildup section, it counts as a block with 50% DR
+        const BUILDUP_BLOCKS      = 0b00000100;
         // When in the ability, an entity only receives half as much poise damage
         const POISE_RESISTANT     = 0b00001000;
         // WHen in the ability, an entity only receives half as much knockback
