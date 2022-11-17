@@ -100,6 +100,7 @@ impl BehaviorTree {
     pub fn target() -> Self {
         Self {
             tree: vec![
+                update_last_known_pos,
                 untarget_if_dead,
                 update_target_awareness,
                 do_hostile_tree_if_hostile_and_aware,
@@ -506,6 +507,43 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
             }
         },
     }
+    false
+}
+
+fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
+    let BehaviorData {
+        agent,
+        agent_data,
+        read_data,
+        controller,
+        ..
+    } = bdata;
+
+    if let Some(target_info) = agent.target {
+        let target = target_info.target;
+
+        if let Some(target_pos) = read_data.positions.get(target) {
+            if agent_data.detects_other(agent, controller, &target, target_pos, read_data) {
+                let new_last_known_pos = Some(target_pos.0);
+
+                let Target {
+                    hostile,
+                    selected_at,
+                    aggro_on,
+                    ..
+                } = target_info;
+
+                agent.target = Some(Target::new(
+                    target,
+                    hostile,
+                    selected_at,
+                    aggro_on,
+                    new_last_known_pos,
+                ));
+            }
+        }
+    }
+
     false
 }
 
