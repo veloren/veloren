@@ -470,8 +470,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::UseItem(_)
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
-            | CharacterState::Wallrun(_)
-            | CharacterState::BasicStance(_) => Self::Other,
+            | CharacterState::Wallrun(_) => Self::Other,
         }
     }
 }
@@ -576,6 +575,8 @@ pub enum CharacterAbility {
     ComboMelee2 {
         strikes: Vec<combo_melee2::Strike<f32>>,
         energy_cost_per_strike: f32,
+        #[serde(default)]
+        auto_progress: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -801,12 +802,6 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
-    BasicStance {
-        buildup_duration: f32,
-        stance: Stance,
-        #[serde(default)]
-        meta: AbilityMeta,
-    },
 }
 
 impl Default for CharacterAbility {
@@ -907,8 +902,7 @@ impl CharacterAbility {
             | CharacterAbility::Blink { .. }
             | CharacterAbility::Music { .. }
             | CharacterAbility::BasicSummon { .. }
-            | CharacterAbility::SpriteSummon { .. }
-            | CharacterAbility::BasicStance { .. } => true,
+            | CharacterAbility::SpriteSummon { .. } => true,
         }
     }
 
@@ -1085,6 +1079,7 @@ impl CharacterAbility {
             ComboMelee2 {
                 ref mut strikes,
                 ref mut energy_cost_per_strike,
+                auto_progress: _,
                 meta: _,
             } => {
                 *energy_cost_per_strike /= stats.energy_efficiency;
@@ -1462,13 +1457,6 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
-            BasicStance {
-                ref mut buildup_duration,
-                stance: _,
-                meta: _,
-            } => {
-                *buildup_duration /= stats.speed;
-            },
         }
         self
     }
@@ -1510,8 +1498,7 @@ impl CharacterAbility {
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
-            | SpriteSummon { .. }
-            | BasicStance { .. } => 0.0,
+            | SpriteSummon { .. } => 0.0,
         }
     }
 
@@ -1552,8 +1539,7 @@ impl CharacterAbility {
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
-            | SpriteSummon { .. }
-            | BasicStance { .. } => 0,
+            | SpriteSummon { .. } => 0,
         }
     }
 
@@ -1586,8 +1572,7 @@ impl CharacterAbility {
             | Music { meta, .. }
             | DiveMelee { meta, .. }
             | RiposteMelee { meta, .. }
-            | RapidMelee { meta, .. }
-            | BasicStance { meta, .. } => *meta,
+            | RapidMelee { meta, .. } => *meta,
         }
     }
 
@@ -2283,11 +2268,13 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             CharacterAbility::ComboMelee2 {
                 strikes,
                 energy_cost_per_strike,
+                auto_progress,
                 meta: _,
             } => CharacterState::ComboMelee2(combo_melee2::Data {
                 static_data: combo_melee2::StaticData {
                     strikes: strikes.iter().map(|s| s.to_duration()).collect(),
                     energy_cost_per_strike: *energy_cost_per_strike,
+                    auto_progress: *auto_progress,
                     ability_info,
                 },
                 exhausted: false,
@@ -2803,18 +2790,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
-            CharacterAbility::BasicStance {
-                buildup_duration,
-                stance,
-                meta: _,
-            } => CharacterState::BasicStance(basic_stance::Data {
-                static_data: basic_stance::StaticData {
-                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
-                    stance: *stance,
-                    ability_info,
-                },
-                timer: Duration::default(),
-            }),
         }
     }
 }
@@ -2824,6 +2799,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
 pub struct AbilityMeta {
     #[serde(default)]
     pub capabilities: Capability,
+    #[serde(default)]
+    pub init_event: Option<AbilityInitEvent>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
@@ -2855,6 +2832,11 @@ bitflags::bitflags! {
 pub enum Stance {
     None,
     Sword(SwordStance),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum AbilityInitEvent {
+    EnterStance(Stance),
 }
 
 impl Default for Stance {

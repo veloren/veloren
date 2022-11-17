@@ -1791,41 +1791,6 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicStance(_) => {
-                            if physics.in_liquid().is_some() {
-                                anim::character::SwimWieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        active_tool_kind,
-                                        second_tool_kind,
-                                        hands,
-                                        rel_vel.magnitude(),
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else {
-                                anim::character::WieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        (active_tool_kind, active_tool_spec),
-                                        second_tool_kind,
-                                        hands,
-                                        // TODO: Update to use the quaternion.
-                                        ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        look_dir,
-                                        rel_vel,
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
-                        },
                         CharacterState::BasicBlock(s) => {
                             let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {

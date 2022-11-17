@@ -76,7 +76,8 @@ pub struct StaticData {
     pub strikes: Vec<Strike<Duration>>,
     /// The amount of energy consumed with each swing
     pub energy_cost_per_strike: f32,
-    /// What key is used to press ability
+    /// Whether or not the state should progress through all strikes automatically once the state is entered
+    pub auto_progress: bool,
     pub ability_info: AbilityInfo,
 }
 /// A sequence of attacks that can incrementally become faster and more
@@ -132,7 +133,7 @@ impl CharacterBehavior for Data {
                 if let Some(movement) = strike_data.movement.swing {
                     handle_forced_movement(data, &mut update, movement);
                 }
-                if input_is_pressed(data, self.static_data.ability_info.input) {
+                if input_is_pressed(data, self.static_data.ability_info.input) || self.static_data.auto_progress {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         // Only have the next strike skip the recover period of this strike if not
                         // every strike in the combo is complete yet

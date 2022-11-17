@@ -143,8 +143,6 @@ pub enum CharacterState {
     /// A series of consecutive, identical attacks that only go through buildup
     /// and recover once for the entire state
     RapidMelee(rapid_melee::Data),
-    /// Causes the character to enter a new stance, or leave the current stance
-    BasicStance(basic_stance::Data),
 }
 
 impl CharacterState {
@@ -184,7 +182,6 @@ impl CharacterState {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
-                | CharacterState::BasicStance(_)
         )
     }
 
@@ -266,7 +263,6 @@ impl CharacterState {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
-                | CharacterState::BasicStance(_)
         )
     }
 
@@ -402,7 +398,6 @@ impl CharacterState {
                 | CharacterState::Music(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
-                | CharacterState::BasicStance(_)
         )
     }
 
@@ -471,7 +466,6 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => data.behavior(j, output_events),
             CharacterState::RiposteMelee(data) => data.behavior(j, output_events),
             CharacterState::RapidMelee(data) => data.behavior(j, output_events),
-            CharacterState::BasicStance(data) => data.behavior(j, output_events),
         }
     }
 
@@ -526,7 +520,6 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RiposteMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RapidMelee(data) => data.handle_event(j, output_events, action),
-            CharacterState::BasicStance(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -580,7 +573,6 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RiposteMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RapidMelee(data) => Some(data.static_data.ability_info),
-            CharacterState::BasicStance(data) => Some(data.static_data.ability_info),
         }
     }
 
@@ -626,7 +618,6 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.stage_section),
             CharacterState::RiposteMelee(data) => Some(data.stage_section),
             CharacterState::RapidMelee(data) => Some(data.stage_section),
-            CharacterState::BasicStance(_) => Some(StageSection::Buildup),
         }
     }
 
@@ -821,10 +812,6 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
-            CharacterState::BasicStance(data) => Some(DurationsInfo {
-                buildup: Some(data.static_data.buildup_duration),
-                ..Default::default()
-            }),
         }
     }
 
@@ -870,7 +857,6 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.timer),
             CharacterState::RiposteMelee(data) => Some(data.timer),
             CharacterState::RapidMelee(data) => Some(data.timer),
-            CharacterState::BasicStance(data) => Some(data.timer),
         }
     }
 }

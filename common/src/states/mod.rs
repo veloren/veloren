@@ -3,7 +3,6 @@ pub mod basic_beam;
 pub mod basic_block;
 pub mod basic_melee;
 pub mod basic_ranged;
-pub mod basic_stance;
 pub mod basic_summon;
 pub mod behavior;
 pub mod blink;

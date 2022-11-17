@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        ability::{Ability, AbilityInput, AbilityMeta, Capability},
+        ability::{Ability, AbilityInput, AbilityMeta, Capability, AbilityInitEvent},
         arthropod, biped_large, biped_small, bird_medium,
         character_state::OutputEvents,
         controller::InventoryManip,
@@ -1031,7 +1031,7 @@ pub fn handle_jump(
         .is_some()
 }
 
-fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) -> bool {
+fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, output_events: &mut OutputEvents, input: InputKind) -> bool {
     let context = AbilityContext::from(data.stance);
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
@@ -1052,6 +1052,13 @@ fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKin
                 AbilityInfo::from_input(data, from_offhand, input, ability.ability_meta()),
                 data,
             ));
+            if let Some(init_event) = ability.ability_meta().init_event {
+                match init_event {
+                    AbilityInitEvent::EnterStance(stance) => {
+                        output_events.emit_server(ServerEvent::ChangeStance { entity: data.entity, stance });
+                    },
+                }
+            }
             update.used_inputs.push(input);
             return true;
         }
@@ -1067,7 +1074,7 @@ pub fn handle_input(
 ) {
     match input {
         InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
-            handle_ability(data, update, input);
+            handle_ability(data, update, output_events, input);
         },
         InputKind::Roll => {
             handle_dodge_input(data, update);
