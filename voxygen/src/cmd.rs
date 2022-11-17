@@ -110,6 +110,7 @@ impl FromStr for ClientChatCommand {
 pub enum ChatCommandKind {
     Client(ClientChatCommand),
     Server(ServerChatCommand),
+    InvalidCommand
 }
 
 impl FromStr for ChatCommandKind {
@@ -121,25 +122,7 @@ impl FromStr for ChatCommandKind {
         } else if let Ok(cmd) = s.parse::<ServerChatCommand>() {
             Ok(ChatCommandKind::Server(cmd))
         } else {
-            // Idea:
-            // The ServerChatCommand enum in veloren/common/src/cmd.rs is a list of valid
-            // commands. We should output something like:
-
-            // Could not find a command named "group_kcik"
-            //      Did you mean:
-            //         group_kick
-
-            // Could not find a command named "make"
-            //      Did you mean:
-            //         make_block
-            //         make_npc
-            //         make_sprite
-
-            // We should be suggesting command(s) similar to the ones typed
-            // - a regex to match possible typos?
-            // - Naively suggest the other commands that start with the same first letter?
-            //   (Might be ok, there most commands for a letter is "S" with 10 commands)
-            Err(format!("Could not find a command named {}.", s))
+            Ok(ChatCommandKind::InvalidCommand)
         }
     }
 }
@@ -170,6 +153,11 @@ pub fn run_command(
         ChatCommandKind::Client(cmd) => {
             Ok(Some(run_client_command(client, global_state, cmd, args)?))
         },
+        ChatCommandKind::InvalidCommand => {
+            //The invalid command that user typed is passed as argument
+            client.send_command(ServerChatCommand::InvalidCommand.keyword().into(), vec![cmd.to_string()]);
+            Ok(None)
+        }
     }
 }
 

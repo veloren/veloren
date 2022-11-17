@@ -236,6 +236,92 @@ lazy_static! {
     };
 }
 
+// Please keep this sorted alphabetically, same as with server commands :-)
+#[derive(Clone, Copy, strum::EnumIter)]
+pub enum ClientChatCommand {
+    Mute,
+    Unmute,
+}
+
+impl ClientChatCommand {
+    pub fn data(&self) -> ChatCommandData {
+        use ArgumentSpec::*;
+        use Requirement::*;
+        let cmd = ChatCommandData::new;
+        match self {
+            ClientChatCommand::Mute => cmd(
+                vec![PlayerName(Required)],
+                "Mutes chat messages from a player.",
+                None,
+            ),
+            ClientChatCommand::Unmute => cmd(
+                vec![PlayerName(Required)],
+                "Unmutes a player muted with the 'mute' command.",
+                None,
+            ),
+        }
+    }
+
+    pub fn keyword(&self) -> &'static str {
+        match self {
+            ClientChatCommand::Mute => "mute",
+            ClientChatCommand::Unmute => "unmute",
+        }
+    }
+
+    /// A message that explains what the command does
+    pub fn help_string(&self) -> String {
+        let data = self.data();
+        let usage = std::iter::once(format!("/{}", self.keyword()))
+            .chain(data.args.iter().map(|arg| arg.usage_string()))
+            .collect::<Vec<_>>()
+            .join(" ");
+        format!("{}: {}", usage, data.description)
+    }
+
+    /// Returns a format string for parsing arguments with scan_fmt
+    pub fn arg_fmt(&self) -> String {
+        self.data()
+            .args
+            .iter()
+            .map(|arg| match arg {
+                ArgumentSpec::PlayerName(_) => "{}",
+                ArgumentSpec::SiteName(_) => "{/.*/}",
+                ArgumentSpec::Float(_, _, _) => "{}",
+                ArgumentSpec::Integer(_, _, _) => "{d}",
+                ArgumentSpec::Any(_, _) => "{}",
+                ArgumentSpec::Command(_) => "{}",
+                ArgumentSpec::Message(_) => "{/.*/}",
+                ArgumentSpec::SubCommand => "{} {/.*/}",
+                ArgumentSpec::Enum(_, _, _) => "{}",
+                ArgumentSpec::Boolean(_, _, _) => "{}",
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+
+    /// Produce an iterator over all the available commands
+    pub fn iter() -> impl Iterator<Item = Self> { <Self as strum::IntoEnumIterator>::iter() }
+
+    /// Produce an iterator that first goes over all the short keywords
+    /// and their associated commands and then iterates over all the normal
+    /// keywords with their associated commands
+    pub fn iter_with_keywords() -> impl Iterator<Item = (&'static str, Self)> {
+        Self::iter().map(|c| (c.keyword(), c))
+    }
+}
+
+impl FromStr for ClientChatCommand {
+    type Err = ();
+
+    fn from_str(keyword: &str) -> Result<ClientChatCommand, ()> {
+        Self::iter()
+            .map(|c| (c.keyword(), c))
+            .find_map(|(kwd, command)| (kwd == keyword).then_some(command))
+            .ok_or(())
+    }
+}
+
 // Please keep this sorted alphabetically :-)
 #[derive(Copy, Clone, strum::EnumIter)]
 pub enum ServerChatCommand {
@@ -271,6 +357,7 @@ pub enum ServerChatCommand {
     Health,
     Help,
     Home,
+    InvalidCommand,
     JoinFaction,
     Jump,
     Kick,
@@ -491,6 +578,7 @@ impl ServerChatCommand {
                 "Join/leave the specified faction",
                 None,
             ),
+            ServerChatCommand::InvalidCommand => cmd(vec![], "", Some(Moderator)),
             ServerChatCommand::Jump => cmd(
                 vec![
                     Float("x", 0.0, Required),
@@ -762,6 +850,7 @@ impl ServerChatCommand {
             ServerChatCommand::JoinFaction => "join_faction",
             ServerChatCommand::Help => "help",
             ServerChatCommand::Home => "home",
+            ServerChatCommand::InvalidCommand => "invalid_command",
             ServerChatCommand::Jump => "jump",
             ServerChatCommand::Kick => "kick",
             ServerChatCommand::Kill => "kill",

@@ -2,6 +2,8 @@
 //! To implement a new command provide a handler function
 //! in [do_command].
 
+extern crate levenshtein;
+
 use crate::{
     client::Client,
     location::Locations,
@@ -23,7 +25,7 @@ use common::{
     assets,
     calendar::Calendar,
     cmd::{
-        KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH,
+        ClientChatCommand, KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH,
         PRESET_MANIFEST_PATH,
     },
     comp::{
@@ -57,6 +59,8 @@ use common_state::{BuildAreaError, BuildAreas};
 use core::{cmp::Ordering, convert::TryFrom, time::Duration};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
+use itertools::Itertools;
+use levenshtein::levenshtein;
 use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt,
@@ -152,6 +156,7 @@ fn do_command(
         ServerChatCommand::Health => handle_health,
         ServerChatCommand::Help => handle_help,
         ServerChatCommand::Home => handle_home,
+        ServerChatCommand::InvalidCommand => handle_invalid_command,
         ServerChatCommand::JoinFaction => handle_join_faction,
         ServerChatCommand::Jump => handle_jump,
         ServerChatCommand::Kick => handle_kick,
@@ -803,6 +808,37 @@ fn handle_set_motd(
             })
         },
     }
+}
+
+fn handle_invalid_command(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(user_entered_invalid_command) = parse_cmd_args!(args, String) {
+        let entity_role = server.entity_admin_role(client);
+
+        let most_similar_str = ServerChatCommand::iter()
+            .filter(|cmd| cmd.needs_role() <= entity_role)
+            .map(|cmd| cmd.keyword())
+            .chain(ClientChatCommand::iter().map(|cmd| cmd.keyword()))
+            .sorted_by_key(|cmd| levenshtein(&*user_entered_invalid_command, cmd))
+            .collect::<Vec<&str>>()[0];
+
+        let commands_with_same_prefix = ServerChatCommand::iter()
+            .filter(|cmd|cmd.needs_role() <= entity_role)
+            .map(|cmd| cmd.keyword())
+            .chain(ClientChatCommand::iter().map(|cmd| cmd.keyword()))
+            .filter(|cmd| cmd.starts_with(&*user_entered_invalid_command) && cmd != &most_similar_str);
+
+        return Err(format!("Could not find a command named {}. Did you mean any of the following? \n/{} {} \n\nType /help to see a list of all commands.",
+            user_entered_invalid_command,
+            most_similar_str,
+            commands_with_same_prefix.fold(String::new(), |s, arg| s + "\n/" + &arg)))
+    }
+    Ok(())
 }
 
 fn handle_jump(
@@ -1797,9 +1833,15 @@ fn handle_help(
         let mut message = String::new();
         let entity_role = server.entity_admin_role(client);
 
-        // Iterate through all commands you have permission to use.
+        // Iterate through the ClientChatCommands Mute and Unmute.
+        ClientChatCommand::iter()
+        .for_each(|cmd| {
+            message += &cmd.help_string();
+            message += "\n";
+        });
+        // Iterate through all ServerChatCommands you have permission to use.
         ServerChatCommand::iter()
-            .filter(|cmd| cmd.needs_role() <= entity_role)
+            .filter(|cmd| cmd.needs_role() <= entity_role && cmd.keyword() != "invalid_command")
             .for_each(|cmd| {
                 message += &cmd.help_string();
                 message += "\n";
