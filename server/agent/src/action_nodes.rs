@@ -735,6 +735,7 @@ impl<'a> AgentData<'a> {
             hostile: attack_target,
             selected_at: read_data.time.0,
             aggro_on,
+            last_known_pos: get_pos(entity).map(|pos| pos.0),
         })
     }
 
@@ -1341,14 +1342,24 @@ impl<'a> AgentData<'a> {
                             controller.push_utterance(UtteranceKind::Angry);
                         }
 
-                        agent.target = Some(Target::new(attacker, true, read_data.time.0, true));
+                        let attacker_pos = read_data.positions.get(attacker).map(|pos| pos.0);
+                        agent.target = Some(Target::new(
+                            attacker,
+                            true,
+                            read_data.time.0,
+                            true,
+                            attacker_pos,
+                        ));
 
                         if let Some(tgt_pos) = read_data.positions.get(attacker) {
                             if is_dead_or_invulnerable(attacker, read_data) {
-                                // FIXME?: Shouldn't target be set to `None`?
-                                // If is dead, then probably. If invulnerable, maybe not.
-                                agent.target =
-                                    Some(Target::new(target, false, read_data.time.0, false));
+                                agent.target = Some(Target::new(
+                                    target,
+                                    false,
+                                    read_data.time.0,
+                                    false,
+                                    Some(tgt_pos.0),
+                                ));
 
                                 self.idle(agent, controller, read_data, rng);
                             } else {

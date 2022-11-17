@@ -266,6 +266,11 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                                 hostile: true,
                                 selected_at: bdata.read_data.time.0,
                                 aggro_on: true,
+                                last_known_pos: bdata
+                                    .read_data
+                                    .positions
+                                    .get(attacker)
+                                    .map(|pos| pos.0),
                             });
                         }
 
@@ -440,7 +445,15 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
     if bdata.agent.target.is_none() && small_chance {
         if let Some(Alignment::Owned(owner)) = bdata.agent_data.alignment {
             if let Some(owner) = get_entity_by_id(owner.id(), bdata.read_data) {
-                bdata.agent.target = Some(Target::new(owner, false, bdata.read_data.time.0, false));
+                let owner_pos = bdata.read_data.positions.get(owner).map(|pos| pos.0);
+
+                bdata.agent.target = Some(Target::new(
+                    owner,
+                    false,
+                    bdata.read_data.time.0,
+                    false,
+                    owner_pos,
+                ));
             }
         }
     }
