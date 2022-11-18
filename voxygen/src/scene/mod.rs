@@ -111,7 +111,7 @@ pub struct Scene {
     ambient_mgr: AmbientMgr,
 
     integrated_rain_vel: f32,
-    pub interpolated_time_of_day: f64,
+    pub interpolated_time_of_day: Option<f64>,
     last_lightning: Option<(Vec3<f32>, f64)>,
 }
 
@@ -135,13 +135,17 @@ pub struct SceneData<'a> {
     pub flashing_lights_enabled: bool,
     pub figure_lod_render_distance: f32,
     pub is_aiming: bool,
-    pub interpolated_time_of_day: f64,
+    pub interpolated_time_of_day: Option<f64>,
 }
 
 impl<'a> SceneData<'a> {
-    pub fn get_sun_dir(&self) -> Vec3<f32> { Globals::get_sun_dir(self.interpolated_time_of_day) }
+    pub fn get_sun_dir(&self) -> Vec3<f32> {
+        Globals::get_sun_dir(self.interpolated_time_of_day.unwrap_or(0.0))
+    }
 
-    pub fn get_moon_dir(&self) -> Vec3<f32> { Globals::get_moon_dir(self.interpolated_time_of_day) }
+    pub fn get_moon_dir(&self) -> Vec3<f32> {
+        Globals::get_moon_dir(self.interpolated_time_of_day.unwrap_or(0.0))
+    }
 }
 
 /// Approximate a scalar field of view angle using the parameterization from
@@ -341,7 +345,7 @@ impl Scene {
                 ambience: ambient::load_ambience_items(),
             },
             integrated_rain_vel: 0.0,
-            interpolated_time_of_day: 0.0,
+            interpolated_time_of_day: None,
             last_lightning: None,
         }
     }
@@ -725,15 +729,20 @@ impl Scene {
         // disabled.
         const DAY: f64 = 60.0 * 60.0 * 24.0;
         let time_of_day = scene_data.state.get_time_of_day();
-        self.interpolated_time_of_day = if (self.interpolated_time_of_day - time_of_day).abs()
-            > DAY * 2.0
-            && !scene_data.flashing_lights_enabled
-        {
-            time_of_day
+        let max_lerp_period = if scene_data.flashing_lights_enabled {
+            DAY * 2.0
         } else {
-            Lerp::lerp(self.interpolated_time_of_day, time_of_day, dt as f64)
+            DAY * 0.25
         };
-        let time_of_day = self.interpolated_time_of_day;
+        self.interpolated_time_of_day =
+            Some(self.interpolated_time_of_day.map_or(time_of_day, |tod| {
+                if (tod - time_of_day).abs() > max_lerp_period {
+                    time_of_day
+                } else {
+                    Lerp::lerp(tod, time_of_day, dt as f64)
+                }
+            }));
+        let time_of_day = self.interpolated_time_of_day.unwrap_or(time_of_day);
         let focus_pos = self.camera.get_focus_pos();
         let focus_off = focus_pos.map(|e| e.trunc());
 
