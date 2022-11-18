@@ -524,7 +524,7 @@ fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
 
         if let Some(target_pos) = read_data.positions.get(target) {
             if agent_data.detects_other(agent, controller, &target, target_pos, read_data) {
-                let new_last_known_pos = Some(target_pos.0);
+                let updated_pos = Some(target_pos.0);
 
                 let Target {
                     hostile,
@@ -538,7 +538,7 @@ fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
                     hostile,
                     selected_at,
                     aggro_on,
-                    new_last_known_pos,
+                    updated_pos,
                 ));
             }
         }
