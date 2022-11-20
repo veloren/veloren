@@ -31,4 +31,5 @@ hud-map-zoom_minimap_explanation =
     Przybliż minimapę aby zobaczyć
     teren dookoła ciebie z większą dokładnością
 hud-map-gnarling = Fortyfikacje Gnarlingów
+hud-map-chapel_site = Morska Kaplica
 hud-map-placed_by = Umiejscowione przez { $name }
