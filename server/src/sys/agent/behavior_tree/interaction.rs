@@ -91,7 +91,15 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
     if let Some(AgentEvent::Talk(by, subject)) = agent.inbox.pop_front() {
         if agent.allowed_to_speak() {
             if let Some(target) = get_entity_by_id(by.id(), read_data) {
-                agent.target = Some(Target::new(target, false, read_data.time.0, false));
+                let target_pos = read_data.positions.get(target).map(|pos| pos.0);
+
+                agent.target = Some(Target::new(
+                    target,
+                    false,
+                    read_data.time.0,
+                    false,
+                    target_pos,
+                ));
 
                 if agent_data.look_toward(controller, read_data, target) {
                     controller.push_action(ControlAction::Stand);
@@ -415,7 +423,15 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
                 controller.push_action(ControlAction::Stand);
                 controller.push_action(ControlAction::Talk);
                 if let Some(target) = get_entity_by_id(with.id(), read_data) {
-                    agent.target = Some(Target::new(target, false, read_data.time.0, false));
+                    let target_pos = read_data.positions.get(target).map(|pos| pos.0);
+
+                    agent.target = Some(Target::new(
+                        target,
+                        false,
+                        read_data.time.0,
+                        false,
+                        target_pos,
+                    ));
                 }
                 controller.push_invite_response(InviteResponse::Accept);
                 agent.behavior.unset(BehaviorState::TRADING_ISSUER);
@@ -454,7 +470,15 @@ pub fn handle_inbox_trade_accepted(bdata: &mut BehaviorData) -> bool {
     if let Some(AgentEvent::TradeAccepted(with)) = agent.inbox.pop_front() {
         if !agent.behavior.is(BehaviorState::TRADING) {
             if let Some(target) = get_entity_by_id(with.id(), read_data) {
-                agent.target = Some(Target::new(target, false, read_data.time.0, false));
+                let target_pos = read_data.positions.get(target).map(|pos| pos.0);
+
+                agent.target = Some(Target::new(
+                    target,
+                    false,
+                    read_data.time.0,
+                    false,
+                    target_pos,
+                ));
             }
             agent.behavior.set(BehaviorState::TRADING);
             agent.behavior.set(BehaviorState::TRADING_ISSUER);

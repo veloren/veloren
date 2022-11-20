@@ -420,15 +420,23 @@ pub struct Target {
     pub selected_at: f64,
     /// Whether the target has come close enough to trigger aggro.
     pub aggro_on: bool,
+    pub last_known_pos: Option<Vec3<f32>>,
 }
 
 impl Target {
-    pub fn new(target: EcsEntity, hostile: bool, selected_at: f64, aggro_on: bool) -> Self {
+    pub fn new(
+        target: EcsEntity,
+        hostile: bool,
+        selected_at: f64,
+        aggro_on: bool,
+        last_known_pos: Option<Vec3<f32>>,
+    ) -> Self {
         Self {
             target,
             hostile,
             selected_at,
             aggro_on,
+            last_known_pos,
         }
     }
 }

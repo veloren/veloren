@@ -701,9 +701,8 @@ impl<'a> AgentData<'a> {
             },
         };
 
-        let is_detected = |entity: EcsEntity, e_pos: &Pos| {
-            self.can_sense_directly_near(e_pos)
-                || self.can_see_entity(agent, controller, entity, e_pos, read_data)
+        let is_detected = |entity: &EcsEntity, e_pos: &Pos| {
+            self.detects_other(agent, controller, entity, e_pos, read_data)
         };
 
         let target = entities_nearby
@@ -713,7 +712,7 @@ impl<'a> AgentData<'a> {
             .filter_map(|(entity, attack_target)| {
                 get_pos(entity).map(|pos| (entity, pos, attack_target))
             })
-            .filter(|(entity, e_pos, _)| is_detected(*entity, e_pos))
+            .filter(|(entity, e_pos, _)| is_detected(entity, e_pos))
             .min_by_key(|(_, e_pos, attack_target)| {
                 (
                     *attack_target,
@@ -735,6 +734,7 @@ impl<'a> AgentData<'a> {
             hostile: attack_target,
             selected_at: read_data.time.0,
             aggro_on,
+            last_known_pos: get_pos(entity).map(|pos| pos.0),
         })
     }
 
@@ -1341,14 +1341,24 @@ impl<'a> AgentData<'a> {
                             controller.push_utterance(UtteranceKind::Angry);
                         }
 
-                        agent.target = Some(Target::new(attacker, true, read_data.time.0, true));
+                        let attacker_pos = read_data.positions.get(attacker).map(|pos| pos.0);
+                        agent.target = Some(Target::new(
+                            attacker,
+                            true,
+                            read_data.time.0,
+                            true,
+                            attacker_pos,
+                        ));
 
                         if let Some(tgt_pos) = read_data.positions.get(attacker) {
                             if is_dead_or_invulnerable(attacker, read_data) {
-                                // FIXME?: Shouldn't target be set to `None`?
-                                // If is dead, then probably. If invulnerable, maybe not.
-                                agent.target =
-                                    Some(Target::new(target, false, read_data.time.0, false));
+                                agent.target = Some(Target::new(
+                                    target,
+                                    false,
+                                    read_data.time.0,
+                                    false,
+                                    Some(tgt_pos.0),
+                                ));
 
                                 self.idle(agent, controller, read_data, rng);
                             } else {
@@ -1549,6 +1559,18 @@ impl<'a> AgentData<'a> {
         (within_sight_dist)
             && within_fov
             && entities_have_line_of_sight(self.pos, self.body, other_pos, other_body, read_data)
+    }
+
+    pub fn detects_other(
+        &self,
+        agent: &Agent,
+        controller: &Controller,
+        other: &EcsEntity,
+        other_pos: &Pos,
+        read_data: &ReadData,
+    ) -> bool {
+        self.can_sense_directly_near(other_pos)
+            || self.can_see_entity(agent, controller, *other, other_pos, read_data)
     }
 
     pub fn can_sense_directly_near(&self, e_pos: &Pos) -> bool {

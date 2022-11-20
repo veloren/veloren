@@ -100,8 +100,10 @@ impl BehaviorTree {
     pub fn target() -> Self {
         Self {
             tree: vec![
+                update_last_known_pos,
                 untarget_if_dead,
                 update_target_awareness,
+                search_last_known_pos_if_not_alert,
                 do_hostile_tree_if_hostile_and_aware,
                 do_pet_tree_if_owned,
                 do_pickup_loot,
@@ -266,6 +268,11 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                                 hostile: true,
                                 selected_at: bdata.read_data.time.0,
                                 aggro_on: true,
+                                last_known_pos: bdata
+                                    .read_data
+                                    .positions
+                                    .get(attacker)
+                                    .map(|pos| pos.0),
                             });
                         }
 
@@ -440,7 +447,15 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
     if bdata.agent.target.is_none() && small_chance {
         if let Some(Alignment::Owned(owner)) = bdata.agent_data.alignment {
             if let Some(owner) = get_entity_by_id(owner.id(), bdata.read_data) {
-                bdata.agent.target = Some(Target::new(owner, false, bdata.read_data.time.0, false));
+                let owner_pos = bdata.read_data.positions.get(owner).map(|pos| pos.0);
+
+                bdata.agent.target = Some(Target::new(
+                    owner,
+                    false,
+                    bdata.read_data.time.0,
+                    false,
+                    owner_pos,
+                ));
             }
         }
     }
@@ -493,6 +508,43 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
             }
         },
     }
+    false
+}
+
+fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
+    let BehaviorData {
+        agent,
+        agent_data,
+        read_data,
+        controller,
+        ..
+    } = bdata;
+
+    if let Some(target_info) = agent.target {
+        let target = target_info.target;
+
+        if let Some(target_pos) = read_data.positions.get(target) {
+            if agent_data.detects_other(agent, controller, &target, target_pos, read_data) {
+                let updated_pos = Some(target_pos.0);
+
+                let Target {
+                    hostile,
+                    selected_at,
+                    aggro_on,
+                    ..
+                } = target_info;
+
+                agent.target = Some(Target::new(
+                    target,
+                    hostile,
+                    selected_at,
+                    aggro_on,
+                    updated_pos,
+                ));
+            }
+        }
+    }
+
     false
 }
 
@@ -551,6 +603,31 @@ fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
 
     if bdata.agent.awareness.state() == AwarenessState::Unaware {
         bdata.agent.target = None;
+    }
+
+    false
+}
+
+fn search_last_known_pos_if_not_alert(bdata: &mut BehaviorData) -> bool {
+    let awareness = &bdata.agent.awareness;
+    if awareness.reached() || awareness.state() < AwarenessState::Low {
+        return false;
+    }
+
+    let BehaviorData {
+        agent,
+        agent_data,
+        controller,
+        read_data,
+        ..
+    } = bdata;
+
+    if let Some(target) = agent.target {
+        if let Some(last_known_pos) = target.last_known_pos {
+            agent_data.follow(agent, controller, &read_data.terrain, &Pos(last_known_pos));
+
+            return true;
+        }
     }
 
     false
