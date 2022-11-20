@@ -582,18 +582,6 @@ fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
         ..
     } = bdata;
 
-    let dbg_msg = format!(
-        "{} - {:#?}\n{:?}",
-        agent.awareness,
-        agent.awareness.state(),
-        agent.target.and_then(|t| t
-            .last_known_pos
-            .map(|lkp| format!("{:.0}  {:.0}  {:.0}", lkp.x, lkp.y, lkp.z)))
-    );
-
-    // TODO: THIS IS FOR CODE REVIEWERS. REMOVE BEFORE MERGE.
-    agent_data.chat_npc(dbg_msg, bdata.event_emitter);
-
     let target = agent.target.map(|t| t.target);
     let tgt_pos = target.and_then(|t| read_data.positions.get(t));
 
