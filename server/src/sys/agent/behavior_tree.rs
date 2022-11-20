@@ -103,6 +103,7 @@ impl BehaviorTree {
                 update_last_known_pos,
                 untarget_if_dead,
                 update_target_awareness,
+                search_last_known_pos_if_not_alert,
                 do_hostile_tree_if_hostile_and_aware,
                 do_pet_tree_if_owned,
                 do_pickup_loot,
@@ -614,6 +615,31 @@ fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
 
     if bdata.agent.awareness.state() == AwarenessState::Unaware {
         bdata.agent.target = None;
+    }
+
+    false
+}
+
+fn search_last_known_pos_if_not_alert(bdata: &mut BehaviorData) -> bool {
+    let awareness = &bdata.agent.awareness;
+    if awareness.reached() || awareness.state() < AwarenessState::Low {
+        return false;
+    }
+
+    let BehaviorData {
+        agent,
+        agent_data,
+        controller,
+        read_data,
+        ..
+    } = bdata;
+
+    if let Some(target) = agent.target {
+        if let Some(last_known_pos) = target.last_known_pos {
+            agent_data.follow(agent, controller, &read_data.terrain, &Pos(last_known_pos));
+
+            return true;
+        }
     }
 
     false
