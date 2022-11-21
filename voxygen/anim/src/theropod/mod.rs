@@ -157,7 +157,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Sunlizard, _) => (2.0, -2.5),
                 (Yale, _) => (2.0, -9.5),
                 (Dodarock, _) => (0.0, -5.0),
-                (Ntouka, _) => (0.0, 0.0),
+                (Ntouka, _) => (0.0, -4.0),
             },
             neck: match (body.species, body.body_type) {
                 (Archaeos, _) => (4.5, -2.0),
@@ -209,10 +209,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Sandraptor, _) => (-10.5, 0.5),
                 (Snowraptor, _) => (-10.5, 1.0),
                 (Woodraptor, _) => (-10.5, 0.5),
-                (Sunlizard, _) => (-10.0, -1.5),
+                (Sunlizard, _) => (-10.0, -0.5),
                 (Yale, _) => (-5.0, -2.5),
                 (Dodarock, _) => (-8.5, -2.0),
-                (Ntouka, _) => (-9.5, -2.5),
+                (Ntouka, _) => (-9.5, -2.0),
             },
             hand: match (body.species, body.body_type) {
                 (Archaeos, _) => (3.0, 0.0, -4.0),
@@ -223,7 +223,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Sunlizard, _) => (2.5, 1.5, -0.5),
                 (Yale, _) => (3.0, 2.0, -0.5),
                 (Dodarock, _) => (3.5, 3.0, -5.0),
-                (Ntouka, _) => (3.5, 3.0, 1.0),
+                (Ntouka, _) => (3.5, 3.0, -4.0),
             },
             leg: match (body.species, body.body_type) {
                 (Archaeos, _) => (2.5, -3.0, -4.0),
