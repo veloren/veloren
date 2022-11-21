@@ -11,16 +11,21 @@ hud-trade-has_accepted =
     { $playername }
     ha accettato
 hud-trade-accept = Accetta
-hud-trade-decline = Declina
+hud-trade-decline = Rifiuta
 hud-trade-invite_sent = Richiesta di scambio inviata a { $playername }.
 hud-trade-result-completed = Scambio completato con successo.
 hud-trade-result-declined = Scambio rifiutato.
 hud-trade-result-nospace = Non c'è abbastanza spazio per completare lo scambio.
-hud-trade-buy_price = Prezzo di Acquisto
-hud-trade-sell_price = Prezzo di Vendita
-hud-trade-coin = moneta/e
-hud-trade-tooltip_hint_1 = <Shift-Click per Aggiungere/Rimuovere dal commercio.>
-hud-trade-tooltip_hint_2 = <Ctrl-Click per Auto-Bilanciare con questo.>
+hud-trade-buy = Prezzo di acquisto: { $coin_num ->
+    [one] una moneta
+    *[other] { $coin_formatted } monete
+}
+hud-trade-sell = Prezzo di vendita: { $coin_num ->
+    [one] una moneta.
+    *[other] { $coin_formatted } monete
+}
+hud-trade-tooltip_hint_1 = <Maiusc-Click per aggiungere/rimuovere dallo scambio.>
+hud-trade-tooltip_hint_2 = <Ctrl-Click per autobilanciare lo scambio con questo.>
 hud-trade-your_offer = La tua offerta
 hud-trade-their_offer = La sua offerta
 hud-trade-amount_input = Seleziona un oggetto

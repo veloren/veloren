@@ -1,2 +1,2 @@
-hud-sct-experience = { $amount } Esp
+hud-sct-experience = { $amount } esp
 hud-sct-block = PARATO
