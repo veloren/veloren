@@ -14,6 +14,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.mighty_saurok")),
                 (1, (1, 1, "common.entity.wild.aggressive.occult_saurok")),
                 (1, (1, 1, "common.entity.wild.aggressive.sly_saurok")),
+                (1, (1, 1, "common.entity.wild.aggressive.mossdrake")),
             ],
             spawn_mode: Land,
             day_period: [Morning, Noon, Evening],
