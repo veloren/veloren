@@ -2,7 +2,7 @@ use crate::{
     hud::{BarNumbers, BuffPosition, CrosshairType, Intro, ShortcutNumbers, XpBar},
     ui::ScaleMode,
 };
-
+use common::comp::skillset::SkillGroupKind;
 use serde::{Deserialize, Serialize};
 
 /// `InterfaceSettings` contains UI, HUD and Map options.
@@ -48,6 +48,7 @@ pub struct InterfaceSettings {
     pub minimap_face_north: bool,
     pub minimap_zoom: f64,
     pub accum_experience: bool,
+    pub xp_bar_skillgroup: Option<SkillGroupKind>,
 }
 
 impl Default for InterfaceSettings {
@@ -92,6 +93,7 @@ impl Default for InterfaceSettings {
             minimap_face_north: true,
             minimap_zoom: 160.0,
             accum_experience: true,
+            xp_bar_skillgroup: Some(SkillGroupKind::General),
         }
     }
 }
