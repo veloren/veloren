@@ -367,6 +367,10 @@ image_ids! {
         skillbar_frame: "voxygen.element.ui.skillbar.frame",
         health_bg: "voxygen.element.ui.skillbar.health_bg",
         health_frame: "voxygen.element.ui.skillbar.health_frame",
+        exp_frame: "voxygen.element.ui.skillbar.exp_frame",
+        exp_frame_bg: "voxygen.element.ui.skillbar.exp_frame_bg",
+        selected_exp: "voxygen.element.ui.skillbar.selected_exp_frame",
+        selected_exp_bg: "voxygen.element.ui.skillbar.selected_exp_frame_bg",
         decayed_bg: "voxygen.element.ui.skillbar.decayed_bg",
         energy_bg: "voxygen.element.ui.skillbar.energy_bg",
         energy_frame: "voxygen.element.ui.skillbar.energy_frame",
@@ -379,6 +383,7 @@ image_ids! {
         m_move_ico: "voxygen.element.ui.generic.icons.m_move",
         m_click_ico: "voxygen.element.ui.generic.icons.m_click",
         skillbar_slot: "voxygen.element.ui.skillbar.slot",
+
 
         // Other Icons/Art
         skull: "voxygen.element.ui.generic.icons.skull",

@@ -1474,6 +1474,9 @@ impl PlayState for SessionState {
                             self.client.borrow_mut().swap_slots(slot_a, slot_b);
                         }
                     },
+                    HudEvent::SelectExpBar(skillgroup) => {
+                        global_state.settings.interface.xp_bar_skillgroup = skillgroup;
+                    },
                     HudEvent::SplitSwapSlots {
                         slot_a,
                         slot_b,

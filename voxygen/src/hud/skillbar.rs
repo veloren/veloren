@@ -3,8 +3,8 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots, util, BarNumbers, HudInfo, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
-    LOW_HP_COLOR, POISEBAR_TICK_COLOR, POISE_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR,
-    UI_HIGHLIGHT_0,
+    LOW_HP_COLOR, POISEBAR_TICK_COLOR, POISE_COLOR, QUALITY_EPIC, QUALITY_LEGENDARY, STAMINA_COLOR,
+    TEXT_COLOR, UI_HIGHLIGHT_0, XP_COLOR,
 };
 use crate::{
     game_input::GameInput,
@@ -24,7 +24,11 @@ use client::{self, Client};
 use common::comp::{
     self,
     ability::AbilityInput,
-    item::{tool::AbilityContext, ItemDesc, MaterialStatManifest},
+    item::{
+        tool::{AbilityContext, ToolKind},
+        ItemDesc, MaterialStatManifest,
+    },
+    skillset::SkillGroupKind,
     Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
     PoiseState, SkillSet,
 };
@@ -66,9 +70,6 @@ widget_ids! {
         // Level
         level_bg,
         level,
-        // Exp-Bar
-        exp_alignment,
-        exp_filling,
         // HP-Bar
         hp_alignment,
         hp_filling,
@@ -90,6 +91,14 @@ widget_ids! {
         poise_txt_alignment,
         poise_txt_bg,
         poise_txt,
+        // Exp-Bar
+        exp_frame_bg,
+        exp_frame,
+        exp_filling,
+        exp_img_frame_bg,
+        exp_img_frame,
+        exp_img,
+        exp_lvl,
         // Combo Counter
         combo_align,
         combo_bg,
@@ -250,6 +259,10 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
     ]
 }
 
+pub enum Event {
+    OpenDiary(SkillGroupKind),
+}
+
 #[derive(WidgetCommon)]
 pub struct Skillbar<'a> {
     client: &'a Client,
@@ -387,7 +400,7 @@ impl<'a> Skillbar<'a> {
         }
     }
 
-    fn show_stat_bars(&self, state: &State, ui: &mut UiCell) {
+    fn show_stat_bars(&self, state: &State, ui: &mut UiCell) -> Option<Event> {
         let (hp_percentage, energy_percentage, poise_percentage): (f64, f64, f64) =
             if self.health.is_dead {
                 (0.0, 0.0, 0.0)
@@ -520,6 +533,83 @@ impl<'a> Skillbar<'a> {
                 .middle_of(state.ids.bg_poise)
                 .set(state.ids.frame_poise, ui);
         }
+
+        if self
+            .global_state
+            .settings
+            .interface
+            .xp_bar_skillgroup
+            .is_some()
+        {
+            let offset = -81.0;
+            let selected_experience = &self
+                .global_state
+                .settings
+                .interface
+                .xp_bar_skillgroup
+                .unwrap_or(SkillGroupKind::General);
+            let current_exp = self.skillset.available_experience(*selected_experience) as f64;
+            let max_exp = self.skillset.skill_point_cost(*selected_experience) as f64;
+            let exp_percentage = current_exp / max_exp.max(1.0);
+            let level = self.skillset.earned_sp(*selected_experience).to_string();
+
+            // Exp Bar
+            Image::new(self.imgs.exp_frame_bg)
+                .w_h(594.0, 8.0)
+                .mid_top_with_margin_on(state.ids.frame, -offset)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.9)))
+                .set(state.ids.exp_frame_bg, ui);
+            Image::new(self.imgs.exp_frame)
+                .w_h(594.0, 8.0)
+                .middle_of(state.ids.exp_frame_bg)
+                .set(state.ids.exp_frame, ui);
+
+            Image::new(self.imgs.bar_content)
+                .w_h(590.0 * exp_percentage, 4.0)
+                .color(Some(XP_COLOR))
+                .top_left_with_margins_on(state.ids.exp_frame, 2.0, 2.0)
+                .set(state.ids.exp_filling, ui);
+            // Exp Type and Level Display
+            Image::new(self.imgs.selected_exp_bg)
+                .w_h(34.0, 38.0)
+                .top_left_with_margins_on(state.ids.exp_frame, -39.0, 3.0)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.9)))
+                .set(state.ids.exp_img_frame_bg, ui);
+
+            if Button::image(self.imgs.selected_exp)
+                .w_h(34.0, 38.0)
+                .middle_of(state.ids.exp_img_frame_bg)
+                .set(state.ids.exp_img_frame, ui)
+                .was_clicked()
+            {
+                return Some(Event::OpenDiary(*selected_experience));
+            }
+
+            Text::new(&level)
+                .mid_bottom_with_margin_on(state.ids.exp_img_frame, 2.0)
+                .font_size(11)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(QUALITY_LEGENDARY)
+                .graphics_for(state.ids.exp_img_frame)
+                .set(state.ids.exp_lvl, ui);
+
+            Image::new(match selected_experience {
+                SkillGroupKind::General => self.imgs.swords_crossed,
+                SkillGroupKind::Weapon(ToolKind::Sword) => self.imgs.sword,
+                SkillGroupKind::Weapon(ToolKind::Hammer) => self.imgs.hammer,
+                SkillGroupKind::Weapon(ToolKind::Axe) => self.imgs.axe,
+                SkillGroupKind::Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
+                SkillGroupKind::Weapon(ToolKind::Bow) => self.imgs.bow,
+                SkillGroupKind::Weapon(ToolKind::Staff) => self.imgs.staff,
+                SkillGroupKind::Weapon(ToolKind::Pick) => self.imgs.mining,
+                _ => self.imgs.nothing,
+            })
+            .w_h(24.0, 24.0)
+            .graphics_for(state.ids.exp_img_frame)
+            .mid_bottom_with_margin_on(state.ids.exp_img_frame, 13.0)
+            .set(state.ids.exp_img, ui);
+        }
+
         // Bar Text
         let bar_text = if self.health.is_dead {
             Some((
@@ -597,6 +687,7 @@ impl<'a> Skillbar<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.poise_txt, ui);
         }
+        None
     }
 
     fn show_slotbar(&mut self, state: &State, ui: &mut UiCell, slot_offset: f64) {
@@ -910,7 +1001,7 @@ pub struct State {
 }
 
 impl<'a> Widget for Skillbar<'a> {
-    type Event = ();
+    type Event = Option<Event>;
     type State = State;
     type Style = ();
 
@@ -950,7 +1041,7 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.frame, ui);
 
         // Health, Energy and Poise bars
-        self.show_stat_bars(state, ui);
+        let event = self.show_stat_bars(state, ui);
 
         // Slots
         self.show_slotbar(state, ui, slot_offset);
@@ -959,5 +1050,6 @@ impl<'a> Widget for Skillbar<'a> {
         if let Some(combo_floater) = self.combo_floater {
             self.show_combo_counter(combo_floater, state, ui);
         }
+        event
     }
 }

@@ -20,6 +20,7 @@ use crate::{
 };
 use conrod_core::{
     color, image,
+    position::Relative,
     widget::{self, Button, Image, Rectangle, State, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
@@ -70,6 +71,7 @@ widget_ids! {
         exp_bar_content,
         exp_bar_rank,
         exp_bar_txt,
+        active_bar_checkbox,
         tree_title_txt,
         lock_imgs[],
         available_pts_txt,
@@ -341,6 +343,7 @@ pub enum Event {
     ChangeSkillTree(SelectedSkillTree),
     UnlockSkill(Skill),
     ChangeSection(DiarySection),
+    SelectExpBar(Option<SkillGroupKind>),
 }
 
 #[derive(PartialEq, Eq)]
@@ -672,6 +675,42 @@ impl<'a> Widget for Diary<'a> {
                     .color(Some(UI_HIGHLIGHT_0))
                     .middle_of(state.ids.exp_bar_bg)
                     .set(state.ids.exp_bar_frame, ui);
+                // Show as Exp bar below skillbar
+                let exp_selected =
+                    self.global_state.settings.interface.xp_bar_skillgroup == Some(*sel_tab);
+                if Button::image(if !exp_selected {
+                    self.imgs.checkbox
+                } else {
+                    self.imgs.checkbox_checked
+                })
+                .w_h(24.0, 25.0)
+                .hover_image(if !exp_selected {
+                    self.imgs.checkbox_mo
+                } else {
+                    self.imgs.checkbox_checked_mo
+                })
+                .press_image(if !exp_selected {
+                    self.imgs.checkbox_press
+                } else {
+                    self.imgs.checkbox_checked
+                })
+                .top_right_with_margins_on(state.ids.exp_bar_frame, 50.0, -40.0)
+                .label(&self.localized_strings.get_msg("hud-skill-set_as_exp_bar"))
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_x(Relative::Scalar(87.0))
+                .label_y(Relative::Scalar(2.0))
+                .set(state.ids.active_bar_checkbox, ui)
+                .was_clicked()
+                {
+                    if self.global_state.settings.interface.xp_bar_skillgroup != Some(*sel_tab) {
+                        events.push(Event::SelectExpBar(Some(*sel_tab)));
+                    } else {
+                        events.push(Event::SelectExpBar(None));
+                    }
+                }
+
                 // Show EXP bar text on hover
                 if ui
                     .widget_input(state.ids.exp_bar_frame)

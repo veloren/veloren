@@ -708,6 +708,8 @@ pub enum Event {
     AssignLeader(Uid),
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
+    SelectExpBar(Option<SkillGroupKind>),
+
     RequestSiteInfo(SiteId),
     ChangeAbility(usize, AuxiliaryAbility),
 
@@ -2887,7 +2889,7 @@ impl Hud {
             bodies.get(entity),
         ) {
             let context = AbilityContext::try_from(char_states.get(entity));
-            Skillbar::new(
+            match Skillbar::new(
                 client,
                 &info,
                 global_state,
@@ -2916,7 +2918,14 @@ impl Hud {
                 combos.get(entity),
                 char_states.get(entity),
             )
-            .set(self.ids.skillbar, ui_widgets);
+            .set(self.ids.skillbar, ui_widgets)
+            {
+                Some(skillbar::Event::OpenDiary(skillgroup)) => {
+                    self.show.diary(true);
+                    self.show.open_skill_tree(skillgroup);
+                },
+                None => {},
+            }
         }
         // Bag contents
         if self.show.bag {
@@ -3356,6 +3365,9 @@ impl Hud {
                         diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),
                         diary::Event::ChangeSection(section) => {
                             self.show.diary_fields.section = section;
+                        },
+                        diary::Event::SelectExpBar(xp_bar) => {
+                            events.push(Event::SelectExpBar(xp_bar))
                         },
                     }
                 }
