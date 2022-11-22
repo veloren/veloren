@@ -426,7 +426,7 @@ pub fn handle_forced_movement(
                 data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
             }) {
                 update.vel.0 +=
-                    Vec2::broadcast(data.dt.0) * accel * Vec2::from(update.ori) * strength;
+                    Vec2::broadcast(data.dt.0) * accel * Vec2::from(*data.ori) * strength;
             }
         },
         ForcedMovement::Reverse(strength) => {
@@ -436,7 +436,7 @@ pub fn handle_forced_movement(
                 data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
             }) {
                 update.vel.0 +=
-                    Vec2::broadcast(data.dt.0) * accel * -Vec2::from(update.ori) * strength;
+                    Vec2::broadcast(data.dt.0) * accel * -Vec2::from(*data.ori) * strength;
             }
         },
         ForcedMovement::Sideways(strength) => {
@@ -447,18 +447,47 @@ pub fn handle_forced_movement(
             }) {
                 let direction = {
                     // Left if positive, else right
-                    let side = Vec2::from(update.ori)
+                    let side = Vec2::from(*data.ori)
                         .rotated_z(PI / 2.)
                         .dot(data.inputs.move_dir)
                         .signum();
                     if side > 0.0 {
-                        Vec2::from(update.ori).rotated_z(PI / 2.)
+                        Vec2::from(*data.ori).rotated_z(PI / 2.)
                     } else {
-                        -Vec2::from(update.ori).rotated_z(PI / 2.)
+                        -Vec2::from(*data.ori).rotated_z(PI / 2.)
                     }
                 };
 
                 update.vel.0 += Vec2::broadcast(data.dt.0) * accel * direction * strength;
+            }
+        },
+        ForcedMovement::DirectedReverse(strength) => {
+            let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
+            if let Some(accel) = data.physics.on_ground.map(|block| {
+                // FRIC_GROUND temporarily used to normalize things around expected values
+                data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
+            }) {
+                let direction = if Vec2::from(*data.ori).dot(data.inputs.move_dir).signum() > 0.0 {
+                    data.inputs.move_dir.reflected(Vec2::from(*data.ori))
+                } else {
+                    data.inputs.move_dir
+                }.try_normalized().unwrap_or_else(|| -Vec2::from(*data.ori));
+                update.vel.0 += direction * strength * accel * data.dt.0;
+            }
+        },
+        ForcedMovement::AntiDirectedForward(strength) => {
+            let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
+            if let Some(accel) = data.physics.on_ground.map(|block| {
+                // FRIC_GROUND temporarily used to normalize things around expected values
+                data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
+            }) {
+                let direction = if Vec2::from(*data.ori).dot(data.inputs.move_dir).signum() < 0.0 {
+                    data.inputs.move_dir.reflected(Vec2::from(*data.ori))
+                } else {
+                    data.inputs.move_dir
+                }.try_normalized().unwrap_or_else(|| Vec2::from(*data.ori));
+                let direction = direction.reflected(Vec2::from(*data.ori).rotated_z(PI / 2.));
+                update.vel.0 += direction * strength * accel * data.dt.0;
             }
         },
         ForcedMovement::Leap {
@@ -1327,6 +1356,8 @@ pub enum ForcedMovement {
     Forward(f32),
     Reverse(f32),
     Sideways(f32),
+    DirectedReverse(f32),
+    AntiDirectedForward(f32),
     Leap {
         vertical: f32,
         forward: f32,
