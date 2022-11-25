@@ -1,13 +1,15 @@
-// Times: Some(Day or Night) or None [both]
-// Weathers: Some(Clear, Cloudy, Rain, or Storm) or None [any weather]
+// Times: Day, Night, or None (both)
+// Weathers: Clear, Cloudy, Rain, Storm, or None (any weather)
 // Biomes: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean, Jungle, Savannah, Taiga
 //          planned biomes: Swamp
 // Number after biome indicates weighting; higher numbers are less frequent
-// Sites: Settlement(Default, Cliff, or Desert), Cave, Dungeon(Old or Gnarling), or Void [none]
+// Sites: Settlement(Default, CliffTown, DesertCity, or SavannahPit), Cave, Dungeon(Old or Gnarling), or Void [none]
 // Music states: Activity(Explore or Combat)
 // Combat music is looped. Needs three files: start, loop, and end. Start contains leadup to the loop.
+// Artist format is ("Artist", "https://website.com/"). If no website, use None.
 // It's recommended to also have appropriate metadata for those who listen via the game files :)
 
+#![enable(implicit_some)]
 (
     tracks: []
 )

@@ -1,13 +1,15 @@
-// Times: Some(Day or Night) or None [both]
-// Weathers: Some(Clear, Cloudy, Rain, or Storm) or None [any weather]
+// Times: Day, Night, or None (both)
+// Weathers: Clear, Cloudy, Rain, Storm, or None (any weather)
 // Biomes: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean, Jungle, Savannah, Taiga
 //          planned biomes: Swamp
 // Number after biome indicates weighting; higher numbers are less frequent
-// Sites: Settlement(Default, Cliff, or Desert), Cave, Dungeon(Old or Gnarling), or Void [none]
+// Sites: Settlement(Default, CliffTown, DesertCity, or SavannahPit), Cave, Dungeon(Old or Gnarling), or Void [none]
 // Music states: Activity(Explore or Combat)
 // Combat music is looped. Needs three files: start, loop, and end. Start contains leadup to the loop.
+// Artist format is ("Artist", "https://website.com/"). If no website, use None.
 // It's recommended to also have appropriate metadata for those who listen via the game files :)
 
+#![enable(implicit_some)]
 (
     tracks: 
         [
@@ -23,7 +25,7 @@
             biomes: [],
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
-            artist: "badbbad",
+            artist: ("badbbad", "https://soundcloud.com/tomerbarnea"),
         )),
          Individual((
             title: "Dank Dungeon",
@@ -34,7 +36,7 @@
             biomes: [],
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
         Individual((
             title: "Ruination",
@@ -45,18 +47,18 @@
             biomes: [],
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),  
         Individual((
             title: "Moonlit Canopy",
             path: "voxygen.audio.soundtrack.overworld.moonlit_canopy",
             length: 170.0,
-            timing: Some(Night),
+            timing: None,
             weather: None,
             biomes: [],
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
-            artist: "GeekyGami",
+            artist: ("GeekyGami", "https://geekygami.newgrounds.com/audio/"),
         )), 
         Individual((
             title: "Ethereal Bonds",
@@ -67,7 +69,7 @@
             biomes: [],
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),    
         Individual((
             title: "Raising Below Like Thunder",
@@ -78,7 +80,7 @@
             biomes: [],
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
-            artist: "Rarnage",
+            artist: ("Rarnage", "https://soundcloud.com/rarnage44"),
         )), 
         Individual((
             title: "Into The Dark Forest",
@@ -89,7 +91,7 @@
             biomes: [],
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
         Individual((
             title: "Ballerine Macabre",
@@ -100,7 +102,7 @@
             biomes: [],
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
-            artist: "GeekyGami",
+            artist: ("GeekyGami", "https://geekygami.newgrounds.com/audio/"),
         )),
         
         // Cave music
@@ -114,7 +116,7 @@
             biomes: [],
             sites: [Cave],
             music_state: Activity(Explore),
-            artist: "DragonDee",
+            artist: ("DragonDee", "https://soundcloud.com/deanna-rusnock"),
         )),
         Individual((
             title: "Cavernous Hollow",
@@ -125,7 +127,7 @@
             biomes: [],
             sites: [Cave],
             music_state: Activity(Explore),
-            artist: "GeekyGami",
+            artist: ("GeekyGami", "https://geekygami.newgrounds.com/audio/"),
         )),
         Individual((
             title: "Saturated Hallows",
@@ -136,7 +138,7 @@
             biomes: [],
             sites: [Cave],
             music_state: Activity(Explore),
-            artist: "Flashbang",
+            artist: ("Flashbang", "https://soundcloud.com/unboundir0n-m4n"),
         )),
         Individual((
             title: "Mineral Deposits",
@@ -147,7 +149,7 @@
             biomes: [],
             sites: [Cave],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
         Individual((   
             title: "Down The Rabbit Hole",
@@ -158,7 +160,7 @@
             biomes: [],
             sites: [Cave],
             music_state: Activity(Explore),
-            artist: "badbbad",
+            artist: ("badbbad", "https://soundcloud.com/tomerbarnea"),
         )),
 
         // Dungeon music
@@ -174,7 +176,7 @@
                 Dungeon(Old),
             ],
             music_state: Activity(Explore),
-            artist: "Tiny",
+            artist: ("Tiny", None),
         )),
         Individual((
             title: "Cobbled Halls",
@@ -187,7 +189,7 @@
                 Dungeon(Old),
             ],
             music_state: Activity(Explore),
-            artist: "Crow",
+            artist: ("Crow", None),
         )),
         Individual((
             title: "Dank Dungeon",
@@ -200,7 +202,7 @@
                 Dungeon(Old),
             ],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
         Individual((
             title: "Ruination",
@@ -213,7 +215,7 @@
                 Dungeon(Old),
             ],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
         Individual((
             title: "Vast Onslaught",
@@ -226,7 +228,7 @@
                 Dungeon(Old),
             ],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
         Individual((
             title: "Sacred Temple",
@@ -239,7 +241,7 @@
                 Dungeon(Old),
             ],
             music_state: Activity(Explore),
-            artist: "Aeronic",
+            artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
         Individual((
             title: "The Undergrowth",
@@ -252,7 +254,7 @@
                 Dungeon(Gnarling),
             ],
             music_state: Activity(Explore),
-            artist: "Oolnokk",
+            artist: ("Oolnokk", "https://soundcloud.com/walkerhallplaysthegeetar"),
         )),
         Individual((
             title: "Jungle Ambient",
@@ -265,7 +267,20 @@
                 Dungeon(Gnarling),
             ],
             music_state: Activity(Explore),
-            artist: "badbbad",
+            artist: ("badbbad", "https://soundcloud.com/tomerbarnea"),
+        )),
+        Individual((
+            title: "Thrumming Waters",
+            path: "voxygen.audio.soundtrack.dungeon.thrumming_waters",
+            length: 100.0,
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Gnarling),
+            ],
+            music_state: Activity(Explore),
+            artist: ("Jeremiah Sweeney", "https://soundcloud.com/jsweeney743"),
         )),
 
         // Combat Music
@@ -283,7 +298,7 @@
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.0, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
             ],
-            artist: "DaforLynx",
+            artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
         ),
         Segmented(
             title: "Reversal",
@@ -298,7 +313,7 @@
                 ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 60.0, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 4.0, Transition(Combat(High), Explore), None),
             ],
-            artist: "DaforLynx",
+            artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
         ),
     ]
 )

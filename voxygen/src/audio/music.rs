@@ -94,8 +94,8 @@ pub struct SoundtrackItem {
     /// transitions)
     #[serde(default)]
     activity_override: Option<MusicActivity>,
-    /// Song artist
-    artist: String,
+    /// Song artist and website
+    artist: (String, Option<String>),
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -108,7 +108,7 @@ enum RawSoundtrackItem {
         biomes: Vec<(BiomeKind, u8)>,
         sites: Vec<SiteKindMeta>,
         segments: Vec<(String, f32, MusicState, Option<MusicActivity>)>,
-        artist: String,
+        artist: (String, Option<String>),
     },
 }
 
@@ -456,7 +456,7 @@ impl MusicMgr {
             self.next_track_change = track.length + silence_between_tracks_seconds;
             if audio.music_enabled() {
                 self.current_track = String::from(&track.title);
-                self.current_artist = String::from(&track.artist);
+                self.current_artist = String::from(&track.artist.0);
             } else {
                 self.current_track = String::from("None");
                 self.current_artist = String::from("None");
