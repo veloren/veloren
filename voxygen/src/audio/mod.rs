@@ -541,6 +541,8 @@ impl AudioFrontend {
 
     pub fn stop_all_ambience(&mut self) { self.ambient_channels.retain(|x| Some(x).is_none()) }
 
+    pub fn stop_all_music(&mut self) { self.music_channels.retain(|x| Some(x).is_none()) }
+
     // Sfx channels do not repopulate themselves yet
     pub fn stop_all_sfx(&mut self) {
         if let Some(audio_stream) = &self.audio_stream {

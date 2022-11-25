@@ -1323,6 +1323,9 @@ impl PlayState for SessionState {
                         };
                     },
                     HudEvent::CharacterSelection => {
+                        global_state.audio.stop_all_music();
+                        global_state.audio.stop_all_ambience();
+                        global_state.audio.stop_all_sfx();
                         self.client.borrow_mut().request_remove_character()
                     },
                     HudEvent::Logout => {
