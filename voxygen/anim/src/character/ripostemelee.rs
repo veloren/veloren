@@ -31,7 +31,7 @@ impl Animation for RiposteMeleeAnimation {
         next.off_weapon_trail = true;
 
         match ability_id {
-            Some("common.abilities.sword.parrying_riposte") => {
+            Some("common.abilities.sword.defensive_riposte") => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
