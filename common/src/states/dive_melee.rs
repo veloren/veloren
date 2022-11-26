@@ -21,6 +21,8 @@ pub struct StaticData {
     pub vertical_speed: f32,
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
+    /// Caps the amount of scaling the attack will receive from vertical speed
+    pub max_scaling: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -75,8 +77,7 @@ impl CharacterBehavior for Data {
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
                     let buff_strength = get_buff_strength(data, self.static_data.ability_info);
                     let scaling = self.max_vertical_speed / self.static_data.vertical_speed;
-                    // TODO: Remove when server authoritative physics
-                    let scaling = scaling.max(2.0);
+                    let scaling = scaling.min(self.static_data.max_scaling);
 
                     data.updater.insert(
                         data.entity,

@@ -780,6 +780,7 @@ pub enum CharacterAbility {
         swing_duration: f32,
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
+        max_scaling: f32,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1421,6 +1422,7 @@ impl CharacterAbility {
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut melee_constructor,
+                max_scaling: _,
                 meta: _,
             } => {
                 *swing_duration /= stats.speed;
@@ -2733,6 +2735,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 energy_cost: _,
                 vertical_speed,
+                max_scaling,
                 meta: _,
             } => CharacterState::DiveMelee(dive_melee::Data {
                 static_data: dive_melee::StaticData {
@@ -2741,6 +2744,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     vertical_speed: *vertical_speed,
                     melee_constructor: *melee_constructor,
+                    max_scaling: *max_scaling,
                     ability_info,
                 },
                 timer: Duration::default(),

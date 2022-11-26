@@ -43,7 +43,7 @@ impl Animation for DiveMeleeAnimation {
         };
 
         match ability_id {
-            Some("common.abilities.sword.cleaving_dive") => {
+            Some("common.abilities.sword.cleaving_earth_splitter") => {
                 let (move1, move2, move3, move4) = match stage_section {
                     Some(StageSection::Movement) => (
                         anim_time.min(1.0).powi(2),
