@@ -633,6 +633,7 @@ pub enum CharacterAbility {
     ChargedMelee {
         energy_cost: f32,
         energy_drain: f32,
+        buildup_strike: Option<(f32, MeleeConstructor)>,
         charge_duration: f32,
         swing_duration: f32,
         hit_timing: f32,
@@ -798,8 +799,10 @@ pub enum CharacterAbility {
         swing_duration: f32,
         recover_duration: f32,
         energy_cost: f32,
-        max_strikes: u32,
+        max_strikes: Option<u32>,
         melee_constructor: MeleeConstructor,
+        move_modifier: f32,
+        ori_modifier: f32,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1177,6 +1180,7 @@ impl CharacterAbility {
             ChargedMelee {
                 ref mut energy_cost,
                 ref mut energy_drain,
+                ref mut buildup_strike,
                 ref mut charge_duration,
                 ref mut swing_duration,
                 hit_timing: _,
@@ -1187,6 +1191,8 @@ impl CharacterAbility {
                 meta: _,
             } => {
                 *swing_duration /= stats.speed;
+                *buildup_strike = buildup_strike
+                    .map(|(dur, strike)| (dur / stats.speed, strike.adjusted_by_stats(stats)));
                 *charge_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
@@ -1451,6 +1457,8 @@ impl CharacterAbility {
                 ref mut energy_cost,
                 ref mut melee_constructor,
                 max_strikes: _,
+                move_modifier: _,
+                ori_modifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2396,6 +2404,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             CharacterAbility::ChargedMelee {
                 energy_cost,
                 energy_drain,
+                buildup_strike,
                 charge_duration,
                 swing_duration,
                 hit_timing,
@@ -2408,6 +2417,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 static_data: charged_melee::StaticData {
                     energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
+                    buildup_strike: buildup_strike
+                        .map(|(dur, strike)| (Duration::from_secs_f32(dur), strike)),
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     hit_timing: *hit_timing,
@@ -2417,7 +2428,11 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     specifier: *specifier,
                     damage_effect: *damage_effect,
                 },
-                stage_section: StageSection::Charge,
+                stage_section: if buildup_strike.is_some() {
+                    StageSection::Buildup
+                } else {
+                    StageSection::Charge
+                },
                 timer: Duration::default(),
                 exhausted: false,
                 charge_amount: 0.0,
@@ -2778,6 +2793,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 energy_cost,
                 max_strikes,
+                move_modifier,
+                ori_modifier,
                 meta: _,
             } => CharacterState::RapidMelee(rapid_melee::Data {
                 static_data: rapid_melee::StaticData {
@@ -2787,6 +2804,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     melee_constructor: *melee_constructor,
                     energy_cost: *energy_cost,
                     max_strikes: *max_strikes,
+                    move_modifier: *move_modifier,
+                    ori_modifier: *ori_modifier,
                     ability_info,
                 },
                 timer: Duration::default(),

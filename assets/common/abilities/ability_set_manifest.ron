@@ -342,8 +342,8 @@
         abilities: [],
     ),
     Custom("Roshwalr"): (
-        primary: "common.abilities.custom.roshwalr.doublehusk",
-        secondary: "common.abilities.custom.roshwalr.slowcharge",
+        primary: Simple(None, "common.abilities.custom.roshwalr.doublehusk"),
+        secondary: Simple(None, "common.abilities.custom.roshwalr.slowcharge"),
         abilities: [
             Simple(None, "common.abilities.custom.roshwalr.freezeshockwave"),
         ],

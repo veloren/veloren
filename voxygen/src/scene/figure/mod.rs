@@ -1334,6 +1334,13 @@ impl FigureMgr {
                             let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    if let Some((dur, _)) = s.static_data.buildup_strike {
+                                        stage_time / dur.as_secs_f32()
+                                    } else {
+                                        stage_time
+                                    }
+                                },
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
@@ -2763,6 +2770,13 @@ impl FigureMgr {
                             let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    if let Some((dur, _)) = s.static_data.buildup_strike {
+                                        stage_time / dur.as_secs_f32()
+                                    } else {
+                                        stage_time
+                                    }
+                                },
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
@@ -4994,6 +5008,13 @@ impl FigureMgr {
                             let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    if let Some((dur, _)) = s.static_data.buildup_strike {
+                                        stage_time / dur.as_secs_f32()
+                                    } else {
+                                        stage_time
+                                    }
+                                },
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },

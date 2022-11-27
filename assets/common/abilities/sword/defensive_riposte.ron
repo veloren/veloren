@@ -6,7 +6,7 @@ RiposteMelee(
     melee_constructor: (
         kind: Slash(
             damage: 25,
-            poise: 0,
+            poise: 5,
             knockback: 0,
             energy_regen: 5,
         ),

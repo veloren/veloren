@@ -21,8 +21,10 @@ pub struct StaticData {
     pub melee_constructor: MeleeConstructor,
     /// Energy cost per attack
     pub energy_cost: f32,
-    /// Maximum number of consecutive strikes
-    pub max_strikes: u32,
+    /// Maximum number of consecutive strikes, if there is a max
+    pub max_strikes: Option<u32>,
+    pub move_modifier: f32,
+    pub ori_modifier: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -46,8 +48,8 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 0.7);
+        handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
+        handle_move(data, &mut update, self.static_data.move_modifier);
         handle_interrupts(data, &mut update);
 
         match self.stage_section {
@@ -86,8 +88,10 @@ impl CharacterBehavior for Data {
                     if let CharacterState::RapidMelee(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
-                } else if self.current_strike < self.static_data.max_strikes
-                    && update
+                } else if match self.static_data.max_strikes {
+                    Some(max) => self.current_strike < max,
+                    None => input_is_pressed(data, self.static_data.ability_info.input),
+                } && update
                         .energy
                         .try_change_by(-self.static_data.energy_cost)
                         .is_ok()

@@ -8,8 +8,8 @@ use crate::{
             slot::EquipSlot,
         },
         skillset::SkillGroupKind,
-        Alignment, Body, CharacterState, Combo, Energy, Health, HealthChange, Inventory, Ori,
-        Player, Poise, PoiseChange, SkillSet, Stats,
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Health, HealthChange, Inventory,
+        Ori, Player, Poise, PoiseChange, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -69,6 +69,7 @@ pub struct TargetInfo<'a> {
     pub ori: Option<&'a Ori>,
     pub char_state: Option<&'a CharacterState>,
     pub energy: Option<&'a Energy>,
+    pub buffs: Option<&'a Buffs>,
 }
 
 #[derive(Clone, Copy)]
@@ -440,13 +441,16 @@ impl Attack {
                                 });
                             }
                         },
-                        CombatEffect::BuildupsVulnerable => {
-                            if target.char_state.map_or(false, |cs| {
-                                matches!(
-                                    cs.stage_section(),
-                                    Some(StageSection::Buildup | StageSection::Charge)
-                                )
-                            }) {
+                        CombatEffect::StageVulnerable(damage, section) => {
+                            if target
+                                .char_state
+                                .map_or(false, |cs| cs.stage_section() == Some(*section))
+                            {
+                                let change = {
+                                    let mut change = change;
+                                    change.amount *= damage;
+                                    change
+                                };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
                                     change,
@@ -458,6 +462,19 @@ impl Attack {
                                 emit(ServerEvent::Buff {
                                     entity: target.entity,
                                     buff_change: BuffChange::Refresh(*b),
+                                });
+                            }
+                        },
+                        CombatEffect::BuffsVulnerable(damage, buff) => {
+                            if target.buffs.map_or(false, |b| b.contains(*buff)) {
+                                let change = {
+                                    let mut change = change;
+                                    change.amount *= damage;
+                                    change
+                                };
+                                emit(ServerEvent::HealthChange {
+                                    entity: target.entity,
+                                    change,
                                 });
                             }
                         },
@@ -617,7 +634,7 @@ impl Attack {
                         }
                     },
                     // Only has an effect when attached to a damage
-                    CombatEffect::BuildupsVulnerable => {},
+                    CombatEffect::StageVulnerable(_, _) => {},
                     CombatEffect::RefreshBuff(chance, b) => {
                         if rng.gen::<f32>() < chance {
                             emit(ServerEvent::Buff {
@@ -626,6 +643,8 @@ impl Attack {
                             });
                         }
                     },
+                    // Only has an effect when attached to a damage
+                    CombatEffect::BuffsVulnerable(_, _) => {},
                 }
             }
         }
@@ -757,14 +776,21 @@ pub enum CombatEffect {
     Lifesteal(f32),
     Poise(f32),
     Combo(i32),
-    // If the attack hits the target while they are in the buildup portion of a character state,
-    // deal double damage Only has an effect when attached to a damage, otherwise does nothing
-    // if only attached to the attack
+    /// If the attack hits the target while they are in the buildup portion of a
+    /// character state, deal increased damage
+    /// Only has an effect when attached to a damage, otherwise does nothing if
+    /// only attached to the attack
     // TODO: Maybe try to make it do something if tied to
     // attack, not sure if it should double count in that instance?
-    BuildupsVulnerable,
-    // Resets duration of all buffs of this buffkind, with some probability
+    StageVulnerable(f32, StageSection),
+    /// Resets duration of all buffs of this buffkind, with some probability
     RefreshBuff(f32, BuffKind),
+    /// If the target hit by an attack has this buff, they will take increased
+    /// damage Only has an effect when attached to a damage, otherwise does
+    /// nothing if only attached to the attack
+    // TODO: Maybe try to make it do something if tied to attack, not sure if it should double
+    // count in that instance?
+    BuffsVulnerable(f32, BuffKind),
 }
 
 #[cfg(not(target_arch = "wasm32"))]

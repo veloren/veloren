@@ -10,7 +10,7 @@ impl Animation for RapidMeleeAnimation {
     type Dependency<'a> = (
         Option<&'a str>,
         Option<StageSection>,
-        (u32, u32),
+        (u32, Option<u32>),
         Option<AbilityInfo>,
     );
     type Skeleton = CharacterSkeleton;
@@ -41,7 +41,7 @@ impl Animation for RapidMeleeAnimation {
         match ability_id {
             Some("common.abilities.sword.cleaving_whirlwind_slice") => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time, 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
@@ -49,11 +49,7 @@ impl Animation for RapidMeleeAnimation {
                 let pullback = 1.0 - move3;
 
                 let move2_no_pullback = move2 + current_strike as f32;
-                let move2 = if current_strike == 0 {
-                    move2
-                } else {
-                    1.0
-                };
+                let move2 = if current_strike == 0 { move2 } else { 1.0 };
                 let move2_pre = move2.min(0.3) * 10.0 / 3.0;
                 let move1 = move1 * pullback;
                 let move2 = move2 * pullback;
@@ -62,12 +58,16 @@ impl Animation for RapidMeleeAnimation {
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
-                next.hand_r.position =
-                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
-                next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);
+                next.hand_r.position = Vec3::new(-s_a.sc.0 + -6.0, -1.0, -2.0);
+                next.hand_r.orientation = Quaternion::rotation_x(1.4);
                 next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
+                next.control.orientation =
+                    Quaternion::rotation_x(s_a.sc.3) * Quaternion::rotation_z(move1 * 3.14);
 
+                if move2 < f32::EPSILON {
+                    next.main_weapon_trail = false;
+                    next.off_weapon_trail = false;
+                }
                 next.chest.orientation = Quaternion::rotation_z(move1 * 1.2);
                 next.head.orientation = Quaternion::rotation_z(move1 * -0.7);
                 next.belt.orientation = Quaternion::rotation_z(move1 * -0.3);
@@ -80,7 +80,7 @@ impl Animation for RapidMeleeAnimation {
 
                 next.control.orientation.rotate_y(move2_pre * -1.6);
                 next.control.position += Vec3::new(0.0, 0.0, move2_pre * 4.0);
-                next.torso.orientation.rotate_z(move2_no_pullback * -6.28);
+                next.torso.orientation.rotate_z(move2_no_pullback * 6.28);
                 next.chest.orientation.rotate_z(move2 * -2.0);
                 next.head.orientation.rotate_z(move2 * 1.3);
                 next.belt.orientation.rotate_z(move2 * 0.6);
@@ -89,7 +89,7 @@ impl Animation for RapidMeleeAnimation {
                 next.control.orientation.rotate_z(move2 * -1.8);
                 next.control.position += Vec3::new(move2 * 14.0, 0.0, 0.0);
             },
-            Some("common.abilities.sword.reaching_flurry") => {
+            Some("common.abilities.sword.agile_perforate") => {
                 let (move1, move2, move3, move2alt) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
                     Some(StageSection::Action) => (
@@ -128,10 +128,6 @@ impl Animation for RapidMeleeAnimation {
                 next.shorts.orientation.rotate_z(move2 * 0.7);
                 next.control.orientation.rotate_z(move2 * 1.2);
                 next.control.position += Vec3::new(0.0, move2 * 12.0, 0.0);
-
-                if current_strike == max_strikes {
-                    next.control.position += Vec3::new(move2alt * -6.0, move2alt * -6.0, 0.0);
-                }
             },
             _ => {},
         }

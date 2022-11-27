@@ -864,6 +864,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let alignments = &ecs.read_storage::<Alignment>();
                 let uid_allocator = &ecs.read_resource::<UidAllocator>();
                 let players = &ecs.read_storage::<Player>();
+                let buffs = &ecs.read_storage::<comp::Buffs>();
                 for (
                     entity_b,
                     pos_b,
@@ -938,6 +939,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             ori: ori_b_maybe,
                             char_state: char_state_b_maybe,
                             energy: energies.get(entity_b),
+                            buffs: buffs.get(entity_b),
                         };
 
                         let target_dodging = char_state_b_maybe

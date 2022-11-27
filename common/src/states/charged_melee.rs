@@ -18,6 +18,11 @@ pub struct StaticData {
     pub energy_drain: f32,
     /// Energy cost per attack
     pub energy_cost: f32,
+    /// The state can optionally have a buildup strike that applies after buildup before charging
+    pub buildup_strike: Option<(
+        Duration,
+        MeleeConstructor,
+    )>,
     /// How long it takes to charge the weapon to max damage and knockback
     pub charge_duration: Duration,
     /// How long the weapon is swinging for
@@ -60,6 +65,32 @@ impl CharacterBehavior for Data {
         handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
+            StageSection::Buildup => {
+                if let Some((buildup, strike)) = self.static_data.buildup_strike {
+                    if self.timer < buildup {
+                        if let CharacterState::ChargedMelee(c) = &mut update.character {
+                            c.timer = tick_attack_or_default(data, self.timer, None);
+                        }
+                    } else {
+                        let crit_data = get_crit_data(data, self.static_data.ability_info);
+                        let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                        data.updater.insert(
+                            data.entity,
+                            strike.create_melee(crit_data, buff_strength),
+                        );
+
+                        if let CharacterState::ChargedMelee(c) = &mut update.character {
+                            c.stage_section = StageSection::Charge;
+                            c.timer = Duration::default();
+                        }
+                    }
+                } else {
+                    if let CharacterState::ChargedMelee(c) = &mut update.character {
+                        c.stage_section = StageSection::Charge;
+                        c.timer = Duration::default();
+                    }
+                }
+            },
             StageSection::Charge => {
                 if input_is_pressed(data, self.static_data.ability_info.input)
                     && update.energy.current() >= self.static_data.energy_cost

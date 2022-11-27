@@ -4,9 +4,9 @@ ComboMelee2(
             melee_constructor: (
                 kind: Slash(
                     damage: 8,
-                    poise: 0,
+                    poise: 5,
                     knockback: 0,
-                    energy_regen: 5,
+                    energy_regen: 0,
                 ),
                 range: 3.0,
                 angle: 45.0,
@@ -23,7 +23,7 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 0,
+    energy_cost_per_strike: 10,
     meta: (
         init_event: Some(EnterStance(Sword(Agile))),
     ),
