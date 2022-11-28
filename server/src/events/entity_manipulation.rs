@@ -1272,7 +1272,11 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 });
                 true
             },
-            _ => false,
+            char_state => char_state.ability_info().map_or(false, |info| {
+                info.ability_meta
+                    .capabilities
+                    .contains(comp::ability::Capability::BUILDUP_PARRIES)
+            }),
         };
         if return_to_wield {
             *char_state =

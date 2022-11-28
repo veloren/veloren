@@ -493,6 +493,52 @@ impl Animation for ComboAnimation {
                         _ => {},
                     }
                 },
+                Some(
+                    "common.abilities.sword.basic_crescent_slash"
+                    | "common.abilities.sword.heavy_crescent_slash"
+                    | "common.abilities.sword.agile_crescent_slash"
+                    | "common.abilities.sword.defensive_crescent_slash"
+                    | "common.abilities.sword.crippling_crescent_slash"
+                    | "common.abilities.sword.cleaving_crescent_slash",
+                ) => {
+                    let (move1, move2) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(2)),
+                        Some(StageSection::Recover) => (1.0, 1.0),
+                        _ => (0.0, 0.0),
+                    };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
+
+                    next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                    next.hand_l.orientation =
+                        Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                    next.hand_r.position = Vec3::new(
+                        -s_a.sc.0 + 6.0 + move1 * -12.0,
+                        -4.0 + move1 * 3.0,
+                        -2.0 + move1.min(0.5) * 2.0 * 10.0 + (move1.max(0.5) - 0.5) * 2.0 * -10.0,
+                    );
+                    next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);
+                    next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                    next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
+
+                    next.chest.orientation = Quaternion::rotation_z(move1 * 1.2);
+                    next.head.orientation = Quaternion::rotation_z(move1 * -0.7);
+                    next.shorts.orientation = Quaternion::rotation_z(move1 * -0.6);
+                    next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
+                    next.control
+                        .orientation
+                        .rotate_y(move1 * -1.5 + move2 * -0.7);
+
+                    next.chest.orientation.rotate_z(move2 * -1.4);
+                    next.head.orientation.rotate_z(move2 * 0.9);
+                    next.shorts.orientation.rotate_z(move2 * 0.8);
+                    next.belt.orientation.rotate_z(move2 * 0.3);
+                    next.control.orientation.rotate_x(move2 * 0.6);
+                    next.control.orientation.rotate_z(move2 * -1.7);
+                    next.control.position += Vec3::new(move2 * 12.0, move2 * 4.0, move2 * 7.0);
+                    next.control.orientation.rotate_x(move2 * 0.7);
+                },
                 Some("common.abilities.sword.cleaving_combo") => {
                     let (move1, move2) = if strike == current_strike {
                         match stage_section {

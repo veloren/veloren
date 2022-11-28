@@ -303,11 +303,19 @@ impl CharacterState {
     }
 
     pub fn is_parry(&self) -> bool {
-        match self {
+        let from_capability = self
+            .ability_info()
+            .map(|a| a.ability_meta.capabilities)
+            .map_or(false, |c| {
+                c.contains(Capability::BUILDUP_PARRIES)
+                    && matches!(self.stage_section(), Some(StageSection::Buildup))
+            });
+        let from_state = match self {
             CharacterState::BasicBlock(c) => c.is_parry(),
             CharacterState::RiposteMelee(c) => matches!(c.stage_section, StageSection::Buildup),
             _ => false,
-        }
+        };
+        from_capability || from_state
     }
 
     /// In radians
