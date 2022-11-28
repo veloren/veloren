@@ -17,9 +17,9 @@ impl Animation for ConsumeAnimation {
     const UPDATE_FN: &'static [u8] = b"character_consume\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_consume")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_global_time, stage_section, item_kind): Self::Dependency<'a>,
+        (_global_time, stage_section, item_kind): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

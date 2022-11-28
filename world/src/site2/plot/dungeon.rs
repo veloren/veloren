@@ -128,8 +128,8 @@ impl Dungeon {
 
     pub fn difficulty(&self) -> u32 { self.difficulty }
 
-    pub fn apply_supplement<'a>(
-        &'a self,
+    pub fn apply_supplement(
+        &self,
         // NOTE: Used only for dynamic elements like chests and entities!
         dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,

@@ -19,8 +19,10 @@ impl Locals {
             texture_mats: texture_mat.into_col_arrays(),
         }
     }
+}
 
-    pub fn default() -> Self { Self::new(Mat4::identity(), Mat4::identity()) }
+impl Default for Locals {
+    fn default() -> Self { Self::new(Mat4::identity(), Mat4::identity()) }
 }
 
 pub type BoundLocals = Bound<Consts<Locals>>;
@@ -71,8 +73,10 @@ pub struct PointLightMatrix([[f32; 4]; 4]);
 
 impl PointLightMatrix {
     pub fn new(shadow_mat: Mat4<f32>) -> Self { Self(shadow_mat.into_col_arrays()) }
+}
 
-    pub fn default() -> Self { Self::new(Mat4::identity()) }
+impl Default for PointLightMatrix {
+    fn default() -> Self { Self::new(Mat4::identity()) }
 }
 
 pub fn create_col_lights(

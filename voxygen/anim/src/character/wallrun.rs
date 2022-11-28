@@ -17,9 +17,9 @@ impl Animation for WallrunAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_wallrun")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (orientation, acc_vel, wall): Self::Dependency<'a>,
+        (orientation, acc_vel, wall): Self::Dependency<'_>,
         _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

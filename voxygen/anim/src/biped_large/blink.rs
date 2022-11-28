@@ -22,9 +22,9 @@ impl Animation for BlinkAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_blink\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_blink")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'a>,
+        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

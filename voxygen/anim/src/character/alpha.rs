@@ -23,9 +23,9 @@ impl Animation for AlphaAnimation {
     const UPDATE_FN: &'static [u8] = b"character_alpha\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_alpha")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (hands, stage_section, ability_info): Self::Dependency<'a>,
+        (hands, stage_section, ability_info): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -111,9 +111,7 @@ impl SkillSetBuilder {
     /// 3) If added skill wasn't applied at the end
     pub fn with_skill(mut self, skill: Skill, level: u16) -> Self {
 
-        let group = if let Some(skill_group) = skill.skill_group_kind() {
-            skill_group
-        } else {
+        let Some(group) = skill.skill_group_kind() else {
             let err = format!(
                 "Tried to add skill: {:?} which does not have an associated skill group.",
                 skill

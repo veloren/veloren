@@ -24,9 +24,9 @@ impl Animation for DashAnimation {
     const UPDATE_FN: &'static [u8] = b"bird_large_dash\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_dash")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, acc_vel, stage_section, global_time, timer): Self::Dependency<'a>,
+        (velocity, orientation, last_ori, acc_vel, stage_section, global_time, timer): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

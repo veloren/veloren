@@ -26,7 +26,7 @@ impl Animation for ShockwaveAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_shockwave")]
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             (active_tool_kind, active_tool_spec),
@@ -34,7 +34,7 @@ impl Animation for ShockwaveAnimation {
             _global_time,
             velocity,
             stage_section,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

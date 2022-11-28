@@ -14,9 +14,9 @@ impl Animation for FlyAnimation {
     const UPDATE_FN: &'static [u8] = b"bird_medium_fly\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_medium_fly")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        _global_time: Self::Dependency<'a>,
+        _global_time: Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

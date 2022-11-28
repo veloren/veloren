@@ -30,7 +30,7 @@ impl Animation for RollAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_roll")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -41,7 +41,7 @@ impl Animation for RollAnimation {
             last_ori,
             _global_time,
             stage_section,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

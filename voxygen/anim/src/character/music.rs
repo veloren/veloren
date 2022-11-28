@@ -23,9 +23,9 @@ impl Animation for MusicAnimation {
     const UPDATE_FN: &'static [u8] = b"character_music\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_music")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_hands, (ability_info, active_tool_spec, global_time), rel_vel): Self::Dependency<'a>,
+        (_hands, (ability_info, active_tool_spec, global_time), rel_vel): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

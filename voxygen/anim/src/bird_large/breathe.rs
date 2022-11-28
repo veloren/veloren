@@ -25,9 +25,9 @@ impl Animation for BreatheAnimation {
     const UPDATE_FN: &'static [u8] = b"bird_large_breathe\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_breathe")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity,global_time, _orientation, _last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency<'a>,
+        (velocity,global_time, _orientation, _last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -224,7 +224,7 @@ impl FigureMgrStates {
         }
     }
 
-    fn remove<'a, Q: ?Sized>(&'a mut self, body: &Body, entity: &Q) -> Option<FigureStateMeta>
+    fn remove<Q: ?Sized>(&mut self, body: &Body, entity: &Q) -> Option<FigureStateMeta>
     where
         EcsEntity: Borrow<Q>,
         Q: Hash + Eq,

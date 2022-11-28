@@ -26,9 +26,9 @@ impl Animation for ShockwaveAnimation {
     const UPDATE_FN: &'static [u8] = b"character_shockwave\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_shockwave")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_ability_info, hands, _global_time, velocity, stage_section): Self::Dependency<'a>,
+        (_ability_info, hands, _global_time, velocity, stage_section): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

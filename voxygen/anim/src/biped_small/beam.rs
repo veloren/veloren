@@ -28,7 +28,7 @@ impl Animation for BeamAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_beam")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             _active_tool_kind,
@@ -40,7 +40,7 @@ impl Animation for BeamAnimation {
             _acc_vel,
             stage_section,
             _timer,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

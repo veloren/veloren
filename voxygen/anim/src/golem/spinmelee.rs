@@ -15,9 +15,9 @@ impl Animation for SpinMeleeAnimation {
     const UPDATE_FN: &'static [u8] = b"golem_spinmelee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "golem_spinmelee")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        stage_section: Self::Dependency<'a>,
+        stage_section: Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -1333,9 +1333,9 @@ impl<'a> System<'a> for Sys {
 }
 
 #[allow(clippy::too_many_lines)]
-fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
+fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32), // effective collision cylinder
-    terrain: &'a T,
+    terrain: &T,
     entity: Entity,
     pos: &mut Pos,
     tgt_pos: Vec3<f32>,

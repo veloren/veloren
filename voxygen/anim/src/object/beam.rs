@@ -22,9 +22,9 @@ impl Animation for BeamAnimation {
     const UPDATE_FN: &'static [u8] = b"object_beam\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "object_beam")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, _stage_section, _body): Self::Dependency<'a>,
+        (_active_tool_kind, _second_tool_kind, _stage_section, _body): Self::Dependency<'_>,
         _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

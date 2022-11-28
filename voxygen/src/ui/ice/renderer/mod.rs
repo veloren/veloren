@@ -824,9 +824,9 @@ impl iced::Renderer for IcedRenderer {
     // TODO: use graph of primitives to enable diffing???
     type Output = (Primitive, iced::mouse::Interaction);
 
-    fn layout<'a, M>(
+    fn layout<M>(
         &mut self,
-        element: &iced::Element<'a, M, Self>,
+        element: &iced::Element<'_, M, Self>,
         limits: &iced::layout::Limits,
     ) -> iced::layout::Node {
         span!(_guard, "layout", "IcedRenderer::layout");

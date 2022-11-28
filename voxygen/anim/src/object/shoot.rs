@@ -22,9 +22,9 @@ impl Animation for ShootAnimation {
     const UPDATE_FN: &'static [u8] = b"object_shoot\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "object_shoot")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, stage_section, body): Self::Dependency<'a>,
+        (_active_tool_kind, _second_tool_kind, stage_section, body): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

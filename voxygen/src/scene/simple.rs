@@ -43,8 +43,8 @@ impl ReadVol for VoidVol {
     fn get(&self, _pos: Vec3<i32>) -> Result<&'_ Self::Vox, Self::Error> { Ok(&()) }
 }
 
-fn generate_mesh<'a>(
-    greedy: &mut GreedyMesh<'a>,
+fn generate_mesh(
+    greedy: &mut GreedyMesh<'_>,
     mesh: &mut Mesh<TerrainVertex>,
     segment: Segment,
     offset: Vec3<f32>,

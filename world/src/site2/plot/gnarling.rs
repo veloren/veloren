@@ -329,8 +329,8 @@ impl GnarlingFortification {
     }
 
     // TODO: Find a better way of spawning entities in site2
-    pub fn apply_supplement<'a>(
-        &'a self,
+    pub fn apply_supplement(
+        &self,
         // NOTE: Used only for dynamic elements like chests and entities!
         dynamic_rng: &mut impl Rng,
         wpos2d: Vec2<i32>,

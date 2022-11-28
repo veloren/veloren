@@ -234,7 +234,7 @@ impl Site {
         }
     }
 
-    pub fn apply_to<'a>(&'a self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
+    pub fn apply_to(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
         let info = canvas.info();
         let get_col = |wpos| info.col(wpos + info.wpos);
         match &self.kind {

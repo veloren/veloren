@@ -14,9 +14,9 @@ impl Animation for FinisherMeleeAnimation {
     const UPDATE_FN: &'static [u8] = b"character_finisher_melee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_finisher_melee")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section, _ability_info): Self::Dependency<'a>,
+        (ability_id, stage_section, _ability_info): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

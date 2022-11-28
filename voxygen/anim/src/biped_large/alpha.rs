@@ -26,7 +26,7 @@ impl Animation for AlphaAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_alpha\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_alpha")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             (active_tool_kind, active_tool_spec),
@@ -36,7 +36,7 @@ impl Animation for AlphaAnimation {
             stage_section,
             acc_vel,
             timer,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -28,7 +28,7 @@ impl Animation for StaggeredAnimation {
     const UPDATE_FN: &'static [u8] = b"character_staggered\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_staggered")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -39,7 +39,7 @@ impl Animation for StaggeredAnimation {
             stage_section,
             timer,
             wield_status,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -23,9 +23,9 @@ impl Animation for JumpAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_jump")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, hands, velocity, orientation, last_ori, global_time): Self::Dependency<'a>,
+        (active_tool_kind, second_tool_kind, hands, velocity, orientation, last_ori, global_time): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

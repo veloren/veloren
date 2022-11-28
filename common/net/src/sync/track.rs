@@ -33,7 +33,7 @@ where
 
     pub fn removed(&self) -> &BitSet { &self.removed }
 
-    pub fn record_changes<'a>(&mut self, storage: &ReadStorage<'a, C>) {
+    pub fn record_changes(&mut self, storage: &ReadStorage<'_, C>) {
         self.inserted.clear();
         self.modified.clear();
         self.removed.clear();
@@ -66,9 +66,9 @@ where
 }
 
 impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
-    pub fn add_packet_for<'a, P>(
+    pub fn add_packet_for<P>(
         &self,
-        storage: &ReadStorage<'a, C>,
+        storage: &ReadStorage<'_, C>,
         entity: Entity,
         packets: &mut Vec<P>,
     ) where
@@ -84,10 +84,10 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
         }
     }
 
-    pub fn get_updates_for<'a, P>(
+    pub fn get_updates_for<P>(
         &self,
-        uids: &ReadStorage<'a, Uid>,
-        storage: &ReadStorage<'a, C>,
+        uids: &ReadStorage<'_, Uid>,
+        storage: &ReadStorage<'_, C>,
         entity_filter: impl Join + Copy,
         buf: &mut Vec<(u64, CompUpdateKind<P>)>,
     ) where
@@ -125,9 +125,9 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
 
     /// Returns `Some(update)` if the tracked component was modified for this
     /// entity.
-    pub fn get_update<'a, P>(
+    pub fn get_update<P>(
         &self,
-        storage: &ReadStorage<'a, C>,
+        storage: &ReadStorage<'_, C>,
         entity: Entity,
     ) -> Option<CompUpdateKind<P>>
     where

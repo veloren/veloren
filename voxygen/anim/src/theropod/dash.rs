@@ -14,9 +14,9 @@ impl Animation for DashAnimation {
     const UPDATE_FN: &'static [u8] = b"theropod_dash\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "theropod_dash")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, stage_section, timer): Self::Dependency<'a>,
+        (_velocity, global_time, stage_section, timer): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         _s_a: &SkeletonAttr,

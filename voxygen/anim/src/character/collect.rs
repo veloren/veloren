@@ -15,9 +15,9 @@ impl Animation for CollectAnimation {
     const UPDATE_FN: &'static [u8] = b"character_collect\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_collect")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (position, _global_time, stage_section, sprite_pos): Self::Dependency<'a>,
+        (position, _global_time, stage_section, sprite_pos): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

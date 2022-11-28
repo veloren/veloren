@@ -150,8 +150,10 @@ impl Locals {
             atlas_offs: Vec4::new(atlas_offs.x as i32, atlas_offs.y as i32, 0, 0).into_array(),
         }
     }
+}
 
-    pub fn default() -> Self {
+impl Default for Locals {
+    fn default() -> Self {
         Self {
             model_offs: [0.0; 3],
             load_time: 0.0,

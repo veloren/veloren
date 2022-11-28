@@ -27,7 +27,7 @@ impl Animation for BlockAnimation {
     const UPDATE_FN: &'static [u8] = b"character_block\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_block")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             hands,
@@ -37,7 +37,7 @@ impl Animation for BlockAnimation {
             ability_id,
             stage_section,
             _ability_info,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

@@ -25,9 +25,9 @@ impl Animation for DashAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_dash")]
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_hands, ability_id, _global_time, stage_section, _ability_info): Self::Dependency<'a>,
+        (_hands, ability_id, _global_time, stage_section, _ability_info): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
