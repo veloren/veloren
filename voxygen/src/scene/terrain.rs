@@ -1018,7 +1018,8 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         span!(guard, "Queue meshing from todo list");
         let mesh_focus_pos = focus_pos.map(|e| e.trunc()).xy().as_::<i64>();
-        //TODO: this is actually no loop, it just runs for a single entry because of the `min_by_key`. Evaluate actually looping here
+        //TODO: this is actually no loop, it just runs for a single entry because of
+        // the `min_by_key`. Evaluate actually looping here
         while let Some((todo, chunk)) = self
             .mesh_todo
             .values_mut()

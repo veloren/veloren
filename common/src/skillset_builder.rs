@@ -110,6 +110,7 @@ impl SkillSetBuilder {
     /// 2) If added skill already applied
     /// 3) If added skill wasn't applied at the end
     pub fn with_skill(mut self, skill: Skill, level: u16) -> Self {
+
         let group = if let Some(skill_group) = skill.skill_group_kind() {
             skill_group
         } else {

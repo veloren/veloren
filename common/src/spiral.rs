@@ -43,10 +43,10 @@ impl Iterator for Spiral2d {
         let layer_size = (self.layer * 8 + 4 * self.layer.min(1) - 4).max(1);
 
         let pos = Vec2::new(
-            -self.layer + (self.i - (layer_size / 4) * 0).max(0).min(self.layer * 2)
-                - (self.i - (layer_size / 4) * 2).max(0).min(self.layer * 2),
-            -self.layer + (self.i - (layer_size / 4) * 1).max(0).min(self.layer * 2)
-                - (self.i - (layer_size / 4) * 3).max(0).min(self.layer * 2),
+            -self.layer + (self.i - (layer_size / 4) * 0).clamp(0, self.layer * 2)
+                - (self.i - (layer_size / 4) * 2).clamp(0, self.layer * 2),
+            -self.layer + (self.i - (layer_size / 4) * 1).clamp(0, self.layer * 2)
+                - (self.i - (layer_size / 4) * 3).clamp(0, self.layer * 2),
         );
 
         self.i += 1;

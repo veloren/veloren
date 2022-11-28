@@ -28,7 +28,7 @@ impl Vertex {
         Self {
             pos_norm: ((pos.x as u32) & 0x003F) << 0
                 | ((pos.y as u32) & 0x003F) << 6
-                | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
+                | (((pos + EXTRA_NEG_Z).z.clamp(0.0, (1 << 16) as f32) as u32) & 0xFFFF) << 12
                 | u32::from(meta) << 28
                 | (norm_bits & 0x7) << 29,
             atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) << 0 | ((atlas_pos.y as u32) & 0xFFFF) << 16,

@@ -1053,10 +1053,9 @@ impl Branch {
                 {
                     let rpos = pos.xy() - p;
                     let stretch = 32.0;
-                    let stair_section =
-                        (rpos.x.atan2(rpos.y) / (f32::consts::PI * 2.0) * stretch
-                            + pos.z)
-                            .rem_euclid(stretch);
+                    let stair_section = (rpos.x.atan2(rpos.y) / (f32::consts::PI * 2.0) * stretch
+                        + pos.z)
+                        .rem_euclid(stretch);
                     (
                         stair_section < stair_thickness,
                         stair_section >= stair_thickness

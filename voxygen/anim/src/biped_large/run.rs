@@ -127,8 +127,7 @@ impl Animation for RunAnimation {
 
         let side = ((velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x)
             * -1.0)
-            .min(1.0)
-            .max(-1.0);
+            .clamp(-1.0, 1.0);
         let sideabs = side.abs();
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 

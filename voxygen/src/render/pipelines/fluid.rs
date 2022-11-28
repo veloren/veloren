@@ -26,7 +26,7 @@ impl Vertex {
             pos_norm: 0
                 | ((pos.x as u32) & 0x003F) << 0
                 | ((pos.y as u32) & 0x003F) << 6
-                | (((pos.z + EXTRA_NEG_Z).max(0.0).min((1 << 17) as f32) as u32) & 0x1FFFF) << 12
+                | (((pos.z + EXTRA_NEG_Z).clamp(0.0, (1 << 17) as f32) as u32) & 0x1FFFF) << 12
                 | (norm_bits & 0x7) << 29,
             vel: river_velocity
                 .map2(Vec2::new(0, 16), |e, off| {

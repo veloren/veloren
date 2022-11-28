@@ -566,8 +566,7 @@ pub fn convert_to_loaded_vd(vd: u32, max_view_distance: u32) -> i32 {
     const UNLOAD_THRESHOLD: u32 = 2;
 
     // NOTE: This cast is safe for the reasons mentioned above.
-    (vd.max(crate::MIN_VD)
-        .min(max_view_distance)
+    (vd.clamp(crate::MIN_VD, max_view_distance)
         .saturating_add(UNLOAD_THRESHOLD))
     .min(MAX_VD) as i32
 }

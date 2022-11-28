@@ -395,6 +395,7 @@ fn execute_effect(
                 stat.max_energy_modifiers.mult_mod *= *value;
             },
         },
+        #[allow(clippy::manual_clamp)]
         BuffEffect::DamageReduction(dr) => {
             stat.damage_reduction = stat.damage_reduction.max(*dr).min(1.0);
         },
@@ -466,6 +467,7 @@ fn execute_effect(
         BuffEffect::GroundFriction(gf) => {
             stat.friction_modifier *= *gf;
         },
+        #[allow(clippy::manual_clamp)]
         BuffEffect::PoiseReduction(pr) => {
             stat.poise_reduction = stat.poise_reduction.max(*pr).min(1.0);
         },

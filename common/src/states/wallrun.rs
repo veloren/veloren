@@ -27,8 +27,7 @@ impl CharacterBehavior for Data {
             update.vel.0.z += data.dt.0
                 * lift
                 * (Vec2::<f32>::from(update.vel.0).magnitude() * 0.075)
-                    .min(1.0)
-                    .max(0.2);
+                .clamp(0.2, 1.0);
         }
 
         // fall off wall, hit ground, or enter water

@@ -347,8 +347,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 };
                 let river_width_noise =
                     (sim.gen_ctx.small_nz.get((river_pos.div(16.0)).into_array()))
-                        .max(-1.0)
-                        .min(1.0)
+                        .clamp(-1.0, 1.0)
                         .mul(0.5)
                         .sub(0.5);
                 let river_width = Lerp::lerp(
@@ -825,16 +824,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let riverless_alt_delta = (sim.gen_ctx.small_nz.get(
             (wposf_turb.div(200.0 * (32.0 / TerrainChunkSize::RECT_SIZE.x as f64))).into_array(),
         ) as f32)
-            .min(1.0)
-            .max(-1.0)
+            .clamp(-1.0, 1.0)
             .abs()
             .mul(3.0)
             + (sim.gen_ctx.small_nz.get(
                 (wposf_turb.div(400.0 * (32.0 / TerrainChunkSize::RECT_SIZE.x as f64)))
                     .into_array(),
             ) as f32)
-                .min(1.0)
-                .max(-1.0)
+                .clamp(-1.0, 1.0)
                 .abs()
                 .mul(3.0);
 

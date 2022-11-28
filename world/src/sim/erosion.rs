@@ -568,7 +568,7 @@ fn get_max_slope(
             // Normalized to be between 6 and and 54 degrees.
             let div_factor = (2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0;
             let rock_strength = rock_strength_nz.get([wposf.x, wposf.y, wposz * div_factor]);
-            let rock_strength = rock_strength.max(-1.0).min(1.0) * 0.5 + 0.5;
+            let rock_strength = rock_strength.clamp(-1.0, 1.0) * 0.5 + 0.5;
             // Logistic regression.  Make sure x ∈ (0, 1).
             let logit = |x: f64| x.ln() - (-x).ln_1p();
             // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
@@ -589,13 +589,12 @@ fn get_max_slope(
             let dmax = center + 0.05;
             let log_odds = |x: f64| logit(x) - logit(center);
             let rock_strength = logistic_cdf(
-                1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
+                1.0 * logit(rock_strength.clamp(1e-7, 1.0f64 - 1e-7))
                     + 1.0
                         * log_odds(
                             (wposz / CONFIG.mountain_scale as f64)
                                 .abs()
-                                .min(dmax)
-                                .max(dmin),
+                                .clamp(dmin, dmax),
                         ),
             );
             // NOTE: If you want to disable varying rock strength entirely, uncomment  this
@@ -900,11 +899,7 @@ fn erode(
                                 - uniform_idx_as_vec2(map_size_lg, posj))
                             .map(|e| e as f64);
                             let neighbor_distance = (neighbor_coef * dxy).magnitude();
-                            let knew = (k
-                                * (p
-                                    * chunk_area
-                                    * (area[posi] * mwrec_i[kk]))
-                                    .powf(m)
+                            let knew = (k * (p * chunk_area * (area[posi] * mwrec_i[kk])).powf(m)
                                 / neighbor_distance.powf(n))
                                 as SimdType;
                             k_tot[kk] = knew;
@@ -1994,14 +1989,8 @@ pub fn get_lakes<F: Float>(
                             "For edge {:?} between lakes {:?}, couldn't find partner for pass \
                              {:?}. Should never happen; maybe forgot to set both edges?",
                             (
-                                (
-                                    chunk_idx,
-                                    uniform_idx_as_vec2(map_size_lg, chunk_idx)
-                                ),
-                                (
-                                    neighbor_idx,
-                                    uniform_idx_as_vec2(map_size_lg, neighbor_idx)
-                                )
+                                (chunk_idx, uniform_idx_as_vec2(map_size_lg, chunk_idx)),
+                                (neighbor_idx, uniform_idx_as_vec2(map_size_lg, neighbor_idx))
                             ),
                             (
                                 (
@@ -2011,10 +2000,7 @@ pub fn get_lakes<F: Float>(
                                 ),
                                 (
                                     neighbor_lake_chunk_idx,
-                                    uniform_idx_as_vec2(
-                                        map_size_lg,
-                                        neighbor_lake_chunk_idx
-                                    ),
+                                    uniform_idx_as_vec2(map_size_lg, neighbor_lake_chunk_idx),
                                     neighbor_lake_idx_
                                 )
                             ),

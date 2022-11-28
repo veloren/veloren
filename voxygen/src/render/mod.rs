@@ -335,7 +335,7 @@ impl BloomFactor {
             Self::Low => 0.1,
             Self::Medium => 0.2,
             Self::High => 0.3,
-            Self::Custom(val) => val.max(0.0).min(1.0),
+            Self::Custom(val) => val.clamp(0.0, 1.0),
         }
     }
 }

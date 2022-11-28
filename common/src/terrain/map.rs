@@ -678,7 +678,7 @@ impl<'a> MapConfig<'a> {
                             let deltax = height / angle;
                             let lighty = (light_direction.y / light_direction.x * deltax).abs();
                             let deltay = lighty - height;
-                            let s = (deltay / deltax / w).min(1.0).max(0.0);
+                            let s = (deltay / deltax / w).clamp(0.0, 1.0);
                             // Smoothstep
                             s * s * (3.0 - 2.0 * s)
                         } else {

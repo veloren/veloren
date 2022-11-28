@@ -61,7 +61,7 @@ impl Vertex {
             //     | (norm_bits & 0x7) << 29,
             pos_norm: ((pos.x as u32) & 0x00FF) // NOTE: temp hack, this doesn't need 8 bits
                 | ((pos.y as u32) & 0x00FF) << 8
-                | (((pos.z as i32 + VERT_EXTRA_NEG_Z).max(0).min(1 << 12) as u32) & 0x0FFF) << 16
+                | (((pos.z as i32 + VERT_EXTRA_NEG_Z).clamp(0, 1 << 12) as u32) & 0x0FFF) << 16
                 | (norm_bits & 0x7) << 29,
             atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | ((atlas_pos.y as u32) & 0xFFFF) << 16,
         }
@@ -129,7 +129,7 @@ impl Instance {
             inst_mat3: mat_arr[3],
             pos_ori_door: ((pos.x as u32) & 0x003F)
                 | ((pos.y as u32) & 0x003F) << 6
-                | (((pos.z + EXTRA_NEG_Z).max(0).min(1 << 16) as u32) & 0xFFFF) << 12
+                | (((pos.z + EXTRA_NEG_Z).clamp(0, 1 << 16) as u32) & 0xFFFF) << 12
                 | (u32::from(ori_bits) & 0x7) << 29
                 | (u32::from(is_door) & 1) << 28,
             inst_vert_page: vert_page,

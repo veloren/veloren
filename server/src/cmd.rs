@@ -2103,9 +2103,9 @@ fn handle_light(
             return Err("cr, cg and cb values mustn't be negative.".into());
         }
 
-        let r = r.max(0.0).min(1.0);
-        let g = g.max(0.0).min(1.0);
-        let b = b.max(0.0).min(1.0);
+        let r = r.clamp(0.0, 1.0);
+        let g = g.clamp(0.0, 1.0);
+        let b = b.clamp(0.0, 1.0);
         light_emitter.col = Rgb::new(r, g, b)
     };
     if let (Some(x), Some(y), Some(z)) = (opt_x, opt_y, opt_z) {
@@ -2152,14 +2152,9 @@ fn handle_lantern(
             .write_storage::<LightEmitter>()
             .get_mut(target)
         {
-            light.strength = s.max(0.1).min(10.0);
+            light.strength = s.clamp(0.1, 10.0);
             if let (Some(r), Some(g), Some(b)) = (r, g, b) {
-                light.col = (
-                    r.max(0.0).min(1.0),
-                    g.max(0.0).min(1.0),
-                    b.max(0.0).min(1.0),
-                )
-                    .into();
+                light.col = (r.clamp(0.0, 1.0), g.clamp(0.0, 1.0), b.clamp(0.0, 1.0)).into();
                 server.notify_client(
                     client,
                     ServerGeneral::server_msg(

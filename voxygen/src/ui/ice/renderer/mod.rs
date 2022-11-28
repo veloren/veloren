@@ -499,10 +499,7 @@ impl IcedRenderer {
                                             b / image_h as f32, /* * ratio_y */
                                             t / image_h as f32, /* * ratio_y */
                                         ),
-                                        Extent2::new(
-                                            gl_size.w * ratio_x,
-                                            gl_size.h * ratio_y,
-                                        ),
+                                        Extent2::new(gl_size.w * ratio_x, gl_size.h * ratio_y),
                                     ))
                                     /* ((l / image_w as f32),
                                     (r / image_w as f32),

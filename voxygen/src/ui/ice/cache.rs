@@ -40,7 +40,7 @@ impl Cache {
         let max_texture_size = renderer.max_texture_size();
 
         let glyph_cache_dims =
-            Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size).max(512));
+            Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).clamp(512, max_texture_size));
 
         let glyph_brush = GlyphBrushBuilder::using_font(default_font)
             .initial_cache_size((glyph_cache_dims.x, glyph_cache_dims.y))
@@ -116,7 +116,7 @@ impl Cache {
         let max_texture_size = renderer.max_texture_size();
         let cache_dims = renderer
             .resolution()
-            .map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size).max(512));
+            .map(|e| (e * GLYPH_CACHE_SIZE).clamp(512, max_texture_size));
         let glyph_brush = self.glyph_brush.get_mut();
         *glyph_brush = glyph_brush
             .to_builder()

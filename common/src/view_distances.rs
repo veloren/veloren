@@ -15,6 +15,7 @@ impl ViewDistances {
     /// entity view distance to the resulting terrain view distance.
     ///
     /// Also ensures both are at a minimum of 1 (unless the provided max is 0).
+    #[allow(clippy::manual_clamp)]
     pub fn clamp(self, max: Option<u32>) -> Self {
         let terrain = self.terrain.max(1).min(max.unwrap_or(u32::MAX));
         Self {

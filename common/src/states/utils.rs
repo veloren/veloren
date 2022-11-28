@@ -622,7 +622,7 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
                     let change = if data.inputs.move_z.abs() > f32::EPSILON {
                         -data.inputs.move_z
                     } else {
-                        (def - data.density.0).max(-1.0).min(1.0)
+                        (def - data.density.0).clamp(-1.0, 1.0)
                     };
                     Density((update.density.0 + data.dt.0 * rate * change).clamp(min, max))
                 };

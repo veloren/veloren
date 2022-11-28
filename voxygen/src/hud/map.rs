@@ -1153,7 +1153,7 @@ impl<'a> Widget for Map<'a> {
                             )
                             .font_size(
                                 self.fonts.cyri.scale(
-                                    (2.0 + font_scale_factor * zoom).min(18.0).max(10.0) as u32,
+                                    (2.0 + font_scale_factor * zoom).clamp(10.0, 18.0) as u32,
                                 ),
                             )
                             .font_id(self.fonts.cyri.conrod_id)

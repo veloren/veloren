@@ -1944,8 +1944,7 @@ impl Structure for DesertCityMultiPlot {
                             let stair_radius = tower_length + 1;
                             let stairs_clear = painter.aabb(Aabb {
                                 min: (bldg_a_center - stair_radius).with_z(base),
-                                max: (bldg_a_center + stair_radius)
-                                    .with_z(base + tower_height + 2),
+                                max: (bldg_a_center + stair_radius).with_z(base + tower_height + 2),
                             });
                             stairs_clear
                                 .sample(spiral_staircase(

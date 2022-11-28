@@ -123,15 +123,13 @@ impl WeatherSim {
 
                 let avg_scale = 20_000.0;
                 let avg_delay = 250_000.0;
-                let pressure = ((base_nz.get(
-                    (pos / avg_scale)
-                        .with_z(time / avg_delay)
-                        .into_array(),
-                ) + base_nz.get(
-                    (pos / (avg_scale * 0.25))
-                        .with_z(time / (avg_delay * 0.25))
-                        .into_array(),
-                ) * 0.5)
+                let pressure = ((base_nz
+                    .get((pos / avg_scale).with_z(time / avg_delay).into_array())
+                    + base_nz.get(
+                        (pos / (avg_scale * 0.25))
+                            .with_z(time / (avg_delay * 0.25))
+                            .into_array(),
+                    ) * 0.5)
                     * 0.5
                     + 1.0)
                     .clamped(0.0, 1.0) as f32

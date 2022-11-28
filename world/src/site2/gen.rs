@@ -368,8 +368,7 @@ impl Fill {
                             .dot(segment_2d.end.as_() - segment_2d.start.as_())
                             / len_sq)
                             .clamp(0.0, 1.0);
-                        (segment.end.z - segment.start.z) * frac
-                            + segment.start.z
+                        (segment.end.z - segment.start.z) * frac + segment.start.z
                     }
                 };
                 let z_check = (projected_z..=(projected_z + height)).contains(&(pos.z as f32));

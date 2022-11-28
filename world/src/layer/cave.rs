@@ -271,11 +271,7 @@ fn tunnel_below_from_cell(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Tu
     let wpos = to_wpos(cell, level);
     Some(Tunnel {
         a: node_at(to_cell(wpos, level), level, land)?,
-        b: node_at(
-            to_cell(wpos + CELL_SIZE / 2, level + 1),
-            level + 1,
-            land,
-        )?,
+        b: node_at(to_cell(wpos + CELL_SIZE / 2, level + 1), level + 1, land)?,
         curve: 0.0,
     })
 }
