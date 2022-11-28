@@ -1789,7 +1789,8 @@ impl Client {
             true,
         );
         // TODO: avoid emitting these in the first place
-        self.state
+        let _ = self
+            .state
             .ecs()
             .fetch::<EventBus<common::event::ServerEvent>>()
             .recv_all();
