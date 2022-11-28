@@ -80,7 +80,7 @@ impl CharacterBehavior for Data {
                     // Attack
                     let poise = AttackEffect::new(
                         Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Poise(self.static_data.poise_damage as f32),
+                        CombatEffect::Poise(self.static_data.poise_damage),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = AttackEffect::new(
@@ -92,7 +92,7 @@ impl CharacterBehavior for Data {
                         Damage {
                             source: DamageSource::Shockwave,
                             kind: self.static_data.damage_kind,
-                            value: self.static_data.damage as f32,
+                            value: self.static_data.damage,
                         },
                         Some(GroupTarget::OutOfGroup),
                         rand::random(),

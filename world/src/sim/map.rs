@@ -52,7 +52,7 @@ pub fn sample_wpos(config: &MapConfig, sampler: &WorldSim, wpos: Vec2<i32>) -> f
         })
         .unwrap_or(CONFIG.sea_level)
         - focus.z as f32)
-        / gain as f32
+        / gain
 }
 
 /// Samples a MapSample at a chunk.
@@ -150,14 +150,14 @@ pub fn sample_pos(
                 Lerp::lerp(
                     sample.sub_surface_color,
                     sample.stone_col.map(|e| e as f32 / 255.0),
-                    (alt - grass_depth - wposz as f32) * 0.15,
+                    (alt - grass_depth - wposz) * 0.15,
                 )
                 .map(|e| e as f64)
             } else {
                 Lerp::lerp(
                     sample.sub_surface_color,
                     sample.surface_color,
-                    ((wposz as f32 - (alt - grass_depth)) / grass_depth).sqrt(),
+                    ((wposz - (alt - grass_depth)) / grass_depth).sqrt(),
                 )
                 .map(|e| e as f64)
             };

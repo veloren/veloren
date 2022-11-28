@@ -115,21 +115,21 @@ impl WeatherSim {
             } else {
                 let wpos = cell_to_wpos_center(point);
 
-                let pos = wpos.as_::<f64>() + time as f64 * 0.1;
+                let pos = wpos.as_::<f64>() + time * 0.1;
 
                 let space_scale = 7_500.0;
                 let time_scale = 100_000.0;
-                let spos = (pos / space_scale).with_z(time as f64 / time_scale);
+                let spos = (pos / space_scale).with_z(time / time_scale);
 
                 let avg_scale = 20_000.0;
                 let avg_delay = 250_000.0;
                 let pressure = ((base_nz.get(
                     (pos / avg_scale)
-                        .with_z(time as f64 / avg_delay)
+                        .with_z(time / avg_delay)
                         .into_array(),
                 ) + base_nz.get(
                     (pos / (avg_scale * 0.25))
-                        .with_z(time as f64 / (avg_delay * 0.25))
+                        .with_z(time / (avg_delay * 0.25))
                         .into_array(),
                 ) * 0.5)
                     * 0.5

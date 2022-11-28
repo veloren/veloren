@@ -183,7 +183,7 @@ where
             // To do this we need to figure out the max width/height of the limits
             // and then adjust one down to meet the aspect ratio
             let max_size = limits.max();
-            let (max_width, max_height) = (max_size.width as f32, max_size.height as f32);
+            let (max_width, max_height) = (max_size.width, max_size.height);
             let max_aspect_ratio = max_width / max_height;
             let limits = if max_aspect_ratio > aspect_ratio {
                 limits.max_width((max_height * aspect_ratio) as u32)
@@ -213,7 +213,7 @@ where
             // space for padding because the available space can only increase)
             content_size.width /= 1.0 - horizontal_pad_frac;
             content_size.height /= 1.0 - vertical_pad_frac;
-            let content_aspect_ratio = content_size.width as f32 / content_size.height as f32;
+            let content_aspect_ratio = content_size.width / content_size.height;
             let size = if content_aspect_ratio > aspect_ratio {
                 Size::new(content_size.width, content_size.width / aspect_ratio)
             } else {

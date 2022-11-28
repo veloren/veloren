@@ -33,7 +33,7 @@ impl Animation for JumpAnimation {
         let mut next = (*skeleton).clone();
         let slow = (anim_time * 7.0).sin();
 
-        let subtract = global_time - anim_time as f32;
+        let subtract = global_time - anim_time;
         let check = subtract - subtract.trunc();
         let switch = (check - 0.5).signum();
 

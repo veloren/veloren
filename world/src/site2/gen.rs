@@ -362,14 +362,14 @@ impl Fill {
                         .as_()
                         .distance_squared(segment_2d.end.as_());
                     if len_sq < 0.1 {
-                        segment.start.z as f32
+                        segment.start.z
                     } else {
                         let frac = ((projected_point_2d - segment_2d.start.as_())
                             .dot(segment_2d.end.as_() - segment_2d.start.as_())
                             / len_sq)
                             .clamp(0.0, 1.0);
-                        (segment.end.z as f32 - segment.start.z as f32) * frac
-                            + segment.start.z as f32
+                        (segment.end.z - segment.start.z) * frac
+                            + segment.start.z
                     }
                 };
                 let z_check = (projected_z..=(projected_z + height)).contains(&(pos.z as f32));

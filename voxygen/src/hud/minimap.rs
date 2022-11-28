@@ -93,7 +93,7 @@ impl VoxelMinimap {
                         .ok()
                         .and_then(Self::block_color)
                         .unwrap_or_else(Rgba::zero);
-                    rgba += color.as_() * weights[dz as usize] as f32;
+                    rgba += color.as_() * weights[dz] as f32;
                 }
                 let rgba: Rgba<u8> = (rgba / weights.iter().map(|x| *x as f32).sum::<f32>()).as_();
                 (rgba, true)
@@ -769,7 +769,7 @@ impl<'a> Widget for MiniMap<'a> {
                 let member_pos = entity.and_then(|entity| member_pos.get(entity));
 
                 if let Some(member_pos) = member_pos {
-                    let rpos = match wpos_to_rpos(member_pos.0.xy().map(|e| e as f32), false) {
+                    let rpos = match wpos_to_rpos(member_pos.0.xy().map(|e| e), false) {
                         Some(rpos) => rpos,
                         None => continue,
                     };

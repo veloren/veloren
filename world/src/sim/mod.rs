@@ -697,7 +697,7 @@ impl WorldSim {
             hill_nz: SuperSimplex::new().set_seed(rng.gen()),
             alt_nz: util::HybridMulti::new()
                 .set_octaves(8)
-                .set_frequency((10_000.0 / continent_scale) as f64)
+                .set_frequency(10_000.0 / continent_scale)
                 // persistence = lacunarity^(-(1.0 - fractal increment))
                 .set_lacunarity(util::HybridMulti::DEFAULT_LACUNARITY)
                 .set_persistence(util::HybridMulti::DEFAULT_LACUNARITY.powi(-1))
@@ -811,9 +811,9 @@ impl WorldSim {
         let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
         let map_size_chunks_len_f64 = map_size_lg.chunks().map(f64::from).product();
-        let min_epsilon = 1.0 / map_size_chunks_len_f64.max(f64::EPSILON as f64 * 0.5);
+        let min_epsilon = 1.0 / map_size_chunks_len_f64.max(f64::EPSILON * 0.5);
         let max_epsilon =
-            (1.0 - 1.0 / map_size_chunks_len_f64).min(1.0 - f64::EPSILON as f64 * 0.5);
+            (1.0 - 1.0 / map_size_chunks_len_f64).min(1.0 - f64::EPSILON * 0.5);
 
         // No NaNs in these uniform vectors, since the original noise value always
         // returns Some.
@@ -1042,7 +1042,7 @@ impl WorldSim {
         let theta_func = |_posi| 0.4;
         let kf_func = {
             |posi| {
-                let kf_scale_i = k_fs_scale(theta_func(posi), n_func(posi)) as f64;
+                let kf_scale_i = k_fs_scale(theta_func(posi), n_func(posi));
                 if is_ocean_fn(posi) {
                     return 1.0e-4 * kf_scale_i;
                 }
@@ -1213,8 +1213,8 @@ impl WorldSim {
             if is_ocean_fn(posi) {
                 return 0.0;
             }
-            let height = (uplift_uniform[posi].1 - alt_old_min_uniform) as f64
-                / (alt_old_max_uniform - alt_old_min_uniform) as f64;
+            let height = (uplift_uniform[posi].1 - alt_old_min_uniform)
+                / (alt_old_max_uniform - alt_old_min_uniform);
 
             let height = height.mul(max_epsilon - min_epsilon).add(min_epsilon);
             let height = erosion_factor(height);
@@ -1225,8 +1225,8 @@ impl WorldSim {
             // u = 5e-4: normal (mid example in Yuan, average mountain uplift)
             // u = 2e-4: low (low example in Yuan; known that lagoons etc. may have u ~
             // 0.05). u = 0: low (plateau [fan, altitude = 0.0])
-            let height = height.mul(max_erosion_per_delta_t);
-            height as f64
+            
+            height.mul(max_erosion_per_delta_t)
         };
         let alt_func = |posi| {
             if is_ocean_fn(posi) {

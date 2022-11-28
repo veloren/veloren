@@ -47,7 +47,7 @@ fn node_at(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Node> {
         let dx = RandomField::new(38 + level);
         let dy = RandomField::new(39 + level);
         let wpos = to_wpos(cell, level)
-            + CELL_SIZE as i32 / 4
+            + CELL_SIZE / 4
             + (Vec2::new(dx.get(cell.with_z(0)), dy.get(cell.with_z(0))) % CELL_SIZE as u32 / 2)
                 .map(|e| e as i32);
         land.get_chunk_wpos(wpos).and_then(|chunk| {
@@ -187,7 +187,7 @@ impl Tunnel {
             .mul(0.5)
             .add(0.5) as f32;
 
-        let underground = ((col.alt as f32 - wpos.z as f32) / 80.0 - 1.0).clamped(0.0, 1.0);
+        let underground = ((col.alt - wpos.z as f32) / 80.0 - 1.0).clamped(0.0, 1.0);
 
         let [barren, mushroom, fire, leafy, dusty, icy] = {
             let barren = 0.01;
@@ -228,7 +228,7 @@ fn tunnels_at<'a>(
     land: &'a Land,
 ) -> impl Iterator<Item = Tunnel> + 'a {
     let rand = RandomField::new(37 + level);
-    let col_cell = to_cell(wpos - CELL_SIZE as i32 / 4, level);
+    let col_cell = to_cell(wpos - CELL_SIZE / 4, level);
     LOCALITY
         .into_iter()
         .filter_map(move |rpos| {
@@ -272,7 +272,7 @@ fn tunnel_below_from_cell(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Tu
     Some(Tunnel {
         a: node_at(to_cell(wpos, level), level, land)?,
         b: node_at(
-            to_cell(wpos + CELL_SIZE as i32 / 2, level + 1),
+            to_cell(wpos + CELL_SIZE / 2, level + 1),
             level + 1,
             land,
         )?,
@@ -495,15 +495,15 @@ fn write_column<R: Rng>(
             let warp_amp = Vec3::new(12.0, 12.0, 12.0);
             let wposf_warped = wposf.map(|e| e as f32)
                 + Vec3::new(
-                    FastNoise::new(seed).get(wposf * warp_freq) as f32,
-                    FastNoise::new(seed + 1).get(wposf * warp_freq) as f32,
-                    FastNoise::new(seed + 2).get(wposf * warp_freq) as f32,
+                    FastNoise::new(seed).get(wposf * warp_freq),
+                    FastNoise::new(seed + 1).get(wposf * warp_freq),
+                    FastNoise::new(seed + 2).get(wposf * warp_freq),
                 ) * warp_amp
                     * (wposf.z as f32 - mushroom.pos.z as f32)
                         .mul(0.1)
                         .clamped(0.0, 1.0);
 
-            let rpos = wposf_warped - mushroom.pos.map(|e| e as f32).map(|e| e as f32);
+            let rpos = wposf_warped - mushroom.pos.map(|e| e as f32).map(|e| e);
 
             let stalk_radius = 2.5f32;
             let head_radius = 12.0f32;

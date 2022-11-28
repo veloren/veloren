@@ -252,12 +252,12 @@ impl IcedRenderer {
                 let pixel_coords = vertex_data.pixel_coords;
                 let rect = Aabr {
                     min: Vec2::new(
-                        pixel_coords.min.x as f32 / half_res.x - 1.0,
-                        1.0 - pixel_coords.max.y as f32 / half_res.y,
+                        pixel_coords.min.x / half_res.x - 1.0,
+                        1.0 - pixel_coords.max.y / half_res.y,
                     ),
                     max: Vec2::new(
-                        pixel_coords.max.x as f32 / half_res.x - 1.0,
-                        1.0 - pixel_coords.min.y as f32 / half_res.y,
+                        pixel_coords.max.x / half_res.x - 1.0,
+                        1.0 - pixel_coords.min.y / half_res.y,
                     ),
                 };
                 (uv, rect)
@@ -500,8 +500,8 @@ impl IcedRenderer {
                                             t / image_h as f32, /* * ratio_y */
                                         ),
                                         Extent2::new(
-                                            gl_size.w as f32 * ratio_x,
-                                            gl_size.h as f32 * ratio_y,
+                                            gl_size.w * ratio_x,
+                                            gl_size.h * ratio_y,
                                         ),
                                     ))
                                     /* ((l / image_w as f32),

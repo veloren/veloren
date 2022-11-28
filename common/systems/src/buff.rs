@@ -370,7 +370,7 @@ fn execute_effect(
             {
                 let amount = match *kind {
                     ModifierKind::Additive => *accumulated,
-                    ModifierKind::Fractional => energy.maximum() as f32 * *accumulated,
+                    ModifierKind::Fractional => energy.maximum() * *accumulated,
                 };
                 server_emitter.emit(ServerEvent::EnergyChange {
                     entity,
@@ -421,7 +421,7 @@ fn execute_effect(
                     ModifierKind::Additive => {
                         // `rate * dt` is amount of health, dividing by base max
                         // creates fraction
-                        *rate * dt / health.base_max() as f32
+                        *rate * dt / health.base_max()
                     },
                     ModifierKind::Fractional => {
                         // `rate * dt` is the fraction

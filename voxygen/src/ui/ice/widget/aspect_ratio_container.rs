@@ -103,7 +103,7 @@ where
         // We need to figure out the max width/height of the limits
         // and then adjust one down to meet the aspect ratio
         let max_size = limits.max();
-        let (max_width, max_height) = (max_size.width as f32, max_size.height as f32);
+        let (max_width, max_height) = (max_size.width, max_size.height);
         let max_aspect_ratio = max_width / max_height;
         let limits = if max_aspect_ratio > aspect_ratio {
             limits.max_width((max_height * aspect_ratio) as u32)

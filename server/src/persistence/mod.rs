@@ -211,7 +211,7 @@ pub(crate) fn establish_connection(
             ConnectionMode::ReadOnly => OpenFlags::SQLITE_OPEN_READ_ONLY,
         };
 
-    let connection = Connection::open_with_flags(&settings.db_dir.join("db.sqlite"), open_flags)
+    let connection = Connection::open_with_flags(settings.db_dir.join("db.sqlite"), open_flags)
         .unwrap_or_else(|err| {
             panic!(
                 "Error connecting to {}, Error: {:?}",

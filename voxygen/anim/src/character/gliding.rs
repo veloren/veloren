@@ -32,12 +32,12 @@ impl Animation for GlidingAnimation {
         let slow = (acc_vel * 0.5).sin();
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 4.0)
+            ((global_time + anim_time) / 4.0)
                 .floor()
                 .mul(7331.0)
                 .sin()
                 * 0.5,
-            ((global_time + anim_time) as f32 / 4.0)
+            ((global_time + anim_time) / 4.0)
                 .floor()
                 .mul(1337.0)
                 .sin()

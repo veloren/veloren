@@ -617,7 +617,7 @@ fn prepare_for_vd_check(
         // world chunk coordinates are no greater than 1 << 14 - 1; since we verified that the
         // player is within world bounds modulo player_vd, which is guaranteed to never let us
         // overflow an i16 when added to a u14, safety of the cast follows.
-        .then(|| ((player_chunk_pos.as_::<i16>(), player_vd.pow(2) as i32), entity, is_client))
+        .then(|| ((player_chunk_pos.as_::<i16>(), player_vd.pow(2)), entity, is_client))
 }
 
 pub fn prepare_player_presences<'a, P>(

@@ -99,8 +99,8 @@ impl CharacterBehavior for Data {
                 if !self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) && !self.exhausted {
                     let charge_frac = self.charge_frac();
                     let arrow = ProjectileConstructor::Arrow {
-                        damage: self.static_data.initial_damage as f32
-                            + charge_frac * self.static_data.scaled_damage as f32,
+                        damage: self.static_data.initial_damage
+                            + charge_frac * self.static_data.scaled_damage,
                         knockback: self.static_data.initial_knockback
                             + charge_frac * self.static_data.scaled_knockback,
                         energy_regen: self.static_data.initial_regen

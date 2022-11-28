@@ -189,7 +189,7 @@ impl Economy {
                 .map(|(g, a)| {
                     (
                         Good::from(g),
-                        ((*a) as f32) * self.natural_resources.average_yield_per_chunk[g],
+                        (*a) * self.natural_resources.average_yield_per_chunk[g],
                     )
                 })
                 .collect(),

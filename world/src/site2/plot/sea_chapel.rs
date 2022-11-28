@@ -4684,7 +4684,7 @@ impl Structure for SeaChapel {
             let su_bldg_variant =
                 ((RandomField::new(0).get((center - dir).with_z(base))) % 10) as i32;
             let su_bldg_center = center + dir * (diameter + (3 * su_bldg_variant));
-            let su_bldg_base = base - 2 + ((su_bldg_variant / 2) as i32);
+            let su_bldg_base = base - 2 + (su_bldg_variant / 2);
             let su_bldg_diameter = diameter;
 
             let foundling_bottom1 = Aabb {

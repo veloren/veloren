@@ -188,7 +188,7 @@ impl ShadowMap {
                 (diag_size as u32, diag_cross_size as u32)
             } else {
                 // Limit to max texture resolution rather than error.
-                (max_texture_size as u32, max_texture_size as u32)
+                (max_texture_size, max_texture_size)
             };
         let diag_two_size = u32::checked_next_power_of_two(diag_size)
             .filter(|&e| e <= max_texture_size)

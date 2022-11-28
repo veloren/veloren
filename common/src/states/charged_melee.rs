@@ -89,7 +89,7 @@ impl CharacterBehavior for Data {
                     // Consumes energy if there's enough left and RMB is held down
                     update
                         .energy
-                        .change_by(-self.static_data.energy_drain as f32 * data.dt.0 / 5.0);
+                        .change_by(-self.static_data.energy_drain * data.dt.0 / 5.0);
                 } else {
                     // Transitions to swing
                     update.character = CharacterState::ChargedMelee(Data {

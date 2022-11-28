@@ -521,7 +521,7 @@ impl Client {
                         Rgb::new(0.15, 0.15, 0.15)
                     } else {
                         // Color hill shading
-                        let lightness = (alt + 0.2).min(1.0) as f64;
+                        let lightness = (alt + 0.2).min(1.0);
                         Rgb::new(lightness, 0.9 * lightness, 0.5 * lightness)
                     }
                 } else if is_stylized_topo {

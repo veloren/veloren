@@ -494,8 +494,8 @@ impl<'a> MapConfig<'a> {
         let world_size = map_size_lg.chunks();
 
         (0..dimensions.y * dimensions.x).for_each(|chunk_idx| {
-            let i = chunk_idx % dimensions.x as usize;
-            let j = chunk_idx / dimensions.x as usize;
+            let i = chunk_idx % dimensions.x;
+            let j = chunk_idx / dimensions.x;
 
             let wposf = focus_rect + Vec2::new(i as f64, j as f64) * scale;
             let pos = wposf.map(|e: f64| e as i32);

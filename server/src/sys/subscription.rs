@@ -222,7 +222,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
         let regions = regions_in_vd(
             client_pos.0,
-            (presence.entity_view_distance.current() as f32 * chunk_size) as f32
+            (presence.entity_view_distance.current() as f32 * chunk_size)
                 + (presence::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
         );
 

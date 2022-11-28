@@ -2002,7 +2002,7 @@ impl Tunnels {
                     &squared_euclidean,
                 )
                 .ok()?
-                .1 as usize;
+                .1;
             let nearest = nodes[nearest_index];
             let dist_sqrd = sampled_point.distance_squared(nearest);
             let new_point = if dist_sqrd > radius_sqrd {
@@ -2030,7 +2030,7 @@ impl Tunnels {
         let nearest_index = *kdtree
             .nearest_one(&[endf.x, endf.y, endf.z], &squared_euclidean)
             .ok()?
-            .1 as usize;
+            .1;
         kdtree.add(&[endf.x, endf.y, endf.z], node_index).ok()?;
         nodes.push(endf);
         parents.insert(node_index, nearest_index);

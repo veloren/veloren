@@ -824,7 +824,7 @@ impl FigureMgr {
             let vd_frac = anim::vek::Vec2::from(pos.0 - player_pos)
                 .map2(
                     anim::vek::Vec2::<u32>::from(TerrainChunk::RECT_SIZE),
-                    |d: f32, sz| d.abs() as f32 / sz as f32,
+                    |d: f32, sz| d.abs() / sz as f32,
                 )
                 .magnitude()
                 / view_distance as f32;

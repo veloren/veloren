@@ -568,7 +568,7 @@ impl Window {
             // size
             let winit::dpi::PhysicalSize { width, height } = physical;
             self.events
-                .push(Event::Resize(Vec2::new(width as u32, height as u32)));
+                .push(Event::Resize(Vec2::new(width, height)));
 
             // Emit event for the UI
             let logical_size = Vec2::from(Into::<(f64, f64)>::into(

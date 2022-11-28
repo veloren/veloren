@@ -1054,7 +1054,7 @@ impl Branch {
                     let rpos = pos.xy() - p;
                     let stretch = 32.0;
                     let stair_section =
-                        ((rpos.x as f32).atan2(rpos.y as f32) / (f32::consts::PI * 2.0) * stretch
+                        (rpos.x.atan2(rpos.y) / (f32::consts::PI * 2.0) * stretch
                             + pos.z)
                             .rem_euclid(stretch);
                     (

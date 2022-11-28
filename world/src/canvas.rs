@@ -168,7 +168,7 @@ impl<'a> Canvas<'a> {
     ) {
         let chunk_aabr = Aabr {
             min: self.wpos(),
-            max: self.wpos() + Vec2::from(self.area().size().map(|e| e as i32)),
+            max: self.wpos() + Vec2::from(self.area().size().map(|e| e)),
         };
 
         for y in chunk_aabr.min.y.max(aabr.min.y)..chunk_aabr.max.y.min(aabr.max.y) {

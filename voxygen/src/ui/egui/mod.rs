@@ -18,8 +18,8 @@ pub struct EguiState {
 impl EguiState {
     pub fn new(window: &Window) -> Self {
         let platform = Platform::new(PlatformDescriptor {
-            physical_width: window.window().inner_size().width as u32,
-            physical_height: window.window().inner_size().height as u32,
+            physical_width: window.window().inner_size().width,
+            physical_height: window.window().inner_size().height,
             scale_factor: window.scale_factor(),
             font_definitions: FontDefinitions::default(),
             style: Default::default(),
