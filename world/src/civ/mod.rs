@@ -1509,6 +1509,110 @@ fn find_site_loc(
     None
 }
 
+fn town_attributes_of_site(loc: Vec2<i32>, sim: &WorldSim) -> Option<TownSiteAttributes> {
+    sim.get(loc).map(|chunk| {
+        const RESOURCE_RADIUS: i32 = 1;
+        let mut river_chunks = 0;
+        let mut lake_chunks = 0;
+        let mut ocean_chunks = 0;
+        let mut rock_chunks = 0;
+        let mut tree_chunks = 0;
+        let mut farmable_chunks = 0;
+        let mut farmable_needs_irrigation_chunks = 0;
+        let mut land_chunks = 0;
+        for x in (-RESOURCE_RADIUS)..RESOURCE_RADIUS {
+            for y in (-RESOURCE_RADIUS)..RESOURCE_RADIUS {
+                let check_loc = loc + Vec2::new(x, y).cpos_to_wpos();
+                sim.get(check_loc).map(|c| {
+                    if num::abs(chunk.alt - c.alt) < 200.0 {
+                        if c.river.is_river() {
+                            river_chunks += 1;
+                        }
+                        if c.river.is_lake() {
+                            lake_chunks += 1;
+                        }
+                        if c.river.is_ocean() {
+                            ocean_chunks += 1;
+                        }
+                        if c.tree_density > 0.7 {
+                            tree_chunks += 1;
+                        }
+                        if c.rockiness < 0.3 && c.temp > CONFIG.snow_temp {
+                            if c.surface_veg > 0.5 {
+                                farmable_chunks += 1;
+                            } else {
+                                match c.get_biome() {
+                                    common::terrain::BiomeKind::Savannah => {
+                                        farmable_needs_irrigation_chunks += 1
+                                    },
+                                    common::terrain::BiomeKind::Desert => {
+                                        farmable_needs_irrigation_chunks += 1
+                                    },
+                                    _ => (),
+                                }
+                            }
+                        }
+                        if !c.river.is_river() && !c.river.is_lake() && !c.river.is_ocean() {
+                            land_chunks += 1;
+                        }
+                    }
+                    // Mining is different since presumably you dig into the hillside
+                    if c.rockiness > 0.7 && c.alt - chunk.alt > -10.0 {
+                        rock_chunks += 1;
+                    }
+                });
+            }
+        }
+        let has_river = river_chunks > 1;
+        let has_lake = lake_chunks > 1;
+        let vegetation_implies_potable_water = chunk.tree_density > 0.4
+            && !matches!(chunk.get_biome(), common::terrain::BiomeKind::Swamp);
+        let warm_or_firewood = chunk.temp > CONFIG.snow_temp || tree_chunks > 2;
+        let has_potable_water =
+            { has_river || (has_lake && chunk.alt > 100.0) || vegetation_implies_potable_water };
+        let has_building_materials = tree_chunks > 0
+            || rock_chunks > 0
+            || chunk.temp > CONFIG.tropical_temp && (has_river || has_lake);
+        let water_rich = lake_chunks + river_chunks > 2;
+        let can_grow_rice = water_rich
+            && chunk.humidity + 1.0 > CONFIG.jungle_hum
+            && chunk.temp + 1.0 > CONFIG.tropical_temp;
+        let farming_score = if can_grow_rice {
+            farmable_chunks * 2
+        } else {
+            farmable_chunks
+        } + if water_rich {
+            farmable_needs_irrigation_chunks
+        } else {
+            0
+        };
+        let fish_score = lake_chunks + ocean_chunks;
+        let food_score = farming_score + fish_score;
+        let mining_score = if tree_chunks > 1 { rock_chunks } else { 0 };
+        let forestry_score = if has_river { tree_chunks } else { 0 };
+        let trading_score = std::cmp::min(std::cmp::min(land_chunks, ocean_chunks), river_chunks);
+        TownSiteAttributes {
+            food_score,
+            mining_score,
+            forestry_score,
+            trading_score,
+            heating: warm_or_firewood,
+            potable_water: has_potable_water,
+            building_materials: has_building_materials,
+        }
+    })
+}
+
+pub struct TownSiteAttributes {
+    food_score: i32,
+    mining_score: i32,
+    forestry_score: i32,
+    trading_score: i32,
+    heating: bool,
+    potable_water: bool,
+    building_materials: bool,
+}
+
 #[derive(Debug)]
 pub struct Civ {
     capital: Id<Site>,
@@ -1594,99 +1698,19 @@ impl SiteKind {
 
         sim.get(loc).map_or(false, |chunk| {
             let suitable_for_town = |score_threshold: f32| -> bool {
-                const RESOURCE_RADIUS: i32 = 1;
-                let mut river_chunks = 0;
-                let mut lake_chunks = 0;
-                let mut ocean_chunks = 0;
-                let mut rock_chunks = 0;
-                let mut tree_chunks = 0;
-                let mut farmable_chunks = 0;
-                let mut farmable_needs_irrigation_chunks = 0;
-                let mut land_chunks = 0;
-                for x in (-RESOURCE_RADIUS)..RESOURCE_RADIUS {
-                    for y in (-RESOURCE_RADIUS)..RESOURCE_RADIUS {
-                        let check_loc = loc + Vec2::new(x, y).cpos_to_wpos();
-                        sim.get(check_loc).map(|c| {
-                            if num::abs(chunk.alt - c.alt) < 200.0 {
-                                if c.river.is_river() {
-                                    river_chunks += 1;
-                                }
-                                if c.river.is_lake() {
-                                    lake_chunks += 1;
-                                }
-                                if c.river.is_ocean() {
-                                    ocean_chunks += 1;
-                                }
-                                if c.tree_density > 0.7 {
-                                    tree_chunks += 1;
-                                }
-                                if c.rockiness < 0.3 && c.temp > CONFIG.snow_temp {
-                                    if c.surface_veg > 0.5 {
-                                        farmable_chunks += 1;
-                                    } else {
-                                        match c.get_biome() {
-                                            common::terrain::BiomeKind::Savannah => {
-                                                farmable_needs_irrigation_chunks += 1
-                                            },
-                                            common::terrain::BiomeKind::Desert => {
-                                                farmable_needs_irrigation_chunks += 1
-                                            },
-                                            _ => (),
-                                        }
-                                    }
-                                }
-                                if !c.river.is_river() && !c.river.is_lake() && !c.river.is_ocean()
-                                {
-                                    land_chunks += 1;
-                                }
-                            }
-                            // Mining is different since presumably you dig into the hillside
-                            if c.rockiness > 0.7 && c.alt - chunk.alt > -10.0 {
-                                rock_chunks += 1;
-                            }
-                        });
-                    }
-                }
-                let has_river = river_chunks > 1;
-                let has_lake = lake_chunks > 1;
-                let vegetation_implies_potable_water = chunk.tree_density > 0.4
-                    && !matches!(chunk.get_biome(), common::terrain::BiomeKind::Swamp);
-                let warm_or_firewood = chunk.temp > CONFIG.snow_temp || tree_chunks > 2;
-                let has_potable_water = {
-                    has_river || (has_lake && chunk.alt > 100.0) || vegetation_implies_potable_water
-                };
-                let has_building_materials = tree_chunks > 0
-                    || rock_chunks > 0
-                    || chunk.temp > CONFIG.tropical_temp && (has_river || has_lake);
-                let water_rich = lake_chunks + river_chunks > 2;
-                let can_grow_rice = water_rich
-                    && chunk.humidity + 1.0 > CONFIG.jungle_hum
-                    && chunk.temp + 1.0 > CONFIG.tropical_temp;
-                let farming_score = if can_grow_rice {
-                    farmable_chunks * 2
-                } else {
-                    farmable_chunks
-                } + if water_rich {
-                    farmable_needs_irrigation_chunks
-                } else {
-                    0
-                };
-                let fish_score = lake_chunks + ocean_chunks;
-                let food_score = farming_score + fish_score;
-                let mining_score = if tree_chunks > 1 { rock_chunks } else { 0 };
-                let forestry_score = if has_river { tree_chunks } else { 0 };
-                let trading_score =
-                    std::cmp::min(std::cmp::min(land_chunks, ocean_chunks), river_chunks);
-                let industry_score = 3.0 * (food_score as f32 + 1.0).log2()
-                    + 2.0 * (forestry_score as f32 + 1.0).log2()
-                    + (mining_score as f32 + 1.0).log2()
-                    + (trading_score as f32 + 1.0).log2();
-                has_potable_water
-                    && has_building_materials
-                    && industry_score > score_threshold
-                    && warm_or_firewood
-                    // Because of how the algorithm for site2 towns work, they have to start on land.
-                    && on_land()
+                let attributes = town_attributes_of_site(loc, sim);
+                attributes.map_or(false, |attr| {
+                    let industry_score = 3.0 * (attr.food_score as f32 + 1.0).log2()
+                        + 2.0 * (attr.forestry_score as f32 + 1.0).log2()
+                        + (attr.mining_score as f32 + 1.0).log2()
+                        + (attr.trading_score as f32 + 1.0).log2();
+                    attr.potable_water
+                        && attr.building_materials
+                        && industry_score > score_threshold
+                        && attr.heating
+                        // Because of how the algorithm for site2 towns work, they have to start on land.
+                        && on_land()
+                })
             };
             match self {
                 SiteKind::Gnarling => {
