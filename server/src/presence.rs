@@ -80,7 +80,7 @@ impl ViewDistance {
     pub fn new(start_value: u32, now: Instant) -> Self {
         Self {
             direction: Direction::Up,
-            last_direction_change_time: now.checked_sub(Self::TIME_PER_DIR_CHANGE).unwrap(),
+            last_direction_change_time: now.checked_sub(Self::TIME_PER_DIR_CHANGE).unwrap_or(now),
             target: None,
             current: start_value,
         }

@@ -769,7 +769,7 @@ impl<'a> Widget for MiniMap<'a> {
                 let member_pos = entity.and_then(|entity| member_pos.get(entity));
 
                 if let Some(member_pos) = member_pos {
-                    let rpos = match wpos_to_rpos(member_pos.0.xy().map(|e| e), false) {
+                    let rpos = match wpos_to_rpos(member_pos.0.xy(), false) {
                         Some(rpos) => rpos,
                         None => continue,
                     };

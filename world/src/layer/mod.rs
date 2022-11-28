@@ -887,7 +887,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                         .mul(0.1)
                         .clamped(0.0, 1.0);
 
-            let rpos = wposf_warped - mushroom.pos.map(|e| e as f32).map(|e| e);
+            let rpos = wposf_warped - mushroom.pos.map(|e| e as f32);
 
             let stalk_radius = 2.5f32;
             let head_radius = 18.0f32;

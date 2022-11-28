@@ -1204,7 +1204,7 @@ impl<'a> Widget for Map<'a> {
                 let side_length = 20.0 * factor;
 
                 let (rpos, fade) = match wpos_to_rpos_fade(
-                    member_pos.0.xy().map(|e| e),
+                    member_pos.0.xy(),
                     Vec2::from(side_length / 2.0),
                     side_length / 2.0,
                 ) {
@@ -1232,7 +1232,7 @@ impl<'a> Widget for Map<'a> {
 
                 handle_widget_mouse_events(
                     state.ids.member_indicators[i],
-                    MarkerChange::Pos(member_pos.0.xy().map(|e| e)),
+                    MarkerChange::Pos(member_pos.0.xy()),
                     ui,
                     &mut events,
                     state.ids.map_layers[0],

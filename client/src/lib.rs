@@ -992,12 +992,10 @@ impl Client {
         &mut self,
         view_distances: common::ViewDistances,
     ) -> common::ViewDistances {
-        #[allow(clippy::manual_clamp)]
         let view_distances = common::ViewDistances {
             terrain: view_distances
                 .terrain
-                .max(1)
-                .min(MAX_SELECTABLE_VIEW_DISTANCE),
+                .clamp(1, MAX_SELECTABLE_VIEW_DISTANCE),
             entity: view_distances.entity.max(1),
         };
         self.view_distance = Some(view_distances.terrain);
