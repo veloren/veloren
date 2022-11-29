@@ -119,19 +119,19 @@ impl Dir {
     /// use veloren_world::site2::util::Dir;
     /// let dir = Dir::X;
     ///
-    /// assert_eq!(dir.to_mat3x3() * Vec3::new(1, 0, 0), dir.to_vec3());
+    /// assert_eq!(dir.to_mat3() * Vec3::new(1, 0, 0), dir.to_vec3());
     ///
     /// let dir = Dir::NegX;
     ///
-    /// assert_eq!(dir.to_mat3x3() * Vec3::new(1, 0, 0), dir.to_vec3());
+    /// assert_eq!(dir.to_mat3() * Vec3::new(1, 0, 0), dir.to_vec3());
     ///
     /// let dir = Dir::Y;
     ///
-    /// assert_eq!(dir.to_mat3x3() * Vec3::new(1, 0, 0), dir.to_vec3());
+    /// assert_eq!(dir.to_mat3() * Vec3::new(1, 0, 0), dir.to_vec3());
     ///
     /// let dir = Dir::NegY;
     ///
-    /// assert_eq!(dir.to_mat3x3() * Vec3::new(1, 0, 0), dir.to_vec3());
+    /// assert_eq!(dir.to_mat3() * Vec3::new(1, 0, 0), dir.to_vec3());
     /// ```
     pub fn to_mat3(self) -> Mat3<i32> {
         match self {
