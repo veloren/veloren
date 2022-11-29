@@ -1073,10 +1073,13 @@ impl Painter {
     pub fn vault(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
         let h = dir.orthogonal().select(Vec3::from(aabb.size()).xy());
 
-        let mut prim = self.horizontal_cylinder(Aabb {
-            min: aabb.min.with_z(aabb.max.z - h),
-            max: aabb.max,
-        }, dir);
+        let mut prim = self.horizontal_cylinder(
+            Aabb {
+                min: aabb.min.with_z(aabb.max.z - h),
+                max: aabb.max,
+            },
+            dir,
+        );
 
         if aabb.size().d < h {
             prim = prim.intersect(self.aabb(aabb));
@@ -1085,7 +1088,8 @@ impl Painter {
         self.aabb(Aabb {
             min: aabb.min,
             max: aabb.max.with_z(aabb.max.z - h / 2),
-        }).union(prim)
+        })
+        .union(prim)
     }
 
     /// Place aabbs around another aabb in a symmetric and distributed manner.

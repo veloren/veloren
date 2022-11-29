@@ -1264,7 +1264,8 @@ fn walk_in_dir(
         Some((a + dir, 1.0 + hill_cost + water_cost + wild_cost))
     } else if dir.x == 0 || dir.y == 0 {
         (4..=5).find_map(|i| {
-            loc_suitable_for_walking(sim, a + dir * i).then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
+            loc_suitable_for_walking(sim, a + dir * i)
+                .then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
         })
     } else {
         None
