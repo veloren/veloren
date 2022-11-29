@@ -142,6 +142,8 @@ impl Dir {
         }
     }
 
+    /// Creates a matrix that tranforms an upwards facing vector to this
+    /// direction.
     pub fn from_z_mat3(self) -> Mat3<i32> {
         match self {
             Dir::X => Mat3::new(0, 0, -1, 0, 1, 0, 1, 0, 0),
