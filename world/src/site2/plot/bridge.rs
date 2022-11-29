@@ -108,7 +108,7 @@ fn aabb(min: Vec3<i32>, max: Vec3<i32>) -> Aabb<i32> {
 
 fn render_short(bridge: &Bridge, painter: &Painter) {
     let (bridge_fill, edge_fill) = match bridge.biome {
-        BiomeKind::Desert | BiomeKind::Savannah => (
+        BiomeKind::Desert => (
             Fill::Block(Block::new(BlockKind::Rock, Rgb::new(212, 191, 142))),
             Fill::Block(Block::new(BlockKind::Rock, Rgb::gray(190))),
         ),
@@ -130,44 +130,45 @@ fn render_short(bridge: &Bridge, painter: &Painter) {
         .reduce_max();
     let inset = 4;
 
-    let height = bridge.end.z + len / 3 - inset;
+    let top = bridge.end.z + (len / 5).max(8) - inset;
 
     let side = orthogonal * bridge_width;
 
     let remove = painter.vault(
         aabb(
             (bridge.start.xy() - side + forward * inset).with_z(bridge.start.z),
-            (bridge.end.xy() + side - forward * inset).with_z(height),
+            (bridge.end.xy() + side - forward * inset).with_z(top - 2),
         ),
         orth_dir,
     );
 
-    let ramp_in = len / 3;
-
-    let top = height + 2;
-
-    let outset = 7;
+    // let outset = 7;
 
     let up_ramp = |point: Vec3<i32>, dir: Dir, side_len: i32| {
         let forward = dir.to_vec2();
         let side = dir.orthogonal().to_vec2() * side_len;
-        painter.ramp(
-            aabb(
-                (point.xy() - side - forward * (top - point.z - ramp_in + outset))
-                    .with_z(bridge.start.z),
-                (point.xy() + side + forward * ramp_in).with_z(top),
-            ),
-            top - point.z + 1 + outset,
-            dir,
-        )
+        let ramp_in = top - point.z;
+        painter
+            .ramp(
+                aabb(
+                    point - side,
+                    (point.xy() + side + forward * ramp_in).with_z(top),
+                ),
+                dir,
+            )
+            .union(painter.aabb(aabb(
+                (point - side).with_z(point.z - 4),
+                point + side + forward * ramp_in,
+            )))
     };
 
     let bridge_prim = |side_len: i32| {
         let side = orthogonal * side_len;
         painter
             .aabb(aabb(
-                (bridge.start.xy() - side + forward * ramp_in).with_z(bridge.start.z),
-                (bridge.end.xy() + side - forward * ramp_in).with_z(top),
+                (bridge.start.xy() - side + forward * (top - bridge.start.z))
+                    .with_z(bridge.start.z),
+                (bridge.end.xy() + side - forward * (top - bridge.end.z)).with_z(top),
             ))
             .union(up_ramp(bridge.start, bridge.dir, side_len).union(up_ramp(
                 bridge.end,
@@ -178,18 +179,20 @@ fn render_short(bridge: &Bridge, painter: &Painter) {
 
     let b = bridge_prim(bridge_width);
 
+    /*
     let t = 4;
     b.union(
         painter.aabb(aabb(
-            (bridge.start.xy() - side - forward * (top - bridge.start.z - ramp_in + outset))
+            (bridge.start.xy() - side - forward * (top - bridge.start.z))
                 .with_z(bridge.start.z - t),
-            (bridge.end.xy() + side + forward * (top - bridge.end.z - ramp_in + outset))
+            (bridge.end.xy() + side + forward * (top - bridge.end.z))
                 .with_z(bridge.start.z),
         )),
     )
     .translate(Vec3::new(0, 0, t))
     .without(b)
     .clear();
+    */
 
     b.without(remove).fill(bridge_fill);
 
@@ -198,8 +201,8 @@ fn render_short(bridge: &Bridge, painter: &Painter) {
     prim.translate(Vec3::unit_z())
         .without(prim)
         .without(painter.aabb(aabb(
-            bridge.start - side - forward * outset,
-            (bridge.end.xy() + side + forward * outset).with_z(top + 1),
+            bridge.start - side - forward,
+            (bridge.end.xy() + side + forward).with_z(top + 1),
         )))
         .fill(edge_fill);
 }
@@ -237,7 +240,6 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
                     ramp_aabr.min.with_z(bridge.start.z + offset),
                     ramp_aabr.max.with_z(bridge.end.z + offset),
                 ),
-                height + 1,
                 bridge.dir,
             ))
     };
@@ -340,7 +342,7 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
 
         let ramp_in_aabr = |aabr: Aabr<i32>, dir: Dir, zmin, zmax| {
             let inset = dir.select(aabr.size());
-            painter.ramp(
+            painter.ramp_inset(
                 aabb(aabr.min.with_z(zmin), aabr.max.with_z(zmax)),
                 inset,
                 dir,
@@ -565,7 +567,7 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
 
     painter
         .aabb(ramp_aabb)
-        .without(painter.ramp(ramp_aabb, ramp_height, -bridge.dir))
+        .without(painter.ramp(ramp_aabb, -bridge.dir))
         .clear();
 
     let c = bridge.dir.select_aabr_with(tower_aabr, tower_aabr.center());
@@ -755,7 +757,7 @@ fn render_hang(bridge: &Bridge, painter: &Painter) {
         ))
         .fill(rock.clone());
     painter
-        .ramp(
+        .ramp_inset(
             aabb(ramp_f.min.with_z(bridge.start.z), ramp_f.max.with_z(top)),
             top - bridge.start.z + 1,
             bridge.dir,
@@ -772,7 +774,6 @@ fn render_hang(bridge: &Bridge, painter: &Painter) {
     painter
         .ramp(
             aabb(ramp_b.min.with_z(bridge.end.z), ramp_b.max.with_z(top)),
-            top - bridge.end.z,
             -bridge.dir,
         )
         .fill(rock.clone());

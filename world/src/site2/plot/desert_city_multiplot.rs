@@ -349,7 +349,7 @@ impl Structure for DesertCityMultiPlot {
                         .clear();
                     // Stairs for each storey
                     painter
-                        .ramp(
+                        .ramp_inset(
                             Aabb {
                                 min: Vec2::new(center.x - room_length, center.y - room_length + 1)
                                     .with_z(floor_level),
@@ -1016,7 +1016,7 @@ impl Structure for DesertCityMultiPlot {
                                     .clear();
                                 // Stairs for each storey
                                 painter
-                                    .ramp(
+                                    .ramp_inset(
                                         Aabb {
                                             min: Vec2::new(
                                                 subplot_center.x - room_length,
@@ -1628,7 +1628,6 @@ impl Structure for DesertCityMultiPlot {
                                         )
                                         .with_z(base + tower_height + 1),
                                     },
-                                    2,
                                     Dir::NegX,
                                 )
                                 .fill(sandstone.clone());

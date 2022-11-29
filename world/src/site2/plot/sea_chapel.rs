@@ -241,7 +241,7 @@ impl Structure for SeaChapel {
             })
             .fill(white.clone());
         painter
-            .ramp(
+            .ramp_inset(
                 Aabb {
                     min: Vec3::new(
                         center.x - (diameter / 2) - 12,
@@ -275,7 +275,7 @@ impl Structure for SeaChapel {
             })
             .fill(white.clone());
         painter
-            .ramp(
+            .ramp_inset(
                 Aabb {
                     min: Vec3::new(
                         center.x + (diameter / 2) - 2,
@@ -3059,7 +3059,7 @@ impl Structure for SeaChapel {
             .fill(window_ver.clone());
         // chapel main room pulpit stairs1
         painter
-            .ramp(
+            .ramp_inset(
                 Aabb {
                     min: Vec3::new(center.x - 8, center.y - (diameter / 4) - 2, base - 3),
                     max: Vec3::new(center.x - 3, center.y - (diameter / 4) + 7, base + 2),
@@ -3070,7 +3070,7 @@ impl Structure for SeaChapel {
             .fill(white.clone());
         // chapel main room pulpit stairs2
         painter
-            .ramp(
+            .ramp_inset(
                 Aabb {
                     min: Vec3::new(center.x + 3, center.y - (diameter / 4) - 2, base - 3),
                     max: Vec3::new(center.x + 8, center.y - (diameter / 4) + 7, base + 2),
@@ -3081,7 +3081,7 @@ impl Structure for SeaChapel {
             .fill(white.clone());
         // chapel main room pulpit stairs2
         painter
-            .ramp(
+            .ramp_inset(
                 Aabb {
                     min: Vec3::new(center.x - 8, center.y + (diameter / 4) - 7, base - 3),
                     max: Vec3::new(center.x - 3, center.y + (diameter / 4) + 2, base + 2),
@@ -3092,7 +3092,7 @@ impl Structure for SeaChapel {
             .fill(white.clone());
         // chapel main room pulpit stairs4
         painter
-            .ramp(
+            .ramp_inset(
                 Aabb {
                     min: Vec3::new(center.x + 3, center.y + (diameter / 4) - 7, base - 3),
                     max: Vec3::new(center.x + 8, center.y + (diameter / 4) + 2, base + 2),

@@ -289,7 +289,8 @@ impl Fill {
                             - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
             },
             Primitive::Cylinder(aabb) => {
-                let fpos = pos.as_::<f32>().xy() - aabb.as_::<f32>().center().xy();
+                // Add 0.5 since the aabb is exclusive.
+                let fpos = pos.as_::<f32>().xy() - aabb.as_::<f32>().center().xy() + 0.5;
                 let size = Vec3::from(aabb.size().as_::<f32>()).xy();
                 (aabb.min.z..aabb.max.z).contains(&pos.z)
                     && (2.0 * fpos / size).magnitude_squared() <= 1.0
@@ -980,9 +981,18 @@ impl Painter {
     /// Returns a `PrimitiveRef` of an Aabb with a slope cut into it. The
     /// `inset` governs the slope. The `dir` determines which direction the
     /// ramp points.
-    pub fn ramp(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
+    pub fn ramp_inset(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp { aabb, inset, dir })
+    }
+
+    pub fn ramp(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+        let aabb = aabb.made_valid();
+        self.prim(Primitive::Ramp {
+            aabb,
+            inset: dir.select((aabb.size().w, aabb.size().h)),
+            dir,
+        })
     }
 
     /// Returns a `PrimitiveRef` of a triangular prism with the base being
@@ -1070,6 +1080,7 @@ impl Painter {
     /// |     | /
     /// |_____|/
     /// ```
+    /// A horizontal half cylinder on top of an `Aabb`.
     pub fn vault(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
         let h = dir.orthogonal().select(Vec3::from(aabb.size()).xy());
 
@@ -1150,7 +1161,6 @@ impl Painter {
                         .with_z(z + 1),
                 }
                 .made_valid(),
-                stair_len + 1,
                 right,
             );
 
