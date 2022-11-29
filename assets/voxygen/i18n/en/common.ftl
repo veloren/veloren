@@ -86,6 +86,7 @@ common-kind-throwable = Can be thrown
 common-kind-utility = Utility
 common-kind-ingredient = Ingredient
 common-kind-lantern = Lantern
+common-kind-recipegroup = Recipes
 common-hands-one = One-Handed
 common-hands-two = Two-Handed
 common-rand_appearance = Random appearance

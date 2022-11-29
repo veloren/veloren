@@ -1,7 +1,7 @@
 use crate::ui::{Graphic, SampleStrat, Transform, Ui};
 use common::{
     assets::{self, AssetCombined, AssetExt, AssetHandle, Concatenate, DotVoxAsset, ReloadWatcher},
-    comp::item::item_key::ItemKey,
+    comp::item::{item_key::ItemKey, modular},
     figure::Segment,
 };
 use conrod_core::image::Id;
@@ -17,7 +17,7 @@ pub fn animate_by_pulse(ids: &[Id], pulse: f32) -> Id {
     ids[animation_frame % ids.len()]
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ImageSpec {
     Png(String),
     Vox(String, #[serde(default)] u32),
@@ -56,7 +56,7 @@ impl ImageSpec {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct ItemImagesSpec(pub HashMap<ItemKey, ImageSpec>);
+pub struct ItemImagesSpec(pub HashMap<ItemVisualKey, ImageSpec>);
 impl assets::Asset for ItemImagesSpec {
     type Loader = assets::RonLoader;
 
@@ -68,7 +68,7 @@ impl Concatenate for ItemImagesSpec {
 
 // TODO: when there are more images don't load them all into memory
 pub struct ItemImgs {
-    map: HashMap<ItemKey, Id>,
+    map: HashMap<ItemVisualKey, Id>,
     manifest: AssetHandle<ItemImagesSpec>,
     watcher: ReloadWatcher,
     not_found: Id,
@@ -118,11 +118,11 @@ impl ItemImgs {
         if let ItemKey::TagExamples(keys, _) = item_key {
             return keys
                 .iter()
-                .filter_map(|k| self.map.get(k))
+                .filter_map(|k| self.map.get(&ItemVisualKey::from(k.clone())))
                 .cloned()
                 .collect();
         };
-        match self.map.get(&item_key) {
+        match self.map.get(&ItemVisualKey::from(item_key.clone())) {
             Some(id) => vec![*id],
             // There was no specification in the ron
             None => {
@@ -182,4 +182,26 @@ fn graceful_load_segment_no_skin(specifier: &str, model_index: u32) -> Arc<Segme
         })
         .to_segment(|_| Default::default());
     Arc::new(seg)
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Hash, Eq, PartialEq)]
+pub enum ItemVisualKey {
+    Simple(String),
+    ModularWeapon(modular::ModularWeaponKey),
+    ModularWeaponComponent(modular::ModularWeaponComponentKey),
+    TagExamples(Vec<ItemKey>, String),
+    Recipe(String),
+    Empty,
+}
+
+impl From<ItemKey> for ItemVisualKey {
+    fn from(item_key: ItemKey) -> Self {
+        match item_key {
+            ItemKey::Simple(key) => Self::Simple(key),
+            ItemKey::ModularWeapon(key) => Self::ModularWeapon(key),
+            ItemKey::ModularWeaponComponent(key) => Self::ModularWeaponComponent(key),
+            ItemKey::TagExamples(keys, key) => Self::TagExamples(keys, key),
+            ItemKey::Empty => Self::Empty,
+        }
+    }
 }

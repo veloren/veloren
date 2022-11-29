@@ -2,4 +2,12 @@
     (1.0, LootTable("common.loot_tables.weapons.components.tier-0")),
     (1.0, LootTable("common.loot_tables.weapons.components.tier-1")),
     (1.0, LootTable("common.loot_tables.armor.cloth")),
+    (0.2, Item("common.items.recipes.explosives")),
+    (0.5, Item("common.items.recipes.instruments")),
+    (0.2, Item("common.items.recipes.charms")),
+    (1.0, Item("common.items.recipes.food")),
+    (0.3, Item("common.items.recipes.gliders")),
+    (0.5, Item("common.items.recipes.potions")),
+    (1.0, Item("common.items.recipes.utility")),
+    (0.5, Item("common.items.recipes.equipment.basic")),
 ]

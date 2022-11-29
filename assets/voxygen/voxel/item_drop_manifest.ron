@@ -418,6 +418,14 @@
     // Other
     Simple("common.items.utility.coins"): "voxel.object.v-coin",
     Simple("common.items.utility.collar"): "voxel.object.collar",
+    Recipe("recipe_alchemy"): "voxel.object.recipe_alchemy",
+    Recipe("recipe_blacksmithing"): "voxel.object.recipe_blacksmithing",
+    Recipe("recipe_carpentry"): "voxel.object.recipe_carpentry",
+    Recipe("recipe_cooking"): "voxel.object.recipe_cooking",
+    Recipe("recipe_lapidary"): "voxel.object.recipe_lapidary",
+    Recipe("recipe_leatherworking"): "voxel.object.recipe_leatherworking",
+    Recipe("recipe_weaving"): "voxel.object.recipe_weaving",
+    Recipe("scroll"): "voxel.object.scroll",
     // Armor
     // Starter Parts
     Simple("common.items.armor.misc.foot.sandals"): "voxel.armor.misc.foot.cloth_sandal",

@@ -80,6 +80,7 @@ pub use self::{
             tool::{self, AbilityItem},
             FrontendItem, Item, ItemConfig, ItemDrops, PickupItem,
         },
+        recipe_book::RecipeBook,
         slot, CollectFailedReason, Inventory, InventoryUpdate, InventoryUpdateEvent,
     },
     last::Last,

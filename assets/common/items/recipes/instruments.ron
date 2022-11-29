@@ -1,0 +1,20 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "double_bass",
+            "flute",
+            "guitar",
+            "lyre",
+            "kalimba",
+            "lute",
+            "melodica",
+            "washboard",
+            "sitar",
+            "icy_talharpa",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

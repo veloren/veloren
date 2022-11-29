@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "iron_ingot",
+            "iron_back",
+            "iron_belt",
+            "iron_chest",
+            "iron_feet",
+            "iron_hands",
+            "iron_pants",
+            "iron_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

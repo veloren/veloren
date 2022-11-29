@@ -428,14 +428,18 @@ pub fn modular_weapon(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RecipeBook {
+pub struct RecipeBookManifest {
     recipes: HashMap<String, Recipe>,
 }
 
-impl RecipeBook {
+impl RecipeBookManifest {
+    pub fn load() -> AssetHandle<Self> { Self::load_expect("common.recipe_book_manifest") }
+
     pub fn get(&self, recipe: &str) -> Option<&Recipe> { self.recipes.get(recipe) }
 
     pub fn iter(&self) -> impl ExactSizeIterator<Item = (&String, &Recipe)> { self.recipes.iter() }
+
+    pub fn keys(&self) -> impl ExactSizeIterator<Item = &String> { self.recipes.keys() }
 
     pub fn get_available(&self, inv: &Inventory) -> Vec<(String, Recipe)> {
         self.recipes
@@ -451,8 +455,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_recipe_valid_key_check() {
-        let recipe_book = default_recipe_book().read();
+    fn complete_recipe_book_valid_key_check() {
+        let recipe_book = complete_recipe_book().read();
         let is_invalid_key =
             |input: &str| input.chars().any(|c| c.is_uppercase() || c.is_whitespace());
         assert!(!recipe_book.iter().any(|(k, _)| is_invalid_key(k)));
@@ -517,7 +521,7 @@ impl assets::Asset for ItemList {
     const EXTENSION: &'static str = "ron";
 }
 
-impl assets::Compound for RecipeBook {
+impl assets::Compound for RecipeBookManifest {
     fn load(
         cache: assets::AnyCache,
         specifier: &assets::SharedString,
@@ -562,7 +566,7 @@ impl assets::Compound for RecipeBook {
             )
             .collect::<Result<_, assets::Error>>()?;
 
-        Ok(RecipeBook { recipes })
+        Ok(RecipeBookManifest { recipes })
     }
 }
 
@@ -617,6 +621,7 @@ pub struct ComponentKey {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ComponentRecipe {
+    pub recipe_book_key: String,
     output: ComponentOutput,
     material: (RecipeInput, u32),
     modifier: Option<(RecipeInput, u32)>,
@@ -810,6 +815,7 @@ impl<'a> ExactSizeIterator for ComponentRecipeInputsIterator<'a> {
 
 #[derive(Clone, Deserialize)]
 struct RawComponentRecipe {
+    recipe_book_key: String,
     output: RawComponentOutput,
     /// String refers to an item definition id
     material: (String, u32),
@@ -881,7 +887,9 @@ impl assets::Compound for ComponentRecipeBook {
                 .iter()
                 .map(|(input, amount)| input.load_recipe_input().map(|input| (input, *amount)))
                 .collect::<Result<Vec<_>, _>>()?;
+            let recipe_book_key = String::from(&raw_recipe.recipe_book_key);
             Ok(ComponentRecipe {
+                recipe_book_key,
                 output,
                 material,
                 modifier,
@@ -1112,8 +1120,8 @@ impl assets::Compound for RepairRecipeBook {
     }
 }
 
-pub fn default_recipe_book() -> AssetHandle<RecipeBook> {
-    RecipeBook::load_expect("common.recipe_book")
+pub fn complete_recipe_book() -> AssetHandle<RecipeBookManifest> {
+    RecipeBookManifest::load_expect("common.recipe_book_manifest")
 }
 
 pub fn default_component_recipe_book() -> AssetHandle<ComponentRecipeBook> {

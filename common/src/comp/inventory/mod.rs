@@ -15,13 +15,16 @@ use crate::{
                 MaterialStatManifest, TagExampleInfo,
             },
             loadout::Loadout,
+            recipe_book::RecipeBook,
             slot::{EquipSlot, Slot, SlotError},
         },
         loot_owner::LootOwnerKind,
         slot::{InvSlotId, SlotId},
         Item,
     },
+    recipe::{Recipe, RecipeBookManifest},
     resources::Time,
+    terrain::SpriteKind,
     uid::Uid,
     LoadoutBuilder,
 };
@@ -31,6 +34,7 @@ use super::FrontendItem;
 pub mod item;
 pub mod loadout;
 pub mod loadout_builder;
+pub mod recipe_book;
 pub mod slot;
 #[cfg(test)] mod test;
 #[cfg(test)] mod test_helpers;
@@ -52,6 +56,8 @@ pub struct Inventory {
     /// These slots are "remove-only" meaning that during normal gameplay items
     /// can only be removed from these slots and never entered.
     overflow_items: Vec<Item>,
+    /// Recipes that are available for use
+    recipe_book: RecipeBook,
 }
 
 /// Errors which the methods on `Inventory` produce
@@ -131,6 +137,7 @@ impl Inventory {
             loadout,
             slots: vec![None; DEFAULT_INVENTORY_SLOTS],
             overflow_items: Vec::new(),
+            recipe_book: RecipeBook::default(),
         }
     }
 
@@ -140,10 +147,16 @@ impl Inventory {
             loadout,
             slots: vec![None; 1],
             overflow_items: Vec::new(),
+            recipe_book: RecipeBook::default(),
         }
     }
 
-    /// Total number of slots in the inventory.
+    pub fn with_recipe_book(mut self, recipe_book: RecipeBook) -> Inventory {
+        self.recipe_book = recipe_book;
+        self
+    }
+
+    /// Total number of slots in in the inventory.
     pub fn capacity(&self) -> usize { self.slots().count() }
 
     /// An iterator of all inventory slots
@@ -1084,6 +1097,57 @@ impl Inventory {
     /// inventory
     pub fn persistence_push_overflow_items<I: Iterator<Item = Item>>(&mut self, overflow_items: I) {
         self.overflow_items.extend(overflow_items);
+    }
+
+    pub fn recipes_iter(&self) -> impl ExactSizeIterator<Item = &String> { self.recipe_book.iter() }
+
+    pub fn available_recipes_iter<'a>(
+        &'a self,
+        rbm: &'a RecipeBookManifest,
+    ) -> impl Iterator<Item = (&String, &Recipe)> + '_ {
+        self.recipe_book.get_available_iter(rbm)
+    }
+
+    pub fn recipe_book_len(&self) -> usize { self.recipe_book.len() }
+
+    pub fn get_recipe<'a>(
+        &'a self,
+        recipe_key: &str,
+        rbm: &'a RecipeBookManifest,
+    ) -> Option<&Recipe> {
+        self.recipe_book.get(recipe_key, rbm)
+    }
+
+    pub fn push_recipe_group(&mut self, recipe_group: Item) -> Result<(), Item> {
+        self.recipe_book.push_group(recipe_group)
+    }
+
+    /// Returns whether the specified recipe can be crafted and the sprite, if
+    /// any, that is required to do so.
+    pub fn can_craft_recipe(
+        &self,
+        recipe_key: &str,
+        amount: u32,
+        rbm: &RecipeBookManifest,
+    ) -> (bool, Option<SpriteKind>) {
+        if let Some(recipe) = self.recipe_book.get(recipe_key, rbm) {
+            (
+                recipe.inventory_contains_ingredients(self, amount).is_ok(),
+                recipe.craft_sprite,
+            )
+        } else {
+            (false, None)
+        }
+    }
+
+    pub fn recipe_is_known(&self, recipe_key: &str) -> bool {
+        self.recipe_book.is_known(recipe_key)
+    }
+
+    pub fn reset_recipes(&mut self) { self.recipe_book.reset(); }
+
+    pub fn persistence_recipes_iter_with_index(&self) -> impl Iterator<Item = (usize, &Item)> {
+        self.recipe_book.persistence_recipes_iter_with_index()
     }
 }
 

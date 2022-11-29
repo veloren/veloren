@@ -4,6 +4,8 @@
             // Ingredients
             (2.0, Item("common.items.crafting_ing.coral_branch")),
             (0.5, Item("common.items.crafting_ing.pearl")),
+            (0.25, Item("common.items.recipes.unique.seashell_necklace")),
+            (0.25, Item("common.items.recipes.unique.winged_coronet")),
         ]),
         Lottery([
             (0.6, Nothing),

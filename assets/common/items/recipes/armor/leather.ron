@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "thick_leather",
+            "leather_back",
+            "leather_belt",
+            "leather_chest",
+            "leather_feet",
+            "leather_hands",
+            "leather_pants",
+            "leather_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

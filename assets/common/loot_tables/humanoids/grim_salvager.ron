@@ -14,4 +14,7 @@
     (0.4, Item("common.items.armor.misc.head.bandana.red")),
     (0.4, Item("common.items.armor.misc.head.hood")),
     (0.4, Item("common.items.armor.misc.head.hood_dark")),
+    // Recipes
+    (2.0, Item("common.items.recipes.equipment.basic")),
+    (1.0, Item("common.items.recipes.equipment.moderate")),
 ]

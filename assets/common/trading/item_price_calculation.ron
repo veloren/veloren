@@ -23,6 +23,10 @@ loot_tables: [
     // Food Ingredients
     (20.375, true, "common.trading.food"),
 
+    // Recipes
+    (1.0, true, "common.trading.sellable_recipe"),
+    (1.0, false, "common.trading.unsellable_recipe"),
+
     // Potions
     //
     // crafted from food, no need to duplicate it here.
@@ -46,4 +50,5 @@ good_scaling: [
     (Armor, 0.025), // common.items.armor.misc.pants.worker_blue
     (Tools, 0.015487), // common.items.weapons.staff.starter_staff
     (Ingredients, 0.034626), // common.items.crafting_ing.leather_scraps
+    (Recipe, 0.01), // common.items.recipes
 ])

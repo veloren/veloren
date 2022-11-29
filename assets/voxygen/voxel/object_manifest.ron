@@ -1131,4 +1131,14 @@
             central: ("armor.empty"),
         )
     ),
+    Scroll: (
+        bone0: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("object.recipe"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

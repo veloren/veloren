@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "dragonscale_back",
+            "dragonscale_belt",
+            "dragonscale_chest",
+            "dragonscale_feet",
+            "dragonscale_hands",
+            "dragonscale_pants",
+            "dragonscale_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

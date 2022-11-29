@@ -1,0 +1,22 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "sapphire_ring",
+            "sapphire_necklace",
+            "topaz_ring",
+            "topaz_necklace",
+            "amethyst_ring",
+            "amethyst_necklace",
+            "reliable_leather_pack",
+            "woven_red_bag",
+            "honeycomb_pendant",
+            "traveler_backpack",
+            "sturdy_red_backpack",
+            "troll_hide_pack",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -5,6 +5,7 @@ use crate::comp::{
     Item,
 };
 use lazy_static::lazy_static;
+use std::borrow::Cow;
 lazy_static! {
     static ref TEST_ITEMS: Vec<Item> = vec![Item::new_from_asset_expect(
         "common.items.debug.admin_stick"
@@ -24,6 +25,7 @@ fn push_full() {
             .collect(),
         loadout: LoadoutBuilder::empty().build(),
         overflow_items: vec![],
+        recipe_book: RecipeBook::default(),
     };
     assert_eq!(
         inv.push(TEST_ITEMS[0].duplicate(ability_map, msm))
@@ -45,6 +47,7 @@ fn push_all_full() {
             .collect(),
         loadout: LoadoutBuilder::empty().build(),
         overflow_items: vec![],
+        recipe_book: RecipeBook::default(),
     };
     let Error::Full(leftovers) = inv
         .push_all(
@@ -76,6 +79,7 @@ fn push_unique_all_full() {
             .collect(),
         loadout: LoadoutBuilder::empty().build(),
         overflow_items: vec![],
+        recipe_book: RecipeBook::default(),
     };
     inv.push_all_unique(
         TEST_ITEMS
@@ -96,6 +100,7 @@ fn push_all_empty() {
         slots: vec![None, None],
         loadout: LoadoutBuilder::empty().build(),
         overflow_items: vec![],
+        recipe_book: RecipeBook::default(),
     };
     inv.push_all(
         TEST_ITEMS
@@ -116,6 +121,7 @@ fn push_all_unique_empty() {
         slots: vec![None, None],
         loadout: LoadoutBuilder::empty().build(),
         overflow_items: vec![],
+        recipe_book: RecipeBook::default(),
     };
     inv.push_all_unique(
         TEST_ITEMS
@@ -339,7 +345,7 @@ fn equip_equipping_smaller_bag_from_last_slot_of_big_bag() {
 
     assert_eq!(
         inv.get(InvSlotId::new(0, 0)).unwrap().item_definition_id(),
-        ItemDefinitionId::Simple(LARGE_BAG_ID)
+        ItemDefinitionId::Simple(Cow::Borrowed(LARGE_BAG_ID))
     );
     assert!(result.is_empty());
 }
@@ -369,7 +375,7 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots_returns_on
     // by itself, the bag is returned to the caller
     assert_eq!(
         result[0].item_definition_id(),
-        ItemDefinitionId::Simple("common.items.testing.test_bag")
+        ItemDefinitionId::Simple(Cow::Borrowed("common.items.testing.test_bag"))
     );
 }
 
@@ -517,7 +523,7 @@ fn backpack_crash() {
     );
     assert_eq!(18, returned_items.len());
     assert_eq!(
-        ItemDefinitionId::Simple("common.items.armor.misc.back.backpack"),
+        ItemDefinitionId::Simple(Cow::Borrowed("common.items.armor.misc.back.backpack")),
         returned_items[0].item_definition_id()
     );
 }

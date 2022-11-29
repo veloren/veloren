@@ -20,7 +20,7 @@ pub struct GoodIndex {
     idx: usize,
 }
 
-impl GenericIndex<Good, 23> for GoodIndex {
+impl GenericIndex<Good, 24> for GoodIndex {
     // static list of all Goods traded
     const VALUES: [Good; GoodIndex::LENGTH] = [
         // controlled resources
@@ -41,6 +41,7 @@ impl GenericIndex<Good, 23> for GoodIndex {
         Armor,
         Potions,
         Transportation,
+        Recipe,
         // exchange currency
         Coin,
         // uncontrolled resources

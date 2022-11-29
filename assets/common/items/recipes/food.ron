@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "cactus_colada",
+            "apple_shroom_curry",
+            "salad_plain",
+            "salad_tomato",
+            "apples_stick",
+            "mushroom_stick",
+            "sunflower_icetea",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

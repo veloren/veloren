@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "scale_back",
+            "scale_belt",
+            "scale_chest",
+            "scale_feet",
+            "scale_hands",
+            "scale_pants",
+            "scale_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

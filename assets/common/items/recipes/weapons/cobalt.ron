@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "cobalt_ingot",
+            "cobalt_weapons",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

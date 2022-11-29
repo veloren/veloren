@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "lifecloth",
+            "druid_back",
+            "druid_belt",
+            "druid_chest",
+            "druid_feet",
+            "druid_hands",
+            "druid_pants",
+            "druid_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -19,6 +19,7 @@
         items: [
             (10, "common.items.consumable.potion_big"),
             (10, "common.items.food.sunflower_icetea"),
+            (1, "common.items.recipes.potions"),
         ],
     ),
     meta: [

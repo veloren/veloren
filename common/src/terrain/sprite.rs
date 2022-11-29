@@ -39,10 +39,7 @@ pub use self::magic::{Attribute, AttributeError};
 
 use crate::{
     attributes,
-    comp::{
-        item::{ItemDefinitionId, ItemDefinitionIdOwned},
-        tool::ToolKind,
-    },
+    comp::{item::ItemDefinitionIdOwned, tool::ToolKind},
     lottery::LootSpec,
     make_case_elim, sprites,
     terrain::Block,
@@ -805,27 +802,32 @@ impl SpriteKind {
     pub fn unlock_condition(&self, cfg: Option<SpriteCfg>) -> UnlockKind {
         cfg.and_then(|cfg| cfg.unlock)
             .unwrap_or_else(|| match self {
-                // Example, do not let this merge with twigs requiring cheese to pick up
                 SpriteKind::CommonLockedChest => UnlockKind::Consumes(
-                    ItemDefinitionId::Simple("common.items.utility.lockpick_0").to_owned(),
+                    ItemDefinitionIdOwned::Simple(String::from("common.items.utility.lockpick_0")),
                 ),
-                SpriteKind::BoneKeyhole => UnlockKind::Consumes(
-                    ItemDefinitionId::Simple("common.items.keys.bone_key").to_owned(),
-                ),
-                SpriteKind::HaniwaKeyhole => UnlockKind::Consumes(
-                    ItemDefinitionId::Simple("common.items.keys.haniwa_key").to_owned(),
-                ),
-                SpriteKind::GlassKeyhole => UnlockKind::Consumes(
-                    ItemDefinitionId::Simple("common.items.keys.glass_key").to_owned(),
-                ),
-                SpriteKind::SahaginKeyhole => UnlockKind::Consumes(
-                    ItemDefinitionId::Simple("common.items.keys.sahagin_key").to_owned(),
-                ),
+                SpriteKind::SahaginKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    String::from("common.items.keys.sahagin_key"),
+                )),
+                SpriteKind::BoneKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    String::from("common.items.keys.bone_key"),
+                )),
+                SpriteKind::HaniwaKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    String::from("common.items.keys.haniwa_key"),
+                )),
+                SpriteKind::GlassKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    String::from("common.items.keys.glass_key"),
+                )),
                 SpriteKind::TerracottaChest => UnlockKind::Consumes(
-                    ItemDefinitionId::Simple("common.items.keys.terracotta_key_chest").to_owned(),
+                    ItemDefinitionIdOwned::Simple(String::from(
+                        "common.items.keys.terracotta_key_chest",
+                    ))
+                    .to_owned(),
                 ),
                 SpriteKind::TerracottaKeyhole => UnlockKind::Consumes(
-                    ItemDefinitionId::Simple("common.items.keys.terracotta_key_door").to_owned(),
+                    ItemDefinitionIdOwned::Simple(String::from(
+                        "common.items.keys.terracotta_key_door",
+                    ))
+                    .to_owned(),
                 ),
                 _ => UnlockKind::Free,
             })
@@ -865,11 +867,9 @@ pub enum UnlockKind {
     Free,
     /// The sprite requires that the opening character has a given item in their
     /// inventory
-    // TODO: use ItemKey here?
     Requires(ItemDefinitionIdOwned),
     /// The sprite will consume the given item from the opening character's
     /// inventory
-    // TODO: use ItemKey here?
     Consumes(ItemDefinitionIdOwned),
 }
 

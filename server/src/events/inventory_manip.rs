@@ -23,9 +23,7 @@ use common::{
     },
     event_emitters,
     mounting::VolumePos,
-    recipe::{
-        self, default_component_recipe_book, default_recipe_book, default_repair_recipe_book,
-    },
+    recipe::{self, default_component_recipe_book, default_repair_recipe_book, RecipeBookManifest},
     resources::{ProgramTime, Time},
     terrain::{Block, SpriteKind},
     trade::Trades,
@@ -85,6 +83,7 @@ pub struct InventoryManipData<'a> {
     program_time: ReadExpect<'a, ProgramTime>,
     ability_map: ReadExpect<'a, AbilityMap>,
     msm: ReadExpect<'a, MaterialStatManifest>,
+    rbm: ReadExpect<'a, RecipeBookManifest>,
     inventories: WriteStorage<'a, comp::Inventory>,
     items: WriteStorage<'a, comp::PickupItem>,
     inventory_updates: WriteStorage<'a, comp::InventoryUpdate>,
@@ -610,6 +609,25 @@ impl ServerEvent for InventoryManipEvent {
 
                                         Some(InventoryUpdateEvent::Used)
                                     },
+                                    ItemKind::RecipeGroup { .. } => {
+                                        match inventory.push_recipe_group(item) {
+                                            Ok(()) => {
+                                                if let Some(client) = data.clients.get(entity) {
+                                                    client.send_fallible(
+                                                        ServerGeneral::UpdateRecipes,
+                                                    );
+                                                }
+                                                Some(InventoryUpdateEvent::Used)
+                                            },
+                                            Err(item) => {
+                                                inventory.insert_or_stack_at(slot, item).expect(
+                                                    "slot was just vacated of item, so it \
+                                                     definitely fits there.",
+                                                );
+                                                None
+                                            },
+                                        }
+                                    },
                                     _ => {
                                         inventory.insert_or_stack_at(slot, item).expect(
                                             "slot was just vacated of item, so it definitely fits \
@@ -861,7 +879,6 @@ impl ServerEvent for InventoryManipEvent {
                 } => {
                     use comp::controller::CraftEvent;
                     use recipe::ComponentKey;
-                    let recipe_book = default_recipe_book().read();
 
                     let get_craft_sprite = |sprite_pos: Option<VolumePos>| {
                         sprite_pos
@@ -902,32 +919,38 @@ impl ServerEvent for InventoryManipEvent {
                             recipe,
                             slots,
                             amount,
-                        } => recipe_book
-                            .get(&recipe)
-                            .filter(|r| {
-                                if let Some(needed_sprite) = r.craft_sprite {
-                                    let sprite = get_craft_sprite(craft_sprite);
-                                    Some(needed_sprite) == sprite
-                                } else {
-                                    true
-                                }
-                            })
-                            .and_then(|r| {
+                        } => {
+                            let filtered_recipe = inventory
+                                .get_recipe(&recipe, &data.rbm)
+                                .cloned()
+                                .filter(|r| {
+                                    if let Some(needed_sprite) = r.craft_sprite {
+                                        let sprite = get_craft_sprite(craft_sprite);
+                                        Some(needed_sprite) == sprite
+                                    } else {
+                                        true
+                                    }
+                                });
+                            if let Some(recipe) = filtered_recipe {
                                 let items = (0..amount)
                                     .filter_map(|_| {
-                                        r.craft_simple(
-                                            &mut inventory,
-                                            slots.clone(),
-                                            &data.ability_map,
-                                            &data.msm,
-                                        )
-                                        .ok()
+                                        recipe
+                                            .craft_simple(
+                                                &mut inventory,
+                                                slots.clone(),
+                                                &data.ability_map,
+                                                &data.msm,
+                                            )
+                                            .ok()
                                     })
                                     .flatten()
                                     .collect::<Vec<_>>();
 
                                 if items.is_empty() { None } else { Some(items) }
-                            }),
+                            } else {
+                                None
+                            }
+                        },
                         CraftEvent::Salvage(slot) => {
                             let sprite = get_craft_sprite(craft_sprite);
                             if matches!(sprite, Some(SpriteKind::DismantlingBench)) {
@@ -981,12 +1004,14 @@ impl ServerEvent for InventoryManipEvent {
                                         modifier: modifier.and_then(item_id),
                                     })
                                     .filter(|r| {
-                                        if let Some(needed_sprite) = r.craft_sprite {
+                                        let sprite = if let Some(needed_sprite) = r.craft_sprite {
                                             let sprite = get_craft_sprite(craft_sprite);
                                             Some(needed_sprite) == sprite
                                         } else {
                                             true
-                                        }
+                                        };
+                                        let known = inventory.recipe_is_known(&r.recipe_book_key);
+                                        sprite && known
                                     })
                                     .and_then(|r| {
                                         r.craft_component(

@@ -366,6 +366,9 @@ pub enum ItemKind {
         /// through
         item_ids: Vec<String>,
     },
+    RecipeGroup {
+        recipes: Vec<String>,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -374,6 +377,7 @@ pub enum ConsumableKind {
     Food,
     ComplexFood,
     Charm,
+    Recipe,
 }
 
 impl ItemKind {
@@ -404,6 +408,7 @@ impl ItemKind {
             #[allow(deprecated)]
             ItemKind::Ingredient { descriptor } => format!("Ingredient: {}", descriptor),
             ItemKind::TagExamples { item_ids } => format!("TagExamples: {:?}", item_ids),
+            ItemKind::RecipeGroup { .. } => String::from("Recipes:"),
         }
     }
 
@@ -418,7 +423,8 @@ impl ItemKind {
             | ItemKind::Throwable { .. }
             | ItemKind::Utility { .. }
             | ItemKind::Ingredient { .. }
-            | ItemKind::TagExamples { .. } => false,
+            | ItemKind::TagExamples { .. }
+            | ItemKind::RecipeGroup { .. } => false,
         }
     }
 }
@@ -582,10 +588,7 @@ impl Serialize for ItemBase {
     where
         S: Serializer,
     {
-        serializer.serialize_str(match self {
-            ItemBase::Simple(item_def) => &item_def.item_definition_id,
-            ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
-        })
+        serializer.serialize_str(&self.serialization_item_id())
     }
 }
 
@@ -609,13 +612,7 @@ impl<'de> Deserialize<'de> for ItemBase {
             where
                 E: de::Error,
             {
-                Ok(
-                    if serialized_item_base.starts_with(crate::modular_item_id_prefix!()) {
-                        ItemBase::Modular(ModularBase::load_from_pseudo_id(serialized_item_base))
-                    } else {
-                        ItemBase::Simple(Arc::<ItemDef>::load_expect_cloned(serialized_item_base))
-                    },
-                )
+                Ok(ItemBase::from_item_id_string(serialized_item_base))
             }
         }
 
@@ -630,6 +627,23 @@ impl ItemBase {
             ItemBase::Modular(_) => 0,
         }
     }
+
+    // Should be kept the same as the persistence_item_id function in Item
+    // TODO: Maybe use Cow?
+    fn serialization_item_id(&self) -> String {
+        match &self {
+            ItemBase::Simple(item_def) => item_def.item_definition_id.clone(),
+            ItemBase::Modular(mod_base) => String::from(mod_base.pseudo_item_id()),
+        }
+    }
+
+    fn from_item_id_string(item_id_string: &str) -> Self {
+        if item_id_string.starts_with(crate::modular_item_id_prefix!()) {
+            ItemBase::Modular(ModularBase::load_from_pseudo_id(item_id_string))
+        } else {
+            ItemBase::Simple(Arc::<ItemDef>::load_expect_cloned(item_id_string))
+        }
+    }
 }
 
 // TODO: could this theorectically hold a ref to the actual components and
@@ -637,7 +651,7 @@ impl ItemBase {
 // `Vec`s)
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ItemDefinitionId<'a> {
-    Simple(&'a str),
+    Simple(Cow<'a, str>),
     Modular {
         pseudo_base: &'a str,
         components: Vec<ItemDefinitionId<'a>>,
@@ -664,7 +678,7 @@ pub enum ItemDefinitionIdOwned {
 impl ItemDefinitionIdOwned {
     pub fn as_ref(&self) -> ItemDefinitionId<'_> {
         match *self {
-            Self::Simple(ref id) => ItemDefinitionId::Simple(id),
+            Self::Simple(ref id) => ItemDefinitionId::Simple(Cow::Borrowed(id)),
             Self::Modular {
                 ref pseudo_base,
                 ref components,
@@ -694,7 +708,7 @@ impl<'a> ItemDefinitionId<'a> {
 
     pub fn to_owned(&self) -> ItemDefinitionIdOwned {
         match self {
-            Self::Simple(id) => ItemDefinitionIdOwned::Simple(String::from(*id)),
+            Self::Simple(id) => ItemDefinitionIdOwned::Simple(String::from(&**id)),
             Self::Modular {
                 pseudo_base,
                 components,
@@ -969,7 +983,7 @@ impl Item {
     ) -> Result<Self, Error> {
         let (base, components) = match item_definition_id {
             ItemDefinitionId::Simple(spec) => {
-                let base = ItemBase::Simple(Arc::<ItemDef>::load_cloned(spec)?);
+                let base = ItemBase::Simple(Arc::<ItemDef>::load_cloned(&spec)?);
                 (base, Vec::new())
             },
             ItemDefinitionId::Modular {
@@ -1023,11 +1037,7 @@ impl Item {
     /// Creates a new instance of an `Item from the provided asset identifier if
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
-        let inner_item = if asset.starts_with("veloren.core.pseudo_items.modular") {
-            ItemBase::Modular(ModularBase::load_from_pseudo_id(asset))
-        } else {
-            ItemBase::Simple(Arc::<ItemDef>::load_cloned(asset)?)
-        };
+        let inner_item = ItemBase::from_item_id_string(asset);
         // TODO: Get msm and ability_map less hackily
         let msm = &MaterialStatManifest::load().read();
         let ability_map = &AbilityMap::load().read();
@@ -1206,7 +1216,7 @@ impl Item {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
                 if self.components.is_empty() {
-                    ItemDefinitionId::Simple(&item_def.item_definition_id)
+                    ItemDefinitionId::Simple(Cow::Borrowed(&item_def.item_definition_id))
                 } else {
                     ItemDefinitionId::Compound {
                         simple_base: &item_def.item_definition_id,
@@ -1388,10 +1398,10 @@ impl Item {
 
     pub fn item_hash(&self) -> u64 { self.hash }
 
-    pub fn persistence_item_id(&self) -> &str {
+    pub fn persistence_item_id(&self) -> String {
         match &self.item_base {
-            ItemBase::Simple(item_def) => &item_def.item_definition_id,
-            ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
+            ItemBase::Simple(item_def) => item_def.item_definition_id.clone(),
+            ItemBase::Modular(mod_base) => String::from(mod_base.pseudo_item_id()),
         }
     }
 
@@ -1545,6 +1555,10 @@ impl Item {
             Err(other)
         }
     }
+
+    // Probably doesn't need to be limited to persistence, but nothing else should
+    // really need to look at item base
+    pub fn persistence_item_base(&self) -> &ItemBase { &self.item_base }
 }
 
 impl FrontendItem {
@@ -1816,7 +1830,7 @@ impl ItemDesc for ItemDef {
     fn num_slots(&self) -> u16 { self.slots }
 
     fn item_definition_id(&self) -> ItemDefinitionId<'_> {
-        ItemDefinitionId::Simple(&self.item_definition_id)
+        ItemDefinitionId::Simple(Cow::Borrowed(&self.item_definition_id))
     }
 
     fn tags(&self) -> Vec<ItemTag> { self.tags.to_vec() }

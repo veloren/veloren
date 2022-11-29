@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "brinestone_back",
+            "brinestone_belt",
+            "brinestone_chest",
+            "brinestone_feet",
+            "brinestone_hands",
+            "brinestone_pants",
+            "brinestone_shoulder",
+            "brinestone_crown",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

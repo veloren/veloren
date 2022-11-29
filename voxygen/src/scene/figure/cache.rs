@@ -216,11 +216,10 @@ impl CharacterCacheKey {
                 .map(|id| match id {
                     // TODO: Properly handle items with components here. Probably wait until modular
                     // armor?
-                    ItemDefinitionId::Simple(id) => id,
-                    ItemDefinitionId::Compound { simple_base, .. } => simple_base,
-                    ItemDefinitionId::Modular { pseudo_base, .. } => pseudo_base,
+                    ItemDefinitionId::Simple(id) => String::from(id),
+                    ItemDefinitionId::Compound { simple_base, .. } => String::from(simple_base),
+                    ItemDefinitionId::Modular { pseudo_base, .. } => String::from(pseudo_base),
                 })
-                .map(String::from)
         };
 
         // Third person tools are only modeled when the camera is either not first

@@ -17,4 +17,8 @@
     // Food
     (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
     (0.5, Item("common.items.food.meat.fish_raw")),
+    // Recipes
+    (2.0, Item("common.items.recipes.equipment.basic")),
+    (1.0, Item("common.items.recipes.equipment.moderate")),
+    (0.5, Item("common.items.recipes.equipment.advanced")),
 ]

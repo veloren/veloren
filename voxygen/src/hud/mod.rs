@@ -109,6 +109,7 @@ use common::{
     link::Is,
     mounting::{Mount, Rider, VolumePos},
     outcome::Outcome,
+    recipe::RecipeBookManifest,
     resources::{ProgramTime, Secs, Time},
     slowjob::SlowJobPool,
     terrain::{SpriteKind, TerrainChunk, UnlockKind},
@@ -3142,6 +3143,7 @@ impl Hud {
         let entity = info.viewpoint_entity;
         let healths = ecs.read_storage::<Health>();
         let inventories = ecs.read_storage::<comp::Inventory>();
+        let rbm = ecs.read_resource::<RecipeBookManifest>();
         let energies = ecs.read_storage::<comp::Energy>();
         let skillsets = ecs.read_storage::<comp::SkillSet>();
         let active_abilities = ecs.read_storage::<comp::ActiveAbilities>();
@@ -3381,6 +3383,7 @@ impl Hud {
                     &mut self.slot_manager,
                     &self.item_imgs,
                     inventory,
+                    &rbm,
                     &msm,
                     tooltip_manager,
                     &mut self.show,

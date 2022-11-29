@@ -55,6 +55,7 @@ pub fn create_character(
         .active_offhand(character_offhand.map(|x| Item::new_from_asset_expect(&x)))
         .build();
     let mut inventory = Inventory::with_loadout_humanoid(loadout);
+
     let stats = Stats::new(character_alias.to_string(), body);
     let skill_set = SkillSet::default();
     // Default items for new characters
@@ -66,6 +67,9 @@ pub fn create_character(
     inventory
         .push(Item::new_from_asset_expect("common.items.food.cheese"))
         .expect("Inventory has at least 1 slot left!");
+    inventory
+        .push_recipe_group(Item::new_from_asset_expect("common.items.recipes.default"))
+        .expect("New inventory should not already have default recipe group.");
 
     let map_marker = None;
 

@@ -5,4 +5,5 @@
     (0.5, LootTable("common.loot_tables.weapons.tier-3")),
     (0.1, LootTable("common.loot_tables.weapons.tier-4")),
     (0.05, Item("common.items.armor.witch.hat")),
+    (0.1, Item("common.items.recipes.unique.troll_hide_pack")),
 ]

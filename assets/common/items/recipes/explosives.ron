@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "bomb_coconut",
+            "firework_blue",
+            "firework_green",
+            "firework_purple",
+            "firework_red",
+            "firework_white",
+            "firework_yellow",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

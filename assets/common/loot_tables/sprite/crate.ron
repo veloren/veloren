@@ -2,4 +2,7 @@
     (2.0, LootTable("common.loot_tables.materials.common")),
     (3.0, LootTable("common.loot_tables.food.prepared")),
     (1.0, Item("common.items.armor.misc.head.straw")),
+    (0.5, Item("common.items.recipes.instruments")),
+    (1.0, Item("common.items.recipes.food")),
+    (1.0, Item("common.items.recipes.utility")),
 ]

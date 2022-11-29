@@ -429,6 +429,9 @@ impl Server {
         let msm = comp::inventory::item::MaterialStatManifest::load().cloned();
         state.ecs_mut().insert(msm);
 
+        let rbm = common::recipe::RecipeBookManifest::load().cloned();
+        state.ecs_mut().insert(rbm);
+
         state.ecs_mut().insert(CharacterLoader::new(
             Arc::<RwLock<DatabaseSettings>>::clone(&database_settings),
         )?);

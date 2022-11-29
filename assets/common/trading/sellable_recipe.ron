@@ -1,0 +1,17 @@
+// Loot table that exists purely for price rationalisation
+//
+// This loot table should be marked as sellable.
+//
+// Please keep it sorted by rarity so it's easier to reason about things
+[
+    // Recipes
+    (1.0, Item("common.items.recipes.food")),
+    (1.0, Item("common.items.recipes.utility")),
+    (1.0, Item("common.items.recipes.equipment.basic")),
+    (1.0, Item("common.items.recipes.potions")),
+    (1.0, Item("common.items.recipes.armor.iron")),
+    (1.0, Item("common.items.recipes.armor.woolen")),
+    (1.0, Item("common.items.recipes.armor.leather")),
+    (1.0, Item("common.items.recipes.weapons.iron")),
+    (1.0, Item("common.items.recipes.weapons.bamboo")),
+]

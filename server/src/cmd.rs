@@ -184,6 +184,7 @@ fn do_command(
         ServerChatCommand::PermitBuild => handle_permit_build,
         ServerChatCommand::Players => handle_players,
         ServerChatCommand::Portal => handle_spawn_portal,
+        ServerChatCommand::ResetRecipes => handle_reset_recipes,
         ServerChatCommand::Region => handle_region,
         ServerChatCommand::ReloadChunks => handle_reload_chunks,
         ServerChatCommand::RemoveLights => handle_remove_lights,
@@ -3358,6 +3359,27 @@ fn handle_group_promote(
         server
             .state
             .emit_event_now(GroupManipEvent(target, comp::GroupManip::AssignLeader(uid)));
+        Ok(())
+    } else {
+        Err(Content::Plain(action.help_string()))
+    }
+}
+
+fn handle_reset_recipes(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(mut inventory) = server
+        .state
+        .ecs()
+        .write_storage::<comp::Inventory>()
+        .get_mut(target)
+    {
+        inventory.reset_recipes();
+        server.notify_client(target, ServerGeneral::UpdateRecipes);
         Ok(())
     } else {
         Err(Content::Plain(action.help_string()))

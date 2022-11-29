@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "diamond_ring",
+            "diamond_necklace",
+            "ruby_ring",
+            "ruby_necklace",
+            "emerald_ring",
+            "emerald_necklace",
+            "merchant_turban",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)
