@@ -3809,23 +3809,28 @@ impl<'a> AgentData<'a> {
         enum ActionStateTimers {
             TimerDagon = 0,
         }
-
         if agent.action_state.timers[ActionStateTimers::TimerDagon as usize] > 2.5 {
             agent.action_state.timers[ActionStateTimers::TimerDagon as usize] = 0.0;
         }
-        // if close to target lay out sea urchins, use steambeam and shoot dagon bombs
-        if attack_data.dist_sqrd < (1.3 * attack_data.min_attack_dist).powi(2) {
-            controller.inputs.move_dir = Vec2::zero();
-            if agent.action_state.timers[ActionStateTimers::TimerDagon as usize] > 2.0 {
+        // if target gets very close, shoot dagon bombs and lay out sea urchins
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            if agent.action_state.timers[ActionStateTimers::TimerDagon as usize] > 1.0 {
                 controller.push_basic_input(InputKind::Primary);
                 agent.action_state.timers[ActionStateTimers::TimerDagon as usize] += read_data.dt.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerDagon as usize] > 1.0 {
-                controller.push_basic_input(InputKind::Ability(1));
             } else {
                 controller.push_basic_input(InputKind::Secondary);
                 agent.action_state.timers[ActionStateTimers::TimerDagon as usize] += read_data.dt.0;
             }
-        } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
+        // if target in close range use steambeam and shoot dagon bombs
+        } else if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2) {
+            controller.inputs.move_dir = Vec2::zero();
+            if agent.action_state.timers[ActionStateTimers::TimerDagon as usize] > 2.0 {
+                controller.push_basic_input(InputKind::Primary);
+                agent.action_state.timers[ActionStateTimers::TimerDagon as usize] += read_data.dt.0;
+            } else {
+                controller.push_basic_input(InputKind::Ability(1));
+            }
+        } else if attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2) {
             // if enemy is far, heal
             controller.push_basic_input(InputKind::Ability(2));
             agent.action_state.timers[ActionStateTimers::TimerDagon as usize] += read_data.dt.0;
@@ -3836,7 +3841,7 @@ impl<'a> AgentData<'a> {
             tgt_data.body,
             read_data,
         ) {
-            // if in range shoot dagon bombs and steamwave
+            // if enemy in mid range shoot dagon bombs and steamwave
             if agent.action_state.timers[ActionStateTimers::TimerDagon as usize] > 1.0 {
                 controller.push_basic_input(InputKind::Primary);
                 agent.action_state.timers[ActionStateTimers::TimerDagon as usize] += read_data.dt.0;

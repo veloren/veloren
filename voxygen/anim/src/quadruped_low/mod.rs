@@ -5,15 +5,18 @@ pub mod dash;
 pub mod idle;
 pub mod jump;
 pub mod run;
+pub mod shockwave;
 pub mod shoot;
+pub mod spritesummon;
 pub mod stunned;
 pub mod tailwhip;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beta::BetaAnimation, breathe::BreatheAnimation, dash::DashAnimation,
-    idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation, shoot::ShootAnimation,
-    stunned::StunnedAnimation, tailwhip::TailwhipAnimation,
+    idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    shoot::ShootAnimation, spritesummon::SpriteSummonAnimation, stunned::StunnedAnimation,
+    tailwhip::TailwhipAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -189,7 +192,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (1.0, 4.5),
                 (Sandshark, _) => (13.5, -10.5),
                 (Hakulaq, _) => (10.5, 1.0),
-                (Dagon, _) => (10.5, 1.0),
+                (Dagon, _) => (12.0, -6.0),
                 (Lavadrake, _) => (9.0, -6.0),
                 (Icedrake, _) => (11.5, -6.0),
                 (Basilisk, _) => (12.5, -5.5),
@@ -212,7 +215,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Maneater, _) => (-1.0, 4.0),
                 (Sandshark, _) => (-8.0, -5.5),
                 (Hakulaq, _) => (-6.5, -4.0),
-                (Dagon, _) => (-6.5, -4.0),
+                (Dagon, _) => (2.0, -2.0),
                 (Lavadrake, _) => (3.0, -5.0),
                 (Icedrake, _) => (-0.5, -8.0),
                 (Basilisk, _) => (0.5, -3.0),
