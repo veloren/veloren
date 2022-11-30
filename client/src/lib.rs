@@ -1003,8 +1003,7 @@ impl Client {
     }
 
     pub fn set_lod_distance(&mut self, lod_distance: u32) {
-        #[allow(clippy::manual_clamp)]
-        let lod_distance = lod_distance.max(0).min(1000) as f32 / lod::ZONE_SIZE as f32;
+        let lod_distance = lod_distance.clamp(0, 1000) as f32 / lod::ZONE_SIZE as f32;
         self.lod_distance = lod_distance;
     }
 
