@@ -28,11 +28,14 @@ hud-bag-energy = Energía
 hud-bag-combat_rating = Puntos de combate
 hud-bag-protection = Protección
 hud-bag-stun_res = Resistencia a aturdimiento
+hud-bag-stealth = Stealth
 hud-bag-combat_rating_desc =
-    Calculado a partir de tu
+    Clasificación de Combate
+    Calculada a partir de tu
     equipo y salud.
 hud-bag-protection_desc = Reducción de daño por armadura
 hud-bag-stun_res_desc =
+    Tenacidad
     Resistencia contra ser aturdido por golpes consecutivos.
     Regenera como Energía.
 hud-bag-sort_by_name = Ordenar por nombre
