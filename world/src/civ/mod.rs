@@ -8,7 +8,7 @@ use crate::{
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
     util::{attempt, seed_expan, DHashMap, NEIGHBORS},
-    Index, Land,
+    Index, IndexRef, Land,
 };
 use common::{
     astar::Astar,
@@ -52,6 +52,8 @@ pub struct Civs {
     /// (2) we care about determinism across computers (ruling out AAHash);
     /// (3) we have 8-byte keys (for which FxHash is fastest).
     pub track_map: DHashMap<Id<Site>, DHashMap<Id<Site>, Id<Track>>>,
+
+    pub bridges: DHashMap<Vec2<i32>, (Vec2<i32>, Id<Site>)>,
 
     pub sites: Store<Site>,
     pub caves: Store<CaveInfo>,
@@ -187,6 +189,7 @@ impl Civs {
                 SiteKind::GiantTree => (12i32, 8.0),
                 SiteKind::Gnarling => (16i32, 10.0),
                 SiteKind::Citadel => (16i32, 0.0),
+                SiteKind::Bridge(_, _) => (0, 0.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -246,59 +249,73 @@ impl Civs {
                 });
 
             let mut rng = ctx.reseed().rng;
-            let site = index.sites.insert(match &sim_site.kind {
-                SiteKind::Settlement => {
-                    WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
-                },
-                SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Castle => {
-                    WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
-                },
-                SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::SavannahPit => WorldSite::savannah_pit(
-                    site2::Site::generate_savannah_pit(&Land::from_sim(ctx.sim), &mut rng, wpos),
-                ),
-                SiteKind::DesertCity => WorldSite::desert_city(site2::Site::generate_desert_city(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Tree => {
-                    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
-                },
-                SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::ChapelSite => WorldSite::chapel_site(site2::Site::generate_chapel_site(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
+            let site = index.sites.insert({
+                let index_ref = IndexRef {
+                    colors: &index.colors(),
+                    features: &index.features(),
+                    index,
+                };
+                match &sim_site.kind {
+                    SiteKind::Settlement => {
+                        WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
+                    },
+                    SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Castle => {
+                        WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
+                    },
+                    SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::SavannahPit => {
+                        WorldSite::savannah_pit(site2::Site::generate_savannah_pit(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                        ))
+                    },
+                    SiteKind::DesertCity => WorldSite::desert_city(
+                        site2::Site::generate_desert_city(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
+                    SiteKind::Tree => {
+                        WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
+                    },
+                    SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::ChapelSite => WorldSite::chapel_site(
+                        site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
+                    SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Bridge(a, b) => WorldSite::bridge(site2::Site::generate_bridge(
+                        &Land::from_sim(ctx.sim),
+                        index_ref,
+                        &mut rng,
+                        *a,
+                        *b,
+                    )),
+                }
             });
             sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];
@@ -980,12 +997,21 @@ impl Civs {
     ) -> Id<Site> {
         const SITE_AREA: Range<usize> = 1..4; //64..256;
 
-        let place = match ctx.sim.get(loc).and_then(|site| site.place) {
-            Some(place) => place,
-            None => self.establish_place(ctx, loc, SITE_AREA),
-        };
+        fn establish_site(
+            civs: &mut Civs,
+            ctx: &mut GenCtx<impl Rng>,
+            loc: Vec2<i32>,
+            site_fn: impl FnOnce(Id<Place>) -> Site,
+        ) -> Id<Site> {
+            let place = match ctx.sim.get(loc).and_then(|site| site.place) {
+                Some(place) => place,
+                None => civs.establish_place(ctx, loc, SITE_AREA),
+            };
 
-        let site = self.sites.insert(site_fn(place));
+            civs.sites.insert(site_fn(place))
+        }
+
+        let site = establish_site(self, ctx, loc, site_fn);
 
         // Find neighbors
         const MAX_NEIGHBOR_DISTANCE: f32 = 2000.0;
@@ -1017,7 +1043,12 @@ impl Civs {
         {
             for (nearby, _) in nearby.into_iter().take(5) {
                 // Find a novel path
-                if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {
+                if let Some((path, cost)) = find_path(
+                    ctx,
+                    |start| self.bridges.get(&start).map(|(end, _)| *end),
+                    loc,
+                    self.sites.get(nearby).center,
+                ) {
                     // Find a path using existing paths
                     if self
                         .route_between(site, nearby)
@@ -1027,16 +1058,55 @@ impl Civs {
                     {
                         // Write the track to the world as a path
                         for locs in path.nodes().windows(3) {
-                            let to_prev_idx = NEIGHBORS
+                            let mut randomize_offset = false;
+                            if let Some((i, _)) = NEIGHBORS
                                 .iter()
                                 .enumerate()
                                 .find(|(_, dir)| **dir == locs[0] - locs[1])
-                                .expect("Track locations must be neighbors")
-                                .0;
-                            let to_next_idx = NEIGHBORS
+                            {
+                                ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
+                                    1 << ((i as u8 + 4) % 8);
+                                ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |=
+                                    1 << (i as u8);
+                                randomize_offset = true;
+                            }
+
+                            if let Some((i, _)) = NEIGHBORS
                                 .iter()
                                 .enumerate()
                                 .find(|(_, dir)| **dir == locs[2] - locs[1])
+                            {
+                                ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
+                                    1 << ((i as u8 + 4) % 8);
+                                ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |=
+                                    1 << (i as u8);
+                                randomize_offset = true;
+                            } else if !self.bridges.contains_key(&locs[1]) {
+                                let center = (locs[1] + locs[2]) / 2;
+                                let id =
+                                    establish_site(self, &mut ctx.reseed(), center, move |place| {
+                                        Site {
+                                            kind: SiteKind::Bridge(locs[1], locs[2]),
+                                            site_tmp: None,
+                                            center,
+                                            place,
+                                        }
+                                    });
+                                self.bridges.insert(locs[1], (locs[2], id));
+                                self.bridges.insert(locs[2], (locs[1], id));
+                            }
+                            /*
+                            let to_prev_idx = NEIGHBORS
+                                .iter()
+                                .enumerate()
+                                .find(|(_, dir)| **dir == (locs[0] - locs[1]).map(|e| e.signum()))
+                                .expect("Track locations must be neighbors")
+                                .0;
+
+                            let to_next_idx = NEIGHBORS
+                                .iter()
+                                .enumerate()
+                                .find(|(_, dir)| **dir == (locs[2] - locs[1]).map(|e| e.signum()))
                                 .expect("Track locations must be neighbors")
                                 .0;
 
@@ -1047,8 +1117,14 @@ impl Civs {
                             let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
                             chunk.path.0.neighbors |=
                                 (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-                            chunk.path.0.offset =
-                                Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
+                            */
+                            if randomize_offset {
+                                let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                                chunk.path.0.offset = Vec2::new(
+                                    ctx.rng.gen_range(-16..17),
+                                    ctx.rng.gen_range(-16..17),
+                                );
+                            }
                         }
 
                         // Take note of the track
@@ -1125,21 +1201,25 @@ impl Civs {
 /// Attempt to find a path between two locations
 fn find_path(
     ctx: &mut GenCtx<impl Rng>,
+    get_bridge: impl Fn(Vec2<i32>) -> Option<Vec2<i32>>,
     a: Vec2<i32>,
     b: Vec2<i32>,
 ) -> Option<(Path<Vec2<i32>>, f32)> {
     const MAX_PATH_ITERS: usize = 100_000;
     let sim = &ctx.sim;
     let heuristic = move |l: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
+    let get_bridge = &get_bridge;
     let neighbors = |l: &Vec2<i32>| {
         let l = *l;
         NEIGHBORS
             .iter()
-            .filter(move |dir| walk_in_dir(sim, l, **dir).is_some())
-            .map(move |dir| l + *dir)
+            .filter_map(move |dir| walk_in_dir(sim, get_bridge, l, *dir))
+            .map(move |(p, _)| p)
     };
-    let transition =
-        |a: &Vec2<i32>, b: &Vec2<i32>| 1.0 + walk_in_dir(sim, *a, *b - *a).unwrap_or(10000.0);
+    let transition = |a: &Vec2<i32>, b: &Vec2<i32>| {
+        1.0 + walk_in_dir(sim, get_bridge, *a, (*b - *a).map(|e| e.signum()))
+            .map_or(10000.0, |(_, cost)| cost)
+    };
     let satisfied = |l: &Vec2<i32>| *l == b;
     // We use this hasher (FxHasher64) because
     // (1) we don't care about DDOS attacks (ruling out SipHash);
@@ -1160,23 +1240,33 @@ fn find_path(
 /// Return Some if travel between a location and a chunk next to it is permitted
 /// If permitted, the approximate relative const of traversal is given
 // (TODO: by whom?)
-fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
-    if loc_suitable_for_walking(sim, a) && loc_suitable_for_walking(sim, a + dir) {
+fn walk_in_dir(
+    sim: &WorldSim,
+    get_bridge: impl Fn(Vec2<i32>) -> Option<Vec2<i32>>,
+    a: Vec2<i32>,
+    dir: Vec2<i32>,
+) -> Option<(Vec2<i32>, f32)> {
+    if let Some(p) = get_bridge(a).filter(|p| (p - a).map(|e| e.signum()) == dir) {
+        // Traversing an existing bridge has no cost.
+        Some((p, 0.0))
+    } else if loc_suitable_for_walking(sim, a + dir) {
         let a_chunk = sim.get(a)?;
         let b_chunk = sim.get(a + dir)?;
 
         let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 5.0).powi(2);
-        let water_cost = if b_chunk.river.near_water() {
-            50.0
-        } else {
-            0.0
-        } + (b_chunk.water_alt - b_chunk.alt + 8.0).clamped(0.0, 8.0) * 3.0; // Try not to path swamps / tidal areas
+
+        let water_cost = (b_chunk.water_alt - b_chunk.alt + 8.0).clamped(0.0, 8.0) * 3.0; // Try not to path swamps / tidal areas
         let wild_cost = if b_chunk.path.0.is_way() {
             0.0 // Traversing existing paths has no additional cost!
         } else {
             3.0 // + (1.0 - b_chunk.tree_density) * 20.0 // Prefer going through forests, for aesthetics
         };
-        Some(1.0 + hill_cost + water_cost + wild_cost)
+        Some((a + dir, 1.0 + hill_cost + water_cost + wild_cost))
+    } else if dir.x == 0 || dir.y == 0 {
+        (4..=5).find_map(|i| {
+            loc_suitable_for_walking(sim, a + dir * i)
+                .then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
+        })
     } else {
         None
     }
@@ -1184,8 +1274,11 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
 
 /// Return true if a position is suitable for walking on
 fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
-    if let Some(chunk) = sim.get(loc) {
-        !chunk.river.is_ocean() && !chunk.river.is_lake() && !chunk.near_cliffs()
+    if sim.get(loc).is_some() {
+        !NEIGHBORS.iter().any(|n| {
+            sim.get(loc + *n)
+                .map_or(false, |chunk| chunk.river.near_water())
+        })
     } else {
         false
     }
@@ -1312,6 +1405,7 @@ pub enum SiteKind {
     GiantTree,
     Gnarling,
     Citadel,
+    Bridge(Vec2<i32>, Vec2<i32>),
 }
 
 impl SiteKind {
@@ -1431,6 +1525,8 @@ impl SiteKind {
                     && has_building_materials
                     && industry_score > score_threshold
                     && warm_or_firewood
+                    // Because of how the algorithm for site2 towns work, they have to start on land.
+                    && on_land()
             };
             match self {
                 SiteKind::Gnarling => {
@@ -1495,6 +1591,7 @@ impl SiteKind {
                 },
                 SiteKind::Dungeon => on_land(),
                 SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(6.7),
+                SiteKind::Bridge(_, _) => true,
             }
         })
     }
@@ -1525,6 +1622,8 @@ impl Site {
     }
 
     pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
+
+    pub fn is_bridge(&self) -> bool { matches!(self.kind, SiteKind::Bridge(_, _)) }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]

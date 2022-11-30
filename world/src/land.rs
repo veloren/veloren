@@ -1,4 +1,4 @@
-use crate::sim;
+use crate::{column::ColumnGen, sim, util::Sampler, ColumnSample, IndexRef};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 
@@ -44,5 +44,14 @@ impl<'a> Land<'a> {
         wpos: Vec2<i32>,
     ) -> Option<(f32, Vec2<f32>, sim::Path, Vec2<f32>)> {
         self.sim.and_then(|sim| sim.get_nearest_path(wpos))
+    }
+
+    pub fn column_sample<'sample>(
+        &'sample self,
+        wpos: Vec2<i32>,
+        index: IndexRef<'sample>,
+    ) -> Option<ColumnSample<'sample>> {
+        self.sim
+            .and_then(|sim| ColumnGen::new(sim).get((wpos, index, None)))
     }
 }

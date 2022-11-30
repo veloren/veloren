@@ -73,6 +73,7 @@ pub enum SiteKind {
     ChapelSite(site2::Site),
     GiantTree(site2::Site),
     Gnarling(site2::Site),
+    Bridge(site2::Site),
 }
 
 impl Site {
@@ -153,6 +154,13 @@ impl Site {
         }
     }
 
+    pub fn bridge(b: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::Bridge(b),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn radius(&self) -> f32 {
         match &self.kind {
             SiteKind::Settlement(s) => s.radius(),
@@ -166,6 +174,7 @@ impl Site {
             SiteKind::Tree(t) => t.radius(),
             SiteKind::GiantTree(gt) => gt.radius(),
             SiteKind::Gnarling(g) => g.radius(),
+            SiteKind::Bridge(b) => b.radius(),
         }
     }
 
@@ -182,6 +191,7 @@ impl Site {
             SiteKind::Tree(t) => t.origin,
             SiteKind::GiantTree(gt) => gt.origin,
             SiteKind::Gnarling(g) => g.origin,
+            SiteKind::Bridge(b) => b.origin,
         }
     }
 
@@ -198,6 +208,7 @@ impl Site {
             SiteKind::Tree(t) => t.spawn_rules(wpos),
             SiteKind::GiantTree(gt) => gt.spawn_rules(wpos),
             SiteKind::Gnarling(g) => g.spawn_rules(wpos),
+            SiteKind::Bridge(b) => b.spawn_rules(wpos),
         }
     }
 
@@ -214,6 +225,7 @@ impl Site {
             SiteKind::Tree(_) => "Giant Tree",
             SiteKind::GiantTree(gt) => gt.name(),
             SiteKind::Gnarling(g) => g.name(),
+            SiteKind::Bridge(b) => b.name(),
         }
     }
 
@@ -249,6 +261,7 @@ impl Site {
             SiteKind::Tree(t) => t.render(canvas, dynamic_rng),
             SiteKind::GiantTree(gt) => gt.render(canvas, dynamic_rng),
             SiteKind::Gnarling(g) => g.render(canvas, dynamic_rng),
+            SiteKind::Bridge(b) => b.render(canvas, dynamic_rng),
         }
     }
 
@@ -278,6 +291,7 @@ impl Site {
             SiteKind::Tree(_) => {},
             SiteKind::GiantTree(gt) => gt.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::Bridge(b) => b.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 

@@ -1,3 +1,4 @@
+mod bridge;
 mod castle;
 mod citadel;
 mod cliff_tower;
@@ -12,7 +13,7 @@ mod sea_chapel;
 mod workshop;
 
 pub use self::{
-    castle::Castle, citadel::Citadel, cliff_tower::CliffTower,
+    bridge::Bridge, castle::Castle, citadel::Citadel, cliff_tower::CliffTower,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
     dungeon::Dungeon, giant_tree::GiantTree, gnarling::GnarlingFortification, house::House,
     savannah_pit::SavannahPit, sea_chapel::SeaChapel, workshop::Workshop,
@@ -66,4 +67,5 @@ pub enum PlotKind {
     CliffTower(CliffTower),
     Citadel(Citadel),
     SavannahPit(SavannahPit),
+    Bridge(Bridge),
 }

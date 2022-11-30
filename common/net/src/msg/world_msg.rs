@@ -148,6 +148,7 @@ pub enum SiteKind {
     Tree,
     Gnarling,
     ChapelSite,
+    Bridge,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

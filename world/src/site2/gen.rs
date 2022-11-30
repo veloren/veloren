@@ -15,7 +15,7 @@ use common::{
     vol::ReadVol,
 };
 use num::cast::AsPrimitive;
-use std::{cell::RefCell, sync::Arc};
+use std::{cell::RefCell, ops::RangeBounds, sync::Arc};
 use vek::*;
 
 #[allow(dead_code)]
@@ -289,13 +289,11 @@ impl Fill {
                             - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
             },
             Primitive::Cylinder(aabb) => {
+                // Add 0.5 since the aabb is exclusive.
+                let fpos = pos.as_::<f32>().xy() - aabb.as_::<f32>().center().xy() + 0.5;
+                let size = Vec3::from(aabb.size().as_::<f32>()).xy();
                 (aabb.min.z..aabb.max.z).contains(&pos.z)
-                    && (pos
-                        .xy()
-                        .as_()
-                        .distance_squared(aabb.as_().center().xy() - 0.5)
-                        as f32)
-                        < (aabb.size().w.min(aabb.size().h) as f32 / 2.0).powi(2)
+                    && (2.0 * fpos / size).magnitude_squared() <= 1.0
             },
             Primitive::Cone(aabb) => {
                 (aabb.min.z..aabb.max.z).contains(&pos.z)
@@ -389,10 +387,9 @@ impl Fill {
                 Self::contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
             },
             Primitive::Scale(prim, vec) => {
-                let center =
-                    Self::get_bounds(tree, *prim).center().as_::<f32>() - Vec3::broadcast(0.5);
+                let center = Self::get_bounds(tree, *prim).as_::<f32>().center();
                 let fpos = pos.as_::<f32>();
-                let spos = (center + ((center - fpos) / vec))
+                let spos = (center + ((fpos - center) / vec))
                     .map(|x| x.round())
                     .as_::<i32>();
                 Self::contains_at(tree, *prim, spos)
@@ -782,6 +779,20 @@ impl Painter {
         self.prim(Primitive::Cylinder(aabb.made_valid()))
     }
 
+    /// Returns a `PrimitiveRef` of the largest horizontal cylinder that fits in
+    /// the provided Aabb.
+    pub fn horizontal_cylinder(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+        let aabr = Aabr::from(aabb);
+        let length = dir.select(aabr.size());
+        let height = aabb.max.z - aabb.min.z;
+        let aabb = Aabb {
+            min: (aabr.min - dir.abs().to_vec2() * height).with_z(aabb.min.z),
+            max: (dir.abs().select_with(aabr.min, aabr.max)).with_z(aabb.min.z + length),
+        };
+        self.cylinder(aabb)
+            .rotate_about((-dir.abs()).from_z_mat3(), aabr.min.with_z(aabb.min.z))
+    }
+
     /// Returns a `PrimitiveRef` of a cylinder using a radius check where a
     /// radius and origin are parameters instead of a bounding box.
     pub fn cylinder_with_radius(
@@ -970,9 +981,18 @@ impl Painter {
     /// Returns a `PrimitiveRef` of an Aabb with a slope cut into it. The
     /// `inset` governs the slope. The `dir` determines which direction the
     /// ramp points.
-    pub fn ramp(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
+    pub fn ramp_inset(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp { aabb, inset, dir })
+    }
+
+    pub fn ramp(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+        let aabb = aabb.made_valid();
+        self.prim(Primitive::Ramp {
+            aabb,
+            inset: dir.select((aabb.size().w, aabb.size().h)),
+            dir,
+        })
     }
 
     /// Returns a `PrimitiveRef` of a triangular prism with the base being
@@ -1050,6 +1070,123 @@ impl Painter {
         } else {
             self.fills.borrow_mut().push((prim, fill));
         }
+    }
+
+    /// ```text
+    ///     ___
+    ///    /  /\
+    ///   /__/  |
+    ///  /   \  |
+    /// |     | /
+    /// |_____|/
+    /// ```
+    /// A horizontal half cylinder on top of an `Aabb`.
+    pub fn vault(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+        let h = dir.orthogonal().select(Vec3::from(aabb.size()).xy());
+
+        let mut prim = self.horizontal_cylinder(
+            Aabb {
+                min: aabb.min.with_z(aabb.max.z - h),
+                max: aabb.max,
+            },
+            dir,
+        );
+
+        if aabb.size().d < h {
+            prim = prim.intersect(self.aabb(aabb));
+        }
+
+        self.aabb(Aabb {
+            min: aabb.min,
+            max: aabb.max.with_z(aabb.max.z - h / 2),
+        })
+        .union(prim)
+    }
+
+    /// Place aabbs around another aabb in a symmetric and distributed manner.
+    pub fn aabbs_around_aabb(&self, aabb: Aabb<i32>, size: i32, offset: i32) -> PrimitiveRef {
+        let pillar = self.aabb(Aabb {
+            min: (aabb.min.xy() - 1).with_z(aabb.min.z),
+            max: (aabb.min.xy() + size - 1).with_z(aabb.max.z),
+        });
+
+        let true_offset = offset + size;
+
+        let size_x = aabb.max.x - aabb.min.x;
+        let size_y = aabb.max.y - aabb.min.y;
+
+        let num_aabbs = ((size_x + 1) / 2) / true_offset;
+        let x = pillar.repeat(Vec3::new(true_offset, 0, 0), num_aabbs as u32 + 1);
+
+        let num_aabbs = ((size_y + 1) / 2) / true_offset;
+        let y = pillar.repeat(Vec3::new(0, true_offset, 0), num_aabbs as u32 + 1);
+        let center = aabb.as_::<f32>().center();
+        let shape = x.union(y);
+        let shape =
+            shape.union(shape.rotate_about(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, -1), center));
+        shape.union(shape.rotate_about(Mat3::new(0, 1, 0, -1, 0, 0, 0, 0, 1), center))
+    }
+
+    pub fn staircase_in_aabb(
+        &self,
+        aabb: Aabb<i32>,
+        thickness: i32,
+        start_dir: Dir,
+    ) -> PrimitiveRef {
+        let mut forward = start_dir;
+        let mut z = aabb.max.z - 1;
+        let aabr = Aabr::from(aabb);
+
+        let mut prim = self.empty();
+
+        while z > aabb.min.z {
+            let right = forward.rotated_cw();
+            let fc = forward.select_aabr(aabr);
+            let corner =
+                fc * forward.abs().to_vec2() + right.select_aabr(aabr) * right.abs().to_vec2();
+            let aabb = Aabb {
+                min: corner.with_z(z),
+                max: (corner - (forward.to_vec2() + right.to_vec2()) * thickness).with_z(z + 1),
+            }
+            .made_valid();
+
+            let stair_len = ((fc - (-forward).select_aabr(aabr)).abs() - thickness * 2).max(1) + 1;
+
+            let stairs = self.ramp(
+                Aabb {
+                    min: (corner - right.to_vec2() * (stair_len + thickness)).with_z(z - stair_len),
+                    max: (corner
+                        - right.to_vec2() * (thickness - 1)
+                        - forward.to_vec2() * thickness)
+                        .with_z(z + 1),
+                }
+                .made_valid(),
+                right,
+            );
+
+            prim = prim
+                .union(self.aabb(aabb))
+                .union(stairs.without(stairs.translate(Vec3::new(0, 0, -2))));
+
+            z -= stair_len;
+            forward = forward.rotated_ccw();
+        }
+        prim
+    }
+
+    pub fn column(&self, point: Vec2<i32>, range: impl RangeBounds<i32>) -> PrimitiveRef {
+        self.aabb(Aabb {
+            min: point.with_z(match range.start_bound() {
+                std::ops::Bound::Included(n) => *n,
+                std::ops::Bound::Excluded(n) => n + 1,
+                std::ops::Bound::Unbounded => i32::MIN,
+            }),
+            max: (point + 1).with_z(match range.end_bound() {
+                std::ops::Bound::Included(n) => n + 1,
+                std::ops::Bound::Excluded(n) => *n,
+                std::ops::Bound::Unbounded => i32::MAX,
+            }),
+        })
     }
 
     /// The area that the canvas is currently rendering.
@@ -1133,7 +1270,7 @@ pub trait PrimitiveTransform {
     /// Scales the primitive along each axis by the x, y, and z components of
     /// the `scale` vector respectively.
     #[must_use]
-    fn scale(self, scale: Vec3<f32>) -> Self;
+    fn scale(self, scale: Vec3<impl AsPrimitive<f32>>) -> Self;
     /// Returns a `PrimitiveRef` of the primitive in addition to the same
     /// primitive translated by `offset` and repeated `count` times, each time
     /// translated by an additional offset.
@@ -1150,7 +1287,9 @@ impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
         self.painter.prim(Primitive::rotate_about(self, rot, point))
     }
 
-    fn scale(self, scale: Vec3<f32>) -> Self { self.painter.prim(Primitive::scale(self, scale)) }
+    fn scale(self, scale: Vec3<impl AsPrimitive<f32>>) -> Self {
+        self.painter.prim(Primitive::scale(self, scale.as_()))
+    }
 
     fn repeat(self, offset: Vec3<i32>, count: u32) -> Self {
         self.painter.prim(Primitive::repeat(self, offset, count))
@@ -1172,7 +1311,7 @@ impl<'a, const N: usize> PrimitiveTransform for [PrimitiveRef<'a>; N] {
         self
     }
 
-    fn scale(mut self, scale: Vec3<f32>) -> Self {
+    fn scale(mut self, scale: Vec3<impl AsPrimitive<f32>>) -> Self {
         for prim in &mut self {
             *prim = prim.scale(scale);
         }

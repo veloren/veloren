@@ -13,7 +13,7 @@ use crate::{
     sim::Path,
     site::{namegen::NameGen, SpawnRules},
     util::{attempt, DHashSet, Grid, CARDINALS, SQUARE_4, SQUARE_9},
-    Canvas, Land,
+    Canvas, IndexRef, Land,
 };
 use common::{
     astar::Astar,
@@ -68,7 +68,7 @@ impl Site {
                 // 25 Seems to be big enough for the current scale of 4.0
                 25
             } else {
-                1
+                5
             })
             * TILE_SIZE as i32) as f32
     }
@@ -988,6 +988,78 @@ impl Site {
         site
     }
 
+    pub fn generate_bridge(
+        land: &Land,
+        index: IndexRef,
+        rng: &mut impl Rng,
+        start: Vec2<i32>,
+        end: Vec2<i32>,
+    ) -> Self {
+        let mut rng = reseed(rng);
+        let start = TerrainChunkSize::center_wpos(start);
+        let end = TerrainChunkSize::center_wpos(end);
+        let origin = (start + end) / 2;
+
+        let mut site = Site {
+            origin,
+            name: format!("Bridge of {}", NameGen::location(&mut rng).generate_town()),
+            ..Site::default()
+        };
+
+        let start_tile = site.wpos_tile_pos(start);
+        let end_tile = site.wpos_tile_pos(end);
+
+        let width = 1;
+
+        let orth = (start_tile - end_tile).yx().map(|dir| dir.signum().abs());
+
+        let start_aabr = Aabr {
+            min: start_tile.map2(end_tile, |a, b| a.min(b)) - orth * width,
+            max: start_tile.map2(end_tile, |a, b| a.max(b)) + 1 + orth * width,
+        };
+
+        let bridge = plot::Bridge::generate(land, index, &mut rng, &site, start_tile, end_tile);
+
+        let start_tile = site.wpos_tile_pos(bridge.start.xy());
+        let end_tile = site.wpos_tile_pos(bridge.end.xy());
+
+        let width = (bridge.width() + TILE_SIZE as i32 / 2) / TILE_SIZE as i32;
+        let aabr = Aabr {
+            min: start_tile.map2(end_tile, |a, b| a.min(b)) - orth * width,
+            max: start_tile.map2(end_tile, |a, b| a.max(b)) + 1 + orth * width,
+        };
+
+        site.create_road(
+            land,
+            &mut rng,
+            bridge.dir.select_aabr_with(aabr, aabr.center()) + bridge.dir.to_vec2(),
+            bridge.dir.select_aabr_with(start_aabr, aabr.center()),
+            2,
+        );
+        site.create_road(
+            land,
+            &mut rng,
+            (-bridge.dir).select_aabr_with(aabr, aabr.center()) - bridge.dir.to_vec2(),
+            (-bridge.dir).select_aabr_with(start_aabr, aabr.center()),
+            2,
+        );
+
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::Bridge(bridge),
+            root_tile: start_tile,
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::Building,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+
+        site
+    }
+
     pub fn wpos_tile_pos(&self, wpos2d: Vec2<i32>) -> Vec2<i32> {
         (wpos2d - self.origin).map(|e| e.div_euclid(TILE_SIZE as i32))
     }
@@ -1245,6 +1317,7 @@ impl Site {
                     desert_city_temple.render_collect(self, canvas)
                 },
                 PlotKind::Citadel(citadel) => citadel.render_collect(self, canvas),
+                PlotKind::Bridge(bridge) => bridge.render_collect(self, canvas),
                 _ => continue,
             };
 

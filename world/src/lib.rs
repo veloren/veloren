@@ -158,6 +158,7 @@ impl World {
                                 civ::SiteKind::Gnarling => world_msg::SiteKind::Gnarling,
                                 civ::SiteKind::ChapelSite => world_msg::SiteKind::ChapelSite,
                                 civ::SiteKind::Citadel => world_msg::SiteKind::Castle,
+                                civ::SiteKind::Bridge(_, _) => world_msg::SiteKind::Bridge,
                             },
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }

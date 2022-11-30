@@ -1,7 +1,8 @@
 use crate::{
     column::ColumnSample,
     sim::{RiverKind, WorldSim},
-    CONFIG,
+    site::SiteKind,
+    IndexRef, CONFIG,
 };
 use common::{
     terrain::{
@@ -71,6 +72,7 @@ pub fn sample_wpos(config: &MapConfig, sampler: &WorldSim, wpos: Vec2<i32>) -> f
 pub fn sample_pos(
     config: &MapConfig,
     sampler: &WorldSim,
+    index: IndexRef,
     samples: Option<&[Option<ColumnSample>]>,
     pos: Vec2<i32>,
 ) -> MapSample {
@@ -102,6 +104,7 @@ pub fn sample_pos(
         river_kind,
         spline_derivative,
         is_path,
+        is_bridge,
     ) = sampler
         .get(pos)
         .map(|sample| {
@@ -116,6 +119,21 @@ pub fn sample_pos(
                 sample.river.river_kind,
                 sample.river.spline_derivative,
                 sample.path.0.is_way(),
+                sample
+                    .sites
+                    .iter()
+                    .any(|site| match &index.sites.get(*site).kind {
+                        SiteKind::Bridge(bridge) => {
+                            if let Some(plot) =
+                                bridge.wpos_tile(TerrainChunkSize::center_wpos(pos)).plot
+                            {
+                                matches!(bridge.plot(plot).kind, crate::site2::PlotKind::Bridge(_))
+                            } else {
+                                false
+                            }
+                        },
+                        _ => false,
+                    }),
             )
         })
         .unwrap_or((
@@ -128,6 +146,7 @@ pub fn sample_pos(
             None,
             None,
             Vec2::zero(),
+            false,
             false,
         ));
 
@@ -246,7 +265,9 @@ pub fn sample_pos(
             }
         };
     // TODO: Make principled.
-    let rgb = if is_path {
+    let rgb = if is_bridge {
+        Rgb::new(0x80, 0x80, 0x80)
+    } else if is_path {
         Rgb::new(0x37, 0x29, 0x23)
     } else {
         rgb
