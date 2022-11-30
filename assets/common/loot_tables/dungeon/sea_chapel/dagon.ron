@@ -1,4 +1,5 @@
 [    
     (0.5, Item("common.items.crafting_ing.abyssal_heart")),
     (5.0, LootTable("common.loot_tables.creature.quad_low.fanged")),
+    (5.0, Item("common.items.food.meat.tough_raw")),
 ]
