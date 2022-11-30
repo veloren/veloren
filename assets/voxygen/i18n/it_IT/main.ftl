@@ -1,4 +1,4 @@
-main-username = Nome Utente
+main-username = Nome utente
 main-server = Server
 main-password = Password
 main-connecting = Connessione in corso
@@ -10,9 +10,9 @@ main-notice =
     
     Prima di tuffarti nel divertimento, ti preghiamo di tenere a mente che:
     
-    - Questa è un'Alpha molto prematura. Aspettati errori, gameplay non completo, meccaniche non rifinite, e funzioni mancanti.
+    - Questa è una versione alpha molto prematura. Aspettati errori, giocabilità non completa, meccaniche non rifinite e funzioni mancanti.
     
-    - Se hai critiche costruttive o errori da segnalare, ci puoi contattare tramite Reddit, GitLab, o il server Discord della nostra community.
+    - Se hai critiche costruttive o errori da segnalare, ci puoi contattare tramite Reddit, GitLab o il server Discord della nostra community.
     
     - Veloren è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare, e ridistribuire il gioco come 
      tu desideri (purché il lavoro che ne derivi sia sempre sotto licenza GPL 3).
@@ -24,7 +24,7 @@ main-notice =
     
     ~ Il team di sviluppo di Veloren
 main-login_process =
-    Informazioni sul processo di Login:
+    Informazioni sul processo di autenticazione:
     
     Notare che hai bisogno di un account
     per giocare su server con autenticazione abilitata.
