@@ -263,7 +263,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         ) {
                             let water_chunk = posj.map(|e| e as f64);
                             let lake_width_noise =
-                                sim.gen_ctx.small_nz.get((wposf.div(32.0)).into_array());
+                                sim.gen_ctx.small_nz.get(wposf.div(32.0).into_array());
                             let water_aabr = Aabr {
                                 min: water_chunk * neighbor_coef + 4.0 - lake_width_noise * 8.0,
                                 max: (water_chunk + 1.0) * neighbor_coef - 4.0
@@ -312,7 +312,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     RiverKind::Ocean => {
                         let water_chunk = posj.map(|e| e as f64);
                         let lake_width_noise =
-                            sim.gen_ctx.small_nz.get((wposf.div(32.0)).into_array());
+                            sim.gen_ctx.small_nz.get(wposf.div(32.0).into_array());
                         let water_aabr = Aabr {
                             min: water_chunk * neighbor_coef + 4.0 - lake_width_noise * 8.0,
                             max: (water_chunk + 1.0) * neighbor_coef - 4.0 + lake_width_noise * 8.0,
