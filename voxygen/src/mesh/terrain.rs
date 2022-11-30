@@ -348,7 +348,7 @@ pub fn generate_mesh<'a>(
     .map_or((0, 0), |limits| {
         let (start, end) = limits.into_tuple();
         let start = start.max(0);
-        let end = end.min(range.size().d - 1).max(start);
+        let end = end.clamp(start, range.size().d - 1);
         (start, end)
     });
 

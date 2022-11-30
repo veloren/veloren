@@ -19,10 +19,10 @@ impl Animation for RapidMeleeAnimation {
     const UPDATE_FN: &'static [u8] = b"character_rapid_melee\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_rapid_melee")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, stage_section, (current_strike, max_strikes), _ability_info): Self::Dependency<
-            'a,
+            '_,
         >,
         anim_time: f32,
         rate: &mut f32,

@@ -111,8 +111,8 @@ pub struct EntitySyncPackage {
     pub deleted_entities: Vec<u64>,
 }
 impl EntitySyncPackage {
-    pub fn new<'a>(
-        uids: &ReadStorage<'a, Uid>,
+    pub fn new(
+        uids: &ReadStorage<'_, Uid>,
         uid_tracker: &UpdateTracker<Uid>,
         filter: impl Join + Copy,
         deleted_entities: Vec<u64>,
@@ -186,10 +186,10 @@ impl<P: CompPacket> CompSyncPackage<P> {
 
     /// If there was an update to the component `C` on the provided entity this
     /// will add the update to this package.
-    pub fn add_component_update<'a, C: Component + Clone + Send + Sync>(
+    pub fn add_component_update<C: Component + Clone + Send + Sync>(
         &mut self,
         tracker: &UpdateTracker<C>,
-        storage: &ReadStorage<'a, C>,
+        storage: &ReadStorage<'_, C>,
         uid: u64,
         entity: Entity,
     ) where

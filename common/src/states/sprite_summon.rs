@@ -116,7 +116,7 @@ impl CharacterBehavior for Data {
 
                                 // Location sprite will be created
                                 let sprite_pos =
-                                    Vec3::new(sprite_pos.x as i32, sprite_pos.y as i32, z);
+                                    Vec3::new(sprite_pos.x, sprite_pos.y, z);
                                 // Layers of sprites
                                 let layers = match self.static_data.sprite {
                                     SpriteKind::SeaUrchin => 2,
@@ -125,7 +125,7 @@ impl CharacterBehavior for Data {
                                 for i in 0..layers {
                                     // Send server event to create sprite
                                     output_events.emit_server(ServerEvent::CreateSprite {
-                                        pos: Vec3::new(sprite_pos.x as i32, sprite_pos.y, z + i),
+                                        pos: Vec3::new(sprite_pos.x, sprite_pos.y, z + i),
                                         sprite: self.static_data.sprite,
                                     });
                                 }

@@ -591,10 +591,10 @@ impl ComponentRecipe {
         let mut slot_claims = HashMap::new();
         let mut unsatisfied_requirements = Vec::new();
 
-        fn handle_requirement<'a, 'b, I: Iterator<Item = InvSlotId>>(
+        fn handle_requirement<'a, I: Iterator<Item = InvSlotId>>(
             slot_claims: &mut HashMap<InvSlotId, u32>,
             unsatisfied_requirements: &mut Vec<(&'a RecipeInput, u32)>,
-            inv: &'b Inventory,
+            inv: &Inventory,
             input: &'a RecipeInput,
             amount: u32,
             input_slots: I,

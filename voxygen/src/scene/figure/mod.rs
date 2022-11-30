@@ -224,7 +224,7 @@ impl FigureMgrStates {
         }
     }
 
-    fn remove<'a, Q: ?Sized>(&'a mut self, body: &Body, entity: &Q) -> Option<FigureStateMeta>
+    fn remove<Q: ?Sized>(&mut self, body: &Body, entity: &Q) -> Option<FigureStateMeta>
     where
         EcsEntity: Borrow<Q>,
         Q: Hash + Eq,
@@ -824,7 +824,7 @@ impl FigureMgr {
             let vd_frac = anim::vek::Vec2::from(pos.0 - player_pos)
                 .map2(
                     anim::vek::Vec2::<u32>::from(TerrainChunk::RECT_SIZE),
-                    |d: f32, sz| d.abs() as f32 / sz as f32,
+                    |d: f32, sz| d.abs() / sz as f32,
                 )
                 .magnitude()
                 / view_distance as f32;

@@ -814,7 +814,6 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     /// Maintain terrain data. To be called once per tick.
-    #[allow(clippy::for_loops_over_fallibles)] // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -1019,7 +1018,9 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         span!(guard, "Queue meshing from todo list");
         let mesh_focus_pos = focus_pos.map(|e| e.trunc()).xy().as_::<i64>();
-        for (todo, chunk) in self
+        //TODO: this is actually no loop, it just runs for a single entry because of
+        // the `min_by_key`. Evaluate actually looping here
+        while let Some((todo, chunk)) = self
             .mesh_todo
             .values_mut()
             .filter(|todo| !todo.is_worker_active)

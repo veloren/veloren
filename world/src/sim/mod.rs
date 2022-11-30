@@ -697,7 +697,7 @@ impl WorldSim {
             hill_nz: SuperSimplex::new().set_seed(rng.gen()),
             alt_nz: util::HybridMulti::new()
                 .set_octaves(8)
-                .set_frequency((10_000.0 / continent_scale) as f64)
+                .set_frequency(10_000.0 / continent_scale)
                 // persistence = lacunarity^(-(1.0 - fractal increment))
                 .set_lacunarity(util::HybridMulti::DEFAULT_LACUNARITY)
                 .set_persistence(util::HybridMulti::DEFAULT_LACUNARITY.powi(-1))
@@ -811,9 +811,8 @@ impl WorldSim {
         let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
         let map_size_chunks_len_f64 = map_size_lg.chunks().map(f64::from).product();
-        let min_epsilon = 1.0 / map_size_chunks_len_f64.max(f64::EPSILON as f64 * 0.5);
-        let max_epsilon =
-            (1.0 - 1.0 / map_size_chunks_len_f64).min(1.0 - f64::EPSILON as f64 * 0.5);
+        let min_epsilon = 1.0 / map_size_chunks_len_f64.max(f64::EPSILON * 0.5);
+        let max_epsilon = (1.0 - 1.0 / map_size_chunks_len_f64).min(1.0 - f64::EPSILON * 0.5);
 
         // No NaNs in these uniform vectors, since the original noise value always
         // returns Some.
@@ -828,8 +827,7 @@ impl WorldSim {
                         (gen_ctx
                             .alt_nz
                             .get((wposf.div(10_000.0)).into_array())
-                            .min(1.0)
-                            .max(-1.0))
+                            .clamp(-1.0, 1.0))
                         .sub(0.05)
                         .mul(0.35),
                     )
@@ -851,8 +849,7 @@ impl WorldSim {
                                     .div(1_500.0))
                                 .into_array(),
                             )
-                            .min(1.0)
-                            .max(-1.0)
+                            .clamp(-1.0, 1.0)
                             .mul(1.0)
                         + gen_ctx
                             .hill_nz
@@ -863,8 +860,7 @@ impl WorldSim {
                                     .div(400.0))
                                 .into_array(),
                             )
-                            .min(1.0)
-                            .max(-1.0)
+                            .clamp(-1.0, 1.0)
                             .mul(0.3))
                     .add(0.3)
                     .max(0.0);
@@ -876,8 +872,7 @@ impl WorldSim {
                         ((gen_ctx
                             .chaos_nz
                             .get((wposf.div(3_000.0)).into_array())
-                            .min(1.0)
-                            .max(-1.0))
+                            .clamp(-1.0, 1.0))
                         .add(1.0)
                         .mul(0.5)
                         // [0, 1] * [0.4, 1] = [0, 1] (but probably towards the lower end)
@@ -885,11 +880,9 @@ impl WorldSim {
                             (gen_ctx
                                 .chaos_nz
                                 .get((wposf.div(6_000.0)).into_array())
-                                .min(1.0)
-                                .max(-1.0))
+                                .clamp(-1.0, 1.0))
                             .abs()
-                            .max(0.4)
-                            .min(1.0),
+                                .clamp(0.4, 1.0),
                         )
                         // Chaos is always increased by a little when we're on a hill (but remember
                         // that hill is 0.3 or less about 50% of the time).
@@ -934,8 +927,7 @@ impl WorldSim {
                 let alt_main = (gen_ctx
                     .alt_nz
                     .get((wposf.div(2_000.0)).into_array())
-                    .min(1.0)
-                    .max(-1.0))
+                    .clamp(-1.0, 1.0))
                 .abs()
                 .powf(1.35);
 
@@ -951,8 +943,7 @@ impl WorldSim {
                                 .div(300.0))
                             .into_array(),
                         )
-                        .min(1.0)
-                        .max(-1.0))
+                        .clamp(-1.0, 1.0))
                     .mul(alt_main.powf(0.8).max(/* 0.25 */ 0.15))
                     .mul(0.3)
                     .add(1.0)
@@ -1042,7 +1033,7 @@ impl WorldSim {
         let theta_func = |_posi| 0.4;
         let kf_func = {
             |posi| {
-                let kf_scale_i = k_fs_scale(theta_func(posi), n_func(posi)) as f64;
+                let kf_scale_i = k_fs_scale(theta_func(posi), n_func(posi));
                 if is_ocean_fn(posi) {
                     return 1.0e-4 * kf_scale_i;
                 }
@@ -1120,8 +1111,7 @@ impl WorldSim {
             let uheight = gen_ctx
                 .uplift_nz
                 .get(turb_wposf.into_array())
-                .min(1.0)
-                .max(-1.0)
+                .clamp(-1.0, 1.0)
                 .mul(0.5)
                 .add(0.5);
             let wposf3 = Vec3::new(
@@ -1132,8 +1122,7 @@ impl WorldSim {
             let rock_strength = gen_ctx
                 .rock_strength_nz
                 .get(wposf3.into_array())
-                .min(1.0)
-                .max(-1.0)
+                .clamp(-1.0, 1.0)
                 .mul(0.5)
                 .add(0.5);
             let center = 0.4;
@@ -1141,8 +1130,8 @@ impl WorldSim {
             let dmax = center + 0.05;
             let log_odds = |x: f64| logit(x) - logit(center);
             let ustrength = logistic_cdf(
-                1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
-                    + 1.0 * log_odds(uheight.min(dmax).max(dmin)),
+                1.0 * logit(rock_strength.clamp(1e-7, 1.0f64 - 1e-7))
+                    + 1.0 * log_odds(uheight.clamp(dmin, dmax)),
             );
             // marine: ε₀ = 2.078e-3
             // San Gabriel Mountains: ε₀ = 3.18e-4
@@ -1175,8 +1164,7 @@ impl WorldSim {
             let uheight = gen_ctx
                 .uplift_nz
                 .get(turb_wposf.into_array())
-                .min(1.0)
-                .max(-1.0)
+                .clamp(-1.0, 1.0)
                 .mul(0.5)
                 .add(0.5);
             let wposf3 = Vec3::new(
@@ -1187,8 +1175,7 @@ impl WorldSim {
             let rock_strength = gen_ctx
                 .rock_strength_nz
                 .get(wposf3.into_array())
-                .min(1.0)
-                .max(-1.0)
+                .clamp(-1.0, 1.0)
                 .mul(0.5)
                 .add(0.5);
             let center = 0.4;
@@ -1196,8 +1183,8 @@ impl WorldSim {
             let dmax = center + 0.05;
             let log_odds = |x: f64| logit(x) - logit(center);
             let ustrength = logistic_cdf(
-                1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
-                    + 1.0 * log_odds(uheight.min(dmax).max(dmin)),
+                1.0 * logit(rock_strength.clamp(1e-7, 1.0f64 - 1e-7))
+                    + 1.0 * log_odds(uheight.clamp(dmin, dmax)),
             );
             // Frog Hollow (peak production = 0.25): α = 4.2e-2
             // San Gabriel Mountains: α = 3.8e-2
@@ -1213,8 +1200,8 @@ impl WorldSim {
             if is_ocean_fn(posi) {
                 return 0.0;
             }
-            let height = (uplift_uniform[posi].1 - alt_old_min_uniform) as f64
-                / (alt_old_max_uniform - alt_old_min_uniform) as f64;
+            let height = (uplift_uniform[posi].1 - alt_old_min_uniform)
+                / (alt_old_max_uniform - alt_old_min_uniform);
 
             let height = height.mul(max_epsilon - min_epsilon).add(min_epsilon);
             let height = erosion_factor(height);
@@ -1225,8 +1212,8 @@ impl WorldSim {
             // u = 5e-4: normal (mid example in Yuan, average mountain uplift)
             // u = 2e-4: low (low example in Yuan; known that lagoons etc. may have u ~
             // 0.05). u = 0: low (plateau [fan, altitude = 0.0])
-            let height = height.mul(max_erosion_per_delta_t);
-            height as f64
+
+            height.mul(max_erosion_per_delta_t)
         };
         let alt_func = |posi| {
             if is_ocean_fn(posi) {
@@ -1685,7 +1672,7 @@ impl WorldSim {
                 // NOTE: Safe by invariants on map_size_lg.
                 let posi = (pos.y << self.map_size_lg().vec().x) | pos.x;
                 v[posi] = u32::from_le_bytes([r, g, b, a]);
-                alts[posi] = (((alt.min(1.0).max(0.0) * 8191.0) as u32) & 0x1FFF) << 3;
+                alts[posi] = (((alt.clamp(0.0, 1.0) * 8191.0) as u32) & 0x1FFF) << 3;
             },
         );
         WorldMapMsg {
@@ -2472,8 +2459,7 @@ impl SimChunk {
                 // Forces lakes to be downhill from the land around them, and adds some noise to
                 // the lake bed to make sure it's not too flat.
                 let lake_bottom_nz = (gen_ctx.small_nz.get((wposf.div(20.0)).into_array()) as f32)
-                    .max(-1.0)
-                    .min(1.0)
+                    .clamp(-1.0, 1.0)
                     .mul(3.0);
                 alt = alt.min(water_alt - 5.0) + lake_bottom_nz;
             },
@@ -2486,12 +2472,9 @@ impl SimChunk {
             0.0
         } else {
             let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()))
-                .mul(1.5)
-                .add(1.0)
-                .mul(0.5)
-                .add(0.05)
-                .max(0.0)
-                .min(1.0);
+                .mul(0.75)
+                .add(0.55)
+                .clamp(0.0, 1.0);
             // Tree density should go (by a lot) with humidity.
             if humidity <= 0.0 || tree_density <= 0.0 {
                 0.0

@@ -22,8 +22,7 @@ pub fn map_edge_factor(map_size_lg: MapSizeLg, posi: usize) -> f32 {
             (sz / 2 - (e - sz / 2).abs()) as f32 / (16.0 / 1024.0 * sz as f32)
         })
         .reduce_partial_min()
-        .max(0.0)
-        .min(1.0)
+        .clamp(0.0, 1.0)
 }
 
 /// Computes the cumulative distribution function of the weighted sum of k
@@ -614,7 +613,7 @@ impl MultiFractal for HybridMulti {
             return self;
         }
 
-        octaves = octaves.max(1).min(Self::MAX_OCTAVES);
+        octaves = octaves.clamp(1, Self::MAX_OCTAVES);
         Self {
             octaves,
             sources: build_sources(self.seed, octaves),

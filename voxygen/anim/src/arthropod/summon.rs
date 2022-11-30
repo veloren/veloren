@@ -16,9 +16,9 @@ impl Animation for SummonAnimation {
     const UPDATE_FN: &'static [u8] = b"arthropod_summon\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "arthropod_summon")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, stage_section, timer): Self::Dependency<'a>,
+        (_velocity, global_time, stage_section, timer): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

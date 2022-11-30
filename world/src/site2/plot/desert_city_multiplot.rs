@@ -816,8 +816,8 @@ impl Structure for DesertCityMultiPlot {
                     // stairway
                     let stair_radius = tower.length + 1;
                     let stairs_clear = painter.aabb(Aabb {
-                        min: (tower_center - stair_radius as i32).with_z(base),
-                        max: (tower_center + stair_radius as i32).with_z(base + tower.height + 2),
+                        min: (tower_center - stair_radius).with_z(base),
+                        max: (tower_center + stair_radius).with_z(base + tower.height + 2),
                     });
                     stairs_clear
                         .sample(spiral_staircase(
@@ -1943,9 +1943,8 @@ impl Structure for DesertCityMultiPlot {
                             // stairway
                             let stair_radius = tower_length + 1;
                             let stairs_clear = painter.aabb(Aabb {
-                                min: (bldg_a_center - stair_radius as i32).with_z(base),
-                                max: (bldg_a_center + stair_radius as i32)
-                                    .with_z(base + tower_height + 2),
+                                min: (bldg_a_center - stair_radius).with_z(base),
+                                max: (bldg_a_center + stair_radius).with_z(base + tower_height + 2),
                             });
                             stairs_clear
                                 .sample(spiral_staircase(
@@ -2164,8 +2163,8 @@ impl Structure for DesertCityMultiPlot {
                             // stairway
                             let stair_radius = tower.length + 1;
                             let stairs_clear = painter.aabb(Aabb {
-                                min: (subplot_center - stair_radius as i32).with_z(base),
-                                max: (subplot_center + stair_radius as i32)
+                                min: (subplot_center - stair_radius).with_z(base),
+                                max: (subplot_center + stair_radius)
                                     .with_z(base + tower.height + 2),
                             });
                             stairs_clear

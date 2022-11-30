@@ -662,7 +662,7 @@ impl Scene {
                 .filter(|(pos, _, light_anim, h)| {
                     light_anim.col != Rgb::zero()
                         && light_anim.strength > 0.0
-                        && (pos.0.distance_squared(viewpoint_pos) as f32)
+                        && pos.0.distance_squared(viewpoint_pos)
                             < loaded_distance.powi(2) + LIGHT_DIST_RADIUS
                         && h.map_or(true, |h| !h.is_dead)
                 })
@@ -702,7 +702,7 @@ impl Scene {
             .join()
             .filter(|(_, _, _, _, health)| !health.is_dead)
             .filter(|(pos, _, _, _, _)| {
-                (pos.0.distance_squared(viewpoint_pos) as f32)
+                pos.0.distance_squared(viewpoint_pos)
                     < (loaded_distance.min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS).powi(2)
             })
             .map(|(pos, interpolated, scale, _, _)| {
@@ -777,7 +777,7 @@ impl Scene {
             self.last_lightning.unwrap_or((Vec3::zero(), -1000.0)),
             scene_data.ambiance,
             self.camera.get_mode(),
-            scene_data.sprite_render_distance as f32 - 20.0,
+            scene_data.sprite_render_distance - 20.0,
         )]);
         renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));

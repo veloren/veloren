@@ -609,8 +609,8 @@ impl Ui {
                 tracing::debug!("Updating glyphs and clearing text cache.");
 
                 if let Err(err) = glyph_cache.cache_queued(|rect, data| {
-                    let offset = [rect.min.x as u32, rect.min.y as u32];
-                    let size = [rect.width() as u32, rect.height() as u32];
+                    let offset = [rect.min.x, rect.min.y];
+                    let size = [rect.width(), rect.height()];
 
                     let new_data = data
                         .iter()

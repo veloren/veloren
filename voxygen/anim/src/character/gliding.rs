@@ -17,9 +17,9 @@ impl Animation for GlidingAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_gliding")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, glider_orientation, global_time, acc_vel): Self::Dependency<'a>,
+        (velocity, orientation, glider_orientation, global_time, acc_vel): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -32,16 +32,8 @@ impl Animation for GlidingAnimation {
         let slow = (acc_vel * 0.5).sin();
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 4.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 4.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            ((global_time + anim_time) / 4.0).floor().mul(7331.0).sin() * 0.5,
+            ((global_time + anim_time) / 4.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         let speedlog = speednorm.powi(2);

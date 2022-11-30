@@ -47,7 +47,7 @@ impl slider::Renderer for IcedRenderer {
         let (cursor_width, cursor_height) = style.cursor_size;
         let (cursor_width, cursor_height) = (f32::from(cursor_width), f32::from(cursor_height));
         let (min, max) = range.into_inner();
-        let offset = bounds.width as f32 * (value - min) / (max - min);
+        let offset = bounds.width * (value - min) / (max - min);
         let cursor_bounds = Rectangle {
             x: bounds.x + offset - cursor_width / 2.0,
             y: bounds.y

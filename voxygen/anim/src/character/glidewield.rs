@@ -15,9 +15,9 @@ impl Animation for GlideWieldAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_glidewield")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (orientation, glider_orientation): Self::Dependency<'a>,
+        (orientation, glider_orientation): Self::Dependency<'_>,
         _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

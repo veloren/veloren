@@ -11,7 +11,6 @@
     option_get_or_insert_default,
     map_try_insert,
     slice_as_chunks,
-    unzip_option,
     let_chains
 )]
 #![recursion_limit = "2048"]

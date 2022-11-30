@@ -79,7 +79,7 @@ fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
         let c1 = srgb_to_linear(rgb.map(|e| e as f32 / BASE_GREY));
         let c2 = srgb_to_linear(color.map(|e| e as f32 / 255.0));
 
-        linear_to_srgb(c1 * c2).map(|e| (e.min(1.0).max(0.0) * 255.0) as u8)
+        linear_to_srgb(c1 * c2).map(|e| (e.clamp(0.0, 1.0) * 255.0) as u8)
     } else {
         rgb
     }

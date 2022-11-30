@@ -22,9 +22,9 @@ impl Animation for ChargeAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_charge\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_charge")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency<'a>,
+        (active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

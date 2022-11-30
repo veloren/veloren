@@ -849,9 +849,7 @@ impl Damage {
 
         let penetration = if let Some(damage) = damage {
             if let DamageKind::Piercing = damage.kind {
-                (damage.value * PIERCING_PENETRATION_FRACTION)
-                    .min(protection.unwrap_or(0.0))
-                    .max(0.0)
+                (damage.value * PIERCING_PENETRATION_FRACTION).clamp(0.0, protection.unwrap_or(0.0))
             } else {
                 0.0
             }
@@ -1170,7 +1168,7 @@ pub fn combat_rating(
         * compute_energy_reward_mod(Some(inventory), msm);
 
     // Normalized with a standard max poise of 100
-    let poise_rating = poise.base_max() as f32
+    let poise_rating = poise.base_max()
         / 100.0
         / (1.0 - Poise::compute_poise_damage_reduction(Some(inventory), msm, None, None))
             .max(0.00001);

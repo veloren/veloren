@@ -15,9 +15,9 @@ impl Animation for IdleAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "golem_idle")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        global_time: Self::Dependency<'a>,
+        global_time: Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

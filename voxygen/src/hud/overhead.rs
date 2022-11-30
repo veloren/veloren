@@ -224,12 +224,12 @@ impl<'a> Widget for Overhead<'a> {
             let health_cur_txt = match health_current as u32 {
                 0..=999 => format!("{:.0}", health_current.max(1.0)),
                 1000..=999999 => format!("{:.0}K", (health_current / 1000.0).max(1.0)),
-                _ => format!("{:.0}M", (health_current as f64 / 1.0e6).max(1.0)),
+                _ => format!("{:.0}M", (health_current / 1.0e6).max(1.0)),
             };
             let health_max_txt = match health_max as u32 {
                 0..=999 => format!("{:.0}", health_max.max(1.0)),
                 1000..=999999 => format!("{:.0}K", (health_max / 1000.0).max(1.0)),
-                _ => format!("{:.0}M", (health_max as f64 / 1.0e6).max(1.0)),
+                _ => format!("{:.0}M", (health_max / 1.0e6).max(1.0)),
             };
             // Buffs
             // Alignment

@@ -38,7 +38,7 @@ fn main() {
                     .get((pos, index, None))
                     .map(|sample| {
                         (
-                            sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8,
+                            sample.alt.sub(64.0).add(gain).mul(0.7).clamp(0.0, 255.0) as u8,
                             sample.chunk.place,
                         )
                     })

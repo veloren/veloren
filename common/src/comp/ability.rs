@@ -2147,7 +2147,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     speed_increase: 1.0 - *speed_increase,
                     max_speed_increase: *max_speed_increase,
                     scales_from_combo: *scales_from_combo,
-                    ori_modifier: *ori_modifier as f32,
+                    ori_modifier: *ori_modifier,
                     ability_info,
                 },
                 exhausted: false,

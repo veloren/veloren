@@ -251,7 +251,7 @@ impl CharacterBehavior for Data {
                         Damage {
                             source: DamageSource::Melee,
                             kind: self.static_data.stage_data[stage_index].damage_kind,
-                            value: damage as f32,
+                            value: damage,
                         },
                         Some(GroupTarget::OutOfGroup),
                         rand::random(),

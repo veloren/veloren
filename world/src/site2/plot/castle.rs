@@ -305,12 +305,8 @@ impl Structure for Castle {
         for i in 1..5 {
             painter.fill(
                 painter.prim(Primitive::Aabb(Aabb {
-                    min: Vec3::new(gate_aabb.min.x + 2 + i, gate_aabb.min.y, height + i as i32),
-                    max: Vec3::new(
-                        gate_aabb.max.x - 2 - i,
-                        gate_aabb.max.y,
-                        height + i as i32 + 1,
-                    ),
+                    min: Vec3::new(gate_aabb.min.x + 2 + i, gate_aabb.min.y, height + i),
+                    max: Vec3::new(gate_aabb.max.x - 2 - i, gate_aabb.max.y, height + i + 1),
                 })),
                 Fill::Block(Block::empty()),
             );

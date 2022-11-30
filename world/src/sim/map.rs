@@ -52,7 +52,7 @@ pub fn sample_wpos(config: &MapConfig, sampler: &WorldSim, wpos: Vec2<i32>) -> f
         })
         .unwrap_or(CONFIG.sea_level)
         - focus.z as f32)
-        / gain as f32
+        / gain
 }
 
 /// Samples a MapSample at a chunk.
@@ -131,8 +131,8 @@ pub fn sample_pos(
             false,
         ));
 
-    let humidity = humidity.min(1.0).max(0.0);
-    let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
+    let humidity = humidity.clamp(0.0, 1.0);
+    let temperature = temperature.clamp(-1.0, 1.0) * 0.5 + 0.5;
     let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
     let column_data = samples
         .and_then(|samples| {
@@ -150,14 +150,14 @@ pub fn sample_pos(
                 Lerp::lerp(
                     sample.sub_surface_color,
                     sample.stone_col.map(|e| e as f32 / 255.0),
-                    (alt - grass_depth - wposz as f32) * 0.15,
+                    (alt - grass_depth - wposz) * 0.15,
                 )
                 .map(|e| e as f64)
             } else {
                 Lerp::lerp(
                     sample.sub_surface_color,
                     sample.surface_color,
-                    ((wposz as f32 - (alt - grass_depth)) / grass_depth).sqrt(),
+                    ((wposz - (alt - grass_depth)) / grass_depth).sqrt(),
                 )
                 .map(|e| e as f64)
             };
@@ -174,8 +174,8 @@ pub fn sample_pos(
 
     let true_water_alt = (alt.max(water_alt) as f64 - focus.z) / gain as f64;
     let true_alt = (alt as f64 - focus.z) / gain as f64;
-    let water_depth = (true_water_alt - true_alt).min(1.0).max(0.0);
-    let alt = true_alt.min(1.0).max(0.0);
+    let water_depth = (true_water_alt - true_alt).clamp(0.0, 1.0);
+    let alt = true_alt.clamp(0.0, 1.0);
 
     let water_color_factor = 2.0;
     let g_water = 32.0 * water_color_factor;

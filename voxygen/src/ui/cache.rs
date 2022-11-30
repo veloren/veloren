@@ -31,7 +31,7 @@ impl Cache {
         let max_texture_size = renderer.max_texture_size();
 
         let glyph_cache_dims =
-            Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size).max(512));
+            Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).clamp(512, max_texture_size));
 
         let glyph_cache_tex = {
             let tex = renderer.create_dynamic_texture(glyph_cache_dims);
@@ -89,7 +89,7 @@ impl Cache {
         let max_texture_size = renderer.max_texture_size();
         let cache_dims = renderer
             .resolution()
-            .map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size).max(512));
+            .map(|e| (e * GLYPH_CACHE_SIZE).clamp(512, max_texture_size));
         self.glyph_cache = GlyphCache::builder()
             .dimensions(cache_dims.x, cache_dims.y)
             .scale_tolerance(SCALE_TOLERANCE)

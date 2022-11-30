@@ -15,10 +15,10 @@ impl Animation for TalkAnimation {
     const UPDATE_FN: &'static [u8] = b"character_talk\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_talk")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _velocity, _global_time, look_dir): Self::Dependency<
-            'a,
+            '_,
         >,
         anim_time: f32,
         rate: &mut f32,

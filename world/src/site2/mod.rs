@@ -88,7 +88,7 @@ impl Site {
                 }
             })
             .min_by_key(|d2| *d2 as i32)
-            .map(|d2| d2.sqrt() as f32 / TILE_SIZE as f32)
+            .map(|d2| d2.sqrt() / TILE_SIZE as f32)
             .unwrap_or(1.0);
         let base_spawn_rules = SpawnRules {
             trees: max_warp == 1.0,

@@ -27,7 +27,7 @@ impl Animation for SwimAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_swim")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -38,7 +38,7 @@ impl Animation for SwimAnimation {
             last_ori,
             global_time,
             avg_vel,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

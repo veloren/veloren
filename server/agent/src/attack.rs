@@ -2520,7 +2520,7 @@ impl<'a> AgentData<'a> {
     ) {
         controller.inputs.look_dir = Dir::new(
             Quaternion::from_xyzw(self.ori.look_dir().x, self.ori.look_dir().y, 0.0, 0.0)
-                .rotated_z(6.0 * read_data.dt.0 as f32)
+                .rotated_z(6.0 * read_data.dt.0)
                 .into_vec3()
                 .try_normalized()
                 .unwrap_or_default(),

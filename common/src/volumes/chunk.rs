@@ -71,7 +71,7 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
         Self::GROUP_VOLUME / (Self::GROUP_LONG_SIDE_LEN * Self::GROUP_LONG_SIDE_LEN),
     );
     const GROUP_VOLUME: u32 = [Self::VOLUME / 256, 1][(Self::VOLUME < 256) as usize];
-    const VOLUME: u32 = (S::SIZE.x * S::SIZE.y * S::SIZE.z) as u32;
+    const VOLUME: u32 = (S::SIZE.x * S::SIZE.y * S::SIZE.z);
 
     /// Creates a new `Chunk` with the provided dimensions and all voxels filled
     /// with duplicates of the provided voxel.

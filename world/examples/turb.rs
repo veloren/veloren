@@ -32,7 +32,7 @@ fn main() {
 
                 let val = nz.get(pos.into_array());
 
-                buf[j * W + i] = u32::from_le_bytes([(val.max(0.0).min(1.0) * 255.0) as u8; 4]);
+                buf[j * W + i] = u32::from_le_bytes([(val.clamp(0.0, 1.0) * 255.0) as u8; 4]);
             }
         }
 

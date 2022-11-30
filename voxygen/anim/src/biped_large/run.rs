@@ -25,7 +25,7 @@ impl Animation for RunAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_run\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_run")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -36,7 +36,7 @@ impl Animation for RunAnimation {
             global_time,
             avg_vel,
             acc_vel,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -127,8 +127,7 @@ impl Animation for RunAnimation {
 
         let side = ((velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x)
             * -1.0)
-            .min(1.0)
-            .max(-1.0);
+            .clamp(-1.0, 1.0);
         let sideabs = side.abs();
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 

@@ -564,11 +564,11 @@ fn get_max_slope(
             let wposf = uniform_idx_as_vec2(map_size_lg, posi).map(|e| e as f64)
                 * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
             let height_scale = height_scale(posi);
-            let wposz = z as f64 / height_scale as f64;
+            let wposz = z / height_scale;
             // Normalized to be between 6 and and 54 degrees.
             let div_factor = (2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0;
             let rock_strength = rock_strength_nz.get([wposf.x, wposf.y, wposz * div_factor]);
-            let rock_strength = rock_strength.max(-1.0).min(1.0) * 0.5 + 0.5;
+            let rock_strength = rock_strength.clamp(-1.0, 1.0) * 0.5 + 0.5;
             // Logistic regression.  Make sure x ∈ (0, 1).
             let logit = |x: f64| x.ln() - (-x).ln_1p();
             // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
@@ -589,13 +589,12 @@ fn get_max_slope(
             let dmax = center + 0.05;
             let log_odds = |x: f64| logit(x) - logit(center);
             let rock_strength = logistic_cdf(
-                1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
+                1.0 * logit(rock_strength.clamp(1e-7, 1.0f64 - 1e-7))
                     + 1.0
                         * log_odds(
                             (wposz / CONFIG.mountain_scale as f64)
                                 .abs()
-                                .min(dmax)
-                                .max(dmin),
+                                .clamp(dmin, dmax),
                         ),
             );
             // NOTE: If you want to disable varying rock strength entirely, uncomment  this
@@ -878,7 +877,7 @@ fn erode(
                         k_tot
                     } else {
                         let old_b_i = b[posi];
-                        let sed = (h_t[posi] - old_b_i) as f64;
+                        let sed = h_t[posi] - old_b_i;
                         let n = n_f(posi);
                         // Higher rock strength tends to lead to higher erodibility?
                         let kd_factor = 1.0;
@@ -900,11 +899,7 @@ fn erode(
                                 - uniform_idx_as_vec2(map_size_lg, posj))
                             .map(|e| e as f64);
                             let neighbor_distance = (neighbor_coef * dxy).magnitude();
-                            let knew = (k
-                                * (p as f64
-                                    * chunk_area
-                                    * (area[posi] as f64 * mwrec_i[kk] as f64))
-                                    .powf(m)
+                            let knew = (k * (p * chunk_area * (area[posi] * mwrec_i[kk])).powf(m)
                                 / neighbor_distance.powf(n))
                                 as SimdType;
                             k_tot[kk] = knew;
@@ -925,12 +920,12 @@ fn erode(
                         // Egress with no outgoing flows, no stream power.
                         k_tot
                     } else {
-                        let area_i = area[posi] as f64;
+                        let area_i = area[posi];
                         let max_slope = max_slopes[posi];
                         let chunk_area_pow = chunk_area.powf(q);
 
                         let old_b_i = b[posi];
-                        let sed = (h_t[posi] - old_b_i) as f64;
+                        let sed = h_t[posi] - old_b_i;
                         let n = n_f(posi);
                         let g_i = if sed > sediment_thickness(n) {
                             // Sediment
@@ -946,7 +941,7 @@ fn erode(
 
                         let mwrec_i = &mwrec[posi];
                         mrec_downhill(map_size_lg, &mrec, posi).for_each(|(kk, posj)| {
-                            let mwrec_kk = mwrec_i[kk] as f64;
+                            let mwrec_kk = mwrec_i[kk];
 
                             #[rustfmt::skip]
                             // Working equation:
@@ -988,7 +983,7 @@ fn erode(
                             // (eliminating EΔt maintains the sign, but it's somewhat imprecise;
                             //  we can address this later, e.g. by assigning a debris flow / fluvial erosion ratio).
                             let chunk_neutral_area = 0.1e6; // 1 km^2 * (1000 m / km)^2 = 1e6 m^2
-                            let k = (mwrec_kk * (uplift_i + max_uplift as f64 * g_i / p as f64))
+                            let k = (mwrec_kk * (uplift_i + max_uplift as f64 * g_i / p))
                                 / (1.0 + k_da * (mwrec_kk * chunk_neutral_area).powf(q))
                                 / max_slope.powf(q_);
                             let dxy = (uniform_idx_as_vec2(map_size_lg, posi)
@@ -1201,7 +1196,7 @@ fn erode(
                         let area_i = area_i as Compute;
                         let uphill_silt_i = deltah_i - (old_h_after_uplift_i - h_p_i);
                         let old_b_i = b_i;
-                        let sed = (h_t_i - old_b_i) as f64;
+                        let sed = h_t_i - old_b_i;
                         let n = n_f(posi);
                         let g_i = if sed > sediment_thickness(n) {
                             (g_fs_mult_sed * g(posi)) as Compute
@@ -1243,10 +1238,10 @@ fn erode(
             .for_each(|(stacki, (&posi, &elev_i, &b_i, &h_t_i, &dh_i, &h_p_i))| {
                 let iteration_error = 0.0;
                 let posi = posi as usize;
-                let old_elev_i = elev_i as f64;
+                let old_elev_i = elev_i;
                 let old_b_i = b_i;
                 let old_ht_i = h_t_i;
-                let sed = (old_ht_i - old_b_i) as f64;
+                let sed = old_ht_i - old_b_i;
 
                 let posj = dh_i;
                 if posj < 0 {
@@ -1272,8 +1267,8 @@ fn erode(
                     // it's downhill from us. Therefore, we can rely on wh being
                     // set to the water height for that node.
                     // let h_j = h[posj_stack] as f64;
-                    let wh_j = wh[posj] as f64;
-                    let old_h_i = h_stack[stacki] as f64;
+                    let wh_j = wh[posj];
+                    let old_h_i = h_stack[stacki];
                     let mut new_h_i = old_h_i;
 
                     // Only perform erosion if we are above the water level of the previous node.
@@ -1298,7 +1293,7 @@ fn erode(
                             let mut df = 1.0;
                             mrec_downhill(map_size_lg, &mrec, posi).for_each(|(kk, posj)| {
                                 let posj_stack = mstack_inv[posj];
-                                let h_j = h_stack[posj_stack] as f64;
+                                let h_j = h_stack[posj_stack];
                                 // This can happen in cases where receiver kk is neither uphill of
                                 // nor downhill from posi's direct receiver.
                                 // NOTE: Fastscape does h_t[posi] + uplift(posi) as f64 >= h_t[posj]
@@ -1328,7 +1323,7 @@ fn erode(
                                 // NOTE: Fastscape does h_t[posi] + uplift(posi) as f64 >= h_t[posj]
                                 // + uplift(posj) as f64
                                 // NOTE: We also considered using old_elev_i > wh[posj] here.
-                                if old_elev_i > h_j as f64 {
+                                if old_elev_i > h_j {
                                     mask[kk] = MaskType::new(true);
                                     rec_heights[kk] = h_j as SimdType;
                                 }
@@ -1499,7 +1494,7 @@ fn erode(
             // account for this, such as averaging, integrating, or doing things
             // by mass / volume instead of height, but for now we use the time-honored
             // technique of ignoring the problem.
-            let vertical_sed = (h_i - new_b_i).max(0.0) as f64;
+            let vertical_sed = (h_i - new_b_i).max(0.0);
             let h_normal = if posj < 0 {
                 // Egress with no outgoing flows; for now, we assume this means normal and
                 // vertical coincide.
@@ -1511,7 +1506,7 @@ fn erode(
                     - uniform_idx_as_vec2(map_size_lg, posj))
                 .map(|e| e as f64);
                 let neighbor_distance_squared = (neighbor_coef * dxy).magnitude_squared();
-                let dh = (h_i - h_j) as f64;
+                let dh = h_i - h_j;
                 // H_i_fact = (h_i - h_j) / (||p_i - p_j||^2 + (h_i - h_j)^2)
                 let h_i_fact = dh / (neighbor_distance_squared + dh * dh);
                 let h_i_vertical = 1.0 - h_i_fact * dh;
@@ -1598,9 +1593,9 @@ fn erode(
     prodscrit_therm = 0.0;
     newh.iter().for_each(|&posi| {
         let posi = posi as usize;
-        let old_h_i = h[posi] as f64;
-        let old_b_i = b[posi] as f64;
-        let sed = (old_h_i - old_b_i) as f64;
+        let old_h_i = h[posi];
+        let old_b_i = b[posi];
+        let sed = old_h_i - old_b_i;
 
         let max_slope = max_slopes[posi];
         let n = n_f(posi);
@@ -1624,14 +1619,14 @@ fn erode(
             let posj = posj as usize;
             // Find the water height for this chunk's receiver; we only apply thermal
             // erosion for chunks above water.
-            let wh_j = wh[posj] as f64;
+            let wh_j = wh[posj];
             let mut new_h_i = old_h_i;
             if wh_j < old_h_i {
                 // NOTE: Currently assuming that talus angle is not eroded once the substance is
                 // totally submerged in water, and that talus angle if part of the substance is
                 // in water is 0 (or the same as the dry part, if this is set to wh_j), but
                 // actually that's probably not true.
-                let old_h_j = h[posj] as f64;
+                let old_h_j = h[posj];
                 let h_j = old_h_j;
                 // Test the slope.
                 // Hacky version of thermal erosion: only consider lowest neighbor, don't
@@ -1887,7 +1882,7 @@ pub fn get_lakes<F: Float>(
             newh.push(chunk_idx as u32);
             let mut cur = start;
             while cur < newh.len() {
-                let node = newh[cur as usize];
+                let node = newh[cur];
                 uphill(map_size_lg, downhill, node as usize).for_each(|child| {
                     // lake_idx is the index of our lake root.
                     indirection[child] = chunk_idx as i32;
@@ -1982,39 +1977,30 @@ pub fn get_lakes<F: Float>(
                         let lake_chunk_idx = if indirection_idx >= 0 {
                             indirection_idx as usize
                         } else {
-                            chunk_idx as usize
+                            chunk_idx
                         };
                         let indirection_idx = indirection[neighbor_idx];
                         let neighbor_lake_chunk_idx = if indirection_idx >= 0 {
                             indirection_idx as usize
                         } else {
-                            neighbor_idx as usize
+                            neighbor_idx
                         };
                         panic!(
                             "For edge {:?} between lakes {:?}, couldn't find partner for pass \
                              {:?}. Should never happen; maybe forgot to set both edges?",
                             (
-                                (
-                                    chunk_idx,
-                                    uniform_idx_as_vec2(map_size_lg, chunk_idx as usize)
-                                ),
-                                (
-                                    neighbor_idx,
-                                    uniform_idx_as_vec2(map_size_lg, neighbor_idx as usize)
-                                )
+                                (chunk_idx, uniform_idx_as_vec2(map_size_lg, chunk_idx)),
+                                (neighbor_idx, uniform_idx_as_vec2(map_size_lg, neighbor_idx))
                             ),
                             (
                                 (
                                     lake_chunk_idx,
-                                    uniform_idx_as_vec2(map_size_lg, lake_chunk_idx as usize),
+                                    uniform_idx_as_vec2(map_size_lg, lake_chunk_idx),
                                     lake_idx_
                                 ),
                                 (
                                     neighbor_lake_chunk_idx,
-                                    uniform_idx_as_vec2(
-                                        map_size_lg,
-                                        neighbor_lake_chunk_idx as usize
-                                    ),
+                                    uniform_idx_as_vec2(map_size_lg, neighbor_lake_chunk_idx),
                                     neighbor_lake_idx_
                                 )
                             ),
@@ -2116,7 +2102,7 @@ pub fn get_lakes<F: Float>(
         pass_flows_sorted.push(lake_chunk_idx);
         // pass_flows_sorted.push((chunk_idx as u32, neighbor_idx as u32));
         for edge in &mut lakes[lake_idx..lake_idx + max_len] {
-            if *edge == (chunk_idx as i32, neighbor_idx as u32) {
+            if *edge == (chunk_idx as i32, neighbor_idx) {
                 // Skip deleting this edge.
                 continue;
             }
@@ -2284,7 +2270,7 @@ pub fn get_lakes<F: Float>(
             let mut cur = start;
             let mut node = first_idx;
             loop {
-                uphill(map_size_lg, downhill, node as usize).for_each(|child| {
+                uphill(map_size_lg, downhill, node).for_each(|child| {
                     // lake_idx is the index of our lake root.
                     // Check to make sure child (flowing into us) is in the same lake.
                     if indirection[child] == chunk_idx as i32 || child == chunk_idx {
@@ -2318,7 +2304,7 @@ pub fn mrec_downhill(
         .map(move |(k, &(x, y))| {
             (
                 k,
-                vec2_as_uniform_idx(map_size_lg, Vec2::new(pos.x + x as i32, pos.y + y as i32)),
+                vec2_as_uniform_idx(map_size_lg, Vec2::new(pos.x + x, pos.y + y)),
             )
         })
 }

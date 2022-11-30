@@ -131,14 +131,14 @@ impl NetworkMetrics {
         let opts = Opts::new("network_info", "Static Network information")
             .const_label(
                 "version",
-                &format!(
+                format!(
                     "{}.{}.{}",
                     &network_protocol::VELOREN_NETWORK_VERSION[0],
                     &network_protocol::VELOREN_NETWORK_VERSION[1],
                     &network_protocol::VELOREN_NETWORK_VERSION[2]
                 ),
             )
-            .const_label("local_pid", &format!("{}", &local_pid));
+            .const_label("local_pid", format!("{}", &local_pid));
         let network_info = IntGauge::with_opts(opts)?;
 
         Ok(Self {

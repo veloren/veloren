@@ -1333,9 +1333,9 @@ impl<'a> System<'a> for Sys {
 }
 
 #[allow(clippy::too_many_lines)]
-fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
+fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32), // effective collision cylinder
-    terrain: &'a T,
+    terrain: &T,
     entity: Entity,
     pos: &mut Pos,
     tgt_pos: Vec3<f32>,
@@ -1738,7 +1738,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             // E=½mv², we scale both energies by ½m
             let kinetic = squared_velocity;
             // positive accelerate, negative decelerate, ΔE=mgΔh
-            let delta_potential = vertical_difference.max(-1.0).min(2.0) * POTENTIAL_TO_KINETIC;
+            let delta_potential = vertical_difference.clamp(-1.0, 2.0) * POTENTIAL_TO_KINETIC;
             let new_energy = kinetic + delta_potential;
             physics_state.skating_last_height = pos.0.z;
             new_energy / kinetic

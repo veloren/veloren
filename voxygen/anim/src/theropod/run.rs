@@ -14,9 +14,9 @@ impl Animation for RunAnimation {
     const UPDATE_FN: &'static [u8] = b"theropod_run\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "theropod_run")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'a>,
+        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

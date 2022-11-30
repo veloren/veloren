@@ -228,7 +228,7 @@ pub fn init(
                     }
 
                     // guards
-                    for _ in 0..site2.plazas().len() as usize {
+                    for _ in 0..site2.plazas().len() {
                         rtsim.entities.insert(Entity {
                             is_loaded: false,
                             pos: site2
@@ -252,7 +252,7 @@ pub fn init(
                     }
 
                     // merchants
-                    for _ in 0..site2.plazas().len() as usize {
+                    for _ in 0..site2.plazas().len() {
                         rtsim.entities.insert(Entity {
                             is_loaded: false,
                             pos: site2
@@ -350,7 +350,7 @@ pub fn init(
                     }
 
                     // guards
-                    for _ in 0..site2.plazas().len() as usize {
+                    for _ in 0..site2.plazas().len() {
                         rtsim.entities.insert(Entity {
                             is_loaded: false,
                             pos: site2
@@ -374,7 +374,7 @@ pub fn init(
                     }
 
                     // merchants
-                    for _ in 0..site2.plazas().len() as usize {
+                    for _ in 0..site2.plazas().len() {
                         rtsim.entities.insert(Entity {
                             is_loaded: false,
                             pos: site2

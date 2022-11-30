@@ -65,7 +65,7 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
         // Wrap camera yaw
         x: ori.x.rem_euclid(2.0 * PI),
         // Clamp camera pitch to the vertical limits
-        y: ori.y.min(PI / 2.0 - 0.0001).max(-PI / 2.0 + 0.0001),
+        y: ori.y.clamp(-PI / 2.0 + 0.0001, PI / 2.0 - 0.0001),
         // Wrap camera roll
         z: ori.z.rem_euclid(2.0 * PI),
     }
@@ -522,9 +522,7 @@ impl Camera {
         // Wrap camera yaw
         self.tgt_ori.x = (self.tgt_ori.x + delta.x).rem_euclid(2.0 * PI);
         // Clamp camera pitch to the vertical limits
-        self.tgt_ori.y = (self.tgt_ori.y + delta.y)
-            .min(PI / 2.0 - 0.001)
-            .max(-PI / 2.0 + 0.001);
+        self.tgt_ori.y = (self.tgt_ori.y + delta.y).clamp(-PI / 2.0 + 0.001, PI / 2.0 - 0.001);
         // Wrap camera roll
         self.tgt_ori.z = (self.tgt_ori.z + delta.z).rem_euclid(2.0 * PI);
     }

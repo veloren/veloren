@@ -11,7 +11,6 @@
     trait_alias,
     type_alias_impl_trait,
     extend_one,
-    arbitrary_enum_discriminant,
     arbitrary_self_types
 )]
 #![feature(hash_drain_filter)]

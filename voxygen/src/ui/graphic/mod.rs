@@ -447,11 +447,9 @@ fn draw_graphic(
 fn atlas_size(renderer: &Renderer) -> Vec2<u32> {
     let max_texture_size = renderer.max_texture_size();
 
-    renderer.resolution().map(|e| {
-        (e * GRAPHIC_CACHE_RELATIVE_SIZE)
-            .max(512)
-            .min(max_texture_size)
-    })
+    renderer
+        .resolution()
+        .map(|e| (e * GRAPHIC_CACHE_RELATIVE_SIZE).clamp(512, max_texture_size))
 }
 
 fn create_atlas_texture(

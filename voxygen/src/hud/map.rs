@@ -395,7 +395,7 @@ impl<'a> Widget for Map<'a> {
                     .map(|scroll| scroll.y)
                     .sum();
                 if scrolled != 0.0 {
-                    let min_zoom = map_size.x as f64 / worldsize.reduce_partial_max() as f64 / 2.0;
+                    let min_zoom = map_size.x / worldsize.reduce_partial_max() as f64 / 2.0;
                     let new_zoom_lvl: f64 = (f64::log2(zoom) - scrolled * 0.03)
                         .exp2()
                         .clamp(min_zoom, 16.0);
@@ -1153,7 +1153,7 @@ impl<'a> Widget for Map<'a> {
                             )
                             .font_size(
                                 self.fonts.cyri.scale(
-                                    (2.0 + font_scale_factor * zoom).min(18.0).max(10.0) as u32,
+                                    (2.0 + font_scale_factor * zoom).clamp(10.0, 18.0) as u32,
                                 ),
                             )
                             .font_id(self.fonts.cyri.conrod_id)
@@ -1204,7 +1204,7 @@ impl<'a> Widget for Map<'a> {
                 let side_length = 20.0 * factor;
 
                 let (rpos, fade) = match wpos_to_rpos_fade(
-                    member_pos.0.xy().map(|e| e as f32),
+                    member_pos.0.xy(),
                     Vec2::from(side_length / 2.0),
                     side_length / 2.0,
                 ) {
@@ -1232,7 +1232,7 @@ impl<'a> Widget for Map<'a> {
 
                 handle_widget_mouse_events(
                     state.ids.member_indicators[i],
-                    MarkerChange::Pos(member_pos.0.xy().map(|e| e as f32)),
+                    MarkerChange::Pos(member_pos.0.xy()),
                     ui,
                     &mut events,
                     state.ids.map_layers[0],

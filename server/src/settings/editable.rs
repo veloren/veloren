@@ -3,7 +3,7 @@ use core::{convert::TryInto, fmt};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     fs,
-    io::{Seek, SeekFrom, Write},
+    io::{Seek, Write},
     path::{Path, PathBuf},
 };
 use tracing::{error, info, warn};
@@ -80,7 +80,7 @@ pub trait EditableSetting: Clone + Default {
             match ron::de::from_reader(&mut file)
                 .map(|setting: Self::Setting| setting.try_into())
                 .or_else(|orig_err| {
-                    file.seek(SeekFrom::Start(0))?;
+                    file.rewind()?;
                     ron::de::from_reader(file)
                          .map(|legacy| Ok((Version::Old, Self::Legacy::into(legacy))))
                          // When both legacy and non-legacy have parse errors, prioritize the

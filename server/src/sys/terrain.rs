@@ -566,8 +566,7 @@ pub fn convert_to_loaded_vd(vd: u32, max_view_distance: u32) -> i32 {
     const UNLOAD_THRESHOLD: u32 = 2;
 
     // NOTE: This cast is safe for the reasons mentioned above.
-    (vd.max(crate::MIN_VD)
-        .min(max_view_distance)
+    (vd.clamp(crate::MIN_VD, max_view_distance)
         .saturating_add(UNLOAD_THRESHOLD))
     .min(MAX_VD) as i32
 }
@@ -617,7 +616,7 @@ fn prepare_for_vd_check(
         // world chunk coordinates are no greater than 1 << 14 - 1; since we verified that the
         // player is within world bounds modulo player_vd, which is guaranteed to never let us
         // overflow an i16 when added to a u14, safety of the cast follows.
-        .then(|| ((player_chunk_pos.as_::<i16>(), player_vd.pow(2) as i32), entity, is_client))
+        .then(|| ((player_chunk_pos.as_::<i16>(), player_vd.pow(2)), entity, is_client))
 }
 
 pub fn prepare_player_presences<'a, P>(

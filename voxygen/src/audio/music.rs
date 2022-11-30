@@ -368,7 +368,7 @@ impl MusicMgr {
                 };
         }
 
-        let is_dark = (state.get_day_period().is_dark()) as bool;
+        let is_dark = state.get_day_period().is_dark();
         let current_period_of_day = Self::get_current_day_period(is_dark);
         let current_weather = client.weather_at_player();
         let current_biome = client.current_biome();

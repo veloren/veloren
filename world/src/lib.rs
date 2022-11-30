@@ -7,7 +7,7 @@
 )]
 #![allow(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(option_zip, arbitrary_enum_discriminant, int_log, map_first_last)]
+#![feature(option_zip)]
 
 mod all;
 mod block;

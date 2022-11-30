@@ -262,10 +262,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             Some(RiverKind::Lake { .. } | RiverKind::Ocean)
                         ) {
                             let water_chunk = posj.map(|e| e as f64);
-                            let lake_width_noise = sim
-                                .gen_ctx
-                                .small_nz
-                                .get((wposf.map(|e| e as f64).div(32.0)).into_array());
+                            let lake_width_noise =
+                                sim.gen_ctx.small_nz.get((wposf.div(32.0)).into_array());
                             let water_aabr = Aabr {
                                 min: water_chunk * neighbor_coef + 4.0 - lake_width_noise * 8.0,
                                 max: (water_chunk + 1.0) * neighbor_coef - 4.0
@@ -313,10 +311,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     },
                     RiverKind::Ocean => {
                         let water_chunk = posj.map(|e| e as f64);
-                        let lake_width_noise = sim
-                            .gen_ctx
-                            .small_nz
-                            .get((wposf.map(|e| e as f64).div(32.0)).into_array());
+                        let lake_width_noise =
+                            sim.gen_ctx.small_nz.get((wposf.div(32.0)).into_array());
                         let water_aabr = Aabr {
                             min: water_chunk * neighbor_coef + 4.0 - lake_width_noise * 8.0,
                             max: (water_chunk + 1.0) * neighbor_coef - 4.0 + lake_width_noise * 8.0,
@@ -347,10 +343,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 };
                 let river_width_noise =
                     (sim.gen_ctx.small_nz.get((river_pos.div(16.0)).into_array()))
-                        .max(-1.0)
-                        .min(1.0)
+                        .clamp(-1.0, 1.0)
                         .mul(0.5)
-                        .sub(0.5) as f64;
+                        .sub(0.5);
                 let river_width = Lerp::lerp(
                     river_width_min,
                     river_width_max,
@@ -694,7 +689,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                 river_t as f32,
                                 is_waterfall(river_chunk_idx, river_chunk, downhill_chunk),
                             );
-                            Some((river_water_alt, cross_section.y as f32, None))
+                            Some((river_water_alt, cross_section.y, None))
                         },
                         RiverKind::Lake { .. } | RiverKind::Ocean => {
                             let lake_water_alt = if matches!(kind, RiverKind::Ocean) {
@@ -780,7 +775,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             let weight = Lerp::lerp(
                                 BANK_STRENGTH
                                     / (1.0
-                                        + (river_edge_dist as f32 - 3.0).max(0.0) * BANK_STRENGTH
+                                        + (river_edge_dist - 3.0).max(0.0) * BANK_STRENGTH
                                             / BANK_SCALE),
                                 0.0,
                                 power((river_edge_dist / BANK_SCALE).clamped(0.0, 1.0) as f64, 2.0)
@@ -825,16 +820,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let riverless_alt_delta = (sim.gen_ctx.small_nz.get(
             (wposf_turb.div(200.0 * (32.0 / TerrainChunkSize::RECT_SIZE.x as f64))).into_array(),
         ) as f32)
-            .min(1.0)
-            .max(-1.0)
+            .clamp(-1.0, 1.0)
             .abs()
             .mul(3.0)
             + (sim.gen_ctx.small_nz.get(
                 (wposf_turb.div(400.0 * (32.0 / TerrainChunkSize::RECT_SIZE.x as f64)))
                     .into_array(),
             ) as f32)
-                .min(1.0)
-                .max(-1.0)
+                .clamp(-1.0, 1.0)
                 .abs()
                 .mul(3.0);
 

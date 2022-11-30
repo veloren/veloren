@@ -300,7 +300,7 @@ where
 {
     fn default() -> Self {
         Self {
-            own: Box::new(T::default()),
+            own: Box::<T>::default(),
             cpu_stats: CpuTimeline::default(),
         }
     }

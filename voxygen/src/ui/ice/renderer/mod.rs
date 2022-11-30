@@ -252,12 +252,12 @@ impl IcedRenderer {
                 let pixel_coords = vertex_data.pixel_coords;
                 let rect = Aabr {
                     min: Vec2::new(
-                        pixel_coords.min.x as f32 / half_res.x - 1.0,
-                        1.0 - pixel_coords.max.y as f32 / half_res.y,
+                        pixel_coords.min.x / half_res.x - 1.0,
+                        1.0 - pixel_coords.max.y / half_res.y,
                     ),
                     max: Vec2::new(
-                        pixel_coords.max.x as f32 / half_res.x - 1.0,
-                        1.0 - pixel_coords.min.y as f32 / half_res.y,
+                        pixel_coords.max.x / half_res.x - 1.0,
+                        1.0 - pixel_coords.min.y / half_res.y,
                     ),
                 };
                 (uv, rect)
@@ -499,10 +499,7 @@ impl IcedRenderer {
                                             b / image_h as f32, /* * ratio_y */
                                             t / image_h as f32, /* * ratio_y */
                                         ),
-                                        Extent2::new(
-                                            gl_size.w as f32 * ratio_x,
-                                            gl_size.h as f32 * ratio_y,
-                                        ),
+                                        Extent2::new(gl_size.w * ratio_x, gl_size.h * ratio_y),
                                     ))
                                     /* ((l / image_w as f32),
                                     (r / image_w as f32),
@@ -827,9 +824,9 @@ impl iced::Renderer for IcedRenderer {
     // TODO: use graph of primitives to enable diffing???
     type Output = (Primitive, iced::mouse::Interaction);
 
-    fn layout<'a, M>(
+    fn layout<M>(
         &mut self,
-        element: &iced::Element<'a, M, Self>,
+        element: &iced::Element<'_, M, Self>,
         limits: &iced::layout::Limits,
     ) -> iced::layout::Node {
         span!(_guard, "layout", "IcedRenderer::layout");

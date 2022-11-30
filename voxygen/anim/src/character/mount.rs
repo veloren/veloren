@@ -24,7 +24,7 @@ impl Animation for MountAnimation {
     const UPDATE_FN: &'static [u8] = b"character_mount\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_mount")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
@@ -35,7 +35,7 @@ impl Animation for MountAnimation {
             avg_vel,
             orientation,
             last_ori,
-        ): Self::Dependency<'a>,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

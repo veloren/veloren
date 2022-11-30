@@ -521,7 +521,7 @@ impl Client {
                         Rgb::new(0.15, 0.15, 0.15)
                     } else {
                         // Color hill shading
-                        let lightness = (alt + 0.2).min(1.0) as f64;
+                        let lightness = (alt + 0.2).min(1.0);
                         Rgb::new(lightness, 0.9 * lightness, 0.5 * lightness)
                     }
                 } else if is_stylized_topo {
@@ -995,8 +995,7 @@ impl Client {
         let view_distances = common::ViewDistances {
             terrain: view_distances
                 .terrain
-                .max(1)
-                .min(MAX_SELECTABLE_VIEW_DISTANCE),
+                .clamp(1, MAX_SELECTABLE_VIEW_DISTANCE),
             entity: view_distances.entity.max(1),
         };
         self.view_distance = Some(view_distances.terrain);
@@ -1004,6 +1003,7 @@ impl Client {
     }
 
     pub fn set_lod_distance(&mut self, lod_distance: u32) {
+        #[allow(clippy::manual_clamp)]
         let lod_distance = lod_distance.max(0).min(1000) as f32 / lod::ZONE_SIZE as f32;
         self.lod_distance = lod_distance;
     }
@@ -1789,7 +1789,8 @@ impl Client {
             true,
         );
         // TODO: avoid emitting these in the first place
-        self.state
+        let _ = self
+            .state
             .ecs()
             .fetch::<EventBus<common::event::ServerEvent>>()
             .recv_all();

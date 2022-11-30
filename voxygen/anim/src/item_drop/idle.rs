@@ -13,9 +13,9 @@ impl Animation for IdleAnimation {
     const UPDATE_FN: &'static [u8] = b"item_drop_idle\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "item_drop_idle")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        _: Self::Dependency<'a>,
+        _: Self::Dependency<'_>,
         _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

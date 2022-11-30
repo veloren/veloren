@@ -207,7 +207,7 @@ impl Ori {
         // NOTE: acos is very sensitive to errors at small angles
         // - https://www.researchgate.net/post/How_do_I_calculate_the_smallest_angle_between_two_quaternions
         // - see angle_between unit test epislons
-        let angle = 2.0 * between.w.min(1.0).max(-1.0).acos();
+        let angle = 2.0 * between.w.clamp(-1.0, 1.0).acos();
         if angle < PI { angle } else { TAU - angle }
     }
 
@@ -317,7 +317,7 @@ fn rotation_2d(Vec2 { x, y }: Vec2<f32>, axis: Vec3<f32>) -> Quaternion<f32> {
     // cos(a) = x / |xy| => x (when normalized)
 
     // Prevent NaNs from negative sqrt (float errors can put this slightly over 1.0)
-    let x = x.min(1.0).max(-1.0);
+    let x = x.clamp(-1.0, 1.0);
 
     let scalar = ((1.0 + x) / 2.0).sqrt() * y.signum();
     let vector = axis * ((1.0 - x) / 2.0).sqrt();

@@ -1400,7 +1400,7 @@ impl ParticleMgr {
                             dry_chance,
                         });
                     }
-                    let avg_particles = dt * sum as f32 * rate;
+                    let avg_particles = dt * sum * rate;
 
                     let particle_count = avg_particles.trunc() as usize
                         + (rng.gen::<f32>() < avg_particles.fract()) as usize;

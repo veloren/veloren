@@ -421,7 +421,7 @@ impl<'frame> Drawer<'frame> {
         let screen_descriptor = ScreenDescriptor {
             physical_width: self.borrow.sc_desc.width,
             physical_height: self.borrow.sc_desc.height,
-            scale_factor: scale_factor as f32,
+            scale_factor,
         };
 
         self.borrow.egui_render_pass.update_texture(
@@ -737,7 +737,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureShadowDrawer<'pass_ref, 'pass> {
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf());
         self.render_pass
-            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
+            .draw_indexed(0..model.len() / 4 * 6, 0, 0..1);
     }
 }
 
@@ -916,7 +916,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
         self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf());
         self.render_pass
-            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
+            .draw_indexed(0..model.len() / 4 * 6, 0, 0..1);
     }
 }
 

@@ -17,9 +17,9 @@ impl Animation for SwimAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_small_swim")]
 
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'a>,
+        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'_>,
         _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

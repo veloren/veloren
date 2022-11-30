@@ -278,7 +278,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             let ridge_condition = cave_depth % 10.0 > 8.0 && cave_depth > 10.0;
             let pit_condition = cave_depth % 42.0 > 37.0 && cave_x > 0.6 && cave_depth > 200.0;
             let pit_depth = 30;
-            let floor_dist = pit_condition as i32 * pit_depth as i32;
+            let floor_dist = pit_condition as i32 * pit_depth;
             let vein_condition =
                 cave_depth % 12.0 > 11.5 && cave_x > 0.1 && cave_x < 0.6 && cave_depth > 200.0;
             let stalactite_condition = cave_depth > 150.0;
@@ -617,7 +617,7 @@ pub fn apply_caves_supplement<'a>(
                     })
                 }) {
                     if RandomField::new(index.seed).chance(wpos2d.into(), 0.0014)
-                        && cave_base < surface_z as i32 - 40
+                        && cave_base < surface_z - 40
                     {
                         let entity = EntityInfo::at(wpos2d.map(|e| e as f32).with_z(z as f32));
                         let entity = {
@@ -831,7 +831,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             cavern_avg_top,
             floor,
             stalactite,
-            cavern_avg_bottom as i32 + 16, // Water level
+            cavern_avg_bottom + 16, // Water level
         )
     };
 
@@ -854,7 +854,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     let pos = wpos2d.with_z(cavern_bottom + floor);
                     if rng.gen_bool(0.15)
                         && cavern_top - cavern_bottom > 32
-                        && pos.z as i32 > water_level - 2
+                        && pos.z > water_level - 2
                     {
                         Some(Mushroom {
                             pos,
@@ -879,15 +879,15 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             let warp_amp = Vec3::new(12.0, 12.0, 12.0);
             let wposf_warped = wposf.map(|e| e as f32)
                 + Vec3::new(
-                    FastNoise::new(seed).get(wposf * warp_freq) as f32,
-                    FastNoise::new(seed + 1).get(wposf * warp_freq) as f32,
-                    FastNoise::new(seed + 2).get(wposf * warp_freq) as f32,
+                    FastNoise::new(seed).get(wposf * warp_freq),
+                    FastNoise::new(seed + 1).get(wposf * warp_freq),
+                    FastNoise::new(seed + 2).get(wposf * warp_freq),
                 ) * warp_amp
                     * (wposf.z as f32 - mushroom.pos.z as f32)
                         .mul(0.1)
                         .clamped(0.0, 1.0);
 
-            let rpos = wposf_warped - mushroom.pos.map(|e| e as f32).map(|e| e as f32);
+            let rpos = wposf_warped - mushroom.pos.map(|e| e as f32);
 
             let stalk_radius = 2.5f32;
             let head_radius = 18.0f32;
@@ -1036,7 +1036,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             }
         };
 
-        let cavern_top = cavern_top as i32;
+        let cavern_top = cavern_top;
         let mut last_kind = BlockKind::Rock;
         for z in cavern_bottom - 1..cavern_top {
             use SpriteKind::*;

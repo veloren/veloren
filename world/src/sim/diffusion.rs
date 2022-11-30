@@ -109,7 +109,7 @@ pub fn diffusion(
         for i in 0..nx {
             // ij = vec2_as_uniform_idx(i, j);
             ij = aij(i, j);
-            zint[ij] = h[ij] as f64;
+            zint[ij] = h[ij];
             kdint[ij] = kd(ij);
             if kdsed > 0.0 && (h[ij] - b[ij]) > 1.0e-6 {
                 kdint[ij] = kdsed;

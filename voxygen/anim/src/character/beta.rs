@@ -24,10 +24,10 @@ impl Animation for BetaAnimation {
     const UPDATE_FN: &'static [u8] = b"character_beta\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_beta")]
-    fn update_skeleton_inner<'a>(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (hands, _ability_id, _velocity, _global_time, stage_section, ability_info): Self::Dependency<
-            'a,
+            '_,
         >,
         anim_time: f32,
         rate: &mut f32,

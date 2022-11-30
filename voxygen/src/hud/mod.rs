@@ -1478,7 +1478,7 @@ impl Hud {
             if let Some(health) = healths.get(me) {
                 // Hurt Frame
                 let hp_percentage = health.current() / health.maximum() * 100.0;
-                self.hp_pulse += dt.as_secs_f32() * 10.0 / hp_percentage.max(3.0).min(7.0);
+                self.hp_pulse += dt.as_secs_f32() * 10.0 / hp_percentage.clamp(3.0, 7.0);
                 if hp_percentage < 10.0 && !health.is_dead {
                     let hurt_fade = (self.hp_pulse).sin() * 0.5 + 0.6; //Animation timer
                     Image::new(self.imgs.hurt_bg)
