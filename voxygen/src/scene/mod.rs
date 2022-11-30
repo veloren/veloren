@@ -524,28 +524,16 @@ impl Scene {
                 .get(scene_data.viewpoint_entity)
                 .map_or(Quaternion::identity(), |ori| ori.to_quat());
 
-            let viewpoint_rolling = ecs
-                .read_storage::<comp::CharacterState>()
-                .get(scene_data.viewpoint_entity)
-                .map_or(false, |cs| cs.is_dodge());
-
-            let is_running = ecs
-                .read_storage::<comp::Vel>()
-                .get(scene_data.viewpoint_entity)
-                .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2))
-                .unwrap_or(false);
-
-            let on_ground = ecs
-                .read_storage::<comp::PhysicsState>()
-                .get(scene_data.viewpoint_entity)
-                .map(|p| p.on_ground.is_some());
-
-            let (viewpoint_height, viewpoint_eye_height) = scene_data
-                .state
-                .ecs()
+            let (is_humanoid, viewpoint_height, viewpoint_eye_height) = ecs
                 .read_storage::<comp::Body>()
                 .get(scene_data.viewpoint_entity)
-                .map_or((1.0, 0.0), |b| (b.height(), b.eye_height()));
+                .map_or((false, 1.0, 0.0), |b| {
+                    (
+                        matches!(b, comp::Body::Humanoid(_)),
+                        b.height(),
+                        b.eye_height(),
+                    )
+                });
 
             if scene_data.mutable_viewpoint || matches!(self.camera.get_mode(), CameraMode::Freefly)
             {
@@ -576,31 +564,51 @@ impl Scene {
                     .set_orientation_instant(Vec3::new(-yaw, pitch, roll));
             }
 
-            // Alter camera position to match player.
-            let tilt = self.camera.get_orientation().y;
-            let dist = self.camera.get_distance();
+            let viewpoint_offset = if is_humanoid {
+                let viewpoint_rolling = ecs
+                    .read_storage::<comp::CharacterState>()
+                    .get(scene_data.viewpoint_entity)
+                    .map_or(false, |cs| cs.is_dodge());
 
-            let up = match self.camera.get_mode() {
-                CameraMode::FirstPerson => {
-                    if viewpoint_rolling {
-                        viewpoint_height * 0.42
-                    } else if is_running && on_ground.unwrap_or(false) {
-                        viewpoint_eye_height
-                            + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
-                    } else {
-                        viewpoint_eye_height
-                    }
-                },
-                CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.16,
-                CameraMode::ThirdPerson => viewpoint_eye_height,
-                CameraMode::Freefly => 0.0,
+                let is_running = ecs
+                    .read_storage::<comp::Vel>()
+                    .get(scene_data.viewpoint_entity)
+                    .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2))
+                    .unwrap_or(false);
+
+                let on_ground = ecs
+                    .read_storage::<comp::PhysicsState>()
+                    .get(scene_data.viewpoint_entity)
+                    .map(|p| p.on_ground.is_some());
+
+                let up = match self.camera.get_mode() {
+                    CameraMode::FirstPerson => {
+                        if viewpoint_rolling {
+                            viewpoint_height * 0.42
+                        } else if is_running && on_ground.unwrap_or(false) {
+                            viewpoint_eye_height
+                                + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
+                        } else {
+                            viewpoint_eye_height
+                        }
+                    },
+                    CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.16,
+                    CameraMode::ThirdPerson => viewpoint_eye_height,
+                    CameraMode::Freefly => 0.0,
+                };
+                // Alter camera position to match player.
+                let tilt = self.camera.get_orientation().y;
+                let dist = self.camera.get_distance();
+
+                Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6)
+            } else {
+                self.figure_mgr
+                    .viewpoint_offset(scene_data, scene_data.viewpoint_entity)
             };
 
             match self.camera.get_mode() {
                 CameraMode::FirstPerson | CameraMode::ThirdPerson => {
-                    self.camera.set_focus_pos(
-                        viewpoint_pos + Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6),
-                    );
+                    self.camera.set_focus_pos(viewpoint_pos + viewpoint_offset);
                 },
                 CameraMode::Freefly => {},
             };

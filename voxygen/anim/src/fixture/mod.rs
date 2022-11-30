@@ -36,6 +36,7 @@ impl Skeleton for FixtureSkeleton {
         buf[0] = make_bone(base_mat);
         Offsets {
             lantern: None,
+            viewpoint: None,
             mount_bone: Transform::default(),
             primary_trail_mat: None,
             secondary_trail_mat: None,

@@ -43,6 +43,7 @@ impl Skeleton for ShipSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: (base_mat * scale_mat)

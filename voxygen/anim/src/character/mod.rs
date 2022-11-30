@@ -165,6 +165,7 @@ impl Skeleton for CharacterSkeleton {
         let weapon_trails = self.main_weapon_trail || self.off_weapon_trail;
         Offsets {
             lantern: Some((lantern_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz()),
+            viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 4.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::Humanoid(body)

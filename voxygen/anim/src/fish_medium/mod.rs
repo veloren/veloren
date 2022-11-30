@@ -39,11 +39,11 @@ impl Skeleton for FishMediumSkeleton {
 
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let chest_back_mat = Mat4::<f32>::from(self.chest_back);
-        let head_mat = Mat4::<f32>::from(self.head);
+        let head_mat = chest_front_mat * Mat4::<f32>::from(self.head);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(chest_front_mat * head_mat),
-            make_bone(chest_front_mat * head_mat * Mat4::<f32>::from(self.jaw)),
+            make_bone(head_mat),
+            make_bone(head_mat * Mat4::<f32>::from(self.jaw)),
             make_bone(chest_front_mat),
             make_bone(chest_front_mat * chest_back_mat),
             make_bone(chest_front_mat * chest_back_mat * Mat4::<f32>::from(self.tail)),
@@ -52,6 +52,7 @@ impl Skeleton for FishMediumSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: Some((head_mat * Vec4::new(0.0, 5.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::FishMedium(body)

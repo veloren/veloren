@@ -36,6 +36,7 @@ impl Skeleton for ItemDropSkeleton {
             [make_bone(bone0_mat)];
         Offsets {
             lantern: None,
+            viewpoint: None,
             mount_bone: Transform {
                 position: comp::Body::ItemDrop(body)
                     .mount_offset()

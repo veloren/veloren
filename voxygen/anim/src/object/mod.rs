@@ -41,6 +41,7 @@ impl Skeleton for ObjectSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::Object(body).mount_offset().into_tuple().into(),

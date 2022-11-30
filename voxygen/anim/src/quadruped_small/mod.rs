@@ -65,6 +65,7 @@ impl Skeleton for QuadrupedSmallSkeleton {
 
         Offsets {
             lantern: None,
+            viewpoint: Some((head_mat * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz()),
             mount_bone: Transform {
                 position: mount_position,
                 orientation: mount_orientation,

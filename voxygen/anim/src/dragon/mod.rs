@@ -73,6 +73,7 @@ impl Skeleton for DragonSkeleton {
         ];
         Offsets {
             lantern: None,
+            viewpoint: Some((head_upper_mat * Vec4::new(0.0, 8.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::Dragon(body).mount_offset().into_tuple().into(),
