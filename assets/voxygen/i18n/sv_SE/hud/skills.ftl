@@ -4,6 +4,7 @@ hud-skill-not_unlocked = Inte upplåst än
 hud-skill-req_sp ={"\u000A"}
     
     Kräver { $number } FP
+hud-skill-set_as_exp_bar = Ställ in som erfarenhetsmätare
 hud-skill-inc_health_title = Öka hälsa
 hud-skill-inc_health = Ökar den maximala hälsan med { $boost }{ $SP }
 hud-skill-inc_energy_title = Öka energi
