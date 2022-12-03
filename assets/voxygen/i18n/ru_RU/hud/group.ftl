@@ -1,13 +1,13 @@
 hud-group = Группа
 hud-group-invite_to_join = [{ $name }] пригласил вас в свою группу!
-hud-group-invite_to_trade = [{ $name }] предлогает вам поторговать.
+hud-group-invite_to_trade = [{ $name }] предлагает вам поторговать.
 hud-group-invite = Пригласить
 hud-group-kick = Выгнать
 hud-group-assign_leader = Назначить лидером
 hud-group-leave = Покинуть группу
 hud-group-dead = Мёртвый
 hud-group-out_of_range = Вне досягаемости
-hud-group-add_friend = Добавить в друзъя
+hud-group-add_friend = Добавить в друзья
 hud-group-link_group = Объединить группы
 hud-group-in_menu = В меню
 hud-group-members = Члены группы
