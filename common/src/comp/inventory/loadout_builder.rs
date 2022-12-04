@@ -1272,7 +1272,7 @@ mod tests {
             let loadout =
                 LoadoutSpec::load_cloned(loadout_id).expect("failed to load loadout asset");
             loadout
-                .validate(vec![loadout_id.to_owned()])
+                .validate(vec![loadout_id.to_string()])
                 .unwrap_or_else(|e| panic!("{loadout_id} is broken: {e:?}"));
         }
     }
@@ -1287,7 +1287,7 @@ mod tests {
             let loadout =
                 LoadoutSpec::load_cloned(loadout_id).expect("failed to load loadout asset");
             loadout
-                .validate(vec![loadout_id.to_owned()])
+                .validate(vec![loadout_id.to_string()])
                 .unwrap_or_else(|e| panic!("{loadout_id} is broken: {e:?}"));
         }
     }

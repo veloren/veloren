@@ -658,7 +658,7 @@ impl PartialEq for Item {
 }
 
 impl assets::Compound for ItemDef {
-    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, BoxedError> {
+    fn load(cache: assets::AnyCache, specifier: &assets::SharedString) -> Result<Self, BoxedError> {
         if specifier.starts_with("veloren.core.") {
             return Err(format!(
                 "Attempted to load an asset from a specifier reserved for core veloren functions. \
@@ -796,7 +796,7 @@ impl Item {
     pub fn new_from_asset_glob(asset_glob: &str) -> Result<Vec<Self>, Error> {
         let specifier = asset_glob.strip_suffix(".*").unwrap_or(asset_glob);
         let defs = assets::load_dir::<RawItemDef>(specifier, true)?;
-        defs.ids().map(Item::new_from_asset).collect()
+        defs.ids().map(|id| Item::new_from_asset(id)).collect()
     }
 
     /// Creates a new instance of an `Item from the provided asset identifier if
@@ -1253,7 +1253,7 @@ pub fn all_item_defs_expect() -> Vec<String> {
 /// Returns all item asset specifiers
 pub fn try_all_item_defs() -> Result<Vec<String>, Error> {
     let defs = assets::load_dir::<RawItemDef>("common.items", true)?;
-    Ok(defs.ids().map(|id| id.to_owned()).collect())
+    Ok(defs.ids().map(|id| id.to_string()).collect())
 }
 
 #[cfg(test)]
