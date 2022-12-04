@@ -1,5 +1,5 @@
-gameinput-primary = Attacco base
-gameinput-secondary = Attacco Secondario
+gameinput-primary = Attacco principale
+gameinput-secondary = Attacco secondario
 gameinput-block = Parata
 gameinput-slot1 = Slot rapido 1
 gameinput-slot2 = Slot rapido 2
