@@ -28,7 +28,7 @@ hud-crafting-tabs-bag = Рюкзаки
 hud-crafting-tabs-processed_material = Материалы
 hud-crafting-dismantle_title = Разборка
 hud-crafting-dismantle_explanation =
-    Наведите курсор на предмет что бы увидеть
+    Наведите курсор на предмет чтобы увидеть
     что вы можете получить.
     
     Двойное нажатие для начала разборки.
