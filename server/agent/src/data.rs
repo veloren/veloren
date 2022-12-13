@@ -114,6 +114,7 @@ pub enum Tactic {
     QuadLowBeam,
     QuadMedJump,
     QuadMedBasic,
+    QuadMedHoof,
     Theropod,
     BirdLargeBreathe,
     BirdLargeFire,

@@ -2342,6 +2342,35 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    pub fn handle_quadmed_hoof_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const HOOF_ATTACK_RANGE: f32 = 1.0;
+        const HOOF_ATTACK_ANGLE: f32 = 50.0;
+
+        if attack_data.angle < HOOF_ATTACK_ANGLE
+            && attack_data.dist_sqrd
+                < (HOOF_ATTACK_RANGE + self.body.map_or(0.0, |b| b.max_radius())).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller.push_basic_input(InputKind::Primary);
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Full,
+                None,
+            );
+        }
+    }
+
     pub fn handle_quadlow_beam_attack(
         &self,
         agent: &mut Agent,
