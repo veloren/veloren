@@ -824,6 +824,7 @@ impl<'a> AgentData<'a> {
                                 circle_time: 1,
                             },
                             "Quad Med Basic" => Tactic::QuadMedBasic,
+                            "Quad Med Hoof" => Tactic::QuadMedHoof,
                             "Roshwalr" => Tactic::Roshwalr,
                             "Asp" | "Maneater" => Tactic::QuadLowRanged,
                             "Quad Low Breathe" | "Quad Low Beam" | "Basilisk" => {
@@ -1127,6 +1128,13 @@ impl<'a> AgentData<'a> {
                 read_data,
             ),
             Tactic::QuadMedBasic => self.handle_quadmed_basic_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+            ),
+            Tactic::QuadMedHoof => self.handle_quadmed_hoof_attack(
                 agent,
                 controller,
                 &attack_data,
