@@ -16,6 +16,7 @@ csv-export = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv
 csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_import"
 dot-recipes = "run --manifest-path common/Cargo.toml --features=bin_graphviz --bin recipe_graphviz"
 dot-skills = "run --manifest-path common/Cargo.toml --features=bin_graphviz --bin skill_graphviz"
+img-export = "run --manifest-path voxygen/Cargo.toml --features=bin_img-export --bin img-export"
 # server-cli
 server = "run --bin veloren-server-cli"
 test-server = "run --bin veloren-server-cli --no-default-features --features simd"

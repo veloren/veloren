@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs now move to their target's last known position.
 - Experience bar below the hotbar
 - Bridges.
+- Tool for exporting PNG images of all in-game models (`cargo img-export`)
 
 ### Changed
 
@@ -78,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Camera jittering in third person has been significantly reduced
 - Many water shader issues have been fixed
 - Flee if attacked even if attacker is not close.
+- `/time` command will never rewind time, only advance it to not break rtsim
 
 ## [0.13.0] - 2022-07-23
 

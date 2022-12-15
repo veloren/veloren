@@ -31,6 +31,7 @@ plugins = ["client/plugins"]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
+bin_img-export = ["common-assets"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
 default-publish = ["singleplayer", "native-dialog", "plugins", "discord", "simd"]
@@ -41,12 +42,13 @@ default = ["default-no-egui", "egui-ui"]
 [dependencies]
 client = {package = "veloren-client", path = "../client"}
 common = {package = "veloren-common", path = "../common"}
+common-assets = {package = "veloren-common-assets", path = "../common/assets", optional = true} # img-export
 common-base = {package = "veloren-common-base", path = "../common/base"}
 common-ecs = {package = "veloren-common-ecs", path = "../common/ecs"}
 common-frontend = {package = "veloren-common-frontend", path = "../common/frontend"}
 common-net = {package = "veloren-common-net", path = "../common/net"}
-common-systems = {package = "veloren-common-systems", path = "../common/systems"}
 common-state = {package = "veloren-common-state", path = "../common/state"}
+common-systems = {package = "veloren-common-systems", path = "../common/systems"}
 
 anim = {package = "veloren-voxygen-anim", path = "anim"}
 i18n = {package = "veloren-client-i18n", path = "../client/i18n"}
@@ -160,3 +162,7 @@ rayon = "1.5.0"
 [[bench]]
 harness = false
 name = "meshing_benchmark"
+
+[[bin]]
+name = "img-export"
+required-features = ["bin_img-export"]

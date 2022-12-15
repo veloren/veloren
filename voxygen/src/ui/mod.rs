@@ -1,6 +1,6 @@
 mod cache;
 mod event;
-mod graphic;
+pub mod graphic;
 mod scale;
 mod widgets;
 #[macro_use]
