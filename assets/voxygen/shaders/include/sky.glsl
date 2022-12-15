@@ -155,7 +155,7 @@ float magnetosphere = sin(time_of_day.x / (3600 * 24));
 #endif
 #if (CLOUD_MODE > CLOUD_MODE_NONE)
     float emission_strength = clamp((magnetosphere - 0.3) * 1.3, 0, 1) * max(-moon_dir.z, 0);
-    #if (CLOUD_MODE > CLOUD_MODE_MEDIUM)
+    #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
         float emission_br = abs(pow(fract(time_of_day.x * 0.000005) * 2 - 1, 2));
     #else
         float emission_br = 0.5;
