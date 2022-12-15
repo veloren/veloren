@@ -259,9 +259,9 @@ dependencies = [
 
 [[package]]
 name = "assets_manager"
-version = "0.8.4"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "881c75fa0f271acf5440031d68d05398cea3e17dc8a418300839eaf0fed57cd2"
+checksum = "5cf9ce861ea14ebc2339372bafa6b7607adabfddd5679fee761956b3f76243eb"
 dependencies = [
  "ab_glyph",
  "ahash 0.8.0",

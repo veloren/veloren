@@ -145,7 +145,7 @@ impl EntityConfig {
 /// Return all entity config specifiers
 pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
     let configs = assets::load_dir::<EntityConfig>("common.entity", true)?;
-    Ok(configs.ids().map(|id| id.to_owned()).collect())
+    Ok(configs.ids().map(|id| id.to_string()).collect())
 }
 
 #[derive(Clone)]

@@ -473,7 +473,10 @@ impl assets::Asset for ItemList {
 }
 
 impl assets::Compound for RecipeBook {
-    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
+    fn load(
+        cache: assets::AnyCache,
+        specifier: &assets::SharedString,
+    ) -> Result<Self, assets::BoxedError> {
         #[inline]
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;
@@ -828,7 +831,10 @@ enum RawComponentOutput {
 }
 
 impl assets::Compound for ComponentRecipeBook {
-    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
+    fn load(
+        cache: assets::AnyCache,
+        specifier: &assets::SharedString,
+    ) -> Result<Self, assets::BoxedError> {
         #[inline]
         fn create_recipe_key(raw_recipe: &RawComponentRecipe) -> ComponentKey {
             match &raw_recipe.output {
@@ -903,7 +909,10 @@ pub fn default_component_recipe_book() -> AssetHandle<ComponentRecipeBook> {
 }
 
 impl assets::Compound for ReverseComponentRecipeBook {
-    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
+    fn load(
+        cache: assets::AnyCache,
+        specifier: &assets::SharedString,
+    ) -> Result<Self, assets::BoxedError> {
         let forward = cache.load::<ComponentRecipeBook>(specifier)?.cloned();
         let mut recipes = HashMap::new();
         for (_, recipe) in forward.iter() {

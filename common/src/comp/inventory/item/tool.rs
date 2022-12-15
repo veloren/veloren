@@ -434,7 +434,10 @@ impl Asset for AbilityMap<String> {
 }
 
 impl assets::Compound for AbilityMap {
-    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
+    fn load(
+        cache: assets::AnyCache,
+        specifier: &assets::SharedString,
+    ) -> Result<Self, assets::BoxedError> {
         let manifest = cache.load::<AbilityMap<String>>(specifier)?.read();
 
         Ok(AbilityMap(

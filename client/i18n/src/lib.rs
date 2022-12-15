@@ -16,7 +16,7 @@ use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, io};
 
-use assets::{source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher};
+use assets::{source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher, SharedString};
 use tracing::warn;
 // Re-export because I don't like prefix
 use common_assets as assets;
@@ -148,7 +148,7 @@ impl Language {
 }
 
 impl assets::Compound for Language {
-    fn load(cache: assets::AnyCache, path: &str) -> Result<Self, assets::BoxedError> {
+    fn load(cache: assets::AnyCache, path: &SharedString) -> Result<Self, assets::BoxedError> {
         let manifest = cache
             .load::<raw::Manifest>(&[path, ".", "_manifest"].concat())?
             .cloned();
@@ -180,7 +180,7 @@ impl assets::Compound for Language {
                     };
 
                     let resource = FluentResource::try_new(src).map_err(|(_ast, errs)| {
-                        ResourceErr::parsing_error(errs, id.to_owned(), &source.src)
+                        ResourceErr::parsing_error(errs, id.to_string(), &source.src)
                     })?;
 
                     bundle
@@ -445,12 +445,15 @@ impl LocalizationHandle {
 struct FindManifests;
 
 impl assets::DirLoadable for FindManifests {
-    fn select_ids<S: assets::Source + ?Sized>(
-        source: &S,
-        specifier: &str,
-    ) -> io::Result<Vec<assets::SharedString>> {
+    fn select_ids(
+        cache: assets::AnyCache,
+        specifier: &SharedString,
+    ) -> io::Result<Vec<SharedString>> {
+        use assets::Source;
+
         let mut specifiers = Vec::new();
 
+        let source = cache.source();
         source.read_dir(specifier, &mut |entry| {
             if let DirEntry::Directory(spec) = entry {
                 let manifest_spec = [spec, ".", "_manifest"].concat();
@@ -469,7 +472,7 @@ impl assets::DirLoadable for FindManifests {
 struct LocalizationList(Vec<LanguageMetadata>);
 
 impl assets::Compound for LocalizationList {
-    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
+    fn load(cache: assets::AnyCache, specifier: &SharedString) -> Result<Self, assets::BoxedError> {
         // List language directories
         let languages = assets::load_dir::<FindManifests>(specifier, false)
             .unwrap_or_else(|e| panic!("Failed to get manifests from {}: {:?}", specifier, e))

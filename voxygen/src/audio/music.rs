@@ -552,7 +552,7 @@ impl assets::Asset for SoundtrackCollection<RawSoundtrackItem> {
 }
 
 impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
-    fn load(_: assets::AnyCache, id: &str) -> Result<Self, assets::BoxedError> {
+    fn load(_: assets::AnyCache, id: &assets::SharedString) -> Result<Self, assets::BoxedError> {
         let manifest: AssetHandle<SoundtrackCollection<RawSoundtrackItem>> = AssetExt::load(id)?;
         let mut soundtrack = SoundtrackCollection::default();
         for item in manifest.read().tracks.iter().cloned() {
