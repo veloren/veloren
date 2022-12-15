@@ -52,6 +52,7 @@ wgpu-trace/
 
 # Export data
 *.csv
+img-export/**/*.png
 
 # Game data
 *.sqlite

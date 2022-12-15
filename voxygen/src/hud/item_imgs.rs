@@ -18,7 +18,7 @@ pub fn animate_by_pulse(ids: &[Id], pulse: f32) -> Id {
 }
 
 #[derive(Serialize, Deserialize)]
-enum ImageSpec {
+pub enum ImageSpec {
     Png(String),
     Vox(String),
     // (specifier, offset, (axis, 2 * angle / pi), zoom)
@@ -54,7 +54,7 @@ impl ImageSpec {
 }
 
 #[derive(Serialize, Deserialize)]
-struct ItemImagesSpec(HashMap<ItemKey, ImageSpec>);
+pub struct ItemImagesSpec(pub HashMap<ItemKey, ImageSpec>);
 impl assets::Asset for ItemImagesSpec {
     type Loader = assets::RonLoader;
 
