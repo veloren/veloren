@@ -1,6 +1,6 @@
 #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::{
-    comp::{aura::AuraKey, Stats},
+    comp::{aura::AuraKey, Health, Stats},
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -56,10 +56,13 @@ pub enum BuffKind {
     /// Strength scales strength of both effects linearly. 0.5 is a 50%
     /// increase, 1.0 is a 100% increase.
     Hastened,
-    // TODO: Consider non linear scaling?
-    /// Increases resistance to incoming poise over time
-    /// Strength scales the resistance linearly, values over 1 will usually do
-    /// nothing. 0.5 is 50%, 1.0 is 100%.
+    /// Increases resistance to incoming poise, and poise damage dealt as health
+    /// is lost from the time the buff activated
+    /// Strength scales the resistance non-linearly. 0.5 provides 50%, 1.0
+    /// provides 67%
+    /// Strength scales the poise damage increase linearly, a strength of 1.0
+    /// and n health less from activation will cause poise damage to increase by
+    /// n%
     Fortitude,
     // Debuffs
     /// Does damage to a creature over time
@@ -214,6 +217,8 @@ pub enum BuffEffect {
     PoiseReduction(f32),
     /// Reduces amount healed by consumables
     HealReduction(f32),
+    /// Increases poise damage dealt when health is lost
+    PoiseDamageFromLostHealth { initial_health: f32, strength: f32 },
 }
 
 /// Actual de/buff.
@@ -272,6 +277,7 @@ impl Buff {
         source: BuffSource,
         time: Time,
         stats: Option<&Stats>,
+        health: Option<&Health>,
     ) -> Self {
         // Normalized nonlinear scaling
         let nn_scaling = |a| a / (a + 0.5);
@@ -367,7 +373,13 @@ impl Buff {
                 BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::AttackSpeed(1.0 + data.strength),
             ],
-            BuffKind::Fortitude => vec![BuffEffect::PoiseReduction(data.strength)],
+            BuffKind::Fortitude => vec![
+                BuffEffect::PoiseReduction(nn_scaling(data.strength)),
+                BuffEffect::PoiseDamageFromLostHealth {
+                    initial_health: health.map_or(0.0, |h| h.current()),
+                    strength: data.strength,
+                },
+            ],
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
             BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
         };

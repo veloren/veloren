@@ -241,6 +241,7 @@ fn activate_aura(
                         source,
                         *read_data.time,
                         stats,
+                        Some(health),
                     )),
                 });
             }

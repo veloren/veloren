@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        ability::{Ability, AbilityInput, AbilityMeta, Capability, AbilityInitEvent},
+        ability::{Ability, AbilityInitEvent, AbilityInput, AbilityMeta, Capability},
         arthropod, biped_large, biped_small, bird_medium,
         character_state::OutputEvents,
         controller::InventoryManip,
@@ -471,7 +471,9 @@ pub fn handle_forced_movement(
                     data.inputs.move_dir.reflected(Vec2::from(*data.ori))
                 } else {
                     data.inputs.move_dir
-                }.try_normalized().unwrap_or_else(|| -Vec2::from(*data.ori));
+                }
+                .try_normalized()
+                .unwrap_or_else(|| -Vec2::from(*data.ori));
                 update.vel.0 += direction * strength * accel * data.dt.0;
             }
         },
@@ -485,7 +487,9 @@ pub fn handle_forced_movement(
                     data.inputs.move_dir.reflected(Vec2::from(*data.ori))
                 } else {
                     data.inputs.move_dir
-                }.try_normalized().unwrap_or_else(|| Vec2::from(*data.ori));
+                }
+                .try_normalized()
+                .unwrap_or_else(|| Vec2::from(*data.ori));
                 let direction = direction.reflected(Vec2::from(*data.ori).rotated_z(PI / 2.));
                 update.vel.0 += direction * strength * accel * data.dt.0;
             }
@@ -1060,7 +1064,12 @@ pub fn handle_jump(
         .is_some()
 }
 
-fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, output_events: &mut OutputEvents, input: InputKind) -> bool {
+fn handle_ability(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    output_events: &mut OutputEvents,
+    input: InputKind,
+) -> bool {
     let context = AbilityContext::from(data.stance);
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
@@ -1084,7 +1093,10 @@ fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, output_events: 
             if let Some(init_event) = ability.ability_meta().init_event {
                 match init_event {
                     AbilityInitEvent::EnterStance(stance) => {
-                        output_events.emit_server(ServerEvent::ChangeStance { entity: data.entity, stance });
+                        output_events.emit_server(ServerEvent::ChangeStance {
+                            entity: data.entity,
+                            stance,
+                        });
                     },
                 }
             }
@@ -1428,7 +1440,12 @@ impl AbilityInfo {
             tool,
             hand,
             input,
-            input_attr: data.controller.queued_inputs.get(&input).map(|x| x.1).or_else(|| data.controller.held_inputs.get(&input).copied()),
+            input_attr: data
+                .controller
+                .queued_inputs
+                .get(&input)
+                .map(|x| x.1)
+                .or_else(|| data.controller.held_inputs.get(&input).copied()),
             ability_meta,
             ability,
         }

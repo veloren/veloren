@@ -865,18 +865,18 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let uid_allocator = &ecs.read_resource::<UidAllocator>();
                 let players = &ecs.read_storage::<Player>();
                 let buffs = &ecs.read_storage::<comp::Buffs>();
+                let stats = &ecs.read_storage::<comp::Stats>();
                 for (
                     entity_b,
                     pos_b,
                     health_b,
-                    (body_b_maybe, stats_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
+                    (body_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
                 ) in (
                     &ecs.entities(),
                     &ecs.read_storage::<Pos>(),
                     &ecs.read_storage::<Health>(),
                     (
                         ecs.read_storage::<Body>().maybe(),
-                        ecs.read_storage::<Stats>().maybe(),
                         ecs.read_storage::<comp::Ori>().maybe(),
                         ecs.read_storage::<CharacterState>().maybe(),
                         &ecs.read_storage::<Uid>(),
@@ -927,13 +927,14 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                     energy: energies.get(entity),
                                     combo: combos.get(entity),
                                     inventory: inventories.get(entity),
+                                    stats: stats.get(entity),
                                 });
 
                         let target_info = combat::TargetInfo {
                             entity: entity_b,
                             uid: *uid_b,
                             inventory: inventories.get(entity_b),
-                            stats: stats_b_maybe,
+                            stats: stats.get(entity_b),
                             health: Some(health_b),
                             pos: pos_b.0,
                             ori: ori_b_maybe,
@@ -1159,15 +1160,16 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                 }
             },
             BuffChange::Refresh(kind) => {
-                let (buff_comp_kinds, buff_comp_buffs) = buffs.parts();
-                if let Some(buff_ids) = buff_comp_kinds.get(&kind) {
-                    for id in buff_ids {
-                        if let Some(buff) = buff_comp_buffs.get_mut(id) {
-                            // Resets buff timer to the original duration
-                            buff.time = buff.data.duration;
-                        }
-                    }
-                }
+                buffs
+                    .buffs
+                    .values_mut()
+                    .filter(|b| b.kind == kind)
+                    .for_each(|buff| {
+                        // Resets buff so that its remaining duration is equal to its original
+                        // duration
+                        buff.start_time = *time;
+                        buff.end_time = buff.data.duration.map(|dur| Time(time.0 + dur.0));
+                    })
             },
         }
     }
@@ -1303,6 +1305,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
             };
             let time = ecs.read_resource::<Time>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let healths = ecs.read_storage::<comp::Health>();
             let buff = buff::Buff::new(
                 BuffKind::Parried,
                 data,
@@ -1310,6 +1313,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 source,
                 *time,
                 stats.get(attacker),
+                healths.get(attacker),
             );
             server_eventbus.emit_now(ServerEvent::Buff {
                 entity: attacker,

@@ -63,7 +63,7 @@ buff-title-ensnared = Ensnared
 buff-desc-ensnared = Vines grasp at your legs, impeding your movement.
 ## Fortitude
 buff-title-fortitude = Fortitude
-buff-desc-fortitude = You can withstand staggers.
+buff-desc-fortitude = You can withstand staggers, and as you take more damage you stagger others more easily.
 ## Parried
 buff-title-parried = Parried
 buff-desc-parried = You were parried and now are slow to recover.

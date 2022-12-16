@@ -11,6 +11,8 @@ use std::time::Duration;
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
+    /// If Some(_), the state can be activated on the ground
+    pub buildup_duration: Option<Duration>,
     /// How long the state is moving
     pub movement_duration: Duration,
     /// How long the weapon swings
@@ -51,6 +53,28 @@ impl CharacterBehavior for Data {
         }
 
         match self.stage_section {
+            StageSection::Buildup => {
+                handle_orientation(data, &mut update, 0.5, None);
+                handle_move(data, &mut update, 0.3);
+
+                if let Some(buildup_duration) = self.static_data.buildup_duration {
+                    if self.timer < buildup_duration {
+                        if let CharacterState::DiveMelee(c) = &mut update.character {
+                            c.timer = tick_attack_or_default(data, self.timer, None);
+                        }
+                    } else {
+                        if let CharacterState::DiveMelee(c) = &mut update.character {
+                            c.timer = Duration::default();
+                            c.stage_section = StageSection::Action;
+                        }
+                    }
+                } else {
+                    if let CharacterState::DiveMelee(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
+                }
+            },
             StageSection::Movement => {
                 handle_move(data, &mut update, 1.0);
                 if data.physics.on_ground.is_some() {

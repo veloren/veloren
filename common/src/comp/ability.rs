@@ -777,6 +777,7 @@ pub enum CharacterAbility {
     DiveMelee {
         energy_cost: f32,
         vertical_speed: f32,
+        buildup_duration: Option<f32>,
         movement_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
@@ -893,11 +894,15 @@ impl CharacterAbility {
                     && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::DiveMelee {
+                buildup_duration,
                 energy_cost,
                 vertical_speed,
                 ..
             } => {
-                data.vel.0.z < -*vertical_speed
+                // If either falling fast enough or is on ground and able to be activated from
+                // ground
+                (data.vel.0.z < -*vertical_speed
+                    || (data.physics.on_ground.is_some() && buildup_duration.is_some()))
                     && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::ComboMelee { .. }
@@ -1425,12 +1430,14 @@ impl CharacterAbility {
                 ref mut energy_cost,
                 vertical_speed: _,
                 movement_duration: _,
+                ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut melee_constructor,
                 max_scaling: _,
                 meta: _,
             } => {
+                *buildup_duration = buildup_duration.map(|b| b / stats.speed);
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
@@ -2744,6 +2751,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 exhausted: false,
             }),
             CharacterAbility::DiveMelee {
+                buildup_duration,
                 movement_duration,
                 swing_duration,
                 recover_duration,
@@ -2754,6 +2762,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 meta: _,
             } => CharacterState::DiveMelee(dive_melee::Data {
                 static_data: dive_melee::StaticData {
+                    buildup_duration: buildup_duration.map(|b| Duration::from_secs_f32(b)),
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
@@ -2763,7 +2772,11 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                 },
                 timer: Duration::default(),
-                stage_section: StageSection::Movement,
+                stage_section: if data.vel.0.z < 0.0 || buildup_duration.is_none() {
+                    StageSection::Movement
+                } else {
+                    StageSection::Buildup
+                },
                 exhausted: false,
                 max_vertical_speed: 0.0,
             }),

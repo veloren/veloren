@@ -215,6 +215,7 @@ impl<'a> System<'a> for Sys {
                                         energy: read_data.energies.get(entity),
                                         combo: read_data.combos.get(entity),
                                         inventory: read_data.inventories.get(entity),
+                                        stats: read_data.stats.get(entity),
                                     }
                                 });
 

@@ -18,11 +18,9 @@ pub struct StaticData {
     pub energy_drain: f32,
     /// Energy cost per attack
     pub energy_cost: f32,
-    /// The state can optionally have a buildup strike that applies after buildup before charging
-    pub buildup_strike: Option<(
-        Duration,
-        MeleeConstructor,
-    )>,
+    /// The state can optionally have a buildup strike that applies after
+    /// buildup before charging
+    pub buildup_strike: Option<(Duration, MeleeConstructor)>,
     /// How long it takes to charge the weapon to max damage and knockback
     pub charge_duration: Duration,
     /// How long the weapon is swinging for
@@ -74,10 +72,8 @@ impl CharacterBehavior for Data {
                     } else {
                         let crit_data = get_crit_data(data, self.static_data.ability_info);
                         let buff_strength = get_buff_strength(data, self.static_data.ability_info);
-                        data.updater.insert(
-                            data.entity,
-                            strike.create_melee(crit_data, buff_strength),
-                        );
+                        data.updater
+                            .insert(data.entity, strike.create_melee(crit_data, buff_strength));
 
                         if let CharacterState::ChargedMelee(c) = &mut update.character {
                             c.stage_section = StageSection::Charge;

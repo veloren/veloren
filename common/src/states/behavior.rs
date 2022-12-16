@@ -146,7 +146,6 @@ pub struct JoinData<'a> {
     pub terrain: &'a TerrainGrid,
     pub mount_data: Option<&'a Is<Rider>>,
     pub stance: Option<&'a Stance>,
-    pub time: &'a Time,
 }
 
 pub struct JoinStruct<'a> {
@@ -174,7 +173,6 @@ pub struct JoinStruct<'a> {
     pub terrain: &'a TerrainGrid,
     pub mount_data: Option<&'a Is<Rider>>,
     pub stance: Option<&'a Stance>,
-    pub time: &'a Time,
 }
 
 impl<'a> JoinData<'a> {
@@ -216,7 +214,6 @@ impl<'a> JoinData<'a> {
             active_abilities: j.active_abilities,
             mount_data: j.mount_data,
             stance: j.stance,
-            time: j.time,
         }
     }
 }

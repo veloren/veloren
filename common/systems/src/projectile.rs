@@ -298,6 +298,7 @@ fn dispatch_hit(
                         energy: read_data.energies.get(entity),
                         combo: read_data.combos.get(entity),
                         inventory: read_data.inventories.get(entity),
+                        stats: read_data.stats.get(entity),
                     });
 
             let target_info = TargetInfo {

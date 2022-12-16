@@ -92,9 +92,9 @@ impl CharacterBehavior for Data {
                     Some(max) => self.current_strike < max,
                     None => input_is_pressed(data, self.static_data.ability_info.input),
                 } && update
-                        .energy
-                        .try_change_by(-self.static_data.energy_cost)
-                        .is_ok()
+                    .energy
+                    .try_change_by(-self.static_data.energy_cost)
+                    .is_ok()
                 {
                     if let CharacterState::RapidMelee(c) = &mut update.character {
                         c.timer = Duration::default();

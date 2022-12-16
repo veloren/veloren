@@ -250,7 +250,7 @@ pub trait Animation {
             let update_fn: common_dynlib::Symbol<
                 fn(
                     &Self::Skeleton,
-                    Self::Dependency<'a>,
+                    Self::Dependency<'_>,
                     f32,
                     &mut f32,
                     &<Self::Skeleton as Skeleton>::Attr,

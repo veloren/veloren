@@ -56,6 +56,7 @@ pub struct AttackerInfo<'a> {
     pub energy: Option<&'a Energy>,
     pub combo: Option<&'a Combo>,
     pub inventory: Option<&'a Inventory>,
+    pub stats: Option<&'a Stats>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -294,7 +295,11 @@ impl Attack {
                         // that health change amount is greater than 0 would fail.
                         let reduced_damage =
                             applied_damage * damage_reduction / (1.0 - damage_reduction);
-                        let poise = reduced_damage * CRUSHING_POISE_FRACTION;
+                        let poise = reduced_damage
+                            * CRUSHING_POISE_FRACTION
+                            * attacker
+                                .and_then(|a| a.stats)
+                                .map_or(1.0, |s| s.poise_damage_modifier);
                         let change = -Poise::apply_poise_reduction(
                             poise,
                             target.inventory,
@@ -369,6 +374,7 @@ impl Attack {
                                         time,
                                         attacker.map(|a| a.uid),
                                         target.stats,
+                                        target.health,
                                         applied_damage,
                                         strength_modifier,
                                     )),
@@ -401,7 +407,10 @@ impl Attack {
                                 msm,
                                 target.char_state,
                                 target.stats,
-                            ) * strength_modifier;
+                            ) * strength_modifier
+                                * attacker
+                                    .and_then(|a| a.stats)
+                                    .map_or(1.0, |s| s.poise_damage_modifier);
                             if change.abs() > Poise::POISE_EPSILON {
                                 let poise_change = PoiseChange {
                                     amount: change,
@@ -561,6 +570,7 @@ impl Attack {
                                     time,
                                     attacker.map(|a| a.uid),
                                     target.stats,
+                                    target.health,
                                     accumulated_damage,
                                     strength_modifier,
                                 )),
@@ -593,7 +603,10 @@ impl Attack {
                             msm,
                             target.char_state,
                             target.stats,
-                        ) * strength_modifier;
+                        ) * strength_modifier
+                            * attacker
+                                .and_then(|a| a.stats)
+                                .map_or(1.0, |s| s.poise_damage_modifier);
                         if change.abs() > Poise::POISE_EPSILON {
                             let poise_change = PoiseChange {
                                 amount: change,
@@ -1082,7 +1095,8 @@ impl CombatBuff {
         self,
         time: Time,
         uid: Option<Uid>,
-        stats: Option<&Stats>,
+        tgt_stats: Option<&Stats>,
+        tgt_health: Option<&Health>,
         damage: f32,
         strength_modifier: f32,
     ) -> Buff {
@@ -1102,7 +1116,8 @@ impl CombatBuff {
             Vec::new(),
             source,
             time,
-            stats,
+            tgt_stats,
+            tgt_health,
         )
     }
 }

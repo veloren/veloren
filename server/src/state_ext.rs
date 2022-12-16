@@ -224,6 +224,7 @@ impl StateExt for State {
             Effect::Buff(buff) => {
                 let time = self.ecs().read_resource::<Time>();
                 let stats = self.ecs().read_storage::<comp::Stats>();
+                let healths = self.ecs().read_storage::<comp::Health>();
                 self.ecs()
                     .write_storage::<comp::Buffs>()
                     .get_mut(entity)
@@ -236,6 +237,7 @@ impl StateExt for State {
                                 comp::BuffSource::Item,
                                 *time,
                                 stats.get(entity),
+                                healths.get(entity),
                             ),
                             *time,
                         )

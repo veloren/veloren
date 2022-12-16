@@ -201,7 +201,6 @@ impl<'a> System<'a> for Sys {
                 terrain: &read_data.terrain,
                 mount_data: read_data.is_riders.get(entity),
                 stance: read_data.stances.get(entity),
-                time: &read_data.time,
             };
 
             for action in actions {
@@ -274,7 +273,7 @@ impl Sys {
         for (input, attr) in state_update.queued_inputs {
             join.controller
                 .queued_inputs
-                .insert(input, (*join.time, attr));
+                .insert(input, (Time(0.0), attr));
             join.controller.held_inputs.insert(input, attr);
         }
         for input in state_update.used_inputs {
@@ -283,7 +282,7 @@ impl Sys {
         for input in state_update.removed_inputs {
             join.controller.held_inputs.remove(&input);
         }
-        join.controller.cull_queued_inputs(*join.time);
+        join.controller.cull_queued_inputs(Time(0.0));
         if state_update.swap_equipped_weapons {
             output_events.emit_server(ServerEvent::InventoryManip(
                 join.entity,
