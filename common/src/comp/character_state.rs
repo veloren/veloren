@@ -1,4 +1,5 @@
 use crate::{
+    combat::AttackSource,
     comp::{
         ability::Capability, inventory::item::armor::Friction, item::ConsumableKind, ControlAction,
         Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
@@ -279,20 +280,28 @@ impl CharacterState {
         )
     }
 
-    pub fn block_strength(&self) -> Option<f32> {
-        let from_capability = if let Some(capabilities) = self
-            .ability_info()
-            .map(|a| a.ability_meta)
-            .map(|m| m.capabilities)
-        {
-            (capabilities.contains(Capability::BUILDUP_BLOCKS)
-                && matches!(self.stage_section(), Some(StageSection::Buildup)))
-            .then_some(0.5)
+    pub fn block_strength(&self, attack_source: AttackSource) -> Option<f32> {
+        let from_capability = if let AttackSource::Melee = attack_source {
+            if let Some(capabilities) = self
+                .ability_info()
+                .map(|a| a.ability_meta)
+                .map(|m| m.capabilities)
+            {
+                (capabilities.contains(Capability::BUILDUP_BLOCKS)
+                    && matches!(self.stage_section(), Some(StageSection::Buildup)))
+                .then_some(0.5)
+            } else {
+                None
+            }
         } else {
             None
         };
         let from_state = match self {
-            CharacterState::BasicBlock(c) => Some(c.static_data.block_strength),
+            CharacterState::BasicBlock(c) => c
+                .static_data
+                .blocked_attacks
+                .applies(attack_source)
+                .then_some(c.static_data.block_strength),
             _ => None,
         };
         match (from_capability, from_state) {
@@ -302,17 +311,21 @@ impl CharacterState {
         }
     }
 
-    pub fn is_parry(&self) -> bool {
-        let from_capability = self
-            .ability_info()
-            .map(|a| a.ability_meta.capabilities)
-            .map_or(false, |c| {
-                c.contains(Capability::BUILDUP_PARRIES)
-                    && matches!(self.stage_section(), Some(StageSection::Buildup))
-            });
+    pub fn is_parry(&self, attack_source: AttackSource) -> bool {
+        let melee = matches!(attack_source, AttackSource::Melee);
+        let from_capability = melee
+            && self
+                .ability_info()
+                .map(|a| a.ability_meta.capabilities)
+                .map_or(false, |c| {
+                    c.contains(Capability::BUILDUP_PARRIES)
+                        && matches!(self.stage_section(), Some(StageSection::Buildup))
+                });
         let from_state = match self {
-            CharacterState::BasicBlock(c) => c.is_parry(),
-            CharacterState::RiposteMelee(c) => matches!(c.stage_section, StageSection::Buildup),
+            CharacterState::BasicBlock(c) => c.is_parry(attack_source),
+            CharacterState::RiposteMelee(c) => {
+                melee && matches!(c.stage_section, StageSection::Buildup)
+            },
             _ => false,
         };
         from_capability || from_state
@@ -342,7 +355,7 @@ impl CharacterState {
 
     pub fn is_music(&self) -> bool { matches!(self, CharacterState::Music(_)) }
 
-    pub fn attack_immunities(&self) -> Option<AttackImmunities> {
+    pub fn attack_immunities(&self) -> Option<AttackFilters> {
         if let CharacterState::Roll(c) = self {
             Some(c.static_data.attack_immunities)
         } else {
@@ -879,13 +892,26 @@ pub struct DurationsInfo {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
-pub struct AttackImmunities {
+pub struct AttackFilters {
     pub melee: bool,
     pub projectiles: bool,
     pub beams: bool,
     pub ground_shockwaves: bool,
     pub air_shockwaves: bool,
     pub explosions: bool,
+}
+
+impl AttackFilters {
+    pub fn applies(&self, attack: AttackSource) -> bool {
+        match attack {
+            AttackSource::Melee => self.melee,
+            AttackSource::Projectile => self.projectiles,
+            AttackSource::Beam => self.beams,
+            AttackSource::GroundShockwave => self.ground_shockwaves,
+            AttackSource::AirShockwave => self.air_shockwaves,
+            AttackSource::Explosion => self.explosions,
+        }
+    }
 }
 
 impl Default for CharacterState {

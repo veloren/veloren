@@ -63,7 +63,7 @@ impl Animation for SelfBuffAnimation {
                 next.shorts.orientation.rotate_x(move2 * 0.2);
                 next.shorts.position += Vec3::new(0.0, move2 * 1.0, 0.0);
             },
-            Some("common.abilities.sword.defensive_bulwark") => {
+            Some("common.abilities.sword.defensive_stalwart_sword") => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Movement) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),

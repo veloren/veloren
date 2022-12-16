@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
-        character_state::{AttackImmunities, OutputEvents},
+        character_state::{AttackFilters, OutputEvents},
         CharacterState, InputKind, StateUpdate,
     },
     event::ServerEvent,
@@ -25,7 +25,7 @@ pub struct StaticData {
     /// Affects the speed and distance of the roll
     pub roll_strength: f32,
     /// Affects whether you are immune to various attacks while rolling
-    pub attack_immunities: AttackImmunities,
+    pub attack_immunities: AttackFilters,
     /// Information about the ability
     pub ability_info: AbilityInfo,
 }

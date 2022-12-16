@@ -43,7 +43,8 @@ pub enum AttackSource {
     Melee,
     Projectile,
     Beam,
-    Shockwave,
+    GroundShockwave,
+    AirShockwave,
     Explosion,
 }
 
@@ -145,40 +146,36 @@ impl Attack {
         if damage.value > 0.0 {
             let damage_reduction =
                 Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats, msm);
-            let block_reduction = match source {
-                AttackSource::Melee => {
-                    if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
-                        if ori.look_vec().angle_between(-*dir) < char_state.block_angle() {
-                            if char_state.is_parry() {
-                                emit_outcome(Outcome::Block {
-                                    parry: true,
-                                    pos: target.pos,
-                                    uid: target.uid,
-                                });
-                                emit(ServerEvent::ParryHook {
-                                    defender: target.entity,
-                                    attacker: attacker.map(|a| a.entity),
-                                });
-                                1.0
-                            } else if let Some(block_strength) = char_state.block_strength() {
-                                emit_outcome(Outcome::Block {
-                                    parry: false,
-                                    pos: target.pos,
-                                    uid: target.uid,
-                                });
-                                block_strength
-                            } else {
-                                0.0
-                            }
+            let block_reduction =
+                if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
+                    if ori.look_vec().angle_between(-*dir) < char_state.block_angle() {
+                        if char_state.is_parry(source) {
+                            emit_outcome(Outcome::Block {
+                                parry: true,
+                                pos: target.pos,
+                                uid: target.uid,
+                            });
+                            emit(ServerEvent::ParryHook {
+                                defender: target.entity,
+                                attacker: attacker.map(|a| a.entity),
+                            });
+                            1.0
+                        } else if let Some(block_strength) = char_state.block_strength(source) {
+                            emit_outcome(Outcome::Block {
+                                parry: false,
+                                pos: target.pos,
+                                uid: target.uid,
+                            });
+                            block_strength
                         } else {
                             0.0
                         }
                     } else {
                         0.0
                     }
-                },
-                _ => 0.0,
-            };
+                } else {
+                    0.0
+                };
             1.0 - (1.0 - damage_reduction) * (1.0 - block_reduction)
         } else {
             0.0
@@ -867,7 +864,7 @@ impl From<AttackSource> for DamageSource {
             AttackSource::Melee => DamageSource::Melee,
             AttackSource::Projectile => DamageSource::Projectile,
             AttackSource::Explosion => DamageSource::Explosion,
-            AttackSource::Shockwave => DamageSource::Shockwave,
+            AttackSource::AirShockwave | AttackSource::GroundShockwave => DamageSource::Shockwave,
             AttackSource::Beam => DamageSource::Energy,
         }
     }

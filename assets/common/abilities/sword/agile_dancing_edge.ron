@@ -5,5 +5,5 @@ SelfBuff(
     buff_kind: Hastened,
     buff_strength: 0.25,
     buff_duration: Some(30.0),
-    energy_cost: 25,
+    energy_cost: 30,
 )

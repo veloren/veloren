@@ -3,7 +3,7 @@ use crate::{
     combat::{self, CombatEffect, DamageKind, Knockback},
     comp::{
         self, aura, beam, buff,
-        character_state::AttackImmunities,
+        character_state::AttackFilters,
         inventory::{
             item::{
                 tool::{AbilityContext, AbilityKind, Stats, ToolKind},
@@ -547,6 +547,7 @@ pub enum CharacterAbility {
         parry_window: basic_block::ParryWindow,
         energy_cost: f32,
         can_hold: bool,
+        blocked_attacks: AttackFilters,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -556,7 +557,7 @@ pub enum CharacterAbility {
         movement_duration: f32,
         recover_duration: f32,
         roll_strength: f32,
-        attack_immunities: AttackImmunities,
+        attack_immunities: AttackFilters,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -922,7 +923,7 @@ impl CharacterAbility {
             movement_duration: 0.33,
             recover_duration: 0.125,
             roll_strength: 3.0,
-            attack_immunities: AttackImmunities {
+            attack_immunities: AttackFilters {
                 melee: true,
                 projectiles: false,
                 beams: true,
@@ -946,6 +947,14 @@ impl CharacterAbility {
             },
             energy_cost: 2.5,
             can_hold: true,
+            blocked_attacks: AttackFilters {
+                melee: true,
+                projectiles: false,
+                ground_shockwaves: false,
+                air_shockwaves: false,
+                beams: false,
+                explosions: false,
+            },
             meta: Default::default(),
         }
     }
@@ -1049,6 +1058,7 @@ impl CharacterAbility {
                 parry_window: _,
                 ref mut energy_cost,
                 can_hold: _,
+                blocked_attacks: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2216,6 +2226,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 parry_window,
                 energy_cost,
                 can_hold,
+                blocked_attacks,
                 meta: _,
             } => CharacterState::BasicBlock(basic_block::Data {
                 static_data: basic_block::StaticData {
@@ -2226,6 +2237,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     parry_window: *parry_window,
                     energy_cost: *energy_cost,
                     can_hold: *can_hold,
+                    blocked_attacks: *blocked_attacks,
                     ability_info,
                 },
                 timer: Duration::default(),

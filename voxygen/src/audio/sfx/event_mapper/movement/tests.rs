@@ -2,7 +2,7 @@ use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
-        bird_large, character_state::AttackImmunities, humanoid, quadruped_medium, quadruped_small,
+        bird_large, character_state::AttackFilters, humanoid, quadruped_medium, quadruped_small,
         Body, CharacterState, Ori, PhysicsState,
     },
     states,
@@ -184,7 +184,7 @@ fn maps_roll() {
                 movement_duration: Duration::default(),
                 recover_duration: Duration::default(),
                 roll_strength: 0.0,
-                attack_immunities: AttackImmunities {
+                attack_immunities: AttackFilters {
                     melee: false,
                     projectiles: false,
                     beams: false,

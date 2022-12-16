@@ -245,7 +245,11 @@ impl<'a> System<'a> for Sys {
                         dir,
                         attack_options,
                         1.0,
-                        AttackSource::Shockwave,
+                        if shockwave.requires_ground {
+                            AttackSource::GroundShockwave
+                        } else {
+                            AttackSource::AirShockwave
+                        },
                         *read_data.time,
                         |e| server_emitter.emit(e),
                         |o| outcomes_emitter.emit(o),

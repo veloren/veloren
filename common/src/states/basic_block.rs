@@ -1,6 +1,10 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
+    combat::AttackSource,
+    comp::{
+        character_state::{AttackFilters, OutputEvents},
+        CharacterState, StateUpdate,
+    },
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -31,6 +35,8 @@ pub struct StaticData {
     pub energy_cost: f32,
     /// Whether block can be held
     pub can_hold: bool,
+    /// What kinds of attacks the block applies to
+    pub blocked_attacks: AttackFilters,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -116,11 +122,13 @@ impl CharacterBehavior for Data {
 }
 
 impl Data {
-    pub fn is_parry(&self) -> bool {
-        match self.stage_section {
+    pub fn is_parry(&self, attack: AttackSource) -> bool {
+        let could_block = self.static_data.blocked_attacks.applies(attack);
+        let timed = match self.stage_section {
             StageSection::Buildup => self.static_data.parry_window.buildup,
             StageSection::Recover => self.static_data.parry_window.recover,
             _ => false,
-        }
+        };
+        could_block && timed
     }
 }
