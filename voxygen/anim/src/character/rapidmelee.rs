@@ -89,7 +89,9 @@ impl Animation for RapidMeleeAnimation {
                 next.control.orientation.rotate_z(move2 * -1.8);
                 next.control.position += Vec3::new(move2 * 14.0, 0.0, 0.0);
             },
-            Some("common.abilities.sword.agile_perforate") => {
+            Some(
+                "common.abilities.sword.agile_perforate" | "common.abilities.sword.agile_flurry",
+            ) => {
                 let (move1, move2, move3, move2alt) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
                     Some(StageSection::Action) => (

@@ -101,7 +101,7 @@ impl Animation for SelfBuffAnimation {
                 next.shorts.orientation.rotate_x(move2 * 0.2);
                 next.control.orientation.rotate_z(move2 * 0.4);
             },
-            Some("common.abilities.sword.mobility_agility") => {
+            Some("common.abilities.sword.agile_dancing_edge") => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Movement) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
