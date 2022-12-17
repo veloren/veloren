@@ -120,7 +120,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
             10.0
         ) + small_nz * 0.2;
         // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
-        cloud_moon_access = 1.0 - cloud_sun_access;
+        cloud_moon_access = cloud_sun_access;
     }
 
     float mist_sun_access = max(1.0 - cloud_tendency * 8, 0.25);
