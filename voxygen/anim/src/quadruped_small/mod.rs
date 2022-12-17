@@ -153,6 +153,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Hare, Female) => (2.5, 3.0),
                 (Dog, _) => (3.0, 4.5),
                 (Goat, _) => (3.5, 4.0),
+                (Seal, _) => (4.0, 2.5),
             },
             chest: match (body.species, body.body_type) {
                 (Pig, _) => (0.0, 6.0),
@@ -182,6 +183,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Hare, Female) => (-2.0, 6.0),
                 (Dog, _) => (-2.0, 8.5),
                 (Goat, _) => (2.0, 7.5),
+                (Seal, _) => (-2.0, 4.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Pig, _) => (4.5, 3.5, -1.0),
@@ -211,6 +213,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Hare, Female) => (3.0, 0.5, -4.0),
                 (Dog, _) => (3.5, 3.0, -2.5),
                 (Goat, _) => (3.0, 2.5, -3.5),
+                (Seal, _) => (6.5, 3.0, -2.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Pig, _) => (3.5, -2.0, 0.0),
@@ -240,6 +243,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Hare, Female) => (3.5, -3.0, -2.0),
                 (Dog, _) => (3.0, -3.5, -2.5),
                 (Goat, _) => (3.0, -4.0, -2.0),
+                (Seal, _) => (4.5, -6.0, -0.5),
             },
             tail: match (body.species, body.body_type) {
                 (Pig, _) => (-4.5, 2.5),
@@ -269,6 +273,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Hare, Female) => (-4.0, 2.0),
                 (Dog, _) => (-5.0, 0.5),
                 (Goat, _) => (-7.0, 0.0),
+                (Seal, _) => (-1.0, 4.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Pig, _) => 0.72,
@@ -289,6 +294,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => 0.72,
                 (Porcupine, _) => 0.65,
                 (Hare, _) => 0.65,
+                (Seal, _) => 0.9,
                 _ => 0.8,
             },
             tempo: match (body.species, body.body_type) {
@@ -306,6 +312,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Porcupine, _) => 1.2,
                 (Beaver, _) => 1.2,
                 (Hare, _) => 1.15,
+                (Seal, _) => 2.5,
                 _ => 1.0,
             },
             maximize: match (body.species, body.body_type) {
@@ -340,6 +347,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Beaver, _) => 0.9,
                 (Hare, _) => 0.8,
                 (Goat, _) => 0.8,
+                (Seal, _) => 0.7,
                 _ => 1.0,
             },
             spring: match (body.species, body.body_type) {
@@ -364,6 +372,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Hare, Male) => 2.2,
                 (Hare, Female) => 2.5,
                 (Goat, _) => 1.2,
+                (Seal, _) => 0.7,
                 _ => 1.0,
             },
             feed: match (body.species, body.body_type) {
@@ -421,6 +430,7 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Hare, Female) => (0.0, -4.0, -4.5),
         (Dog, _) => (0.0, -4.0, -2.5),
         (Goat, _) => (0.0, -4.0, -3.5),
+        (Seal, _) => (0.0, -2.0, -2.5),
     }
     .into()
 }

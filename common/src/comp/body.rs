@@ -370,6 +370,7 @@ impl Body {
                 quadruped_small::Species::Squirrel => 1.0,
                 quadruped_small::Species::Truffler => 70.0,
                 quadruped_small::Species::Turtle => 40.0,
+                quadruped_small::Species::Seal => 15.0,
             },
             Body::Theropod(body) => match body.species {
                 // for reference, elephants are in the range of 2.6-6.9 tons
@@ -683,6 +684,7 @@ impl Body {
                 quadruped_small::Species::Beaver => 15,
                 quadruped_small::Species::Dog => 30,
                 quadruped_small::Species::Sheep => 30,
+                quadruped_small::Species::Seal => 15,
                 _ => 20,
             },
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {

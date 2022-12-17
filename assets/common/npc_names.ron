@@ -781,6 +781,10 @@
             goat: (
                 keyword: "goat",
                 generic: "Goat"
+            ),
+            seal: (
+                keyword: "seal",
+                generic: "Seal"
             )
         )
     ),
