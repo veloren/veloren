@@ -86,8 +86,11 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
         #else
             - (billow_noise_2d((pos.xy + turb_offset.xy * 0.5) / 8000.0) - 0.5)
         #endif
-        #if (CLOUD_MODE >= CLOUD_MODE_LOW)
-            - (noise_3d((pos - turb_offset * 0.1) / 1500.0) - 0.5) * 0.5
+        #if (CLOUD_MODE >= CLOUD_MODE_CLOUD_MODE_MINIMAL)
+            - (noise_3d((pos - turb_offset * 0.1) / 750.0) - 0.5) * 0.25
+        #endif
+        #if (CLOUD_MODE >= CLOUD_MODE_CLOUD_MODE_HIGH)
+            - (billow_noise_3d((pos - turb_offset * 0.1) / 500.0) - 0.5) * 0.1
         #endif
         ;
 
