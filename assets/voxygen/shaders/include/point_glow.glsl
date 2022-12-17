@@ -18,7 +18,7 @@ void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout 
     #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
         vec3 _unused;
         float unused2;
-        float spread = 1.0 / (1.0 + cloud_at(nearest, 0.0, _unused, unused2).z * 0.005);
+        float spread = 1.0 / (1.0 + sqrt(cloud_at(nearest, 0.0, _unused, unused2).z) * 0.01);
     #else
         const float spread = 1.0;
     #endif
