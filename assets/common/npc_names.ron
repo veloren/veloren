@@ -567,6 +567,10 @@
                 keyword: "akhlut",
                 generic: "Akhlut"
             ),
+            bristlemane: (
+                keyword: "bristlemane",
+                generic: "Bristlemane"
+            ),
         )
     ),
     quadruped_small: (
