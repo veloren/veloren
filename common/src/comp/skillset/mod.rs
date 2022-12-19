@@ -366,8 +366,6 @@ impl SkillSet {
         if !self.skill_groups.contains_key(&skill_group_kind) {
             self.skill_groups
                 .insert(skill_group_kind, SkillGroup::new(skill_group_kind));
-        } else {
-            warn!("Tried to unlock already known skill group");
         }
     }
 
