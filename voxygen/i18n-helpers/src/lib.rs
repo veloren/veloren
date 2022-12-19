@@ -102,7 +102,8 @@ pub fn localize_chat_message(
                 | BuffKind::ProtectingWard
                 | BuffKind::Frenzied
                 | BuffKind::Hastened
-                | BuffKind::Fortitude => {
+                | BuffKind::Fortitude
+                | BuffKind::Reckless => {
                     tracing::error!("Player was killed by a positive buff!");
                     "hud-outcome-mysterious"
                 },

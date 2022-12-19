@@ -4946,6 +4946,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Frenzied => imgs.buff_frenzy_0,
         BuffKind::Hastened => imgs.buff_haste_0,
         BuffKind::Fortitude => imgs.buff_fortitude_0,
+        // TODO: Get unique icon
+        BuffKind::Reckless => imgs.buff_plus_0,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,
@@ -4979,6 +4981,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Frenzied => localized_strings.get_msg("buff-title-frenzied"),
         BuffKind::Hastened => localized_strings.get_msg("buff-title-hastened"),
         BuffKind::Fortitude => localized_strings.get_msg("buff-title-fortitude"),
+        BuffKind::Reckless => localized_strings.get_msg("buff-title-reckless"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-title-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-title-cursed"),
@@ -5016,6 +5019,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Frenzied => localized_strings.get_msg("buff-desc-frenzied"),
         BuffKind::Hastened => localized_strings.get_msg("buff-desc-hastened"),
         BuffKind::Fortitude => localized_strings.get_msg("buff-desc-fortitude"),
+        BuffKind::Reckless => localized_strings.get_msg("buff-desc-reckless"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-desc-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-desc-cursed"),

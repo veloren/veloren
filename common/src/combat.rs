@@ -222,6 +222,9 @@ impl Attack {
         let is_crit = rng.gen::<f32>() < self.crit_chance;
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
+        let damage_modifier = attacker
+            .and_then(|a| a.stats)
+            .map_or(1.0, |s| s.attack_damage_modifier);
         for damage in self
             .damages
             .iter()
@@ -244,7 +247,7 @@ impl Attack {
                 attacker.map(|x| x.into()),
                 is_crit,
                 self.crit_multiplier,
-                strength_modifier,
+                strength_modifier * damage_modifier,
                 time,
                 damage.instance,
             );

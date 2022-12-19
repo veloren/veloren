@@ -57,6 +57,7 @@ pub struct Stats {
     pub friction_modifier: f32,
     pub max_energy_modifiers: StatsModifier,
     pub poise_damage_modifier: f32,
+    pub attack_damage_modifier: f32,
 }
 
 impl Stats {
@@ -72,6 +73,7 @@ impl Stats {
             friction_modifier: 1.0,
             max_energy_modifiers: StatsModifier::default(),
             poise_damage_modifier: 1.0,
+            attack_damage_modifier: 1.0,
         }
     }
 

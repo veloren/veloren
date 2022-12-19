@@ -64,6 +64,11 @@ pub enum BuffKind {
     /// and n health less from activation will cause poise damage to increase by
     /// n%
     Fortitude,
+    /// Increases both attack damage and vulnerability to damage
+    /// Damage increases linearly with strength, 1.0 is a 100% increase
+    /// Damage reduction decreases linearly with strength, 1.0 is a 100%
+    /// decrease
+    Reckless,
     // Debuffs
     /// Does damage to a creature over time
     /// Strength should be the DPS of the debuff
@@ -120,7 +125,8 @@ impl BuffKind {
             | BuffKind::Invulnerability
             | BuffKind::ProtectingWard
             | BuffKind::Hastened
-            | BuffKind::Fortitude => true,
+            | BuffKind::Fortitude
+            | BuffKind::Reckless => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -219,6 +225,8 @@ pub enum BuffEffect {
     HealReduction(f32),
     /// Increases poise damage dealt when health is lost
     PoiseDamageFromLostHealth { initial_health: f32, strength: f32 },
+    /// Modifier to the amount of damage dealt with attacks
+    AttackDamage(f32),
 }
 
 /// Actual de/buff.
@@ -382,6 +390,10 @@ impl Buff {
             ],
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
             BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
+            BuffKind::Reckless => vec![
+                BuffEffect::DamageReduction(-data.strength),
+                BuffEffect::AttackDamage(data.strength),
+            ],
         };
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids

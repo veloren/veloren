@@ -73,6 +73,9 @@ buff-desc-potionsickness = Potions heal you less after recently consuming a poti
 buff-stat-potionsickness =
     Decreases the amount you heal from
     subsequent potions by { $strength }%.
+## Reckless
+buff-title-reckless = Reckless
+buff-desc-reckless = Your attacks are more powerful, however you are leaving your defenses open.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

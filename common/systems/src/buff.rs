@@ -586,5 +586,8 @@ fn execute_effect(
             let lost_health = (*initial_health - health.current()).max(0.0);
             stat.poise_damage_modifier *= lost_health / 100.0 * *strength;
         },
+        BuffEffect::AttackDamage(dam) => {
+            stat.attack_damage_modifier *= *dam;
+        },
     };
 }
