@@ -930,6 +930,10 @@
                 keyword: "husk_brute",
                 generic: "Husk Brute"
             ),
+            tursus: (
+                keyword: "tursus",
+                generic: "Tursus"
+            )
         )
     ),
     golem: (
@@ -1002,6 +1006,10 @@
                 keyword: "dodarock",
                 generic: "Dodarock"
             ),
+            axebeak: (
+                keyword: "axebeak",
+                generic: "Axebeak"
+            )
         )
     ),
     dragon: (
