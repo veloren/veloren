@@ -4,6 +4,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
+    event::ServerEvent,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -25,6 +26,7 @@ pub struct StaticData {
     pub max_strikes: Option<u32>,
     pub move_modifier: f32,
     pub ori_modifier: f32,
+    pub minimum_combo: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -45,7 +47,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
@@ -64,6 +66,14 @@ impl CharacterBehavior for Data {
                     if let CharacterState::RapidMelee(c) = &mut update.character {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Action;
+                    }
+
+                    // Consume combo if any was required
+                    if self.static_data.minimum_combo > 0 {
+                        output_events.emit_server(ServerEvent::ComboChange {
+                            entity: data.entity,
+                            change: -data.combo.map_or(0, |c| c.counter() as i32),
+                        });
                     }
                 }
             },

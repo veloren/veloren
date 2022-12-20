@@ -806,6 +806,8 @@ pub enum CharacterAbility {
         move_modifier: f32,
         ori_modifier: f32,
         #[serde(default)]
+        minimum_combo: u32,
+        #[serde(default)]
         meta: AbilityMeta,
     },
 }
@@ -862,7 +864,6 @@ impl CharacterAbility {
             | CharacterAbility::BasicBlock { energy_cost, .. }
             | CharacterAbility::SelfBuff { energy_cost, .. }
             | CharacterAbility::RiposteMelee { energy_cost, .. }
-            | CharacterAbility::RapidMelee { energy_cost, .. }
             | CharacterAbility::ComboMelee2 {
                 energy_cost_per_strike: energy_cost,
                 ..
@@ -887,6 +888,11 @@ impl CharacterAbility {
                     && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::FinisherMelee {
+                energy_cost,
+                minimum_combo,
+                ..
+            }
+            | CharacterAbility::RapidMelee {
                 energy_cost,
                 minimum_combo,
                 ..
@@ -1476,6 +1482,7 @@ impl CharacterAbility {
                 max_strikes: _,
                 move_modifier: _,
                 ori_modifier: _,
+                minimum_combo: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1542,7 +1549,9 @@ impl CharacterAbility {
                     0
                 }
             },
-            FinisherMelee { minimum_combo, .. } => *minimum_combo,
+            FinisherMelee { minimum_combo, .. } | RapidMelee { minimum_combo, .. } => {
+                *minimum_combo
+            },
             BasicMelee { .. }
             | BasicRanged { .. }
             | RepeaterRanged { .. }
@@ -1559,7 +1568,6 @@ impl CharacterAbility {
             | ComboMelee2 { .. }
             | DiveMelee { .. }
             | RiposteMelee { .. }
-            | RapidMelee { .. }
             | BasicBeam { .. }
             | Boost { .. }
             | ComboMelee { .. }
@@ -2820,6 +2828,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 max_strikes,
                 move_modifier,
                 ori_modifier,
+                minimum_combo,
                 meta: _,
             } => CharacterState::RapidMelee(rapid_melee::Data {
                 static_data: rapid_melee::StaticData {
@@ -2831,6 +2840,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     max_strikes: *max_strikes,
                     move_modifier: *move_modifier,
                     ori_modifier: *ori_modifier,
+                    minimum_combo: *minimum_combo,
                     ability_info,
                 },
                 timer: Duration::default(),
