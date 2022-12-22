@@ -159,6 +159,7 @@ pub struct MusicMgr {
     /// The title of the last track played. Used to prevent a track
     /// being played twice in a row
     last_track: String,
+    last_combat_track: String,
     /// Time of the last interrupt (to avoid rapid switching)
     last_interrupt: Instant,
     /// The previous track's activity kind, for transitions
@@ -212,6 +213,7 @@ impl MusicMgr {
             began_playing: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
+            last_combat_track: String::from("None"),
             last_interrupt: Instant::now(),
             last_activity: MusicState::Activity(MusicActivity::Explore),
             current_track: String::from("None"),
@@ -424,6 +426,7 @@ impl MusicMgr {
             let filtered_tracks: Vec<_> = maybe_tracks
                 .iter()
                 .filter(|track| !track.title.eq(&self.last_track))
+                .filter(|track| !track.title.eq(&self.last_combat_track))
                 .copied()
                 .collect();
             if !filtered_tracks.is_empty() {
@@ -465,6 +468,7 @@ impl MusicMgr {
             let tag = if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
                 MusicChannelTag::Exploration
             } else {
+                self.last_combat_track = String::from(&track.title);
                 MusicChannelTag::Combat
             };
             audio.play_music(&track.path, tag);

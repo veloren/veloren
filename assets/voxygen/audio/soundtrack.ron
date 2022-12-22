@@ -16,6 +16,32 @@
 
         // Overworld exploration tracks
         Individual((
+            title: "Everbearing",
+            path: "voxygen.audio.soundtrack.overworld.everbearing",
+            length: 192.0,
+            timing: Day,
+            weather: None,
+            biomes: [
+                (Taiga, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
+        )),
+        Individual((
+            title: "Song of the Eldwood",
+            path: "voxygen.audio.soundtrack.overworld.song_of_the_eldwood",
+            length: 254.0,
+            timing: Night,
+            weather: None,
+            biomes: [
+                (Taiga, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
+        )),
+        Individual((
             title: "Torii",
             path: "voxygen.audio.soundtrack.overworld.torii",
             length: 157.0,
@@ -839,6 +865,21 @@
                 ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 4.0, Transition(Combat(High), Explore), None),
             ],
             artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
+        ),
+        Segmented(
+            title: "Valiant Voxels",
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Old), 
+            ],
+            segments: [
+                ("voxygen.audio.soundtrack.combat.valiant_voxels.valiant_voxels-start", 7.846, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.valiant_voxels.valiant_voxels-loop", 59.126, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.valiant_voxels.valiant_voxels-end", 5.49, Transition(Combat(High), Explore), None),
+            ],
+            artist: ("Seventh Sam", "https://seventhsam.com/"),
         ),
     ]
 )
