@@ -4,17 +4,18 @@ use super::{
     item_imgs::ItemImgs,
     slots, util, BarNumbers, HudInfo, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
     LOW_HP_COLOR, POISEBAR_TICK_COLOR, POISE_COLOR, QUALITY_EPIC, QUALITY_LEGENDARY, STAMINA_COLOR,
-    TEXT_COLOR, UI_HIGHLIGHT_0, XP_COLOR,
+    TEXT_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, XP_COLOR,
 };
 use crate::{
     game_input::GameInput,
-    hud::{ComboFloater, Position, PositionSpecifier},
+    hud::{animation::animation_timer, ComboFloater, Position, PositionSpecifier},
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
     },
+    window::KeyMouse,
     GlobalState,
 };
 use i18n::Localization;
@@ -99,6 +100,24 @@ widget_ids! {
         exp_img_frame,
         exp_img,
         exp_lvl,
+        spellbook_txt_bg,
+        spellbook_txt,
+        sp_arrow,
+        sp_arrow_txt_bg,
+        sp_arrow_txt,
+        //Bag Button
+        bag_frame_bg,
+        bag_frame,
+        bag_filling,
+        bag_img_frame_bg,
+        bag_img_frame,
+        bag_img,
+        bag_space_bg,
+        bag_space,
+        bag_progress,
+        bag_numbers_alignment,
+        bag_text_bg,
+        bag_text,
         // Combo Counter
         combo_align,
         combo_bg,
@@ -261,6 +280,7 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
 
 pub enum Event {
     OpenDiary(SkillGroupKind),
+    OpenBag,
 }
 
 #[derive(WidgetCommon)]
@@ -359,6 +379,34 @@ impl<'a> Skillbar<'a> {
         }
     }
 
+    fn create_new_button_with_shadow(
+        &self,
+        ui: &mut UiCell,
+        key_mouse: &KeyMouse,
+        button_identifier: widget::Id,
+        text_background: widget::Id,
+        text: widget::Id,
+    ) {
+        let key_layout = &self.global_state.window.key_layout;
+        let key_desc = key_mouse.display_shortest(key_layout);
+
+        //Create shadow
+        Text::new(&key_desc)
+            .bottom_right_with_margins_on(button_identifier, 0.0, 0.0)
+            .font_size(10)
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(BLACK)
+            .set(text_background, ui);
+
+        //Create button
+        Text::new(&key_desc)
+            .bottom_right_with_margins_on(text_background, 1.0, 1.0)
+            .font_size(10)
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(text, ui);
+    }
+
     fn show_death_message(&self, state: &State, ui: &mut UiCell) {
         let localized_strings = self.localized_strings;
         let key_layout = &self.global_state.window.key_layout;
@@ -369,7 +417,7 @@ impl<'a> Skillbar<'a> {
             .controls
             .get_binding(GameInput::Respawn)
         {
-            Text::new(&localized_strings.get_msg("hud-you_died"))
+            Text::new(&self.localized_strings.get_msg("hud-you_died"))
                 .middle_of(ui.window)
                 .font_size(self.fonts.cyri.scale(50))
                 .font_id(self.fonts.cyri.conrod_id)
@@ -385,7 +433,7 @@ impl<'a> Skillbar<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_2_bg, ui);
-            Text::new(&localized_strings.get_msg("hud-you_died"))
+            Text::new(&self.localized_strings.get_msg("hud-you_died"))
                 .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
                 .font_size(self.fonts.cyri.scale(50))
                 .font_id(self.fonts.cyri.conrod_id)
@@ -533,6 +581,120 @@ impl<'a> Skillbar<'a> {
                 .middle_of(state.ids.bg_poise)
                 .set(state.ids.frame_poise, ui);
         }
+        // Bag button and indicator
+        Image::new(self.imgs.selected_exp_bg)
+            .w_h(34.0, 38.0)
+            .bottom_right_with_margins_on(state.ids.slot10, 0.0, -37.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .set(state.ids.bag_img_frame_bg, ui);
+
+        if Button::image(self.imgs.bag_frame)
+            .w_h(34.0, 38.0)
+            .middle_of(state.ids.bag_img_frame_bg)
+            .set(state.ids.bag_img_frame, ui)
+            .was_clicked()
+        {
+            return Some(Event::OpenBag);
+        }
+        let invs = self.client.inventories();
+        let inventory = match invs.get(self.info.viewpoint_entity) {
+            Some(inv) => inv,
+            None => return None,
+        };
+
+        let space_used = inventory.populated_slots();
+        let space_max = inventory.slots().count();
+        let bag_space = format!("{}/{}", space_used, space_max);
+        let bag_space_percentage = space_used as f64 / space_max as f64;
+
+        // bag filling indicator bar
+        Image::new(self.imgs.bar_content)
+            .w_h(1.0, 21.0 * bag_space_percentage)
+            .color(if bag_space_percentage < 0.6 {
+                Some(TEXT_VELORITE)
+            } else if bag_space_percentage < 1.0 {
+                Some(LOW_HP_COLOR)
+            } else {
+                Some(CRITICAL_HP_COLOR)
+            })
+            .graphics_for(state.ids.bag_img_frame)
+            .bottom_left_with_margins_on(state.ids.bag_img_frame, 14.0, 2.0)
+            .set(state.ids.bag_filling, ui);
+
+        // bag filling text
+        Rectangle::fill_with([32.0, 11.0], color::TRANSPARENT)
+            .bottom_left_with_margins_on(state.ids.bag_img_frame_bg, 1.0, 2.0)
+            .graphics_for(state.ids.bag_img_frame)
+            .set(state.ids.bag_numbers_alignment, ui);
+        Text::new(&bag_space)
+            .middle_of(state.ids.bag_numbers_alignment)
+            .font_size(if bag_space.len() < 6 { 9 } else { 8 })
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(BLACK)
+            .graphics_for(state.ids.bag_img_frame)
+            .set(state.ids.bag_space_bg, ui);
+        Text::new(&bag_space)
+            .bottom_right_with_margins_on(state.ids.bag_space_bg, 1.0, 1.0)
+            .font_size(if bag_space.len() < 6 { 9 } else { 8 })
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(if bag_space_percentage < 0.6 {
+                TEXT_VELORITE
+            } else if bag_space_percentage < 1.0 {
+                LOW_HP_COLOR
+            } else {
+                CRITICAL_HP_COLOR
+            })
+            .graphics_for(state.ids.bag_img_frame)
+            .set(state.ids.bag_space, ui);
+
+        Image::new(self.imgs.bag_ico)
+            .w_h(24.0, 24.0)
+            .graphics_for(state.ids.bag_img_frame)
+            .mid_bottom_with_margin_on(state.ids.bag_img_frame, 13.0)
+            .set(state.ids.bag_img, ui);
+
+        if let Some(bag) = &self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Bag)
+        {
+            self.create_new_button_with_shadow(
+                ui,
+                bag,
+                state.ids.bag_img,
+                state.ids.bag_text_bg,
+                state.ids.bag_text,
+            );
+        }
+
+        // Exp Type and Level Display
+
+        // Unspent SP indicator
+        let unspent_sp = self.skillset.has_available_sp();
+        if unspent_sp {
+            let arrow_ani = animation_timer(self.pulse); //Animation timer
+            Image::new(self.imgs.sp_indicator_arrow)
+                .w_h(20.0, 11.0)
+                .graphics_for(state.ids.exp_img_frame)
+                .mid_top_with_margin_on(state.ids.exp_img_frame, -12.0 + arrow_ani as f64)
+                .color(Some(QUALITY_LEGENDARY))
+                .set(state.ids.sp_arrow, ui);
+            Text::new(&self.localized_strings.get_msg("hud-sp_arrow_txt"))
+                .mid_top_with_margin_on(state.ids.sp_arrow, -18.0)
+                .graphics_for(state.ids.exp_img_frame)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(BLACK)
+                .set(state.ids.sp_arrow_txt_bg, ui);
+            Text::new(&self.localized_strings.get_msg("hud-sp_arrow_txt"))
+                .graphics_for(state.ids.exp_img_frame)
+                .bottom_right_with_margins_on(state.ids.sp_arrow_txt_bg, 1.0, 1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(QUALITY_LEGENDARY)
+                .set(state.ids.sp_arrow_txt, ui);
+        }
 
         if self
             .global_state
@@ -551,7 +713,12 @@ impl<'a> Skillbar<'a> {
             let current_exp = self.skillset.available_experience(*selected_experience) as f64;
             let max_exp = self.skillset.skill_point_cost(*selected_experience) as f64;
             let exp_percentage = current_exp / max_exp.max(1.0);
-            let level = self.skillset.earned_sp(*selected_experience).to_string();
+            let level = self.skillset.earned_sp(*selected_experience);
+            let level_txt = if level > 0 {
+                self.skillset.earned_sp(*selected_experience).to_string()
+            } else {
+                "".to_string()
+            };
 
             // Exp Bar
             Image::new(self.imgs.exp_frame_bg)
@@ -573,7 +740,7 @@ impl<'a> Skillbar<'a> {
             Image::new(self.imgs.selected_exp_bg)
                 .w_h(34.0, 38.0)
                 .top_left_with_margins_on(state.ids.exp_frame, -39.0, 3.0)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.9)))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.ids.exp_img_frame_bg, ui);
 
             if Button::image(self.imgs.selected_exp)
@@ -585,7 +752,7 @@ impl<'a> Skillbar<'a> {
                 return Some(Event::OpenDiary(*selected_experience));
             }
 
-            Text::new(&level)
+            Text::new(&level_txt)
                 .mid_bottom_with_margin_on(state.ids.exp_img_frame, 2.0)
                 .font_size(11)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -608,6 +775,60 @@ impl<'a> Skillbar<'a> {
             .graphics_for(state.ids.exp_img_frame)
             .mid_bottom_with_margin_on(state.ids.exp_img_frame, 13.0)
             .set(state.ids.exp_img, ui);
+
+            // Show Shortcut
+            if let Some(spell) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Spellbook)
+            {
+                self.create_new_button_with_shadow(
+                    ui,
+                    spell,
+                    state.ids.exp_img,
+                    state.ids.spellbook_txt_bg,
+                    state.ids.spellbook_txt,
+                );
+            }
+        } else {
+            // Only show Spellbook ico
+            Image::new(self.imgs.selected_exp_bg)
+                .w_h(34.0, 38.0)
+                .bottom_left_with_margins_on(state.ids.slot1, 0.0, -37.0)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                .set(state.ids.exp_img_frame_bg, ui);
+
+            if Button::image(self.imgs.selected_exp)
+                .w_h(34.0, 38.0)
+                .middle_of(state.ids.exp_img_frame_bg)
+                .set(state.ids.exp_img_frame, ui)
+                .was_clicked()
+            {
+                return Some(Event::OpenDiary(SkillGroupKind::General));
+            }
+
+            Image::new(self.imgs.spellbook_ico0)
+                .w_h(24.0, 24.0)
+                .graphics_for(state.ids.exp_img_frame)
+                .mid_bottom_with_margin_on(state.ids.exp_img_frame, 13.0)
+                .set(state.ids.exp_img, ui);
+
+            // Show Shortcut
+            if let Some(spell) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Spellbook)
+            {
+                self.create_new_button_with_shadow(
+                    ui,
+                    spell,
+                    state.ids.exp_img,
+                    state.ids.spellbook_txt_bg,
+                    state.ids.spellbook_txt,
+                );
+            }
         }
 
         // Bar Text

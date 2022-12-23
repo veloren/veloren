@@ -2735,41 +2735,30 @@ impl Hud {
 
         // Bag button and nearby icons
         let ecs = client.state().ecs();
-        let entity = info.viewpoint_entity;
+        // let entity = info.viewpoint_entity;
         let stats = ecs.read_storage::<comp::Stats>();
         let skill_sets = ecs.read_storage::<comp::SkillSet>();
         let buffs = ecs.read_storage::<comp::Buffs>();
         let char_states = ecs.read_storage::<comp::CharacterState>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
-        if let (Some(player_stats), Some(skill_set)) = (stats.get(entity), skill_sets.get(entity)) {
-            match Buttons::new(
-                client,
-                &info,
-                self.show.bag,
-                &self.imgs,
-                &self.fonts,
-                global_state,
-                &self.rot_imgs,
-                tooltip_manager,
-                i18n,
-                player_stats,
-                skill_set,
-                self.pulse,
-            )
-            .set(self.ids.buttons, ui_widgets)
-            {
-                Some(buttons::Event::ToggleBag) => {
-                    let state = !self.show.bag;
-                    Self::show_bag(&mut self.slot_manager, &mut self.show, state)
-                },
-                Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(global_state),
-                Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
-                Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
-                Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
-                Some(buttons::Event::ToggleCrafting) => self.show.toggle_crafting(),
-                None => {},
-            }
+
+        match Buttons::new(
+            &self.imgs,
+            &self.fonts,
+            global_state,
+            &self.rot_imgs,
+            tooltip_manager,
+            i18n,
+        )
+        .set(self.ids.buttons, ui_widgets)
+        {
+            Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(global_state),
+            Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
+            Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
+            Some(buttons::Event::ToggleCrafting) => self.show.toggle_crafting(),
+            None => {},
         }
+
         // Group Window
         for event in Group::new(
             &mut self.show,
@@ -2924,6 +2913,7 @@ impl Hud {
                     self.show.diary(true);
                     self.show.open_skill_tree(skillgroup);
                 },
+                Some(skillbar::Event::OpenBag) => self.show.bag = !self.show.bag,
                 None => {},
             }
         }
