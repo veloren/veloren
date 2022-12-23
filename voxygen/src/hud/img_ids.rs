@@ -94,6 +94,7 @@ image_ids! {
         pickaxe_ico: "voxygen.element.weapons.pickaxe",
         skilltree_ico: "voxygen.element.ui.diary.buttons.skilltree",
         spellbook_ico: "voxygen.element.ui.diary.buttons.spellbook",
+        spellbook_ico0: "voxygen.element.ui.generic.buttons.spellbook0",
         stats_ico: "voxygen.element.ui.diary.buttons.stats",
         lock: "voxygen.element.ui.diary.buttons.lock",
         wpn_icon_border_skills: "voxygen.element.ui.diary.buttons.border_skills",
@@ -370,6 +371,7 @@ image_ids! {
         exp_frame: "voxygen.element.ui.skillbar.exp_frame",
         exp_frame_bg: "voxygen.element.ui.skillbar.exp_frame_bg",
         selected_exp: "voxygen.element.ui.skillbar.selected_exp_frame",
+        bag_frame: "voxygen.element.ui.skillbar.bag_frame",
         selected_exp_bg: "voxygen.element.ui.skillbar.selected_exp_frame_bg",
         decayed_bg: "voxygen.element.ui.skillbar.decayed_bg",
         energy_bg: "voxygen.element.ui.skillbar.energy_bg",
@@ -383,6 +385,7 @@ image_ids! {
         m_move_ico: "voxygen.element.ui.generic.icons.m_move",
         m_click_ico: "voxygen.element.ui.generic.icons.m_click",
         skillbar_slot: "voxygen.element.ui.skillbar.slot",
+        bag_ico: "voxygen.element.ui.generic.buttons.bag",
 
 
         // Other Icons/Art
@@ -613,14 +616,6 @@ image_ids! {
         health_bar_group_bg: "voxygen.element.ui.generic.frames.enemybar_bg_1",
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.ui.skillbar.enemy_bar_content",
-
-        // Bag
-        bag: "voxygen.element.ui.generic.buttons.bag.closed",
-        bag_hover: "voxygen.element.ui.generic.buttons.bag.closed_hover",
-        bag_press: "voxygen.element.ui.generic.buttons.bag.closed_press",
-        bag_open: "voxygen.element.ui.generic.buttons.bag.open",
-        bag_open_hover: "voxygen.element.ui.generic.buttons.bag.open_hover",
-        bag_open_press: "voxygen.element.ui.generic.buttons.bag.open_press",
 
         map_icon: "voxygen.element.ui.generic.buttons.map",
 
