@@ -1836,20 +1836,18 @@ impl PlayState for SessionState {
             &scene_data,
         );
 
-        if let Some(mut second_pass) = drawer.second_pass() {
+        if let Some(mut volumetric_pass) = drawer.volumetric_pass() {
             // Clouds
-            {
-                prof_span!("clouds");
-                second_pass.draw_clouds();
-            }
+            prof_span!("clouds");
+            volumetric_pass.draw_clouds();
+        }
+        if let Some(mut transparent_pass) = drawer.transparent_pass() {
             // Trails
-            {
-                prof_span!("trails");
-                if let Some(mut trail_drawer) = second_pass.draw_trails() {
-                    self.scene
-                        .trail_mgr()
-                        .render(&mut trail_drawer, &scene_data);
-                }
+            prof_span!("trails");
+            if let Some(mut trail_drawer) = transparent_pass.draw_trails() {
+                self.scene
+                    .trail_mgr()
+                    .render(&mut trail_drawer, &scene_data);
             }
         }
         // Bloom (call does nothing if bloom is off)

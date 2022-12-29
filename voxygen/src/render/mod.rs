@@ -50,9 +50,9 @@ pub use self::{
     renderer::{
         drawer::{
             DebugDrawer, DebugShadowDrawer, Drawer, FigureDrawer, FigureShadowDrawer,
-            FirstPassDrawer, ParticleDrawer, PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer,
-            SpriteDrawer, TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer,
-            UiDrawer,
+            FirstPassDrawer, ParticleDrawer, PreparedUiDrawer, ShadowPassDrawer, SpriteDrawer,
+            TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer,
+            TransparentPassDrawer, UiDrawer, VolumetricPassDrawer,
         },
         ColLightInfo, Renderer,
     },

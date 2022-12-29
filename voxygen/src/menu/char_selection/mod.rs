@@ -284,9 +284,9 @@ impl PlayState for CharSelectionState {
                 .render(&mut first_pass, client.get_tick(), humanoid_body, loadout);
         }
 
-        // Clouds
-        if let Some(mut second_pass) = drawer.second_pass() {
-            second_pass.draw_clouds();
+        if let Some(mut volumetric_pass) = drawer.volumetric_pass() {
+            // Clouds
+            volumetric_pass.draw_clouds();
         }
         // Bloom (does nothing if bloom is disabled)
         drawer.run_bloom_passes();
