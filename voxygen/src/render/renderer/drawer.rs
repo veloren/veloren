@@ -252,16 +252,16 @@ impl<'frame> Drawer<'frame> {
         })
     }
 
-    /// Returns None if the clouds pipeline is not available
-    pub fn second_pass(&mut self) -> Option<SecondPassDrawer> {
+    /// Returns None if the volumetrics pipeline is not available
+    pub fn volumetric_pass(&mut self) -> Option<VolumetricPassDrawer> {
         let pipelines = &self.borrow.pipelines.all()?;
         let shadow = self.borrow.shadow?;
 
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
-            encoder.scoped_render_pass("second_pass", device, &wgpu::RenderPassDescriptor {
-                label: Some("second pass (clouds)"),
+            encoder.scoped_render_pass("volumetric_pass", device, &wgpu::RenderPassDescriptor {
+                label: Some("volumetric pass (clouds)"),
                 color_attachments: &[wgpu::RenderPassColorAttachment {
                     view: &self.borrow.views.tgt_color_pp,
                     resolve_target: None,
@@ -270,9 +270,43 @@ impl<'frame> Drawer<'frame> {
                         store: true,
                     },
                 }],
+                depth_stencil_attachment: None,
+            });
+
+        render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
+        render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
+
+        Some(VolumetricPassDrawer {
+            render_pass,
+            borrow: &self.borrow,
+            clouds_pipeline: &pipelines.clouds,
+        })
+    }
+
+    /// Returns None if the trail pipeline is not available
+    pub fn transparent_pass(&mut self) -> Option<TransparentPassDrawer> {
+        let pipelines = &self.borrow.pipelines.all()?;
+        let shadow = self.borrow.shadow?;
+
+        let encoder = self.encoder.as_mut().unwrap();
+        let device = self.borrow.device;
+        let mut render_pass =
+            encoder.scoped_render_pass("transparent_pass", device, &wgpu::RenderPassDescriptor {
+                label: Some("transparent pass (trails)"),
+                color_attachments: &[wgpu::RenderPassColorAttachment {
+                    view: &self.borrow.views.tgt_color_pp,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: true,
+                    },
+                }],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.borrow.views.tgt_depth,
-                    depth_ops: None,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: false,
+                    }),
                     stencil_ops: None,
                 }),
             });
@@ -280,10 +314,9 @@ impl<'frame> Drawer<'frame> {
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
         render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
 
-        Some(SecondPassDrawer {
+        Some(TransparentPassDrawer {
             render_pass,
             borrow: &self.borrow,
-            clouds_pipeline: &pipelines.clouds,
             trail_pipeline: &pipelines.trail,
         })
     }
@@ -1043,16 +1076,15 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
     }
 }
 
-// Second pass: clouds
+// Second pass: volumetrics
 #[must_use]
-pub struct SecondPassDrawer<'pass> {
+pub struct VolumetricPassDrawer<'pass> {
     render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
     clouds_pipeline: &'pass clouds::CloudsPipeline,
-    trail_pipeline: &'pass trail::TrailPipeline,
 }
 
-impl<'pass> SecondPassDrawer<'pass> {
+impl<'pass> VolumetricPassDrawer<'pass> {
     pub fn draw_clouds(&mut self) {
         self.render_pass
             .set_pipeline(&self.clouds_pipeline.pipeline);
@@ -1060,7 +1092,17 @@ impl<'pass> SecondPassDrawer<'pass> {
             .set_bind_group(2, &self.borrow.locals.clouds_bind.bind_group, &[]);
         self.render_pass.draw(0..3, 0..1);
     }
+}
 
+// Third pass: transparents
+#[must_use]
+pub struct TransparentPassDrawer<'pass> {
+    render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
+    borrow: &'pass RendererBorrow<'pass>,
+    trail_pipeline: &'pass trail::TrailPipeline,
+}
+
+impl<'pass> TransparentPassDrawer<'pass> {
     pub fn draw_trails(&mut self) -> Option<TrailDrawer<'_, 'pass>> {
         let shadow = &self.borrow.shadow?;
 
