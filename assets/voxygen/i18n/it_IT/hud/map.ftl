@@ -9,11 +9,12 @@ hud-map-caves = Caverne
 hud-map-cave = Caverna
 hud-map-peaks = Montagne
 hud-map-biomes = Biomi
-hud-map-voxel_map = Mappa con i Voxel
+hud-map-voxel_map = Mappa con i voxel
 hud-map-trees = Alberi giganti
 hud-map-tree = Albero gigante
 hud-map-town = Città
 hud-map-castle = Castello
+hud-map-bridge = Ponte
 hud-map-dungeon = Sotterraneo
 hud-map-difficulty_dungeon =
     Sotterraneo

@@ -7,7 +7,7 @@ buff-title-potion = Pozione
 buff-desc-potion = Bevendo...
 ## Saturation
 buff-title-saturation = Saturazione
-buff-desc-saturation = Guadagna salute nel tempo dai materiali di consumo.
+buff-desc-saturation = Guadagna salute nel tempo dai cibi.
 ## Campfire
 buff-title-campfire_heal = Cura del falò
 buff-desc-campfire_heal = Riposare vicino un fuoco da campo cura il { $rate }% al secondo.
