@@ -89,6 +89,17 @@ void main() {
         tgt_color = vec4(vec3(mat.xyz) / 255.0, 1);
         return;
     #endif
+    #ifdef EXPERIMENTAL_VIEWMATERIALS
+        const vec3 mat_colors[5] = vec3[](
+            vec3(0, 1, 1), // MAT_SKY
+            vec3(1, 1, 0), // MAT_BLOCK
+            vec3(0, 0, 1), // MAT_FLUID
+            vec3(1, 0, 1), // MAT_FIGURE
+            vec3(0.5, 1, 0) // MAT_LOD
+        );
+        tgt_color = vec4(mat_colors[mat.a % 5u], 1);
+        return;
+    #endif
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(color.rgb, 1);
