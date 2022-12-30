@@ -206,8 +206,8 @@ void main() {
                     float not_underground = 1.0;
                     // Make underground water look more correct
                     #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
-                        float f_alt = alt_at(wpos.xy - focus_off.xy);
-                        not_underground = clamp((wpos.z - focus_off.z - f_alt) / 32.0 + 1.0, 0.0, 1.0);
+                        float f_alt = alt_at(wpos.xy);
+                        not_underground = clamp((wpos.z - f_alt) / 32.0 + 1.0, 0.0, 1.0);
                     #endif
                     // Did we hit a surface during reflection?
                     if (merge > 0.0) {
