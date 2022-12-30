@@ -192,25 +192,31 @@ void main() {
                     );
 
                     vec3 refl_col;
+                    float not_underground = 1.0;
+                    // Make underground water look more correct
+                    #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+                        float f_alt = alt_at(wpos.xy - focus_off.xy);
+                        not_underground = clamp((wpos.z - focus_off.z - f_alt) / 32.0 + 1.0, 0.0, 1.0);
+                    #endif
                     // Did we hit a surface during reflection?
                     if (merge > 0.0) {
                         // Yes: grab the new material from screen space
                         uvec4 new_mat = texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(new_uv * mat_sz), ivec2(0), ivec2(mat_sz) - 1), 0);
                         // If it's the sky, just go determine the sky color analytically to avoid sampling the incomplete skybox
                         // Otherwise, pull the color from the screen-space color buffer
-                        vec3 sky_col = min(get_sky_color(refl_dir, time_of_day.x, wpos, vec3(-100000), 0.125, false, 0.0, true, 0.0), vec3(1));
-                        if (new_mat.a != MAT_SKY) {
-                            refl_col = mix(sky_col, texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb, merge);
-                        } else {
+                        vec3 sky_col = min(get_sky_color(refl_dir, time_of_day.x, wpos, vec3(-100000), 0.125, false, 0.0, true, 0.0), vec3(1)) * not_underground;
+                        if (new_mat.a == MAT_SKY) {
                             refl_col = sky_col;
+                        } else {
+                            refl_col = mix(sky_col, texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb, merge);
                         }
                         // Apply clouds to reflected colour
-                        refl_col = get_cloud_color(refl_col, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
+                        refl_col = mix(refl_col, get_cloud_color(refl_col, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0), not_underground);
                     } else {
                         // No: assume that anything off-screen is the colour of the sky
-                        refl_col = min(get_sky_color(refl_dir, time_of_day.x, wpos, vec3(-100000), 0.125, true, 1.0, true, 1.0), vec3(1));
+                        refl_col = min(get_sky_color(refl_dir, time_of_day.x, wpos, vec3(-100000), 0.125, true, 1.0, true, 1.0) * not_underground, vec3(1));
                         // Apply clouds to reflection
-                        refl_col = get_cloud_color(refl_col, refl_dir, wpos, time_of_day.x, 100000.0, 1.0);
+                        refl_col = mix(refl_col, get_cloud_color(refl_col, refl_dir, wpos, time_of_day.x, 100000.0, 1.0), not_underground);
                     }
                     color.rgb = mix(color.rgb, refl_col, min(color.a * 2.0, 0.75));
                     cloud_blend = 1;
