@@ -195,19 +195,20 @@ void main() {
                     // Did we hit a surface during reflection?
                     if (merge > 0.0) {
                         // Yes: grab the new material from screen space
-                        uvec4 new_mat = texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0);
+                        uvec4 new_mat = texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(new_uv * mat_sz), ivec2(0), ivec2(mat_sz) - 1), 0);
                         // If it's the sky, just go determine the sky color analytically to avoid sampling the incomplete skybox
                         // Otherwise, pull the color from the screen-space color buffer
-                        if (new_mat.a == MAT_SKY) {
-                            refl_col = get_sky_color(refl_dir, time_of_day.x, wpos, vec3(-100000), 0.125, true, 1.0, true, 1.0);
+                        vec3 sky_col = min(get_sky_color(refl_dir, time_of_day.x, wpos, vec3(-100000), 0.125, false, 0.0, true, 0.0), vec3(1));
+                        if (new_mat.a != MAT_SKY) {
+                            refl_col = mix(sky_col, texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb, merge);
                         } else {
-                            refl_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb;
+                            refl_col = sky_col;
                         }
                         // Apply clouds to reflected colour
                         refl_col = get_cloud_color(refl_col, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
                     } else {
                         // No: assume that anything off-screen is the colour of the sky
-                        refl_col = min(get_sky_color(refl_dir, time_of_day.x, wpos - focus_off.xyz, vec3(-100000), 0.125, true, 1.0, true, 1.0), vec3(1));
+                        refl_col = min(get_sky_color(refl_dir, time_of_day.x, wpos, vec3(-100000), 0.125, true, 1.0, true, 1.0), vec3(1));
                         // Apply clouds to reflection
                         refl_col = get_cloud_color(refl_col, refl_dir, wpos, time_of_day.x, 100000.0, 1.0);
                     }
