@@ -86,7 +86,7 @@ void main() {
     uvec4 mat = texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(uv * mat_sz), ivec2(0), ivec2(mat_sz) - 1), 0);
 
     #ifdef EXPERIMENTAL_VIEWNORMALS
-        color.rgb = vec3(mat.xyz) / 255.0;
+        tgt_color = vec4(vec3(mat.xyz) / 255.0, 1);
         return;
     #endif
 
