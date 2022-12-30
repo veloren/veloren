@@ -527,4 +527,6 @@ pub enum ExperimentalShader {
     NoRainbows,
     /// Add extra detailing to puddles.
     PuddleDetails,
+    /// Show the normal buffers.
+    ViewNormals,
 }

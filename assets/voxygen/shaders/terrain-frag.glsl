@@ -58,6 +58,7 @@ uniform u_locals {
 };
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -530,5 +531,6 @@ void main() {
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
 
     tgt_color = vec4(surf_color, f_alpha);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_BLOCK);
     //tgt_color = vec4(f_norm, f_alpha);
 }

@@ -83,6 +83,7 @@ uniform u_bones {
 };
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 void main() {
     // vec2 texSize = textureSize(t_col_light, 0);
@@ -299,4 +300,5 @@ void main() {
     // }
 
     tgt_color = vec4(surf_color, 1.0);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
 }

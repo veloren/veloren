@@ -46,6 +46,9 @@ uniform u_locals {
     mat4 all_mat_inv;
 };
 
+layout(set = 2, binding = 5)
+uniform utexture2D t_src_mat;
+
 layout(location = 0) out vec4 tgt_color;
 
 vec3 wpos_at(vec2 uv) {
@@ -78,6 +81,14 @@ float depth_at(vec2 uv) {
 
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
+
+    uvec2 mat_sz = textureSize(usampler2D(t_src_mat, s_src_depth), 0);
+    uvec4 mat = texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(uv * mat_sz), ivec2(0), ivec2(mat_sz) - 1), 0);
+
+    #ifdef EXPERIMENTAL_VIEWNORMALS
+        color.rgb = vec3(mat.xyz) / 255.0;
+        return;
+    #endif
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(color.rgb, 1);
@@ -126,8 +137,8 @@ void main() {
             cloud_blend = 1.0 - color.a;
 
             #if (FLUID_MODE >= FLUID_MODE_MEDIUM || REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
-                if (dir.z < 0.0) {
-                    vec3 surf_norm = normalize(vec3(nz * 0.3 / (1.0 + dist * 0.1), 1));
+                if (mat.a != MAT_SKY) {
+                    vec3 surf_norm = vec3(texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(uv * mat_sz), ivec2(0), ivec2(mat_sz) - 1), 0).xyz) / 127.0 - 1.0;
                     vec3 refl_dir = reflect(dir, surf_norm);
 
                     vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
@@ -180,11 +191,27 @@ void main() {
                         clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
                     );
 
+                    vec3 refl_col;
+                    // Did we hit a surface during reflection?
                     if (merge > 0.0) {
-                        vec3 new_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb;
-                        new_col = get_cloud_color(new_col.rgb, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
-                        color.rgb = mix(color.rgb, new_col, min(merge * (color.a * 2.0), 0.75));
+                        // Yes: grab the new material from screen space
+                        uvec4 new_mat = texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0);
+                        // If it's the sky, just go determine the sky color analytically to avoid sampling the incomplete skybox
+                        // Otherwise, pull the color from the screen-space color buffer
+                        if (new_mat.a == MAT_SKY) {
+                            refl_col = get_sky_color(refl_dir, time_of_day.x, wpos, vec3(-100000), 0.125, true, 1.0, true, 1.0);
+                        } else {
+                            refl_col = texelFetch(sampler2D(t_src_color, s_src_color), clamp(ivec2(new_uv * col_sz), ivec2(0), ivec2(col_sz) - 1), 0).rgb;
+                        }
+                        // Apply clouds to reflected colour
+                        refl_col = get_cloud_color(refl_col, refl_dir, wpos, time_of_day.x, distance(new_wpos, wpos.xyz), 1.0);
+                    } else {
+                        // No: assume that anything off-screen is the colour of the sky
+                        refl_col = min(get_sky_color(refl_dir, time_of_day.x, wpos - focus_off.xyz, vec3(-100000), 0.125, true, 1.0, true, 1.0), vec3(1));
+                        // Apply clouds to reflection
+                        refl_col = get_cloud_color(refl_col, refl_dir, wpos, time_of_day.x, 100000.0, 1.0);
                     }
+                    color.rgb = mix(color.rgb, refl_col, min(color.a * 2.0, 0.75));
                     cloud_blend = 1;
                 } else {
             #else

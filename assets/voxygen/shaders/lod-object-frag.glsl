@@ -25,6 +25,7 @@ layout(location = 3) in vec3 model_pos;
 layout(location = 4) in float snow_cover;
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -123,4 +124,5 @@ void main() {
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
     tgt_color = vec4(surf_color, 1.0);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_LOD);
 }

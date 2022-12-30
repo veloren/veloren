@@ -29,6 +29,7 @@ impl Locals {
         clouds_locals: Consts<clouds::Locals>,
         postprocess_locals: Consts<postprocess::Locals>,
         tgt_color_view: &wgpu::TextureView,
+        tgt_mat_view: &wgpu::TextureView,
         tgt_depth_view: &wgpu::TextureView,
         bloom: Option<BloomParams>,
         tgt_color_pp_view: &wgpu::TextureView,
@@ -38,6 +39,7 @@ impl Locals {
         let clouds_bind = layouts.clouds.bind(
             device,
             tgt_color_view,
+            tgt_mat_view,
             tgt_depth_view,
             sampler,
             depth_sampler,
@@ -77,6 +79,7 @@ impl Locals {
         // Call when these are recreated and need to be rebound
         // e.g. resizing
         tgt_color_view: &wgpu::TextureView,
+        tgt_mat_view: &wgpu::TextureView,
         tgt_depth_view: &wgpu::TextureView,
         bloom: Option<BloomParams>,
         tgt_color_pp_view: &wgpu::TextureView,
@@ -86,6 +89,7 @@ impl Locals {
         self.clouds_bind = layouts.clouds.bind(
             device,
             tgt_color_view,
+            tgt_mat_view,
             tgt_depth_view,
             sampler,
             depth_sampler,

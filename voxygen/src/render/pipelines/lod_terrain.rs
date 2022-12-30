@@ -252,11 +252,18 @@ impl LodTerrainPipeline {
             fragment: Some(wgpu::FragmentState {
                 module: fs_module,
                 entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
-                    format: wgpu::TextureFormat::Rgba16Float,
-                    blend: None,
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
+                targets: &[
+                    wgpu::ColorTargetState {
+                        format: wgpu::TextureFormat::Rgba16Float,
+                        blend: None,
+                        write_mask: wgpu::ColorWrite::ALL,
+                    },
+                    wgpu::ColorTargetState {
+                        format: wgpu::TextureFormat::Rgba8Uint,
+                        blend: None,
+                        write_mask: wgpu::ColorWrite::ALL,
+                    },
+                ],
             }),
         });
 

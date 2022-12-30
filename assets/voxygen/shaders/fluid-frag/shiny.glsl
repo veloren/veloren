@@ -48,6 +48,7 @@ uniform u_locals {
 };
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 #include <cloud.glsl>
 #include <light.glsl>
@@ -82,14 +83,14 @@ vec4 wave_height(vec4 posx, vec4 posy) {
         posy *= 0.2;
         const float drag_factor = 0.035;
         const int iters = 21;
-        const float scale = 25.0;
+        const float scale = 15.0;
     #else
         float speed = 2.0;
         posx *= 0.3;
         posy *= 0.3;
         const float drag_factor = 0.04;
         const int iters = 11;
-        const float scale = 5.0;
+        const float scale = 3.0;
     #endif
     const float iter_shift = (3.14159 * 2.0) / 7.3;
 
@@ -427,4 +428,5 @@ void main() {
     vec4 color = mix(vec4(reflect_color, 1.0), vec4(vec3(0), 1.0 / (1.0 + diffuse_light * 0.25)), passthrough); */
 
     tgt_color = color;
+    tgt_mat = uvec4(uvec3((norm + 1.0) * 127.0), MAT_FLUID);
 }

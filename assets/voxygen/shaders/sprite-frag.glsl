@@ -32,6 +32,7 @@ layout(set = 2, binding = 1)
 uniform sampler s_col_light;
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -125,5 +126,6 @@ void main() {
     surf_color += f_select * (surf_color + 0.1) * vec3(0.15, 0.15, 0.15);
 
     tgt_color = vec4(surf_color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1));
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
     //tgt_color = vec4(-f_norm, 1.0);
 }

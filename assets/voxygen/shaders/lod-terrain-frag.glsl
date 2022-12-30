@@ -31,6 +31,7 @@ layout(location = 2) in float pull_down;
 // in vec4 f_square;
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 /// const vec4 sun_pos = vec4(0);
 // const vec4 light_pos[2] = vec4[](vec4(0), vec4(0)/*, vec3(00), vec3(0), vec3(0), vec3(0)*/);
@@ -687,4 +688,5 @@ void main() {
     // color = surf_color;
 
     tgt_color = vec4(surf_color, surf_alpha);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_LOD);
 }
