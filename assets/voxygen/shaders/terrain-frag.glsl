@@ -403,6 +403,8 @@ void main() {
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     reflected_light *= 0.4 + f_ao * 0.6;
+    emitted_light *= point_shadow;
+    reflected_light *= point_shadow;
 
     #ifndef EXPERIMENTAL_NOCAUSTICS
         #if (FLUID_MODE >= FLUID_MODE_MEDIUM)

@@ -94,9 +94,9 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 float shadow_at(vec3 wpos, vec3 wnorm) {
     float shadow = 1.0;
 
-#if (SHADOW_MODE == SHADOW_MODE_NONE || SHADOW_MODE == SHADOW_MODE_MAP)
+#if (SHADOW_MODE == SHADOW_MODE_NONE)
     return shadow;
-#elif (SHADOW_MODE == SHADOW_MODE_CHEAP)
+#elif (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
     for (uint i = 0u; i < light_shadow_count.y; i ++) {
 
         // Only access the array once
@@ -106,11 +106,13 @@ float shadow_at(vec3 wpos, vec3 wnorm) {
         float radius = S.shadow_pos_radius.w;
 
         vec3 diff = shadow_pos - wpos;
-        if (diff.z >= 0.0) {
-            diff.z = -sign(diff.z) * diff.z * 0.1;
-        }
+        #if (SHADOW_MODE == SHADOW_MODE_CHEAP)
+            if (diff.z >= 0.0) {
+                diff.z = -sign(diff.z) * diff.z * 0.1;
+            }
+        #endif
 
-        float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.35) / pow(radius * radius * 0.5, 0.5), 0.5);
+        float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.3) / pow(radius * radius * 0.5, 0.5), 0.5);
         // float shade = max(pow(dot(diff, diff) / (radius * radius * 0.5), 0.25), 0.5);
         // float shade = dot(diff, diff) / (radius * radius * 0.5);
 

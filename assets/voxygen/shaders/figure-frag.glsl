@@ -259,6 +259,8 @@ void main() {
 
     reflected_light *= ao;
     emitted_light *= ao;
+    reflected_light *= point_shadow;
+    emitted_light *= point_shadow;
     /* reflected_light *= cloud_shadow(f_pos); */
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;

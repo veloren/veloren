@@ -99,6 +99,9 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
+    emitted_light *= point_shadow;
+    reflected_light *= point_shadow;
+
     // Allow particles to glow at night
     // TODO: Not this
     emitted_light += max(f_col.rgb - 1.0, vec3(0));

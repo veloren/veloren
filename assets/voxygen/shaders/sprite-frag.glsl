@@ -120,6 +120,8 @@ void main() {
     float ao = f_ao;
     emitted_light *= ao;
     reflected_light *= ao;
+    emitted_light *= point_shadow;
+    reflected_light *= point_shadow;
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
