@@ -270,8 +270,10 @@ void main() {
 
     vec3 reflect_color;
     #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
-        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
-        reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
+        // This is now done in the post-process cloud shader
+        /* reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac); */
+        /* reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1); */
+        reflect_color = vec3(0);
     #else
         reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
     #endif
