@@ -305,7 +305,33 @@ impl ItemKind {
             ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Glider | ItemKind::Lantern(_)
         )
     }
+
+    pub fn get_itemkind_string(&self) -> String {
+        let result = match self {
+            ItemKind::Tool(tool) => format!("Tool: {:?}", tool),
+            ItemKind::ModularComponent(modular_component) => {
+                format!("Modular Component: {:?}", modular_component)
+            },
+            ItemKind::Lantern(lantern) => format!("Lantern: {:?}", lantern),
+            ItemKind::Armor(armor) => format!("Armor: {:?}", armor),
+            ItemKind::Glider => "Glider:".to_string(),
+            ItemKind::Consumable { kind, effects } => {
+                format!("Consumable: {:?}, {:?}", kind, effects)
+            },
+            ItemKind::Throwable { kind } => format!("Throwable: {:?}", kind),
+            ItemKind::Utility { kind } => format!("Utility: {:?}", kind),
+            ItemKind::Ingredient { descriptor } => format!("Ingredient: {}", descriptor),
+            ItemKind::TagExamples { item_ids } => format!("TagExamples: {:?}", item_ids),
+        };
+        result
+    }
 }
+
+// impl fmt::Display for ItemKind {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "{}", self.to_string())
+//     }
+// }
 
 pub type ItemId = AtomicCell<Option<NonZeroU64>>;
 

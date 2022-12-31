@@ -824,7 +824,8 @@ impl<'a> Widget for Bag<'a> {
                 &(match inventory.next_sort_order() {
                     InventorySortOrder::Name => i18n.get_msg("hud-bag-sort_by_name"),
                     InventorySortOrder::Quality => i18n.get_msg("hud-bag-sort_by_quality"),
-                    InventorySortOrder::Tag => i18n.get_msg("hud-bag-sort_by_category"),
+                    InventorySortOrder::Category => i18n.get_msg("hud-bag-sort_by_category"),
+                    InventorySortOrder::Tag => i18n.get_msg("hud-bag-sort_by_tag"),
                 }),
                 "",
                 &tooltip,

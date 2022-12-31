@@ -39,3 +39,4 @@ hud-bag-stun_res_desc =
 hud-bag-sort_by_name = Sort by Name
 hud-bag-sort_by_quality = Sort by Quality
 hud-bag-sort_by_category = Sort by Category
+hud-bag-sort_by_tag = Sort by Tag

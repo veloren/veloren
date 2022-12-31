@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved shiny water shaders
 - Tweaked armor stats
 - Move bag icon to skillbar
+- Improved inventory sorting by Category
 
 ### Removed
 
