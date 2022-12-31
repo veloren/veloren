@@ -207,9 +207,11 @@ impl MovementEventMapper {
             } else {
                 match underfoot_block_kind {
                     BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
-                    BlockKind::Rock | BlockKind::WeakRock | BlockKind::Ice => {
-                        SfxEvent::Run(BlockKind::Rock)
-                    },
+                    BlockKind::Rock
+                    | BlockKind::WeakRock
+                    | BlockKind::GlowingRock
+                    | BlockKind::GlowingWeakRock
+                    | BlockKind::Ice => SfxEvent::Run(BlockKind::Rock),
                     BlockKind::Earth => SfxEvent::Run(BlockKind::Earth),
                     // BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
                     BlockKind::Air => SfxEvent::Idle,
@@ -237,7 +239,11 @@ impl MovementEventMapper {
         } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
-                BlockKind::Rock | BlockKind::WeakRock => SfxEvent::Run(BlockKind::Rock),
+                BlockKind::Rock
+                | BlockKind::WeakRock
+                | BlockKind::GlowingRock
+                | BlockKind::GlowingWeakRock
+                | BlockKind::Ice => SfxEvent::Run(BlockKind::Rock),
                 // BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
                 BlockKind::Earth => SfxEvent::Run(BlockKind::Earth),
                 BlockKind::Air => SfxEvent::Idle,
@@ -259,7 +265,11 @@ impl MovementEventMapper {
         } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::QuadRun(BlockKind::Snow),
-                BlockKind::Rock | BlockKind::WeakRock => SfxEvent::QuadRun(BlockKind::Rock),
+                BlockKind::Rock
+                | BlockKind::WeakRock
+                | BlockKind::GlowingRock
+                | BlockKind::GlowingWeakRock
+                | BlockKind::Ice => SfxEvent::QuadRun(BlockKind::Rock),
                 // BlockKind::Sand => SfxEvent::QuadRun(BlockKind::Sand),
                 BlockKind::Earth => SfxEvent::QuadRun(BlockKind::Earth),
                 BlockKind::Air => SfxEvent::Idle,

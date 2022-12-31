@@ -120,29 +120,6 @@ use vek::*;
 /// player.
 const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
 
-pub struct SfxEventItem {
-    /// The SFX event that triggers this sound
-    pub sfx: SfxEvent,
-    /// The position at which the sound should play
-    pub pos: Option<Vec3<f32>>,
-    /// The volume to play the sound at
-    pub vol: Option<f32>,
-}
-
-impl SfxEventItem {
-    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>, vol: Option<f32>) -> Self {
-        Self { sfx, pos, vol }
-    }
-
-    pub fn at_player_position(sfx: SfxEvent) -> Self {
-        Self {
-            sfx,
-            pos: None,
-            vol: None,
-        }
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum SfxEvent {
     Campfire,
@@ -169,8 +146,6 @@ pub enum SfxEvent {
     CatchAir,
     Jump,
     Fall,
-    ExperienceGained,
-    LevelUp,
     Attack(CharacterAbilityType, ToolKind),
     Wield(ToolKind),
     Unwield(ToolKind),
