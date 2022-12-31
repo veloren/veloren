@@ -191,13 +191,27 @@ void main() {
                         }
                     #endif
 
-                    new_uv = clamp(new_uv, vec2(0), vec2(1));
+                    #ifdef EXPERIMENTAL_SMEARREFLECTIONS
+                        const float SMEAR_FRAC = 0.2;
+                        vec2 anew_uv = abs(new_uv - 0.5) * 2;
+                        new_uv = mix(
+                            anew_uv,
+                            1.0 - SMEAR_FRAC + (1.0 - 1.0 / (1.0 + (anew_uv - 1.0 + SMEAR_FRAC))) * SMEAR_FRAC,
+                            lessThan(vec2(1.0 - SMEAR_FRAC), anew_uv)
+                        ) * sign(new_uv - 0.5) * 0.5 + 0.5;
+                    #else
+                        new_uv = clamp(new_uv, vec2(0), vec2(1));
+                    #endif
 
                     vec3 new_wpos = wpos_at(new_uv);
                     float new_dist = distance(new_wpos, cam_pos.xyz);
                     float merge = min(
                         // Off-screen merge factor
-                        clamp((1.0 - max(abs(new_uv.y - 0.5), abs(new_uv.x - 0.5)) * 2) * 8.0, 0, 1),
+                        #ifdef EXPERIMENTAL_SMEARREFLECTIONS
+                            1.0,
+                        #else
+                            clamp((1.0 - max(abs(new_uv.y - 0.5), abs(new_uv.x - 0.5)) * 2) * 6.0, 0, 1),
+                        #endif
                         // Depth merge factor
                         clamp((new_dist - dist * 0.5) / (dist * 0.5), 0.0, 1.0)
                     );

@@ -531,4 +531,7 @@ pub enum ExperimentalShader {
     ViewNormals,
     /// Show gbuffer materials.
     ViewMaterials,
+    /// Rather than fading out screen-space reflections at view space borders,
+    /// smear screen space to cover the reflection vector.
+    SmearReflections,
 }
