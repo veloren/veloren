@@ -306,17 +306,20 @@ impl ItemKind {
         )
     }
 
+    // Used for inventory sorting, what comes before the first colon (:) is used as
+    // a broader category
     pub fn get_itemkind_string(&self) -> String {
         let result = match self {
-            ItemKind::Tool(tool) => format!("Tool: {:?}", tool),
+            // Using tool and toolkind to sort tools by kind
+            ItemKind::Tool(tool) => format!("Tool: {:?}", tool.kind),
             ItemKind::ModularComponent(modular_component) => {
-                format!("Modular Component: {:?}", modular_component)
+                format!("ModularComponent: {:?}", modular_component.toolkind())
             },
             ItemKind::Lantern(lantern) => format!("Lantern: {:?}", lantern),
-            ItemKind::Armor(armor) => format!("Armor: {:?}", armor),
+            ItemKind::Armor(armor) => format!("Armor: {:?}", armor.stats),
             ItemKind::Glider => "Glider:".to_string(),
-            ItemKind::Consumable { kind, effects } => {
-                format!("Consumable: {:?}, {:?}", kind, effects)
+            ItemKind::Consumable { kind, .. } => {
+                format!("Consumable: {:?}", kind)
             },
             ItemKind::Throwable { kind } => format!("Throwable: {:?}", kind),
             ItemKind::Utility { kind } => format!("Utility: {:?}", kind),
@@ -326,12 +329,6 @@ impl ItemKind {
         result
     }
 }
-
-// impl fmt::Display for ItemKind {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "{}", self.to_string())
-//     }
-// }
 
 pub type ItemId = AtomicCell<Option<NonZeroU64>>;
 

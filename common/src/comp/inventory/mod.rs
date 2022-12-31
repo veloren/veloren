@@ -147,26 +147,14 @@ impl Inventory {
             )
     }
 
+    /// If custom_order is empty, it will always return Ordering::Equal
     pub fn order_by_custom(custom_order: &[CustomOrder], a: &Item, b: &Item) -> Ordering {
         let mut order = custom_order.iter();
         let a_quality = a.quality();
         let b_quality = b.quality();
         let a_kind = a.kind().get_itemkind_string();
         let b_kind = b.kind().get_itemkind_string();
-        let mut cmp = match order.next() {
-            Some(CustomOrder::KindFull) => Ord::cmp(&a_kind, &b_kind),
-            Some(CustomOrder::KindPartial) => Ord::cmp(
-                &a_kind.split_once(':').unwrap().0,
-                &b_kind.split_once(':').unwrap().0,
-            ),
-            Some(CustomOrder::Quality) => Ord::cmp(&b_quality, &a_quality),
-            Some(CustomOrder::Name) => Ord::cmp(&a.name(), &b.name()),
-            Some(CustomOrder::Tag) => Ord::cmp(
-                &a.tags().first().map_or("", |tag| tag.name()),
-                &b.tags().first().map_or("", |tag| tag.name()),
-            ),
-            _ => Ordering::Equal,
-        };
+        let mut cmp = Ordering::Equal;
         while cmp == Ordering::Equal {
             match order.next() {
                 Some(CustomOrder::KindFull) => cmp = Ord::cmp(&a_kind, &b_kind),
@@ -200,9 +188,10 @@ impl Inventory {
             // Quality is sorted in reverse since we want high quality items first
             InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),
             InventorySortOrder::Category => {
-                let order = vec![
+                let order = [
                     CustomOrder::KindPartial,
                     CustomOrder::Quality,
+                    CustomOrder::KindFull,
                     CustomOrder::Name,
                 ];
                 Self::order_by_custom(&order, a, b)

@@ -206,7 +206,7 @@ impl PartialOrd for Protection {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Armor {
     pub kind: ArmorKind,
-    stats: StatsSource,
+    pub stats: StatsSource,
 }
 
 impl Armor {
