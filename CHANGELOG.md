@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Experience bar below the hotbar
 - Bridges.
 - Tool for exporting PNG images of all in-game models (`cargo img-export`)
+- Calendar event soundtracks.
 
 ### Changed
 

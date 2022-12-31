@@ -15,16 +15,11 @@ use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
 use soundcache::load_ogg;
 use std::time::Duration;
-use tracing::{debug, error, warn};
+use tracing::{debug, error};
 
 use common::assets::{AssetExt, AssetHandle};
 use rodio::{source::Source, OutputStream, OutputStreamHandle, StreamError};
 use vek::*;
-
-/// Prevents sounds that are too low in volume from playing. This may marginally
-/// improve performance in certain situations since less audio channels will be
-/// used on average.
-const MIN_HEARABLE_VOLUME: f32 = 0.003;
 
 #[derive(Default, Clone)]
 pub struct Listener {
@@ -116,15 +111,6 @@ impl AudioFrontend {
 
     /// Construct in `no-audio` mode for debugging
     pub fn no_audio() -> Self {
-        let audio_manifest = "voxygen.audio.music_transition_manifest";
-        let mtm = MusicTransitionManifest::load_or_insert_with(audio_manifest, |err| {
-            warn!(
-                "Error loading MusicTransitionManifest {:?}: {:?}",
-                audio_manifest, err
-            );
-            MusicTransitionManifest::default()
-        });
-
         Self {
             // The following is for the disabled device switcher
             //device: "".to_string(),
@@ -142,7 +128,7 @@ impl AudioFrontend {
             master_volume: 1.0,
             music_spacing: 1.0,
             listener: Listener::default(),
-            mtm,
+            mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
         }
     }
 
@@ -268,7 +254,7 @@ impl AudioFrontend {
     ) {
         if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
             // Play sound in empty channel at given position
-            if self.audio_stream.is_some() && volume.map_or(true, |v| v > MIN_HEARABLE_VOLUME) {
+            if self.audio_stream.is_some() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
 
                 let listener = self.listener.clone();
@@ -302,7 +288,7 @@ impl AudioFrontend {
     ) {
         if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
             // Play sound in empty channel at given position
-            if self.audio_stream.is_some() && volume.map_or(true, |v| v > MIN_HEARABLE_VOLUME) {
+            if self.audio_stream.is_some() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
 
                 let listener = self.listener.clone();
@@ -337,7 +323,7 @@ impl AudioFrontend {
     ) {
         if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
             // Play sound in empty channel
-            if self.audio_stream.is_some() && volume.map_or(true, |v| v > MIN_HEARABLE_VOLUME) {
+            if self.audio_stream.is_some() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
 
                 if let Some(channel) = self.get_ui_channel() {
