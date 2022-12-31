@@ -65,11 +65,12 @@ pub struct Globals {
     select_pos: [i32; 4],
     gamma_exposure: [f32; 4],
     last_lightning: [f32; 4],
+    wind_vel: [f32; 2],
     ambiance: f32,
     cam_mode: u32,
     sprite_render_distance: f32,
     // To keep 16-byte-aligned.
-    globals_dummy: [f32; 1],
+    globals_dummy: [f32; 3],
 }
 /// Make sure Globals is 16-byte-aligned.
 const _: () = assert!(core::mem::size_of::<Globals>() % 16 == 0);
@@ -110,6 +111,7 @@ impl Globals {
         gamma: f32,
         exposure: f32,
         last_lightning: (Vec3<f32>, f64),
+        wind_vel: Vec2<f32>,
         ambiance: f32,
         cam_mode: CameraMode,
         sprite_render_distance: f32,
@@ -162,10 +164,11 @@ impl Globals {
                 .0
                 .with_w(last_lightning.1 as f32)
                 .into_array(),
+            wind_vel: wind_vel.into_array(),
             ambiance: ambiance.clamped(0.0, 1.0),
             cam_mode: cam_mode as u32,
             sprite_render_distance,
-            globals_dummy: [0.0; 1],
+            globals_dummy: [0.0; 3],
         }
     }
 
@@ -209,6 +212,7 @@ impl Default for Globals {
             1.0,
             1.0,
             (Vec3::zero(), -1000.0),
+            Vec2::zero(),
             1.0,
             CameraMode::ThirdPerson,
             250.0,

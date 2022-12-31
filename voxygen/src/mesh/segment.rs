@@ -122,6 +122,7 @@ pub fn generate_mesh_base_vol_sprite<'a: 'b, 'b, V: 'a>(
         &'b mut Mesh<SpriteVertex>,
         bool,
     ),
+    offset: Vec3<f32>,
 ) -> MeshGen<SpriteVertex, SpriteVertex, TerrainVertex, ()>
 where
     V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
@@ -211,7 +212,7 @@ where
     // position, pos + mesh_delta, is guaranteed to fit in an f32).
     let mesh_delta = lower_bound.as_::<f32>();
     let create_opaque = |atlas_pos, pos: Vec3<f32>, norm, _meta| {
-        SpriteVertex::new(atlas_pos, pos + mesh_delta, norm)
+        SpriteVertex::new(atlas_pos, pos + offset + mesh_delta, norm)
     };
 
     greedy.push(GreedyConfig {

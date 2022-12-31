@@ -20,6 +20,7 @@ layout(std140, set = 0, binding = 0) uniform u_globals {
     ivec4 select_pos;
     vec4 gamma_exposure;
     vec4 last_lightning;
+    vec2 wind_vel;
     float ambiance;
     // 0 - FirstPerson
     // 1 - ThirdPerson

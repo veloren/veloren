@@ -53,6 +53,7 @@ const float SCALE = 1.0 / 11.0;
 const float SCALE_FACTOR = pow(SCALE, 1.3) * 0.2;
 
 const float EXTRA_NEG_Z = 32768.0;
+const float VERT_EXTRA_NEG_XY = 128.0;
 const float VERT_EXTRA_NEG_Z = 128.0;
 const uint VERT_PAGE_SIZE = 256;
 
@@ -72,6 +73,19 @@ vec4 nearest_entity(in vec3 sprite_pos, const float entity_radius_factor) {
     }
     closest.w = sqrt(max(closest.w, 0));
     return closest;
+}
+
+float wind_wave(float off, float scaling, float speed, float strength) {
+    float aspeed = abs(speed);
+
+    // TODO: Right now, the wind model is pretty simplistic. This means that there is frequently no wind at all, which
+    // looks bad. For now, we add a lower bound on the wind speed to keep things looking nice.
+    strength = max(strength, 3.0);
+    aspeed = max(aspeed, 3.0);
+
+    return (sin(tick.x * 0.75 * scaling * floor(aspeed) + off) * (1.0 - fract(aspeed))
+        + sin(tick.x * 0.75 * scaling * ceil(aspeed) + off) * fract(aspeed)) * abs(strength) * 0.5;
+    //return sin(tick.x * 1.5 * scaling + off) + sin(tick.x * 0.35 * scaling + off);
 }
 
 void main() {
@@ -94,7 +108,11 @@ void main() {
     uint v_atlas_pos = pos_atlas_pos_norm_ao.y;
 
     // Expand the model vertex position bits into float values
-    vec3 v_pos = vec3(v_pos_norm & 0xFFu, (v_pos_norm >> 8) & 0xFFu, float((v_pos_norm >> 16) & 0x0FFFu) - VERT_EXTRA_NEG_Z);
+    vec3 v_pos = vec3(
+        float(v_pos_norm & 0xFFu) - VERT_EXTRA_NEG_XY,
+        float((v_pos_norm >> 8) & 0xFFu) - VERT_EXTRA_NEG_XY,
+        float((v_pos_norm >> 16) & 0x0FFFu) - VERT_EXTRA_NEG_Z
+    );
 
     // Position of the sprite block in the chunk
     // Used for highlighting the selected sprite, and for opening doors
@@ -142,15 +160,16 @@ void main() {
     #endif
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
-        // TODO: take wind_vel into account
         // Wind sway effect
-        f_pos += model_wind_sway * vec3(
-            sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),
-            sin(tick.x * 1.5 + f_pos.x * 0.1) * sin(tick.x * 0.25),
-            0.0
-            // NOTE: could potentially replace `v_pos.z * model_z_scale` with a calculation using `inst_chunk_pos` from below
-            //) * pow(abs(v_pos.z * model_z_scale), 1.3) * SCALE_FACTOR;
-            ) * v_pos.z * model_z_scale * SCALE_FACTOR;
+        f_pos.xy += (wind_vel * 0.1 + vec2(
+            wind_wave(f_pos.y * 0.1, 0.9, wind_vel.x, wind_vel.y),
+            wind_wave(f_pos.x * 0.1, 1.1, wind_vel.y, wind_vel.x)
+        ))
+            * model_wind_sway
+            //* mix(10.0, abs(v_pos.z), 1.0 / (1.0 + abs(v_pos.z) * 0.1))
+            * v_pos.z
+            * model_z_scale
+            * SCALE_FACTOR;
 
         if (model_wind_sway > 0.0) {
             vec2 center = sprite_pos.xy + 0.5;

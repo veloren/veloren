@@ -42,6 +42,7 @@ impl Vertex {
     // NOTE: Limit to 16 (x) × 16 (y) × 32 (z).
     #[allow(clippy::collapsible_else_if)]
     pub fn new(atlas_pos: Vec2<u16>, pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
+        const VERT_EXTRA_NEG_XY: i32 = 128;
         const VERT_EXTRA_NEG_Z: i32 = 128; // NOTE: change if number of bits changes below, also we might not need this if meshing always produces positives values for sprites (I have no idea)
 
         #[allow(clippy::bool_to_int_with_if)]
@@ -59,8 +60,8 @@ impl Vertex {
             //     | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
             //     | if meta { 1 } else { 0 } << 28
             //     | (norm_bits & 0x7) << 29,
-            pos_norm: ((pos.x as u32) & 0x00FF) // NOTE: temp hack, this doesn't need 8 bits
-                | ((pos.y as u32) & 0x00FF) << 8
+            pos_norm: (((pos.x as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) // NOTE: temp hack, this doesn't need 8 bits
+                | (((pos.y as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) << 8
                 | (((pos.z as i32 + VERT_EXTRA_NEG_Z).clamp(0, 1 << 12) as u32) & 0x0FFF) << 16
                 | (norm_bits & 0x7) << 29,
             atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | ((atlas_pos.y as u32) & 0xFFFF) << 16,
