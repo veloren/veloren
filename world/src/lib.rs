@@ -491,6 +491,7 @@ impl World {
                     Some(lod::Object {
                         kind: match tree.forest_kind {
                             all::ForestKind::Oak => lod::ObjectKind::Oak,
+                            all::ForestKind::Dead => lod::ObjectKind::Dead,
                             all::ForestKind::Pine
                             | all::ForestKind::Frostpine
                             | all::ForestKind::Redwood => lod::ObjectKind::Pine,

@@ -18,6 +18,7 @@ bitflags::bitflags! {
 pub enum ObjectKind {
     Oak,
     Pine,
+    Dead,
     House,
     GiantTree,
 }
