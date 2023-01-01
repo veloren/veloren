@@ -15,9 +15,7 @@ use common::{
 use rand::{thread_rng, Rng};
 use specs::saveload::Marker;
 
-use crate::{
-    sys::agent::util::get_entity_by_id,
-};
+use crate::sys::agent::util::get_entity_by_id;
 
 use super::{BehaviorData, BehaviorTree};
 

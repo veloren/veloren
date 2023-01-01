@@ -1,3 +1,4 @@
+use crate::rule::npc_ai;
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     comp,
@@ -12,14 +13,16 @@ use slotmap::HopSlotMap;
 use std::{
     any::{Any, TypeId},
     collections::VecDeque,
-    ops::{ControlFlow, Deref, DerefMut, Generator, GeneratorState},
-    sync::{Arc, atomic::{AtomicPtr, Ordering}},
-    pin::Pin,
     marker::PhantomData,
+    ops::{ControlFlow, Deref, DerefMut, Generator, GeneratorState},
+    pin::Pin,
+    sync::{
+        atomic::{AtomicPtr, Ordering},
+        Arc,
+    },
 };
 use vek::*;
 use world::{civ::Track, site::Site as WorldSite, util::RandomPerm};
-use crate::rule::npc_ai;
 
 #[derive(Copy, Clone, Default)]
 pub enum NpcMode {
@@ -160,7 +163,7 @@ impl TaskState {
 pub unsafe trait Context {
     // TODO: Somehow we need to enforce this bound, I think?
     // Hence, this trait is unsafe for now.
-    type Ty<'a>;// where for<'a> Self::Ty<'a>: 'a;
+    type Ty<'a>; // where for<'a> Self::Ty<'a>: 'a;
 }
 
 pub struct Data<C: Context>(Arc<AtomicPtr<()>>, PhantomData<C>);
@@ -196,12 +199,7 @@ pub struct TaskBox<C: Context, A = ()> {
 }
 
 impl<C: Context, A> TaskBox<C, A> {
-    pub fn new(data: Data<C>) -> Self {
-        Self {
-            task: None,
-            data,
-        }
-    }
+    pub fn new(data: Data<C>) -> Self { Self { task: None, data } }
 
     #[must_use]
     pub fn finish(&mut self, prio: Priority) -> ControlFlow<A> {
@@ -225,7 +223,12 @@ impl<C: Context, A> TaskBox<C, A> {
         task: T,
     ) -> ControlFlow<A> {
         let ty = TypeId::of::<T>();
-        if self.task.as_mut().filter(|(ty1, _, _)| *ty1 == ty).is_none() {
+        if self
+            .task
+            .as_mut()
+            .filter(|(ty1, _, _)| *ty1 == ty)
+            .is_none()
+        {
             self.task = Some((ty, Box::new(task), prio));
         };
 
@@ -239,18 +242,19 @@ pub struct Brain<C: Context, A = ()> {
 }
 
 impl<C: Context, A> Brain<C, A> {
-    pub fn new<T: Generator<Data<C>, Yield = A, Return = !> + Unpin + Any + Send + Sync>(task: T) -> Self {
+    pub fn new<T: Generator<Data<C>, Yield = A, Return = !> + Unpin + Any + Send + Sync>(
+        task: T,
+    ) -> Self {
         Self {
             task: Box::new(task),
             data: Data(Arc::new(AtomicPtr::new(std::ptr::null_mut())), PhantomData),
         }
     }
 
-    pub fn tick(
-        &mut self,
-        ctx_ref: &mut C::Ty<'_>,
-    ) -> A {
-        self.data.0.store(ctx_ref as *mut C::Ty<'_> as *mut (), Ordering::SeqCst);
+    pub fn tick(&mut self, ctx_ref: &mut C::Ty<'_>) -> A {
+        self.data
+            .0
+            .store(ctx_ref as *mut C::Ty<'_> as *mut (), Ordering::SeqCst);
         match Pin::new(&mut self.task).resume(self.data.clone()) {
             GeneratorState::Yielded(action) => {
                 self.data.0.store(std::ptr::null_mut(), Ordering::Release);

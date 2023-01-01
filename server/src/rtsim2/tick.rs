@@ -267,7 +267,7 @@ impl<'a> System<'a> for Sys {
                         //         Some(
                         //             index
                         //                 .sites
-                        //                 
+                        //
                         // .get(data.sites.get(path.end)?.world_site?)
                         //                 .name()
                         //                 .to_string(),

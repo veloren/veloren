@@ -2,7 +2,10 @@ use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use crate::{
     data::{
-        npc::{Controller, Npc, NpcId, PathData, PathingMemory, Task, TaskState, CONTINUE, FINISH, TaskBox, Brain, Data, Context},
+        npc::{
+            Brain, Context, Controller, Data, Npc, NpcId, PathData, PathingMemory, Task, TaskBox,
+            TaskState, CONTINUE, FINISH,
+        },
         Sites,
     },
     event::OnTick,
@@ -59,7 +62,7 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             TileKind::Empty => 3.0,
             TileKind::Hazard(_) => 50.0,
             TileKind::Field => 8.0,
-            TileKind::Plaza | TileKind::Road { .. } => 1.0,
+            TileKind::Plaza | TileKind::Road { .. } | TileKind::Path => 1.0,
 
             TileKind::Building
             | TileKind::Castle
@@ -640,7 +643,8 @@ TravelTo {
 }
 */
 
-trait IsTask = core::ops::Generator<Data<NpcData<'static>>, Yield = (), Return = ()> + Any + Send + Sync;
+trait IsTask =
+    core::ops::Generator<Data<NpcData<'static>>, Yield = (), Return = ()> + Any + Send + Sync;
 
 pub struct NpcData<'a> {
     ctx: &'a EventCtx<'a, NpcAi, OnTick>,
@@ -689,7 +693,13 @@ pub fn brain() -> Brain<NpcData<'static>> {
                     PathResult::Path(path) => path,
                     _ => return None,
                 };
-                println!("CHOSE PATH, len = {}, start = {:?}, end = {:?}\nnpc = {:?}", path.len(), start, end, d.npc_id);
+                println!(
+                    "CHOSE PATH, len = {}, start = {:?}, end = {:?}\nnpc = {:?}",
+                    path.len(),
+                    start,
+                    end,
+                    d.npc_id
+                );
                 Some((current_site.world_site?, path))
             });
 
@@ -711,26 +721,37 @@ fn walk_path(site: Id<WorldSite>, path: Path<Vec2<i32>>) -> impl IsTask {
     move |mut data: Data<NpcData>| {
         for tile in path {
             println!("TILE");
-            let wpos = data.with(|d| match &d.ctx.index.sites.get(site).kind {
-                SiteKind::Refactor(site2)
-                | SiteKind::CliffTown(site2)
-                | SiteKind::DesertCity(site2) => Some(site2),
-                _ => None,
-            }
+            let wpos = data.with(|d| {
+                match &d.ctx.index.sites.get(site).kind {
+                    SiteKind::Refactor(site2)
+                    | SiteKind::CliffTown(site2)
+                    | SiteKind::DesertCity(site2) => Some(site2),
+                    _ => None,
+                }
                 .expect("intrasite path should only be started on a site2 site")
                 .tile_center_wpos(tile)
                 .as_()
-                + 0.5);
+                    + 0.5
+            });
 
-            println!("Walking to next tile... tile wpos = {:?} npc wpos = {:?}", wpos, data.with(|d| d.npc.wpos));
+            println!(
+                "Walking to next tile... tile wpos = {:?} npc wpos = {:?}",
+                wpos,
+                data.with(|d| d.npc.wpos)
+            );
             while data.with(|d| d.npc.wpos.xy().distance_squared(wpos) > 2.0) {
-                data.with(|d| d.controller.goto = Some((
-                    wpos.with_z(d.ctx.world
-                        .sim()
-                        .get_alt_approx(wpos.map(|e| e as i32))
-                        .unwrap_or(0.0)),
-                    1.0,
-                )));
+                data.with(|d| {
+                    d.controller.goto = Some((
+                        wpos.with_z(
+                            d.ctx
+                                .world
+                                .sim()
+                                .get_alt_approx(wpos.map(|e| e as i32))
+                                .unwrap_or(0.0),
+                        ),
+                        1.0,
+                    ))
+                });
                 yield ();
             }
         }

@@ -636,7 +636,7 @@ impl Scene {
                 Vec3::unit_z() * (up * viewpoint_scale - tilt.min(0.0).sin() * dist * 0.6)
             } else {
                 self.figure_mgr
-                    .viewpoint_offset(scene_data, scene_data.viewpoint_entity) * viewpoint_scale
+                    .viewpoint_offset(scene_data, scene_data.viewpoint_entity)
             };
 
             match self.camera.get_mode() {

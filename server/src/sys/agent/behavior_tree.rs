@@ -1,4 +1,3 @@
-use common::rtsim::RtSimEntity;
 use common::{
     comp::{
         agent::{
@@ -10,6 +9,7 @@ use common::{
     },
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
+    rtsim::RtSimEntity,
 };
 use rand::{prelude::ThreadRng, thread_rng, Rng};
 use specs::{
