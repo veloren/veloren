@@ -1,7 +1,7 @@
 use core::ops::Not;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use std::{convert::TryFrom, mem, ops::Range};
+use std::{cmp::Ordering, convert::TryFrom, mem, ops::Range};
 use tracing::{debug, trace, warn};
 use vek::Vec3;
 
@@ -54,6 +54,7 @@ pub enum Error {
 pub enum InventorySortOrder {
     Name,
     Quality,
+    Category,
     Tag,
 }
 
@@ -62,9 +63,18 @@ impl InventorySortOrder {
         match self {
             InventorySortOrder::Name => InventorySortOrder::Quality,
             InventorySortOrder::Quality => InventorySortOrder::Tag,
-            InventorySortOrder::Tag => InventorySortOrder::Name,
+            InventorySortOrder::Tag => InventorySortOrder::Category,
+            InventorySortOrder::Category => InventorySortOrder::Name,
         }
     }
+}
+
+pub enum CustomOrder {
+    Name,
+    Quality,
+    KindPartial,
+    KindFull,
+    Tag,
 }
 
 /// Represents the Inventory of an entity. The inventory has 18 "built-in"
@@ -137,6 +147,37 @@ impl Inventory {
             )
     }
 
+    /// If custom_order is empty, it will always return Ordering::Equal
+    pub fn order_by_custom(custom_order: &[CustomOrder], a: &Item, b: &Item) -> Ordering {
+        let mut order = custom_order.iter();
+        let a_quality = a.quality();
+        let b_quality = b.quality();
+        let a_kind = a.kind().get_itemkind_string();
+        let b_kind = b.kind().get_itemkind_string();
+        let mut cmp = Ordering::Equal;
+        while cmp == Ordering::Equal {
+            match order.next() {
+                Some(CustomOrder::KindFull) => cmp = Ord::cmp(&a_kind, &b_kind),
+                Some(CustomOrder::KindPartial) => {
+                    cmp = Ord::cmp(
+                        &a_kind.split_once(':').unwrap().0,
+                        &b_kind.split_once(':').unwrap().0,
+                    )
+                },
+                Some(CustomOrder::Quality) => cmp = Ord::cmp(&b_quality, &a_quality),
+                Some(CustomOrder::Name) => cmp = Ord::cmp(&a.name(), &b.name()),
+                Some(CustomOrder::Tag) => {
+                    cmp = Ord::cmp(
+                        &a.tags().first().map_or("", |tag| tag.name()),
+                        &b.tags().first().map_or("", |tag| tag.name()),
+                    )
+                },
+                _ => break,
+            }
+        }
+        cmp
+    }
+
     /// Sorts the inventory using the next sort order
     pub fn sort(&mut self) {
         let sort_order = self.next_sort_order;
@@ -146,6 +187,15 @@ impl Inventory {
             InventorySortOrder::Name => Ord::cmp(&a.name(), &b.name()),
             // Quality is sorted in reverse since we want high quality items first
             InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),
+            InventorySortOrder::Category => {
+                let order = [
+                    CustomOrder::KindPartial,
+                    CustomOrder::Quality,
+                    CustomOrder::KindFull,
+                    CustomOrder::Name,
+                ];
+                Self::order_by_custom(&order, a, b)
+            },
             InventorySortOrder::Tag => Ord::cmp(
                 &a.tags().first().map_or("", |tag| tag.name()),
                 &b.tags().first().map_or("", |tag| tag.name()),
