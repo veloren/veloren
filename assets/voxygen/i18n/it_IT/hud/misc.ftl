@@ -27,7 +27,7 @@ hud-temp_quest_text =
     
     Il menù di creazione ti permette di creare armature, armi, cibo e molto altro!
     
-    Gli animali selvatici intorno alla città sono una grande fonte di Pelle per creare alcune protezioni contro i pericoli del mondo.
+    Gli animali selvatici intorno alla città sono una grande fonte di pelle per creare alcune protezioni contro i pericoli del mondo.
     
     Quando ti sentirai pronto, prova a ottenere un equipaggiamento migliore dalle tante sfide segnate sulla tua mappa!
 hud-spell = Incantesimi
