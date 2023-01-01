@@ -483,6 +483,35 @@
             music_state: Activity(Explore),
             artist: ("badbbad", "https://soundcloud.com/tomerbarnea"),
         )),
+        Individual((
+            title: "A Peaceful Moment",
+            path: "voxygen.audio.soundtrack.overworld.a_peaceful_moment",
+            length: 122.0,
+            timing: None,
+            weather: None,
+            biomes: [
+                (Forest, 1),
+                (Taiga, 1),
+                (Grassland, 1),
+                (Desert, 1),
+                (Snowland, 1),
+                (Lake, 1),
+                (Mountain, 1),
+                (Ocean, 1),
+                (Jungle, 1),
+                (Savannah, 1),
+            ],
+            sites: [
+                Settlement(CliffTown),
+                Settlement(SavannahPit),
+                Settlement(CliffTown),
+                Settlement(DesertCity),
+                Cave,
+                Void,
+            ],
+            music_state: Activity(Explore),
+            artist: ("ThanosFisherman", "https://soundcloud.com/thanosfisherman"),
+        )),
 
         // Town music
 
