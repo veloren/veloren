@@ -1391,18 +1391,19 @@ impl Default for FullScreenSettings {
     }
 }
 
-
 use keyboard_keynames::errors::KeyLayoutError;
 
-fn init_keylayout_from_window(_window: &winit::window::Window) -> Result<KeyLayout, KeyLayoutError> {
+fn init_keylayout_from_window(
+    _window: &winit::window::Window,
+) -> Result<KeyLayout, KeyLayoutError> {
     #[cfg(target_family = "unix")]
     {
-        use winit::platform::unix::WindowExtUnix;
         use keyboard_keynames::key_layout::KeyLayoutExtUnix;
+        use winit::platform::unix::WindowExtUnix;
 
         match _window.xcb_connection() {
             Some(_) => KeyLayout::new_x11(),
-            None => KeyLayout::new_wayland()
+            None => KeyLayout::new_wayland(),
         }
     }
 
@@ -1411,12 +1412,7 @@ fn init_keylayout_from_window(_window: &winit::window::Window) -> Result<KeyLayo
         Ok(KeyLayout {})
     }
 
-    #[cfg(
-        all(
-            not(target_family = "unix"),
-            not(target_family = "windows")
-        )
-    )]
+    #[cfg(all(not(target_family = "unix"), not(target_family = "windows")))]
     {
         Err(KeyLayoutError::PlatformUnsupportedError)
     }
