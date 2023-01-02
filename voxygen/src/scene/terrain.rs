@@ -515,6 +515,7 @@ impl SpriteRenderContext {
                                     generate_mesh_base_vol_sprite(
                                         Segment::from(&model.read().0).scaled_by(lod_scale),
                                         (greedy, sprite_mesh, false),
+                                        offset.map(|e: f32| e.floor()) * lod_scale,
                                     );
                                     // Get the number of pages after the model was meshed
                                     let end_page_num = (sprite_mesh.vertices().len()
@@ -532,7 +533,7 @@ impl SpriteRenderContext {
                                     SpriteData {
                                         vert_pages: start_page_num as u32..end_page_num as u32,
                                         scale: sprite_scale,
-                                        offset,
+                                        offset: offset.map(|e| e.rem_euclid(1.0)),
                                     }
                                 });
 

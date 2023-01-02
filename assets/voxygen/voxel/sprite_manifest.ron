@@ -700,16 +700,16 @@ Liana: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.lianas.liana-0",
-            offset: (-4.0, -4.0, -88.0),
+            offset: (-4.0, -4.0, -115.0),
             lod_axes: (0.0, 0.0, 0.5),
         ),
         (
             model: "voxygen.voxel.sprite.lianas.liana-1",
-            offset: (-4.0, -4.0, -55.0),
+            offset: (-4.0, -4.0, -72.0),
             lod_axes: (0.0, 0.0, 0.5),
         ),
     ],
-    wind_sway: 0.0,
+    wind_sway: 0.5,
 )),
 // Velorite
 Velorite: Some((
@@ -1403,7 +1403,7 @@ SavannaBush: Some((
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
-    wind_sway: 0.1,
+    wind_sway: 0.2,
 )),
 // Dead Bush
 DeadBush: Some((
@@ -1429,7 +1429,7 @@ DeadBush: Some((
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
-    wind_sway: 0.1,
+    wind_sway: 0.2,
 )),
 // Blueberries
 // NOTE: Why are these commented out?
@@ -3049,7 +3049,7 @@ GiantKelp: Some((
     ],
     wind_sway: 0.2,
 )),
-// Red Algae 
+// Red Algae
 RedAlgae: None,
 // Underwater Vent
 UnderwaterVent: None,

@@ -65,6 +65,7 @@ impl Lod {
             object_data: [
                 (lod::ObjectKind::Oak, make_lod_object("oak", renderer)),
                 (lod::ObjectKind::Pine, make_lod_object("pine", renderer)),
+                (lod::ObjectKind::Dead, make_lod_object("dead", renderer)),
                 (lod::ObjectKind::House, make_lod_object("house", renderer)),
                 (
                     lod::ObjectKind::GiantTree,
@@ -124,6 +125,7 @@ impl Lod {
                     let color = match object.kind {
                         lod::ObjectKind::Pine => Rgb::new(0, 25, 12),
                         lod::ObjectKind::Oak => Rgb::new(10, 50, 5),
+                        lod::ObjectKind::Dead => Rgb::new(20, 10, 2),
                         lod::ObjectKind::House => Rgb::new(20, 15, 0),
                         lod::ObjectKind::GiantTree => Rgb::new(8, 35, 5),
                     };

@@ -111,6 +111,7 @@ pub struct Scene {
     ambient_mgr: AmbientMgr,
 
     integrated_rain_vel: f32,
+    wind_vel: Vec2<f32>,
     pub interpolated_time_of_day: Option<f64>,
     last_lightning: Option<(Vec3<f32>, f64)>,
 }
@@ -345,6 +346,7 @@ impl Scene {
                 ambience: ambient::load_ambience_items(),
             },
             integrated_rain_vel: 0.0,
+            wind_vel: Vec2::zero(),
             interpolated_time_of_day: None,
             last_lightning: None,
         }
@@ -783,6 +785,7 @@ impl Scene {
             scene_data.gamma,
             scene_data.exposure,
             self.last_lightning.unwrap_or((Vec3::zero(), -1000.0)),
+            self.wind_vel,
             scene_data.ambiance,
             self.camera.get_mode(),
             scene_data.sprite_render_distance - 20.0,
@@ -1101,6 +1104,7 @@ impl Scene {
         let weather = client
             .state()
             .max_weather_near(focus_off.xy() + cam_pos.xy());
+        self.wind_vel = weather.wind_vel();
         if weather.rain > RAIN_THRESHOLD {
             let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
             let rain_vel = weather.rain_vel();
