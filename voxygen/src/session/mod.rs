@@ -454,7 +454,7 @@ impl PlayState for SessionState {
                 let mut cam_dir = camera.get_orientation();
                 let cam_dir_clamp =
                     (global_state.settings.gameplay.camera_clamp_angle as f32).to_radians();
-                cam_dir.y = (-cam_dir_clamp).clamp(cam_dir.y, cam_dir_clamp);
+                cam_dir.y = cam_dir.y.clamp(-cam_dir_clamp, cam_dir_clamp);
                 camera.set_orientation(cam_dir);
             }
 
