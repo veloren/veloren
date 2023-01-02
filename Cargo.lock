@@ -3133,16 +3133,15 @@ dependencies = [
 
 [[package]]
 name = "keyboard-keynames"
-version = "0.1.0"
-source = "git+https://gitlab.com/Frinksy/keyboard-keynames.git?branch=develop#1ae010ca032a57dfe0ba01d4346a3b03bde36de0"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f32e85d306d31d33240ea15accdf6e153d0a31da1409a21a0d5fb7ca5ef91d6c"
 dependencies = [
- "libc",
- "memmap",
- "wayland-client 0.28.6",
+ "wayland-client 0.29.5",
  "winapi 0.3.9",
  "winit",
- "xcb 0.9.0",
- "xkbcommon-sys",
+ "xcb 1.2.0",
+ "xkbcommon",
 ]
 
 [[package]]
@@ -3421,16 +3420,6 @@ name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
-
-[[package]]
-name = "memmap"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6585fd95e7bb50d6cc31e20d4cf9afb4e2ba16c5846fc76793f11218da9c475b"
-dependencies = [
- "libc",
- "winapi 0.3.9",
-]
 
 [[package]]
 name = "memmap2"
@@ -8220,22 +8209,23 @@ dependencies = [
 
 [[package]]
 name = "xcb"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62056f63138b39116f82a540c983cc11f1c90cd70b3d492a70c25eaa50bd22a6"
-dependencies = [
- "libc",
- "log",
-]
-
-[[package]]
-name = "xcb"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "771e2b996df720cd1c6dd9ff90f62d91698fd3610cc078388d0564bdd6622a9c"
 dependencies = [
  "libc",
  "log",
+ "quick-xml",
+]
+
+[[package]]
+name = "xcb"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0faeb4d7e2d54fff4a0584f61297e86b106914af2029778de7b427f72564d6c5"
+dependencies = [
+ "bitflags",
+ "libc",
  "quick-xml",
 ]
 
@@ -8264,12 +8254,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a67300977d3dc3f8034dae89778f502b6ba20b269527b3223ba59c0cf393bb8a"
 
 [[package]]
-name = "xkbcommon-sys"
-version = "0.7.6"
-source = "git+https://github.com/Frinksy/rust-xkbcommon-sys.git?rev=8f615dd6cd90a4ab77c45627830dde49b592b9b5#8f615dd6cd90a4ab77c45627830dde49b592b9b5"
+name = "xkbcommon"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "acbee136714379ab22da0280207fdb7f47e0bb940adea97731b65598b8c7a92e"
 dependencies = [
  "libc",
- "pkg-config",
+ "memmap2 0.5.7",
+ "xcb 1.2.0",
 ]
 
 [[package]]

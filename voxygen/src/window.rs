@@ -469,7 +469,7 @@ impl Window {
 
         let scale_factor = window.scale_factor();
 
-        let key_layout = match KeyLayout::new_from_window(&window) {
+        let key_layout = match init_keylayout_from_window(&window) {
             Ok(kl) => Some(kl),
             Err(err) => {
                 warn!(
@@ -1388,5 +1388,32 @@ impl Default for FullScreenSettings {
             bit_depth: None,
             refresh_rate: None,
         }
+    }
+}
+
+use keyboard_keynames::errors::KeyLayoutError;
+
+fn init_keylayout_from_window(
+    _window: &winit::window::Window,
+) -> Result<KeyLayout, KeyLayoutError> {
+    #[cfg(target_family = "unix")]
+    {
+        use keyboard_keynames::key_layout::KeyLayoutExtUnix;
+        use winit::platform::unix::WindowExtUnix;
+
+        match _window.xcb_connection() {
+            Some(_) => KeyLayout::new_x11(),
+            None => KeyLayout::new_wayland(),
+        }
+    }
+
+    #[cfg(target_family = "windows")]
+    {
+        Ok(KeyLayout {})
+    }
+
+    #[cfg(all(not(target_family = "unix"), not(target_family = "windows")))]
+    {
+        Err(KeyLayoutError::PlatformUnsupportedError)
     }
 }
