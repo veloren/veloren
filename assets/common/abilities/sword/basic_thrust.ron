@@ -8,7 +8,7 @@ ChargedMelee(
             knockback: 0,
             energy_regen: 0,
         ),
-        scaled: Some(Slash(
+        scaled: Some(Stab(
             damage: 25,
             poise: 10,
             knockback: 0,
