@@ -72,12 +72,12 @@ impl Data {
                     .map(|e| e as f32 + 0.5)
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
-            for _ in 0..1 {
+            for _ in 0..10 {
                 this.npcs.create(
                     Npc::new(rng.gen(), rand_wpos(&mut rng))
                         .with_faction(site.faction)
                         .with_home(site_id)
-                        .with_profession(match 1/*rng.gen_range(0..20)*/ {
+                        .with_profession(match rng.gen_range(0..20) {
                             0 => Profession::Hunter,
                             1 => Profession::Blacksmith,
                             2 => Profession::Chef,

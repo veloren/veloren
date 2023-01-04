@@ -1,4 +1,4 @@
-use crate::rule::npc_ai;
+use crate::rule::npc_ai::NpcCtx;
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     comp,
@@ -50,219 +50,293 @@ pub struct Controller {
     pub goto: Option<(Vec3<f32>, f32)>,
 }
 
-#[derive(Default)]
-pub struct TaskState {
-    state: Option<Box<dyn Any + Send + Sync>>,
+impl Controller {
+    pub fn idle() -> Self { Self { goto: None } }
 }
 
-pub const CONTINUE: ControlFlow<()> = ControlFlow::Break(());
-pub const FINISH: ControlFlow<()> = ControlFlow::Continue(());
+pub trait Action<R = ()>: Any + Send + Sync {
+    /// Returns `true` if the action should be considered the 'same' (i.e:
+    /// achieving the same objective) as another. In general, the AI system
+    /// will try to avoid switching (and therefore restarting) tasks when the
+    /// new task is the 'same' as the old one.
+    // TODO: Figure out a way to compare actions based on their 'intention': i.e:
+    // two pathing actions should be considered equivalent if their destination
+    // is the same regardless of the progress they've each made.
+    fn is_same(&self, other: &Self) -> bool
+    where
+        Self: Sized;
+    fn dyn_is_same_sized(&self, other: &dyn Action<R>) -> bool
+    where
+        Self: Sized,
+    {
+        match (other as &dyn Any).downcast_ref::<Self>() {
+            Some(other) => self.is_same(other),
+            None => false,
+        }
+    }
+    fn dyn_is_same(&self, other: &dyn Action<R>) -> bool;
+    // Reset the action to its initial state so it can be restarted
+    fn reset(&mut self);
 
-pub trait Task: PartialEq + Clone + Send + Sync + 'static {
-    type State: Send + Sync;
-    type Ctx<'a>;
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R>;
 
-    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State;
-
-    fn run<'a>(
-        &self,
-        state: &mut Self::State,
-        ctx: &Self::Ctx<'a>,
-        controller: &mut Controller,
-    ) -> ControlFlow<()>;
-
-    fn then<B: Task>(self, other: B) -> Then<Self, B> { Then(self, other) }
-
-    fn repeat(self) -> Repeat<Self> { Repeat(self) }
+    fn then<A1: Action<R1>, R1>(self, other: A1) -> Then<Self, A1, R>
+    where
+        Self: Sized,
+    {
+        Then {
+            a0: self,
+            a0_finished: false,
+            a1: other,
+            phantom: PhantomData,
+        }
+    }
+    fn repeat<R1>(self) -> Repeat<Self, R1>
+    where
+        Self: Sized,
+    {
+        Repeat(self, PhantomData)
+    }
+    fn stop_if<F: FnMut(&mut NpcCtx) -> bool>(self, f: F) -> StopIf<Self, F>
+    where
+        Self: Sized,
+    {
+        StopIf(self, f)
+    }
+    fn map<F: FnMut(R) -> R1, R1>(self, f: F) -> Map<Self, F, R>
+    where
+        Self: Sized,
+    {
+        Map(self, f, PhantomData)
+    }
 }
 
-#[derive(Clone, PartialEq)]
-pub struct Then<A, B>(A, B);
+// Now
 
-impl<A: Task, B> Task for Then<A, B>
-where
-    B: for<'a> Task<Ctx<'a> = A::Ctx<'a>>,
+#[derive(Copy, Clone)]
+pub struct Now<F, A>(F, Option<A>);
+
+impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> A + Send + Sync + 'static, A: Action<R>>
+    Action<R> for Now<F, A>
 {
-    // TODO: Use `Either` instead
-    type Ctx<'a> = A::Ctx<'a>;
-    type State = Result<A::State, B::State>;
+    // TODO: This doesn't compare?!
+    fn is_same(&self, other: &Self) -> bool { true }
 
-    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State { Ok(self.0.begin(ctx)) }
+    fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
 
-    fn run<'a>(
-        &self,
-        state: &mut Self::State,
-        ctx: &Self::Ctx<'a>,
-        controller: &mut Controller,
-    ) -> ControlFlow<()> {
-        match state {
-            Ok(a_state) => {
-                self.0.run(a_state, ctx, controller)?;
-                *state = Err(self.1.begin(ctx));
-                CONTINUE
-            },
-            Err(b_state) => self.1.run(b_state, ctx, controller),
-        }
+    fn reset(&mut self) { self.1 = None; }
+
+    // TODO: Reset closure state?
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> {
+        (self.1.get_or_insert_with(|| (self.0)(ctx))).tick(ctx)
     }
 }
 
-#[derive(Clone, PartialEq)]
-pub struct Repeat<A>(A);
-
-impl<A: Task> Task for Repeat<A> {
-    type Ctx<'a> = A::Ctx<'a>;
-    type State = A::State;
-
-    fn begin<'a>(&self, ctx: &Self::Ctx<'a>) -> Self::State { self.0.begin(ctx) }
-
-    fn run<'a>(
-        &self,
-        state: &mut Self::State,
-        ctx: &Self::Ctx<'a>,
-        controller: &mut Controller,
-    ) -> ControlFlow<()> {
-        self.0.run(state, ctx, controller)?;
-        *state = self.0.begin(ctx);
-        CONTINUE
-    }
+pub fn now<F, A>(f: F) -> Now<F, A>
+where
+    F: FnMut(&mut NpcCtx) -> A,
+{
+    Now(f, None)
 }
 
-impl TaskState {
-    pub fn perform<'a, T: Task>(
-        &mut self,
-        task: T,
-        ctx: &T::Ctx<'a>,
-        controller: &mut Controller,
-    ) -> ControlFlow<()> {
-        type StateOf<T> = (T, <T as Task>::State);
+// Just
 
-        let mut state = if let Some(state) = self.state.take().and_then(|state| {
-            state
-                .downcast::<StateOf<T>>()
-                .ok()
-                .filter(|state| state.0 == task)
-        }) {
-            state
-        } else {
-            let mut state = task.begin(ctx);
-            Box::new((task, state))
-        };
+#[derive(Copy, Clone)]
+pub struct Just<F, R = ()>(F, PhantomData<R>);
 
-        let res = state.0.run(&mut state.1, ctx, controller);
+impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> R + Send + Sync + 'static> Action<R>
+    for Just<F, R>
+{
+    fn is_same(&self, other: &Self) -> bool { true }
 
-        self.state = if matches!(res, ControlFlow::Break(())) {
-            Some(state)
-        } else {
-            None
-        };
+    fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
 
-        res
-    }
+    fn reset(&mut self) {}
+
+    // TODO: Reset closure state?
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> { ControlFlow::Break((self.0)(ctx)) }
 }
 
-pub unsafe trait Context {
-    // TODO: Somehow we need to enforce this bound, I think?
-    // Hence, this trait is unsafe for now.
-    type Ty<'a>; // where for<'a> Self::Ty<'a>: 'a;
+pub fn just<F, R: Send + Sync + 'static>(mut f: F) -> Just<F, R>
+where
+    F: FnMut(&mut NpcCtx) -> R + Send + Sync + 'static,
+{
+    Just(f, PhantomData)
 }
 
-pub struct Data<C: Context>(Arc<AtomicPtr<()>>, PhantomData<C>);
-
-impl<C: Context> Clone for Data<C> {
-    fn clone(&self) -> Self { Self(self.0.clone(), PhantomData) }
-}
-
-impl<C: Context> Data<C> {
-    pub fn with<R>(&mut self, f: impl FnOnce(&mut C::Ty<'_>) -> R) -> R {
-        let ptr = self.0.swap(std::ptr::null_mut(), Ordering::Acquire);
-        if ptr.is_null() {
-            panic!("Data pointer was null, you probably tried to access data recursively")
-        } else {
-            // Safety: We have exclusive access to the pointer within this scope.
-            // TODO: Do we need a panic guard here?
-            let r = f(unsafe { &mut *(ptr as *mut C::Ty<'_>) });
-            self.0.store(ptr, Ordering::Release);
-            r
-        }
-    }
-}
+// Tree
 
 pub type Priority = usize;
 
-pub struct TaskBox<C: Context, A = ()> {
-    task: Option<(
-        TypeId,
-        Box<dyn Generator<Data<C>, Yield = A, Return = ()> + Unpin + Send + Sync>,
-        Priority,
-    )>,
-    data: Data<C>,
+const URGENT: Priority = 0;
+const CASUAL: Priority = 1;
+
+pub struct Node<R>(Box<dyn Action<R>>, Priority);
+
+pub fn urgent<A: Action<R>, R>(a: A) -> Node<R> { Node(Box::new(a), URGENT) }
+pub fn casual<A: Action<R>, R>(a: A) -> Node<R> { Node(Box::new(a), CASUAL) }
+
+pub struct Tree<F, R> {
+    next: F,
+    prev: Option<Node<R>>,
+    interrupt: bool,
 }
 
-impl<C: Context, A> TaskBox<C, A> {
-    pub fn new(data: Data<C>) -> Self { Self { task: None, data } }
+impl<F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static, R: 'static> Action<R>
+    for Tree<F, R>
+{
+    fn is_same(&self, other: &Self) -> bool { true }
 
-    #[must_use]
-    pub fn finish(&mut self, prio: Priority) -> ControlFlow<A> {
-        if let Some((_, task, _)) = &mut self.task.as_mut().filter(|(_, _, p)| *p <= prio) {
-            match Pin::new(task).resume(self.data.clone()) {
-                GeneratorState::Yielded(action) => ControlFlow::Break(action),
-                GeneratorState::Complete(_) => {
-                    self.task = None;
-                    ControlFlow::Continue(())
-                },
-            }
-        } else {
-            ControlFlow::Continue(())
-        }
-    }
+    fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
 
-    #[must_use]
-    pub fn perform<T: Generator<Data<C>, Yield = A, Return = ()> + Unpin + Any + Send + Sync>(
-        &mut self,
-        prio: Priority,
-        task: T,
-    ) -> ControlFlow<A> {
-        let ty = TypeId::of::<T>();
-        if self
-            .task
-            .as_mut()
-            .filter(|(ty1, _, _)| *ty1 == ty)
-            .is_none()
-        {
-            self.task = Some((ty, Box::new(task), prio));
+    fn reset(&mut self) { self.prev = None; }
+
+    // TODO: Reset `next` too?
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> {
+        let new = (self.next)(ctx);
+
+        let prev = match &mut self.prev {
+            Some(prev) if prev.1 <= new.1 && (prev.0.dyn_is_same(&*new.0) || !self.interrupt) => {
+                prev
+            },
+            _ => self.prev.insert(new),
         };
 
-        self.finish(prio)
-    }
-}
-
-pub struct Brain<C: Context, A = ()> {
-    task: Box<dyn Generator<Data<C>, Yield = A, Return = !> + Unpin + Send + Sync>,
-    data: Data<C>,
-}
-
-impl<C: Context, A> Brain<C, A> {
-    pub fn new<T: Generator<Data<C>, Yield = A, Return = !> + Unpin + Any + Send + Sync>(
-        task: T,
-    ) -> Self {
-        Self {
-            task: Box::new(task),
-            data: Data(Arc::new(AtomicPtr::new(std::ptr::null_mut())), PhantomData),
-        }
-    }
-
-    pub fn tick(&mut self, ctx_ref: &mut C::Ty<'_>) -> A {
-        self.data
-            .0
-            .store(ctx_ref as *mut C::Ty<'_> as *mut (), Ordering::SeqCst);
-        match Pin::new(&mut self.task).resume(self.data.clone()) {
-            GeneratorState::Yielded(action) => {
-                self.data.0.store(std::ptr::null_mut(), Ordering::Release);
-                action
+        match prev.0.tick(ctx) {
+            ControlFlow::Continue(()) => return ControlFlow::Continue(()),
+            ControlFlow::Break(r) => {
+                self.prev = None;
+                ControlFlow::Break(r)
             },
-            GeneratorState::Complete(ret) => match ret {},
         }
     }
+}
+
+pub fn choose<R: 'static, F>(f: F) -> impl Action<R>
+where
+    F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static,
+{
+    Tree {
+        next: f,
+        prev: None,
+        interrupt: false,
+    }
+}
+
+pub fn watch<R: 'static, F>(f: F) -> impl Action<R>
+where
+    F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static,
+{
+    Tree {
+        next: f,
+        prev: None,
+        interrupt: true,
+    }
+}
+
+// Then
+
+#[derive(Copy, Clone)]
+pub struct Then<A0, A1, R0> {
+    a0: A0,
+    a0_finished: bool,
+    a1: A1,
+    phantom: PhantomData<R0>,
+}
+
+impl<A0: Action<R0>, A1: Action<R1>, R0: Send + Sync + 'static, R1: Send + Sync + 'static>
+    Action<R1> for Then<A0, A1, R0>
+{
+    fn is_same(&self, other: &Self) -> bool {
+        self.a0.is_same(&other.a0) && self.a1.is_same(&other.a1)
+    }
+
+    fn dyn_is_same(&self, other: &dyn Action<R1>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn reset(&mut self) {
+        self.a0.reset();
+        self.a0_finished = false;
+        self.a1.reset();
+    }
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R1> {
+        if !self.a0_finished {
+            match self.a0.tick(ctx) {
+                ControlFlow::Continue(()) => return ControlFlow::Continue(()),
+                ControlFlow::Break(_) => self.a0_finished = true,
+            }
+        }
+        self.a1.tick(ctx)
+    }
+}
+
+// Repeat
+
+#[derive(Copy, Clone)]
+pub struct Repeat<A, R = ()>(A, PhantomData<R>);
+
+impl<R: Send + Sync + 'static, A: Action<R>> Action<!> for Repeat<A, R> {
+    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
+
+    fn dyn_is_same(&self, other: &dyn Action<!>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn reset(&mut self) { self.0.reset(); }
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<!> {
+        match self.0.tick(ctx) {
+            ControlFlow::Continue(()) => ControlFlow::Continue(()),
+            ControlFlow::Break(_) => {
+                self.0.reset();
+                ControlFlow::Continue(())
+            },
+        }
+    }
+}
+
+// StopIf
+
+#[derive(Copy, Clone)]
+pub struct StopIf<A, F>(A, F);
+
+impl<A: Action<R>, F: FnMut(&mut NpcCtx) -> bool + Send + Sync + 'static, R> Action<Option<R>>
+    for StopIf<A, F>
+{
+    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
+
+    fn dyn_is_same(&self, other: &dyn Action<Option<R>>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn reset(&mut self) { self.0.reset(); }
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<Option<R>> {
+        if (self.1)(ctx) {
+            ControlFlow::Break(None)
+        } else {
+            self.0.tick(ctx).map_break(Some)
+        }
+    }
+}
+
+// Map
+
+#[derive(Copy, Clone)]
+pub struct Map<A, F, R>(A, F, PhantomData<R>);
+
+impl<A: Action<R>, F: FnMut(R) -> R1 + Send + Sync + 'static, R: Send + Sync + 'static, R1>
+    Action<R1> for Map<A, F, R>
+{
+    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
+
+    fn dyn_is_same(&self, other: &dyn Action<R1>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn reset(&mut self) { self.0.reset(); }
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R1> {
+        self.0.tick(ctx).map_break(&mut self.1)
+    }
+}
+
+pub struct Brain {
+    pub(crate) action: Box<dyn Action<!>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -292,10 +366,7 @@ pub struct Npc {
     pub mode: NpcMode,
 
     #[serde(skip_serializing, skip_deserializing)]
-    pub task_state: Option<TaskState>,
-
-    #[serde(skip_serializing, skip_deserializing)]
-    pub brain: Option<Brain<npc_ai::NpcData<'static>>>,
+    pub brain: Option<Brain>,
 }
 
 impl Clone for Npc {
@@ -310,7 +381,6 @@ impl Clone for Npc {
             current_site: Default::default(),
             goto: Default::default(),
             mode: Default::default(),
-            task_state: Default::default(),
             brain: Default::default(),
         }
     }
@@ -330,8 +400,7 @@ impl Npc {
             current_site: None,
             goto: None,
             mode: NpcMode::Simulated,
-            task_state: Default::default(),
-            brain: Some(npc_ai::brain()),
+            brain: None,
         }
     }
 

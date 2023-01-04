@@ -229,11 +229,16 @@ impl<'a> AgentData<'a> {
                 controller.push_cancel_input(InputKind::Fly)
             }
 
+            let chase_tgt = *travel_to/*read_data.terrain
+                .try_find_space(travel_to.as_())
+                .map(|pos| pos.as_())
+                .unwrap_or(*travel_to)*/;
+
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
-                *travel_to,
+                chase_tgt,
                 TraversalConfig {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config

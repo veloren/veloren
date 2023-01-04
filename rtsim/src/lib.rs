@@ -4,7 +4,9 @@
     try_blocks,
     generator_trait,
     generators,
-    trait_alias
+    trait_alias,
+    trait_upcasting,
+    control_flow_enum
 )]
 
 pub mod data;

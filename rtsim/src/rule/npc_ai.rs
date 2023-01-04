@@ -3,8 +3,8 @@ use std::{collections::VecDeque, hash::BuildHasherDefault};
 use crate::{
     data::{
         npc::{
-            Brain, Context, Controller, Data, Npc, NpcId, PathData, PathingMemory, Task, TaskBox,
-            TaskState, CONTINUE, FINISH,
+            casual, choose, just, now, urgent, Action, Brain, Controller, Npc, NpcId, PathData,
+            PathingMemory,
         },
         Sites,
     },
@@ -240,21 +240,27 @@ impl Rule for NpcAi {
             let npc_ids = ctx.state.data().npcs.keys().collect::<Vec<_>>();
 
             for npc_id in npc_ids {
-                let mut task_state = ctx.state.data_mut().npcs[npc_id]
-                    .task_state
-                    .take()
-                    .unwrap_or_default();
                 let mut brain = ctx.state.data_mut().npcs[npc_id]
                     .brain
                     .take()
-                    .unwrap_or_else(brain);
+                    .unwrap_or_else(|| Brain {
+                        action: Box::new(think().repeat()),
+                    });
 
-                let (controller, task_state) = {
+                let controller = {
                     let data = &*ctx.state.data();
                     let npc = &data.npcs[npc_id];
 
                     let mut controller = Controller { goto: npc.goto };
 
+                    brain.action.tick(&mut NpcCtx {
+                        ctx: &ctx,
+                        npc,
+                        npc_id,
+                        controller: &mut controller,
+                    });
+
+                    /*
                     let action: ControlFlow<()> = try {
                         if matches!(npc.profession, Some(Profession::Adventurer(_))) {
                             if let Some(home) = npc.home {
@@ -344,12 +350,12 @@ impl Rule for NpcAi {
                             */
                         }
                     };
+                    */
 
-                    (controller, task_state)
+                    controller
                 };
 
                 ctx.state.data_mut().npcs[npc_id].goto = controller.goto;
-                ctx.state.data_mut().npcs[npc_id].task_state = Some(task_state);
                 ctx.state.data_mut().npcs[npc_id].brain = Some(brain);
             }
         });
@@ -358,6 +364,99 @@ impl Rule for NpcAi {
     }
 }
 
+pub struct NpcCtx<'a> {
+    ctx: &'a EventCtx<'a, NpcAi, OnTick>,
+    npc_id: NpcId,
+    npc: &'a Npc,
+    controller: &'a mut Controller,
+}
+
+fn idle() -> impl Action + Clone { just(|ctx| *ctx.controller = Controller::idle()) }
+
+fn move_toward(wpos: Vec3<f32>, speed_factor: f32) -> impl Action + Clone {
+    const STEP_DIST: f32 = 10.0;
+    just(move |ctx| {
+        let rpos = wpos - ctx.npc.wpos;
+        let len = rpos.magnitude();
+        ctx.controller.goto = Some((
+            ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST),
+            speed_factor,
+        ));
+    })
+}
+
+fn goto(wpos: Vec3<f32>, speed_factor: f32) -> impl Action + Clone {
+    const MIN_DIST: f32 = 1.0;
+
+    move_toward(wpos, speed_factor)
+        .repeat()
+        .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < MIN_DIST.powi(2))
+        .map(|_| {})
+}
+
+// Seconds
+fn timeout(ctx: &NpcCtx, time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
+    let end = ctx.ctx.event.time.0 + time;
+    move |ctx| ctx.ctx.event.time.0 > end
+}
+
+fn think() -> impl Action {
+    choose(|ctx| {
+        if matches!(ctx.npc.profession, Some(Profession::Adventurer(_))) {
+            // Choose a random site that's fairly close by
+            let site_wpos2d = ctx
+                .ctx
+                .state
+                .data()
+                .sites
+                .iter()
+                .filter(|(site_id, site)| {
+                    site.faction.is_some()
+                        && ctx.npc.current_site.map_or(true, |cs| *site_id != cs)
+                        && thread_rng().gen_bool(0.25)
+                })
+                .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
+                .map(|(site_id, _)| site_id)
+                .and_then(|tgt_site| {
+                    ctx.ctx
+                        .state
+                        .data()
+                        .sites
+                        .get(tgt_site)
+                        .map(|site| site.wpos)
+                });
+
+            if let Some(site_wpos2d) = site_wpos2d {
+                // Walk toward the site
+                casual(goto(
+                    site_wpos2d.map(|e| e as f32 + 0.5).with_z(
+                        ctx.ctx
+                            .world
+                            .sim()
+                            .get_alt_approx(site_wpos2d.as_())
+                            .unwrap_or(0.0),
+                    ),
+                    1.0,
+                ))
+            } else {
+                casual(idle())
+            }
+        } else if matches!(ctx.npc.profession, Some(Profession::Blacksmith)) {
+            casual(idle())
+        } else {
+            casual(
+                now(|ctx| goto(ctx.npc.wpos + Vec3::unit_x() * 10.0, 1.0))
+                    .then(now(|ctx| goto(ctx.npc.wpos - Vec3::unit_x() * 10.0, 1.0)))
+                    .repeat()
+                    .stop_if(timeout(ctx, 10.0))
+                    .then(now(|ctx| idle().repeat().stop_if(timeout(ctx, 5.0))))
+                    .map(|_| {}),
+            )
+        }
+    })
+}
+
+/*
 #[derive(Clone)]
 pub struct Generate<F, T>(F, PhantomData<T>);
 
@@ -763,3 +862,4 @@ fn walk_path(site: Id<WorldSite>, path: Path<Vec2<i32>>) -> impl IsTask {
         println!("Waited.");
     }
 }
+*/
