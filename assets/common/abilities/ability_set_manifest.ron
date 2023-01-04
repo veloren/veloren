@@ -4,7 +4,7 @@
 ({
     Tool(Sword): (
         primary: Contextualized(
-            pseudo_id: "veloren.core.psuedo_abilities.sword.double_slash",
+            pseudo_id: "veloren.core.pseudo_abilities.sword.double_slash",
             abilities: {
                 None: (None, "common.abilities.sword.basic_double_slash"),
                 Stance(Sword(Heavy)): (None, "common.abilities.sword.heavy_double_slash"),
@@ -15,7 +15,7 @@
             },
         ),
         secondary: Contextualized(
-            pseudo_id: "veloren.core.psuedo_abilities.sword.secondary_ability",
+            pseudo_id: "veloren.core.pseudo_abilities.sword.secondary_ability",
             abilities: {
                 None: (None, "common.abilities.sword.basic_thrust"),
                 Stance(Sword(Heavy)): (None, "common.abilities.sword.heavy_slam"),
@@ -27,7 +27,7 @@
         ),
         abilities: [
             Contextualized(
-                pseudo_id: "veloren.core.psuedo_abilities.sword.crescent_slash",
+                pseudo_id: "veloren.core.pseudo_abilities.sword.crescent_slash",
                 abilities: {
                     None: (Sword(CrescentSlash), "common.abilities.sword.basic_crescent_slash"),
                     Stance(Sword(Heavy)): (Sword(CrescentSlash), "common.abilities.sword.heavy_crescent_slash"),
@@ -38,7 +38,7 @@
                 },
             ),
             Contextualized(
-                pseudo_id: "veloren.core.psuedo_abilities.sword.fell_strike",
+                pseudo_id: "veloren.core.pseudo_abilities.sword.fell_strike",
                 abilities: {
                     None: (Sword(FellStrike), "common.abilities.sword.basic_fell_strike"),
                     Stance(Sword(Heavy)): (Sword(FellStrike), "common.abilities.sword.heavy_fell_strike"),
@@ -49,7 +49,7 @@
                 },
             ),
             Contextualized(
-                pseudo_id: "veloren.core.psuedo_abilities.sword.skewer",
+                pseudo_id: "veloren.core.pseudo_abilities.sword.skewer",
                 abilities: {
                     None: (Sword(Skewer), "common.abilities.sword.basic_skewer"),
                     Stance(Sword(Heavy)): (Sword(Skewer), "common.abilities.sword.heavy_skewer"),
@@ -60,7 +60,7 @@
                 },
             ),
             Contextualized(
-                pseudo_id: "veloren.core.psuedo_abilities.sword.cascade",
+                pseudo_id: "veloren.core.pseudo_abilities.sword.cascade",
                 abilities: {
                     None: (Sword(Cascade), "common.abilities.sword.basic_cascade"),
                     Stance(Sword(Heavy)): (Sword(Cascade), "common.abilities.sword.heavy_cascade"),
@@ -71,7 +71,7 @@
                 },
             ),
             Contextualized(
-                pseudo_id: "veloren.core.psuedo_abilities.sword.cross_cut",
+                pseudo_id: "veloren.core.pseudo_abilities.sword.cross_cut",
                 abilities: {
                     None: (Sword(CrossCut), "common.abilities.sword.basic_cross_cut"),
                     Stance(Sword(Heavy)): (Sword(CrossCut), "common.abilities.sword.heavy_cross_cut"),
@@ -82,7 +82,7 @@
                 },
             ),
             Contextualized(
-                pseudo_id: "veloren.core.psuedo_abilities.sword.finisher",
+                pseudo_id: "veloren.core.pseudo_abilities.sword.finisher",
                 abilities: {
                     None: (Sword(Finisher), "common.abilities.sword.basic_mighty_strike"),
                     Stance(Sword(Heavy)): (Sword(Finisher), "common.abilities.sword.heavy_guillotine"),
@@ -103,7 +103,7 @@
             Simple(Sword(CleavingWhirlwindSlice), "common.abilities.sword.cleaving_whirlwind_slice"),
             Simple(Sword(CleavingEarthSplitter), "common.abilities.sword.cleaving_earth_splitter"),
             Contextualized(
-                pseudo_id: "veloren.core.psuedo_abilities.sword.stance_utility",
+                pseudo_id: "veloren.core.pseudo_abilities.sword.stance_utility",
                 abilities: {
                     Stance(Sword(Heavy)): (Sword(HeavyFortitude), "common.abilities.sword.heavy_fortitude"),
                     Stance(Sword(Agile)): (Sword(AgileDancingEdge), "common.abilities.sword.agile_dancing_edge"),
@@ -113,7 +113,7 @@
                 },
             ),
             Contextualized(
-                pseudo_id: "veloren.core.psuedo_abilities.sword.stance_attack",
+                pseudo_id: "veloren.core.pseudo_abilities.sword.stance_attack",
                 abilities: {
                     Stance(Sword(Heavy)): (Sword(HeavyPillarThrust), "common.abilities.sword.heavy_pillar_thrust"),
                     Stance(Sword(Agile)): (Sword(AgileFlurry), "common.abilities.sword.agile_flurry"),

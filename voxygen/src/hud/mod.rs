@@ -591,14 +591,17 @@ impl<'a> BuffIcon<'a> {
     fn from_stance(stance: &comp::Stance) -> Option<Self> {
         use comp::ability::{Stance, SwordStance};
         let id = match stance {
-            // Stance::Sword(SwordStance::Offensive) => "common.abilities.sword.offensive_combo",
-            Stance::Sword(SwordStance::Crippling) => "common.abilities.sword.crippling_combo",
-            Stance::Sword(SwordStance::Cleaving) => "common.abilities.sword.cleaving_combo",
-            Stance::Sword(SwordStance::Defensive) => "common.abilities.sword.defensive_combo",
-            // Stance::Sword(SwordStance::Parrying) => "common.abilities.sword.parrying_combo",
-            Stance::Sword(SwordStance::Heavy) => "common.abilities.sword.heavy_combo",
-            Stance::Sword(SwordStance::Agile) => "common.abilities.sword.mobility_combo",
-            // Stance::Sword(SwordStance::Reaching) => "common.abilities.sword.reaching_combo",
+            Stance::Sword(SwordStance::Heavy) => "veloren.core.pseudo_abilities.sword.heavy_stance",
+            Stance::Sword(SwordStance::Agile) => "veloren.core.pseudo_abilities.sword.agile_stance",
+            Stance::Sword(SwordStance::Defensive) => {
+                "veloren.core.pseudo_abilities.sword.defensive_stance"
+            },
+            Stance::Sword(SwordStance::Crippling) => {
+                "veloren.core.pseudo_abilities.sword.crippling_stance"
+            },
+            Stance::Sword(SwordStance::Cleaving) => {
+                "veloren.core.pseudo_abilities.sword.cleaving_stance"
+            },
             Stance::None => {
                 return None;
             },

@@ -12,7 +12,17 @@ common-abilities-sceptre-wardingaura = Warding Aura
     .desc = Wards your allies against enemy attacks.
 
 # Sword abilities
-veloren-core-psuedo_abilities-sword-double_slash = Double Slash
+veloren-core-pseudo_abilities-sword-heavy_stance = Heavy Stance
+    .desc = Attacks in this stance stagger enemies more but are slower
+veloren-core-pseudo_abilities-sword-agile_stance = Agile Stance
+    .desc = Attacks are faster but weaker in this stance
+veloren-core-pseudo_abilities-sword-defensive_stance = Defensive Stance
+    .desc = Attacks in this stance can act as either a weak block or a parry
+veloren-core-pseudo_abilities-sword-crippling_stance = Crippling Stance
+    .desc = Attacks in this stance create or worsen lasting injuries
+veloren-core-pseudo_abilities-sword-cleaving_stance = Cleaving Stance
+    .desc = Attacks in this stance can hit multiple enemies
+veloren-core-pseudo_abilities-sword-double_slash = Double Slash
     .desc = A two-hit combo.
 common-abilities-sword-basic_double_slash = Basic Double Slash
     .desc = A basic two-hit combo
@@ -26,7 +36,7 @@ common-abilities-sword-crippling_double_slash = Crippling Double Slash
     .desc = A two-hit combo that can prolong an enemy's bleeding
 common-abilities-sword-cleaving_double_slash = Cleaving Double Slash
     .desc = A two-hit combo that can cleave through multiple enemies
-veloren-core-psuedo_abilities-sword-secondary_ability = Secondary Sword Ability
+veloren-core-pseudo_abilities-sword-secondary_ability = Secondary Sword Ability
     .desc = The ability bound to secondary attack key
 common-abilities-sword-basic_thrust = Basic Thrust
     .desc = Charging the thrust will make it more powerful
@@ -40,7 +50,7 @@ common-abilities-sword-crippling_deep_rend = Deep Rend
     .desc = A strike aimed at an already open wound, deals more damage to bleeding enemies
 common-abilities-sword-cleaving_spiral_slash = Spiral Slash
     .desc = Sweep your blade fully around you to hit anyone nearby
-veloren-core-psuedo_abilities-sword-crescent_slash = Crescent Slash
+veloren-core-pseudo_abilities-sword-crescent_slash = Crescent Slash
     .desc = An upwards diagonal slash
 common-abilities-sword-basic_crescent_slash = Basic Crescent Slash
     .desc = A basic, upwards diagonal slash
@@ -54,7 +64,7 @@ common-abilities-sword-crippling_crescent_slash = Crippling Crescent Slash
     .desc = An upwards diagonal slash that can bleed
 common-abilities-sword-cleaving_crescent_slash = Cleaving Crescent Slash
     .desc = An upwards diagonal slash that can cleave through enemies
-veloren-core-psuedo_abilities-sword-fell_strike = Fell Strike
+veloren-core-pseudo_abilities-sword-fell_strike = Fell Strike
     .desc = A quick strong slash
 common-abilities-sword-basic_fell_strike = Basic Fell Strike
     .desc = A basic, quick strong slash
@@ -68,7 +78,7 @@ common-abilities-sword-crippling_fell_strike = Crippling Fell Strike
     .desc = A quick strong slash that can bleed
 common-abilities-sword-cleaving_fell_strike = Cleaving Fell Strike
     .desc = A quick strong slash that can cleave through enemies
-veloren-core-psuedo_abilities-sword-skewer = Skewer
+veloren-core-pseudo_abilities-sword-skewer = Skewer
     .desc = A stabbing lunge
 common-abilities-sword-basic_skewer = Basic Skewer
     .desc = A basic, stabbing lunge
@@ -82,7 +92,7 @@ common-abilities-sword-crippling_skewer = Crippling Skewer
     .desc = A stabbing lunge that can bleed
 common-abilities-sword-cleaving_skewer = Cleaving Skewer
     .desc = A stabbing lunge that can cleave through enemies
-veloren-core-psuedo_abilities-sword-cascade = Cascade
+veloren-core-pseudo_abilities-sword-cascade = Cascade
     .desc = An overhead slash
 common-abilities-sword-basic_cascade = Basic Cascade
     .desc = A basic, overhead slash
@@ -96,7 +106,7 @@ common-abilities-sword-crippling_cascade = Crippling Cascade
     .desc = An overhead slash that can bleed
 common-abilities-sword-cleaving_cascade = Cleaving Cascade
     .desc = An overhead slash that can cleave through enemies
-veloren-core-psuedo_abilities-sword-cross_cut = Cross Cut
+veloren-core-pseudo_abilities-sword-cross_cut = Cross Cut
     .desc = A right and left slash
 common-abilities-sword-basic_cross_cut = Basic Cross Cut
     .desc = A basic right and left slash
@@ -110,7 +120,7 @@ common-abilities-sword-crippling_cross_cut = Crippling Cross Cut
     .desc = A right and left slash that can bleed
 common-abilities-sword-cleaving_cross_cut = Cleaving Cross Cut
     .desc = A right and left slash which cleave through enemies
-veloren-core-psuedo_abilities-sword-finisher = Finisher
+veloren-core-pseudo_abilities-sword-finisher = Finisher
     .desc = An ability that consumes combo and is meant to end a fight
 common-abilities-sword-basic_mighty_strike = Mighty Strike
     .desc = A simple, powerful slash
@@ -125,26 +135,46 @@ common-abilities-sword-crippling_mutilate = Mutilate
 common-abilities-sword-cleaving_bladestorm = Bladestorm
     .desc = Decimate your enemies with multiple cyclic swings of your sword
 common-abilities-sword-heavy_windmill_slash = Windmill Slash
-    .desc = Double overhead swings that can heavily stagger
+    .desc =
+        Double overhead swings that can heavily stagger
+        Use this ability to enter heavy stance
 common-abilities-sword-heavy_pommel_strike = Pommel Strike
-    .desc = Concuss your foe with a blunt strike to the head
+    .desc =
+        Concuss your foe with a blunt strike to the head
+        Use this ability to enter heavy stance
 common-abilities-sword-agile_quick_draw = Quick Draw
-    .desc = Dash forward as you draw your blade for a quick attack
+    .desc =
+        Dash forward as you draw your blade for a quick attack
+        Use this ability to enter agile stance
 common-abilities-sword-agile_feint = Feint
-    .desc = Step to the side then back before striking
+    .desc =
+        Step to the side then back before striking
+        Use this ability to enter agile stance
 common-abilities-sword-defensive_riposte = Riposte
-    .desc = Parry a strike before instantly counter-attacking
+    .desc =
+        Parry a strike before instantly counter-attacking
+        Use this ability to enter defensive stance
 common-abilities-sword-defensive_disengage = Disengage
-    .desc = Retreat backwards a step after striking
+    .desc =
+        Retreat backwards a step after striking
+        Use this ability to enter defensive stance
 common-abilities-sword-crippling_gouge = Gouge
-    .desc = Inflict a lasting wound on your enemy that will continue to bleed
+    .desc =
+        Inflict a lasting wound on your enemy that will continue to bleed
+        Use this ability to enter crippling stance
 common-abilities-sword-crippling_hamstring = Hamstring
-    .desc = Injure the tendons of your foe, leaving them less maneuverable
+    .desc =
+        Injure the tendons of your foe, leaving them less maneuverable
+        Use this ability to enter crippling stance
 common-abilities-sword-cleaving_whirlwind_slice = Whirlwind Slice
-    .desc = Strike all surrounding enemies with circular attacks
+    .desc =
+        Strike all surrounding enemies with circular attacks
+        Use this ability to enter cleaving stance
 common-abilities-sword-cleaving_earth_splitter = Earth Splitter
-    .desc = Split the earth, if used while falling will have a much stronger impact
-veloren-core-psuedo_abilities-sword-stance_utility = Stance Utility Ability
+    .desc =
+        Split the earth, if used while falling will have a much stronger impact
+        Use this ability to enter cleaving stance
+veloren-core-pseudo_abilities-sword-stance_utility = Stance Utility Ability
     .desc =
         An ability that will change depending on what stance you are in at the it is time used
         Abilities: Fortitude, Dancing Edge, Stalwart Sword, Eviscerate, and Blade Fever
@@ -158,7 +188,7 @@ common-abilities-sword-crippling_eviscerate = Eviscerate
     .desc = Shreds wounds further, deals more damage to crippled enemies
 common-abilities-sword-cleaving_blade_fever = Blade Fever
     .desc = Attack more recklessly, increasing the power of your strikes while leaving yourself open to incoming attacks
-veloren-core-psuedo_abilities-sword-stance_attack = Stance Attack Ability
+veloren-core-pseudo_abilities-sword-stance_attack = Stance Attack Ability
     .desc =
         An ability that will change depending on what stance you are in at the time it is used
         Abilities: Pillar Thrust, Flurry, Deflect, Bloody Gash, and Sky Splitter
