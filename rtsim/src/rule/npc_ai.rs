@@ -3,8 +3,8 @@ use std::{collections::VecDeque, hash::BuildHasherDefault};
 use crate::{
     data::{
         npc::{
-            casual, choose, just, now, urgent, Action, Brain, Controller, Npc, NpcId, PathData,
-            PathingMemory,
+            casual, choose, finish, just, now, seq, urgent, watch, Action, Brain, Controller, Npc,
+            NpcId, PathData, PathingMemory,
         },
         Sites,
     },
@@ -371,10 +371,16 @@ pub struct NpcCtx<'a> {
     controller: &'a mut Controller,
 }
 
-fn idle() -> impl Action + Clone { just(|ctx| *ctx.controller = Controller::idle()) }
+fn pass() -> impl Action { just(|ctx| {}) }
 
-fn move_toward(wpos: Vec3<f32>, speed_factor: f32) -> impl Action + Clone {
-    const STEP_DIST: f32 = 10.0;
+fn idle_wait() -> impl Action {
+    just(|ctx| *ctx.controller = Controller::idle())
+        .repeat()
+        .map(|_| ())
+}
+
+fn move_toward(wpos: Vec3<f32>, speed_factor: f32) -> impl Action {
+    const STEP_DIST: f32 = 16.0;
     just(move |ctx| {
         let rpos = wpos - ctx.npc.wpos;
         let len = rpos.magnitude();
@@ -385,13 +391,68 @@ fn move_toward(wpos: Vec3<f32>, speed_factor: f32) -> impl Action + Clone {
     })
 }
 
-fn goto(wpos: Vec3<f32>, speed_factor: f32) -> impl Action + Clone {
-    const MIN_DIST: f32 = 1.0;
+fn goto(wpos: Vec3<f32>, speed_factor: f32) -> impl Action {
+    const MIN_DIST: f32 = 2.0;
 
     move_toward(wpos, speed_factor)
         .repeat()
         .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < MIN_DIST.powi(2))
         .map(|_| {})
+}
+
+fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32) -> impl Action {
+    const MIN_DIST: f32 = 2.0;
+
+    now(move |ctx| {
+        let wpos = wpos2d.with_z(
+            ctx.ctx
+                .world
+                .sim()
+                .get_alt_approx(wpos2d.as_())
+                .unwrap_or(0.0),
+        );
+        goto(wpos, speed_factor)
+    })
+}
+
+fn path_to_site(tgt_site: SiteId) -> impl Action {
+    now(move |ctx| {
+        let sites = &ctx.ctx.state.data().sites;
+
+        // If we can, try to find a path to the site via tracks
+        if let Some(current_site) = ctx.npc.current_site
+            && let Some((mut tracks, _)) = path_towns(current_site, tgt_site, sites, ctx.ctx.world)
+        {
+            seq(tracks
+                .path
+                .into_iter()
+                .map(|(track_id, reversed)| now(move |ctx| {
+                    let track_len = ctx.ctx.world.civs().tracks.get(track_id).path().len();
+                    seq(if reversed {
+                        itertools::Either::Left((0..track_len).rev())
+                    } else {
+                        itertools::Either::Right(0..track_len)
+                    }
+                        .map(move |node_idx| now(move |ctx| {
+                            let track = ctx.ctx.world.civs().tracks.get(track_id);
+                            let next_node = track.path().nodes[node_idx];
+
+                            let chunk_wpos = TerrainChunkSize::center_wpos(next_node);
+                            let path_wpos2d = ctx.ctx.world.sim()
+                                .get_nearest_path(chunk_wpos)
+                                .map_or(chunk_wpos, |(_, wpos, _, _)| wpos.as_());
+
+                            goto_2d(path_wpos2d.as_(), 1.0)
+                        })))
+                })))
+                .boxed()
+        } else if let Some(site) = sites.get(tgt_site) {
+            // If all else fails, just walk toward the site in a straight line
+            goto_2d(site.wpos.map(|e| e as f32 + 0.5), 1.0).boxed()
+        } else {
+            pass().boxed()
+        }
+    })
 }
 
 // Seconds
@@ -404,7 +465,7 @@ fn think() -> impl Action {
     choose(|ctx| {
         if matches!(ctx.npc.profession, Some(Profession::Adventurer(_))) {
             // Choose a random site that's fairly close by
-            let site_wpos2d = ctx
+            if let Some(tgt_site) = ctx
                 .ctx
                 .state
                 .data()
@@ -417,39 +478,20 @@ fn think() -> impl Action {
                 })
                 .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
                 .map(|(site_id, _)| site_id)
-                .and_then(|tgt_site| {
-                    ctx.ctx
-                        .state
-                        .data()
-                        .sites
-                        .get(tgt_site)
-                        .map(|site| site.wpos)
-                });
-
-            if let Some(site_wpos2d) = site_wpos2d {
-                // Walk toward the site
-                casual(goto(
-                    site_wpos2d.map(|e| e as f32 + 0.5).with_z(
-                        ctx.ctx
-                            .world
-                            .sim()
-                            .get_alt_approx(site_wpos2d.as_())
-                            .unwrap_or(0.0),
-                    ),
-                    1.0,
-                ))
+            {
+                casual(path_to_site(tgt_site))
             } else {
-                casual(idle())
+                casual(pass())
             }
         } else if matches!(ctx.npc.profession, Some(Profession::Blacksmith)) {
-            casual(idle())
+            casual(idle_wait())
         } else {
             casual(
                 now(|ctx| goto(ctx.npc.wpos + Vec3::unit_x() * 10.0, 1.0))
                     .then(now(|ctx| goto(ctx.npc.wpos - Vec3::unit_x() * 10.0, 1.0)))
                     .repeat()
                     .stop_if(timeout(ctx, 10.0))
-                    .then(now(|ctx| idle().repeat().stop_if(timeout(ctx, 5.0))))
+                    .then(now(|ctx| idle_wait().stop_if(timeout(ctx, 5.0))))
                     .map(|_| {}),
             )
         }

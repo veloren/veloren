@@ -109,6 +109,28 @@ pub trait Action<R = ()>: Any + Send + Sync {
     {
         Map(self, f, PhantomData)
     }
+    fn boxed(self) -> Box<dyn Action<R>>
+    where
+        Self: Sized,
+    {
+        Box::new(self)
+    }
+}
+
+impl<R: 'static> Action<R> for Box<dyn Action<R>> {
+    fn is_same(&self, other: &Self) -> bool { (**self).dyn_is_same(other) }
+
+    fn dyn_is_same(&self, other: &dyn Action<R>) -> bool {
+        match (other as &dyn Any).downcast_ref::<Self>() {
+            Some(other) => self.is_same(other),
+            None => false,
+        }
+    }
+
+    fn reset(&mut self) { (**self).reset(); }
+
+    // TODO: Reset closure state?
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> { (**self).tick(ctx) }
 }
 
 // Now
@@ -163,6 +185,23 @@ where
 {
     Just(f, PhantomData)
 }
+
+// Finish
+
+#[derive(Copy, Clone)]
+pub struct Finish;
+
+impl Action<()> for Finish {
+    fn is_same(&self, other: &Self) -> bool { true }
+
+    fn dyn_is_same(&self, other: &dyn Action<()>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn reset(&mut self) {}
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<()> { ControlFlow::Break(()) }
+}
+
+pub fn finish() -> Finish { Finish }
 
 // Tree
 
@@ -291,6 +330,49 @@ impl<R: Send + Sync + 'static, A: Action<R>> Action<!> for Repeat<A, R> {
             },
         }
     }
+}
+
+// Sequence
+
+#[derive(Copy, Clone)]
+pub struct Sequence<I, A, R = ()>(I, I, Option<A>, PhantomData<R>);
+
+impl<R: Send + Sync + 'static, I: Iterator<Item = A> + Clone + Send + Sync + 'static, A: Action<R>>
+    Action<()> for Sequence<I, A, R>
+{
+    fn is_same(&self, other: &Self) -> bool { true }
+
+    fn dyn_is_same(&self, other: &dyn Action<()>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn reset(&mut self) {
+        self.0 = self.1.clone();
+        self.2 = None;
+    }
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<()> {
+        let item = if let Some(prev) = &mut self.2 {
+            prev
+        } else {
+            match self.0.next() {
+                Some(next) => self.2.insert(next),
+                None => return ControlFlow::Break(()),
+            }
+        };
+
+        if let ControlFlow::Break(_) = item.tick(ctx) {
+            self.2 = None;
+        }
+
+        ControlFlow::Continue(())
+    }
+}
+
+pub fn seq<I, A, R>(iter: I) -> Sequence<I, A, R>
+where
+    I: Iterator<Item = A> + Clone,
+    A: Action<R>,
+{
+    Sequence(iter.clone(), iter, None, PhantomData)
 }
 
 // StopIf

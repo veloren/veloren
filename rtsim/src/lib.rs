@@ -6,7 +6,8 @@
     generators,
     trait_alias,
     trait_upcasting,
-    control_flow_enum
+    control_flow_enum,
+    let_chains
 )]
 
 pub mod data;
