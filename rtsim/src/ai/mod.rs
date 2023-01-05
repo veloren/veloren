@@ -67,6 +67,10 @@ pub trait Action<R = ()>: Any + Send + Sync {
     /// Like [`Action::is_same`], but allows for dynamic dispatch.
     fn dyn_is_same(&self, other: &dyn Action<R>) -> bool;
 
+    /// Generate a backtrace for the action. The action should recursively push
+    /// all of the tasks it is currently performing.
+    fn backtrace(&self, bt: &mut Vec<String>);
+
     /// Reset the action to its initial state such that it can be repeated.
     fn reset(&mut self);
 
@@ -159,6 +163,21 @@ pub trait Action<R = ()>: Any + Send + Sync {
     {
         Box::new(self)
     }
+
+    /// Add debugging information to the action that will be visible when using
+    /// the `/npc_info` command.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// goto(npc.home).debug(|| "Going home")
+    /// ```
+    fn debug<F, T>(self, mk_info: F) -> Debug<Self, F, T>
+    where
+        Self: Sized,
+    {
+        Debug(self, mk_info, PhantomData)
+    }
 }
 
 impl<R: 'static> Action<R> for Box<dyn Action<R>> {
@@ -170,6 +189,8 @@ impl<R: 'static> Action<R> for Box<dyn Action<R>> {
             None => false,
         }
     }
+
+    fn backtrace(&self, bt: &mut Vec<String>) { (**self).backtrace(bt) }
 
     fn reset(&mut self) { (**self).reset(); }
 
@@ -190,6 +211,14 @@ impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> A + Send + Sync + 'stati
     fn is_same(&self, other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        if let Some(action) = &self.1 {
+            action.backtrace(bt);
+        } else {
+            bt.push("<thinking>".to_string());
+        }
+    }
 
     fn reset(&mut self) { self.1 = None; }
 
@@ -231,6 +260,8 @@ impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> R + Send + Sync + 'stati
 
     fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
 
+    fn backtrace(&self, bt: &mut Vec<String>) {}
+
     fn reset(&mut self) {}
 
     // TODO: Reset closure state?
@@ -265,6 +296,8 @@ impl Action<()> for Finish {
     fn is_same(&self, other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<()>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {}
 
     fn reset(&mut self) {}
 
@@ -323,6 +356,14 @@ impl<F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static, R: 'static> Actio
     fn is_same(&self, other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        if let Some(prev) = &self.prev {
+            prev.0.backtrace(bt);
+        } else {
+            bt.push("<thinking>".to_string());
+        }
+    }
 
     fn reset(&mut self) { self.prev = None; }
 
@@ -435,6 +476,14 @@ impl<A0: Action<R0>, A1: Action<R1>, R0: Send + Sync + 'static, R1: Send + Sync 
 
     fn dyn_is_same(&self, other: &dyn Action<R1>) -> bool { self.dyn_is_same_sized(other) }
 
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        if self.a0_finished {
+            self.a1.backtrace(bt);
+        } else {
+            self.a0.backtrace(bt);
+        }
+    }
+
     fn reset(&mut self) {
         self.a0.reset();
         self.a0_finished = false;
@@ -463,6 +512,8 @@ impl<R: Send + Sync + 'static, A: Action<R>> Action<!> for Repeat<A, R> {
 
     fn dyn_is_same(&self, other: &dyn Action<!>) -> bool { self.dyn_is_same_sized(other) }
 
+    fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
+
     fn reset(&mut self) { self.0.reset(); }
 
     fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<!> {
@@ -488,6 +539,14 @@ impl<R: Send + Sync + 'static, I: Iterator<Item = A> + Clone + Send + Sync + 'st
     fn is_same(&self, other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<()>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        if let Some(action) = &self.2 {
+            action.backtrace(bt);
+        } else {
+            bt.push("<thinking>".to_string());
+        }
+    }
 
     fn reset(&mut self) {
         self.0 = self.1.clone();
@@ -551,6 +610,8 @@ impl<A: Action<R>, F: FnMut(&mut NpcCtx) -> bool + Send + Sync + 'static, R> Act
 
     fn dyn_is_same(&self, other: &dyn Action<Option<R>>) -> bool { self.dyn_is_same_sized(other) }
 
+    fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
+
     fn reset(&mut self) { self.0.reset(); }
 
     fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<Option<R>> {
@@ -575,9 +636,38 @@ impl<A: Action<R>, F: FnMut(R) -> R1 + Send + Sync + 'static, R: Send + Sync + '
 
     fn dyn_is_same(&self, other: &dyn Action<R1>) -> bool { self.dyn_is_same_sized(other) }
 
+    fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
+
     fn reset(&mut self) { self.0.reset(); }
 
     fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R1> {
         self.0.tick(ctx).map_break(&mut self.1)
     }
+}
+
+// Debug
+
+/// See [`Action::debug`].
+#[derive(Copy, Clone)]
+pub struct Debug<A, F, T>(A, F, PhantomData<T>);
+
+impl<
+    A: Action<R>,
+    F: Fn() -> T + Send + Sync + 'static,
+    R: Send + Sync + 'static,
+    T: Send + Sync + std::fmt::Display + 'static,
+> Action<R> for Debug<A, F, T>
+{
+    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
+
+    fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        bt.push((self.1)().to_string());
+        self.0.backtrace(bt);
+    }
+
+    fn reset(&mut self) { self.0.reset(); }
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> { self.0.tick(ctx) }
 }

@@ -15,6 +15,7 @@ use common::{
     rtsim::{Profession, SiteId},
     store::Id,
     terrain::TerrainChunkSize,
+    time::DayPeriod,
     vol::RectVolSize,
 };
 use fxhash::FxHasher64;
@@ -29,7 +30,7 @@ use vek::*;
 use world::{
     civ::{self, Track},
     site::{Site as WorldSite, SiteKind},
-    site2::{self, TileKind},
+    site2::{self, PlotKind, TileKind},
     IndexRef, World,
 };
 
@@ -313,7 +314,7 @@ impl Rule for NpcAi {
     }
 }
 
-fn idle() -> impl Action { just(|ctx| *ctx.controller = Controller::idle()) }
+fn idle() -> impl Action { just(|ctx| *ctx.controller = Controller::idle()).debug(|| "idle") }
 
 /// Try to walk toward a 3D position without caring for obstacles.
 fn goto(wpos: Vec3<f32>, speed_factor: f32) -> impl Action {
@@ -342,6 +343,7 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32) -> impl Action {
     })
     .repeat()
     .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < GOAL_DIST.powi(2))
+    .debug(move || format!("goto {}, {}, {}", wpos.x, wpos.y, wpos.z))
     .map(|_| {})
 }
 
@@ -366,12 +368,14 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
         if let Some(current_site) = ctx.npc.current_site
             && let Some(tracks) = path_towns(current_site, tgt_site, sites, ctx.world)
         {
+            let track_count = tracks.path.len();
             // For every track in the path we discovered between the sites...
             seq(tracks
                 .path
                 .into_iter()
+                .enumerate()
                 // ...traverse the nodes of that path.
-                .map(|(track_id, reversed)| now(move |ctx| {
+                .map(move |(i, (track_id, reversed))| now(move |ctx| {
                     let track_len = ctx.world.civs().tracks.get(track_id).path().len();
                     // Tracks can be traversed backward (i.e: from end to beginning). Account for this.
                     seq(if reversed {
@@ -379,7 +383,8 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
                     } else {
                         itertools::Either::Right(0..track_len)
                     }
-                        .map(move |node_idx| now(move |ctx| {
+                        .enumerate()
+                        .map(move |(i, node_idx)| now(move |ctx| {
                             // Find the centre of the track node's chunk
                             let node_chunk_wpos = TerrainChunkSize::center_wpos(ctx.world
                                 .civs()
@@ -395,8 +400,10 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
 
                             // Walk toward the node
                             goto_2d(node_wpos.as_(), 1.0)
+                                .debug(move || format!("traversing track node ({}/{})", i + 1, track_len))
                         })))
-                })))
+                })
+                    .debug(move || format!("travel via track {:?} ({}/{})", track_id, i + 1, track_count))))
                 .boxed()
         } else if let Some(site) = sites.get(tgt_site) {
             // If all else fails, just walk toward the target site in a straight line
@@ -406,12 +413,43 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
             finish().boxed()
         }
     })
+        .debug(move || format!("travel_to_site {:?}", tgt_site))
 }
 
 // Seconds
-fn timeout(ctx: &NpcCtx, time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
-    let end = ctx.time.0 + time;
-    move |ctx| ctx.time.0 > end
+fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
+    let mut timeout = None;
+    move |ctx| ctx.time.0 > *timeout.get_or_insert(ctx.time.0 + time)
+}
+
+fn adventure() -> impl Action {
+    now(|ctx| {
+        // Choose a random site that's fairly close by
+        if let Some(tgt_site) = ctx
+            .state
+            .data()
+            .sites
+            .iter()
+            .filter(|(site_id, site)| {
+                // TODO: faction.is_some() is used as a proxy for whether the site likely has
+                // paths, don't do this
+                site.faction.is_some()
+                    && ctx.npc.current_site.map_or(true, |cs| *site_id != cs)
+                    && thread_rng().gen_bool(0.25)
+            })
+            .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
+            .map(|(site_id, _)| site_id)
+        {
+            // Travel to the site
+            travel_to_site(tgt_site)
+                // Stop for a few minutes
+                .then(villager().stop_if(timeout(60.0 * 3.0)))
+                .map(|_| ())
+                .boxed()
+        } else {
+            finish().boxed()
+        }
+    })
 }
 
 fn villager() -> impl Action {
@@ -419,7 +457,34 @@ fn villager() -> impl Action {
         if let Some(home) = ctx.npc.home {
             if ctx.npc.current_site != Some(home) {
                 // Travel home if we're not there already
-                important(travel_to_site(home))
+                urgent(travel_to_site(home).debug(move || format!("travel home")))
+            } else if DayPeriod::from(ctx.time_of_day.0).is_dark() {
+                important(now(move |ctx| {
+                    if let Some(house_wpos) = ctx
+                        .state
+                        .data()
+                        .sites
+                        .get(home)
+                        .and_then(|home| ctx.index.sites.get(home.world_site?).site2())
+                        .and_then(|site2| {
+                            // Find a house
+                            let house = site2
+                                .plots()
+                                .filter(|p| matches!(p.kind(), PlotKind::House(_)))
+                                .choose(&mut thread_rng())?;
+                            Some(site2.tile_center_wpos(house.root_tile()).as_())
+                        })
+                    {
+                        goto_2d(house_wpos, 0.5)
+                            .debug(|| "walk to house")
+                            .then(idle().repeat().debug(|| "wait in house"))
+                            .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
+                            .map(|_| ())
+                            .boxed()
+                    } else {
+                        finish().boxed()
+                    }
+                }))
             } else if matches!(
                 ctx.npc.profession,
                 Some(Profession::Merchant | Profession::Blacksmith)
@@ -440,11 +505,13 @@ fn villager() -> impl Action {
                     {
                         // Walk to the plaza...
                         goto_2d(plaza_wpos, 0.5)
+                            .debug(|| "walk to plaza")
                             // ...then wait for some time before moving on
-                            .then(now(|ctx| {
+                            .then({
                                 let wait_time = thread_rng().gen_range(10.0..30.0);
-                                idle().repeat().stop_if(timeout(ctx, wait_time))
-                            }))
+                                idle().repeat().stop_if(timeout(wait_time))
+                                    .debug(|| "wait at plaza")
+                            })
                             .map(|_| ())
                             .boxed()
                     } else {
@@ -459,31 +526,13 @@ fn villager() -> impl Action {
             casual(finish()) // Nothing to do if we're homeless!
         }
     })
+    .debug(move || format!("villager"))
 }
 
 fn think() -> impl Action {
     choose(|ctx| {
         if matches!(ctx.npc.profession, Some(Profession::Adventurer(_))) {
-            // Choose a random site that's fairly close by
-            if let Some(tgt_site) = ctx
-                .state
-                .data()
-                .sites
-                .iter()
-                .filter(|(site_id, site)| {
-                    // TODO: faction.is_some() is used as a proxy for whether the site likely has
-                    // paths, don't do this
-                    site.faction.is_some()
-                        && ctx.npc.current_site.map_or(true, |cs| *site_id != cs)
-                        && thread_rng().gen_bool(0.25)
-                })
-                .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
-                .map(|(site_id, _)| site_id)
-            {
-                casual(travel_to_site(tgt_site))
-            } else {
-                casual(finish())
-            }
+            casual(adventure())
         } else {
             casual(villager())
         }

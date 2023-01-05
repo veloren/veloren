@@ -99,7 +99,7 @@ pub enum ChunkResource {
     Cotton,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Profession {
     #[serde(rename = "0")]
     Farmer,

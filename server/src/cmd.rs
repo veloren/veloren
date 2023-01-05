@@ -185,6 +185,7 @@ fn do_command(
         ServerChatCommand::Time => handle_time,
         ServerChatCommand::Tp => handle_tp,
         ServerChatCommand::TpNpc => handle_tp_npc,
+        ServerChatCommand::NpcInfo => handle_npc_info,
         ServerChatCommand::Unban => handle_unban,
         ServerChatCommand::Version => handle_version,
         ServerChatCommand::Waypoint => handle_waypoint,
@@ -1210,6 +1211,53 @@ fn handle_tp_npc(
     position_mut(server, target, "target", |target_pos| {
         target_pos.0 = pos;
     })
+}
+
+fn handle_npc_info(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim2::RtSim;
+    if let Some(id) = parse_cmd_args!(args, u32) {
+        // TODO: Take some other identifier than an integer to this command.
+        let rtsim = server.state.ecs().read_resource::<RtSim>();
+        let data = rtsim.state().data();
+        let npc = data
+            .npcs
+            .values()
+            .nth(id as usize)
+            .ok_or_else(|| format!("No NPC has index {}", id))?;
+
+        let mut info = String::new();
+
+        let _ = writeln!(&mut info, "-- General Information --");
+        let _ = writeln!(&mut info, "Seed: {}", npc.seed);
+        let _ = writeln!(&mut info, "Profession: {:?}", npc.profession);
+        let _ = writeln!(&mut info, "Home: {:?}", npc.home);
+        let _ = writeln!(&mut info, "Current mode: {:?}", npc.mode);
+        let _ = writeln!(&mut info, "-- Action State --");
+        if let Some(brain) = &npc.brain {
+            let mut bt = Vec::new();
+            brain.action.backtrace(&mut bt);
+            for (i, action) in bt.into_iter().enumerate() {
+                let _ = writeln!(&mut info, "[{}] {}", i, action);
+            }
+        } else {
+            let _ = writeln!(&mut info, "<NPC has no brain>");
+        }
+
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, info),
+        );
+
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
 }
 
 fn handle_spawn(

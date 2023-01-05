@@ -22,7 +22,7 @@ use std::{
 use vek::*;
 use world::{civ::Track, site::Site as WorldSite, util::RandomPerm};
 
-#[derive(Copy, Clone, Default)]
+#[derive(Copy, Clone, Debug, Default)]
 pub enum NpcMode {
     /// The NPC is unloaded and is being simulated via rtsim.
     #[default]
@@ -53,7 +53,7 @@ impl Controller {
 }
 
 pub struct Brain {
-    pub(crate) action: Box<dyn Action<!>>,
+    pub action: Box<dyn Action<!>>,
 }
 
 #[derive(Serialize, Deserialize)]

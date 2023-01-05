@@ -311,6 +311,7 @@ pub enum ServerChatCommand {
     Time,
     Tp,
     TpNpc,
+    NpcInfo,
     Unban,
     Version,
     Waypoint,
@@ -682,7 +683,12 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::TpNpc => cmd(
                 vec![Integer("npc index", 0, Required)],
-                "Teleport to a npc",
+                "Teleport to an rtsim npc",
+                Some(Moderator),
+            ),
+            ServerChatCommand::NpcInfo => cmd(
+                vec![Integer("npc index", 0, Required)],
+                "Display information about an rtsim NPC",
                 Some(Moderator),
             ),
             ServerChatCommand::Unban => cmd(
@@ -808,6 +814,7 @@ impl ServerChatCommand {
             ServerChatCommand::Time => "time",
             ServerChatCommand::Tp => "tp",
             ServerChatCommand::TpNpc => "tp_npc",
+            ServerChatCommand::NpcInfo => "npc_info",
             ServerChatCommand::Unban => "unban",
             ServerChatCommand::Version => "version",
             ServerChatCommand::Waypoint => "waypoint",
