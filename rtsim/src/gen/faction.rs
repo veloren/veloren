@@ -5,6 +5,9 @@ use world::{IndexRef, World};
 
 impl Faction {
     pub fn generate(world: &World, index: IndexRef, rng: &mut impl Rng) -> Self {
-        Self { leader: None }
+        Self {
+            leader: None,
+            good_or_evil: rng.gen(),
+        }
     }
 }

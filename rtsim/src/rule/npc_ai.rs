@@ -317,10 +317,9 @@ impl Rule for NpcAi {
 fn idle() -> impl Action { just(|ctx| *ctx.controller = Controller::idle()).debug(|| "idle") }
 
 /// Try to walk toward a 3D position without caring for obstacles.
-fn goto(wpos: Vec3<f32>, speed_factor: f32) -> impl Action {
+fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     const STEP_DIST: f32 = 24.0;
     const WAYPOINT_DIST: f32 = 12.0;
-    const GOAL_DIST: f32 = 2.0;
 
     let mut waypoint = None;
 
@@ -342,19 +341,19 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32) -> impl Action {
         ctx.controller.goto = Some((*waypoint, speed_factor));
     })
     .repeat()
-    .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < GOAL_DIST.powi(2))
+    .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < goal_dist.powi(2))
     .debug(move || format!("goto {}, {}, {}", wpos.x, wpos.y, wpos.z))
     .map(|_| {})
 }
 
 /// Try to walk toward a 2D position on the terrain without caring for
 /// obstacles.
-fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32) -> impl Action {
+fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     const MIN_DIST: f32 = 2.0;
 
     now(move |ctx| {
         let wpos = wpos2d.with_z(ctx.world.sim().get_alt_approx(wpos2d.as_()).unwrap_or(0.0));
-        goto(wpos, speed_factor)
+        goto(wpos, speed_factor, goal_dist)
     })
 }
 
@@ -399,7 +398,7 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
                                 .map_or(node_chunk_wpos, |(_, wpos, _, _)| wpos.as_());
 
                             // Walk toward the node
-                            goto_2d(node_wpos.as_(), 1.0)
+                            goto_2d(node_wpos.as_(), 1.0, 8.0)
                                 .debug(move || format!("traversing track node ({}/{})", i + 1, track_len))
                         })))
                 })
@@ -407,7 +406,7 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
                 .boxed()
         } else if let Some(site) = sites.get(tgt_site) {
             // If all else fails, just walk toward the target site in a straight line
-            goto_2d(site.wpos.map(|e| e as f32 + 0.5), 1.0).boxed()
+            goto_2d(site.wpos.map(|e| e as f32 + 0.5), 1.0, 8.0).boxed()
         } else {
             // If we can't find a way to get to the site at all, there's nothing more to be done
             finish().boxed()
@@ -431,10 +430,16 @@ fn adventure() -> impl Action {
             .sites
             .iter()
             .filter(|(site_id, site)| {
-                // TODO: faction.is_some() is used as a proxy for whether the site likely has
-                // paths, don't do this
-                site.faction.is_some()
-                    && ctx.npc.current_site.map_or(true, |cs| *site_id != cs)
+                // Only path toward towns
+                matches!(
+                    site.world_site.map(|ws| &ctx.index.sites.get(ws).kind),
+                    Some(
+                        SiteKind::Refactor(_)
+                            | SiteKind::CliffTown(_)
+                            | SiteKind::SavannahPit(_)
+                            | SiteKind::DesertCity(_)
+                    ),
+                ) && ctx.npc.current_site.map_or(true, |cs| *site_id != cs)
                     && thread_rng().gen_bool(0.25)
             })
             .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
@@ -487,7 +492,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                             Some(site2.tile_center_wpos(house.root_tile()).as_())
                         })
                     {
-                        goto_2d(house_wpos, 0.5)
+                        goto_2d(house_wpos, 0.5, 1.0)
                             .debug(|| "walk to house")
                             .then(idle().repeat().debug(|| "wait in house"))
                             .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
@@ -514,7 +519,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     })
                 {
                     // Walk to the plaza...
-                    goto_2d(plaza_wpos, 0.5)
+                    goto_2d(plaza_wpos, 0.5, 8.0)
                         .debug(|| "walk to plaza")
                         // ...then wait for some time before moving on
                         .then({

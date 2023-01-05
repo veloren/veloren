@@ -1,4 +1,4 @@
-use crate::data::{FactionId, Site};
+use crate::data::{FactionId, Factions, Site};
 use common::store::Id;
 use vek::*;
 use world::{
@@ -12,24 +12,42 @@ impl Site {
         world: &World,
         index: IndexRef,
         nearby_factions: &[(Vec2<i32>, FactionId)],
+        factions: &Factions,
     ) -> Self {
         let world_site = index.sites.get(world_site_id);
         let wpos = world_site.get_origin();
 
+        // TODO: This is stupid, do better
+        let good_or_evil = match &world_site.kind {
+            // Good
+            SiteKind::Refactor(_)
+            | SiteKind::CliffTown(_)
+            | SiteKind::DesertCity(_)
+            | SiteKind::SavannahPit(_) => Some(true),
+            // Evil
+            SiteKind::Dungeon(_) | SiteKind::ChapelSite(_) | SiteKind::Gnarling(_) => Some(false),
+            // Neutral
+            SiteKind::Settlement(_)
+            | SiteKind::Castle(_)
+            | SiteKind::Tree(_)
+            | SiteKind::GiantTree(_)
+            | SiteKind::Bridge(_) => None,
+        };
+
         Self {
             wpos,
             world_site: Some(world_site_id),
-            faction: if matches!(
-                &world_site.kind,
-                SiteKind::Refactor(_) | SiteKind::CliffTown(_) | SiteKind::DesertCity(_)
-            ) {
+            faction: good_or_evil.and_then(|good_or_evil| {
                 nearby_factions
                     .iter()
+                    .filter(|(_, faction)| {
+                        factions
+                            .get(*faction)
+                            .map_or(false, |f| f.good_or_evil == good_or_evil)
+                    })
                     .min_by_key(|(faction_wpos, _)| faction_wpos.distance_squared(wpos))
                     .map(|(_, faction)| *faction)
-            } else {
-                None
-            },
+            }),
         }
     }
 }

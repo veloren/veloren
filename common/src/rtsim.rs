@@ -121,6 +121,8 @@ pub enum Profession {
     Pirate,
     #[serde(rename = "9")]
     Cultist,
+    #[serde(rename = "10")]
+    Herbalist,
 }
 
 impl Profession {
@@ -136,6 +138,7 @@ impl Profession {
             Self::Alchemist => "Alchemist".to_string(),
             Self::Pirate => "Pirate".to_string(),
             Self::Cultist => "Cultist".to_string(),
+            Self::Herbalist => "Herbalist".to_string(),
         }
     }
 }

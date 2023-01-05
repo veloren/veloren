@@ -48,8 +48,13 @@ impl Rule for Setup {
                          be generated afresh.",
                         world_site_id
                     );
-                    data.sites
-                        .create(Site::generate(world_site_id, ctx.world, ctx.index, &[]));
+                    data.sites.create(Site::generate(
+                        world_site_id,
+                        ctx.world,
+                        ctx.index,
+                        &[],
+                        &data.factions,
+                    ));
                 }
             }
 

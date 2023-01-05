@@ -23,7 +23,9 @@ use world::site::settlement::trader_loadout;
 
 fn humanoid_config(profession: &Profession) -> &'static str {
     match profession {
-        Profession::Farmer | Profession::Hunter => "common.entity.village.villager",
+        Profession::Farmer => "common.entity.village.farmer",
+        Profession::Hunter => "common.entity.village.hunter",
+        Profession::Herbalist => "common.entity.village.herbalist",
         Profession::Merchant => "common.entity.village.merchant",
         Profession::Guard => "common.entity.village.guard",
         Profession::Adventurer(rank) => match rank {
@@ -59,6 +61,15 @@ fn farmer_loadout(
     trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
 }
 
+fn herbalist_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| {
+        matches!(good, Good::Ingredients)
+    })
+}
+
 fn chef_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
@@ -90,6 +101,7 @@ fn profession_extra_loadout(
     match profession {
         Some(Profession::Merchant) => merchant_loadout,
         Some(Profession::Farmer) => farmer_loadout,
+        Some(Profession::Herbalist) => herbalist_loadout,
         Some(Profession::Chef) => chef_loadout,
         Some(Profession::Blacksmith) => blacksmith_loadout,
         Some(Profession::Alchemist) => alchemist_loadout,
@@ -102,6 +114,7 @@ fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent:
         Some(
             Profession::Merchant
             | Profession::Farmer
+            | Profession::Herbalist
             | Profession::Chef
             | Profession::Blacksmith
             | Profession::Alchemist,
@@ -128,7 +141,11 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
         let mut rng = npc.rng(3);
         EntityInfo::at(pos.0)
             .with_entity_config(entity_config, Some(config_asset), &mut rng)
-            .with_alignment(comp::Alignment::Npc)
+            .with_alignment(if matches!(profession, Profession::Cultist) {
+                comp::Alignment::Enemy
+            } else {
+                comp::Alignment::Npc
+            })
             .with_maybe_economy(economy.as_ref())
             .with_lazy_loadout(profession_extra_loadout(npc.profession.as_ref()))
             .with_maybe_agent_mark(profession_agent_mark(npc.profession.as_ref()))

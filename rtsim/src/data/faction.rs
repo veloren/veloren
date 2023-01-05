@@ -10,6 +10,7 @@ use vek::*;
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Faction {
     pub leader: Option<Actor>,
+    pub good_or_evil: bool, // TODO: Very stupid, get rid of this
 }
 
 #[derive(Clone, Serialize, Deserialize)]
