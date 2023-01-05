@@ -43,7 +43,7 @@ use rand_distr::Distribution;
 use specs::{
     join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
 };
-use std::{collections::HashMap, iter, time::Duration};
+use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 use tracing::{debug, error};
 use vek::{Vec2, Vec3};
 
@@ -528,7 +528,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             state
                 .ecs()
                 .write_resource::<rtsim2::RtSim>()
-                .hook_rtsim_entity_delete(rtsim_entity);
+                .hook_rtsim_entity_delete(
+                    &state.ecs().read_resource::<Arc<world::World>>(),
+                    state
+                        .ecs()
+                        .read_resource::<world::IndexOwned>()
+                        .as_index_ref(),
+                    rtsim_entity,
+                );
         }
 
         if let Err(e) = state.delete_entity_recorded(entity) {

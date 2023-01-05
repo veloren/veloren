@@ -13,7 +13,7 @@ use common_ecs::{dispatch, System};
 use enum_map::EnumMap;
 use rtsim2::{
     data::{npc::NpcMode, Data, ReadError},
-    event::OnSetup,
+    event::{OnDeath, OnSetup},
     rule::Rule,
     RtState,
 };
@@ -154,8 +154,14 @@ impl RtSim {
         }
     }
 
-    pub fn hook_rtsim_entity_delete(&mut self, entity: RtSimEntity) {
-        // TODO: Emit event on deletion to catch death?
+    pub fn hook_rtsim_entity_delete(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        entity: RtSimEntity,
+    ) {
+        // Should entity deletion be death? They're not exactly the same thing...
+        self.state.emit(OnDeath { npc_id: entity.0 }, world, index);
         self.state.data_mut().npcs.remove(entity.0);
     }
 

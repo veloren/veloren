@@ -1,4 +1,4 @@
-use super::{RtState, Rule};
+use crate::{data::NpcId, RtState, Rule};
 use common::resources::{Time, TimeOfDay};
 use world::{IndexRef, World};
 
@@ -23,3 +23,9 @@ pub struct OnTick {
     pub dt: f32,
 }
 impl Event for OnTick {}
+
+#[derive(Clone)]
+pub struct OnDeath {
+    pub npc_id: NpcId,
+}
+impl Event for OnDeath {}
