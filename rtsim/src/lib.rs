@@ -10,6 +10,7 @@
     let_chains
 )]
 
+pub mod ai;
 pub mod data;
 pub mod event;
 pub mod gen;
