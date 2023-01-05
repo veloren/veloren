@@ -1,7 +1,7 @@
 use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use crate::{
-    ai::{casual, choose, finish, just, now, seq, urgent, watch, Action, NpcCtx},
+    ai::{casual, choose, finish, important, just, now, seq, urgent, watch, Action, NpcCtx},
     data::{
         npc::{Brain, Controller, Npc, NpcId, PathData, PathingMemory},
         Sites,
@@ -208,24 +208,18 @@ fn path_towns(
     end: SiteId,
     sites: &Sites,
     world: &World,
-) -> Option<(PathData<(Id<Track>, bool), SiteId>, usize)> {
+) -> Option<PathData<(Id<Track>, bool), SiteId>> {
     match path_between_sites(start, end, sites, world) {
-        PathResult::Exhausted(p) => Some((
-            PathData {
-                end,
-                path: p.nodes.into(),
-                repoll: true,
-            },
-            0,
-        )),
-        PathResult::Path(p) => Some((
-            PathData {
-                end,
-                path: p.nodes.into(),
-                repoll: false,
-            },
-            0,
-        )),
+        PathResult::Exhausted(p) => Some(PathData {
+            end,
+            path: p.nodes.into(),
+            repoll: true,
+        }),
+        PathResult::Path(p) => Some(PathData {
+            end,
+            path: p.nodes.into(),
+            repoll: false,
+        }),
         PathResult::Pending | PathResult::None(_) => None,
     }
 }
@@ -323,16 +317,28 @@ fn idle() -> impl Action { just(|ctx| *ctx.controller = Controller::idle()) }
 
 /// Try to walk toward a 3D position without caring for obstacles.
 fn goto(wpos: Vec3<f32>, speed_factor: f32) -> impl Action {
-    const STEP_DIST: f32 = 16.0;
+    const STEP_DIST: f32 = 24.0;
+    const WAYPOINT_DIST: f32 = 12.0;
     const GOAL_DIST: f32 = 2.0;
+
+    let mut waypoint = None;
 
     just(move |ctx| {
         let rpos = wpos - ctx.npc.wpos;
         let len = rpos.magnitude();
-        ctx.controller.goto = Some((
-            ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST),
-            speed_factor,
-        ));
+
+        // If we're close to the next waypoint, complete it
+        if waypoint.map_or(false, |waypoint: Vec3<f32>| {
+            ctx.npc.wpos.xy().distance_squared(waypoint.xy()) < WAYPOINT_DIST.powi(2)
+        }) {
+            waypoint = None;
+        }
+
+        // Get the next waypoint on the route toward the goal
+        let waypoint =
+            waypoint.get_or_insert_with(|| ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST));
+
+        ctx.controller.goto = Some((*waypoint, speed_factor));
     })
     .repeat()
     .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < GOAL_DIST.powi(2))
@@ -358,7 +364,7 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
         // If we're currently in a site, try to find a path to the target site via
         // tracks
         if let Some(current_site) = ctx.npc.current_site
-            && let Some((mut tracks, _)) = path_towns(current_site, tgt_site, sites, ctx.world)
+            && let Some(tracks) = path_towns(current_site, tgt_site, sites, ctx.world)
         {
             // For every track in the path we discovered between the sites...
             seq(tracks
@@ -408,6 +414,53 @@ fn timeout(ctx: &NpcCtx, time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone +
     move |ctx| ctx.time.0 > end
 }
 
+fn villager() -> impl Action {
+    choose(|ctx| {
+        if let Some(home) = ctx.npc.home {
+            if ctx.npc.current_site != Some(home) {
+                // Travel home if we're not there already
+                important(travel_to_site(home))
+            } else if matches!(
+                ctx.npc.profession,
+                Some(Profession::Merchant | Profession::Blacksmith)
+            ) {
+                // Trade professions just walk between town plazas
+                casual(now(move |ctx| {
+                    // Choose a plaza in the NPC's home site to walk to
+                    if let Some(plaza_wpos) = ctx
+                        .state
+                        .data()
+                        .sites
+                        .get(home)
+                        .and_then(|home| ctx.index.sites.get(home.world_site?).site2())
+                        .and_then(|site2| {
+                            let plaza = &site2.plots[site2.plazas().choose(&mut thread_rng())?];
+                            Some(site2.tile_center_wpos(plaza.root_tile()).as_())
+                        })
+                    {
+                        // Walk to the plaza...
+                        goto_2d(plaza_wpos, 0.5)
+                            // ...then wait for some time before moving on
+                            .then(now(|ctx| {
+                                let wait_time = thread_rng().gen_range(10.0..30.0);
+                                idle().repeat().stop_if(timeout(ctx, wait_time))
+                            }))
+                            .map(|_| ())
+                            .boxed()
+                    } else {
+                        // No plazas? :(
+                        finish().boxed()
+                    }
+                }))
+            } else {
+                casual(idle())
+            }
+        } else {
+            casual(finish()) // Nothing to do if we're homeless!
+        }
+    })
+}
+
 fn think() -> impl Action {
     choose(|ctx| {
         if matches!(ctx.npc.profession, Some(Profession::Adventurer(_))) {
@@ -431,17 +484,8 @@ fn think() -> impl Action {
             } else {
                 casual(finish())
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Blacksmith)) {
-            casual(idle())
         } else {
-            casual(
-                now(|ctx| goto(ctx.npc.wpos + Vec3::unit_x() * 10.0, 1.0))
-                    .then(now(|ctx| goto(ctx.npc.wpos - Vec3::unit_x() * 10.0, 1.0)))
-                    .repeat()
-                    .stop_if(timeout(ctx, 10.0))
-                    .then(now(|ctx| idle().repeat().stop_if(timeout(ctx, 5.0))))
-                    .map(|_| {}),
-            )
+            casual(villager())
         }
     })
 }

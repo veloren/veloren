@@ -65,14 +65,19 @@ impl Data {
         );
 
         // Spawn some test entities at the sites
-        for (site_id, site) in this.sites.iter().take(1) {
+        for (site_id, site) in this.sites.iter()
+            // TODO: Stupid
+            .filter(|(_, site)| site.world_site.map_or(false, |ws| matches!(&index.sites.get(ws).kind, SiteKind::Refactor(_))))
+            .skip(1)
+            .take(1)
+        {
             let rand_wpos = |rng: &mut SmallRng| {
                 let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
                 wpos2d
                     .map(|e| e as f32 + 0.5)
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
-            for _ in 0..10 {
+            for _ in 0..16 {
                 this.npcs.create(
                     Npc::new(rng.gen(), rand_wpos(&mut rng))
                         .with_faction(site.faction)
