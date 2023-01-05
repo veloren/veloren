@@ -21,6 +21,7 @@ use common::{
 use fxhash::FxHasher64;
 use itertools::Itertools;
 use rand::prelude::*;
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use std::{
     any::{Any, TypeId},
     marker::PhantomData,
@@ -230,84 +231,91 @@ const MAX_STEP: f32 = 32.0;
 impl Rule for NpcAi {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind::<Self, OnTick>(|mut ctx| {
-            let npc_ids = ctx.state.data().npcs.keys().collect::<Vec<_>>();
-
-            for npc_id in npc_ids {
-                let mut brain = ctx.state.data_mut().npcs[npc_id]
-                    .brain
-                    .take()
-                    .unwrap_or_else(|| Brain {
-                        action: Box::new(think().repeat()),
-                    });
-
-                let controller = {
-                    let data = &*ctx.state.data();
-                    let npc = &data.npcs[npc_id];
-
-                    let mut controller = Controller { goto: npc.goto };
-
-                    brain.action.tick(&mut NpcCtx {
-                        state: ctx.state,
-                        world: ctx.world,
-                        index: ctx.index,
-                        time_of_day: ctx.event.time_of_day,
-                        time: ctx.event.time,
-                        npc,
-                        npc_id,
-                        controller: &mut controller,
-                    });
-
-                    /*
-                    let action: ControlFlow<()> = try {
-                        brain.tick(&mut NpcData {
-                            ctx: &ctx,
-                            npc,
-                            npc_id,
-                            controller: &mut controller,
+            let mut npc_data = {
+                let mut data = ctx.state.data_mut();
+                data.npcs
+                    .iter_mut()
+                    .map(|(npc_id, npc)| {
+                        let controller = Controller { goto: npc.goto };
+                        let brain = npc.brain.take().unwrap_or_else(|| Brain {
+                            action: Box::new(think().repeat()),
                         });
-                        /*
-                        // // Choose a random plaza in the npcs home site (which should be the
-                        // // current here) to go to.
-                        let task =
-                            generate(move |(_, npc, ctx): &(NpcId, &Npc, &EventCtx<_, _>)| {
-                                let data = ctx.state.data();
-                                let site2 =
-                                    npc.home.and_then(|home| data.sites.get(home)).and_then(
-                                        |home| match &ctx.index.sites.get(home.world_site?).kind
-                                        {
-                                            SiteKind::Refactor(site2)
-                                            | SiteKind::CliffTown(site2)
-                                            | SiteKind::DesertCity(site2) => Some(site2),
-                                            _ => None,
-                                        },
-                                    );
+                        (npc_id, controller, brain)
+                    })
+                    .collect::<Vec<_>>()
+            };
 
-                                let wpos = site2
-                                    .and_then(|site2| {
-                                        let plaza = &site2.plots
-                                            [site2.plazas().choose(&mut thread_rng())?];
-                                        Some(site2.tile_center_wpos(plaza.root_tile()).as_())
-                                    })
-                                    .unwrap_or(npc.wpos.xy());
+            {
+                let data = &*ctx.state.data();
 
-                                TravelTo {
-                                    wpos,
-                                    use_paths: true,
-                                }
-                            })
-                            .repeat();
+                npc_data
+                    .par_iter_mut()
+                    .for_each(|(npc_id, controller, brain)| {
+                        let npc = &data.npcs[*npc_id];
 
-                        task_state.perform(task, &(npc_id, &*npc, &ctx), &mut controller)?;
-                        */
-                    };
-                    */
-
-                    controller
-                };
-
-                ctx.state.data_mut().npcs[npc_id].goto = controller.goto;
-                ctx.state.data_mut().npcs[npc_id].brain = Some(brain);
+                        brain.action.tick(&mut NpcCtx {
+                            state: ctx.state,
+                            world: ctx.world,
+                            index: ctx.index,
+                            time_of_day: ctx.event.time_of_day,
+                            time: ctx.event.time,
+                            npc,
+                            npc_id: *npc_id,
+                            controller,
+                        });
+                    });
             }
+
+            let mut data = ctx.state.data_mut();
+            for (npc_id, controller, brain) in npc_data {
+                data.npcs[npc_id].goto = controller.goto;
+                data.npcs[npc_id].brain = Some(brain);
+            }
+
+            /*
+            let action: ControlFlow<()> = try {
+                brain.tick(&mut NpcData {
+                    ctx: &ctx,
+                    npc,
+                    npc_id,
+                    controller: &mut controller,
+                });
+                /*
+                // // Choose a random plaza in the npcs home site (which should be the
+                // // current here) to go to.
+                let task =
+                    generate(move |(_, npc, ctx): &(NpcId, &Npc, &EventCtx<_, _>)| {
+                        let data = ctx.state.data();
+                        let site2 =
+                            npc.home.and_then(|home| data.sites.get(home)).and_then(
+                                |home| match &ctx.index.sites.get(home.world_site?).kind
+                                {
+                                    SiteKind::Refactor(site2)
+                                    | SiteKind::CliffTown(site2)
+                                    | SiteKind::DesertCity(site2) => Some(site2),
+                                    _ => None,
+                                },
+                            );
+
+                        let wpos = site2
+                            .and_then(|site2| {
+                                let plaza = &site2.plots
+                                    [site2.plazas().choose(&mut thread_rng())?];
+                                Some(site2.tile_center_wpos(plaza.root_tile()).as_())
+                            })
+                            .unwrap_or(npc.wpos.xy());
+
+                        TravelTo {
+                            wpos,
+                            use_paths: true,
+                        }
+                    })
+                    .repeat();
+
+                task_state.perform(task, &(npc_id, &*npc, &ctx), &mut controller)?;
+                */
+            };
+            */
         });
 
         Ok(Self)

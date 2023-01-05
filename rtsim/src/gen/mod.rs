@@ -89,7 +89,7 @@ impl Data {
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
             if good_or_evil {
-                for _ in 0..32 {
+                for _ in 0..250 {
                     this.npcs.create(
                         Npc::new(rng.gen(), rand_wpos(&mut rng))
                             .with_faction(site.faction)
@@ -107,7 +107,7 @@ impl Data {
                     );
                 }
             } else {
-                for _ in 0..5 {
+                for _ in 0..15 {
                     this.npcs.create(
                         Npc::new(rng.gen(), rand_wpos(&mut rng))
                             .with_faction(site.faction)
