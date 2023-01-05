@@ -174,31 +174,43 @@ common-abilities-sword-cleaving_earth_splitter = Earth Splitter
     .desc =
         Split the earth, if used while falling will have a much stronger impact
         Use this ability to enter cleaving stance
-veloren-core-pseudo_abilities-sword-stance_utility = Stance Utility Ability
-    .desc =
-        An ability that will change depending on what stance you are in at the it is time used
-        Abilities: Fortitude, Dancing Edge, Stalwart Sword, Eviscerate, and Blade Fever
 common-abilities-sword-heavy_fortitude = Fortitude
-    .desc = Increases stagger resistance and as you take more damage your attacks will be more staggering
-common-abilities-sword-agile_dancing_edge = Dancing Edge
-    .desc = Move and attack more swiftly
-common-abilities-sword-defensive_stalwart_sword = Stalwart Sword
-    .desc = Shrug off the brunt of attacks, incoming damage is reduced
-common-abilities-sword-crippling_eviscerate = Eviscerate
-    .desc = Shreds wounds further, deals more damage to crippled enemies
-common-abilities-sword-cleaving_blade_fever = Blade Fever
-    .desc = Attack more recklessly, increasing the power of your strikes while leaving yourself open to incoming attacks
-veloren-core-pseudo_abilities-sword-stance_attack = Stance Attack Ability
     .desc =
-        An ability that will change depending on what stance you are in at the time it is used
-        Abilities: Pillar Thrust, Flurry, Deflect, Bloody Gash, and Sky Splitter
+        Increases stagger resistance and as you take more damage your attacks will be more staggering
+        Must be in heavy stance to use this ability
 common-abilities-sword-heavy_pillar_thrust = Pillar Thrust
-    .desc = Stab your sword down through the enemy, all the way into the ground, is more powerful if used while falling
+    .desc =
+        Stab your sword down through the enemy, all the way into the ground, is more powerful if used while falling
+        Must be in heavy stance to use this ability
+common-abilities-sword-agile_dancing_edge = Dancing Edge
+    .desc =
+        Move and attack more swiftly
+        Must be in agile stance to use this ability
 common-abilities-sword-agile_flurry = Flurry
-    .desc = Multiple rapid stabs
+    .desc =
+        Multiple rapid stabs
+        Must be in agile stance to use this ability
+common-abilities-sword-defensive_stalwart_sword = Stalwart Sword
+    .desc =
+        Shrug off the brunt of attacks, incoming damage is reduced
+        Must be in defensive stance to use this ability
 common-abilities-sword-defensive_deflect = Deflect
-    .desc = A swift enough maneuver to even block projectiles
+    .desc =
+        A swift enough maneuver to even block projectiles
+        Must be in defensive stance to use this ability
+common-abilities-sword-crippling_eviscerate = Eviscerate
+    .desc =
+        Shreds wounds further, deals more damage to crippled enemies
+        Must be in crippling stance to use this ability
 common-abilities-sword-crippling_bloody_gash = Bloody Gash
-    .desc = Cruelly strike an already bleeding wound, does more damage to bleeding enemies
+    .desc =
+        Cruelly strike an already bleeding wound, does more damage to bleeding enemies
+        Must be in crippling stance to use this ability
+common-abilities-sword-cleaving_blade_fever = Blade Fever
+    .desc =
+        Attack more recklessly, increasing the power of your strikes while leaving yourself open to incoming attacks
+        Must be in cleaving stance to use this ability
 common-abilities-sword-cleaving_sky_splitter = Sky Splitter
-    .desc = A powerful strike that purportedly can even split the sky, but will split through enemies
+    .desc =
+        A powerful strike that purportedly can even split the sky, but will split through enemies
+        Must be in cleaving stance to use this ability

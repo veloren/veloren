@@ -17,4 +17,7 @@ BasicBlock(
         air_shockwaves: false,
         explosions: false,
     ),
+    meta: (
+        requirements: (stance: Some(Sword(Defensive))),
+    ),
 )

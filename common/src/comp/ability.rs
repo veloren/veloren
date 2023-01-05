@@ -848,78 +848,87 @@ impl CharacterAbility {
     /// Attempts to fulfill requirements, mutating `update` (taking energy) if
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
-        match self {
-            CharacterAbility::Roll { energy_cost, .. } => {
-                data.physics.on_ground.is_some()
-                    && data.inputs.move_dir.magnitude_squared() > 0.25
-                    && update.energy.try_change_by(-*energy_cost).is_ok()
-            },
-            CharacterAbility::DashMelee { energy_cost, .. }
-            | CharacterAbility::BasicMelee { energy_cost, .. }
-            | CharacterAbility::BasicRanged { energy_cost, .. }
-            | CharacterAbility::SpinMelee { energy_cost, .. }
-            | CharacterAbility::ChargedRanged { energy_cost, .. }
-            | CharacterAbility::ChargedMelee { energy_cost, .. }
-            | CharacterAbility::Shockwave { energy_cost, .. }
-            | CharacterAbility::BasicBlock { energy_cost, .. }
-            | CharacterAbility::SelfBuff { energy_cost, .. }
-            | CharacterAbility::RiposteMelee { energy_cost, .. }
-            | CharacterAbility::ComboMelee2 {
-                energy_cost_per_strike: energy_cost,
+        let from_meta = {
+            let AbilityMeta {
+                requirements: AbilityRequirements { stance },
                 ..
-            } => update.energy.try_change_by(-*energy_cost).is_ok(),
-            // Consumes energy within state, so value only checked before entering state
-            CharacterAbility::RepeaterRanged { energy_cost, .. } => {
-                update.energy.current() >= *energy_cost
-            },
-            CharacterAbility::LeapMelee { energy_cost, .. } => {
-                update.vel.0.z >= 0.0 && update.energy.try_change_by(-*energy_cost).is_ok()
-            },
-            CharacterAbility::LeapShockwave { energy_cost, .. } => {
-                update.vel.0.z >= 0.0 && update.energy.try_change_by(-*energy_cost).is_ok()
-            },
-            CharacterAbility::BasicAura {
-                energy_cost,
-                scales_with_combo,
-                ..
-            } => {
-                ((*scales_with_combo && data.combo.map_or(false, |c| c.counter() > 0))
-                    | !*scales_with_combo)
-                    && update.energy.try_change_by(-*energy_cost).is_ok()
-            },
-            CharacterAbility::FinisherMelee {
-                energy_cost,
-                minimum_combo,
-                ..
+            } = self.ability_meta();
+            stance.map_or(true, |req_stance| {
+                data.stance
+                    .map_or(false, |char_stance| req_stance == *char_stance)
+            })
+        };
+        from_meta
+            && match self {
+                CharacterAbility::Roll { energy_cost, .. } => {
+                    data.physics.on_ground.is_some()
+                        && data.inputs.move_dir.magnitude_squared() > 0.25
+                        && update.energy.try_change_by(-*energy_cost).is_ok()
+                },
+                CharacterAbility::DashMelee { energy_cost, .. }
+                | CharacterAbility::BasicMelee { energy_cost, .. }
+                | CharacterAbility::BasicRanged { energy_cost, .. }
+                | CharacterAbility::SpinMelee { energy_cost, .. }
+                | CharacterAbility::ChargedRanged { energy_cost, .. }
+                | CharacterAbility::ChargedMelee { energy_cost, .. }
+                | CharacterAbility::Shockwave { energy_cost, .. }
+                | CharacterAbility::BasicBlock { energy_cost, .. }
+                | CharacterAbility::SelfBuff { energy_cost, .. }
+                | CharacterAbility::RiposteMelee { energy_cost, .. }
+                | CharacterAbility::ComboMelee2 {
+                    energy_cost_per_strike: energy_cost,
+                    ..
+                } => update.energy.try_change_by(-*energy_cost).is_ok(),
+                // Consumes energy within state, so value only checked before entering state
+                CharacterAbility::RepeaterRanged { energy_cost, .. } => {
+                    update.energy.current() >= *energy_cost
+                },
+                CharacterAbility::LeapMelee { energy_cost, .. }
+                | CharacterAbility::LeapShockwave { energy_cost, .. } => {
+                    update.vel.0.z >= 0.0 && update.energy.try_change_by(-*energy_cost).is_ok()
+                },
+                CharacterAbility::BasicAura {
+                    energy_cost,
+                    scales_with_combo,
+                    ..
+                } => {
+                    ((*scales_with_combo && data.combo.map_or(false, |c| c.counter() > 0))
+                        | !*scales_with_combo)
+                        && update.energy.try_change_by(-*energy_cost).is_ok()
+                },
+                CharacterAbility::FinisherMelee {
+                    energy_cost,
+                    minimum_combo,
+                    ..
+                }
+                | CharacterAbility::RapidMelee {
+                    energy_cost,
+                    minimum_combo,
+                    ..
+                } => {
+                    data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
+                        && update.energy.try_change_by(-*energy_cost).is_ok()
+                },
+                CharacterAbility::DiveMelee {
+                    buildup_duration,
+                    energy_cost,
+                    vertical_speed,
+                    ..
+                } => {
+                    // If either falling fast enough or is on ground and able to be activated from
+                    // ground
+                    (data.vel.0.z < -*vertical_speed
+                        || (data.physics.on_ground.is_some() && buildup_duration.is_some()))
+                        && update.energy.try_change_by(-*energy_cost).is_ok()
+                },
+                CharacterAbility::ComboMelee { .. }
+                | CharacterAbility::Boost { .. }
+                | CharacterAbility::BasicBeam { .. }
+                | CharacterAbility::Blink { .. }
+                | CharacterAbility::Music { .. }
+                | CharacterAbility::BasicSummon { .. }
+                | CharacterAbility::SpriteSummon { .. } => true,
             }
-            | CharacterAbility::RapidMelee {
-                energy_cost,
-                minimum_combo,
-                ..
-            } => {
-                data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
-                    && update.energy.try_change_by(-*energy_cost).is_ok()
-            },
-            CharacterAbility::DiveMelee {
-                buildup_duration,
-                energy_cost,
-                vertical_speed,
-                ..
-            } => {
-                // If either falling fast enough or is on ground and able to be activated from
-                // ground
-                (data.vel.0.z < -*vertical_speed
-                    || (data.physics.on_ground.is_some() && buildup_duration.is_some()))
-                    && update.energy.try_change_by(-*energy_cost).is_ok()
-            },
-            CharacterAbility::ComboMelee { .. }
-            | CharacterAbility::Boost { .. }
-            | CharacterAbility::BasicBeam { .. }
-            | CharacterAbility::Blink { .. }
-            | CharacterAbility::Music { .. }
-            | CharacterAbility::BasicSummon { .. }
-            | CharacterAbility::SpriteSummon { .. } => true,
-        }
     }
 
     pub fn default_roll() -> CharacterAbility {
@@ -2859,6 +2868,14 @@ pub struct AbilityMeta {
     pub capabilities: Capability,
     #[serde(default)]
     pub init_event: Option<AbilityInitEvent>,
+    #[serde(default)]
+    pub requirements: AbilityRequirements,
+}
+
+// TODO: Later move over things like energy and combo into here
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct AbilityRequirements {
+    pub stance: Option<Stance>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]

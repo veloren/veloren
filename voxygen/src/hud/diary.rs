@@ -1591,163 +1591,143 @@ impl<'a> Diary<'a> {
 
         // Sword
         Image::new(self.imgs.sword_bg)
-            .wh([1000.0, 600.0])
+            .wh([1350.0, 920.0])
             .mid_top_with_margin_on(state.ids.content_align, 80.0)
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
             .set(state.ids.sword_bg, ui);
 
         use PositionSpecifier::TopLeftWithMarginsOn;
         let skill_buttons = &[
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::BalancedFinisher),
-            //     ability_id: "common.abilities.sword.balanced_finisher",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 462.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::OffensiveStance),
-            //     ability_id: "common.abilities.sword.offensive_combo",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 389.0, 313.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::OffensiveFinisher),
-            //     ability_id: "common.abilities.sword.offensive_finisher",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 265.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::OffensiveAdvance),
-            //     ability_id: "common.abilities.sword.offensive_advance",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 361.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::CripplingStance),
-            //     ability_id: "common.abilities.sword.crippling_combo",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 164.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::CripplingFinisher),
-            //     ability_id: "common.abilities.sword.crippling_finisher",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 193.0, 164.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::CripplingStrike),
-            //     ability_id: "common.abilities.sword.crippling_strike",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 97.0, 164.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::CripplingGouge),
-            //     ability_id: "common.abilities.sword.crippling_gouge",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 164.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::CleavingStance),
-            //     ability_id: "common.abilities.sword.cleaving_combo",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 15.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::CleavingFinisher),
-            //     ability_id: "common.abilities.sword.cleaving_finisher",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 193.0, 15.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::CleavingSpin),
-            //     ability_id: "common.abilities.sword.cleaving_spin",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 97.0, 15.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::CleavingDive),
-            //     ability_id: "common.abilities.sword.cleaving_dive",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 15.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::DefensiveStance),
-            //     ability_id: "common.abilities.sword.defensive_combo",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 389.0, 611.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::DefensiveBulwark),
-            //     ability_id: "common.abilities.sword.defensive_bulwark",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 659.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::DefensiveRetreat),
-            //     ability_id: "common.abilities.sword.defensive_retreat",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 489.0, 563.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::ParryingStance),
-            //     ability_id: "common.abilities.sword.parrying_combo",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 760.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::ParryingParry),
-            //     ability_id: "common.abilities.sword.parrying_parry",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 193.0, 760.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::ParryingRiposte),
-            //     ability_id: "common.abilities.sword.parrying_riposte",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 97.0, 760.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::ParryingCounter),
-            //     ability_id: "common.abilities.sword.parrying_counter",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 760.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::HeavyStance),
-            //     ability_id: "common.abilities.sword.heavy_combo",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 909.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::HeavyFinisher),
-            //     ability_id: "common.abilities.sword.heavy_finisher",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 193.0, 909.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::HeavyPommelStrike),
-            //     ability_id: "common.abilities.sword.heavy_pommelstrike",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 97.0, 909.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::HeavyFortitude),
-            //     ability_id: "common.abilities.sword.heavy_fortitude",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 909.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::MobilityStance),
-            //     ability_id: "common.abilities.sword.mobility_combo",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 462.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::MobilityFeint),
-            //     ability_id: "common.abilities.sword.mobility_feint",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 313.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::MobilityAgility),
-            //     ability_id: "common.abilities.sword.mobility_agility",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 289.0, 611.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::ReachingStance),
-            //     ability_id: "common.abilities.sword.reaching_combo",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 141.0, 462.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::ReachingCharge),
-            //     ability_id: "common.abilities.sword.reaching_charge",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 367.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::ReachingFlurry),
-            //     ability_id: "common.abilities.sword.reaching_flurry",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 462.0),
-            // },
-            // SkillIcon::Ability {
-            //     skill: Skill::Sword(SwordSkill::ReachingSkewer),
-            //     ability_id: "common.abilities.sword.reaching_skewer",
-            //     position: TopLeftWithMarginsOn(state.ids.sword_bg, 2.0, 558.0),
-            // },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CrescentSlash),
+                ability_id: "veloren.core.pseudo_abilities.sword.crescent_slash",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 760.0, 646.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::FellStrike),
+                ability_id: "veloren.core.pseudo_abilities.sword.fell_strike",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 598.0, 820.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::Skewer),
+                ability_id: "veloren.core.pseudo_abilities.sword.skewer",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 460.0, 804.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::Cascade),
+                ability_id: "veloren.core.pseudo_abilities.sword.cascade",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 594.0, 490.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CrossCut),
+                ability_id: "veloren.core.pseudo_abilities.sword.cross_cut",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 454.0, 492.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::Finisher),
+                ability_id: "veloren.core.pseudo_abilities.sword.finisher",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 450.0, 644.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyWindmillSlash),
+                ability_id: "common.abilities.sword.heavy_windmill_slash",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 656.0, 64.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyPommelStrike),
+                ability_id: "common.abilities.sword.heavy_pommel_strike",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 658.0, 222.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::AgileQuickDraw),
+                ability_id: "common.abilities.sword.agile_quick_draw",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 226.0, 564.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::AgileFeint),
+                ability_id: "common.abilities.sword.agile_feint",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 228.0, 696.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveRiposte),
+                ability_id: "common.abilities.sword.defensive_riposte",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 594.0, 1062.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveDisengage),
+                ability_id: "common.abilities.sword.defensive_disengage",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 592.0, 1194.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingGouge),
+                ability_id: "common.abilities.sword.crippling_gouge",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 162.0, 1050.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingHamstring),
+                ability_id: "common.abilities.sword.crippling_hamstring",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 292.0, 1044.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingWhirlwindSlice),
+                ability_id: "common.abilities.sword.cleaving_whirlwind_slice",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 166.0, 264.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingEarthSplitter),
+                ability_id: "common.abilities.sword.cleaving_earth_splitter",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 320.0, 260.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyFortitude),
+                ability_id: "common.abilities.sword.heavy_fortitude",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 490.0, 60.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::HeavyPillarThrust),
+                ability_id: "common.abilities.sword.heavy_pillar_thrust",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 494.0, 230.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::AgileDancingEdge),
+                ability_id: "common.abilities.sword.agile_dancing_edge",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 100.0, 562.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::AgileFlurry),
+                ability_id: "common.abilities.sword.agile_flurry",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 106.0, 698.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveStalwartSword),
+                ability_id: "common.abilities.sword.defensive_stalwart_sword",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 456.0, 1056.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::DefensiveDeflect),
+                ability_id: "common.abilities.sword.defensive_deflect",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 454.0, 1196.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingEviscerate),
+                ability_id: "common.abilities.sword.crippling_eviscerate",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 288.0, 1192.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CripplingBloodyGash),
+                ability_id: "common.abilities.sword.crippling_bloody_gash",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 158.0, 1190.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingBladeFever),
+                ability_id: "common.abilities.sword.cleaving_blade_fever",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 160.0, 110.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Sword(SwordSkill::CleavingSkySplitter),
+                ability_id: "common.abilities.sword.cleaving_sky_splitter",
+                position: TopLeftWithMarginsOn(state.ids.sword_bg, 318.0, 110.0),
+            },
         ];
 
         state.update(|s| {

@@ -16,4 +16,7 @@ RapidMelee(
     max_strikes: Some(3),
     move_modifier: 0.35,
     ori_modifier: 0.25,
+    meta: (
+        requirements: (stance: Some(Sword(Agile))),
+    ),
 )

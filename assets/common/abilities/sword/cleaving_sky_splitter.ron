@@ -21,4 +21,7 @@ ComboMelee2(
         ),
     ],
     energy_cost_per_strike: 40,
+    meta: (
+        requirements: (stance: Some(Sword(Cleaving))),
+    ),
 )

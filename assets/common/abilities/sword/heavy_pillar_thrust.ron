@@ -23,4 +23,7 @@ DiveMelee(
         multi_target: Some(Normal),
     ),
     max_scaling: 6,
+    meta: (
+        requirements: (stance: Some(Sword(Heavy))),
+    ),
 )
