@@ -14,6 +14,7 @@ hud-map-trees = Jätteträd
 hud-map-tree = Jätteträd
 hud-map-town = Samhälle
 hud-map-castle = Borg
+hud-map-bridge = Bro
 hud-map-dungeon = Dungeon
 hud-map-difficulty_dungeon =
     Dungeon
