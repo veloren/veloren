@@ -1237,6 +1237,8 @@ fn handle_npc_info(
         let _ = writeln!(&mut info, "Seed: {}", npc.seed);
         let _ = writeln!(&mut info, "Profession: {:?}", npc.profession);
         let _ = writeln!(&mut info, "Home: {:?}", npc.home);
+        let _ = writeln!(&mut info, "-- Status --");
+        let _ = writeln!(&mut info, "Current site: {:?}", npc.current_site);
         let _ = writeln!(&mut info, "Current mode: {:?}", npc.mode);
         let _ = writeln!(&mut info, "-- Action State --");
         if let Some(brain) = &npc.brain {

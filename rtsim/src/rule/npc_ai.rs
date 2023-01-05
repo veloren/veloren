@@ -423,7 +423,7 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
 }
 
 fn adventure() -> impl Action {
-    now(|ctx| {
+    choose(|ctx| {
         // Choose a random site that's fairly close by
         if let Some(tgt_site) = ctx
             .state
@@ -441,33 +441,43 @@ fn adventure() -> impl Action {
             .map(|(site_id, _)| site_id)
         {
             // Travel to the site
-            travel_to_site(tgt_site)
+            important(
+                travel_to_site(tgt_site)
                 // Stop for a few minutes
-                .then(villager().stop_if(timeout(60.0 * 3.0)))
+                .then(villager(tgt_site).repeat().stop_if(timeout(60.0 * 3.0)))
                 .map(|_| ())
-                .boxed()
+                .boxed(),
+            )
         } else {
-            finish().boxed()
+            casual(finish().boxed())
         }
     })
+    .debug(move || format!("adventure"))
 }
 
-fn villager() -> impl Action {
-    choose(|ctx| {
-        if let Some(home) = ctx.npc.home {
-            if ctx.npc.current_site != Some(home) {
-                // Travel home if we're not there already
-                urgent(travel_to_site(home).debug(move || format!("travel home")))
-            } else if DayPeriod::from(ctx.time_of_day.0).is_dark() {
-                important(now(move |ctx| {
+fn villager(visiting_site: SiteId) -> impl Action {
+    choose(move |ctx| {
+        if ctx.npc.current_site != Some(visiting_site) {
+            let npc_home = ctx.npc.home;
+            // Travel to the site we're supposed to be in
+            urgent(travel_to_site(visiting_site).debug(move || {
+                if npc_home == Some(visiting_site) {
+                    format!("travel home")
+                } else {
+                    format!("travel to visiting site")
+                }
+            }))
+        } else if DayPeriod::from(ctx.time_of_day.0).is_dark() {
+            important(
+                now(move |ctx| {
                     if let Some(house_wpos) = ctx
                         .state
                         .data()
                         .sites
-                        .get(home)
-                        .and_then(|home| ctx.index.sites.get(home.world_site?).site2())
+                        .get(visiting_site)
+                        .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
                         .and_then(|site2| {
-                            // Find a house
+                            // Find a house in the site we're visiting
                             let house = site2
                                 .plots()
                                 .filter(|p| matches!(p.kind(), PlotKind::House(_)))
@@ -484,57 +494,55 @@ fn villager() -> impl Action {
                     } else {
                         finish().boxed()
                     }
-                }))
-            } else if matches!(
-                ctx.npc.profession,
-                Some(Profession::Merchant | Profession::Blacksmith)
-            ) {
-                // Trade professions just walk between town plazas
-                casual(now(move |ctx| {
-                    // Choose a plaza in the NPC's home site to walk to
-                    if let Some(plaza_wpos) = ctx
-                        .state
-                        .data()
-                        .sites
-                        .get(home)
-                        .and_then(|home| ctx.index.sites.get(home.world_site?).site2())
-                        .and_then(|site2| {
-                            let plaza = &site2.plots[site2.plazas().choose(&mut thread_rng())?];
-                            Some(site2.tile_center_wpos(plaza.root_tile()).as_())
-                        })
-                    {
-                        // Walk to the plaza...
-                        goto_2d(plaza_wpos, 0.5)
-                            .debug(|| "walk to plaza")
-                            // ...then wait for some time before moving on
-                            .then({
-                                let wait_time = thread_rng().gen_range(10.0..30.0);
-                                idle().repeat().stop_if(timeout(wait_time))
-                                    .debug(|| "wait at plaza")
-                            })
-                            .map(|_| ())
-                            .boxed()
-                    } else {
-                        // No plazas? :(
-                        finish().boxed()
-                    }
-                }))
-            } else {
-                casual(idle())
-            }
+                })
+                .debug(|| "find somewhere to sleep"),
+            )
         } else {
-            casual(finish()) // Nothing to do if we're homeless!
+            casual(now(move |ctx| {
+                // Choose a plaza in the site we're visiting to walk to
+                if let Some(plaza_wpos) = ctx
+                    .state
+                    .data()
+                    .sites
+                    .get(visiting_site)
+                    .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
+                    .and_then(|site2| {
+                        let plaza = &site2.plots[site2.plazas().choose(&mut thread_rng())?];
+                        Some(site2.tile_center_wpos(plaza.root_tile()).as_())
+                    })
+                {
+                    // Walk to the plaza...
+                    goto_2d(plaza_wpos, 0.5)
+                        .debug(|| "walk to plaza")
+                        // ...then wait for some time before moving on
+                        .then({
+                            let wait_time = thread_rng().gen_range(10.0..30.0);
+                            idle().repeat().stop_if(timeout(wait_time))
+                                .debug(|| "wait at plaza")
+                        })
+                        .map(|_| ())
+                        .boxed()
+                } else {
+                    // No plazas? :(
+                    finish().boxed()
+                }
+            }))
         }
     })
-    .debug(move || format!("villager"))
+    .debug(move || format!("villager at site {:?}", visiting_site))
 }
 
 fn think() -> impl Action {
     choose(|ctx| {
-        if matches!(ctx.npc.profession, Some(Profession::Adventurer(_))) {
+        if matches!(
+            ctx.npc.profession,
+            Some(Profession::Adventurer(_) | Profession::Merchant)
+        ) {
             casual(adventure())
+        } else if let Some(home) = ctx.npc.home {
+            casual(villager(home))
         } else {
-            casual(villager())
+            casual(finish()) // Homeless
         }
     })
 }
