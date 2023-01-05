@@ -513,15 +513,19 @@ impl NpcData {
         };
 
         let agent = has_agency.then(|| {
-            comp::Agent::from_body(&body)
-                .with_behavior(
-                    Behavior::default()
-                        .maybe_with_capabilities(can_speak.then_some(BehaviorCapability::SPEAK))
-                        .maybe_with_capabilities(trade_for_site.map(|_| BehaviorCapability::TRADE))
-                        .with_trade_site(trade_for_site),
-                )
-                .with_patrol_origin(pos)
-                .with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)) || no_flee)
+            let mut agent = comp::Agent::from_body(&body).with_behavior(
+                Behavior::default()
+                    .maybe_with_capabilities(can_speak.then_some(BehaviorCapability::SPEAK))
+                    .maybe_with_capabilities(trade_for_site.map(|_| BehaviorCapability::TRADE))
+                    .with_trade_site(trade_for_site),
+            );
+
+            // Non-humanoids get a patrol origin to stop them moving too far
+            if !matches!(body, comp::Body::Humanoid(_)) {
+                agent = agent.with_patrol_origin(pos);
+            }
+
+            agent.with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)) || no_flee)
         });
 
         let agent = if matches!(alignment, comp::Alignment::Enemy)

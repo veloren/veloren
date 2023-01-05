@@ -260,19 +260,6 @@ impl<'a> System<'a> for Sys {
                     if let Some(agent) = agent {
                         agent.rtsim_controller.travel_to = npc.goto.map(|(wpos, _)| wpos);
                         agent.rtsim_controller.speed_factor = npc.goto.map_or(1.0, |(_, sf)| sf);
-                        // TODO:
-                        // agent.rtsim_controller.heading_to =
-                        //     npc.pathing.intersite_path.as_ref().
-                        // and_then(|(path, _)| {
-                        //         Some(
-                        //             index
-                        //                 .sites
-                        //
-                        // .get(data.sites.get(path.end)?.world_site?)
-                        //                 .name()
-                        //                 .to_string(),
-                        //         )
-                        //     });
                     }
                 });
         }

@@ -467,7 +467,9 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     format!("travel to visiting site")
                 }
             }))
-        } else if DayPeriod::from(ctx.time_of_day.0).is_dark() {
+        } else if DayPeriod::from(ctx.time_of_day.0).is_dark()
+            && !matches!(ctx.npc.profession, Some(Profession::Guard))
+        {
             important(
                 now(move |ctx| {
                     if let Some(house_wpos) = ctx
