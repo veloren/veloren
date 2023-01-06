@@ -186,6 +186,7 @@ fn do_command(
         ServerChatCommand::Tp => handle_tp,
         ServerChatCommand::TpNpc => handle_tp_npc,
         ServerChatCommand::NpcInfo => handle_npc_info,
+        ServerChatCommand::RtsimChunk => handle_rtsim_chunk,
         ServerChatCommand::Unban => handle_unban,
         ServerChatCommand::Version => handle_version,
         ServerChatCommand::Waypoint => handle_waypoint,
@@ -1260,6 +1261,61 @@ fn handle_npc_info(
     } else {
         Err(action.help_string())
     }
+}
+
+fn handle_rtsim_chunk(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim2::{ChunkStates, RtSim};
+    let pos = position(server, target, "target")?;
+
+    let chunk_key = pos.0.xy().map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+        e as i32 / sz as i32
+    });
+
+    let rtsim = server.state.ecs().read_resource::<RtSim>();
+    let data = rtsim.state().data();
+
+    let chunk_states = rtsim.state().resource::<ChunkStates>();
+    let chunk_state = match chunk_states.0.get(chunk_key) {
+        Some(Some(chunk_state)) => chunk_state,
+        Some(None) => return Err(format!("Chunk {}, {} not loaded", chunk_key.x, chunk_key.y)),
+        None => {
+            return Err(format!(
+                "Chunk {}, {} not within map bounds",
+                chunk_key.x, chunk_key.y
+            ));
+        },
+    };
+
+    let mut info = String::new();
+    let _ = writeln!(
+        &mut info,
+        "-- Chunk {}, {} Resources --",
+        chunk_key.x, chunk_key.y
+    );
+    for (res, frac) in data.nature.get_chunk_resources(chunk_key) {
+        let total = chunk_state.max_res[res];
+        let _ = writeln!(
+            &mut info,
+            "{:?}: {} / {} ({}%)",
+            res,
+            frac * total as f32,
+            total,
+            frac * 100.0
+        );
+    }
+
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(ChatType::CommandInfo, info),
+    );
+
+    Ok(())
 }
 
 fn handle_spawn(

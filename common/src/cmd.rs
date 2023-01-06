@@ -312,6 +312,7 @@ pub enum ServerChatCommand {
     Tp,
     TpNpc,
     NpcInfo,
+    RtsimChunk,
     Unban,
     Version,
     Waypoint,
@@ -691,6 +692,11 @@ impl ServerChatCommand {
                 "Display information about an rtsim NPC",
                 Some(Moderator),
             ),
+            ServerChatCommand::RtsimChunk => cmd(
+                vec![],
+                "Display information about the current chunk from rtsim",
+                Some(Moderator),
+            ),
             ServerChatCommand::Unban => cmd(
                 vec![PlayerName(Required)],
                 "Remove the ban for the given username",
@@ -815,6 +821,7 @@ impl ServerChatCommand {
             ServerChatCommand::Tp => "tp",
             ServerChatCommand::TpNpc => "tp_npc",
             ServerChatCommand::NpcInfo => "npc_info",
+            ServerChatCommand::RtsimChunk => "rtsim_chunk",
             ServerChatCommand::Unban => "unban",
             ServerChatCommand::Version => "version",
             ServerChatCommand::Waypoint => "waypoint",

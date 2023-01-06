@@ -1,0 +1,41 @@
+use crate::{event::OnTick, RtState, Rule, RuleError};
+use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use rand::prelude::*;
+use tracing::info;
+use vek::*;
+
+pub struct ReplenishResources;
+
+/// Take 1 hour to replenish resources entirely. Makes farming unviable, but
+/// probably still poorly balanced.
+// TODO: Different rates for different resources?
+// TODO: Non-renewable resources?
+pub const REPLENISH_TIME: f32 = 60.0 * 60.0;
+/// How many chunks should be replenished per tick?
+pub const REPLENISH_PER_TICK: usize = 100000;
+
+impl Rule for ReplenishResources {
+    fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
+        rtstate.bind::<Self, OnTick>(|ctx| {
+            let world_size = ctx.world.sim().get_size();
+            let mut data = ctx.state.data_mut();
+
+            // How much should be replenished for each chosen chunk to hit our target
+            // replenishment rate?
+            let replenish_amount = world_size.product() as f32 * ctx.event.dt
+                / REPLENISH_TIME
+                / REPLENISH_PER_TICK as f32;
+            for _ in 0..REPLENISH_PER_TICK {
+                let key = world_size.map(|e| thread_rng().gen_range(0..e as i32));
+
+                let mut res = data.nature.get_chunk_resources(key);
+                for (_, res) in &mut res {
+                    *res = (*res + replenish_amount).clamp(0.0, 1.0);
+                }
+                data.nature.set_chunk_resources(key, res);
+            }
+        });
+
+        Ok(Self)
+    }
+}

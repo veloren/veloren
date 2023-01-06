@@ -208,11 +208,11 @@ impl RtSim {
     pub fn state(&self) -> &RtState { &self.state }
 }
 
-struct ChunkStates(pub Grid<Option<LoadedChunkState>>);
+pub struct ChunkStates(pub Grid<Option<LoadedChunkState>>);
 
-struct LoadedChunkState {
+pub struct LoadedChunkState {
     // The maximum possible number of each resource in this chunk
-    max_res: EnumMap<ChunkResource, usize>,
+    pub max_res: EnumMap<ChunkResource, usize>,
 }
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {

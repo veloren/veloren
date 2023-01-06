@@ -1,14 +1,11 @@
 use crate::rtsim2::{event::OnBlockChange, ChunkStates};
 use common::{terrain::TerrainChunk, vol::RectRasterableVol};
 use rtsim2::{RtState, Rule, RuleError};
-use tracing::info;
 
 pub struct DepleteResources;
 
 impl Rule for DepleteResources {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
-        info!("Hello from the resource depletion rule!");
-
         rtstate.bind::<Self, OnBlockChange>(|ctx| {
             let key = ctx
                 .event
@@ -35,7 +32,7 @@ impl Rule for DepleteResources {
                             / chunk_state.max_res[res] as f32;
                     }
                 }
-                println!("Chunk resources = {:?}", chunk_res);
+                //println!("Chunk resources = {:?}", chunk_res);
                 ctx.state
                     .data_mut()
                     .nature

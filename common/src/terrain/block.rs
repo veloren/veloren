@@ -200,6 +200,37 @@ impl Block {
     #[inline]
     pub fn get_rtsim_resource(&self) -> Option<rtsim::ChunkResource> {
         match self.get_sprite()? {
+            SpriteKind::Stones => Some(rtsim::ChunkResource::Stone),
+            SpriteKind::Twigs
+                | SpriteKind::Wood
+                | SpriteKind::Bamboo
+                | SpriteKind::Hardwood
+                | SpriteKind::Ironwood
+                | SpriteKind::Frostwood
+                | SpriteKind::Eldwood => Some(rtsim::ChunkResource::Wood),
+            SpriteKind::Amethyst
+                | SpriteKind::Ruby
+                | SpriteKind::Sapphire
+                | SpriteKind::Emerald
+                | SpriteKind::Topaz
+                | SpriteKind::Diamond
+                | SpriteKind::AmethystSmall
+                | SpriteKind::TopazSmall
+                | SpriteKind::DiamondSmall
+                | SpriteKind::RubySmall
+                | SpriteKind::EmeraldSmall
+                | SpriteKind::SapphireSmall
+                | SpriteKind::CrystalHigh
+                | SpriteKind::CrystalLow => Some(rtsim::ChunkResource::Gem),
+            SpriteKind::Bloodstone
+                | SpriteKind::Coal
+                | SpriteKind::Cobalt
+                | SpriteKind::Copper
+                | SpriteKind::Iron
+                | SpriteKind::Tin
+                | SpriteKind::Silver
+                | SpriteKind::Gold => Some(rtsim::ChunkResource::Ore),
+
             SpriteKind::LongGrass
                 | SpriteKind::MediumGrass
                 | SpriteKind::ShortGrass
@@ -209,9 +240,48 @@ impl Block {
                 | SpriteKind::SavannaGrass
                 | SpriteKind::TallSavannaGrass
                 | SpriteKind::RedSavannaGrass
-                | SpriteKind::JungleRedGrass => Some(rtsim::ChunkResource::Grass),
-            SpriteKind::WildFlax => Some(rtsim::ChunkResource::Flax),
-            SpriteKind::Cotton => Some(rtsim::ChunkResource::Cotton),
+                | SpriteKind::JungleRedGrass
+                | SpriteKind::Fern => Some(rtsim::ChunkResource::Grass),
+            SpriteKind::BlueFlower
+                | SpriteKind::PinkFlower
+                | SpriteKind::PurpleFlower
+                | SpriteKind::RedFlower
+                | SpriteKind::WhiteFlower
+                | SpriteKind::YellowFlower
+                | SpriteKind::Sunflower
+                | SpriteKind::Moonbell
+                | SpriteKind::Pyrebloom => Some(rtsim::ChunkResource::Flower),
+            SpriteKind::Reed
+                | SpriteKind::Flax
+                | SpriteKind::WildFlax
+                | SpriteKind::Cotton
+                | SpriteKind::Corn
+                | SpriteKind::WheatYellow
+                | SpriteKind::WheatGreen => Some(rtsim::ChunkResource::Plant),
+            SpriteKind::Apple
+                | SpriteKind::Pumpkin
+                | SpriteKind::Beehive // TODO: Not a fruit, but kind of acts like one
+                | SpriteKind::Coconut => Some(rtsim::ChunkResource::Fruit),
+            SpriteKind::Cabbage
+                | SpriteKind::Carrot
+                | SpriteKind::Tomato
+                | SpriteKind::Radish
+                | SpriteKind::Turnip => Some(rtsim::ChunkResource::Vegetable),
+            SpriteKind::Mushroom
+                | SpriteKind::CaveMushroom
+                | SpriteKind::CeilingMushroom => Some(rtsim::ChunkResource::Mushroom),
+
+            SpriteKind::Chest
+                | SpriteKind::ChestBuried
+                | SpriteKind::PotionMinor
+                | SpriteKind::DungeonChest0
+                | SpriteKind::DungeonChest1
+                | SpriteKind::DungeonChest2
+                | SpriteKind::DungeonChest3
+                | SpriteKind::DungeonChest4
+                | SpriteKind::DungeonChest5
+                | SpriteKind::CoralChest
+                | SpriteKind::Crate => Some(rtsim::ChunkResource::Loot),
             _ => None,
         }
     }

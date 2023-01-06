@@ -94,9 +94,25 @@ pub enum ChunkResource {
     #[serde(rename = "0")]
     Grass,
     #[serde(rename = "1")]
-    Flax,
+    Flower,
     #[serde(rename = "2")]
-    Cotton,
+    Fruit,
+    #[serde(rename = "3")]
+    Vegetable,
+    #[serde(rename = "4")]
+    Mushroom,
+    #[serde(rename = "5")]
+    Loot, // Chests, boxes, potions, etc.
+    #[serde(rename = "6")]
+    Plant, // Flax, cotton, wheat, corn, etc.
+    #[serde(rename = "7")]
+    Stone,
+    #[serde(rename = "8")]
+    Wood, // Twigs, logs, bamboo, etc.
+    #[serde(rename = "9")]
+    Gem, // Amethyst, diamond, etc.
+    #[serde(rename = "a")]
+    Ore, // Iron, copper, etc.
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

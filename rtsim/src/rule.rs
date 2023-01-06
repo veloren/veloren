@@ -1,4 +1,5 @@
 pub mod npc_ai;
+pub mod replenish_resources;
 pub mod setup;
 pub mod simulate_npcs;
 

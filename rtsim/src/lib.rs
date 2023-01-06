@@ -62,6 +62,7 @@ impl RtState {
     fn start_default_rules(&mut self) {
         info!("Starting default rtsim rules...");
         self.start_rule::<rule::setup::Setup>();
+        self.start_rule::<rule::replenish_resources::ReplenishResources>();
         self.start_rule::<rule::simulate_npcs::SimulateNpcs>();
         self.start_rule::<rule::npc_ai::NpcAi>();
     }
