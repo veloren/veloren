@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [0.14.0] - 2022-01-07
+
+### Added
+
 - Setting for disabling flashing lights
 - Spectate mode for moderators.
 - Currently playing music track and artist now shows in the debug menu.
@@ -1074,7 +1084,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _0.1.0 was part of the legacy engine_
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.13.0&to=master
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.14.0&to=master
+[0.14.0]: https://gitlab.com/veloren/veloren/compare?from=v0.13.0&to=v0.14.0
 [0.13.0]: https://gitlab.com/veloren/veloren/compare?from=v0.12.0&to=v0.13.0
 [0.12.0]: https://gitlab.com/veloren/veloren/compare?from=v0.11.0&to=v0.12.0
 [0.11.0]: https://gitlab.com/veloren/veloren/compare?from=v0.10.0&to=v0.11.0
