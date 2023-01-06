@@ -5,6 +5,8 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2021"
 
 [features]
+use-dyn-lib = ["common-dynlib"]
+be-dyn-lib = []
 simd = ["vek/platform_intrinsics", "packed_simd"]
 bin_compression = ["lz-fear", "deflate", "flate2", "image/jpeg", "num-traits", "fallible-iterator", "clap", "rstar"]
 
@@ -14,6 +16,7 @@ default = ["simd"]
 common = { package = "veloren-common", path = "../common" }
 common_base = { package = "veloren-common-base", path = "../common/base"}
 common-net = { package = "veloren-common-net", path = "../common/net" }
+common-dynlib = {package = "veloren-common-dynlib", path = "../common/dynlib", optional = true}
 
 bincode = "1.3.1"
 bitvec = "1.0.1"
@@ -38,6 +41,9 @@ ron = { version = "0.8", default-features = false }
 inline_tweak = "1.0.2"
 kiddo = "0.2"
 strum = "0.24.0"
+
+[target.'cfg(windows)'.dependencies]
+mimalloc = "0.1.29"
 
 # compression benchmarks
 lz-fear = { version = "0.1.1", optional = true }

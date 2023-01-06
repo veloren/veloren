@@ -79,7 +79,11 @@ impl GiantTree {
 }
 
 impl Structure for GiantTree {
-    fn render(&self, _site: &Site, _land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_gianttree\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_gianttree")]
+    fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let fast_noise = FastNoise::new(self.seed);
         let dark = Rgb::new(10, 70, 50).map(|e| e as f32);
         let light = Rgb::new(80, 140, 10).map(|e| e as f32);

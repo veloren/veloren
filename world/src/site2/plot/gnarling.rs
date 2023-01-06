@@ -436,7 +436,11 @@ impl GnarlingFortification {
 }
 
 impl Structure for GnarlingFortification {
-    fn render(&self, _site: &Site, land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_gnarlingfortification\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_gnarlingfortification")]
+    fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         // Create outer wall
         for (point, next_point) in self.wall_segments.iter() {
             // This adds additional points for the wall on the line between two points,

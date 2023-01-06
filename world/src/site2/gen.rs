@@ -1,3 +1,6 @@
+#[cfg(feature = "use-dyn-lib")]
+use {crate::LIB, std::ffi::CStr};
+
 use super::*;
 use crate::{
     block::block_from_structure,
@@ -1339,7 +1342,41 @@ impl<const N: usize> PrimitiveGroupFill<N> for [PrimitiveRef<'_>; N] {
 }
 
 pub trait Structure {
-    fn render(&self, site: &Site, land: &Land, painter: &Painter);
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8];
+
+    fn render_inner(&self, site: &Site, land: &Land, painter: &Painter);
+
+    fn render(&self, site: &Site, land: &Land, painter: &Painter) {
+        #[cfg(not(feature = "use-dyn-lib"))]
+        {
+            self.render_inner(site, land, painter);
+        }
+        #[cfg(feature = "use-dyn-lib")]
+        {
+            let lock = LIB.lock().unwrap();
+            let lib = &lock.as_ref().unwrap().lib;
+
+            let update_fn: common_dynlib::Symbol<fn(&Self, &Site, &Land, &Painter)> = unsafe {
+                //let start = std::time::Instant::now();
+                // Overhead of 0.5-5 us (could use hashmap to mitigate if this is an issue)
+                lib.get(Self::UPDATE_FN)
+                //println!("{}", start.elapsed().as_nanos());
+            }
+            .unwrap_or_else(|e| {
+                panic!(
+                    "Trying to use: {} but had error: {:?}",
+                    CStr::from_bytes_with_nul(Self::UPDATE_FN)
+                        .map(CStr::to_str)
+                        .unwrap()
+                        .unwrap(),
+                    e
+                )
+            });
+
+            update_fn(self, site, land, painter);
+        }
+    }
 
     // Generate a primitive tree and fills for this structure
     fn render_collect(

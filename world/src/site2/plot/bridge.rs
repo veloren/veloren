@@ -944,7 +944,11 @@ impl Bridge {
 }
 
 impl Structure for Bridge {
-    fn render(&self, _site: &Site, _land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_bridge\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_bridge")]
+    fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         match &self.kind {
             BridgeKind::Flat => render_flat(self, painter),
             BridgeKind::Tower(roof) => render_tower(self, painter, roof),

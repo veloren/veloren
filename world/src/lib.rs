@@ -1,4 +1,3 @@
-#![deny(unsafe_code)]
 #![allow(incomplete_features)]
 #![allow(
     clippy::option_map_unit_fn,
@@ -62,6 +61,25 @@ use rayon::iter::ParallelIterator;
 use serde::Deserialize;
 use std::time::Duration;
 use vek::*;
+
+#[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
+compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
+
+#[cfg(all(target_os = "windows", feature = "be-dyn-lib"))]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
+#[cfg(feature = "use-dyn-lib")]
+use {common_dynlib::LoadedLib, lazy_static::lazy_static, std::sync::Arc, std::sync::Mutex};
+
+#[cfg(feature = "use-dyn-lib")]
+lazy_static! {
+    pub static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
+        common_dynlib::init("veloren-world", "world");
+}
+
+#[cfg(feature = "use-dyn-lib")]
+pub fn init() { lazy_static::initialize(&LIB); }
 
 #[derive(Debug)]
 pub enum Error {
