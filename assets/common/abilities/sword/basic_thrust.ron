@@ -2,7 +2,7 @@ ChargedMelee(
     energy_cost: 0,
     energy_drain: 0,
     melee_constructor: (
-        kind: Slash(
+        kind: Stab(
             damage: 0,
             poise: 0,
             knockback: 0,
