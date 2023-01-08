@@ -137,80 +137,80 @@ common-abilities-sword-cleaving_bladestorm = Bladestorm
 common-abilities-sword-heavy_windmill_slash = Windmill Slash
     .desc =
         Double overhead swings that can heavily stagger
-        Use this ability to enter heavy stance
+        Enters heavy stance
 common-abilities-sword-heavy_pommel_strike = Pommel Strike
     .desc =
         Concuss your foe with a blunt strike to the head
-        Use this ability to enter heavy stance
+        Enters heavy stance
 common-abilities-sword-agile_quick_draw = Quick Draw
     .desc =
         Dash forward as you draw your blade for a quick attack
-        Use this ability to enter agile stance
+        Enters agile stance
 common-abilities-sword-agile_feint = Feint
     .desc =
         Step to the side then back before striking
-        Use this ability to enter agile stance
+        Enters agile stance
 common-abilities-sword-defensive_riposte = Riposte
     .desc =
         Parry a strike before instantly counter-attacking
-        Use this ability to enter defensive stance
+        Enters defensive stance
 common-abilities-sword-defensive_disengage = Disengage
     .desc =
         Retreat backwards a step after striking
-        Use this ability to enter defensive stance
+        Enters defensive stance
 common-abilities-sword-crippling_gouge = Gouge
     .desc =
         Inflict a lasting wound on your enemy that will continue to bleed
-        Use this ability to enter crippling stance
+        Enters crippling stance
 common-abilities-sword-crippling_hamstring = Hamstring
     .desc =
         Injure the tendons of your foe, leaving them less maneuverable
-        Use this ability to enter crippling stance
+        Enters crippling stance
 common-abilities-sword-cleaving_whirlwind_slice = Whirlwind Slice
     .desc =
         Strike all surrounding enemies with circular attacks
-        Use this ability to enter cleaving stance
+        Enters cleaving stance
 common-abilities-sword-cleaving_earth_splitter = Earth Splitter
     .desc =
         Split the earth, if used while falling will have a much stronger impact
-        Use this ability to enter cleaving stance
+        Enters cleaving stance
 common-abilities-sword-heavy_fortitude = Fortitude
     .desc =
         Increases stagger resistance and as you take more damage your attacks will be more staggering
-        Must be in heavy stance to use this ability
+        Requires heavy stance
 common-abilities-sword-heavy_pillar_thrust = Pillar Thrust
     .desc =
         Stab your sword down through the enemy, all the way into the ground, is more powerful if used while falling
-        Must be in heavy stance to use this ability
+        Requires heavy stance
 common-abilities-sword-agile_dancing_edge = Dancing Edge
     .desc =
         Move and attack more swiftly
-        Must be in agile stance to use this ability
+        Requires agile stance
 common-abilities-sword-agile_flurry = Flurry
     .desc =
         Multiple rapid stabs
-        Must be in agile stance to use this ability
+        Requires agile stance
 common-abilities-sword-defensive_stalwart_sword = Stalwart Sword
     .desc =
         Shrug off the brunt of attacks, incoming damage is reduced
-        Must be in defensive stance to use this ability
+        Requires defensive stance
 common-abilities-sword-defensive_deflect = Deflect
     .desc =
         A swift enough maneuver to even block projectiles
-        Must be in defensive stance to use this ability
+        Requires defensive stance
 common-abilities-sword-crippling_eviscerate = Eviscerate
     .desc =
         Shreds wounds further, deals more damage to crippled enemies
-        Must be in crippling stance to use this ability
+        Requires crippling stance
 common-abilities-sword-crippling_bloody_gash = Bloody Gash
     .desc =
         Cruelly strike an already bleeding wound, does more damage to bleeding enemies
-        Must be in crippling stance to use this ability
+        Requires crippling stance
 common-abilities-sword-cleaving_blade_fever = Blade Fever
     .desc =
         Attack more recklessly, increasing the power of your strikes while leaving yourself open to incoming attacks
-        Must be in cleaving stance to use this ability
+        Requires cleaving stance
 common-abilities-sword-cleaving_sky_splitter = Sky Splitter
     .desc =
         A powerful strike that purportedly can even split the sky, but will split through enemies
-        Must be in cleaving stance to use this ability
+        Requires cleaving stance

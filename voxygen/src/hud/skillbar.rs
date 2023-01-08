@@ -932,7 +932,7 @@ impl<'a> Skillbar<'a> {
             background_color: None,
             content_size: ContentSize {
                 width_height_ratio: 1.0,
-                max_fraction: 0.8, /* Changes the item image size by setting a maximum fraction
+                max_fraction: 0.9, /* Changes the item image size by setting a maximum fraction
                                     * of either the width or height */
             },
             selected_content_scale: 1.0,
