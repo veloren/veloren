@@ -95,6 +95,11 @@
           NIX_GIT_HASH = "";
           NIX_GIT_TAG = "";
         };
+        assets = pkgs.runCommand "veloren-assets" {} ''
+          mkdir $out
+          ln -sf ${./assets} $out/assets
+          ${checkIfLfsIsSetup pkgs "$out/assets/voxygen/background/bg_main.jpg"}
+        '';
         wrapWithAssets = _: old: let
           runtimeLibs = with pkgs; [
             xorg.libX11
@@ -108,11 +113,6 @@
             alsa-lib
             vulkan-loader
           ];
-          assets = pkgs.runCommand "veloren-assets" {} ''
-            mkdir $out
-            ln -sf ${./assets} $out/assets
-            ${checkIfLfsIsSetup pkgs "$out/assets/voxygen/background/bg_main.jpg"}
-          '';
           wrapped =
             common.internal.pkgsSet.utils.wrapDerivation old
             {nativeBuildInputs = [pkgs.makeWrapper];}
@@ -143,6 +143,7 @@
               ncl.addNativeBuildInputs oldAttrs (with pkgs; [python3 pkg-config]);
 
             SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
+            VELOREN_ASSETS = "${assets}";
 
             doCheck = false;
             dontCheck = true;
