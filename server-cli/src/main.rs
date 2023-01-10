@@ -91,7 +91,7 @@ fn main() -> io::Result<()> {
     {
         agent::init();
     }
-    #[cfg(feature = "hot-site2")]
+    #[cfg(feature = "hot-site")]
     {
         world::init();
     }

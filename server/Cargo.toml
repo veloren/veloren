@@ -11,7 +11,7 @@ plugins = ["common-state/plugins"]
 persistent_world = []
 hot-reloading = ["common/hot-reloading"]
 hot-agent = ["server-agent/use-dyn-lib"]
-hot-site2 = ["world/use-dyn-lib"]
+hot-site = ["world/use-dyn-lib"]
 
 default = ["worldgen", "plugins", "persistent_world", "simd"]
 
