@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Command to toggle experimental shaders.
 
 ### Changed
 
@@ -15,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-## [0.14.0] - 2022-01-07
+## [0.14.0] - 2023-01-07
 
 ### Added
 
