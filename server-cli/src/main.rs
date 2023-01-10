@@ -91,6 +91,10 @@ fn main() -> io::Result<()> {
     {
         agent::init();
     }
+    #[cfg(feature = "hot-site")]
+    {
+        world::init();
+    }
 
     // Load server settings
     let mut server_settings = server::Settings::load(&server_data_dir);

@@ -101,7 +101,11 @@ impl Citadel {
 }
 
 impl Structure for Citadel {
-    fn render(&self, _site: &Site, land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_citadel\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_citadel")]
+    fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         for (pos, cell) in self.grid.iter_area(
             self.wpos_cell(painter.render_aabr().min) - 1,
             Vec2::<i32>::from(painter.render_aabr().size()) / CELL_SIZE + 2,

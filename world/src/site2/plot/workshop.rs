@@ -40,7 +40,11 @@ impl Workshop {
 }
 
 impl Structure for Workshop {
-    fn render(&self, _site: &Site, _land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_workshop\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_workshop")]
+    fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let brick = Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 24);
 
         let base = self.alt + 1;

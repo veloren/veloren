@@ -42,7 +42,11 @@ impl Castle {
 }
 
 impl Structure for Castle {
-    fn render(&self, site: &Site, _land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_castle\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_castle")]
+    fn render_inner(&self, site: &Site, _land: &Land, painter: &Painter) {
         let wall_height = 24;
         let parapet_height = 2;
         let parapet_gap = 2;

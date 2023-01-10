@@ -1377,7 +1377,11 @@ impl Floor {
 }
 
 impl SiteStructure for Dungeon {
-    fn render(&self, _site: &Site, land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_dungeon\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_dungeon")]
+    fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         let origin = (self.origin + Vec2::broadcast(TILE_SIZE / 2)).with_z(self.alt + ALT_OFFSET);
 
         lazy_static! {

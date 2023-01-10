@@ -43,7 +43,11 @@ impl CliffTower {
 }
 
 impl Structure for CliffTower {
-    fn render(&self, _site: &Site, _land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_clifftower\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_clifftower")]
+    fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 1;
         let center = self.bounds.center();
         let variant_pos = center.with_z(base);

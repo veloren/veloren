@@ -92,7 +92,11 @@ impl House {
 const STOREY: i32 = 5;
 
 impl Structure for House {
-    fn render(&self, site: &Site, _land: &Land, painter: &Painter) {
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"render_house\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_house")]
+    fn render_inner(&self, site: &Site, _land: &Land, painter: &Painter) {
         let storey = STOREY;
         let roof = storey * self.levels as i32 - 1;
         let foundations = 12;
