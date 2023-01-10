@@ -1,12 +1,16 @@
 use std::str::FromStr;
 
-use crate::GlobalState;
+use crate::{
+    render::ExperimentalShader, session::settings_change::change_render_mode, GlobalState,
+};
 use client::Client;
 use common::{cmd::*, parse_cmd_args, uuid::Uuid};
+use strum::IntoEnumIterator;
 
 // Please keep this sorted alphabetically, same as with server commands :-)
 #[derive(Clone, Copy, strum::EnumIter)]
 pub enum ClientChatCommand {
+    ExperimentalShader,
     Mute,
     Unmute,
 }
@@ -27,6 +31,17 @@ impl ClientChatCommand {
                 "Unmutes a player muted with the 'mute' command.",
                 None,
             ),
+            ClientChatCommand::ExperimentalShader => cmd(
+                vec![Enum(
+                    "Shader",
+                    ExperimentalShader::iter()
+                        .map(|item| item.to_string())
+                        .collect(),
+                    Optional,
+                )],
+                "Toggles an experimental shader.",
+                None,
+            ),
         }
     }
 
@@ -34,6 +49,7 @@ impl ClientChatCommand {
         match self {
             ClientChatCommand::Mute => "mute",
             ClientChatCommand::Unmute => "unmute",
+            ClientChatCommand::ExperimentalShader => "experimental_shader",
         }
     }
 
@@ -145,10 +161,13 @@ fn run_client_command(
     command: ClientChatCommand,
     args: Vec<String>,
 ) -> Result<String, String> {
-    match command {
-        ClientChatCommand::Mute => handle_mute(client, global_state, args),
-        ClientChatCommand::Unmute => handle_unmute(client, global_state, args),
-    }
+    let command = match command {
+        ClientChatCommand::Mute => handle_mute,
+        ClientChatCommand::Unmute => handle_unmute,
+        ClientChatCommand::ExperimentalShader => handle_experimental_shader,
+    };
+
+    command(client, global_state, args)
 }
 
 fn handle_mute(
@@ -212,6 +231,60 @@ fn handle_unmute(
         }
     } else {
         Err("You must specify a player to unmute.".to_string())
+    }
+}
+
+fn handle_experimental_shader(
+    _client: &Client,
+    global_state: &mut GlobalState,
+    args: Vec<String>,
+) -> Result<String, String> {
+    if args.is_empty() {
+        ExperimentalShader::iter()
+            .map(|s| {
+                let is_active = global_state
+                    .settings
+                    .graphics
+                    .render_mode
+                    .experimental_shaders
+                    .contains(&s);
+                format!("[{}] {}", if is_active { "x" } else { "  " }, s)
+            })
+            .reduce(|mut a, b| {
+                a.push('\n');
+                a.push_str(&b);
+                a
+            })
+            .ok_or("There are no experimental shaders.".to_string())
+    } else if let Some(item) = parse_cmd_args!(args, String) {
+        if let Ok(shader) = ExperimentalShader::from_str(&item) {
+            let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
+            let res = if new_render_mode.experimental_shaders.remove(&shader) {
+                Ok(format!("Disabled {item}."))
+            } else {
+                new_render_mode.experimental_shaders.insert(shader);
+                Ok(format!("Enabled {item}."))
+            };
+
+            change_render_mode(
+                new_render_mode,
+                &mut global_state.window,
+                &mut global_state.settings,
+            );
+
+            res
+        } else {
+            Err(format!(
+                "{item} is not an expermimental shader, use this command with any arguments to \
+                 see a complete list."
+            ))
+        }
+    } else {
+        Err(
+            "You must specify a valid experimental shader, to get a list of experimental shaders, \
+             use this command without any arguments."
+                .to_string(),
+        )
     }
 }
 

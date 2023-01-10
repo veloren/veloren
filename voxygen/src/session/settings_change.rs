@@ -11,7 +11,7 @@ use crate::{
         audio::AudioVolume, AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings,
         GameplaySettings, GraphicsSettings, InterfaceSettings,
     },
-    window::FullScreenSettings,
+    window::{FullScreenSettings, Window},
     GlobalState,
 };
 use i18n::{LanguageMetadata, LocalizationHandle};
@@ -465,13 +465,7 @@ impl SettingsChange {
                         settings.graphics.ambiance = new_ambiance;
                     },
                     Graphics::ChangeRenderMode(new_render_mode) => {
-                        // Do this first so if it crashes the setting isn't saved :)
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_render_mode((*new_render_mode).clone())
-                            .unwrap();
-                        settings.graphics.render_mode = *new_render_mode;
+                        change_render_mode(*new_render_mode, &mut global_state.window, settings);
                     },
                     Graphics::ChangeFullscreenMode(new_fullscreen_settings) => {
                         global_state
@@ -740,6 +734,19 @@ impl SettingsChange {
 }
 
 use crate::settings::Settings;
+
+pub fn change_render_mode(
+    new_render_mode: RenderMode,
+    window: &mut Window,
+    settings: &mut Settings,
+) {
+    // Do this first so if it crashes the setting isn't saved :)
+    window
+        .renderer_mut()
+        .set_render_mode(new_render_mode.clone())
+        .unwrap();
+    settings.graphics.render_mode = new_render_mode;
+}
 
 fn adjust_terrain_view_distance(
     terrain_vd: u32,
