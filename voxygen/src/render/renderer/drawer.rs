@@ -223,14 +223,24 @@ impl<'frame> Drawer<'frame> {
         let mut render_pass =
             encoder.scoped_render_pass("first_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("first pass"),
-                color_attachments: &[wgpu::RenderPassColorAttachment {
-                    view: &self.borrow.views.tgt_color,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                        store: true,
+                color_attachments: &[
+                    wgpu::RenderPassColorAttachment {
+                        view: &self.borrow.views.tgt_color,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: true,
+                        },
                     },
-                }],
+                    wgpu::RenderPassColorAttachment {
+                        view: &self.borrow.views.tgt_mat,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: true,
+                        },
+                    },
+                ],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.borrow.views.tgt_depth,
                     depth_ops: Some(wgpu::Operations {

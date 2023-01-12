@@ -32,6 +32,7 @@ layout(set = 2, binding = 1)
 uniform sampler s_col_light;
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -65,9 +66,8 @@ void main() {
 #endif
     float moon_shade_frac = 1.0;
 
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac);
 
     vec3 surf_color = f_col;
     float alpha = 1.0;
@@ -117,13 +117,18 @@ void main() {
     emitted_light += glow * cam_attenuation;
 
     float ao = f_ao;
-    emitted_light *= ao;
     reflected_light *= ao;
+    emitted_light *= ao;
+
+    float point_shadow = shadow_at(f_pos, f_norm);
+    reflected_light *= point_shadow;
+    emitted_light *= point_shadow;
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
     surf_color += f_select * (surf_color + 0.1) * vec3(0.15, 0.15, 0.15);
 
     tgt_color = vec4(surf_color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1));
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
     //tgt_color = vec4(-f_norm, 1.0);
 }

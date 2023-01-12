@@ -83,6 +83,7 @@ uniform u_bones {
 };
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 void main() {
     // vec2 texSize = textureSize(t_col_light, 0);
@@ -159,9 +160,8 @@ void main() {
     // float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
     // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, /*sun_pos*/f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac/*, light_pos*/);
 
     vec3 surf_color;
     // If the figure is large enough to be 'terrain-like', we apply a noise effect to it
@@ -241,23 +241,30 @@ void main() {
     // TODO: Hack to add a small amount of underground ambient light to the scene
     reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
 
-    float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+    // Apply baked lighting from emissive blocks
+    float glow_mag = length(model_glow.xyz);
+    vec3 glow = pow(model_glow.w, 2) * 4
+        * glow_light(f_pos)
+        * (max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
+    emitted_light += glow * cam_attenuation;
 
+    // Apply baked AO
+    float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+    reflected_light *= ao;
+    emitted_light *= ao;
+
+    // Apply point light AO
+    float point_shadow = shadow_at(f_pos, f_norm);
+    reflected_light *= point_shadow;
+    emitted_light *= point_shadow;
+
+    // Apply emissive glow
     // For now, just make glowing material light be the same colour as the surface
     // TODO: Add a way to control this better outside the shaders
     if ((material & (1u << 0u)) > 0u) {
         emitted_light += 20 * surf_color;
     }
 
-    float glow_mag = length(model_glow.xyz);
-    vec3 glow = pow(model_glow.w, 2) * 4
-        * glow_light(f_pos)
-        * (max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
-
-    emitted_light += glow * cam_attenuation;
-
-    reflected_light *= ao;
-    emitted_light *= ao;
     /* reflected_light *= cloud_shadow(f_pos); */
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
@@ -299,4 +306,5 @@ void main() {
     // }
 
     tgt_color = vec4(surf_color, 1.0);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
 }

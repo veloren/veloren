@@ -52,6 +52,12 @@
 #define MEDIUM_AIR 0
 #define MEDIUM_WATER 1
 
+#define MAT_SKY 0
+#define MAT_BLOCK 1
+#define MAT_FLUID 2
+#define MAT_FIGURE 3
+#define MAT_LOD 4
+
 // An arbitrary value that represents a very far distance (at least as far as the player should be able to see) without
 // being too far that we end up with precision issues (used in clouds and elsewhere).
 #define DIST_CAP 50000

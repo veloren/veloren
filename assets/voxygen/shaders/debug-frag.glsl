@@ -27,13 +27,12 @@ uniform texture2D t_col_light;
 layout(set = 2, binding = 1)
 uniform sampler s_col_light;
 
-layout (location = 0)
-out vec4 tgt_color;
+layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 void main() {
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     vec3 view_dir = -cam_to_frag;
-    float point_shadow = shadow_at(f_pos, f_norm);
 
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
     float f_alt = alt_at(f_pos.xy);
@@ -49,8 +48,8 @@ void main() {
 #endif
     float moon_shade_frac = 1.0;
 
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac);
 
     vec3 surf_color = f_color.xyz;
     float alpha = 1.0;
@@ -74,8 +73,13 @@ void main() {
     max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+
+    float point_shadow = shadow_at(f_pos, f_norm);
+    reflected_light *= point_shadow;
+    emitted_light *= point_shadow;
+
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light * 1.0);
 
-    tgt_color = vec4(surf_color, 1.0);
-    //tgt_color = vec4(f_norm, 1.0);
+    tgt_color = vec4(surf_color, f_color.a);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
 }

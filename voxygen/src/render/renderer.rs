@@ -85,6 +85,7 @@ struct Views {
     _win_depth: wgpu::TextureView,
 
     tgt_color: wgpu::TextureView,
+    tgt_mat: wgpu::TextureView,
     tgt_depth: wgpu::TextureView,
 
     bloom_tgts: Option<[wgpu::TextureView; bloom::NUM_SIZES]>,
@@ -480,6 +481,7 @@ impl Renderer {
             clouds_locals,
             postprocess_locals,
             &views.tgt_color,
+            &views.tgt_mat,
             &views.tgt_depth,
             views.bloom_tgts.as_ref().map(|tgts| locals::BloomParams {
                 locals: bloom_sizes.map(|size| {
@@ -688,6 +690,7 @@ impl Renderer {
                 &self.device,
                 &self.layouts,
                 &self.views.tgt_color,
+                &self.views.tgt_mat,
                 &self.views.tgt_depth,
                 bloom_params,
                 &self.views.tgt_color_pp,
@@ -802,7 +805,7 @@ impl Renderer {
         let sample_count = pipeline_modes.aa.samples();
         let levels = 1;
 
-        let color_view = |width, height| {
+        let color_view = |width, height, format| {
             let tex = device.create_texture(&wgpu::TextureDescriptor {
                 label: None,
                 size: wgpu::Extent3d {
@@ -813,13 +816,13 @@ impl Renderer {
                 mip_level_count: levels,
                 sample_count,
                 dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Rgba16Float,
+                format,
                 usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
             });
 
             tex.create_view(&wgpu::TextureViewDescriptor {
                 label: None,
-                format: Some(wgpu::TextureFormat::Rgba16Float),
+                format: Some(format),
                 dimension: Some(wgpu::TextureViewDimension::D2),
                 // TODO: why is this not Color?
                 aspect: wgpu::TextureAspect::All,
@@ -830,8 +833,10 @@ impl Renderer {
             })
         };
 
-        let tgt_color_view = color_view(width, height);
-        let tgt_color_pp_view = color_view(width, height);
+        let tgt_color_view = color_view(width, height, wgpu::TextureFormat::Rgba16Float);
+        let tgt_color_pp_view = color_view(width, height, wgpu::TextureFormat::Rgba16Float);
+
+        let tgt_mat_view = color_view(width, height, wgpu::TextureFormat::Rgba8Uint);
 
         let mut size_shift = 0;
         // TODO: skip creating bloom stuff when it is disabled
@@ -842,10 +847,9 @@ impl Renderer {
             size
         });
 
-        let bloom_tgt_views = pipeline_modes
-            .bloom
-            .is_on()
-            .then(|| bloom_sizes.map(|size| color_view(size.x, size.y)));
+        let bloom_tgt_views = pipeline_modes.bloom.is_on().then(|| {
+            bloom_sizes.map(|size| color_view(size.x, size.y, wgpu::TextureFormat::Rgba16Float))
+        });
 
         let tgt_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
             label: None,
@@ -899,6 +903,7 @@ impl Renderer {
         (
             Views {
                 tgt_color: tgt_color_view,
+                tgt_mat: tgt_mat_view,
                 tgt_depth: tgt_depth_view,
                 bloom_tgts: bloom_tgt_views,
                 tgt_color_pp: tgt_color_pp_view,

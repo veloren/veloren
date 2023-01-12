@@ -58,6 +58,7 @@ uniform u_locals {
 };
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 #include <sky.glsl>
 #include <light.glsl>
@@ -320,9 +321,8 @@ void main() {
     // float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
     // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, /*sun_pos*/f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac/*, light_pos*/);
 
     #ifdef EXPERIMENTAL_DIRECTIONALSHADOWMAPTEXELGRID
         float offset_scale = 0.5;
@@ -401,7 +401,12 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
-    reflected_light *= 0.4 + f_ao * 0.6;
+    emitted_light *= mix(1.0, f_ao, 0.5);
+    reflected_light *= mix(1.0, f_ao, 0.5);
+
+    float point_shadow = shadow_at(f_pos, f_norm);
+    reflected_light *= point_shadow;
+    emitted_light *= point_shadow;
 
     #ifndef EXPERIMENTAL_NOCAUSTICS
         #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
@@ -530,5 +535,6 @@ void main() {
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
 
     tgt_color = vec4(surf_color, f_alpha);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_BLOCK);
     //tgt_color = vec4(f_norm, f_alpha);
 }

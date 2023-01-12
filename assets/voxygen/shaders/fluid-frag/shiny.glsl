@@ -48,6 +48,7 @@ uniform u_locals {
 };
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 #include <cloud.glsl>
 #include <light.glsl>
@@ -82,14 +83,14 @@ vec4 wave_height(vec4 posx, vec4 posy) {
         posy *= 0.2;
         const float drag_factor = 0.035;
         const int iters = 21;
-        const float scale = 25.0;
+        const float scale = 15.0;
     #else
         float speed = 2.0;
         posx *= 0.3;
         posy *= 0.3;
         const float drag_factor = 0.04;
         const int iters = 11;
-        const float scale = 5.0;
+        const float scale = 3.0;
     #endif
     const float iter_shift = (3.14159 * 2.0) / 7.3;
 
@@ -269,8 +270,10 @@ void main() {
 
     vec3 reflect_color;
     #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
-        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
-        reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
+        // This is now done in the post-process cloud shader
+        /* reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac); */
+        /* reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1); */
+        reflect_color = vec3(0);
     #else
         reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
     #endif
@@ -283,9 +286,8 @@ void main() {
     reflect_color *= not_underground;
 
     // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, /*sun_pos*/f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac/*, light_pos*/);
 
     // Hack to determine water depth: color goes down with distance through water, so
     // we assume water color absorption from this point a to some other point b is the distance
@@ -343,6 +345,9 @@ void main() {
 
     // Global illumination when underground (silly)
     emitted_light += (1.0 - not_underground) * 0.05;
+
+    float point_shadow = shadow_at(f_pos, f_norm);
+    reflected_light *= point_shadow;
     // Apply cloud layer to sky
     // reflected_light *= /*water_color_direct * */reflect_color * f_light * point_shadow * shade_frac;
     // emitted_light *= /*water_color_direct*//*ambient_attenuation * */f_light * point_shadow * max(shade_frac, MIN_SHADOW);
@@ -362,7 +367,7 @@ void main() {
 
     max_light += lights_at(f_pos, cam_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, /*k_d*//*vec3(0.0)*/k_d, /*vec3(0.0)*/k_s, alpha, f_norm, 1.0, emitted_light, /*diffuse_light*/reflected_light);
 
-    float reflected_light_point = length(reflected_light);///*length*/(diffuse_light_point.r) + f_light * point_shadow;
+    //float reflected_light_point = length(reflected_light);///*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // TODO: See if we can be smarter about this using point light distances.
     // reflected_light += k_d * (diffuse_light_point/* + f_light * point_shadow * shade_frac*/) + /*water_color_ambient*/specular_light_point;
 
@@ -427,4 +432,5 @@ void main() {
     vec4 color = mix(vec4(reflect_color, 1.0), vec4(vec3(0), 1.0 / (1.0 + diffuse_light * 0.25)), passthrough); */
 
     tgt_color = color;
+    tgt_mat = uvec4(uvec3((norm + 1.0) * 127.0), MAT_FLUID);
 }

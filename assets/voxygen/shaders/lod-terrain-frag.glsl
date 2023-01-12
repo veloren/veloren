@@ -31,6 +31,7 @@ layout(location = 2) in float pull_down;
 // in vec4 f_square;
 
 layout(location = 0) out vec4 tgt_color;
+layout(location = 1) out uvec4 tgt_mat;
 
 /// const vec4 sun_pos = vec4(0);
 // const vec4 light_pos[2] = vec4[](vec4(0), vec4(0)/*, vec3(00), vec3(0), vec3(0), vec3(0)*/);
@@ -649,7 +650,9 @@ void main() {
     // f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
     vec3 surf_color;
     float surf_alpha = 1.0;
+    uint mat;
     if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+        mat = MAT_FLUID;
         vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
         #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
             vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
@@ -678,6 +681,7 @@ void main() {
             surf_color = get_sky_color(reflect_ray, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
         #endif
     } else {
+        mat = MAT_LOD;
         surf_color = illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
     }
 
@@ -687,4 +691,5 @@ void main() {
     // color = surf_color;
 
     tgt_color = vec4(surf_color, surf_alpha);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), mat);
 }

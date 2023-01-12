@@ -88,6 +88,17 @@ impl CloudsLayout {
                         },
                         count: None,
                     },
+                    // Materials source
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 5,
+                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Uint,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
                 ],
             }),
         }
@@ -97,6 +108,7 @@ impl CloudsLayout {
         &self,
         device: &wgpu::Device,
         src_color: &wgpu::TextureView,
+        src_mat: &wgpu::TextureView,
         src_depth: &wgpu::TextureView,
         sampler: &wgpu::Sampler,
         depth_sampler: &wgpu::Sampler,
@@ -125,6 +137,10 @@ impl CloudsLayout {
                 wgpu::BindGroupEntry {
                     binding: 4,
                     resource: locals.buf().as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: wgpu::BindingResource::TextureView(src_mat),
                 },
             ],
         });
