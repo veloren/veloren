@@ -241,27 +241,30 @@ void main() {
     // TODO: Hack to add a small amount of underground ambient light to the scene
     reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
 
-    float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+    // Apply baked lighting from emissive blocks
+    float glow_mag = length(model_glow.xyz);
+    vec3 glow = pow(model_glow.w, 2) * 4
+        * glow_light(f_pos)
+        * (max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
+    emitted_light += glow * cam_attenuation;
 
+    // Apply baked AO
+    float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+    reflected_light *= ao;
+    emitted_light *= ao;
+
+    // Apply point light AO
+    float point_shadow = shadow_at(f_pos, f_norm);
+    reflected_light *= point_shadow;
+    emitted_light *= point_shadow;
+
+    // Apply emissive glow
     // For now, just make glowing material light be the same colour as the surface
     // TODO: Add a way to control this better outside the shaders
     if ((material & (1u << 0u)) > 0u) {
         emitted_light += 20 * surf_color;
     }
 
-    float glow_mag = length(model_glow.xyz);
-    vec3 glow = pow(model_glow.w, 2) * 4
-        * glow_light(f_pos)
-        * (max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
-
-    emitted_light += glow * cam_attenuation;
-
-    reflected_light *= ao;
-    emitted_light *= ao;
-
-    float point_shadow = shadow_at(f_pos, f_norm);
-    reflected_light *= point_shadow;
-    emitted_light *= point_shadow;
     /* reflected_light *= cloud_shadow(f_pos); */
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
