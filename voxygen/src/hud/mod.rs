@@ -160,7 +160,7 @@ const BUFF_COLOR: Color = Color::Rgba(0.06, 0.69, 0.12, 1.0);
 const DEBUFF_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 
 // Item Quality Colors
-const QUALITY_LOW: Color = Color::Rgba(0.41, 0.41, 0.41, 1.0); // Grey - Trash, can be sold to vendors
+const QUALITY_LOW: Color = Color::Rgba(0.60, 0.60, 0.60, 1.0); // Grey - Trash, can be sold to vendors
 const QUALITY_COMMON: Color = Color::Rgba(0.79, 1.00, 1.00, 1.0); // Light blue - Crafting mats, food, starting equipment, quest items (like keys), rewards for easy quests
 const QUALITY_MODERATE: Color = Color::Rgba(0.06, 0.69, 0.12, 1.0); // Green - Quest Rewards, commonly looted items from NPCs
 const QUALITY_HIGH: Color = Color::Rgba(0.18, 0.32, 0.9, 1.0); // Blue - Dungeon rewards, boss loot, rewards for hard quests
@@ -881,7 +881,9 @@ pub struct Show {
     crafting: bool,
     bag: bool,
     bag_inv: bool,
+    bag_details: bool,
     trade: bool,
+    trade_details: bool,
     social: bool,
     diary: bool,
     group: bool,
@@ -1374,7 +1376,9 @@ impl Hud {
                 intro: false,
                 bag: false,
                 bag_inv: false,
+                bag_details: false,
                 trade: false,
+                trade_details: false,
                 esc_menu: false,
                 open_windows: Windows::None,
                 map: false,
@@ -3066,6 +3070,7 @@ impl Hud {
                 .set(self.ids.bag, ui_widgets)
                 {
                     Some(bag::Event::BagExpand) => self.show.bag_inv = !self.show.bag_inv,
+                    Some(bag::Event::SetDetailsMode(mode)) => self.show.bag_details = mode,
                     Some(bag::Event::Close) => {
                         self.show.stats = false;
                         Self::show_bag(&mut self.slot_manager, &mut self.show, false);
@@ -3093,6 +3098,7 @@ impl Hud {
                 &self.item_imgs,
                 &self.fonts,
                 &self.rot_imgs,
+                tooltip_manager,
                 item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
@@ -3103,7 +3109,7 @@ impl Hud {
             .set(self.ids.trade, ui_widgets)
             {
                 match action {
-                    Err(update) => match update {
+                    trade::TradeEvent::HudUpdate(update) => match update {
                         trade::HudUpdate::Focus(idx) => self.to_focus = Some(Some(idx)),
                         trade::HudUpdate::Submit => {
                             let key = self.show.trade_amount_input_key.take();
@@ -3114,7 +3120,7 @@ impl Hud {
                             });
                         },
                     },
-                    Ok(action) => {
+                    trade::TradeEvent::TradeAction(action) => {
                         if let TradeAction::Decline = action {
                             self.show.stats = false;
                             self.show.trade(false);
@@ -3126,6 +3132,9 @@ impl Hud {
                             };
                         }
                         events.push(Event::TradeAction(action));
+                    },
+                    trade::TradeEvent::SetDetailsMode(mode) => {
+                        self.show.trade_details = mode;
                     },
                 }
             }
