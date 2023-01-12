@@ -94,9 +94,7 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 float shadow_at(vec3 wpos, vec3 wnorm) {
     float shadow = 1.0;
 
-#if (SHADOW_MODE == SHADOW_MODE_NONE)
-    return shadow;
-#elif (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || (SHADOW_MODE == SHADOW_MODE_MAP && defined(EXPERIMENTAL_POINTSHADOWSWITHSHADOWMAPPING)))
     for (uint i = 0u; i < light_shadow_count.y; i ++) {
 
         // Only access the array once
@@ -121,6 +119,8 @@ float shadow_at(vec3 wpos, vec3 wnorm) {
     // NOTE: Squared to compenate for prior saturation.
     return min(shadow, 1.0);
     // return min(shadow * shadow, 1.0);
+#else
+    return shadow;
 #endif
 }
 

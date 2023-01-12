@@ -534,4 +534,6 @@ pub enum ExperimentalShader {
     /// Rather than fading out screen-space reflections at view space borders,
     /// smear screen space to cover the reflection vector.
     SmearReflections,
+    /// Apply the point shadows from cheap shadows on top of shadow mapping.
+    PointShadowsWithShadowMapping,
 }
