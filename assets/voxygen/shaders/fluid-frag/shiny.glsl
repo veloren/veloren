@@ -286,9 +286,8 @@ void main() {
     reflect_color *= not_underground;
 
     // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, /*sun_pos*/f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac/*, light_pos*/);
 
     // Hack to determine water depth: color goes down with distance through water, so
     // we assume water color absorption from this point a to some other point b is the distance
@@ -346,6 +345,9 @@ void main() {
 
     // Global illumination when underground (silly)
     emitted_light += (1.0 - not_underground) * 0.05;
+
+    float point_shadow = shadow_at(f_pos, f_norm);
+    reflected_light *= point_shadow;
     // Apply cloud layer to sky
     // reflected_light *= /*water_color_direct * */reflect_color * f_light * point_shadow * shade_frac;
     // emitted_light *= /*water_color_direct*//*ambient_attenuation * */f_light * point_shadow * max(shade_frac, MIN_SHADOW);
@@ -365,7 +367,7 @@ void main() {
 
     max_light += lights_at(f_pos, cam_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, /*k_d*//*vec3(0.0)*/k_d, /*vec3(0.0)*/k_s, alpha, f_norm, 1.0, emitted_light, /*diffuse_light*/reflected_light);
 
-    float reflected_light_point = length(reflected_light);///*length*/(diffuse_light_point.r) + f_light * point_shadow;
+    //float reflected_light_point = length(reflected_light);///*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // TODO: See if we can be smarter about this using point light distances.
     // reflected_light += k_d * (diffuse_light_point/* + f_light * point_shadow * shade_frac*/) + /*water_color_ambient*/specular_light_point;
 

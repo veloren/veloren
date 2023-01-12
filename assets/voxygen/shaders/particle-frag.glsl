@@ -57,9 +57,8 @@ void main() {
 #endif
     float moon_shade_frac = 1.0;
 
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac);
 
     vec3 surf_color = f_col.rgb;
     float alpha = 1.0;
@@ -99,8 +98,9 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
-    emitted_light *= point_shadow;
+    float point_shadow = shadow_at(f_pos, f_norm);
     reflected_light *= point_shadow;
+    emitted_light *= point_shadow;
 
     // Allow particles to glow at night
     // TODO: Not this

@@ -39,12 +39,12 @@ uniform texture2D t_src_depth;
 layout(set = 2, binding = 3)
 uniform sampler s_src_depth;
 
-layout(location = 0) in vec2 uv;
-
 layout (std140, set = 2, binding = 4)
 uniform u_locals {
     mat4 all_mat_inv;
 };
+
+layout(location = 0) in vec2 uv;
 
 layout(set = 2, binding = 5)
 uniform utexture2D t_src_mat;
@@ -149,7 +149,7 @@ void main() {
 
             #if (FLUID_MODE >= FLUID_MODE_MEDIUM || REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
                 if (mat.a != MAT_SKY) {
-                    vec3 surf_norm = vec3(texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(uv * mat_sz), ivec2(0), ivec2(mat_sz) - 1), 0).xyz) / 127.0 - 1.0;
+                    vec3 surf_norm = vec3(mat.xyz) / 127.0 - 1.0;
                     vec3 refl_dir = reflect(dir, surf_norm);
 
                     vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
@@ -292,7 +292,8 @@ void main() {
                 vec3 wpos = cam_pos.xyz + dir * wpos_dist;
 
                 if (wpos_dist > dist) { break; }
-                if (length((fract(wall_pos.xz) - 0.5)) < 0.1 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
+                vec2 wall_pos_half = fract(wall_pos.xz) - 0.5;
+                if (dot(wall_pos_half, wall_pos_half) < 0.01 + pow(max(0.0, wpos_dist - (dist - 0.25)) / 0.25, 4.0) * 0.2) {
                     float density = rain_density * rain_occlusion_at(wpos);
                     if (fract(hash_two(uvec2(wall_pos.xz) + 1000u)) >= density) { continue; }
 

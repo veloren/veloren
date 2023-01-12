@@ -132,9 +132,8 @@ void main() {
     // float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
     // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, /*sun_pos*/f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac/*, light_pos*/);
 
     float fluid_alt = f_pos.z;//max(ceil(f_pos.z), floor(f_alt));// f_alt;//max(f_alt - f_pos.z, 0.0);
 
@@ -191,6 +190,11 @@ void main() {
 
     // Global illumination when underground (silly)
     emitted_light += (1.0 - not_underground) * 0.05;
+
+    float point_shadow = shadow_at(f_pos, f_norm);
+    reflected_light *= point_shadow;
+    emitted_light *= point_shadow;
+
     // reflected_light *= f_light * point_shadow * shade_frac;
     // emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     // max_light *= f_light * point_shadow * shade_frac;

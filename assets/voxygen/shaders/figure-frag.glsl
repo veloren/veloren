@@ -160,9 +160,8 @@ void main() {
     // float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
     // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
+    DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, /*sun_pos*/f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac/*, light_pos*/);
 
     vec3 surf_color;
     // If the figure is large enough to be 'terrain-like', we apply a noise effect to it
@@ -259,6 +258,8 @@ void main() {
 
     reflected_light *= ao;
     emitted_light *= ao;
+
+    float point_shadow = shadow_at(f_pos, f_norm);
     reflected_light *= point_shadow;
     emitted_light *= point_shadow;
     /* reflected_light *= cloud_shadow(f_pos); */
