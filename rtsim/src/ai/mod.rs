@@ -194,8 +194,40 @@ impl<R: 'static> Action<R> for Box<dyn Action<R>> {
 
     fn reset(&mut self) { (**self).reset(); }
 
-    // TODO: Reset closure state?
     fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> { (**self).tick(ctx) }
+}
+
+impl<R: 'static, A: Action<R>, B: Action<R>> Action<R> for itertools::Either<A, B> {
+    fn is_same(&self, other: &Self) -> bool {
+        match (self, other) {
+            (itertools::Either::Left(x), itertools::Either::Left(y)) => x.is_same(y),
+            (itertools::Either::Right(x), itertools::Either::Right(y)) => x.is_same(y),
+            _ => false,
+        }
+    }
+
+    fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        match self {
+            itertools::Either::Left(x) => x.backtrace(bt),
+            itertools::Either::Right(x) => x.backtrace(bt),
+        }
+    }
+
+    fn reset(&mut self) {
+        match self {
+            itertools::Either::Left(x) => x.reset(),
+            itertools::Either::Right(x) => x.reset(),
+        }
+    }
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> {
+        match self {
+            itertools::Either::Left(x) => x.tick(ctx),
+            itertools::Either::Right(x) => x.tick(ctx),
+        }
+    }
 }
 
 // Now
@@ -220,6 +252,7 @@ impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> A + Send + Sync + 'stati
         }
     }
 
+    // TODO: Reset closure?
     fn reset(&mut self) { self.1 = None; }
 
     // TODO: Reset closure state?
@@ -247,6 +280,62 @@ where
     Now(f, None)
 }
 
+// Until
+
+/// See [`now`].
+#[derive(Copy, Clone)]
+pub struct Until<F, A, R>(F, Option<A>, PhantomData<R>);
+
+impl<
+    R: Send + Sync + 'static,
+    F: FnMut(&mut NpcCtx) -> Option<A> + Send + Sync + 'static,
+    A: Action<R>,
+> Action<()> for Until<F, A, R>
+{
+    // TODO: This doesn't compare?!
+    fn is_same(&self, other: &Self) -> bool { true }
+
+    fn dyn_is_same(&self, other: &dyn Action<()>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        if let Some(action) = &self.1 {
+            action.backtrace(bt);
+        } else {
+            bt.push("<thinking>".to_string());
+        }
+    }
+
+    // TODO: Reset closure?
+    fn reset(&mut self) { self.1 = None; }
+
+    // TODO: Reset closure state?
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<()> {
+        match &mut self.1 {
+            Some(x) => match x.tick(ctx) {
+                ControlFlow::Continue(()) => ControlFlow::Continue(()),
+                ControlFlow::Break(_) => {
+                    self.1 = None;
+                    ControlFlow::Continue(())
+                },
+            },
+            None => match (self.0)(ctx) {
+                Some(x) => {
+                    self.1 = Some(x);
+                    ControlFlow::Continue(())
+                },
+                None => ControlFlow::Break(()),
+            },
+        }
+    }
+}
+
+pub fn until<F, A, R>(f: F) -> Until<F, A, R>
+where
+    F: FnMut(&mut NpcCtx) -> Option<A>,
+{
+    Until(f, None, PhantomData)
+}
+
 // Just
 
 /// See [`just`].
@@ -262,6 +351,7 @@ impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> R + Send + Sync + 'stati
 
     fn backtrace(&self, bt: &mut Vec<String>) {}
 
+    // TODO: Reset closure?
     fn reset(&mut self) {}
 
     // TODO: Reset closure state?

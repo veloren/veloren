@@ -73,9 +73,9 @@ impl Data {
         // Spawn some test entities at the sites
         for (site_id, site) in this.sites.iter()
         // TODO: Stupid
-        // .filter(|(_, site)| site.world_site.map_or(false, |ws|
-        // matches!(&index.sites.get(ws).kind, SiteKind::Refactor(_)))) .skip(1)
-        // .take(1)
+        .filter(|(_, site)| site.world_site.map_or(false, |ws|
+        matches!(&index.sites.get(ws).kind, SiteKind::Refactor(_)))) .skip(1)
+        .take(1)
         {
             let Some(good_or_evil) = site
                 .faction
@@ -90,7 +90,7 @@ impl Data {
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
             if good_or_evil {
-                for _ in 0..64 {
+                for _ in 0..32 {
                     this.npcs.create(
                         Npc::new(rng.gen(), rand_wpos(&mut rng))
                             .with_faction(site.faction)

@@ -1,7 +1,7 @@
 use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use crate::{
-    ai::{casual, choose, finish, important, just, now, seq, urgent, watch, Action, NpcCtx},
+    ai::{casual, choose, finish, important, just, now, seq, until, urgent, watch, Action, NpcCtx},
     data::{
         npc::{Brain, Controller, Npc, NpcId, PathData, PathingMemory},
         Sites,
@@ -162,46 +162,31 @@ fn path_between_sites(
     })
 }
 
-fn path_town(
-    wpos: Vec3<f32>,
+fn path_site(
+    start: Vec2<f32>,
+    end: Vec2<f32>,
     site: Id<WorldSite>,
     index: IndexRef,
-    end: impl FnOnce(&site2::Site) -> Option<Vec2<i32>>,
-) -> Option<PathData<Vec2<i32>, Vec2<i32>>> {
-    match &index.sites.get(site).kind {
-        SiteKind::Refactor(site) | SiteKind::CliffTown(site) | SiteKind::DesertCity(site) => {
-            let start = site.wpos_tile_pos(wpos.xy().as_());
+) -> Option<Vec<Vec2<f32>>> {
+    if let Some(site) = index.sites.get(site).site2() {
+        let start = site.wpos_tile_pos(start.as_());
 
-            let end = end(site)?;
+        let end = site.wpos_tile_pos(end.as_());
 
-            if start == end {
-                return None;
-            }
+        let nodes = match path_in_site(start, end, site) {
+            PathResult::Path(p) => p.nodes,
+            PathResult::Exhausted(p) => p.nodes,
+            PathResult::None(_) | PathResult::Pending => return None,
+        };
 
-            // We pop the first element of the path
-            // fn pop_first<T>(mut queue: VecDeque<T>) -> VecDeque<T> {
-            //     queue.pop_front();
-            //     queue
-            // }
-
-            match path_in_site(start, end, site) {
-                PathResult::Path(p) => Some(PathData {
-                    end,
-                    path: p.nodes.into(), //pop_first(p.nodes.into()),
-                    repoll: false,
-                }),
-                PathResult::Exhausted(p) => Some(PathData {
-                    end,
-                    path: p.nodes.into(), //pop_first(p.nodes.into()),
-                    repoll: true,
-                }),
-                PathResult::None(_) | PathResult::Pending => None,
-            }
-        },
-        _ => {
-            // No brain T_T
-            None
-        },
+        Some(
+            nodes
+                .into_iter()
+                .map(|tile| site.tile_center_wpos(tile).as_() + 0.5)
+                .collect(),
+        )
+    } else {
+        None
     }
 }
 
@@ -365,6 +350,58 @@ fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action 
     })
 }
 
+fn traverse_points<F>(mut next_point: F) -> impl Action<()>
+where
+    F: FnMut(&mut NpcCtx) -> Option<Vec2<f32>> + Send + Sync + 'static,
+{
+    until(move |ctx| {
+        let wpos = next_point(ctx)?;
+
+        let wpos_site = |wpos: Vec2<f32>| {
+            ctx.world
+                .sim()
+                .get(wpos.as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_())
+                .and_then(|chunk| chunk.sites.first().copied())
+        };
+
+        // If we're traversing within a site, to intra-site pathfinding
+        if let Some(site) = wpos_site(wpos) {
+            let mut site_exit = wpos;
+            while let Some(next) = next_point(ctx).filter(|next| wpos_site(*next) == Some(site)) {
+                site_exit = next;
+            }
+
+            // println!("[NPC {:?}] Pathing in site...", ctx.npc_id);
+            if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
+                // println!("[NPC {:?}] Found path of length {} from {:?} to {:?}!", ctx.npc_id,
+                // path.len(), wpos, site_exit);
+                Some(itertools::Either::Left(
+                    seq(path.into_iter().map(|wpos| goto_2d(wpos, 1.0, 8.0)))
+                        .then(goto_2d(site_exit, 1.0, 8.0)),
+                ))
+            } else {
+                // println!("[NPC {:?}] No path", ctx.npc_id);
+                Some(itertools::Either::Right(goto_2d(site_exit, 1.0, 8.0)))
+            }
+        } else {
+            Some(itertools::Either::Right(goto_2d(wpos, 1.0, 8.0)))
+        }
+    })
+}
+
+/// Try to travel to a site. Where practical, paths will be taken.
+fn travel_to_point(wpos: Vec2<f32>) -> impl Action {
+    now(move |ctx| {
+        const WAYPOINT: f32 = 24.0;
+        let start = ctx.npc.wpos.xy();
+        let diff = wpos - start;
+        let n = (diff.magnitude() / WAYPOINT).max(1.0);
+        let mut points = (1..n as usize + 1).map(move |i| start + diff * (i as f32 / n));
+        traverse_points(move |_| points.next())
+    })
+    .debug(|| "travel to point")
+}
+
 /// Try to travel to a site. Where practical, paths will be taken.
 fn travel_to_site(tgt_site: SiteId) -> impl Action {
     now(move |ctx| {
@@ -376,51 +413,83 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
             && let Some(tracks) = path_towns(current_site, tgt_site, sites, ctx.world)
         {
             let track_count = tracks.path.len();
-            // For every track in the path we discovered between the sites...
-            seq(tracks
-                .path
+
+            let mut nodes = tracks.path
                 .into_iter()
-                .enumerate()
-                // ...traverse the nodes of that path.
-                .map(move |(i, (track_id, reversed))| now(move |ctx| {
-                    let track_len = ctx.world.civs().tracks.get(track_id).path().len();
-                    // Tracks can be traversed backward (i.e: from end to beginning). Account for this.
-                    seq(if reversed {
-                        itertools::Either::Left((0..track_len).rev())
-                    } else {
-                        itertools::Either::Right(0..track_len)
-                    }
-                        .enumerate()
-                        .map(move |(i, node_idx)| now(move |ctx| {
-                            // Find the centre of the track node's chunk
-                            let node_chunk_wpos = TerrainChunkSize::center_wpos(ctx.world
-                                .civs()
-                                .tracks
-                                .get(track_id)
-                                .path()
-                                .nodes[node_idx]);
+                .flat_map(move |(track_id, reversed)| (0..)
+                    .map(move |node_idx| (node_idx, track_id, reversed)));
 
-                            // Refine the node position a bit more based on local path information
-                            let node_wpos = ctx.world.sim()
-                                .get_nearest_path(node_chunk_wpos)
-                                .map_or(node_chunk_wpos, |(_, wpos, _, _)| wpos.as_());
+            traverse_points(move |ctx| {
+                let (node_idx, track_id, reversed) = nodes.next()?;
+                let nodes = &ctx.world.civs().tracks.get(track_id).path().nodes;
 
-                            // Walk toward the node
-                            goto_2d(node_wpos.as_(), 1.0, 8.0)
-                                .debug(move || format!("traversing track node ({}/{})", i + 1, track_len))
-                        })))
-                })
-                    .debug(move || format!("travel via track {:?} ({}/{})", track_id, i + 1, track_count))))
+                // Handle the case where we walk paths backward
+                let idx = if reversed {
+                    nodes.len().checked_sub(node_idx + 1)
+                } else {
+                    Some(node_idx)
+                };
+
+                if let Some(node) = idx.and_then(|idx| nodes.get(idx)) {
+                    // Find the centre of the track node's chunk
+                    let node_chunk_wpos = TerrainChunkSize::center_wpos(*node);
+
+                    // Refine the node position a bit more based on local path information
+                    Some(ctx.world.sim()
+                        .get_nearest_path(node_chunk_wpos)
+                        .map_or(node_chunk_wpos, |(_, wpos, _, _)| wpos.as_())
+                        .as_::<f32>())
+                } else {
+                    None
+                }
+            })
                 .boxed()
+
+            // For every track in the path we discovered between the sites...
+            // seq(tracks
+            //     .path
+            //     .into_iter()
+            //     .enumerate()
+            //     // ...traverse the nodes of that path.
+            //     .map(move |(i, (track_id, reversed))| now(move |ctx| {
+            //         let track_len = ctx.world.civs().tracks.get(track_id).path().len();
+            //         // Tracks can be traversed backward (i.e: from end to beginning). Account for this.
+            //         seq(if reversed {
+            //             itertools::Either::Left((0..track_len).rev())
+            //         } else {
+            //             itertools::Either::Right(0..track_len)
+            //         }
+            //             .enumerate()
+            //             .map(move |(i, node_idx)| now(move |ctx| {
+            //                 // Find the centre of the track node's chunk
+            //                 let node_chunk_wpos = TerrainChunkSize::center_wpos(ctx.world
+            //                     .civs()
+            //                     .tracks
+            //                     .get(track_id)
+            //                     .path()
+            //                     .nodes[node_idx]);
+
+            //                 // Refine the node position a bit more based on local path information
+            //                 let node_wpos = ctx.world.sim()
+            //                     .get_nearest_path(node_chunk_wpos)
+            //                     .map_or(node_chunk_wpos, |(_, wpos, _, _)| wpos.as_());
+
+            //                 // Walk toward the node
+            //                 goto_2d(node_wpos.as_(), 1.0, 8.0)
+            //                     .debug(move || format!("traversing track node ({}/{})", i + 1, track_len))
+            //             })))
+            //     })
+            //         .debug(move || format!("travel via track {:?} ({}/{})", track_id, i + 1, track_count))))
+            //     .boxed()
         } else if let Some(site) = sites.get(tgt_site) {
             // If all else fails, just walk toward the target site in a straight line
-            goto_2d(site.wpos.map(|e| e as f32 + 0.5), 1.0, 8.0).boxed()
+            travel_to_point(site.wpos.map(|e| e as f32 + 0.5)).boxed()
         } else {
             // If we can't find a way to get to the site at all, there's nothing more to be done
             finish().boxed()
         }
     })
-        .debug(move || format!("travel_to_site {:?}", tgt_site))
+    .debug(move || format!("travel_to_site {:?}", tgt_site))
 }
 
 // Seconds
@@ -500,7 +569,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                             Some(site2.tile_center_wpos(house.root_tile()).as_())
                         })
                     {
-                        goto_2d(house_wpos, 0.5, 1.0)
+                        travel_to_point(house_wpos)
                             .debug(|| "walk to house")
                             .then(idle().repeat().debug(|| "wait in house"))
                             .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
@@ -527,7 +596,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     })
                 {
                     // Walk to the plaza...
-                    goto_2d(plaza_wpos, 0.5, 8.0)
+                    travel_to_point(plaza_wpos)
                         .debug(|| "walk to plaza")
                         // ...then wait for some time before moving on
                         .then({
