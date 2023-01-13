@@ -105,8 +105,8 @@ impl Animation for MusicAnimation {
                     // instrument specific head_bop
                     let head_bop = match spec.as_str() {
                         "Flute" | "GlassFlute" | "Melodica" => 0.2,
-                        "Guitar" | "Lute" | "Sitar" => 0.5,
-                        "Lyre" | "Kalimba" => 0.3,
+                        "Guitar" | "DarkGuitar" | "Lute" | "Sitar" => 0.5,
+                        "Lyre" | "IcyTalharpa" | "Kalimba" => 0.3,
                         _ => 1.0,
                     };
                     next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
@@ -160,7 +160,7 @@ impl Animation for MusicAnimation {
                                 * Quaternion::rotation_y(PI)
                                 * Quaternion::rotation_z(0.05);
                         },
-                        "Guitar" => {
+                        "Guitar" | "DarkGuitar" => {
                             next.hand_l.position = Vec3::new(
                                 1.0 - s_a.hand.0,
                                 6.0 + s_a.hand.1 + shortealt * -1.0,
@@ -183,7 +183,7 @@ impl Animation for MusicAnimation {
                                 * Quaternion::rotation_y(2.0)
                                 * Quaternion::rotation_z(PI / -3.0);
                         },
-                        "Lyre" => {
+                        "Lyre" | "IcyTalharpa" => {
                             next.hand_l.position = Vec3::new(
                                 3.0 - s_a.hand.0,
                                 4.0 + s_a.hand.1 + shortealt * -0.1,

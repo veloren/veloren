@@ -1622,6 +1622,10 @@
         "voxel.weapon.tool.wooden_lyre",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
+    Simple("common.items.tool.instruments.icy_talharpa"): VoxTrans(
+        "voxel.weapon.tool.icy_talharpa",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
     Simple("common.items.tool.instruments.flute"): VoxTrans(
         "voxel.weapon.tool.wooden_flute",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,

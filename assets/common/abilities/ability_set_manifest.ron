@@ -501,6 +501,11 @@
         secondary: "common.abilities.music.lyre",
         abilities: [],
     ),
+    Custom("IcyTalharpa"): (
+        primary: "common.abilities.music.icy_talharpa",
+        secondary: "common.abilities.music.icy_talharpa",
+        abilities: [],
+    ),
     Custom("Washboard"): (
         primary: "common.abilities.music.washboard",
         secondary: "common.abilities.music.washboard",
@@ -524,6 +529,11 @@
     Custom("Guitar"): (
         primary: "common.abilities.music.guitar",
         secondary: "common.abilities.music.guitar",
+        abilities: [],
+    ),
+    Custom("DarkGuitar"): (
+        primary: "common.abilities.music.dark_guitar",
+        secondary: "common.abilities.music.dark_guitar",
         abilities: [],
     ),
     Custom("Sitar"): (

@@ -402,6 +402,7 @@
     Simple("common.items.tool.instruments.flute"): "voxel.weapon.tool.wooden_flute",
     Simple("common.items.tool.instruments.glass_flute"): "voxel.weapon.tool.glass_flute",
     Simple("common.items.tool.instruments.lyre"): "voxel.weapon.tool.wooden_lyre",
+    Simple("common.items.tool.instruments.icy_talharpa"): "voxel.weapon.tool.icy_talharpa",
     Simple("common.items.tool.instruments.washboard"): "voxel.weapon.tool.washboard",
     Simple("common.items.tool.instruments.kalimba"): "voxel.weapon.tool.wooden_kalimba",
     Simple("common.items.tool.instruments.melodica"): "voxel.weapon.tool.melodica",
