@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dark Guitar",
-    description: "Sounds edgy.",
+    name: "Icy Talharpa",
+    description: "Icy Talharpa.",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Common,
     tags: [Utility],
-    ability_spec: Some(Custom("DarkGuitar")),
+    ability_spec: Some(Custom("IcyTalharpa")),
 )

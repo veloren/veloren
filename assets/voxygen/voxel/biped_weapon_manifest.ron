@@ -1124,6 +1124,10 @@
         vox_spec: ("weapon.tool.wooden_lyre", (-3.5, -7.0, 6.0)),
         color: None
     ),
+    Tool("common.items.tool.instruments.icy_talharpa"): (
+        vox_spec: ("weapon.tool.icy_talharpa", (-3.5, -7.0, 6.0)),
+        color: None
+    ),
     Tool("common.items.tool.instruments.flute"): (
         vox_spec: ("weapon.tool.wooden_flute", (-4.5, -4.5, 8.0)),
         color: None
