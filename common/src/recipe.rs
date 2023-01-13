@@ -982,7 +982,7 @@ impl RepairRecipe {
     pub fn inputs(&self, item: &Item) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
         let item_durability = item.durability().unwrap_or(0);
         self.inputs.iter().map(move |(input, amount)| {
-            let amount = amount.mul(item_durability).div_ceil(Item::MAX_DURABILITY);
+            let amount = amount.mul(item_durability).div_floor(Item::MAX_DURABILITY);
             (input, amount)
         })
     }
