@@ -211,7 +211,7 @@ void main() {
     vec2 sample_uv = uv;
     #ifdef EXPERIMENTAL_UNDERWARPER
         if (medium.x == MEDIUM_WATER) {
-            sample_uv += sin(uv.yx * 40 + tick.xx * 1.0) * 0.003;
+            sample_uv += sin(uv.yx * 60 + tick.xx * 3.0) * 0.003;
         }
     #endif
 
