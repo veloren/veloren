@@ -77,13 +77,13 @@ where
         let max = (self.to - self.from).magnitude();
 
         for _ in 0..self.max_iter {
-            let pos = self.from + dir * dist;
-            let ipos = pos.map(|e| e.floor() as i32);
 
             // Allow one iteration above max.
             if dist > max {
                 break;
             }
+            let pos = self.from + dir * dist;
+            let ipos = pos.map(|e| e.floor() as i32);
 
             let vox = self.vol.get(ipos);
 
@@ -105,6 +105,9 @@ where
 
             dist += deltas.reduce(f32::min).max(PLANCK);
         }
+
+        // The ray can go over the maximum magnitude in the last iteration
+        dist = dist.min(max);
 
         (dist, Ok(None))
     }

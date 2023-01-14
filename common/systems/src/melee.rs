@@ -9,20 +9,24 @@ use common::{
     event::{EventBus, ServerEvent},
     outcome::Outcome,
     resources::Time,
+    terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
-    util::Dir,
+    util::{find_dist::Cylinder, Dir},
+    vol::ReadVol,
     GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use itertools::Itertools;
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World,
+    WriteStorage,
 };
 use vek::*;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     time: Read<'a, Time>,
+    terrain: ReadExpect<'a, TerrainGrid>,
     uid_allocator: Read<'a, UidAllocator>,
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
@@ -84,6 +88,7 @@ impl<'a> System<'a> for Sys {
             // Scales
             let eye_pos = pos.0 + Vec3::unit_z() * body.eye_height();
             let scale = read_data.scales.get(attacker).map_or(1.0, |s| s.0);
+            let height = body.height() * scale;
             // TODO: use Capsule Prisms instead of Cylinders
             let rad = body.max_radius() * scale;
 
@@ -130,6 +135,7 @@ impl<'a> System<'a> for Sys {
 
                 // Scales
                 let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
+                let height_b = body_b.height() * scale_b;
                 let rad_b = body_b.max_radius() * scale_b;
 
                 // Check if entity is dodging
@@ -140,14 +146,28 @@ impl<'a> System<'a> for Sys {
                     .map_or(false, |i| i.melee);
 
                 // Check if it is a hit
-                if attacker != target
+                let hit = attacker != target
                     && !health_b.is_dead
-                    // Cylindrical wedge shaped attack field
-                    && pos2.distance_squared(pos_b2) < (rad + rad_b + scale * melee_attack.range).powi(2)
-                    // Checks if feet or head of b is contained in range of melee attack, or if melee attack origin is contained between feet and head of b (for large bodies/small melee attacks)
+                    // Spherical wedge shaped attack field
+                    && pos.0.distance_squared(pos_b.0) < (rad + rad_b + scale * melee_attack.range).powi(2)
                     && (melee_z_range.contains(&pos_b.0.z) || melee_z_range.contains(&(pos_b.0.z + body_b.height())) || (pos_b.0.z..(pos_b.0.z + body_b.height())).contains(&melee_z))
-                    && ori2.angle_between(pos_b2 - pos2) < melee_attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
-                {
+                    && ori2.angle_between(pos_b2 - pos2) < melee_attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan();
+
+                //Check if target is behind a wall
+                let attacker_cylinder = Cylinder {
+                    center: pos.0 + (0.5 * height * Vec3::unit_z()),
+                    radius: rad,
+                    height,
+                };
+                let target_cylinder = Cylinder {
+                    center: pos_b.0 + (0.5 * height_b * Vec3::unit_z()),
+                    radius: rad_b,
+                    height: height_b,
+                };
+                let hit = hit
+                    && !is_blocked_by_wall(&read_data.terrain, attacker_cylinder, target_cylinder);
+
+                if hit {
                     // See if entities are in the same group
                     let same_group = read_data
                         .groups
@@ -225,4 +245,86 @@ impl<'a> System<'a> for Sys {
             }
         }
     }
+}
+
+// Cast rays from the corners of an Axis Aligned Box centered at the attacker to
+// one centered at the target. We use multiple rays to ensure that target is at
+// least almost completly behind a wall.
+fn is_blocked_by_wall(terrain: &TerrainGrid, attacker: Cylinder, target: Cylinder) -> bool {
+    let attacker_v = Vec3::new(
+        attacker.radius / f32::sqrt(2.),
+        attacker.radius / f32::sqrt(2.),
+        attacker.height / 2.0,
+    );
+    let attacker_aabb = Aabb {
+        min: attacker.center - attacker_v,
+        max: attacker.center + attacker_v,
+    };
+
+    let target_v = Vec3::new(
+        target.radius / f32::sqrt(2.),
+        target.radius / f32::sqrt(2.),
+        target.height / 2.0,
+    );
+    let target_aabb = Aabb {
+        min: target.center - target_v,
+        max: target.center + target_v,
+    };
+
+    let mut segments = Vec::with_capacity(9);
+    segments.push(LineSegment3 {
+        start: attacker.center,
+        end: target.center,
+    });
+    for i in 0..2 {
+        for j in 0..2 {
+            for l in 0..2 {
+                let (x1, x2) = if i == 0 {
+                    (attacker_aabb.min.x, target_aabb.min.x)
+                } else {
+                    (attacker_aabb.max.x, target_aabb.max.x)
+                };
+
+                let (y1, y2) = if j == 0 {
+                    (attacker_aabb.min.y, target_aabb.min.y)
+                } else {
+                    (attacker_aabb.max.y, target_aabb.max.y)
+                };
+
+                let (z1, z2) = if l == 0 {
+                    (attacker_aabb.min.z, target_aabb.min.z)
+                } else {
+                    (attacker_aabb.max.z, target_aabb.max.z)
+                };
+
+                segments.push(LineSegment3 {
+                    start: Vec3::new(x1, y1, z1),
+                    end: Vec3::new(x2, y2, z2),
+                });
+            }
+        }
+    }
+
+    for &segment in segments.iter() {
+        let ray_dist = terrain
+            .ray(segment.start, segment.end)
+            .until(|b| b.is_filled())
+            .cast()
+            .0;
+        if let Some(ray_direction) = (segment.end - segment.start).try_normalized() {
+            let ray_end = segment.start + ray_dist * ray_direction;
+            let ray = LineSegment3 {
+                start: segment.start,
+                end: ray_end,
+            };
+            let proj = ray.projected_point(target_aabb.center());
+
+            if target_aabb.contains_point(proj) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    true
 }
