@@ -10,7 +10,7 @@ use common::{
         inventory::slot::EquipSlot,
         loot_owner::LootOwnerKind,
         tool::ToolKind,
-        Inventory, LootOwner, Pos, SkillGroupKind,
+        Inventory, LootOwner, Pos, SkillGroupKind, pet::is_mountable,
     },
     consts::{MAX_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     event::EventBus,
@@ -119,7 +119,12 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
                     Some(comp::Alignment::Owned(owner)) if *owner == rider_uid,
                 );
 
-                if is_pet {
+                let can_ride = state.ecs()
+                    .read_storage()
+                    .get(mount)
+                    .map_or(false, |mount_body| is_mountable(mount_body, state.ecs().read_storage().get(rider)));
+
+                if is_pet && can_ride {
                     drop(uids);
                     drop(healths);
                     let _ = state.link(Mounting {

@@ -1,6 +1,5 @@
 use crate::{
     comp,
-    comp::{pet::is_mountable, Body},
     link::{Is, Link, LinkHandle, Role},
     terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
@@ -29,6 +28,7 @@ pub struct Mounting {
     pub rider: Uid,
 }
 
+#[derive(Debug)]
 pub enum MountingError {
     NoSuchEntity,
     NotMountable,
@@ -39,7 +39,6 @@ impl Link for Mounting {
         Read<'a, UidAllocator>,
         WriteStorage<'a, Is<Mount>>,
         WriteStorage<'a, Is<Rider>>,
-        WriteStorage<'a, Body>,
     );
     type DeleteData<'a> = (
         Read<'a, UidAllocator>,
@@ -60,7 +59,7 @@ impl Link for Mounting {
 
     fn create(
         this: &LinkHandle<Self>,
-        (uid_allocator, mut is_mounts, mut is_riders, body): Self::CreateData<'_>,
+        (uid_allocator, mut is_mounts, mut is_riders): Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
@@ -68,23 +67,15 @@ impl Link for Mounting {
             // Forbid self-mounting
             Err(MountingError::NotMountable)
         } else if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
-            if let Some(mount_body) = body.get(mount) {
-                if is_mountable(mount_body, body.get(rider)) {
-                    let can_mount_with =
-                        |entity| is_mounts.get(entity).is_none() && is_riders.get(entity).is_none();
+            let can_mount_with =
+                |entity| is_mounts.get(entity).is_none() && is_riders.get(entity).is_none();
 
-                    // Ensure that neither mount or rider are already part of a mounting
-                    // relationship
-                    if can_mount_with(mount) && can_mount_with(rider) {
-                        let _ = is_mounts.insert(mount, this.make_role());
-                        let _ = is_riders.insert(rider, this.make_role());
-                        Ok(())
-                    } else {
-                        Err(MountingError::NotMountable)
-                    }
-                } else {
-                    Err(MountingError::NotMountable)
-                }
+            // Ensure that neither mount or rider are already part of a mounting
+            // relationship
+            if can_mount_with(mount) && can_mount_with(rider) {
+                let _ = is_mounts.insert(mount, this.make_role());
+                let _ = is_riders.insert(rider, this.make_role());
+                Ok(())
             } else {
                 Err(MountingError::NotMountable)
             }

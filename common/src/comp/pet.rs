@@ -94,6 +94,7 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
                 | quadruped_low::Species::Elbst
                 | quadruped_low::Species::Tortoise
         ),
+        Body::Ship(_) => true,
         _ => false,
     }
 }
