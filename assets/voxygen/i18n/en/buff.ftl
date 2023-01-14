@@ -67,6 +67,12 @@ buff-desc-fortitude = You can withstand staggers.
 ## Parried
 buff-title-parried = Parried
 buff-desc-parried = You were parried and now are slow to recover.
+## Potion sickness
+buff-title-potionsickness = Potion sickness
+buff-desc-potionsickness = Potions heal you less after recently consuming a potion.
+buff-stat-potionsickness =
+    Decreases the amount you heal from
+    subsequent potions by { $strength }%.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

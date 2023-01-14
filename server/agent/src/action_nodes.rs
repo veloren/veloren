@@ -528,6 +528,10 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         relaxed: bool,
     ) -> bool {
+        // Wait for potion sickness to wear off if potions are less than 20% effective.
+        if self.stats.map_or(1.0, |s| s.heal_multiplier) < 0.2 {
+            return false;
+        }
         let healing_value = |item: &Item| {
             let mut value = 0.0;
 

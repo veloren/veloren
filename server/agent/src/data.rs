@@ -45,6 +45,7 @@ pub struct AgentData<'a> {
     pub active_abilities: &'a ActiveAbilities,
     pub combo: Option<&'a Combo>,
     pub buffs: Option<&'a Buffs>,
+    pub stats: Option<&'a Stats>,
     pub poise: Option<&'a Poise>,
     pub cached_spatial_grid: &'a common::CachedSpatialGrid,
     pub msm: &'a MaterialStatManifest,

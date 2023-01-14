@@ -285,7 +285,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::CampfireHeal,
-                    data: BuffData::new(0.02, Some(Duration::from_secs(1))),
+                    data: BuffData::new(0.02, Some(Duration::from_secs(1)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
@@ -296,7 +296,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Burning,
-                    data: BuffData::new(2.0, Some(Duration::from_secs(10))),
+                    data: BuffData::new(2.0, Some(Duration::from_secs(10)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },

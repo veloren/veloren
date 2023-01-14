@@ -144,6 +144,7 @@ impl AuraBuffConstructor {
             data: BuffData {
                 strength: self.strength,
                 duration: self.duration.map(Duration::from_secs_f32),
+                delay: None,
             },
             category: self.category,
             source: BuffSource::Character { by: *uid },

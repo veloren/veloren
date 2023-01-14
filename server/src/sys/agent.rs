@@ -199,6 +199,7 @@ impl<'a> System<'a> for Sys {
                         active_abilities,
                         combo,
                         buffs: read_data.buffs.get(entity),
+                        stats: read_data.stats.get(entity),
                         cached_spatial_grid: &read_data.cached_spatial_grid,
                         msm: &read_data.msm,
                         poise: read_data.poises.get(entity),
