@@ -360,7 +360,17 @@ impl<'a> InventoryScroller<'a> {
         };
 
         let mut i = 0;
-        for (pos, item) in self.inventory.slots_with_id() {
+        let mut items = self.inventory.slots_with_id().collect::<Vec<_>>();
+        if self.details_mode && !self.is_us {
+            items.sort_by_cached_key(|(_, item)| {
+                (
+                    item.is_none(),
+                    item.as_ref()
+                        .map(|i| (std::cmp::Reverse(i.quality()), i.name(), i.amount())),
+                )
+            });
+        }
+        for (pos, item) in items.into_iter() {
             if self.details_mode && !self.is_us && matches!(item, None) {
                 continue;
             }
