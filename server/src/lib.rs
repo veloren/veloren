@@ -80,8 +80,8 @@ use common::{
     comp,
     event::{EventBus, ServerEvent},
     resources::{BattleMode, GameMode, Time, TimeOfDay},
-    rtsim::RtSimEntity,
     shared_server_config::ServerConstants,
+    rtsim::{RtSimEntity, RtSimVehicle},
     slowjob::SlowJobPool,
     terrain::{Block, TerrainChunk, TerrainChunkSize},
     vol::RectRasterableVol,
@@ -387,6 +387,7 @@ impl Server {
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
         state.ecs_mut().register::<RtSimEntity>();
+        state.ecs_mut().register::<RtSimVehicle>();
 
         // Load banned words list
         let banned_words = settings.moderation.load_banned_words(data_dir);
@@ -872,6 +873,19 @@ impl Server {
                     .ecs()
                     .write_resource::<rtsim2::RtSim>()
                     .hook_rtsim_entity_unload(rtsim_entity);
+            }
+            #[cfg(feature = "worldgen")]
+            if let Some(rtsim_vehicle) = self
+                .state
+                .ecs()
+                .read_storage::<RtSimVehicle>()
+                .get(entity)
+                .copied()
+            {
+                self.state
+                    .ecs()
+                    .write_resource::<rtsim2::RtSim>()
+                    .hook_rtsim_vehicle_unload(rtsim_vehicle);
             }
 
             if let Err(e) = self.state.delete_entity_recorded(entity) {

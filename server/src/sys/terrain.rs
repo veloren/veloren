@@ -19,7 +19,7 @@ use common::{
     comp::{
         self, agent, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate, Pos, Waypoint,
     },
-    event::{EventBus, ServerEvent},
+    event::{EventBus, ServerEvent, NpcBuilder},
     generation::EntityInfo,
     lottery::LootSpec,
     resources::{Time, TimeOfDay},
@@ -217,19 +217,15 @@ impl<'a> System<'a> for Sys {
                     } => {
                         server_emitter.emit(ServerEvent::CreateNpc {
                             pos,
-                            stats,
-                            skill_set,
-                            health,
-                            poise,
-                            inventory,
-                            agent,
-                            body,
-                            alignment,
-                            scale,
-                            anchor: Some(comp::Anchor::Chunk(key)),
-                            loot,
-                            rtsim_entity: None,
-                            projectile: None,
+                            npc: NpcBuilder::new(stats, body, alignment)
+                                .with_skill_set(skill_set)
+                                .with_health(health)
+                                .with_poise(poise)
+                                .with_inventory(inventory)
+                                .with_agent(agent)
+                                .with_scale(scale)
+                                .with_anchor(comp::Anchor::Chunk(key))
+                                .with_loot(loot)
                         });
                     },
                 }

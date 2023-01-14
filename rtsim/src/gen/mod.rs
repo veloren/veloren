@@ -3,12 +3,13 @@ pub mod site;
 
 use crate::data::{
     faction::{Faction, Factions},
-    npc::{Npc, Npcs, Profession},
+    npc::{Npc, Npcs, Profession, Vehicle, VehicleKind},
     site::{Site, Sites},
     Data, Nature,
 };
 use common::{
-    resources::TimeOfDay, rtsim::WorldSettings, terrain::TerrainChunkSize, vol::RectVolSize,
+    grid::Grid, resources::TimeOfDay, rtsim::WorldSettings, terrain::TerrainChunkSize,
+    vol::RectVolSize,
 };
 use hashbrown::HashMap;
 use rand::prelude::*;
@@ -28,6 +29,8 @@ impl Data {
             nature: Nature::generate(world),
             npcs: Npcs {
                 npcs: Default::default(),
+                vehicles: Default::default(),
+                npc_grid: Grid::new(Vec2::zero(), Default::default()),
             },
             sites: Sites {
                 sites: Default::default(),
@@ -75,7 +78,6 @@ impl Data {
         // TODO: Stupid
         .filter(|(_, site)| site.world_site.map_or(false, |ws|
         matches!(&index.sites.get(ws).kind, SiteKind::Refactor(_)))) .skip(1)
-        .take(1)
         {
             let Some(good_or_evil) = site
                 .faction
@@ -91,7 +93,7 @@ impl Data {
             };
             if good_or_evil {
                 for _ in 0..32 {
-                    this.npcs.create(
+                    this.npcs.create_npc(
                         Npc::new(rng.gen(), rand_wpos(&mut rng))
                             .with_faction(site.faction)
                             .with_home(site_id)
@@ -109,7 +111,7 @@ impl Data {
                 }
             } else {
                 for _ in 0..15 {
-                    this.npcs.create(
+                    this.npcs.create_npc(
                         Npc::new(rng.gen(), rand_wpos(&mut rng))
                             .with_faction(site.faction)
                             .with_home(site_id)
@@ -119,12 +121,18 @@ impl Data {
                     );
                 }
             }
-            this.npcs.create(
+            this.npcs.create_npc(
                 Npc::new(rng.gen(), rand_wpos(&mut rng))
                     .with_home(site_id)
                     .with_profession(Profession::Merchant),
             );
+
+            let wpos = rand_wpos(&mut rng) + Vec3::unit_z() * 50.0;
+            let vehicle_id = this.npcs.create_vehicle(Vehicle::new(wpos, VehicleKind::Airship));
+            
+            this.npcs.create_npc(Npc::new(rng.gen(), wpos).with_home(site_id).with_profession(Profession::Captain).steering(vehicle_id));
         }
+
         info!("Generated {} rtsim NPCs.", this.npcs.len());
 
         this

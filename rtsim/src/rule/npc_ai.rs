@@ -3,7 +3,7 @@ use std::{collections::VecDeque, hash::BuildHasherDefault};
 use crate::{
     ai::{casual, choose, finish, important, just, now, seq, until, urgent, watch, Action, NpcCtx},
     data::{
-        npc::{Brain, Controller, Npc, NpcId, PathData, PathingMemory},
+        npc::{Brain, Controller, Npc, NpcId, PathData, PathingMemory, VehicleKind},
         Sites,
     },
     event::OnTick,
@@ -14,7 +14,7 @@ use common::{
     path::Path,
     rtsim::{Profession, SiteId},
     store::Id,
-    terrain::TerrainChunkSize,
+    terrain::{TerrainChunkSize, SiteKindMeta},
     time::DayPeriod,
     vol::RectVolSize,
 };
@@ -32,7 +32,7 @@ use world::{
     civ::{self, Track},
     site::{Site as WorldSite, SiteKind},
     site2::{self, PlotKind, TileKind},
-    IndexRef, World,
+    IndexRef, World, util::NEIGHBORS,
 };
 
 pub struct NpcAi;
@@ -221,7 +221,7 @@ impl Rule for NpcAi {
                 data.npcs
                     .iter_mut()
                     .map(|(npc_id, npc)| {
-                        let controller = Controller { goto: npc.goto };
+                        let controller = Controller { action: npc.action };
                         let brain = npc.brain.take().unwrap_or_else(|| Brain {
                             action: Box::new(think().repeat()),
                         });
@@ -253,7 +253,7 @@ impl Rule for NpcAi {
 
             let mut data = ctx.state.data_mut();
             for (npc_id, controller, brain) in npc_data {
-                data.npcs[npc_id].goto = controller.goto;
+                data.npcs[npc_id].action = controller.action;
                 data.npcs[npc_id].brain = Some(brain);
             }
 
@@ -331,7 +331,7 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
         let waypoint =
             waypoint.get_or_insert_with(|| ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST));
 
-        ctx.controller.goto = Some((*waypoint, speed_factor));
+        *ctx.controller = Controller::goto(*waypoint, speed_factor);
     })
     .repeat()
     .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < goal_dist.powi(2))
@@ -616,9 +616,126 @@ fn villager(visiting_site: SiteId) -> impl Action {
     .debug(move || format!("villager at site {:?}", visiting_site))
 }
 
+fn follow(npc: NpcId, distance: f32) -> impl Action {
+    const STEP_DIST: f32 = 1.0;
+    now(move |ctx| {
+        if let Some(npc) = ctx.state.data().npcs.get(npc) {
+            let d = npc.wpos.xy() - ctx.npc.wpos.xy();
+            let len = d.magnitude();
+            let dir = d / len;
+            let wpos = ctx.npc.wpos.xy() + dir * STEP_DIST.min(len - distance);
+            goto_2d(wpos, 1.0, distance).boxed()
+        } else {
+            // The npc we're trying to follow doesn't exist.
+            finish().boxed()
+        }
+    })
+    .repeat()
+    .debug(move || format!("Following npc({npc:?})"))
+    .map(|_| {})
+}
+
+fn chunk_path(from: Vec2<i32>, to: Vec2<i32>, chunk_height: impl Fn(Vec2<i32>) -> Option<i32>) -> Box<dyn Action> {
+    let heuristics = |(p, _): &(Vec2<i32>, i32)| p.distance_squared(to) as f32;
+    let start = (from, chunk_height(from).unwrap());
+    let mut astar = Astar::new(
+        1000,
+        start,
+        heuristics,
+        BuildHasherDefault::<FxHasher64>::default(),
+    );
+
+    let path = astar.poll(
+        1000,
+        heuristics,
+        |&(p, _)| NEIGHBORS.into_iter().map(move |n| p + n).filter_map(|p| Some((p, chunk_height(p)?))),
+        |(p0, h0), (p1, h1)| {
+            let diff = ((p0 - p1).as_() * TerrainChunkSize::RECT_SIZE.as_()).with_z((h0 - h1) as f32);
+
+            diff.magnitude_squared()
+        },
+        |(e, _)| *e == to
+    );
+    let path = match path {
+        PathResult::Exhausted(p) | PathResult::Path(p) => p,
+        _ => return finish().boxed(),
+    };
+    let len = path.len();
+    seq(
+        path
+            .into_iter()
+            .enumerate()
+            .map(move |(i, (chunk_pos, height))| {
+                let wpos = TerrainChunkSize::center_wpos(chunk_pos).with_z(height).as_();
+                goto(wpos, 1.0, 5.0).debug(move || format!("chunk path {i}/{len} chunk: {chunk_pos}, height: {height}"))
+            })
+    ).boxed()
+}
+
+fn pilot() -> impl Action {
+    // Travel between different towns in a straight line
+    now(|ctx| {
+        let data = &*ctx.state.data();
+        let site = data.sites.iter()
+            .filter(|(id, _)| Some(*id) != ctx.npc.current_site)
+            .filter(|(_, site)| {
+                site.world_site
+                    .and_then(|site| ctx.index.sites.get(site).kind.convert_to_meta())
+                    .map_or(false, |meta| matches!(meta, SiteKindMeta::Settlement(_)))
+            })
+            .choose(&mut thread_rng());
+        if let Some((_id, site)) = site {
+            let start_chunk = ctx.npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
+            let end_chunk = site.wpos / TerrainChunkSize::RECT_SIZE.as_::<i32>();
+            chunk_path(start_chunk,  end_chunk, |chunk| {
+                ctx.world.sim().get_alt_approx(TerrainChunkSize::center_wpos(chunk)).map(|f| {
+                    (f + 150.0) as i32
+                })
+            })
+        } else {
+            finish().boxed()
+        }
+    })
+    .repeat()
+    .map(|_| ())
+}
+
+fn captain() -> impl Action {
+    // For now just randomly travel the sea
+    now(|ctx| {
+        let chunk = ctx.npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
+        if let Some(chunk) = NEIGHBORS
+            .into_iter()
+            .map(|neighbor| chunk + neighbor)
+            .filter(|neighbor| ctx.world.sim().get(*neighbor).map_or(false, |c| c.river.river_kind.is_some()))
+            .choose(&mut thread_rng())
+        {
+            let wpos = TerrainChunkSize::center_wpos(chunk);
+            let wpos = wpos.as_().with_z(ctx.world.sim().get_interpolated(wpos, |chunk| chunk.water_alt).unwrap_or(0.0));
+            goto(wpos, 0.7, 5.0).boxed()
+        } else {
+            idle().boxed()
+        }
+    })
+    .repeat().map(|_| ())
+}
+
 fn think() -> impl Action {
     choose(|ctx| {
-        if matches!(
+        if let Some(riding) = &ctx.npc.riding {
+            if riding.steering {
+                if let Some(vehicle) = ctx.state.data().npcs.vehicles.get(riding.vehicle) {
+                    match vehicle.kind {
+                        VehicleKind::Airship => important(pilot()),
+                        VehicleKind::Boat => important(captain()),
+                    }
+                } else {
+                    casual(finish())
+                }
+            } else {
+                important(idle())
+            }
+        } else if matches!(
             ctx.npc.profession,
             Some(Profession::Adventurer(_) | Profession::Merchant)
         ) {

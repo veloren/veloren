@@ -8,7 +8,7 @@ use crate::{
     },
     lottery::LootSpec,
     outcome::Outcome,
-    rtsim::RtSimEntity,
+    rtsim::{RtSimEntity, RtSimVehicle},
     terrain::SpriteKind,
     trade::{TradeAction, TradeId},
     uid::Uid,
@@ -40,6 +40,83 @@ pub enum LocalEvent {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct UpdateCharacterMetadata {
     pub skill_set_persistence_load_error: Option<comp::skillset::SkillsPersistenceError>,
+}
+
+pub struct NpcBuilder {
+    pub stats: comp::Stats,
+    pub skill_set: comp::SkillSet,
+    pub health: Option<comp::Health>,
+    pub poise: comp::Poise,
+    pub inventory: comp::inventory::Inventory,
+    pub body: comp::Body,
+    pub agent: Option<comp::Agent>,
+    pub alignment: comp::Alignment,
+    pub scale: comp::Scale,
+    pub anchor: Option<comp::Anchor>,
+    pub loot: LootSpec<String>,
+    pub rtsim_entity: Option<RtSimEntity>,
+    pub projectile: Option<comp::Projectile>,
+}
+
+impl NpcBuilder {
+    pub fn new(stats: comp::Stats, body: comp::Body, alignment: comp::Alignment) -> Self {
+        Self {
+            stats,
+            skill_set: comp::SkillSet::default(),
+            health: None,
+            poise: comp::Poise::new(body.clone()),
+            inventory: comp::Inventory::with_empty(),
+            body,
+            agent: None,
+            alignment,
+            scale: comp::Scale(1.0),
+            anchor: None,
+            loot: LootSpec::Nothing,
+            rtsim_entity: None,
+            projectile: None,
+        }
+    }
+
+    pub fn with_health(mut self, health: impl Into<Option<comp::Health>>) -> Self {
+        self.health = health.into();
+        self
+    }
+    pub fn with_poise(mut self, poise: comp::Poise) -> Self {
+        self.poise = poise;
+        self
+    }
+    pub fn with_agent(mut self, agent: impl Into<Option<comp::Agent>>) -> Self {
+        self.agent = agent.into();
+        self
+    }
+    pub fn with_anchor(mut self, anchor: comp::Anchor) -> Self {
+        self.anchor = Some(anchor);
+        self
+    }
+    pub fn with_rtsim(mut self, rtsim: RtSimEntity) -> Self {
+        self.rtsim_entity = Some(rtsim);
+        self
+    }
+    pub fn with_projectile(mut self, projectile: impl Into<Option<comp::Projectile>>) -> Self {
+        self.projectile = projectile.into();
+        self
+    }
+    pub fn with_scale(mut self, scale: comp::Scale) -> Self {
+        self.scale = scale;
+        self
+    }
+    pub fn with_inventory(mut self, inventory: comp::Inventory) -> Self {
+        self.inventory = inventory;
+        self
+    }
+    pub fn with_skill_set(mut self, skill_set: comp::SkillSet) -> Self {
+        self.skill_set = skill_set;
+        self
+    }
+    pub fn with_loot(mut self, loot: LootSpec<String>) -> Self {
+        self.loot = loot;
+        self
+    }
 }
 
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
@@ -137,26 +214,14 @@ pub enum ServerEvent {
     // TODO: to avoid breakage when adding new fields, perhaps have an `NpcBuilder` type?
     CreateNpc {
         pos: Pos,
-        stats: comp::Stats,
-        skill_set: comp::SkillSet,
-        health: Option<comp::Health>,
-        poise: comp::Poise,
-        inventory: comp::inventory::Inventory,
-        body: comp::Body,
-        agent: Option<comp::Agent>,
-        alignment: comp::Alignment,
-        scale: comp::Scale,
-        anchor: Option<comp::Anchor>,
-        loot: LootSpec<String>,
-        rtsim_entity: Option<RtSimEntity>,
-        projectile: Option<comp::Projectile>,
+        npc: NpcBuilder,
     },
     CreateShip {
         pos: Pos,
         ship: comp::ship::Body,
-        mountable: bool,
-        agent: Option<comp::Agent>,
-        rtsim_entity: Option<RtSimEntity>,
+        rtsim_entity: Option<RtSimVehicle>,
+        driver: Option<NpcBuilder>,
+        passangers: Vec<NpcBuilder>,
     },
     CreateWaypoint(Vec3<f32>),
     ClientDisconnect(EcsEntity, DisconnectReason),

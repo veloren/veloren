@@ -375,14 +375,8 @@ impl EntityInfo {
     }
 
     #[must_use]
-    pub fn with_agent_mark(mut self, agent_mark: agent::Mark) -> Self {
-        self.agent_mark = Some(agent_mark);
-        self
-    }
-    
-    #[must_use]
-    pub fn with_maybe_agent_mark(mut self, agent_mark: Option<agent::Mark>) -> Self {
-        self.agent_mark = agent_mark;
+    pub fn with_agent_mark(mut self, agent_mark: impl Into<Option<agent::Mark>>) -> Self {
+        self.agent_mark = agent_mark.into();
         self
     }
 
@@ -442,15 +436,8 @@ impl EntityInfo {
 
     /// map contains price+amount
     #[must_use]
-    pub fn with_economy(mut self, e: &SiteInformation) -> Self {
-        self.trading_information = Some(e.clone());
-        self
-    }
-
-    /// map contains price+amount
-    #[must_use]
-    pub fn with_maybe_economy(mut self, e: Option<&SiteInformation>) -> Self {
-        self.trading_information = e.cloned();
+    pub fn with_economy<'a>(mut self, e: impl Into<Option<&'a SiteInformation>>) -> Self {
+        self.trading_information = e.into().cloned();
         self
     }
 

@@ -4,7 +4,7 @@ pub mod tick;
 
 use common::{
     grid::Grid,
-    rtsim::{ChunkResource, RtSimEntity, WorldSettings},
+    rtsim::{ChunkResource, RtSimEntity, WorldSettings, RtSimVehicle},
     slowjob::SlowJobPool,
     terrain::{Block, TerrainChunk},
     vol::RectRasterableVol,
@@ -12,7 +12,7 @@ use common::{
 use common_ecs::{dispatch, System};
 use enum_map::EnumMap;
 use rtsim2::{
-    data::{npc::NpcMode, Data, ReadError},
+    data::{npc::SimulationMode, Data, ReadError},
     event::{OnDeath, OnSetup},
     rule::Rule,
     RtState,
@@ -150,7 +150,13 @@ impl RtSim {
 
     pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
         if let Some(npc) = self.state.data_mut().npcs.get_mut(entity.0) {
-            npc.mode = NpcMode::Simulated;
+            npc.mode = SimulationMode::Simulated;
+        }
+    }
+
+    pub fn hook_rtsim_vehicle_unload(&mut self, entity: RtSimVehicle) {
+        if let Some(vehicle) = self.state.data_mut().npcs.vehicles.get_mut(entity.0) {
+            vehicle.mode = SimulationMode::Simulated;
         }
     }
 

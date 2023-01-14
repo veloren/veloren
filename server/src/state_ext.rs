@@ -65,7 +65,6 @@ pub trait StateExt {
         pos: comp::Pos,
         ship: comp::ship::Body,
         make_collider: F,
-        mountable: bool,
     ) -> EcsEntityBuilder;
     /// Build a projectile
     fn create_projectile(
@@ -338,7 +337,6 @@ impl StateExt for State {
         pos: comp::Pos,
         ship: comp::ship::Body,
         make_collider: F,
-        mountable: bool,
     ) -> EcsEntityBuilder {
         let body = comp::Body::Ship(ship);
         let builder = self
@@ -362,9 +360,6 @@ impl StateExt for State {
             .with(comp::ActiveAbilities::default())
             .with(comp::Combo::default());
 
-        if mountable {
-            // TODO: Re-add mounting check
-        }
         builder
     }
 

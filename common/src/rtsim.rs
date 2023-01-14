@@ -11,6 +11,8 @@ use crate::comp::dialogue::MoodState;
 
 slotmap::new_key_type! { pub struct NpcId; }
 
+slotmap::new_key_type! { pub struct VehicleId; }
+
 slotmap::new_key_type! { pub struct SiteId; }
 
 slotmap::new_key_type! { pub struct FactionId; }
@@ -19,6 +21,13 @@ slotmap::new_key_type! { pub struct FactionId; }
 pub struct RtSimEntity(pub NpcId);
 
 impl Component for RtSimEntity {
+    type Storage = specs::VecStorage<Self>;
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct RtSimVehicle(pub VehicleId);
+
+impl Component for RtSimVehicle {
     type Storage = specs::VecStorage<Self>;
 }
 
@@ -139,6 +148,8 @@ pub enum Profession {
     Cultist,
     #[serde(rename = "10")]
     Herbalist,
+    #[serde(rename = "11")]
+    Captain,
 }
 
 impl Profession {
@@ -155,6 +166,7 @@ impl Profession {
             Self::Pirate => "Pirate".to_string(),
             Self::Cultist => "Cultist".to_string(),
             Self::Herbalist => "Herbalist".to_string(),
+            Self::Captain => "Captain".to_string(),
         }
     }
 }

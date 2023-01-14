@@ -3,19 +3,19 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp::{self, inventory::loadout::Loadout, skillset::skills},
-    event::{EventBus, ServerEvent},
+    comp::{self, inventory::loadout::Loadout, skillset::skills, Body, Agent},
+    event::{EventBus, ServerEvent, NpcBuilder},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
-    rtsim::{RtSimController, RtSimEntity},
+    rtsim::{RtSimController, RtSimEntity, RtSimVehicle},
     slowjob::SlowJobPool,
     trade::{Good, SiteInformation},
     LoadoutBuilder, SkillSetBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim2::data::{
-    npc::{NpcMode, Profession},
-    Npc, Sites,
+    npc::{SimulationMode, Profession},
+    Npc, Sites, Actor,
 };
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
@@ -26,6 +26,7 @@ fn humanoid_config(profession: &Profession) -> &'static str {
         Profession::Farmer => "common.entity.village.farmer",
         Profession::Hunter => "common.entity.village.hunter",
         Profession::Herbalist => "common.entity.village.herbalist",
+        Profession::Captain => "common.entity.village.captain",
         Profession::Merchant => "common.entity.village.merchant",
         Profession::Guard => "common.entity.village.guard",
         Profession::Adventurer(rank) => match rank {
@@ -146,9 +147,9 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
             } else {
                 comp::Alignment::Npc
             })
-            .with_maybe_economy(economy.as_ref())
+            .with_economy(economy.as_ref())
             .with_lazy_loadout(profession_extra_loadout(npc.profession.as_ref()))
-            .with_maybe_agent_mark(profession_agent_mark(npc.profession.as_ref()))
+            .with_agent_mark(profession_agent_mark(npc.profession.as_ref()))
     } else {
         EntityInfo::at(pos.0)
             .with_body(body)
@@ -171,6 +172,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, SlowJobPool>,
         ReadStorage<'a, comp::Pos>,
         ReadStorage<'a, RtSimEntity>,
+        ReadStorage<'a, RtSimVehicle>,
         WriteStorage<'a, comp::Agent>,
     );
 
@@ -191,6 +193,7 @@ impl<'a> System<'a> for Sys {
             slow_jobs,
             positions,
             rtsim_entities,
+            rtsim_vehicles,
             mut agents,
         ): Self::SystemData,
     ) {
@@ -211,18 +214,79 @@ impl<'a> System<'a> for Sys {
 
         let chunk_states = rtsim.state.resource::<ChunkStates>();
         let data = &mut *rtsim.state.data_mut();
-        for (npc_id, npc) in data.npcs.iter_mut() {
+
+        for (vehicle_id, vehicle) in data.npcs.vehicles.iter_mut() {
+            let chunk = vehicle.wpos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                (e as i32).div_euclid(sz as i32)
+            });
+
+            if matches!(vehicle.mode, SimulationMode::Simulated)
+                && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
+            {
+                vehicle.mode = SimulationMode::Loaded;
+
+                let mut actor_info = |actor: Actor| {
+                    let npc_id = actor.npc()?;
+                    let npc = data.npcs.npcs.get_mut(npc_id)?;
+                    if matches!(npc.mode, SimulationMode::Simulated) {
+                        npc.mode = SimulationMode::Loaded;
+                        let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
+
+                        Some(match NpcData::from_entity_info(entity_info) {
+                            NpcData::Data {
+                                pos: _,
+                                stats,
+                                skill_set,
+                                health,
+                                poise,
+                                inventory,
+                                agent,
+                                body,
+                                alignment,
+                                scale,
+                                loot,
+                            } => NpcBuilder::new(stats, body, alignment)
+                                        .with_skill_set(skill_set)
+                                        .with_health(health)
+                                        .with_poise(poise)
+                                        .with_inventory(inventory)
+                                        .with_agent(agent)
+                                        .with_scale(scale)
+                                        .with_loot(loot)
+                                        .with_rtsim(RtSimEntity(npc_id)),
+                            // EntityConfig can't represent Waypoints at all
+                            // as of now, and if someone will try to spawn
+                            // rtsim waypoint it is definitely error.
+                            NpcData::Waypoint(_) => unimplemented!(),
+                        })
+                    } else {
+                        error!("Npc is loaded but vehicle is unloaded");
+                        None
+                    }
+                };
+
+                emitter.emit(ServerEvent::CreateShip {
+                    pos: comp::Pos(vehicle.wpos),
+                    ship: vehicle.get_ship(),
+                    // agent: None,//Some(Agent::from_body(&Body::Ship(ship))),
+                    rtsim_entity: Some(RtSimVehicle(vehicle_id)),
+                    driver: vehicle.driver.and_then(&mut actor_info),
+                    passangers: vehicle.riders.iter().copied().filter(|actor| vehicle.driver != Some(*actor)).filter_map(actor_info).collect(),
+                });
+            }
+        }
+
+        for (npc_id, npc) in data.npcs.npcs.iter_mut() {
             let chunk = npc.wpos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
                 (e as i32).div_euclid(sz as i32)
             });
 
             // Load the NPC into the world if it's in a loaded chunk and is not already
             // loaded
-            if matches!(npc.mode, NpcMode::Simulated)
+            if matches!(npc.mode, SimulationMode::Simulated)
                 && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
             {
-                npc.mode = NpcMode::Loaded;
-
+                npc.mode = SimulationMode::Loaded;
                 let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
 
                 emitter.emit(match NpcData::from_entity_info(entity_info) {
@@ -240,19 +304,15 @@ impl<'a> System<'a> for Sys {
                         loot,
                     } => ServerEvent::CreateNpc {
                         pos,
-                        stats,
-                        skill_set,
-                        health,
-                        poise,
-                        inventory,
-                        agent,
-                        body,
-                        alignment,
-                        scale,
-                        anchor: None,
-                        loot,
-                        rtsim_entity: Some(RtSimEntity(npc_id)),
-                        projectile: None,
+                        npc: NpcBuilder::new(stats, body, alignment)
+                                .with_skill_set(skill_set)
+                                .with_health(health)
+                                .with_poise(poise)
+                                .with_inventory(inventory)
+                                .with_agent(agent)
+                                .with_scale(scale)
+                                .with_loot(loot)
+                                .with_rtsim(RtSimEntity(npc_id)),
                     },
                     // EntityConfig can't represent Waypoints at all
                     // as of now, and if someone will try to spawn
@@ -263,20 +323,42 @@ impl<'a> System<'a> for Sys {
         }
 
         // Synchronise rtsim NPC with entity data
+        for (pos, rtsim_vehicle) in
+            (&positions, &rtsim_vehicles).join()
+        {
+            data.npcs.vehicles
+                .get_mut(rtsim_vehicle.0)
+                .filter(|npc| matches!(npc.mode, SimulationMode::Loaded))
+                .map(|vehicle| {
+                    // Update rtsim NPC state
+                    vehicle.wpos = pos.0;
+                });
+        }
+
+        // Synchronise rtsim NPC with entity data
         for (pos, rtsim_entity, agent) in
             (&positions, &rtsim_entities, (&mut agents).maybe()).join()
         {
             data.npcs
                 .get_mut(rtsim_entity.0)
-                .filter(|npc| matches!(npc.mode, NpcMode::Loaded))
+                .filter(|npc| matches!(npc.mode, SimulationMode::Loaded))
                 .map(|npc| {
                     // Update rtsim NPC state
                     npc.wpos = pos.0;
 
                     // Update entity state
                     if let Some(agent) = agent {
-                        agent.rtsim_controller.travel_to = npc.goto.map(|(wpos, _)| wpos);
-                        agent.rtsim_controller.speed_factor = npc.goto.map_or(1.0, |(_, sf)| sf);
+                        if let Some(action) = npc.action {
+                            match action {
+                                rtsim2::data::npc::NpcAction::Goto(wpos, sf) => {
+                                    agent.rtsim_controller.travel_to = Some(wpos);
+                                    agent.rtsim_controller.speed_factor = sf;
+                                },
+                            }
+                        } else {
+                            agent.rtsim_controller.travel_to = None;
+                            agent.rtsim_controller.speed_factor = 1.0;
+                        }
                     }
                 });
         }

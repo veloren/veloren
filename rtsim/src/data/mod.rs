@@ -23,10 +23,19 @@ use std::{
     marker::PhantomData,
 };
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Actor {
     Npc(NpcId),
     Character(common::character::CharacterId),
+}
+
+impl Actor {
+    pub fn npc(&self) -> Option<NpcId> {
+        match self {
+            Actor::Npc(id) => Some(*id),
+            Actor::Character(_) => None,
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

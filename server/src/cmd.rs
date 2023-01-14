@@ -1480,7 +1480,7 @@ fn handle_spawn_airship(
     let ship = comp::ship::Body::random_airship_with(&mut rng);
     let mut builder = server
         .state
-        .create_ship(pos, ship, |ship| ship.make_collider(), true)
+        .create_ship(pos, ship, |ship| ship.make_collider())
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
@@ -1488,7 +1488,7 @@ fn handle_spawn_airship(
             animated: true,
         });
     if let Some(pos) = destination {
-        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship));
+        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
@@ -1528,7 +1528,7 @@ fn handle_spawn_ship(
     let ship = comp::ship::Body::random_ship_with(&mut rng);
     let mut builder = server
         .state
-        .create_ship(pos, ship, |ship| ship.make_collider(), true)
+        .create_ship(pos, ship, |ship| ship.make_collider())
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
@@ -1536,7 +1536,7 @@ fn handle_spawn_ship(
             animated: true,
         });
     if let Some(pos) = destination {
-        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship));
+        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
@@ -1581,7 +1581,6 @@ fn handle_make_volume(
             comp::Pos(pos.0 + Vec3::unit_z() * 50.0),
             ship,
             move |_| collider,
-            true,
         )
         .build();
 

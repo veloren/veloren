@@ -904,21 +904,20 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
 
 /// Get the PID coefficients associated with some Body, since it will likely
 /// need to be tuned differently for each body type
-pub fn pid_coefficients(body: &Body) -> (f32, f32, f32) {
+pub fn pid_coefficients(body: &Body) -> Option<(f32, f32, f32)> {
     match body {
         Body::Ship(ship::Body::DefaultAirship) => {
             let kp = 1.0;
             let ki = 0.1;
             let kd = 1.2;
-            (kp, ki, kd)
+            Some((kp, ki, kd))
         },
         Body::Ship(ship::Body::AirBalloon) => {
             let kp = 1.0;
             let ki = 0.1;
             let kd = 0.8;
-            (kp, ki, kd)
+            Some((kp, ki, kd))
         },
-        // default to a pure-proportional controller, which is the first step when tuning
-        _ => (1.0, 0.0, 0.0),
+        _ => None,
     }
 }
