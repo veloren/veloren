@@ -2313,9 +2313,7 @@ impl<'a> AgentData<'a> {
             {
                 agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] = 0.0;
             } else if agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] < 1.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_basic_input(InputKind::Primary);
                 agent.action_state.timers[ActionStateTimers::TimerOrganAura as usize] +=
                     read_data.dt.0;
             } else {
