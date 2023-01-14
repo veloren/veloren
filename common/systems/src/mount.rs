@@ -1,5 +1,5 @@
 use common::{
-    comp::{Body, Controller, InputKind, Ori, Pos, Scale, Vel},
+    comp::{Body, Controller, InputKind, Ori, Pos, Scale, Vel, ControlAction},
     link::Is,
     mounting::Mount,
     uid::UidAllocator,
@@ -48,17 +48,18 @@ impl<'a> System<'a> for Sys {
         // For each mount...
         for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
             // ...find the rider...
-            let Some((inputs, queued_inputs, rider)) = uid_allocator
+            let Some((inputs, actions, rider)) = uid_allocator
                 .retrieve_entity_internal(is_mount.rider.id())
                 .and_then(|rider| {
                     controllers
                         .get_mut(rider)
                         .map(|c| {
-                            let queued_inputs = c.queued_inputs
-                                // TODO: Formalise ways to pass inputs to mounts
-                                .drain_filter(|i, _| matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll))
-                                .collect();
-                            (c.inputs.clone(), queued_inputs, rider)
+                            let actions = c.actions.drain_filter(|action| match action {
+                                ControlAction::StartInput { input: i, .. }
+                                | ControlAction::CancelInput(i) => matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll),
+                                _ => false
+                            }).collect();
+                            (c.inputs.clone(), actions, rider)
                         })
                 })
             else { continue };
@@ -79,11 +80,8 @@ impl<'a> System<'a> for Sys {
             }
             // ...and apply the rider's inputs to the mount's controller.
             if let Some(controller) = controllers.get_mut(entity) {
-                *controller = Controller {
-                    inputs,
-                    queued_inputs,
-                    ..Default::default()
-                }
+                controller.inputs = inputs;
+                controller.actions = actions;
             }
         }
     }
