@@ -250,13 +250,7 @@ impl<'a> System<'a> for Sys {
                 .iter()
                 .map(|(kind, ids)| (*kind, ids.clone()))
                 .collect::<Vec<(BuffKind, Vec<BuffId>)>>();
-            buff_kinds.sort_by_key(|(kind, _)| {
-                if kind.affects_subsequent_buffs() {
-                    0
-                } else {
-                    1
-                }
-            });
+            buff_kinds.sort_by_key(|(kind, _)| !kind.affects_subsequent_buffs());
             for (buff_kind, buff_ids) in buff_kinds.into_iter() {
                 let mut active_buff_ids = Vec::new();
                 if buff_kind.stacks() {

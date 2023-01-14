@@ -3,6 +3,7 @@ use crate::uid::Uid;
 use core::{cmp::Ordering, time::Duration};
 #[cfg(not(target_arch = "wasm32"))]
 use hashbrown::HashMap;
+use itertools::Either;
 use serde::{Deserialize, Serialize};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::{Component, DerefFlaggedStorage, VecStorage};
@@ -561,10 +562,9 @@ impl Buffs {
     pub fn iter_active(&self) -> impl Iterator<Item = &Buff> + '_ {
         self.kinds.iter().flat_map(move |(kind, ids)| {
             if kind.stacks() {
-                Box::new(ids.iter().filter_map(|id| self.buffs.get(id)))
-                    as Box<dyn Iterator<Item = &Buff>>
+                Either::Left(ids.iter().filter_map(|id| self.buffs.get(id)))
             } else {
-                Box::new(self.buffs.get(&ids[0]).into_iter())
+                Either::Right(self.buffs.get(&ids[0]).into_iter())
             }
         })
     }
