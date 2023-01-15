@@ -19,7 +19,7 @@
         Individual((
             title: "A Peaceful Moment",
             path: "voxygen.audio.soundtrack.overworld.a_peaceful_moment",
-            length: 126.0,
+            length: 154.0,
             timing: Night,
             weather: None,
             biomes: [
