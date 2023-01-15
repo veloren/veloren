@@ -281,7 +281,7 @@ void main() {
                     vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
                     vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
 
-                    float dist = length((drop_pos - near_cell) / vec3(1, 1, 2));
+                    float dist = length((drop_pos - near_cell) * vec3(1, 1, 0.5));
                     float drop_rad = 0.075 + puddle * 0.05;
                     float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
                     k_a += distort;
