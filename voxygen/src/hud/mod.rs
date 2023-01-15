@@ -454,8 +454,14 @@ impl<W: Positionable> Position for W {
 
 #[derive(Clone, Copy)]
 pub enum BuffIconKind<'a> {
-    Buff { kind: BuffKind, data: BuffData },
-    Ability { ability_id: &'a str },
+    Buff {
+        kind: BuffKind,
+        data: BuffData,
+        multiplicity: usize,
+    },
+    Ability {
+        ability_id: &'a str,
+    },
 }
 
 impl<'a> BuffIconKind<'a> {
@@ -478,7 +484,11 @@ impl<'a> BuffIconKind<'a> {
         localized_strings: &'b Localization,
     ) -> (Cow<'b, str>, Cow<'b, str>) {
         match self {
-            Self::Buff { kind, data } => (
+            Self::Buff {
+                kind,
+                data,
+                multiplicity: _,
+            } => (
                 get_buff_title(*kind, localized_strings),
                 get_buff_desc(*kind, *data, localized_strings),
             ),
@@ -548,6 +558,13 @@ pub struct BuffIcon<'a> {
 }
 
 impl<'a> BuffIcon<'a> {
+    pub fn multiplicity(&self) -> usize {
+        match self.kind {
+            BuffIconKind::Buff { multiplicity, .. } => multiplicity,
+            BuffIconKind::Ability { .. } => 1,
+        }
+    }
+
     pub fn get_buff_time(&self) -> String {
         if let Some(dur) = self.dur {
             format!("{:.0}s", dur.as_secs_f32())
@@ -559,7 +576,7 @@ impl<'a> BuffIcon<'a> {
     pub fn icons_vec(buffs: &comp::Buffs, char_state: &comp::CharacterState) -> Vec<Self> {
         buffs
             .iter_active()
-            .map(BuffIcon::from_buff)
+            .filter_map(BuffIcon::from_buffs)
             .chain(BuffIcon::from_char_state(char_state).into_iter())
             .collect::<Vec<_>>()
     }
@@ -581,15 +598,20 @@ impl<'a> BuffIcon<'a> {
         }
     }
 
-    fn from_buff(buff: &comp::Buff) -> Self {
-        Self {
+    fn from_buffs<'b, I: Iterator<Item = &'b comp::Buff>>(buffs: I) -> Option<Self> {
+        let (buff, count) = buffs.fold((None, 0), |(strongest, count), buff| {
+            (strongest.or(Some(buff)), count + 1)
+        });
+        let buff = buff?;
+        Some(Self {
             kind: BuffIconKind::Buff {
                 kind: buff.kind,
                 data: buff.data,
+                multiplicity: count,
             },
             is_buff: buff.kind.is_buff(),
             dur: buff.time,
-        }
+        })
     }
 }
 

@@ -28,6 +28,8 @@ widget_ids! {
         debuffs[],
         debuff_timers[],
         buff_txts[],
+        buff_multiplicities[],
+        debuff_multiplicities[],
     }
 }
 
@@ -181,6 +183,12 @@ impl<'a> Widget for BuffsBar<'a> {
             if state.ids.debuff_timers.len() < debuff_count {
                 state.update(|state| state.ids.debuff_timers.resize(debuff_count, gen));
             };
+            if state.ids.buff_multiplicities.len() < buff_count {
+                state.update(|state| state.ids.buff_multiplicities.resize(buff_count, gen));
+            };
+            if state.ids.debuff_multiplicities.len() < debuff_count {
+                state.update(|state| state.ids.debuff_multiplicities.resize(debuff_count, gen));
+            };
 
             // Create Buff Widgets
             let mut buff_vec = state
@@ -189,16 +197,18 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .copied()
                 .zip(state.ids.buff_timers.iter().copied())
+                .zip(state.ids.buff_multiplicities.iter().copied())
                 .zip(buff_icons.iter().filter(|info| info.is_buff))
                 .collect::<Vec<_>>();
 
             // Sort the buffs by kind
-            buff_vec.sort_by_key(|((_id, _timer_id), buff)| std::cmp::Reverse(buff.kind));
+            buff_vec
+                .sort_by_key(|(((_id, _timer_id), _mult_id), buff)| std::cmp::Reverse(buff.kind));
 
             buff_vec
                 .iter()
                 .enumerate()
-                .for_each(|(i, ((id, timer_id), buff))| {
+                .for_each(|(i, (((id, timer_id), mult_id), buff))| {
                     let max_duration = buff.kind.max_duration();
                     let current_duration = buff.dur;
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
@@ -225,6 +235,15 @@ impl<'a> Widget for BuffsBar<'a> {
                             },
                         )
                         .set(*id, ui);
+                    if buff.multiplicity() > 1 {
+                        Text::new(&format!("{}", buff.multiplicity()))
+                            .bottom_right_with_margins_on(*id, 1.0, 1.0)
+                            .graphics_for(*id)
+                            .font_size(self.fonts.cyri.scale(14))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(*mult_id, ui);
+                    }
                     // Create Buff tooltip
                     let (title, desc_txt) = buff.kind.title_description(localized_strings);
                     let remaining_time = buff.get_buff_time();
@@ -259,16 +278,17 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .copied()
                 .zip(state.ids.debuff_timers.iter().copied())
+                .zip(state.ids.debuff_multiplicities.iter().copied())
                 .zip(buff_icons.iter().filter(|info| !info.is_buff))
                 .collect::<Vec<_>>();
 
             // Sort the debuffs by kind
-            debuff_vec.sort_by_key(|((_id, _timer_id), debuff)| debuff.kind);
+            debuff_vec.sort_by_key(|(((_id, _timer_id), _mult_id), debuff)| debuff.kind);
 
             debuff_vec
                 .iter()
                 .enumerate()
-                .for_each(|(i, ((id, timer_id), debuff))| {
+                .for_each(|(i, (((id, timer_id), mult_id), debuff))| {
                     let max_duration = debuff.kind.max_duration();
                     let current_duration = debuff.dur;
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
@@ -295,6 +315,15 @@ impl<'a> Widget for BuffsBar<'a> {
                             },
                         )
                         .set(*id, ui);
+                    if debuff.multiplicity() > 1 {
+                        Text::new(&format!("{}", debuff.multiplicity()))
+                            .bottom_right_with_margins_on(*id, 1.0, 1.0)
+                            .graphics_for(*id)
+                            .font_size(self.fonts.cyri.scale(14))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(*mult_id, ui);
+                    }
                     // Create Debuff tooltip
                     let (title, desc_txt) = debuff.kind.title_description(localized_strings);
                     let remaining_time = debuff.get_buff_time();
@@ -334,6 +363,9 @@ impl<'a> Widget for BuffsBar<'a> {
             if state.ids.buff_txts.len() < buff_count {
                 state.update(|state| state.ids.buff_txts.resize(buff_count, gen));
             };
+            if state.ids.buff_multiplicities.len() < buff_count {
+                state.update(|state| state.ids.buff_multiplicities.resize(buff_count, gen));
+            };
 
             // Create Buff Widgets
 
@@ -344,16 +376,15 @@ impl<'a> Widget for BuffsBar<'a> {
                 .copied()
                 .zip(state.ids.buff_timers.iter().copied())
                 .zip(state.ids.buff_txts.iter().copied())
+                .zip(state.ids.buff_multiplicities.iter().copied())
                 .zip(buff_icons.iter())
                 .collect::<Vec<_>>();
 
             // Sort the buffs by kind
             buff_vec.sort_by_key(|((_id, _timer_id), txt_id)| std::cmp::Reverse(txt_id.kind));
 
-            buff_vec
-                .iter()
-                .enumerate()
-                .for_each(|(i, (((id, timer_id), txt_id), buff))| {
+            buff_vec.iter().enumerate().for_each(
+                |(i, ((((id, timer_id), txt_id), mult_id), buff))| {
                     let max_duration = buff.kind.max_duration();
                     let current_duration = buff.dur;
                     // Percentage to determine which frame of the timer overlay is displayed
@@ -380,6 +411,15 @@ impl<'a> Widget for BuffsBar<'a> {
                             },
                         )
                         .set(*id, ui);
+                    if buff.multiplicity() > 1 {
+                        Text::new(&format!("{}", buff.multiplicity()))
+                            .bottom_right_with_margins_on(*id, 1.0, 1.0)
+                            .graphics_for(*id)
+                            .font_size(self.fonts.cyri.scale(14))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(*mult_id, ui);
+                    }
                     // Create Buff tooltip
                     let (title, desc_txt) = buff.kind.title_description(localized_strings);
                     let remaining_time = buff.get_buff_time();
@@ -420,7 +460,8 @@ impl<'a> Widget for BuffsBar<'a> {
                         .graphics_for(*timer_id)
                         .color(TEXT_COLOR)
                         .set(*txt_id, ui);
-                });
+                },
+            );
         }
         event
     }

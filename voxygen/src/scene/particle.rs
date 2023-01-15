@@ -1158,13 +1158,31 @@ impl ParticleMgr {
         {
             let pos = interp.map_or(pos.0, |i| i.pos);
 
-            for (buff_kind, _) in buffs.kinds.iter() {
+            for (buff_kind, buff_ids) in buffs.kinds.iter() {
                 use buff::BuffKind;
                 match buff_kind {
-                    BuffKind::Cursed | BuffKind::Burning => {
+                    BuffKind::Cursed | BuffKind::Burning | BuffKind::PotionSickness => {
+                        let mut multiplicity = if buff_kind.stacks() {
+                            buff_ids.len()
+                        } else {
+                            1
+                        };
+                        if let BuffKind::PotionSickness = buff_kind {
+                            // Only show particles for potion sickness at the beginning
+                            if buff_ids
+                                .iter()
+                                .filter_map(|id| buffs.buffs.get(id))
+                                .all(|buff| buff.delay.is_none())
+                            {
+                                multiplicity = 0;
+                            }
+                        }
                         self.particles.resize_with(
                             self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
+                                + multiplicity
+                                    * usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(15)),
+                                    ),
                             || {
                                 let start_pos = pos
                                     + Vec3::unit_z() * body.height() * 0.25
@@ -1180,10 +1198,10 @@ impl ParticleMgr {
                                 Particle::new_directed(
                                     Duration::from_secs(1),
                                     time,
-                                    if matches!(buff_kind, buff::BuffKind::Cursed) {
-                                        ParticleMode::CultistFlame
-                                    } else {
-                                        ParticleMode::FlameThrower
+                                    match buff_kind {
+                                        BuffKind::Cursed => ParticleMode::CultistFlame,
+                                        BuffKind::PotionSickness => ParticleMode::Blood,
+                                        _ => ParticleMode::FlameThrower,
                                     },
                                     start_pos,
                                     end_pos,

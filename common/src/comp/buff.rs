@@ -559,8 +559,8 @@ impl Buffs {
 
     // Iterates through all active buffs (the most powerful buff of each
     // non-stacking kind, and all of the stacking ones)
-    pub fn iter_active(&self) -> impl Iterator<Item = &Buff> + '_ {
-        self.kinds.iter().flat_map(move |(kind, ids)| {
+    pub fn iter_active(&self) -> impl Iterator<Item = impl Iterator<Item = &Buff>> + '_ {
+        self.kinds.iter().map(move |(kind, ids)| {
             if kind.stacks() {
                 Either::Left(ids.iter().filter_map(|id| self.buffs.get(id)))
             } else {
