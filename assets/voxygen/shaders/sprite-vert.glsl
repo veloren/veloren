@@ -137,7 +137,7 @@ void main() {
                     vec3(0, 0, 1)
                 );
 
-                vec3 delta = vec3(-0.0, -5.5, 0);
+                vec3 delta = vec3(5.5, 0, 0);
                 v_pos = (rot_z * (v_pos + delta)) - delta;
             }
         }
