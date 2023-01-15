@@ -80,11 +80,11 @@ float wind_wave(float off, float scaling, float speed, float strength) {
 
     // TODO: Right now, the wind model is pretty simplistic. This means that there is frequently no wind at all, which
     // looks bad. For now, we add a lower bound on the wind speed to keep things looking nice.
-    strength = max(strength, 3.0);
-    aspeed = max(aspeed, 3.0);
+    strength = max(strength, 6.0);
+    aspeed = max(aspeed, 5.0);
 
-    return (sin(tick.x * 0.75 * scaling * floor(aspeed) + off) * (1.0 - fract(aspeed))
-        + sin(tick.x * 0.75 * scaling * ceil(aspeed) + off) * fract(aspeed)) * abs(strength) * 0.5;
+    return (sin(tick.x * 0.35 * scaling * floor(aspeed) + off) * (1.0 - fract(aspeed))
+        + sin(tick.x * 0.35 * scaling * ceil(aspeed) + off) * fract(aspeed)) * abs(strength) * 0.25;
     //return sin(tick.x * 1.5 * scaling + off) + sin(tick.x * 0.35 * scaling + off);
 }
 
@@ -161,13 +161,13 @@ void main() {
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
         // Wind sway effect
-        f_pos.xy += (wind_vel * 0.1 + vec2(
+        f_pos.xy += (wind_vel * 0.35 + vec2(
             wind_wave(f_pos.y * 0.1, 0.9, wind_vel.x, wind_vel.y),
             wind_wave(f_pos.x * 0.1, 1.1, wind_vel.y, wind_vel.x)
         ))
             * model_wind_sway
             //* mix(10.0, abs(v_pos.z), 1.0 / (1.0 + abs(v_pos.z) * 0.1))
-            * v_pos.z
+            * abs(v_pos.z)
             * model_z_scale
             * SCALE_FACTOR;
 

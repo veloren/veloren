@@ -153,9 +153,11 @@ void main() {
                     vec3 refl_dir = reflect(dir, surf_norm);
 
                     // Don't reflect back into the surface by snapping the reflection to the *actual* (i.e: not normal-mapped) surface plane
-                    if (dot(refl_dir, round(surf_norm)) <= 0.0) {
+                    // TODO: Find a good way to know the *actual* surface normal, minus normal mapping
+                    vec3 flat_norm = vec3(0, 0, 1);//round(surf_norm);
+                    if (dot(refl_dir, flat_norm) <= 0.0) {
                         // TODO: This assumes that the surface is axis-aligned!
-                        refl_dir = normalize(refl_dir.xyz * (1.0 - abs(round(surf_norm))));
+                        refl_dir = normalize(refl_dir.xyz * (1.0 - abs(flat_norm)));
                     }
 
                     vec4 clip = (all_mat * vec4(cam_pos.xyz + refl_dir, 1.0));
