@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command to toggle experimental shaders.
 
 ### Changed
+- Bats move slower and use a simple proportional controller to maintain altitude
+- Bats now have less health
 
 ### Removed
 
 ### Fixed
 - Doors
+- Debug hitboxes now scale with the `Scale` component
 
 ## [0.14.0] - 2023-01-07
 

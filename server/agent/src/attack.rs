@@ -73,31 +73,24 @@ impl<'a> AgentData<'a> {
         // Always fly! If the floor can't touch you, it can't hurt you...
         controller.push_basic_input(InputKind::Fly);
         // Flee from the ground! The internet told me it was lava!
-        // If on the ground, jump with every last ounce of energy, holding onto all that
-        // is dear in life and straining for the wide open skies.
+        // If on the ground, jump with every last ounce of energy, holding onto
+        // all that is dear in life and straining for the wide open skies.
         if self.physics_state.on_ground.is_some() {
             controller.push_basic_input(InputKind::Jump);
         } else {
-            // Only fly down if close enough to target in the xy plane
-            // Otherwise fly towards the target bouncing around a 5 block altitude
-            let mut maintain_altitude = |altitude| {
-                if read_data
+            // Use a proportional controller with a coefficient of 1.0 to
+            // maintain altidude at the the provided set point
+            let mut maintain_altitude = |set_point| {
+                let alt = read_data
                     .terrain
-                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * altitude))
+                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 7.0))
                     .until(Block::is_solid)
                     .cast()
-                    .1
-                    .map_or(true, |b| b.is_some())
-                {
-                    // Fly up
-                    controller.inputs.move_z = 1.0;
-                } else {
-                    // Fly down
-                    controller.inputs.move_z = -1.0;
-                }
+                    .0;
+                let error = set_point - alt;
+                controller.inputs.move_z = error;
             };
             if (tgt_data.pos.0 - self.pos.0).xy().magnitude_squared() > (5.0_f32).powi(2) {
-                // If above 5 blocks, fly down
                 maintain_altitude(5.0);
             } else {
                 maintain_altitude(2.0);

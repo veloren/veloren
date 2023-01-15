@@ -348,23 +348,20 @@ impl<'a> AgentData<'a> {
             {
                 // Bats don't like the ground, so make sure they are always flying
                 controller.push_basic_input(InputKind::Fly);
-                if read_data
+                // Use a proportional controller with a coefficient of 1.0 to
+                // maintain altitude
+                let alt = read_data
                     .terrain
-                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 5.0))
+                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 7.0))
                     .until(Block::is_solid)
                     .cast()
-                    .1
-                    .map_or(true, |b| b.is_some())
-                {
-                    // Fly up
-                    controller.inputs.move_z = 1.0;
-                    // If on the ground, jump
-                    if self.physics_state.on_ground.is_some() {
-                        controller.push_basic_input(InputKind::Jump);
-                    }
-                } else {
-                    // Fly down
-                    controller.inputs.move_z = -1.0;
+                    .0;
+                let set_point = 5.0;
+                let error = set_point - alt;
+                controller.inputs.move_z = error;
+                // If on the ground, jump
+                if self.physics_state.on_ground.is_some() {
+                    controller.push_basic_input(InputKind::Jump);
                 }
             }
             agent.bearing += Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 0.1

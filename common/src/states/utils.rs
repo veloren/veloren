@@ -3,14 +3,14 @@ use crate::{
     combat,
     comp::{
         ability::{Ability, AbilityInput, AbilityMeta, Capability},
-        arthropod, biped_large, biped_small,
+        arthropod, biped_large, biped_small, bird_medium,
         character_state::OutputEvents,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
-        item::{armor::Friction, Hands, ItemKind, ToolKind, tool::AbilityContext},
+        item::{armor::Friction, tool::AbilityContext, Hands, ItemKind, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
-        InventoryAction, StateUpdate, Melee,
+        InventoryAction, Melee, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
     event::{LocalEvent, ServerEvent},
@@ -250,7 +250,10 @@ impl Body {
     /// Returns thrust force if the body type can fly, otherwise None
     pub fn fly_thrust(&self) -> Option<f32> {
         match self {
-            Body::BirdMedium(_) => Some(GRAVITY * self.mass().0 * 2.0),
+            Body::BirdMedium(body) => match body.species {
+                bird_medium::Species::Bat => Some(GRAVITY * self.mass().0 * 0.5),
+                _ => Some(GRAVITY * self.mass().0 * 2.0),
+            },
             Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 0.5),
             Body::Dragon(_) => Some(200_000.0),
             Body::Ship(ship) if ship.can_fly() => Some(300_000.0),
@@ -1074,7 +1077,11 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool
             ));
             if let CharacterState::Roll(roll) = &mut update.character {
                 if let CharacterState::ComboMelee(c) = data.character {
-                    roll.was_combo = c.static_data.ability_info.input.map(|input| (input, c.stage));
+                    roll.was_combo = c
+                        .static_data
+                        .ability_info
+                        .input
+                        .map(|input| (input, c.stage));
                     roll.was_wielded = true;
                 } else {
                     if data.character.is_wield() {
@@ -1095,10 +1102,7 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool
 }
 
 /// Returns whether an interrupt occurred
-pub fn handle_interrupts(
-    data: &JoinData,
-    update: &mut StateUpdate,
-) -> bool {
+pub fn handle_interrupts(data: &JoinData, update: &mut StateUpdate) -> bool {
     let can_dodge = {
         let in_buildup = data
             .character
@@ -1106,16 +1110,22 @@ pub fn handle_interrupts(
             .map_or(true, |stage_section| {
                 matches!(stage_section, StageSection::Buildup)
             });
-        let interruptible = data.character.ability_info().and_then(|info| info.ability_meta).map_or(false, |meta| {
-            meta.capabilities
-                .contains(Capability::ROLL_INTERRUPT)
-        });
+        let interruptible = data
+            .character
+            .ability_info()
+            .and_then(|info| info.ability_meta)
+            .map_or(false, |meta| {
+                meta.capabilities.contains(Capability::ROLL_INTERRUPT)
+            });
         in_buildup || interruptible
     };
-    let can_block = data.character.ability_info().and_then(|info| info.ability_meta).map_or(false, |meta| {
-        meta.capabilities
-            .contains(Capability::BLOCK_INTERRUPT)
-    });
+    let can_block = data
+        .character
+        .ability_info()
+        .and_then(|info| info.ability_meta)
+        .map_or(false, |meta| {
+            meta.capabilities.contains(Capability::BLOCK_INTERRUPT)
+        });
     if can_dodge {
         handle_dodge_input(data, update)
     } else if can_block {
@@ -1348,8 +1358,13 @@ impl AbilityInfo {
             None
         };
 
-        // If this ability should not be returned to, check if this ability was going to return to another ability, and return to that one instead
-        let return_ability = return_ability.or_else(|| char_state.ability_info().and_then(|info| info.return_ability));
+        // If this ability should not be returned to, check if this ability was going to
+        // return to another ability, and return to that one instead
+        let return_ability = return_ability.or_else(|| {
+            char_state
+                .ability_info()
+                .and_then(|info| info.return_ability)
+        });
 
         Self {
             tool: None,
@@ -1364,19 +1379,32 @@ impl AbilityInfo {
 }
 
 pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
-    // If an ability has a return ability specified, and is not itself an ability that should be returned to (to prevent bouncing between two abilities), attempt to return to the specified ability, otherwise return to wield or idle depending on whether or not leaving a wield state
-    let returned = if let Some(return_ability) = (!data.character.should_be_returned_to()).then_some(data.character.ability_info().and_then(|info| info.return_ability)).flatten() {
+    // If an ability has a return ability specified, and is not itself an ability
+    // that should be returned to (to prevent bouncing between two abilities),
+    // attempt to return to the specified ability, otherwise return to wield or idle
+    // depending on whether or not leaving a wield state
+    let returned = if let Some(return_ability) = (!data.character.should_be_returned_to())
+        .then_some(
+            data.character
+                .ability_info()
+                .and_then(|info| info.return_ability),
+        )
+        .flatten()
+    {
         handle_ability(data, update, return_ability)
     } else {
         false
     };
     if !returned {
         if data.character.is_wield() || data.character.was_wielded() {
-            update.character =
-                CharacterState::Wielding(wielding::Data { is_sneaking: data.character.is_stealthy() });
+            update.character = CharacterState::Wielding(wielding::Data {
+                is_sneaking: data.character.is_stealthy(),
+            });
         } else {
-            update.character =
-                CharacterState::Idle(idle::Data { is_sneaking: data.character.is_stealthy(), footwear: None });
+            update.character = CharacterState::Idle(idle::Data {
+                is_sneaking: data.character.is_stealthy(),
+                footwear: None,
+            });
         }
     }
 }

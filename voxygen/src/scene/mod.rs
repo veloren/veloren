@@ -1405,12 +1405,14 @@ impl Scene {
             let positions = ecs.read_component::<comp::Pos>();
             let colliders = ecs.read_component::<comp::Collider>();
             let orientations = ecs.read_component::<comp::Ori>();
+            let scales = ecs.read_component::<comp::Scale>();
             let groups = ecs.read_component::<comp::Group>();
-            for (entity, pos, collider, ori, group) in (
+            for (entity, pos, collider, ori, scale, group) in (
                 &ecs.entities(),
                 &positions,
                 &colliders,
                 &orientations,
+                scales.maybe(),
                 groups.maybe(),
             )
                 .join()
@@ -1424,12 +1426,13 @@ impl Scene {
                         z_max,
                     } => {
                         current_entities.insert(entity);
+                        let s = scale.map_or(1.0, |sc| sc.0);
                         let shape_id = hitboxes.entry(entity).or_insert_with(|| {
                             self.debug.add_shape(DebugShape::CapsulePrism {
-                                p0: *p0,
-                                p1: *p1,
-                                radius: *radius,
-                                height: *z_max - *z_min,
+                                p0: *p0 * s,
+                                p1: *p1 * s,
+                                radius: *radius * s,
+                                height: (*z_max - *z_min) * s,
                             })
                         });
                         let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
