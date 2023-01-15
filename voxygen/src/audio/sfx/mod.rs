@@ -101,7 +101,7 @@ use common::{
         InventoryUpdateEvent, UtteranceKind,
     },
     outcome::Outcome,
-    terrain::{BlockKind, TerrainChunk},
+    terrain::{BlockKind, SpriteKind, TerrainChunk},
     uid::Uid,
     DamageSource,
 };
@@ -584,6 +584,23 @@ impl SfxMgr {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GliderClose);
                     audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), underwater);
                 }
+            },
+            Outcome::SpriteDelete { pos, sprite } => {
+                match sprite {
+                    SpriteKind::SeaUrchin => {
+                        let power = (0.6 - pos.distance(audio.listener.pos) / 5_000.0)
+                            .max(0.0)
+                            .powi(7);
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Explosion);
+                        audio.emit_sfx(
+                            sfx_trigger_item,
+                            *pos,
+                            Some((power.abs() / 2.5).min(0.3)),
+                            underwater,
+                        );
+                    },
+                    _ => {},
+                };
             },
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }

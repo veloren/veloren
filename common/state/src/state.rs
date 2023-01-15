@@ -36,18 +36,20 @@ use specs::{
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
 use std::sync::Arc;
+use timer_queue::TimerQueue;
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
 // TODO: Don't hard-code this.
 const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
-
 /// At what point should we stop speeding up physics to compensate for lag? If
 /// we speed physics up too fast, we'd skip important physics events like
 /// collisions. This constant determines the upper limit. If delta time exceeds
 /// this value, the game's physics will begin to produce time lag. Ideally, we'd
 /// avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
+/// convert seconds to milliseconds to use in TimerQueue
+const SECONDS_TO_MILLISECONDS: f64 = 1000.0;
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -67,6 +69,29 @@ impl BlockChange {
     }
 
     pub fn clear(&mut self) { self.blocks.clear(); }
+}
+
+#[derive(Default)]
+pub struct ScheduledBlockChange {
+    changes: TimerQueue<HashMap<Vec3<i32>, Block>>,
+    outcomes: TimerQueue<HashMap<Vec3<i32>, Block>>,
+}
+impl ScheduledBlockChange {
+    pub fn set(&mut self, pos: Vec3<i32>, block: Block, replace_time: f64) {
+        let timer = self.changes.insert(
+            (replace_time * SECONDS_TO_MILLISECONDS) as u64,
+            HashMap::new(),
+        );
+        self.changes.get_mut(timer).insert(pos, block);
+    }
+
+    pub fn outcome_set(&mut self, pos: Vec3<i32>, block: Block, replace_time: f64) {
+        let outcome_timer = self.outcomes.insert(
+            (replace_time * SECONDS_TO_MILLISECONDS) as u64,
+            HashMap::new(),
+        );
+        self.outcomes.get_mut(outcome_timer).insert(pos, block);
+    }
 }
 
 #[derive(Default)]
@@ -234,6 +259,7 @@ impl State {
         ecs.insert(PlayerEntity(None));
         ecs.insert(TerrainGrid::new(map_size_lg, default_chunk).unwrap());
         ecs.insert(BlockChange::default());
+        ecs.insert(ScheduledBlockChange::default());
         ecs.insert(crate::build_areas::BuildAreas::default());
         ecs.insert(TerrainChanges::default());
         ecs.insert(EventBus::<LocalEvent>::default());
@@ -415,6 +441,23 @@ impl State {
         self.ecs.write_resource::<BlockChange>().set(pos, block);
     }
 
+    /// Set a block in this state's terrain (used to delete temporary summoned
+    /// sprites after a timeout).
+    pub fn schedule_set_block(
+        &self,
+        pos: Vec3<i32>,
+        block: Block,
+        sprite_block: Block,
+        replace_time: f64,
+    ) {
+        self.ecs
+            .write_resource::<ScheduledBlockChange>()
+            .set(pos, block, replace_time);
+        self.ecs
+            .write_resource::<ScheduledBlockChange>()
+            .outcome_set(pos, sprite_block, replace_time);
+    }
+
     /// Check if the block at given position `pos` has already been modified
     /// this tick.
     pub fn can_set_block(&self, pos: Vec3<i32>) -> bool {
@@ -500,6 +543,28 @@ impl State {
         let mut terrain = self.ecs.write_resource::<TerrainGrid>();
         let mut modified_blocks =
             std::mem::take(&mut self.ecs.write_resource::<BlockChange>().blocks);
+
+        let mut scheduled_changes = self.ecs.write_resource::<ScheduledBlockChange>();
+        let current_time: f64 = self.ecs.read_resource::<Time>().0 * SECONDS_TO_MILLISECONDS;
+        while let Some(changes) = scheduled_changes.changes.poll(current_time as u64) {
+            modified_blocks.extend(changes.iter());
+        }
+        let outcome = self.ecs.read_resource::<EventBus<Outcome>>();
+        while let Some(outcomes) = scheduled_changes.outcomes.poll(current_time as u64) {
+            for (pos, block) in outcomes.iter() {
+                let offset_dir = Vec3::<i32>::zero() - pos;
+                let offset = offset_dir
+                    / Vec3::new(offset_dir.x.abs(), offset_dir.y.abs(), offset_dir.z.abs());
+                let outcome_pos = Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32)
+                    - (Vec3::new(offset.x as f32, offset.y as f32, offset.z as f32) / 2.0);
+                if let Some(sprite) = block.get_sprite() {
+                    outcome.emit_now(Outcome::SpriteDelete {
+                        pos: outcome_pos,
+                        sprite,
+                    });
+                }
+            }
+        }
         // Apply block modifications
         // Only include in `TerrainChanges` if successful
         modified_blocks.retain(|pos, block| {

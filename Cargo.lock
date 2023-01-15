@@ -6178,6 +6178,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "timer-queue"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13756c29c43d836ff576221498bf4916b0d2f7ea24cd47d3531b70dc4341f038"
+dependencies = [
+ "slab",
+]
+
+[[package]]
 name = "tiny-keccak"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6826,6 +6835,7 @@ dependencies = [
  "serde",
  "specs",
  "tar",
+ "timer-queue",
  "toml",
  "tracing",
  "vek 0.15.8",
