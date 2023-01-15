@@ -19,7 +19,7 @@ use common::{
     resources::DeltaTime,
     spiral::Spiral2d,
     states::{self, utils::StageSection},
-    terrain::{Block, TerrainChunk, TerrainGrid},
+    terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
     uid::UidAllocator,
     vol::{ReadVol, RectRasterableVol, SizedVol},
 };
@@ -73,6 +73,21 @@ impl ParticleMgr {
                         *pos,
                     )
                 });
+            },
+            Outcome::SpriteDelete { pos, sprite } => match sprite {
+                SpriteKind::SeaUrchin => {
+                    self.particles.resize_with(self.particles.len() + 10, || {
+                        Particle::new_directed(
+                            Duration::from_secs_f32(rng.gen_range(0.1..0.5)),
+                            time,
+                            ParticleMode::Steam,
+                            *pos + Vec3::new(0.0, 0.0, rng.gen_range(0.0..1.5)),
+                            *pos,
+                        )
+                    });
+                },
+                SpriteKind::EnsnaringVines => {},
+                _ => {},
             },
             Outcome::Explosion {
                 pos,

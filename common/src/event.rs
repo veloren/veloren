@@ -208,6 +208,7 @@ pub enum ServerEvent {
     CreateSprite {
         pos: Vec3<i32>,
         sprite: SpriteKind,
+        del_timeout: Option<(f32, f32)>,
     },
     TamePet {
         pet_entity: EcsEntity,

@@ -25,6 +25,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// What kind of sprite is created by this state
     pub sprite: SpriteKind,
+    /// Duration until sprite-delete begins (in sec), randomization-range of sprite-delete-time (in sec)
+    pub del_timeout: Option<(f32, f32)>,
     /// Range that sprites are created relative to the summonner
     pub summon_distance: (f32, f32),
     /// Chance that sprite is not created on a particular square
@@ -127,6 +129,7 @@ impl CharacterBehavior for Data {
                                     output_events.emit_server(ServerEvent::CreateSprite {
                                         pos: Vec3::new(sprite_pos.x, sprite_pos.y, z + i),
                                         sprite: self.static_data.sprite,
+                                        del_timeout:  self.static_data.del_timeout,
                                     });
                                 }
                             }

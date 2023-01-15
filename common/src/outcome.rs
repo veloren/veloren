@@ -1,4 +1,4 @@
-use crate::{combat::DamageContributor, comp, uid::Uid, DamageSource};
+use crate::{combat::DamageContributor, comp, uid::Uid, DamageSource, terrain::SpriteKind};
 use comp::{beam, item::Reagent, poise::PoiseState, skillset::SkillGroupKind, UtteranceKind};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
@@ -97,6 +97,10 @@ pub enum Outcome {
         pos: Vec3<f32>,
         wielded: bool,
     },
+    SpriteDelete {
+        pos: Vec3<f32>,
+        sprite: SpriteKind,
+    },
 }
 
 impl Outcome {
@@ -115,6 +119,7 @@ impl Outcome {
             | Outcome::PoiseChange { pos, .. }
             | Outcome::GroundSlam { pos }
             | Outcome::Utterance { pos, .. }
+            | Outcome::SpriteDelete { pos, .. }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. }

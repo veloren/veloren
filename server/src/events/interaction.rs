@@ -23,7 +23,7 @@ use common::{
 };
 use common_net::sync::WorldSyncExt;
 
-use crate::{state_ext::StateExt, Server};
+use crate::{state_ext::StateExt, Server, Time};
 
 use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
@@ -293,16 +293,32 @@ pub fn handle_sound(server: &mut Server, sound: &Sound) {
     }
 }
 
-pub fn handle_create_sprite(server: &mut Server, pos: Vec3<i32>, sprite: SpriteKind) {
+pub fn handle_create_sprite(
+    server: &mut Server,
+    pos: Vec3<i32>,
+    sprite: SpriteKind,
+    del_timeout: Option<(f32, f32)>,
+) {
     let state = server.state_mut();
     if state.can_set_block(pos) {
         let block = state.terrain().get(pos).ok().copied();
         if block.map_or(false, |b| (*b).is_air()) {
-            let new_block = state
-                .get_block(pos)
-                .unwrap_or_else(|| Block::air(SpriteKind::Empty))
-                .with_sprite(sprite);
-            server.state.set_block(pos, new_block);
+            let old_block = block.unwrap_or_else(|| Block::air(SpriteKind::Empty));
+            let new_block = old_block.with_sprite(sprite);
+            state.set_block(pos, new_block);
+            // Remove sprite after del_timeout and offset if specified
+            if let Some((timeout, del_offset)) = del_timeout {
+                use rand::Rng;
+                let mut rng = rand::thread_rng();
+                let offset = rng.gen_range(0.0..del_offset);
+                let current_time: f64 = state.ecs().read_resource::<Time>().0;
+                let replace_time = current_time + (timeout + offset) as f64;
+                if old_block != new_block {
+                    server
+                        .state
+                        .schedule_set_block(pos, old_block, new_block, replace_time)
+                }
+            }
         }
     }
 }

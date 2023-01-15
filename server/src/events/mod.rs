@@ -267,9 +267,11 @@ impl Server {
                     self.state.create_safezone(range, pos).build();
                 },
                 ServerEvent::Sound { sound } => handle_sound(self, &sound),
-                ServerEvent::CreateSprite { pos, sprite } => {
-                    handle_create_sprite(self, pos, sprite)
-                },
+                ServerEvent::CreateSprite {
+                    pos,
+                    sprite,
+                    del_timeout,
+                } => handle_create_sprite(self, pos, sprite, del_timeout),
                 ServerEvent::TamePet {
                     pet_entity,
                     owner_entity,
