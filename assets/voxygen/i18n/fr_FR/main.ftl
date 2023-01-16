@@ -4,6 +4,7 @@ main-password = Mot de passe
 main-connecting = Connexion
 main-creating_world = Création du monde
 main-tip = Astuce:
+main-unbound_key_tip = non lié
 main-notice =
     Bienvenue dans la version alpha de Veloren !
     

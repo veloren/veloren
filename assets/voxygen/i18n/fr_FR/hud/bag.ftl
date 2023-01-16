@@ -24,17 +24,19 @@ hud-bag-swap_equipped_weapons_title = Échanger armes équipées
 hud-bag-swap_equipped_weapons_desc = Appuyez sur { $key }
 hud-bag-bag = Sac
 hud-bag-health = Santé
-hud-bag-energy = Vigueur
+hud-bag-energy = Endurence
 hud-bag-combat_rating = Niveau de Combat
 hud-bag-protection = Protection
 hud-bag-stun_res = Résistance aux étourdissements
+hud-bag-stealth = Discrétion
 hud-bag-combat_rating_desc =
     Calculé depuis votre
     équipement et votre santé
 hud-bag-protection_desc = Réduction des dégats de votre armure
 hud-bag-stun_res_desc =
     Résistance contre les effets d'étourdissements après plusieurs coups reçu.
-    Se régénère tout comme l'énergie.
+    Se régénère tout comme l'Endurence.
 hud-bag-sort_by_name = Trier par Nom
 hud-bag-sort_by_quality = Trier par Qualité
 hud-bag-sort_by_category = Trier par Catégorie
+hud-bag-sort_by_tag = Trier par Tag
