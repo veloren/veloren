@@ -1221,7 +1221,7 @@ fn handle_spawn(
                         pos,
                         comp::Stats::new(get_npc_name(id, npc::BodyType::from_body(body))),
                         comp::SkillSet::default(),
-                        Some(comp::Health::new(body, 1)),
+                        Some(comp::Health::new(body, 0)),
                         comp::Poise::new(body),
                         inventory,
                         body,
