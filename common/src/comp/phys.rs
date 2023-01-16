@@ -5,7 +5,7 @@ use crate::{
     terrain::Block,
     uid::Uid,
 };
-use hashbrown::HashSet;
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, NullStorage, VecStorage};
 use std::sync::Arc;
@@ -176,7 +176,7 @@ pub struct PhysicsState {
     pub on_ground: Option<Block>,
     pub on_ceiling: bool,
     pub on_wall: Option<Vec3<f32>>,
-    pub touch_entities: HashSet<Uid>,
+    pub touch_entities: HashMap<Uid, Vec3<f32>>,
     pub in_fluid: Option<Fluid>,
     pub ground_vel: Vec3<f32>,
     pub footwear: Friction,

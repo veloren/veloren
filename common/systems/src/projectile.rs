@@ -12,14 +12,18 @@ use common::{
     util::Dir,
     GroupTarget,
 };
+
+use common::vol::ReadVol;
 use common_ecs::{Job, Origin, Phase, System};
 use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
-    ReadStorage, SystemData, World, WriteStorage,
+    ReadExpect, ReadStorage, SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
+
+use common::terrain::TerrainGrid;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -42,6 +46,7 @@ pub struct ReadData<'a> {
     healths: ReadStorage<'a, Health>,
     bodies: ReadStorage<'a, Body>,
     character_states: ReadStorage<'a, CharacterState>,
+    terrain: ReadExpect<'a, TerrainGrid>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -90,7 +95,7 @@ impl<'a> System<'a> for Sys {
             let mut projectile_vanished: bool = false;
 
             // Hit entity
-            for other in physics.touch_entities.iter().copied() {
+            for (&other, &pos_other) in physics.touch_entities.iter() {
                 let same_group = projectile_owner
                     // Note: somewhat inefficient since we do the lookup for every touching
                     // entity, but if we pull this out of the loop we would want to do it only
@@ -121,6 +126,28 @@ impl<'a> System<'a> for Sys {
 
                 let entity_of =
                     |uid: Uid| read_data.uid_allocator.retrieve_entity_internal(uid.into());
+
+                // Don't hit if there is a surface in the entity's way in the direction the
+                // projectile is going
+
+                if physics.on_surface().is_some() {
+                    let projectile_direction = orientations
+                        .get(entity)
+                        .map_or_else(Vec3::zero, |ori| ori.look_vec());
+                    let pos_wall = pos.0 - 0.2 * projectile_direction;
+                    if !matches!(
+                        read_data
+                            .terrain
+                            .ray(pos_wall, pos_other)
+                            .until(|b| b.is_filled())
+                            .cast()
+                            .1,
+                        Ok(None)
+                    ) {
+                        continue;
+                    }
+                }
+
                 for effect in projectile.hit_entity.drain(..) {
                     let owner = projectile.owner.and_then(entity_of);
                     let projectile_info = ProjectileInfo {

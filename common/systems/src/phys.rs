@@ -1917,7 +1917,7 @@ fn resolve_e2e_collision(
     // is either in mid air or is not sticky, then mark them as colliding with
     // the other entity.
     if !*collision_registered && (is_mid_air || !is_sticky) {
-        physics.touch_entities.insert(other);
+        physics.touch_entities.insert(other, pos);
         *entity_entity_collisions += 1;
     }
 
