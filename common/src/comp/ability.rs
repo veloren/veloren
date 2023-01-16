@@ -143,6 +143,7 @@ impl ActiveAbilities {
         inv: Option<&Inventory>,
         skill_set: &SkillSet,
         body: Option<&Body>,
+        char_state: Option<&CharacterState>,
         context: AbilityContext,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool)> {
@@ -188,7 +189,7 @@ impl ActiveAbilities {
                         .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false))
                 }),
             Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
-                .then(CharacterAbility::default_roll)
+                .then(|| CharacterAbility::default_roll(char_state))
                 .map(|ability| (ability.adjusted_by_skills(skill_set, None), false)),
             Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
@@ -931,9 +932,24 @@ impl CharacterAbility {
             }
     }
 
-    pub fn default_roll() -> CharacterAbility {
+    pub fn default_roll(current_state: Option<&CharacterState>) -> CharacterAbility {
+        let remaining_recover = if let Some(char_state) = current_state {
+            if matches!(char_state.stage_section(), Some(StageSection::Recover)) {
+                let timer = char_state.timer().map_or(0.0, |t| t.as_secs_f32());
+                let recover_duration = char_state
+                    .durations()
+                    .and_then(|durs| durs.recover)
+                    .map_or(timer, |rec| rec.as_secs_f32());
+                recover_duration - timer
+            } else {
+                0.0
+            }
+        } else {
+            0.0
+        };
         CharacterAbility::Roll {
-            energy_cost: 12.0,
+            // Energy cost increased by
+            energy_cost: 12.0 + remaining_recover * 100.0,
             buildup_duration: 0.05,
             movement_duration: 0.33,
             recover_duration: 0.125,
@@ -2889,9 +2905,10 @@ pub enum SwordStance {
 
 bitflags::bitflags! {
     #[derive(Default, Serialize, Deserialize)]
+    // If more are ever needed, first check if any not used anymore, as some were only used in intermediary stages so may be free
     pub struct Capability: u8 {
-        // Allows rolls to interrupt the ability at any point, not just during buildup
-        const ROLL_INTERRUPT      = 0b00000001;
+        // Allows rolls to interrupt the ability at any point for free, not just during buildup
+        const ROLL_INTERRUPTS_FREE = 0b00000001;
         // Allows blocking to interrupt the ability at any point
         const BLOCK_INTERRUPT     = 0b00000010;
         // When the ability is in the buildup section, it counts as a block with 50% DR

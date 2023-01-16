@@ -30,7 +30,8 @@ use common::comp::{
         ItemDesc, MaterialStatManifest,
     },
     skillset::SkillGroupKind,
-    Ability, ActiveAbilities, Body, Combo, Energy, Health, Inventory, Poise, PoiseState, SkillSet,
+    Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
+    PoiseState, SkillSet,
 };
 use conrod_core::{
     color,
@@ -312,6 +313,7 @@ pub struct Skillbar<'a> {
     combo_floater: Option<ComboFloater>,
     context: AbilityContext,
     combo: Option<&'a Combo>,
+    char_state: Option<&'a CharacterState>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -343,6 +345,7 @@ impl<'a> Skillbar<'a> {
         combo_floater: Option<ComboFloater>,
         context: AbilityContext,
         combo: Option<&'a Combo>,
+        char_state: Option<&'a CharacterState>,
     ) -> Self {
         Self {
             client,
@@ -372,6 +375,7 @@ impl<'a> Skillbar<'a> {
             combo_floater,
             context,
             combo,
+            char_state,
         }
     }
 
@@ -921,6 +925,7 @@ impl<'a> Skillbar<'a> {
             self.body,
             self.context,
             self.combo,
+            self.char_state,
         );
 
         let image_source = (self.item_imgs, self.imgs);
@@ -1002,7 +1007,8 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _) = content_source;
+            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _, _) =
+                content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
                     .get_by_hash(i)
@@ -1141,6 +1147,7 @@ impl<'a> Skillbar<'a> {
                         Some(self.inventory),
                         self.skillset,
                         Some(self.body),
+                        self.char_state,
                         self.context,
                     )
                 })

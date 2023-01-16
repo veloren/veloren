@@ -1080,6 +1080,7 @@ fn handle_ability(
                     data.inventory,
                     data.skill_set,
                     Some(data.body),
+                    Some(data.character),
                     context,
                 )
             })
@@ -1104,6 +1105,19 @@ fn handle_ability(
             return true;
         }
     }
+    if let CharacterState::Roll(roll) = &mut update.character {
+        if let CharacterState::ComboMelee(c) = data.character {
+            roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
+            roll.was_wielded = true;
+        } else {
+            if data.character.is_wield() {
+                roll.was_wielded = true;
+            }
+            if data.character.is_stealthy() {
+                roll.is_sneaking = true;
+            }
+        }
+    }
     false
 }
 
@@ -1114,11 +1128,8 @@ pub fn handle_input(
     input: InputKind,
 ) {
     match input {
-        InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
+        InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) | InputKind::Roll => {
             handle_ability(data, update, output_events, input);
-        },
-        InputKind::Roll => {
-            handle_dodge_input(data, update);
         },
         InputKind::Jump => {
             handle_jump(data, output_events, update, 1.0);
@@ -1172,58 +1183,16 @@ pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool
     }
 }
 
-/// Checks that player can perform a dodge, then
-/// attempts to perform their dodge ability
-pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
-    if input_is_pressed(data, InputKind::Roll) && data.body.is_humanoid() {
-        let ability = CharacterAbility::default_roll().adjusted_by_skills(data.skill_set, None);
-        if ability.requirements_paid(data, update) {
-            update.character = CharacterState::from((
-                &ability,
-                AbilityInfo::from_input(data, false, InputKind::Roll, Default::default()),
-                data,
-            ));
-            update.used_inputs.push(InputKind::Roll);
-            if let CharacterState::Roll(roll) = &mut update.character {
-                if let CharacterState::ComboMelee(c) = data.character {
-                    roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
-                    roll.was_wielded = true;
-                } else {
-                    if data.character.is_wield() {
-                        roll.was_wielded = true;
-                    }
-                    if data.character.is_stealthy() {
-                        roll.is_sneaking = true;
-                    }
-                }
-            }
-            true
-        } else {
-            false
-        }
-    } else {
-        false
-    }
-}
-
 /// Returns whether an interrupt occurred
-pub fn handle_interrupts(data: &JoinData, update: &mut StateUpdate) -> bool {
-    let can_dodge = {
-        let in_buildup = data
-            .character
-            .stage_section()
-            .map_or(true, |stage_section| {
-                matches!(stage_section, StageSection::Buildup)
-            });
-        let interruptible = data
-            .character
-            .ability_info()
-            .map(|info| info.ability_meta)
-            .map_or(false, |meta| {
-                meta.capabilities.contains(Capability::ROLL_INTERRUPT)
-            });
-        in_buildup || interruptible
-    };
+pub fn handle_interrupts(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    output_events: &mut OutputEvents,
+) -> bool {
+    let can_dodge = matches!(
+        data.character.stage_section(),
+        Some(StageSection::Buildup | StageSection::Recover)
+    );
     let can_block = data
         .character
         .ability_info()
@@ -1231,8 +1200,8 @@ pub fn handle_interrupts(data: &JoinData, update: &mut StateUpdate) -> bool {
         .map_or(false, |meta| {
             meta.capabilities.contains(Capability::BLOCK_INTERRUPT)
         });
-    if can_dodge {
-        handle_dodge_input(data, update)
+    if can_dodge && input_is_pressed(data, InputKind::Roll) {
+        handle_ability(data, update, output_events, InputKind::Roll)
     } else if can_block {
         handle_block_input(data, update)
     } else {

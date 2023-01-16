@@ -55,7 +55,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, 0.1);
@@ -257,7 +257,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         update
     }

@@ -2976,6 +2976,7 @@ impl Hud {
         let combos = ecs.read_storage::<comp::Combo>();
         let time = ecs.read_resource::<Time>();
         let stances = ecs.read_storage::<comp::Stance>();
+        let char_states = ecs.read_storage::<comp::CharacterState>();
         // Combo floater stuffs
         self.floaters.combo_floater = self.floaters.combo_floater.map(|mut f| {
             f.timer -= dt.as_secs_f64();
@@ -3026,6 +3027,7 @@ impl Hud {
                 self.floaters.combo_floater,
                 context,
                 combos.get(entity),
+                char_states.get(entity),
             )
             .set(self.ids.skillbar, ui_widgets)
             {

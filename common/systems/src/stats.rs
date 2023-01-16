@@ -2,7 +2,6 @@ use common::{
     combat,
     comp::{
         self,
-        ability::Stance,
         item::MaterialStatManifest,
         skills::{GeneralSkill, Skill},
         Body, CharacterState, Combo, Energy, Health, Inventory, Poise, Pos, SkillSet, Stats,
@@ -141,13 +140,8 @@ impl<'a> System<'a> for Sys {
         }
 
         // Update energies and poises
-        for (entity, character_state, mut energy, mut poise) in (
-            &read_data.entities,
-            &read_data.char_states,
-            &mut energies,
-            &mut poises,
-        )
-            .join()
+        for (character_state, mut energy, mut poise) in
+            (&read_data.char_states, &mut energies, &mut poises).join()
         {
             match character_state {
                 // Sitting accelerates recharging energy the most

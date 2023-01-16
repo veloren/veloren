@@ -194,8 +194,7 @@ pub enum Path {
 }
 
 pub struct ComboMeleeData {
-    pub min_range: f32,
-    pub max_range: f32,
+    pub range: f32,
     pub angle: f32,
     pub energy: f32,
 }
@@ -203,9 +202,7 @@ pub struct ComboMeleeData {
 impl ComboMeleeData {
     pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
         attack_data.dist_sqrd
-            < (self.max_range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
-            && attack_data.dist_sqrd
-                > (self.min_range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
+            < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
             && attack_data.angle < self.angle
             && agent_data.energy.current() >= self.energy
     }

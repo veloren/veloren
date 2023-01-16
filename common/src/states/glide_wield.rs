@@ -1,8 +1,8 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents, slot::EquipSlot, CharacterState, InventoryAction, Ori,
-        StateUpdate,
+        character_state::OutputEvents, controller::InputKind, slot::EquipSlot, CharacterState,
+        InventoryAction, Ori, StateUpdate,
     },
     event::LocalEvent,
     outcome::Outcome,
@@ -43,7 +43,9 @@ impl CharacterBehavior for Data {
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 1.0);
         handle_jump(data, output_events, &mut update, 1.0);
-        handle_dodge_input(data, &mut update);
+        if input_is_pressed(data, InputKind::Roll) {
+            handle_input(data, output_events, &mut update, InputKind::Roll);
+        }
         handle_wield(data, &mut update);
 
         // If still in this state, do the things

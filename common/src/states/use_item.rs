@@ -3,6 +3,7 @@ use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
         character_state::OutputEvents,
+        controller::InputKind,
         inventory::{
             item::{ConsumableKind, ItemKind},
             slot::{InvSlotId, Slot},
@@ -132,7 +133,9 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_dodge_input(data, &mut update);
+        if input_is_pressed(data, InputKind::Roll) {
+            handle_input(data, output_events, &mut update, InputKind::Roll);
+        }
 
         if matches!(update.character, CharacterState::Roll(_)) {
             // Remove potion/saturation effect if left the use item state early by rolling

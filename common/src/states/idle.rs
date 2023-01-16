@@ -1,8 +1,8 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents, inventory::item::armor::Friction, CharacterState,
-        InventoryAction, StateUpdate,
+        character_state::OutputEvents, controller::InputKind, inventory::item::armor::Friction,
+        CharacterState, InventoryAction, StateUpdate,
     },
     states::behavior::{CharacterBehavior, JoinData},
 };
@@ -26,7 +26,9 @@ impl CharacterBehavior for Data {
         handle_wield(data, &mut update);
         handle_climb(data, &mut update);
         handle_wallrun(data, &mut update);
-        handle_dodge_input(data, &mut update);
+        if input_is_pressed(data, InputKind::Roll) {
+            handle_input(data, output_events, &mut update, InputKind::Roll);
+        }
 
         // Try to Fall/Stand up/Move
         if self.is_sneaking

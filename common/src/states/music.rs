@@ -1,5 +1,5 @@
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
+    comp::{character_state::OutputEvents, controller::InputKind, CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -71,7 +71,9 @@ impl CharacterBehavior for Data {
 
         // At end of state logic so an interrupt isn't overwritten
         if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_dodge_input(data, &mut update);
+            if input_is_pressed(data, InputKind::Roll) {
+                handle_input(data, output_events, &mut update, InputKind::Roll);
+            }
         }
 
         update

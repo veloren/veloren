@@ -473,7 +473,145 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        // TODO
+        #[derive(Copy, Clone)]
+        enum SwordTactics {
+            Unskilled = 0,
+            Basic = 1,
+            HeavySimple = 2,
+            AgileSimple = 3,
+            DefensiveSimple = 4,
+            CripplingSimple = 5,
+            CleavingSimple = 6,
+            HeavyAdvanced = 7,
+            AgileAdvanced = 8,
+            DefensiveAdvanced = 9,
+            CripplingAdvanced = 10,
+            CleavingAdvanced = 11,
+        }
+
+        impl SwordTactics {
+            fn from_u8(x: u8) -> Self {
+                use SwordTactics::*;
+                match x {
+                    0 => Unskilled,
+                    1 => Basic,
+                    2 => HeavySimple,
+                    3 => AgileSimple,
+                    4 => DefensiveSimple,
+                    5 => CripplingSimple,
+                    6 => CleavingSimple,
+                    7 => HeavyAdvanced,
+                    8 => AgileAdvanced,
+                    9 => DefensiveAdvanced,
+                    10 => CripplingAdvanced,
+                    11 => CleavingAdvanced,
+                    _ => Unskilled,
+                }
+            }
+        }
+
+        enum IntCounters {
+            Tactics = 0,
+        }
+
+        if !agent.action_state.initialized {
+            let available_tactics = {
+                let mut tactics = Vec::new();
+                let try_tactic = |skill, tactic, tactics: &mut Vec<SwordTactics>| {
+                    if self.skill_set.has_skill(Skill::Sword(skill)) {
+                        tactics.push(tactic);
+                    }
+                };
+                try_tactic(
+                    SwordSkill::HeavyFortitude,
+                    SwordTactics::HeavyAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::AgileDancingEdge,
+                    SwordTactics::AgileAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::DefensiveStalwartSword,
+                    SwordTactics::DefensiveAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::CripplingEviscerate,
+                    SwordTactics::CripplingAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::CleavingBladeFever,
+                    SwordTactics::CleavingAdvanced,
+                    &mut tactics,
+                );
+                if tactics.is_empty() {
+                    try_tactic(
+                        SwordSkill::HeavyWindmillSlash,
+                        SwordTactics::HeavySimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::AgileQuickDraw,
+                        SwordTactics::AgileSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::DefensiveDisengage,
+                        SwordTactics::DefensiveSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::CripplingGouge,
+                        SwordTactics::CripplingSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::CleavingWhirlwindSlice,
+                        SwordTactics::CleavingSimple,
+                        &mut tactics,
+                    );
+                }
+                if tactics.is_empty() {
+                    try_tactic(SwordSkill::CrescentSlash, SwordTactics::Basic, &mut tactics);
+                }
+                if tactics.is_empty() {
+                    tactics.push(SwordTactics::Unskilled);
+                }
+                tactics
+            };
+
+            let tactic = available_tactics
+                .choose(rng)
+                .copied()
+                .unwrap_or(SwordTactics::Unskilled);
+
+            agent.action_state.int_counters[IntCounters::Tactics as usize] = tactic as u8;
+        }
+
+        // Action modes
+        const RECKLESS: usize = 0;
+        const GUARDED: usize = 1;
+        const RETREAT: usize = 2;
+
+        match SwordTactics::from_u8(agent.action_state.int_counters[IntCounters::Tactics as usize])
+        {
+            SwordTactics::Unskilled => {},
+            SwordTactics::Basic => {},
+            SwordTactics::HeavySimple => {},
+            SwordTactics::AgileSimple => {},
+            SwordTactics::DefensiveSimple => {},
+            SwordTactics::CripplingSimple => {},
+            SwordTactics::CleavingSimple => {},
+            SwordTactics::HeavyAdvanced => {},
+            SwordTactics::AgileAdvanced => {},
+            SwordTactics::DefensiveAdvanced => {},
+            SwordTactics::CripplingAdvanced => {},
+            SwordTactics::CleavingAdvanced => {},
+            _ => {},
+        }
     }
 
     pub fn handle_bow_attack(
@@ -532,7 +670,8 @@ impl<'a> AgentData<'a> {
                 // Use shotgun if target close and have sufficient energy
                 controller.push_basic_input(InputKind::Ability(0));
             } else if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
+                && self.energy.current()
+                    > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicRanged(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else roll away if can roll and have enough energy, and not using shotgun
@@ -645,6 +784,7 @@ impl<'a> AgentData<'a> {
                     Some(self.inventory),
                     self.skill_set,
                     self.body,
+                    Some(self.char_state),
                     context,
                 )
                 .unwrap_or_default()
@@ -661,7 +801,8 @@ impl<'a> AgentData<'a> {
         let shockwave_cost = shockwave.energy_cost();
         if self.body.map_or(false, |b| b.is_humanoid())
             && attack_data.in_min_range()
-            && self.energy.current() > CharacterAbility::default_roll().energy_cost()
+            && self.energy.current()
+                > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
             && !matches!(self.char_state, CharacterState::Shockwave(_))
         {
             // if a humanoid, have enough stamina, not in shockwave, and in melee range,
@@ -698,7 +839,8 @@ impl<'a> AgentData<'a> {
                         [ActionStateConditions::ConditionStaffCanShockwave as usize] = true;
                 }
             } else if self.energy.current()
-                > shockwave_cost + CharacterAbility::default_roll().energy_cost()
+                > shockwave_cost
+                    + CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && attack_data.dist_sqrd < flamethrower_range.powi(2)
             {
                 controller.push_basic_input(InputKind::Secondary);
@@ -835,7 +977,8 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if self.body.map_or(false, |b| b.is_humanoid())
-                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
+                && self.energy.current()
+                    > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else roll away if can roll and have enough energy, and not using aura or in
@@ -2998,7 +3141,8 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if self.body.map_or(false, |b| b.is_humanoid())
-                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
+                && self.energy.current()
+                    > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else use steam beam

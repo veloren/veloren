@@ -1,6 +1,10 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, InventoryAction, StateUpdate},
+    comp::{
+        ability::Stance, character_state::OutputEvents, CharacterState, InventoryAction,
+        StateUpdate,
+    },
+    event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         idle,
@@ -14,6 +18,13 @@ pub struct Data;
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        if !matches!(data.stance, Some(Stance::None)) {
+            output_events.emit_server(ServerEvent::ChangeStance {
+                entity: data.entity,
+                stance: Stance::None,
+            });
+        }
 
         handle_wield(data, &mut update);
         handle_jump(data, output_events, &mut update, 1.0);

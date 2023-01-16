@@ -10,7 +10,7 @@ use common::{
         ability::{Ability, AbilityInput, AuxiliaryAbility},
         item::tool::{AbilityContext, ToolKind},
         slot::InvSlotId,
-        ActiveAbilities, Body, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
+        ActiveAbilities, Body, CharacterState, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
     },
     recipe::ComponentRecipeBook,
 };
@@ -130,6 +130,7 @@ type HotbarSource<'a> = (
     &'a Body,
     AbilityContext,
     Option<&'a Combo>,
+    Option<&'a CharacterState>,
 );
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
 
@@ -138,7 +139,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, energy, skillset, active_abilities, body, context, combo): &HotbarSource<'a>,
+        (hotbar, inventory, energy, skillset, active_abilities, body, context, combo, char_state): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         const GREYED_OUT: Color = Color::Rgba(0.3, 0.3, 0.3, 0.8);
         hotbar.get(*self).and_then(|contents| match contents {
@@ -168,6 +169,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                     Some(inventory),
                                     skillset,
                                     Some(body),
+                                    *char_state,
                                     *context,
                                 )
                             })

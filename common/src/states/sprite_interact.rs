@@ -1,8 +1,8 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents, inventory::slot::InvSlotId, item::ItemDefinitionIdOwned,
-        CharacterState, InventoryManip, StateUpdate,
+        character_state::OutputEvents, controller::InputKind, item::ItemDefinitionIdOwned,
+        slot::InvSlotId, CharacterState, InventoryManip, StateUpdate,
     },
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
@@ -141,7 +141,9 @@ impl CharacterBehavior for Data {
         handle_wield(data, &mut update);
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_dodge_input(data, &mut update);
+        if input_is_pressed(data, InputKind::Roll) {
+            handle_input(data, output_events, &mut update, InputKind::Roll);
+        }
 
         update
     }

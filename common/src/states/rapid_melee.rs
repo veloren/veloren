@@ -1,10 +1,10 @@
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
+    event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    event::ServerEvent,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -52,7 +52,7 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
         handle_move(data, &mut update, self.static_data.move_modifier);
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         match self.stage_section {
             StageSection::Buildup => {

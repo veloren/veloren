@@ -18,13 +18,6 @@ use crate::{
     },
     GlobalState,
 };
-use conrod_core::{
-    color, image,
-    widget::{self, Button, Image, Rectangle, State, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
-};
-use i18n::Localization;
-use vek::*;
 use client::{self, Client};
 use common::{
     combat,
@@ -48,7 +41,14 @@ use common::{
     },
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
+use conrod_core::{
+    color, image,
+    widget::{self, Button, Image, Rectangle, State, Text},
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+};
+use i18n::Localization;
 use std::borrow::Cow;
+use vek::*;
 const ART_SIZE: [f64; 2] = [320.0, 320.0];
 
 widget_ids! {
@@ -1595,8 +1595,7 @@ impl<'a> Diary<'a> {
             .set(state.ids.sword_bg, ui);
 
         use PositionSpecifier::TopLeftWithMarginsOn;
-        let skill_buttons
-         = &[
+        let skill_buttons = &[
             SkillIcon::Ability {
                 skill: Skill::Sword(SwordSkill::CrescentSlash),
                 ability_id: "veloren.core.pseudo_abilities.sword.crescent_slash",

@@ -196,7 +196,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         update
     }
