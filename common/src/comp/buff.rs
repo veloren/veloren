@@ -562,7 +562,9 @@ impl Buffs {
     pub fn iter_active(&self) -> impl Iterator<Item = impl Iterator<Item = &Buff>> + '_ {
         self.kinds.iter().map(move |(kind, ids)| {
             if kind.stacks() {
-                Either::Left(ids.iter().filter_map(|id| self.buffs.get(id)))
+                // Iterate stackable buffs in reverse order to show the timer of the soonest one
+                // to expire
+                Either::Left(ids.iter().filter_map(|id| self.buffs.get(id)).rev())
             } else {
                 Either::Right(self.buffs.get(&ids[0]).into_iter())
             }

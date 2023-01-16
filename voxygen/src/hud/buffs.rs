@@ -16,6 +16,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+
 widget_ids! {
     struct Ids {
         align,
@@ -88,6 +89,9 @@ pub struct State {
 pub enum Event {
     RemoveBuff(BuffKind),
 }
+
+const MULTIPLICITY_COLOR: Color = TEXT_COLOR;
+const MULTIPLICITY_FONT_SIZE: u32 = 20;
 
 impl<'a> Widget for BuffsBar<'a> {
     type Event = Vec<Event>;
@@ -184,10 +188,15 @@ impl<'a> Widget for BuffsBar<'a> {
                 state.update(|state| state.ids.debuff_timers.resize(debuff_count, gen));
             };
             if state.ids.buff_multiplicities.len() < buff_count {
-                state.update(|state| state.ids.buff_multiplicities.resize(buff_count, gen));
+                state.update(|state| state.ids.buff_multiplicities.resize(2 * buff_count, gen));
             };
             if state.ids.debuff_multiplicities.len() < debuff_count {
-                state.update(|state| state.ids.debuff_multiplicities.resize(debuff_count, gen));
+                state.update(|state| {
+                    state
+                        .ids
+                        .debuff_multiplicities
+                        .resize(2 * debuff_count, gen)
+                });
             };
 
             // Create Buff Widgets
@@ -197,7 +206,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .copied()
                 .zip(state.ids.buff_timers.iter().copied())
-                .zip(state.ids.buff_multiplicities.iter().copied())
+                .zip(state.ids.buff_multiplicities.chunks(2))
                 .zip(buff_icons.iter().filter(|info| info.is_buff))
                 .collect::<Vec<_>>();
 
@@ -236,13 +245,18 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     if buff.multiplicity() > 1 {
-                        Text::new(&format!("{}", buff.multiplicity()))
+                        Rectangle::fill_with([0.0, 0.0], MULTIPLICITY_COLOR.plain_contrast())
                             .bottom_right_with_margins_on(*id, 1.0, 1.0)
+                            .wh_of(mult_id[1])
                             .graphics_for(*id)
-                            .font_size(self.fonts.cyri.scale(14))
+                            .set(mult_id[0], ui);
+                        Text::new(&format!("{}", buff.multiplicity()))
+                            .middle_of(mult_id[0])
+                            .graphics_for(*id)
+                            .font_size(self.fonts.cyri.scale(MULTIPLICITY_FONT_SIZE))
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(TEXT_COLOR)
-                            .set(*mult_id, ui);
+                            .color(MULTIPLICITY_COLOR)
+                            .set(mult_id[1], ui);
                     }
                     // Create Buff tooltip
                     let (title, desc_txt) = buff.kind.title_description(localized_strings);
@@ -278,7 +292,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .iter()
                 .copied()
                 .zip(state.ids.debuff_timers.iter().copied())
-                .zip(state.ids.debuff_multiplicities.iter().copied())
+                .zip(state.ids.debuff_multiplicities.chunks(2))
                 .zip(buff_icons.iter().filter(|info| !info.is_buff))
                 .collect::<Vec<_>>();
 
@@ -316,13 +330,18 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     if debuff.multiplicity() > 1 {
-                        Text::new(&format!("{}", debuff.multiplicity()))
+                        Rectangle::fill_with([0.0, 0.0], MULTIPLICITY_COLOR.plain_contrast())
                             .bottom_right_with_margins_on(*id, 1.0, 1.0)
+                            .wh_of(mult_id[1])
                             .graphics_for(*id)
-                            .font_size(self.fonts.cyri.scale(14))
+                            .set(mult_id[0], ui);
+                        Text::new(&format!("{}", debuff.multiplicity()))
+                            .middle_of(mult_id[0])
+                            .graphics_for(*id)
+                            .font_size(self.fonts.cyri.scale(MULTIPLICITY_FONT_SIZE))
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(TEXT_COLOR)
-                            .set(*mult_id, ui);
+                            .color(MULTIPLICITY_COLOR)
+                            .set(mult_id[1], ui);
                     }
                     // Create Debuff tooltip
                     let (title, desc_txt) = debuff.kind.title_description(localized_strings);
@@ -364,7 +383,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 state.update(|state| state.ids.buff_txts.resize(buff_count, gen));
             };
             if state.ids.buff_multiplicities.len() < buff_count {
-                state.update(|state| state.ids.buff_multiplicities.resize(buff_count, gen));
+                state.update(|state| state.ids.buff_multiplicities.resize(2 * buff_count, gen));
             };
 
             // Create Buff Widgets
@@ -376,7 +395,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .copied()
                 .zip(state.ids.buff_timers.iter().copied())
                 .zip(state.ids.buff_txts.iter().copied())
-                .zip(state.ids.buff_multiplicities.iter().copied())
+                .zip(state.ids.buff_multiplicities.chunks(2))
                 .zip(buff_icons.iter())
                 .collect::<Vec<_>>();
 
@@ -412,13 +431,18 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     if buff.multiplicity() > 1 {
-                        Text::new(&format!("{}", buff.multiplicity()))
+                        Rectangle::fill_with([0.0, 0.0], MULTIPLICITY_COLOR.plain_contrast())
                             .bottom_right_with_margins_on(*id, 1.0, 1.0)
+                            .wh_of(mult_id[1])
                             .graphics_for(*id)
-                            .font_size(self.fonts.cyri.scale(14))
+                            .set(mult_id[0], ui);
+                        Text::new(&format!("{}", buff.multiplicity()))
+                            .middle_of(mult_id[0])
+                            .graphics_for(*id)
+                            .font_size(self.fonts.cyri.scale(MULTIPLICITY_FONT_SIZE))
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(TEXT_COLOR)
-                            .set(*mult_id, ui);
+                            .color(MULTIPLICITY_COLOR)
+                            .set(mult_id[1], ui);
                     }
                     // Create Buff tooltip
                     let (title, desc_txt) = buff.kind.title_description(localized_strings);
