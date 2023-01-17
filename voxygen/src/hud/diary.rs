@@ -20,7 +20,6 @@ use crate::{
 };
 use conrod_core::{
     color, image,
-    position::Relative,
     widget::{self, Button, Image, Rectangle, State, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
@@ -72,6 +71,7 @@ widget_ids! {
         exp_bar_rank,
         exp_bar_txt,
         active_bar_checkbox,
+        active_bar_checkbox_label,
         tree_title_txt,
         lock_imgs[],
         available_pts_txt,
@@ -683,7 +683,7 @@ impl<'a> Widget for Diary<'a> {
                 } else {
                     self.imgs.checkbox_checked
                 })
-                .w_h(24.0, 25.0)
+                .w_h(18.0, 18.0)
                 .hover_image(if !exp_selected {
                     self.imgs.checkbox_mo
                 } else {
@@ -694,13 +694,7 @@ impl<'a> Widget for Diary<'a> {
                 } else {
                     self.imgs.checkbox_checked
                 })
-                .top_right_with_margins_on(state.ids.exp_bar_frame, 50.0, -40.0)
-                .label(&self.localized_strings.get_msg("hud-skill-set_as_exp_bar"))
-                .label_font_size(self.fonts.cyri.scale(14))
-                .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_x(Relative::Scalar(87.0))
-                .label_y(Relative::Scalar(2.0))
+                .top_right_with_margins_on(state.ids.exp_bar_frame, 50.0, -30.0)
                 .set(state.ids.active_bar_checkbox, ui)
                 .was_clicked()
                 {
@@ -710,6 +704,14 @@ impl<'a> Widget for Diary<'a> {
                         events.push(Event::SelectExpBar(None));
                     }
                 }
+
+                Text::new(&self.localized_strings.get_msg("hud-skill-set_as_exp_bar"))
+                    .right_from(state.ids.active_bar_checkbox, 10.0)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .graphics_for(state.ids.active_bar_checkbox)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.active_bar_checkbox_label, ui);
 
                 // Show EXP bar text on hover
                 if ui
