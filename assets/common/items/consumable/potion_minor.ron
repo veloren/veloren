@@ -19,7 +19,7 @@ ItemDef(
                 kind: PotionSickness,
                 data: (
                     strength: 0.33,
-                    duration: Some(( secs: 60, nanos: 0, )),
+                    duration: Some(( secs: 45, nanos: 0, )),
                     delay: Some(( secs: 1, nanos: 0, ))
                 ),
                 cat_ids: [Natural],
