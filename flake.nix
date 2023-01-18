@@ -86,9 +86,6 @@
       pkgConfig = common: let
         inherit (common) pkgs;
         veloren-common-ov = {
-          # Disable `git-lfs` check here since we check it ourselves
-          # We have to include the command output here, otherwise Nix won't run it
-          DISABLE_GIT_LFS_CHECK = true;
           # We don't add in any information here because otherwise anything
           # that depends on common will be recompiled. We will set these in
           # our wrapper instead.

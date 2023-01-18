@@ -1,4 +1,4 @@
-use std::{borrow::Cow, io};
+use std::{borrow::Cow, fs, io};
 
 use assets_manager::{
     hot_reloading::{DynUpdateSender, EventSender, FsWatcherBuilder},
@@ -22,6 +22,18 @@ impl FileSystem {
                 .map_err(|err| tracing::error!("Error setting override assets directory: {}", err))
                 .ok()
         });
+
+        let canary = fs::read_to_string(super::ASSETS_PATH.join("common").join("canary.canary"))
+            .map_err(|e| {
+                io::Error::new(
+                    io::ErrorKind::Other,
+                    format!("failed to load canary asset: {}", e),
+                )
+            })?;
+
+        if !canary.starts_with("VELOREN_CANARY_MAGIC") {
+            panic!("Canary asset `canary.canary` was present but did not contain the expected data. This *heavily* implies that you've not correctly set up Git LFS (Large File Storage). Visit `https://book.veloren.net/contributors/development-tools.html#git-lfs` for more information about setting up Git LFS.");
+        }
 
         Ok(Self {
             default,

@@ -305,6 +305,12 @@ mod tests {
     use std::{ffi::OsStr, fs::File};
     use walkdir::WalkDir;
 
+    #[test]
+    fn load_canary() {
+        // Loading the asset cache will automatically cause the canary to load
+        let _ = *super::ASSETS;
+    }
+
     /// Fail unless all `.ron` asset files successfully parse to `ron::Value`.
     #[test]
     fn parse_all_ron_files_to_value() {
