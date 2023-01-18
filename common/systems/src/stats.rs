@@ -165,7 +165,14 @@ impl<'a> System<'a> for Sys {
                     if res {
                         let energy = &mut *energy;
                         energy.change_by(energy.regen_rate * dt);
-                        energy.regen_rate = (energy.regen_rate + ENERGY_REGEN_ACCEL * dt).min(10.0);
+                        if matches!(character_state, CharacterState::Sit) {
+                            // Higher Energy-regeneration while sitting
+                            energy.regen_rate =
+                                (energy.regen_rate + ENERGY_REGEN_ACCEL * dt * 1.5).min(25.0);
+                        } else {
+                            energy.regen_rate =
+                                (energy.regen_rate + ENERGY_REGEN_ACCEL * dt).min(10.0);
+                        }
                     }
 
                     let res_poise = { poise.current() < poise.maximum() };
