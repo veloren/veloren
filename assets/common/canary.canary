@@ -1,0 +1,13 @@
+VELOREN_CANARY_MAGIC
+
+If you're seeing this text, congratulations! One of two things is true:
+
+1) You've got a normal, pre-compiled build of the game and the asset
+   directory is present and populated.
+
+2) You've cloned the repository locally and git LFS has
+    been properly set up, meaning that the asset directory should be
+    fully populated.
+
+If you don't see this text and instead you just see a file hash... well,
+there's no point me saying anything in such a scenario.
