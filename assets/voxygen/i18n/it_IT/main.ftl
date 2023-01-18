@@ -14,7 +14,7 @@ main-notice =
     
     - Se hai critiche costruttive o errori da segnalare, ci puoi contattare tramite Reddit, GitLab o il server Discord della nostra community.
     
-    - Veloren è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare, e ridistribuire il gioco come 
+    - Veloren è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare e ridistribuire il gioco come
      tu desideri (purché il lavoro che ne derivi sia sempre sotto licenza GPL 3).
     
     - Veloren è un progetto comunitario no-profit, e chiunque ci lavori sopra è un volontario.
@@ -47,7 +47,7 @@ main-login-network_wrong_version = Versioni di server e client non corrispondent
 main-login-failed_sending_request = La richiesta al server di autenticazione è fallita
 main-login-invalid_character = Il personaggio selezionato è invalido
 main-login-client_crashed = Si è verificato un errore che ha terminato il client
-main-login-not_on_whitelist = Hai bisogno di essere inserito nella Whitelist da parte di un amministratore per unirti
+main-login-not_on_whitelist = Hai bisogno di essere inserito nella whitelist da parte di un amministratore per unirti
 main-login-banned = Sei stato bandito per la seguente ragione
 main-login-kicked = Sei stato rimosso per la seguente ragione
 main-login-select_language = Seleziona una lingua
@@ -89,7 +89,7 @@ loading-tips =
     .a15 = Se vuoi unirti al team di sviluppo o se vuoi solamente chattare con noi, unisciti al nostro server Discord.
     .a16 = Puoi scegliere di mostrare la tua quantità di vita sulla barra della vita dalle impostazioni.
     .a17 = Siedi vicino a un fuoco (col tasto '{ $gameinput-sit }') per riprenderti lentamente dalle lesioni.
-    .a18 = Hai bisogno di più borse o di armature migliori per continuare la tua avventura? Premi '{ $gameinput-crafting }' per aprire il menu di creazione!
+    .a18 = Hai bisogno di più borse o di armature migliori per continuare la tua avventura? Premi '{ $gameinput-crafting }' per aprire la finestra di creazione!
     .a19 = Premi '{ $gameinput-roll }' per rotolare. Il rotolamento può essere usato per muoversi più velocemente ed evitare gli attacchi nemici.
-    .a20 = Ti stai chiedendo a cosa serve un certo oggetto? Cerca 'input:<nome oggetto>' nel crafting per vedere in quali ricette è usato.
-    .a21 = Hai trovato qualcosa di figo? Fanne uno screenshot con '{ $gameinput-screenshot }'.
+    .a20 = Ti stai chiedendo a cosa serve un certo oggetto? Cerca 'input:<nome oggetto>' la finestra di creazione per vedere in quali ricette è usato.
+    .a21 = Hai trovato qualcosa di bello? Fai una foto con '{ $gameinput-screenshot }'.
