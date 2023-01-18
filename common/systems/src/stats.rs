@@ -190,7 +190,6 @@ impl<'a> System<'a> for Sys {
                         poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt).min(10.0);
                     }
                 },
-
                 // Ability use does not regen and sets the rate back to zero.
                 CharacterState::BasicMelee(_)
                 | CharacterState::DashMelee(_)
