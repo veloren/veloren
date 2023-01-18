@@ -362,7 +362,7 @@ fn execute_effect(
                             DamageContributor::new(uid, read_data.groups.get(entity).cloned())
                         })
                 });
-                if amount > 0.0 {
+                if amount > 0.0 && matches!(buff_kind, BuffKind::Potion) {
                     amount *= stat.heal_multiplier;
                 }
                 server_emitter.emit(ServerEvent::HealthChange {
