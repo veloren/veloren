@@ -601,7 +601,9 @@ fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
             .change_by(STD_AWARENESS_DECAY_RATE * read_data.dt.0);
     }
 
-    if bdata.agent.awareness.state() == AwarenessState::Unaware {
+    if bdata.agent.awareness.state() == AwarenessState::Unaware
+        && !bdata.agent.behavior.is(BehaviorState::TRADING)
+    {
         bdata.agent.target = None;
     }
 
