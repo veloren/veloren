@@ -70,10 +70,8 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            if input_is_pressed(data, InputKind::Roll) {
-                handle_input(data, output_events, &mut update, InputKind::Roll);
-            }
+        if !input_is_pressed(data, self.static_data.ability_info.input) && input_is_pressed(data, InputKind::Roll) {
+            handle_input(data, output_events, &mut update, InputKind::Roll);
         }
 
         update

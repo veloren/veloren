@@ -80,11 +80,9 @@ impl CharacterBehavior for Data {
                             c.timer = Duration::default();
                         }
                     }
-                } else {
-                    if let CharacterState::ChargedMelee(c) = &mut update.character {
-                        c.stage_section = StageSection::Charge;
-                        c.timer = Duration::default();
-                    }
+                } else if let CharacterState::ChargedMelee(c) = &mut update.character {
+                    c.stage_section = StageSection::Charge;
+                    c.timer = Duration::default();
                 }
             },
             StageSection::Charge => {

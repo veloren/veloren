@@ -512,6 +512,7 @@ impl<'a> AgentData<'a> {
 
         enum IntCounters {
             Tactics = 0,
+            ActionMode = 1,
         }
 
         if !agent.action_state.initialized {
@@ -589,28 +590,212 @@ impl<'a> AgentData<'a> {
                 .unwrap_or(SwordTactics::Unskilled);
 
             agent.action_state.int_counters[IntCounters::Tactics as usize] = tactic as u8;
+
+            let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
+            let mut set_sword_ability = |slot, skill| {
+                controller.push_event(ControlEvent::ChangeAbility {
+                    slot,
+                    auxiliary_key,
+                    new_ability: AuxiliaryAbility::MainWeapon(skill),
+                })
+            };
+
+            match tactic {
+                SwordTactics::Unskilled => {},
+                SwordTactics::Basic => {
+                    // Crescent slash
+                    set_sword_ability(0, 0);
+                    // Fell strike
+                    set_sword_ability(1, 1);
+                    // Skewer
+                    set_sword_ability(2, 2);
+                    // Cascade
+                    set_sword_ability(3, 3);
+                    // Cross cut
+                    set_sword_ability(4, 4);
+                },
+                SwordTactics::HeavySimple => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Crescent slash
+                    set_sword_ability(1, 0);
+                    // Cascade
+                    set_sword_ability(2, 3);
+                    // Windmill slash
+                    set_sword_ability(3, 6);
+                    // Pommel strike
+                    set_sword_ability(4, 7);
+                },
+                SwordTactics::AgileSimple => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Skewer
+                    set_sword_ability(1, 2);
+                    // Cross cut
+                    set_sword_ability(2, 4);
+                    // Quick draw
+                    set_sword_ability(3, 8);
+                    // Feint
+                    set_sword_ability(4, 9);
+                },
+                SwordTactics::DefensiveSimple => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Crescent slash
+                    set_sword_ability(1, 0);
+                    // Fell strike
+                    set_sword_ability(2, 1);
+                    // Riposte
+                    set_sword_ability(3, 10);
+                    // Disengage
+                    set_sword_ability(4, 11);
+                },
+                SwordTactics::CripplingSimple => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Fell strike
+                    set_sword_ability(1, 1);
+                    // Skewer
+                    set_sword_ability(2, 2);
+                    // Gouge
+                    set_sword_ability(3, 12);
+                    // Hamstring
+                    set_sword_ability(4, 13);
+                },
+                SwordTactics::CleavingSimple => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Cascade
+                    set_sword_ability(1, 3);
+                    // Cross cut
+                    set_sword_ability(2, 4);
+                    // Whirlwind slice
+                    set_sword_ability(3, 14);
+                    // Earth splitter
+                    set_sword_ability(4, 15);
+                },
+                SwordTactics::HeavyAdvanced => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Windmill slash
+                    set_sword_ability(1, 6);
+                    // Pommel strike
+                    set_sword_ability(2, 7);
+                    // Fortitude
+                    set_sword_ability(3, 16);
+                    // Pillar Thrust
+                    set_sword_ability(4, 17);
+                },
+                SwordTactics::AgileAdvanced => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Quick draw
+                    set_sword_ability(1, 8);
+                    // Feint
+                    set_sword_ability(2, 9);
+                    // Dancing edge
+                    set_sword_ability(3, 18);
+                    // Flurry
+                    set_sword_ability(4, 19);
+                },
+                SwordTactics::DefensiveAdvanced => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Riposte
+                    set_sword_ability(1, 10);
+                    // Disengage
+                    set_sword_ability(2, 11);
+                    // Stalwart sword
+                    set_sword_ability(3, 20);
+                    // Deflect
+                    set_sword_ability(4, 21);
+                },
+                SwordTactics::CripplingAdvanced => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Gouge
+                    set_sword_ability(1, 12);
+                    // Hamstring
+                    set_sword_ability(2, 13);
+                    // Eviscerate
+                    set_sword_ability(3, 22);
+                    // Bloody gash
+                    set_sword_ability(4, 23);
+                },
+                SwordTactics::CleavingAdvanced => {
+                    // Finisher
+                    set_sword_ability(0, 5);
+                    // Whirlwind slice
+                    set_sword_ability(1, 14);
+                    // Earth splitter
+                    set_sword_ability(2, 15);
+                    // Blade fever
+                    set_sword_ability(3, 24);
+                    // Sky splitter
+                    set_sword_ability(4, 25);
+                },
+            }
+
+            agent.action_state.int_counters[IntCounters::ActionMode as usize] =
+                ActionMode::Guarded as u8;
         }
 
-        // Action modes
-        const RECKLESS: usize = 0;
-        const GUARDED: usize = 1;
-        const RETREAT: usize = 2;
+        enum ActionMode {
+            Reckless = 0,
+            Guarded = 1,
+            Fleeing = 2,
+        }
 
-        match SwordTactics::from_u8(agent.action_state.int_counters[IntCounters::Tactics as usize])
-        {
-            SwordTactics::Unskilled => {},
-            SwordTactics::Basic => {},
-            SwordTactics::HeavySimple => {},
-            SwordTactics::AgileSimple => {},
-            SwordTactics::DefensiveSimple => {},
-            SwordTactics::CripplingSimple => {},
-            SwordTactics::CleavingSimple => {},
-            SwordTactics::HeavyAdvanced => {},
-            SwordTactics::AgileAdvanced => {},
-            SwordTactics::DefensiveAdvanced => {},
-            SwordTactics::CripplingAdvanced => {},
-            SwordTactics::CleavingAdvanced => {},
-            _ => {},
+        impl ActionMode {
+            fn from_u8(x: u8) -> Self {
+                match x {
+                    0 => ActionMode::Reckless,
+                    1 => ActionMode::Guarded,
+                    2 => ActionMode::Fleeing,
+                    _ => ActionMode::Guarded,
+                }
+            }
+        }
+
+        let attempt_attack = match ActionMode::from_u8(
+            agent.action_state.int_counters[IntCounters::ActionMode as usize],
+        ) {
+            ActionMode::Reckless => true,
+            ActionMode::Guarded => true,
+            ActionMode::Fleeing => false,
+        };
+
+        let attack_failed = if attempt_attack {
+            match SwordTactics::from_u8(
+                agent.action_state.int_counters[IntCounters::Tactics as usize],
+            ) {
+                SwordTactics::Unskilled => {},
+                SwordTactics::Basic => {},
+                SwordTactics::HeavySimple => {},
+                SwordTactics::AgileSimple => {},
+                SwordTactics::DefensiveSimple => {},
+                SwordTactics::CripplingSimple => {},
+                SwordTactics::CleavingSimple => {},
+                SwordTactics::HeavyAdvanced => {},
+                SwordTactics::AgileAdvanced => {},
+                SwordTactics::DefensiveAdvanced => {},
+                SwordTactics::CripplingAdvanced => {},
+                SwordTactics::CleavingAdvanced => {},
+            }
+            true
+        } else {
+            false
+        };
+
+        if attack_failed {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
         }
     }
 

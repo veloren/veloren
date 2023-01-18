@@ -62,17 +62,13 @@ impl CharacterBehavior for Data {
                         if let CharacterState::DiveMelee(c) = &mut update.character {
                             c.timer = tick_attack_or_default(data, self.timer, None);
                         }
-                    } else {
-                        if let CharacterState::DiveMelee(c) = &mut update.character {
-                            c.timer = Duration::default();
-                            c.stage_section = StageSection::Action;
-                        }
-                    }
-                } else {
-                    if let CharacterState::DiveMelee(c) = &mut update.character {
+                    } else if let CharacterState::DiveMelee(c) = &mut update.character {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Action;
                     }
+                } else if let CharacterState::DiveMelee(c) = &mut update.character {
+                    c.timer = Duration::default();
+                    c.stage_section = StageSection::Action;
                 }
             },
             StageSection::Movement => {

@@ -2807,7 +2807,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 meta: _,
             } => CharacterState::DiveMelee(dive_melee::Data {
                 static_data: dive_melee::StaticData {
-                    buildup_duration: buildup_duration.map(|b| Duration::from_secs_f32(b)),
+                    buildup_duration: buildup_duration.map(Duration::from_secs_f32),
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
