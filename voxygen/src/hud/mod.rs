@@ -452,7 +452,7 @@ impl<W: Positionable> Position for W {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum BuffIconKind<'a> {
     Buff {
         kind: BuffKind,
@@ -550,7 +550,7 @@ impl<'a> PartialEq for BuffIconKind<'a> {
 
 impl<'a> Eq for BuffIconKind<'a> {}
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct BuffIcon<'a> {
     kind: BuffIconKind<'a>,
     is_buff: bool,

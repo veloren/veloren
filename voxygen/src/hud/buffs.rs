@@ -187,10 +187,10 @@ impl<'a> Widget for BuffsBar<'a> {
             if state.ids.debuff_timers.len() < debuff_count {
                 state.update(|state| state.ids.debuff_timers.resize(debuff_count, gen));
             };
-            if state.ids.buff_multiplicities.len() < buff_count {
+            if state.ids.buff_multiplicities.len() < 2 * buff_count {
                 state.update(|state| state.ids.buff_multiplicities.resize(2 * buff_count, gen));
             };
-            if state.ids.debuff_multiplicities.len() < debuff_count {
+            if state.ids.debuff_multiplicities.len() < 2 * debuff_count {
                 state.update(|state| {
                     state
                         .ids
@@ -382,7 +382,7 @@ impl<'a> Widget for BuffsBar<'a> {
             if state.ids.buff_txts.len() < buff_count {
                 state.update(|state| state.ids.buff_txts.resize(buff_count, gen));
             };
-            if state.ids.buff_multiplicities.len() < buff_count {
+            if state.ids.buff_multiplicities.len() < 2 * buff_count {
                 state.update(|state| state.ids.buff_multiplicities.resize(2 * buff_count, gen));
             };
 
