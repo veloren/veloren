@@ -528,8 +528,14 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         relaxed: bool,
     ) -> bool {
+        // Wait for potion sickness to wear off if potions are less than 50% effective.
+        let heal_multiplier = self.stats.map_or(1.0, |s| s.heal_multiplier);
+        if heal_multiplier < 0.5 {
+            return false;
+        }
         let healing_value = |item: &Item| {
             let mut value = 0.0;
+            let mut causes_potion_sickness = false;
 
             if let ItemKind::Consumable { kind, effects, .. } = &*item.kind() {
                 if matches!(kind, ConsumableKind::Drink)
@@ -547,10 +553,21 @@ impl<'a> AgentData<'a> {
                                 value += data.strength
                                     * data.duration.map_or(0.0, |d| d.as_secs() as f32);
                             },
+                            Effect::Buff(BuffEffect { kind, .. })
+                                if matches!(kind, PotionSickness) =>
+                            {
+                                causes_potion_sickness = true;
+                            },
+
                             _ => {},
                         }
                     }
                 }
+            }
+            // Prefer non-potion sources of healing when under at least one stack of potion
+            // sickness, or when incurring potion sickness is unnecessary
+            if causes_potion_sickness && (heal_multiplier < 1.0 || relaxed) {
+                value *= 0.1;
             }
             value as i32
         };

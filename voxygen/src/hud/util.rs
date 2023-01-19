@@ -172,6 +172,11 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                         "strength" => format_float(strength),
                     })
                 },
+                BuffKind::PotionSickness => {
+                    i18n.get_msg_ctx("buff-stat-potionsickness", &i18n::fluent_args! {
+                        "strength" => format_float(strength * 100.0),
+                    })
+                },
                 BuffKind::Invulnerability => i18n.get_msg("buff-stat-invulnerability"),
                 BuffKind::Bleeding
                 | BuffKind::Burning
@@ -199,7 +204,8 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                         }),
                     BuffKind::IncreaseMaxEnergy
                     | BuffKind::IncreaseMaxHealth
-                    | BuffKind::Invulnerability => {
+                    | BuffKind::Invulnerability
+                    | BuffKind::PotionSickness => {
                         i18n.get_msg_ctx("buff-text-for_seconds", &i18n::fluent_args! {
                             "dur_secs" => dur_secs
                         })

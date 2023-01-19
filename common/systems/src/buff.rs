@@ -146,7 +146,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
-                            BuffData::new(1.0, Some(Duration::from_secs_f32(1.0))),
+                            BuffData::new(1.0, Some(Duration::from_secs_f32(1.0)), None),
                             Vec::new(),
                             BuffSource::World,
                         )),
@@ -161,7 +161,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(1.0, Some(Duration::from_secs_f32(6.0))),
+                            BuffData::new(1.0, Some(Duration::from_secs_f32(6.0)), None),
                             Vec::new(),
                             BuffSource::World,
                         )),
@@ -179,7 +179,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
-                            BuffData::new(20.0, None),
+                            BuffData::new(20.0, None, None),
                             vec![BuffCategory::Natural],
                             BuffSource::World,
                         )),
@@ -245,31 +245,50 @@ impl<'a> System<'a> for Sys {
 
             // Iterator over the lists of buffs by kind
             let buff_comp = &mut *buff_comp;
-            for buff_ids in buff_comp.kinds.values() {
-                // Get the strongest of this buff kind
-                if let Some(buff) = buff_comp.buffs.get_mut(&buff_ids[0]) {
-                    // Get buff owner?
-                    let buff_owner = if let BuffSource::Character { by: owner } = buff.source {
-                        Some(owner)
-                    } else {
-                        None
-                    };
+            let mut buff_kinds = buff_comp
+                .kinds
+                .iter()
+                .map(|(kind, ids)| (*kind, ids.clone()))
+                .collect::<Vec<(BuffKind, Vec<BuffId>)>>();
+            buff_kinds.sort_by_key(|(kind, _)| !kind.affects_subsequent_buffs());
+            for (buff_kind, buff_ids) in buff_kinds.into_iter() {
+                let mut active_buff_ids = Vec::new();
+                if buff_kind.stacks() {
+                    // Process all the buffs of this kind
+                    active_buff_ids = buff_ids;
+                } else {
+                    // Only process the strongest of this buff kind
+                    active_buff_ids.push(buff_ids[0]);
+                }
+                for buff_id in active_buff_ids.into_iter() {
+                    if let Some(buff) = buff_comp.buffs.get_mut(&buff_id) {
+                        // Skip the effect of buffs whose start delay hasn't expired.
+                        if buff.delay.is_some() {
+                            continue;
+                        }
+                        // Get buff owner?
+                        let buff_owner = if let BuffSource::Character { by: owner } = buff.source {
+                            Some(owner)
+                        } else {
+                            None
+                        };
 
-                    // Now, execute the buff, based on it's delta
-                    for effect in &mut buff.effects {
-                        execute_effect(
-                            effect,
-                            buff.kind,
-                            buff.time,
-                            &read_data,
-                            &mut stat,
-                            health,
-                            energy,
-                            entity,
-                            buff_owner,
-                            &mut server_emitter,
-                            dt,
-                        );
+                        // Now, execute the buff, based on it's delta
+                        for effect in &mut buff.effects {
+                            execute_effect(
+                                effect,
+                                buff.kind,
+                                buff.time,
+                                &read_data,
+                                &mut stat,
+                                health,
+                                energy,
+                                entity,
+                                buff_owner,
+                                &mut server_emitter,
+                                dt,
+                            );
+                        }
                     }
                 }
             }
@@ -331,7 +350,7 @@ fn execute_effect(
                 } else {
                     (None, None)
                 };
-                let amount = match *kind {
+                let mut amount = match *kind {
                     ModifierKind::Additive => *accumulated,
                     ModifierKind::Fractional => health.maximum() * *accumulated,
                 };
@@ -343,6 +362,9 @@ fn execute_effect(
                             DamageContributor::new(uid, read_data.groups.get(entity).cloned())
                         })
                 });
+                if amount > 0.0 && matches!(buff_kind, BuffKind::Potion) {
+                    amount *= stat.heal_multiplier;
+                }
                 server_emitter.emit(ServerEvent::HealthChange {
                     entity,
                     change: HealthChange {
@@ -471,6 +493,9 @@ fn execute_effect(
         BuffEffect::PoiseReduction(pr) => {
             stat.poise_reduction = stat.poise_reduction.max(*pr).min(1.0);
         },
+        BuffEffect::HealReduction { rate } => {
+            stat.heal_multiplier *= 1.0 - *rate;
+        },
     };
 }
 
@@ -482,6 +507,9 @@ fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)
         .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(true)))
     {
         return;
+    }
+    if let Some(remaining_delay) = buff.delay {
+        buff.delay = remaining_delay.checked_sub(Duration::from_secs_f32(dt));
     }
     if let Some(remaining_time) = &mut buff.time {
         if let Some(new_duration) = remaining_time.checked_sub(Duration::from_secs_f32(dt)) {

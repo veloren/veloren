@@ -22,6 +22,7 @@
         )),
         items: [
             (5, "common.items.consumable.potion_minor"),
+            (5, "common.items.food.sunflower_icetea"),
         ],
     ),
     meta: [

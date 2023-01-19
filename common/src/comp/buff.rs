@@ -3,6 +3,7 @@ use crate::uid::Uid;
 use core::{cmp::Ordering, time::Duration};
 #[cfg(not(target_arch = "wasm32"))]
 use hashbrown::HashMap;
+use itertools::Either;
 use serde::{Deserialize, Serialize};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::{Component, DerefFlaggedStorage, VecStorage};
@@ -91,6 +92,9 @@ pub enum BuffKind {
     /// Causes your attack speed to be slower to emulate the recover duration of
     /// an ability being lengthened.
     Parried,
+    /// Results from drinking a potion.
+    /// Decreases the health gained from subsequent potions.
+    PotionSickness,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -118,12 +122,21 @@ impl BuffKind {
             | BuffKind::Wet
             | BuffKind::Ensnared
             | BuffKind::Poisoned
-            | BuffKind::Parried => false,
+            | BuffKind::Parried
+            | BuffKind::PotionSickness => false,
         }
     }
 
     /// Checks if buff should queue
     pub fn queues(self) -> bool { matches!(self, BuffKind::Saturation) }
+
+    /// Checks if the buff can affect other buff effects applied in the same
+    /// tick.
+    pub fn affects_subsequent_buffs(self) -> bool { matches!(self, BuffKind::PotionSickness) }
+
+    /// Checks if multiple instances of the buff should be processed, instead of
+    /// only the strongest.
+    pub fn stacks(self) -> bool { matches!(self, BuffKind::PotionSickness) }
 }
 
 // Struct used to store data relevant to a buff
@@ -131,11 +144,18 @@ impl BuffKind {
 pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Duration>,
+    pub delay: Option<Duration>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl BuffData {
-    pub fn new(strength: f32, duration: Option<Duration>) -> Self { Self { strength, duration } }
+    pub fn new(strength: f32, duration: Option<Duration>, delay: Option<Duration>) -> Self {
+        Self {
+            strength,
+            duration,
+            delay,
+        }
+    }
 }
 
 /// De/buff category ID.
@@ -194,6 +214,8 @@ pub enum BuffEffect {
     GroundFriction(f32),
     /// Reduces poise damage taken after armor is accounted for by this fraction
     PoiseReduction(f32),
+    /// Reduces amount healed by consumables
+    HealReduction { rate: f32 },
 }
 
 /// Actual de/buff.
@@ -212,6 +234,7 @@ pub struct Buff {
     pub data: BuffData,
     pub cat_ids: Vec<BuffCategory>,
     pub time: Option<Duration>,
+    pub delay: Option<Duration>,
     pub effects: Vec<BuffEffect>,
     pub source: BuffSource,
 }
@@ -396,15 +419,29 @@ impl Buff {
                 data.duration,
             ),
             BuffKind::Parried => (vec![BuffEffect::AttackSpeed(0.5)], data.duration),
+            BuffKind::PotionSickness => (
+                vec![BuffEffect::HealReduction {
+                    rate: data.strength,
+                }],
+                data.duration,
+            ),
         };
         Buff {
             kind,
             data,
             cat_ids,
             time,
+            delay: data.delay,
             effects,
             source,
         }
+    }
+
+    /// Calculate how much time has elapsed since the buff was applied (if the
+    /// buff has a finite duration, otherwise insufficient information
+    /// exists to track that)
+    pub fn elapsed(&self) -> Option<Duration> {
+        self.data.duration.zip_with(self.time, |x, y| x - y)
     }
 }
 
@@ -527,11 +564,18 @@ impl Buffs {
             .map(move |id| (*id, &self.buffs[id]))
     }
 
-    // Iterates through all active buffs (the most powerful buff of each kind)
-    pub fn iter_active(&self) -> impl Iterator<Item = &Buff> + '_ {
-        self.kinds
-            .values()
-            .filter_map(move |ids| self.buffs.get(&ids[0]))
+    // Iterates through all active buffs (the most powerful buff of each
+    // non-stacking kind, and all of the stacking ones)
+    pub fn iter_active(&self) -> impl Iterator<Item = impl Iterator<Item = &Buff>> + '_ {
+        self.kinds.iter().map(move |(kind, ids)| {
+            if kind.stacks() {
+                // Iterate stackable buffs in reverse order to show the timer of the soonest one
+                // to expire
+                Either::Left(ids.iter().filter_map(|id| self.buffs.get(id)).rev())
+            } else {
+                Either::Right(self.buffs.get(&ids[0]).into_iter())
+            }
+        })
     }
 
     // Gets most powerful buff of a given kind

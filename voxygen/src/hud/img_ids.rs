@@ -697,6 +697,7 @@ image_ids! {
         debuff_ensnared_0: "voxygen.element.de_buffs.debuff_ensnared_0",
         debuff_poisoned_0: "voxygen.element.de_buffs.debuff_poisoned_0",
         debuff_parried_0: "voxygen.element.de_buffs.debuff_parried_0",
+        debuff_potionsickness_0: "voxygen.element.de_buffs.debuff_potionsickness_0",
 
         // Animation Frames
         // Buff Frame

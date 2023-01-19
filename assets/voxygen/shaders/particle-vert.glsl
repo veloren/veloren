@@ -78,6 +78,7 @@ const int BLACK_SMOKE = 37;
 const int LIGHTNING = 38;
 const int STEAM = 39;
 const int BARRELORGAN = 40;
+const int POTION_SICKNESS = 41;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -93,6 +94,12 @@ float lifetime = tick.x - inst_time;
 
 vec3 linear_motion(vec3 init_offs, vec3 vel) {
     return init_offs + vel * lifetime;
+}
+
+vec3 quadratic_bezier_motion(vec3 start, vec3 ctrl0, vec3 end) {
+    float t = lifetime;
+    float u = 1 - lifetime;
+    return u*u*start + t*u*ctrl0 + t*t*end;
 }
 
 vec3 grav_vel(float grav) {
@@ -634,6 +641,18 @@ void main() {
                 ),
                 vec3(exp_scale(-0.2)) * rand0,
                 vec4(vec3(0.7, 2.7, 1.3), 1),
+                spin_in_axis(vec3(1,0,0),0)
+            );
+            break;
+        case POTION_SICKNESS:
+            attr = Attr(
+                quadratic_bezier_motion(
+                    vec3(0.0),
+                    vec3(inst_dir.xy, 0.0),
+                    inst_dir
+                ),
+                vec3((2.0 * (1 - slow_start(0.8)))),
+                vec4(0.075, 0.625, 0, 1),
                 spin_in_axis(vec3(1,0,0),0)
             );
             break;

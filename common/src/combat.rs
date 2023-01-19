@@ -1039,6 +1039,7 @@ impl CombatBuff {
             BuffData::new(
                 self.strength.to_strength(damage, strength_modifier),
                 Some(Duration::from_secs_f32(self.dur_secs)),
+                None,
             ),
             Vec::new(),
             source,

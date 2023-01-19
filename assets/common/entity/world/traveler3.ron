@@ -33,6 +33,7 @@
         )),
         items: [
             (50, "common.items.consumable.potion_big"),
+            (50, "common.items.food.sunflower_icetea"),
         ],
     ),
     meta: [

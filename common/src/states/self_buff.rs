@@ -65,6 +65,7 @@ impl CharacterBehavior for Data {
                         BuffData {
                             strength: self.static_data.buff_strength,
                             duration: self.static_data.buff_duration,
+                            delay: None,
                         },
                         Vec::new(),
                         BuffSource::Character { by: *data.uid },

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Doors
 - Debug hitboxes now scale with the `Scale` component
+- Potion quaffing no longer makes characters practically immortal.
 
 ## [0.14.0] - 2023-01-07
 

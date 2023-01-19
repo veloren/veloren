@@ -6720,6 +6720,7 @@ dependencies = [
  "fxhash",
  "hashbrown 0.12.3",
  "indexmap",
+ "itertools",
  "kiddo 0.1.7",
  "lazy_static",
  "num-derive",
