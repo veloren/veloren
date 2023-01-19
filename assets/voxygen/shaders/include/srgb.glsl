@@ -656,12 +656,6 @@ vec3 greedy_extract_col_light_terrain(texture2D t_col_light, sampler s_col_light
     return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_ao, _f_attr, f_sky_exposure);
 }
 
-vec3 greedy_extract_col_light_sprite(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light) {
-    float _f_sky_exposure, _f_light, _f_glow, _f_ao;
-    uint _f_attr;
-    return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, _f_glow, _f_ao, _f_attr, _f_sky_exposure);
-}
-
 vec3 greedy_extract_col_light_figure(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out uint f_attr) {
     float _f_sky_exposure, _f_light, _f_glow, _f_ao;
     return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, _f_glow, _f_ao, f_attr, _f_sky_exposure);
