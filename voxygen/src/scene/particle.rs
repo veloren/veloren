@@ -1148,11 +1148,12 @@ impl ParticleMgr {
         let time = state.get_time();
         let mut rng = thread_rng();
 
-        for (interp, pos, buffs, body) in (
+        for (interp, pos, buffs, body, ori) in (
             ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<comp::Buffs>(),
             &ecs.read_storage::<Body>(),
+            &ecs.read_storage::<Ori>(),
         )
             .join()
         {
@@ -1161,28 +1162,10 @@ impl ParticleMgr {
             for (buff_kind, buff_ids) in buffs.kinds.iter() {
                 use buff::BuffKind;
                 match buff_kind {
-                    BuffKind::Cursed | BuffKind::Burning | BuffKind::PotionSickness => {
-                        let mut multiplicity = if buff_kind.stacks() {
-                            buff_ids.len()
-                        } else {
-                            1
-                        };
-                        if let BuffKind::PotionSickness = buff_kind {
-                            // Only show particles for potion sickness at the beginning
-                            if buff_ids
-                                .iter()
-                                .filter_map(|id| buffs.buffs.get(id))
-                                .all(|buff| buff.delay.is_none())
-                            {
-                                multiplicity = 0;
-                            }
-                        }
+                    BuffKind::Cursed | BuffKind::Burning => {
                         self.particles.resize_with(
                             self.particles.len()
-                                + multiplicity
-                                    * usize::from(
-                                        self.scheduler.heartbeats(Duration::from_millis(15)),
-                                    ),
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
                             || {
                                 let start_pos = pos
                                     + Vec3::unit_z() * body.height() * 0.25
@@ -1198,11 +1181,51 @@ impl ParticleMgr {
                                 Particle::new_directed(
                                     Duration::from_secs(1),
                                     time,
-                                    match buff_kind {
-                                        BuffKind::Cursed => ParticleMode::CultistFlame,
-                                        BuffKind::PotionSickness => ParticleMode::Blood,
-                                        _ => ParticleMode::FlameThrower,
+                                    if matches!(buff_kind, BuffKind::Cursed) {
+                                        ParticleMode::CultistFlame
+                                    } else {
+                                        ParticleMode::FlameThrower
                                     },
+                                    start_pos,
+                                    end_pos,
+                                )
+                            },
+                        );
+                    },
+                    BuffKind::PotionSickness => {
+                        let mut multiplicity = 0;
+                        // Only show particles for potion sickness at the beginning, after the
+                        // drinking animation finishes
+                        if buff_ids
+                            .iter()
+                            .filter_map(|id| buffs.buffs.get(id))
+                            .any(|buff| {
+                                matches!(buff.elapsed(), Some(dur) if Duration::from_secs(1) <= dur && dur <= Duration::from_secs_f32(1.5))
+                            })
+                        {
+                            multiplicity = 1;
+                        }
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + multiplicity
+                                    * usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(25)),
+                                    ),
+                            || {
+                                let start_pos = pos + Vec3::unit_z() * body.eye_height();
+                                let (radius, theta) =
+                                    (rng.gen_range(0.0f32..1.0).sqrt(), rng.gen_range(0.0..TAU));
+                                let end_pos = pos
+                                    + *ori.look_dir()
+                                    + Vec3::<f32>::new(
+                                        radius * theta.cos(),
+                                        radius * theta.sin(),
+                                        0.0,
+                                    ) * 0.25;
+                                Particle::new_directed(
+                                    Duration::from_secs(1),
+                                    time,
+                                    ParticleMode::PotionSickness,
                                     start_pos,
                                     end_pos,
                                 )

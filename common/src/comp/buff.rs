@@ -436,6 +436,13 @@ impl Buff {
             source,
         }
     }
+
+    /// Calculate how much time has elapsed since the buff was applied (if the
+    /// buff has a finite duration, otherwise insufficient information
+    /// exists to track that)
+    pub fn elapsed(&self) -> Option<Duration> {
+        self.data.duration.zip_with(self.time, |x, y| x - y)
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
