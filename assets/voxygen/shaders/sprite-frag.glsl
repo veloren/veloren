@@ -42,7 +42,8 @@ const float FADE_DIST = 32.0;
 
 void main() {
     float f_ao;
-    vec3 f_col = greedy_extract_col_light_sprite(t_col_light, s_col_light, f_uv_pos, f_ao);
+    uint material = 0xFFu;
+    vec3 f_col = greedy_extract_col_light_figure(t_col_light, s_col_light, f_uv_pos, f_ao, material);
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
@@ -123,6 +124,13 @@ void main() {
     float point_shadow = shadow_at(f_pos, f_norm);
     reflected_light *= point_shadow;
     emitted_light *= point_shadow;
+
+    // Apply emissive glow
+    // For now, just make glowing material light be the same colour as the surface
+    // TODO: Add a way to control this better outside the shaders
+    if ((material & (1u << 0u)) > 0u) {
+        emitted_light += 20 * surf_color;
+    }
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 

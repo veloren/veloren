@@ -236,8 +236,10 @@ where
                 |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
             ));
         },
-        make_face_texel: move |flat: &mut _, pos, light, glow, ao| {
-            TerrainVertex::make_col_light(light, glow, get_color(flat, pos), ao)
+        make_face_texel: move |flat: &mut _, pos, light, _glow, _ao| {
+            let cell = flat_get(flat, pos);
+            let (glowy, shiny) = (cell.is_glowy(), cell.is_shiny());
+            TerrainVertex::make_col_light_figure(light, glowy, shiny, get_color(flat, pos))
         },
     });
 
