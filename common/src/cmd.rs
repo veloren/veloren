@@ -236,103 +236,17 @@ lazy_static! {
     };
 }
 
-// Please keep this sorted alphabetically, same as with server commands :-)
-#[derive(Clone, Copy, strum::EnumIter)]
-pub enum ClientChatCommand {
-    Mute,
-    Unmute,
-}
-
-impl ClientChatCommand {
-    pub fn data(&self) -> ChatCommandData {
-        use ArgumentSpec::*;
-        use Requirement::*;
-        let cmd = ChatCommandData::new;
-        match self {
-            ClientChatCommand::Mute => cmd(
-                vec![PlayerName(Required)],
-                "Mutes chat messages from a player.",
-                None,
-            ),
-            ClientChatCommand::Unmute => cmd(
-                vec![PlayerName(Required)],
-                "Unmutes a player muted with the 'mute' command.",
-                None,
-            ),
-        }
-    }
-
-    pub fn keyword(&self) -> &'static str {
-        match self {
-            ClientChatCommand::Mute => "mute",
-            ClientChatCommand::Unmute => "unmute",
-        }
-    }
-
-    /// A message that explains what the command does
-    pub fn help_string(&self) -> String {
-        let data = self.data();
-        let usage = std::iter::once(format!("/{}", self.keyword()))
-            .chain(data.args.iter().map(|arg| arg.usage_string()))
-            .collect::<Vec<_>>()
-            .join(" ");
-        format!("{}: {}", usage, data.description)
-    }
-
-    /// Returns a format string for parsing arguments with scan_fmt
-    pub fn arg_fmt(&self) -> String {
-        self.data()
-            .args
-            .iter()
-            .map(|arg| match arg {
-                ArgumentSpec::PlayerName(_) => "{}",
-                ArgumentSpec::SiteName(_) => "{/.*/}",
-                ArgumentSpec::Float(_, _, _) => "{}",
-                ArgumentSpec::Integer(_, _, _) => "{d}",
-                ArgumentSpec::Any(_, _) => "{}",
-                ArgumentSpec::Command(_) => "{}",
-                ArgumentSpec::Message(_) => "{/.*/}",
-                ArgumentSpec::SubCommand => "{} {/.*/}",
-                ArgumentSpec::Enum(_, _, _) => "{}",
-                ArgumentSpec::Boolean(_, _, _) => "{}",
-            })
-            .collect::<Vec<_>>()
-            .join(" ")
-    }
-
-    /// Produce an iterator over all the available commands
-    pub fn iter() -> impl Iterator<Item = Self> { <Self as strum::IntoEnumIterator>::iter() }
-
-    /// Produce an iterator that first goes over all the short keywords
-    /// and their associated commands and then iterates over all the normal
-    /// keywords with their associated commands
-    pub fn iter_with_keywords() -> impl Iterator<Item = (&'static str, Self)> {
-        Self::iter().map(|c| (c.keyword(), c))
-    }
-}
-
-impl FromStr for ClientChatCommand {
-    type Err = ();
-
-    fn from_str(keyword: &str) -> Result<ClientChatCommand, ()> {
-        Self::iter()
-            .map(|c| (c.keyword(), c))
-            .find_map(|(kwd, command)| (kwd == keyword).then_some(command))
-            .ok_or(())
-    }
-}
-
 // Please keep this sorted alphabetically :-)
 #[derive(Copy, Clone, strum::EnumIter)]
 pub enum ServerChatCommand {
     Adminify,
     Airship,
     Alias,
-    ApplyBuff,
     Ban,
     BattleMode,
     BattleModeForce,
     Body,
+    ApplyBuff,
     Build,
     BuildAreaAdd,
     BuildAreaList,
@@ -355,9 +269,7 @@ pub enum ServerChatCommand {
     GroupLeave,
     GroupPromote,
     Health,
-    Help,
     Home,
-    InvalidCommand,
     JoinFaction,
     Jump,
     Kick,
@@ -567,18 +479,12 @@ impl ServerChatCommand {
                 "Set your current health",
                 Some(Admin),
             ),
-            ServerChatCommand::Help => ChatCommandData::new(
-                vec![Command(Optional)],
-                "Display information about commands",
-                None,
-            ),
             ServerChatCommand::Home => cmd(vec![], "Return to the home town", Some(Moderator)),
             ServerChatCommand::JoinFaction => ChatCommandData::new(
                 vec![Any("faction", Optional)],
                 "Join/leave the specified faction",
                 None,
             ),
-            ServerChatCommand::InvalidCommand => cmd(vec![], "", Some(Moderator)),
             ServerChatCommand::Jump => cmd(
                 vec![
                     Float("x", 0.0, Required),
@@ -847,15 +753,13 @@ impl ServerChatCommand {
             ServerChatCommand::GroupPromote => "group_promote",
             ServerChatCommand::GroupLeave => "group_leave",
             ServerChatCommand::Health => "health",
-            ServerChatCommand::JoinFaction => "join_faction",
-            ServerChatCommand::Help => "help",
             ServerChatCommand::Home => "home",
-            ServerChatCommand::InvalidCommand => "invalid_command",
+            ServerChatCommand::JoinFaction => "join_faction",
             ServerChatCommand::Jump => "jump",
             ServerChatCommand::Kick => "kick",
             ServerChatCommand::Kill => "kill",
-            ServerChatCommand::Kit => "kit",
             ServerChatCommand::KillNpcs => "kill_npcs",
+            ServerChatCommand::Kit => "kit",
             ServerChatCommand::Lantern => "lantern",
             ServerChatCommand::Light => "light",
             ServerChatCommand::MakeBlock => "make_block",
@@ -913,7 +817,7 @@ impl ServerChatCommand {
     }
 
     /// Produce an iterator over all the available commands
-    pub fn iter() -> impl Iterator<Item = Self> { <Self as IntoEnumIterator>::iter() }
+    pub fn iter() -> impl Iterator<Item = Self> + Clone { <Self as IntoEnumIterator>::iter() }
 
     /// A message that explains what the command does
     pub fn help_string(&self) -> String {
@@ -1130,6 +1034,18 @@ macro_rules! parse_cmd_args {
 mod tests {
     use super::*;
     use crate::comp::Item;
+
+    #[test]
+    fn verify_cmd_list_sorted() {
+        let mut list = ServerChatCommand::iter()
+            .map(|c| c.keyword())
+            .collect::<Vec<_>>();
+
+        // Vec::is_sorted is unstable, so we do it the hard way
+        let list2 = list.clone();
+        list.sort_unstable();
+        assert_eq!(list, list2);
+    }
 
     #[test]
     fn test_loading_skill_presets() { SkillPresetManifest::load_expect(PRESET_MANIFEST_PATH); }

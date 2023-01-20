@@ -203,6 +203,7 @@ impl State {
         ecs.register::<comp::BeamSegment>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::LootOwner>();
+        ecs.register::<comp::Admin>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -236,7 +237,6 @@ impl State {
         ecs.register::<comp::WaypointArea>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();
-        ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
         ecs.register::<comp::MapMarker>();
         ecs.register::<comp::Projectile>();

@@ -288,6 +288,9 @@ impl Server {
                 ServerEvent::UpdateMapMarker { entity, update } => {
                     handle_update_map_marker(self, entity, update)
                 },
+                ServerEvent::MakeAdmin { entity, admin } => {
+                    let _ = self.state.ecs_mut().write_storage().insert(entity, admin);
+                },
             }
         }
 

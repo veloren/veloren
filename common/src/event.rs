@@ -227,6 +227,10 @@ pub enum ServerEvent {
         entity: EcsEntity,
         update: comp::MapMarkerChange,
     },
+    MakeAdmin {
+        entity: EcsEntity,
+        admin: comp::Admin,
+    },
 }
 
 pub struct EventBus<E> {

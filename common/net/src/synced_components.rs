@@ -28,6 +28,7 @@ macro_rules! synced_components {
             health: Health,
             poise: Poise,
             light_emitter: LightEmitter,
+            loot_owner: LootOwner,
             item: Item,
             scale: Scale,
             group: Group,
@@ -56,10 +57,10 @@ macro_rules! synced_components {
 
             // Synced to the client only for its own entity
 
+            admin: Admin,
             combo: Combo,
             active_abilities: ActiveAbilities,
             can_build: CanBuild,
-            loot_owner: LootOwner,
         }
     };
 }
@@ -151,6 +152,10 @@ impl NetSync for LightEmitter {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
+impl NetSync for LootOwner {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
 impl NetSync for Item {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
@@ -217,6 +222,10 @@ impl NetSync for SkillSet {
 
 // These are synced only from the client's own entity.
 
+impl NetSync for Admin {
+    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
+}
+
 impl NetSync for Combo {
     const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
 }
@@ -227,8 +236,4 @@ impl NetSync for ActiveAbilities {
 
 impl NetSync for CanBuild {
     const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
-}
-
-impl NetSync for LootOwner {
-    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }

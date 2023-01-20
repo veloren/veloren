@@ -1,3 +1,4 @@
+extern crate levenshtein;
 use std::str::FromStr;
 
 use crate::{
@@ -6,11 +7,16 @@ use crate::{
 use client::Client;
 use common::{cmd::*, parse_cmd_args, uuid::Uuid};
 use strum::IntoEnumIterator;
+use common_net::synced_components::Admin;
+
+use itertools::Itertools;
+use levenshtein::levenshtein;
 
 // Please keep this sorted alphabetically, same as with server commands :-)
 #[derive(Clone, Copy, strum::EnumIter)]
 pub enum ClientChatCommand {
     ExperimentalShader,
+    Help,
     Mute,
     Unmute,
 }
@@ -21,16 +27,6 @@ impl ClientChatCommand {
         use Requirement::*;
         let cmd = ChatCommandData::new;
         match self {
-            ClientChatCommand::Mute => cmd(
-                vec![PlayerName(Required)],
-                "Mutes chat messages from a player.",
-                None,
-            ),
-            ClientChatCommand::Unmute => cmd(
-                vec![PlayerName(Required)],
-                "Unmutes a player muted with the 'mute' command.",
-                None,
-            ),
             ClientChatCommand::ExperimentalShader => cmd(
                 vec![Enum(
                     "Shader",
@@ -42,14 +38,26 @@ impl ClientChatCommand {
                 "Toggles an experimental shader.",
                 None,
             ),
+            ClientChatCommand::Help => cmd(vec![], "", None),
+            ClientChatCommand::Mute => cmd(
+                vec![PlayerName(Required)],
+                "Mutes chat messages from a player.",
+                None,
+            ),
+            ClientChatCommand::Unmute => cmd(
+                vec![PlayerName(Required)],
+                "Unmutes a player muted with the 'mute' command.",
+                None,
+            ),
         }
     }
 
     pub fn keyword(&self) -> &'static str {
         match self {
+            ClientChatCommand::ExperimentalShader => "experimental_shader",
+            ClientChatCommand::Help => "help",
             ClientChatCommand::Mute => "mute",
             ClientChatCommand::Unmute => "unmute",
-            ClientChatCommand::ExperimentalShader => "experimental_shader",
         }
     }
 
@@ -85,7 +93,7 @@ impl ClientChatCommand {
     }
 
     /// Produce an iterator over all the available commands
-    pub fn iter() -> impl Iterator<Item = Self> { <Self as strum::IntoEnumIterator>::iter() }
+    pub fn iter() -> impl Iterator<Item = Self>  + Clone { <Self as strum::IntoEnumIterator>::iter() }
 
     /// Produce an iterator that first goes over all the short keywords
     /// and their associated commands and then iterates over all the normal
@@ -110,19 +118,18 @@ impl FromStr for ClientChatCommand {
 pub enum ChatCommandKind {
     Client(ClientChatCommand),
     Server(ServerChatCommand),
-    InvalidCommand
 }
 
 impl FromStr for ChatCommandKind {
-    type Err = String;
+    type Err = ();
 
-    fn from_str(s: &str) -> Result<Self, String> {
+    fn from_str(s: &str) -> Result<Self, ()> {
         if let Ok(cmd) = s.parse::<ClientChatCommand>() {
             Ok(ChatCommandKind::Client(cmd))
         } else if let Ok(cmd) = s.parse::<ServerChatCommand>() {
             Ok(ChatCommandKind::Server(cmd))
         } else {
-            Ok(ChatCommandKind::InvalidCommand)
+            Err(())
         }
     }
 }
@@ -143,21 +150,19 @@ pub fn run_command(
     cmd: &str,
     args: Vec<String>,
 ) -> CommandResult {
-    let command = ChatCommandKind::from_str(cmd)?;
+    let command = ChatCommandKind::from_str(cmd);
 
     match command {
-        ChatCommandKind::Server(cmd) => {
+        Ok(ChatCommandKind::Server(cmd)) => {
             client.send_command(cmd.keyword().into(), args);
             Ok(None) // The server will provide a response when the command is run
         },
-        ChatCommandKind::Client(cmd) => {
+        Ok(ChatCommandKind::Client(cmd)) => {
             Ok(Some(run_client_command(client, global_state, cmd, args)?))
         },
-        ChatCommandKind::InvalidCommand => {
-            //The invalid command that user typed is passed as argument
-            client.send_command(ServerChatCommand::InvalidCommand.keyword().into(), vec![cmd.to_string()]);
-            Ok(None)
-        }
+        Err(()) => {
+            Ok(Some(handle_invalid_command(client, global_state, vec![cmd.to_string()])?))
+        },
     }
 }
 
@@ -168,12 +173,87 @@ fn run_client_command(
     args: Vec<String>,
 ) -> Result<String, String> {
     let command = match command {
+        ClientChatCommand::ExperimentalShader => handle_experimental_shader,
+        ClientChatCommand::Help => handle_help
         ClientChatCommand::Mute => handle_mute,
         ClientChatCommand::Unmute => handle_unmute,
-        ClientChatCommand::ExperimentalShader => handle_experimental_shader,
     };
 
     command(client, global_state, args)
+}
+
+fn handle_help(
+    client: &Client,
+    _global_state: &mut GlobalState,
+    args: Vec<String>,
+) -> Result<String, String> {
+    if let Some(cmd) = parse_cmd_args!(args, ServerChatCommand) {
+        Ok(cmd.help_string())
+    } else {
+        let mut message = String::new();
+        let entity_role = client
+            .state()
+            .read_storage::<Admin>()
+            .get(client.entity())
+            .map(|admin| admin.0);
+
+        ClientChatCommand::iter()
+            .for_each(|cmd| {
+                message += &cmd.help_string();
+                message += "\n";
+            });
+        // Iterate through all ServerChatCommands you have permission to use.
+        ServerChatCommand::iter()
+            .filter(|cmd| cmd.needs_role() <= entity_role)
+            .for_each(|cmd| {
+                message += &cmd.help_string();
+                message += "\n";
+            });
+        message += "Additionally, you can use the following shortcuts:";
+        ServerChatCommand::iter()
+            .filter_map(|cmd| cmd.short_keyword().map(|k| (k, cmd)))
+            .for_each(|(k, cmd)| {
+                message += &format!(" /{} => /{}", k, cmd.keyword());
+            });
+        Ok(message)
+    }
+}
+
+fn handle_invalid_command(
+    client: &Client,
+    _global_state: &mut GlobalState,
+    args: Vec<String>,
+) -> Result<String, String> {
+    if let Some(user_entered_invalid_command) = parse_cmd_args!(args, String) {
+        let entity_role = client
+            .state()
+            .read_storage::<Admin>()
+            .get(client.entity())
+            .map(|admin| admin.0);
+
+        let usable_commands = ServerChatCommand::iter()
+            .filter(|cmd| cmd.needs_role() <= entity_role)
+            .map(|cmd| cmd.keyword())
+            .chain(ClientChatCommand::iter().map(|cmd| cmd.keyword()));
+
+        let most_similar_str = usable_commands.clone()
+            .sorted_by_key(|cmd| levenshtein(&user_entered_invalid_command, cmd))
+            .collect::<Vec<&str>>()[0];
+
+        let commands_with_same_prefix = usable_commands
+            .filter(|cmd| {
+                cmd.starts_with(&user_entered_invalid_command) && cmd != &most_similar_str
+            });
+
+        return Err(format!(
+            "Could not find a command named {}. Did you mean any of the following? \n/{} {} \
+             \n\nType /help to see a list of all commands.",
+            user_entered_invalid_command,
+            most_similar_str,
+            commands_with_same_prefix.fold(String::new(), |s, arg| s + "\n/" + arg)
+        ));
+    }
+    Err("Command failed parsing".to_string())
 }
 
 fn handle_mute(
