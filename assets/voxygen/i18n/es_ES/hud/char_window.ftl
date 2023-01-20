@@ -1,9 +1,9 @@
-character_window-character_name = Nombre del Personaje
+character_window-character_name = Nombre del personaje
 character_window-character_stats =
     Resistencia
     
-    Estado Físico
+    Estado físico
     
-    Fuerza de Voluntad
+    Fuerza de voluntad
     
     Protección
