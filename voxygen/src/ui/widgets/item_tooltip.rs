@@ -925,9 +925,9 @@ impl<'a> Widget for ItemTooltip<'a> {
                                     util::protec2string(p_diff)
                                 );
                                 diff_text(text, protection_diff.1, index);
-                                index += armor_stats.protection.is_some() as usize;
                             }
                         }
+                        index += armor_stats.protection.is_some() as usize;
 
                         if let Some(p_r_diff) = diff.poise_resilience {
                             if p_r_diff != Protection::Normal(0.0) {
@@ -937,34 +937,34 @@ impl<'a> Widget for ItemTooltip<'a> {
                                     util::protec2string(p_r_diff)
                                 );
                                 diff_text(text, poise_res_diff.1, index);
-                                index += armor_stats.poise_resilience.is_some() as usize;
                             }
                         }
+                        index += armor_stats.poise_resilience.is_some() as usize;
 
                         if let Some(e_m_diff) = diff.energy_max {
                             if e_m_diff.abs() > Energy::ENERGY_EPSILON {
                                 let text = format!("{} {:.1}", &energy_max_diff.0, e_m_diff);
                                 diff_text(text, energy_max_diff.1, index);
-                                index += armor_stats.energy_max.is_some() as usize;
                             }
                         }
+                        index += armor_stats.energy_max.is_some() as usize;
 
                         if let Some(e_r_diff) = diff.energy_reward {
                             if e_r_diff.abs() > Energy::ENERGY_EPSILON {
                                 let text =
                                     format!("{} {:.1}", &energy_reward_diff.0, e_r_diff * 100.0);
                                 diff_text(text, energy_reward_diff.1, index);
-                                index += armor_stats.energy_reward.is_some() as usize;
                             }
                         }
+                        index += armor_stats.energy_reward.is_some() as usize;
 
                         if let Some(c_p_diff) = diff.crit_power {
                             if c_p_diff != 0.0_f32 {
                                 let text = format!("{} {:.3}", &crit_power_diff.0, c_p_diff);
                                 diff_text(text, crit_power_diff.1, index);
-                                index += armor_stats.crit_power.is_some() as usize;
                             }
                         }
+                        index += armor_stats.crit_power.is_some() as usize;
 
                         if let Some(s_diff) = diff.stealth {
                             if s_diff != 0.0_f32 {
