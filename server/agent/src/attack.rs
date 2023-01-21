@@ -1,12 +1,12 @@
 use crate::{consts::MAX_PATH_DIST, data::*, util::entities_have_line_of_sight};
 use common::{
     comp::{
-        ability::{self, Ability, ActiveAbilities, AuxiliaryAbility, Capability},
+        ability::{ActiveAbilities, AuxiliaryAbility},
         buff::BuffKind,
         item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
-        Controller, InputKind, Stance,
+        Controller, InputKind,
     },
     path::TraversalConfig,
     states::{self_buff, sprite_summon, utils::StageSection},
@@ -15,7 +15,6 @@ use common::{
     vol::ReadVol,
 };
 use rand::{prelude::SliceRandom, Rng};
-use specs::saveload::MarkerAllocator;
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
@@ -510,11 +509,6 @@ impl<'a> AgentData<'a> {
             }
         }
 
-        enum IntCounters {
-            Tactics = 0,
-            ActionMode = 1,
-        }
-
         if !agent.action_state.initialized {
             let available_tactics = {
                 let mut tactics = Vec::new();
@@ -737,7 +731,7 @@ impl<'a> AgentData<'a> {
             }
 
             agent.action_state.int_counters[IntCounters::ActionMode as usize] =
-                ActionMode::Guarded as u8;
+                ActionMode::Reckless as u8;
         }
 
         enum ActionMode {
@@ -757,15 +751,282 @@ impl<'a> AgentData<'a> {
             }
         }
 
+        if let Some(health) = self.health {
+            agent.action_state.int_counters[IntCounters::ActionMode as usize] =
+                if health.fraction() < 0.25 {
+                    agent.action_state.positions[Positions::GuardedCover as usize] = None;
+                    ActionMode::Fleeing as u8
+                } else if health.fraction() < 0.75 {
+                    agent.action_state.positions[Positions::Flee as usize] = None;
+                    ActionMode::Guarded as u8
+                } else {
+                    agent.action_state.positions[Positions::GuardedCover as usize] = None;
+                    agent.action_state.positions[Positions::Flee as usize] = None;
+                    ActionMode::Reckless as u8
+                };
+        }
+
+        enum IntCounters {
+            Tactics = 0,
+            ActionMode = 1,
+        }
+
+        enum Timers {
+            GuardedCycle = 0,
+            PosTimeOut = 1,
+        }
+
+        enum Conditions {
+            GuardedAttack = 0,
+            RollingBreakThrough = 1,
+        }
+
+        enum FloatCounters {
+            GuardedTimer = 0,
+        }
+
+        enum Positions {
+            GuardedCover = 0,
+            Flee = 1,
+        }
+
+        if self.vel.0.magnitude_squared() < 1_f32.powi(2) {
+            agent.action_state.timers[Timers::PosTimeOut as usize] += read_data.dt.0;
+        } else {
+            agent.action_state.timers[Timers::PosTimeOut as usize] = 0.0;
+        }
+
+        if agent.action_state.timers[Timers::PosTimeOut as usize] > 2.0 {
+            agent.action_state.positions.iter_mut().for_each(|pos| {
+                *pos = None;
+            });
+            agent.action_state.timers[Timers::PosTimeOut as usize] = 0.0;
+        }
+
         let attempt_attack = match ActionMode::from_u8(
             agent.action_state.int_counters[IntCounters::ActionMode as usize],
         ) {
             ActionMode::Reckless => true,
-            ActionMode::Guarded => true,
-            ActionMode::Fleeing => false,
+            ActionMode::Guarded => {
+                agent.action_state.timers[Timers::GuardedCycle as usize] += read_data.dt.0;
+                if agent.action_state.timers[Timers::GuardedCycle as usize]
+                    > agent.action_state.counters[FloatCounters::GuardedTimer as usize]
+                {
+                    agent.action_state.timers[Timers::GuardedCycle as usize] = 0.0;
+                    agent.action_state.counters[FloatCounters::GuardedTimer as usize] =
+                        rng.gen_range(3.0..8.0);
+                    agent.action_state.conditions[Conditions::GuardedAttack as usize] ^= true;
+                }
+                if let Some(pos) = agent.action_state.positions[Positions::GuardedCover as usize] {
+                    if pos.distance_squared(self.pos.0) < 3_f32.powi(2) {
+                        agent.action_state.positions[Positions::GuardedCover as usize] = None;
+                    }
+                }
+                if agent.action_state.conditions[Conditions::GuardedAttack as usize] {
+                    agent.action_state.positions[Positions::GuardedCover as usize] = None;
+                    true
+                } else {
+                    if attack_data.dist_sqrd > 10_f32.powi(2) {
+                        // Choose random point to either side when looking at target and move
+                        // towards it
+                        if let Some(pos) =
+                            agent.action_state.positions[Positions::GuardedCover as usize]
+                        {
+                            if pos.distance_squared(self.pos.0) < 5_f32.powi(2) {
+                                agent.action_state.positions[Positions::GuardedCover as usize] =
+                                    None;
+                            }
+                            self.path_toward_target(
+                                agent,
+                                controller,
+                                pos,
+                                read_data,
+                                Path::Separate,
+                                None,
+                            );
+                        } else {
+                            agent.action_state.positions[Positions::GuardedCover as usize] = {
+                                let rand_dir = {
+                                    let dir = (tgt_data.pos.0 - self.pos.0)
+                                        .try_normalized()
+                                        .unwrap_or(Vec3::unit_x())
+                                        .xy();
+                                    if rng.gen_bool(0.5) {
+                                        dir.rotated_z(PI / 2.0 + rng.gen_range(-0.75..0.0))
+                                    } else {
+                                        dir.rotated_z(-PI / 2.0 + rng.gen_range(-0.0..0.75))
+                                    }
+                                };
+                                let attempted_dist = rng.gen_range(6.0..16.0);
+                                let actual_dist = read_data
+                                    .terrain
+                                    .ray(
+                                        self.pos.0 + Vec3::unit_z() * 0.5,
+                                        self.pos.0
+                                            + Vec3::unit_z() * 0.5
+                                            + rand_dir * attempted_dist,
+                                    )
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .0
+                                    - 1.0;
+                                Some(self.pos.0 + rand_dir * actual_dist)
+                            };
+                        }
+                    } else {
+                        if let Some(pos) =
+                            agent.action_state.positions[Positions::GuardedCover as usize]
+                        {
+                            self.path_toward_target(
+                                agent,
+                                controller,
+                                pos,
+                                read_data,
+                                Path::Separate,
+                                None,
+                            );
+                            if agent.action_state.conditions
+                                [Conditions::RollingBreakThrough as usize]
+                            {
+                                controller.push_basic_input(InputKind::Roll);
+                                agent.action_state.conditions
+                                    [Conditions::RollingBreakThrough as usize] = false;
+                            }
+                            if tgt_data.char_state.map_or(false, |cs| cs.is_melee_attack()) {
+                                controller.push_basic_input(InputKind::Block);
+                            }
+                        } else {
+                            agent.action_state.positions[Positions::GuardedCover as usize] = {
+                                let backwards = (self.pos.0 - tgt_data.pos.0)
+                                    .try_normalized()
+                                    .unwrap_or(Vec3::unit_x())
+                                    .xy();
+                                let pos = if read_data
+                                    .terrain
+                                    .ray(
+                                        self.pos.0 + Vec3::unit_z() * 0.5,
+                                        self.pos.0 + Vec3::unit_z() * 0.5 + backwards * 6.0,
+                                    )
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .0
+                                    > 5.0
+                                {
+                                    self.pos.0 + backwards * 5.0
+                                } else {
+                                    agent.action_state.conditions
+                                        [Conditions::RollingBreakThrough as usize] = true;
+                                    self.pos.0
+                                        - backwards
+                                            * read_data
+                                                .terrain
+                                                .ray(
+                                                    self.pos.0 + Vec3::unit_z() * 0.5,
+                                                    self.pos.0 + Vec3::unit_z() * 0.5
+                                                        - backwards * 10.0,
+                                                )
+                                                .until(Block::is_solid)
+                                                .cast()
+                                                .0
+                                        - 1.0
+                                };
+                                Some(pos)
+                            }
+                        }
+                    }
+                    false
+                }
+            },
+            ActionMode::Fleeing => {
+                if agent.action_state.conditions[Conditions::RollingBreakThrough as usize] {
+                    controller.push_basic_input(InputKind::Roll);
+                    agent.action_state.conditions[Conditions::RollingBreakThrough as usize] = false;
+                }
+                if let Some(pos) = agent.action_state.positions[Positions::Flee as usize] {
+                    if let Some(dir) = Dir::from_unnormalized(pos - self.pos.0) {
+                        controller.inputs.look_dir = dir;
+                    }
+                    if pos.distance_squared(self.pos.0) < 5_f32.powi(2) {
+                        agent.action_state.positions[Positions::Flee as usize] = None;
+                    }
+                    self.path_toward_target(
+                        agent,
+                        controller,
+                        pos,
+                        read_data,
+                        Path::Separate,
+                        None,
+                    );
+                } else {
+                    agent.action_state.positions[Positions::Flee as usize] = {
+                        let rand_dir = {
+                            let dir = (self.pos.0 - tgt_data.pos.0)
+                                .try_normalized()
+                                .unwrap_or(Vec3::unit_x())
+                                .xy();
+                            dir.rotated_z(rng.gen_range(-0.75..0.75))
+                        };
+                        let attempted_dist = rng.gen_range(16.0..26.0);
+                        let actual_dist = read_data
+                            .terrain
+                            .ray(
+                                self.pos.0 + Vec3::unit_z() * 0.5,
+                                self.pos.0 + Vec3::unit_z() * 0.5 + rand_dir * attempted_dist,
+                            )
+                            .until(Block::is_solid)
+                            .cast()
+                            .0
+                            - 1.0;
+                        if actual_dist < 10.0 {
+                            let dist = read_data
+                                .terrain
+                                .ray(
+                                    self.pos.0 + Vec3::unit_z() * 0.5,
+                                    self.pos.0 + Vec3::unit_z() * 0.5 - rand_dir * attempted_dist,
+                                )
+                                .until(Block::is_solid)
+                                .cast()
+                                .0
+                                - 1.0;
+                            agent.action_state.conditions
+                                [Conditions::RollingBreakThrough as usize] = true;
+                            Some(self.pos.0 - rand_dir * actual_dist)
+                        } else {
+                            Some(self.pos.0 + rand_dir * actual_dist)
+                        }
+                    };
+                }
+                false
+            },
         };
 
         let attack_failed = if attempt_attack {
+            let context = AbilityContext::from(self.stance);
+            let extract_ability = |input: AbilityInput| {
+                AbilityData::from_ability(
+                    &self
+                        .active_abilities
+                        .activate_ability(
+                            input,
+                            Some(self.inventory),
+                            self.skill_set,
+                            self.body,
+                            Some(self.char_state),
+                            context,
+                        )
+                        .unwrap_or_default()
+                        .0,
+                )
+            };
+            let primary = extract_ability(AbilityInput::Primary);
+            let secondary = extract_ability(AbilityInput::Secondary);
+            let abilities = [
+                extract_ability(AbilityInput::Auxiliary(0)),
+                extract_ability(AbilityInput::Auxiliary(1)),
+                extract_ability(AbilityInput::Auxiliary(2)),
+                extract_ability(AbilityInput::Auxiliary(3)),
+                extract_ability(AbilityInput::Auxiliary(4)),
+            ];
             match SwordTactics::from_u8(
                 agent.action_state.int_counters[IntCounters::Tactics as usize],
             ) {

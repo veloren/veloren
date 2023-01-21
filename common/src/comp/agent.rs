@@ -40,6 +40,8 @@ const ACTIONSTATE_NUMBER_OF_CONCURRENT_INT_COUNTERS: usize = 5;
 /// The number of booleans that a single Action node can track concurrently
 /// Define constants within a given action node to index between them.
 const ACTIONSTATE_NUMBER_OF_CONCURRENT_CONDITIONS: usize = 5;
+/// The number of positions that can be remembered by an agent
+const ACTIONSTATE_NUMBER_OF_CONCURRENT_POSITIONS: usize = 5;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Alignment {
@@ -630,6 +632,7 @@ pub struct ActionState {
     pub counters: [f32; ACTIONSTATE_NUMBER_OF_CONCURRENT_COUNTERS],
     pub conditions: [bool; ACTIONSTATE_NUMBER_OF_CONCURRENT_CONDITIONS],
     pub int_counters: [u8; ACTIONSTATE_NUMBER_OF_CONCURRENT_INT_COUNTERS],
+    pub positions: [Option<Vec3<f32>>; ACTIONSTATE_NUMBER_OF_CONCURRENT_POSITIONS],
     pub initialized: bool,
 }
 
