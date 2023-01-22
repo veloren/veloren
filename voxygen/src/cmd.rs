@@ -1,16 +1,12 @@
-extern crate levenshtein;
 use std::str::FromStr;
 
 use crate::{
     render::ExperimentalShader, session::settings_change::change_render_mode, GlobalState,
 };
 use client::Client;
-use common::{cmd::*, parse_cmd_args, uuid::Uuid};
-use strum::IntoEnumIterator;
-use common_net::synced_components::Admin;
-
-use itertools::Itertools;
+use common::{cmd::*, comp::Admin, parse_cmd_args, uuid::Uuid};
 use levenshtein::levenshtein;
+use strum::IntoEnumIterator;
 
 // Please keep this sorted alphabetically, same as with server commands :-)
 #[derive(Clone, Copy, strum::EnumIter)]
@@ -38,7 +34,11 @@ impl ClientChatCommand {
                 "Toggles an experimental shader.",
                 None,
             ),
-            ClientChatCommand::Help => cmd(vec![], "", None),
+            ClientChatCommand::Help => cmd(
+                vec![Command(Optional)],
+                "Display information about commands",
+                None,
+            ),
             ClientChatCommand::Mute => cmd(
                 vec![PlayerName(Required)],
                 "Mutes chat messages from a player.",
@@ -93,7 +93,9 @@ impl ClientChatCommand {
     }
 
     /// Produce an iterator over all the available commands
-    pub fn iter() -> impl Iterator<Item = Self>  + Clone { <Self as strum::IntoEnumIterator>::iter() }
+    pub fn iter() -> impl Iterator<Item = Self> + Clone {
+        <Self as strum::IntoEnumIterator>::iter()
+    }
 
     /// Produce an iterator that first goes over all the short keywords
     /// and their associated commands and then iterates over all the normal
@@ -160,10 +162,37 @@ pub fn run_command(
         Ok(ChatCommandKind::Client(cmd)) => {
             Ok(Some(run_client_command(client, global_state, cmd, args)?))
         },
-        Err(()) => {
-            Ok(Some(handle_invalid_command(client, global_state, vec![cmd.to_string()])?))
-        },
+        Err(()) => Err(invalid_command_message(client, cmd.to_string())),
     }
+}
+
+fn invalid_command_message(client: &Client, user_entered_invalid_command: String) -> String {
+    let entity_role = client
+        .state()
+        .read_storage::<Admin>()
+        .get(client.entity())
+        .map(|admin| admin.0);
+
+    let usable_commands = ServerChatCommand::iter()
+        .filter(|cmd| cmd.needs_role() <= entity_role)
+        .map(|cmd| cmd.keyword())
+        .chain(ClientChatCommand::iter().map(|cmd| cmd.keyword()));
+
+    let most_similar_str = usable_commands
+        .clone()
+        .min_by_key(|cmd| levenshtein(&user_entered_invalid_command, cmd))
+        .expect("At least one command exists.");
+
+    let commands_with_same_prefix = usable_commands
+        .filter(|cmd| cmd.starts_with(&user_entered_invalid_command) && cmd != &most_similar_str);
+
+    format!(
+        "Could not find a command named {}. Did you mean any of the following? \n/{} {} \n\nType \
+         /help to see a list of all commands.",
+        user_entered_invalid_command,
+        most_similar_str,
+        commands_with_same_prefix.fold(String::new(), |s, arg| s + "\n/" + arg)
+    )
 }
 
 fn run_client_command(
@@ -174,7 +203,7 @@ fn run_client_command(
 ) -> Result<String, String> {
     let command = match command {
         ClientChatCommand::ExperimentalShader => handle_experimental_shader,
-        ClientChatCommand::Help => handle_help
+        ClientChatCommand::Help => handle_help,
         ClientChatCommand::Mute => handle_mute,
         ClientChatCommand::Unmute => handle_unmute,
     };
@@ -197,11 +226,10 @@ fn handle_help(
             .get(client.entity())
             .map(|admin| admin.0);
 
-        ClientChatCommand::iter()
-            .for_each(|cmd| {
-                message += &cmd.help_string();
-                message += "\n";
-            });
+        ClientChatCommand::iter().for_each(|cmd| {
+            message += &cmd.help_string();
+            message += "\n";
+        });
         // Iterate through all ServerChatCommands you have permission to use.
         ServerChatCommand::iter()
             .filter(|cmd| cmd.needs_role() <= entity_role)
@@ -211,49 +239,13 @@ fn handle_help(
             });
         message += "Additionally, you can use the following shortcuts:";
         ServerChatCommand::iter()
+            .filter(|cmd| cmd.needs_role() <= entity_role)
             .filter_map(|cmd| cmd.short_keyword().map(|k| (k, cmd)))
             .for_each(|(k, cmd)| {
                 message += &format!(" /{} => /{}", k, cmd.keyword());
             });
         Ok(message)
     }
-}
-
-fn handle_invalid_command(
-    client: &Client,
-    _global_state: &mut GlobalState,
-    args: Vec<String>,
-) -> Result<String, String> {
-    if let Some(user_entered_invalid_command) = parse_cmd_args!(args, String) {
-        let entity_role = client
-            .state()
-            .read_storage::<Admin>()
-            .get(client.entity())
-            .map(|admin| admin.0);
-
-        let usable_commands = ServerChatCommand::iter()
-            .filter(|cmd| cmd.needs_role() <= entity_role)
-            .map(|cmd| cmd.keyword())
-            .chain(ClientChatCommand::iter().map(|cmd| cmd.keyword()));
-
-        let most_similar_str = usable_commands.clone()
-            .sorted_by_key(|cmd| levenshtein(&user_entered_invalid_command, cmd))
-            .collect::<Vec<&str>>()[0];
-
-        let commands_with_same_prefix = usable_commands
-            .filter(|cmd| {
-                cmd.starts_with(&user_entered_invalid_command) && cmd != &most_similar_str
-            });
-
-        return Err(format!(
-            "Could not find a command named {}. Did you mean any of the following? \n/{} {} \
-             \n\nType /help to see a list of all commands.",
-            user_entered_invalid_command,
-            most_similar_str,
-            commands_with_same_prefix.fold(String::new(), |s, arg| s + "\n/" + arg)
-        ));
-    }
-    Err("Command failed parsing".to_string())
 }
 
 fn handle_mute(

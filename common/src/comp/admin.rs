@@ -1,6 +1,6 @@
 use clap::arg_enum;
 use serde::{Deserialize, Serialize};
-use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
+use specs::{Component, DerefFlaggedStorage, VecStorage};
 
 arg_enum! {
     #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -14,5 +14,5 @@ arg_enum! {
 pub struct Admin(pub AdminRole);
 
 impl Component for Admin {
-    type Storage = DerefFlaggedStorage<Self, DenseVecStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }

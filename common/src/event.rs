@@ -18,6 +18,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
+use uuid::Uuid;
 use vek::*;
 
 pub type SiteId = u64;
@@ -230,6 +231,7 @@ pub enum ServerEvent {
     MakeAdmin {
         entity: EcsEntity,
         admin: comp::Admin,
+        uuid: Uuid,
     },
 }
 

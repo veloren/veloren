@@ -246,7 +246,7 @@ pub enum ServerChatCommand {
     BattleMode,
     BattleModeForce,
     Body,
-    ApplyBuff,
+    Buff,
     Build,
     BuildAreaAdd,
     BuildAreaList,
@@ -269,6 +269,7 @@ pub enum ServerChatCommand {
     GroupLeave,
     GroupPromote,
     Health,
+    Help,
     Home,
     JoinFaction,
     Jump,
@@ -338,7 +339,7 @@ impl ServerChatCommand {
                 "Change your alias",
                 Some(Moderator),
             ),
-            ServerChatCommand::ApplyBuff => cmd(
+            ServerChatCommand::Buff => cmd(
                 vec![
                     Enum("buff", BUFFS.clone(), Required),
                     Float("strength", 0.01, Optional),
@@ -478,6 +479,11 @@ impl ServerChatCommand {
                 vec![Integer("hp", 100, Required)],
                 "Set your current health",
                 Some(Admin),
+            ),
+            ServerChatCommand::Help => ChatCommandData::new(
+                vec![Command(Optional)],
+                "Display information about commands",
+                None,
             ),
             ServerChatCommand::Home => cmd(vec![], "Return to the home town", Some(Moderator)),
             ServerChatCommand::JoinFaction => ChatCommandData::new(
@@ -728,11 +734,11 @@ impl ServerChatCommand {
             ServerChatCommand::Adminify => "adminify",
             ServerChatCommand::Airship => "airship",
             ServerChatCommand::Alias => "alias",
-            ServerChatCommand::ApplyBuff => "buff",
             ServerChatCommand::Ban => "ban",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",
             ServerChatCommand::Body => "body",
+            ServerChatCommand::Buff => "buff",
             ServerChatCommand::Build => "build",
             ServerChatCommand::BuildAreaAdd => "build_area_add",
             ServerChatCommand::BuildAreaList => "build_area_list",
@@ -753,6 +759,7 @@ impl ServerChatCommand {
             ServerChatCommand::GroupPromote => "group_promote",
             ServerChatCommand::GroupLeave => "group_leave",
             ServerChatCommand::Health => "health",
+            ServerChatCommand::Help => "help",
             ServerChatCommand::Home => "home",
             ServerChatCommand::JoinFaction => "join_faction",
             ServerChatCommand::Jump => "jump",
@@ -817,7 +824,9 @@ impl ServerChatCommand {
     }
 
     /// Produce an iterator over all the available commands
-    pub fn iter() -> impl Iterator<Item = Self> + Clone { <Self as IntoEnumIterator>::iter() }
+    pub fn iter() -> impl Iterator<Item = Self> + Clone {
+         <Self as IntoEnumIterator>::iter()
+    }
 
     /// A message that explains what the command does
     pub fn help_string(&self) -> String {

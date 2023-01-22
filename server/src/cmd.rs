@@ -124,11 +124,11 @@ fn do_command(
         ServerChatCommand::Adminify => handle_adminify,
         ServerChatCommand::Airship => handle_spawn_airship,
         ServerChatCommand::Alias => handle_alias,
-        ServerChatCommand::ApplyBuff => handle_apply_buff,
         ServerChatCommand::Ban => handle_ban,
         ServerChatCommand::BattleMode => handle_battlemode,
         ServerChatCommand::BattleModeForce => handle_battlemode_force,
         ServerChatCommand::Body => handle_body,
+        ServerChatCommand::Buff => handle_buff,
         ServerChatCommand::Build => handle_build,
         ServerChatCommand::BuildAreaAdd => handle_build_area_add,
         ServerChatCommand::BuildAreaList => handle_build_area_list,
@@ -149,6 +149,7 @@ fn do_command(
         ServerChatCommand::GroupLeave => handle_group_leave,
         ServerChatCommand::GroupPromote => handle_group_promote,
         ServerChatCommand::Health => handle_health,
+        ServerChatCommand::Help => handle_help,
         ServerChatCommand::Home => handle_home,
         ServerChatCommand::JoinFaction => handle_join_faction,
         ServerChatCommand::Jump => handle_jump,
@@ -1777,6 +1778,44 @@ fn handle_build_area_remove(
     } else {
         Err(action.help_string())
     }
+}
+
+fn handle_help(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(cmd) = parse_cmd_args!(args, ServerChatCommand) {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, cmd.help_string()),
+        )
+    } else {
+        let mut message = String::new();
+        let entity_role = server.entity_admin_role(client);
+
+        // Iterate through all commands you have permission to use.
+        ServerChatCommand::iter()
+            .filter(|cmd| cmd.needs_role() <= entity_role)
+            .for_each(|cmd| {
+                message += &cmd.help_string();
+                message += "\n";
+            });
+        message += "Additionally, you can use the following shortcuts:";
+        ServerChatCommand::iter()
+            .filter_map(|cmd| cmd.short_keyword().map(|k| (k, cmd)))
+            .for_each(|(k, cmd)| {
+                message += &format!(" /{} => /{}", k, cmd.keyword());
+            });
+
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, message),
+        )
+    }
+    Ok(())
 }
 
 fn parse_alignment(owner: Uid, alignment: &str) -> CmdResult<Alignment> {
@@ -3470,7 +3509,7 @@ fn handle_server_physics(
     }
 }
 
-fn handle_apply_buff(
+fn handle_buff(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,

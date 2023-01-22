@@ -379,6 +379,7 @@ impl<'a> System<'a> for Sys {
             .into_values()
             .map(|(entity, player, admin, msg)| {
                 let username = &player.alias;
+                let uuid = player.uuid();
                 info!(?username, "New User");
                 // Add Player component to this client.
                 //
@@ -396,9 +397,12 @@ impl<'a> System<'a> for Sys {
                 // Give the Admin component to the player if their name exists in
                 // admin list
                 if let Some(admin) = admin {
+                    // We need to defer writing to the Admin storage since it's borrowed immutably
+                    // by this system via TrackedStorages.
                     event_bus.emit_now(ServerEvent::MakeAdmin {
                         entity,
                         admin: Admin(admin.role.into()),
+                        uuid,
                     });
                 }
                 msg
