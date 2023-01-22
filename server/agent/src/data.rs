@@ -13,6 +13,7 @@ use common::{
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::RtSimEntity,
+    states::utils::ForcedMovement,
     terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
 };
@@ -199,6 +200,7 @@ pub enum AbilityData {
         range: f32,
         angle: f32,
         energy_per_strike: f32,
+        forced_movement: Option<ForcedMovement>,
     },
     FinisherMelee {
         range: f32,
@@ -239,6 +241,10 @@ pub enum AbilityData {
     },
 }
 
+pub struct MiscData {
+    pub desired_energy: f32,
+}
+
 impl AbilityData {
     pub fn from_ability(ability: &CharacterAbility) -> Option<Self> {
         use CharacterAbility::*;
@@ -248,17 +254,27 @@ impl AbilityData {
                 energy_cost_per_strike,
                 ..
             } => {
-                let (range, angle) = strikes
+                let (range, angle, forced_movement) = strikes
                     .iter()
-                    .map(|s| (s.melee_constructor.range, s.melee_constructor.angle))
+                    .map(|s| {
+                        (
+                            s.melee_constructor.range,
+                            s.melee_constructor.angle,
+                            s.movement.buildup.map(|m| m * s.buildup_duration),
+                        )
+                    })
                     .fold(
-                        (100.0, 360.0),
-                        |(r1, a1): (f32, f32), (r2, a2): (f32, f32)| (r1.min(r2), a1.min(a2)),
+                        (100.0, 360.0, None),
+                        |(r1, a1, m1): (f32, f32, Option<ForcedMovement>),
+                         (r2, a2, m2): (f32, f32, Option<ForcedMovement>)| {
+                            (r1.min(r2), a1.min(a2), m1.or(m2))
+                        },
                     );
                 Self::ComboMelee {
                     range,
                     angle,
                     energy_per_strike: *energy_cost_per_strike,
+                    forced_movement,
                 }
             },
             FinisherMelee {
@@ -335,13 +351,28 @@ impl AbilityData {
         Some(inner)
     }
 
-    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        let melee_check = |range: f32, angle| {
-            attack_data.dist_sqrd
-                < (range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
+    pub fn could_use(
+        &self,
+        attack_data: &AttackData,
+        agent_data: &AgentData,
+        misc_data: &MiscData,
+    ) -> bool {
+        let melee_check = |range: f32, angle, forced_movement: Option<ForcedMovement>| {
+            let range_inc = forced_movement.map_or(0.0, |fm| match fm {
+                ForcedMovement::Forward(speed) => speed * 15.0,
+                ForcedMovement::Reverse(speed) => -speed,
+                _ => 0.0,
+            });
+            let body_rad = agent_data.body.map_or(0.0, |b| b.max_radius());
+            attack_data.dist_sqrd < (range + range_inc + body_rad).powi(2)
                 && attack_data.angle < angle
+                && attack_data.dist_sqrd > range_inc.powi(2)
         };
-        let energy_check = |energy| agent_data.energy.current() >= energy;
+        let energy_check = |energy: f32| {
+            agent_data.energy.current() >= energy
+                && (energy < f32::EPSILON
+                    || agent_data.energy.current() >= misc_data.desired_energy)
+        };
         let combo_check = |combo| agent_data.combo.map_or(false, |c| c.counter() >= combo);
         use AbilityData::*;
         match self {
@@ -349,13 +380,14 @@ impl AbilityData {
                 range,
                 angle,
                 energy_per_strike,
-            } => melee_check(*range, *angle) && energy_check(*energy_per_strike),
+                forced_movement,
+            } => melee_check(*range, *angle, *forced_movement) && energy_check(*energy_per_strike),
             FinisherMelee {
                 range,
                 angle,
                 energy,
                 combo,
-            } => melee_check(*range, *angle) && energy_check(*energy) && combo_check(*combo),
+            } => melee_check(*range, *angle, None) && energy_check(*energy) && combo_check(*combo),
             SelfBuff { buff, energy } => {
                 energy_check(*energy)
                     && agent_data
@@ -366,7 +398,7 @@ impl AbilityData {
                 range,
                 angle,
                 energy,
-            } => melee_check(*range, *angle) && energy_check(*energy),
+            } => melee_check(*range, *angle, None) && energy_check(*energy),
             DashMelee {
                 range,
                 angle,
@@ -384,7 +416,8 @@ impl AbilityData {
                 let charge_dist = charge_dur * speed * BASE_SPEED;
                 let attack_dist = charge_dist + range;
                 let ori_gap = ORI_RATE * charge_dur;
-                melee_check(attack_dist, angle + ori_gap)
+                // TODO: Replace None with actual forced movement later
+                melee_check(attack_dist, angle + ori_gap, None)
                     && energy_check(*initial_energy)
                     && attack_data.dist_sqrd / charge_dist.powi(2) > 0.75_f32.powi(2)
             },
@@ -395,7 +428,7 @@ impl AbilityData {
                 strikes,
                 combo,
             } => {
-                melee_check(*range, *angle)
+                melee_check(*range, *angle, None)
                     && energy_check(*energy_per_strike * *strikes as f32)
                     && combo_check(*combo)
             },
@@ -406,7 +439,7 @@ impl AbilityData {
                 energy_drain,
                 charge_dur,
             } => {
-                melee_check(*range, *angle)
+                melee_check(*range, *angle, None)
                     && energy_check(*initial_energy + *energy_drain * *charge_dur)
             },
         }

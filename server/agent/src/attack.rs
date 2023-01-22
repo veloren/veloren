@@ -569,9 +569,9 @@ impl<'a> AgentData<'a> {
                 //     &mut tactics,
                 // );
                 // }
-                // if tactics.is_empty() {
-                // try_tactic(SwordSkill::CrescentSlash, SwordTactics::Basic, &mut tactics);
-                // }
+                if tactics.is_empty() {
+                    try_tactic(SwordSkill::CrescentSlash, SwordTactics::Basic, &mut tactics);
+                }
                 if tactics.is_empty() {
                     tactics.push(SwordTactics::Unskilled);
                 }
@@ -753,7 +753,7 @@ impl<'a> AgentData<'a> {
 
         if let Some(health) = self.health {
             agent.action_state.int_counters[IntCounters::ActionMode as usize] =
-                if health.fraction() < 0.2 {
+                if health.fraction() < 0.1 {
                     agent.action_state.positions[Positions::GuardedCover as usize] = None;
                     ActionMode::Fleeing as u8
                 } else if health.fraction() < 0.9 {
@@ -778,7 +778,7 @@ impl<'a> AgentData<'a> {
         }
 
         enum Conditions {
-            GuardedAttack = 0,
+            GuardedDefend = 0,
             RollingBreakThrough = 1,
             TacticMisc = 2,
         }
@@ -816,15 +816,15 @@ impl<'a> AgentData<'a> {
                 {
                     agent.action_state.timers[Timers::GuardedCycle as usize] = 0.0;
                     agent.action_state.counters[FloatCounters::GuardedTimer as usize] =
-                        rng.gen_range(3.0..8.0);
-                    agent.action_state.conditions[Conditions::GuardedAttack as usize] ^= true;
+                        rng.gen_range(3.0..6.0);
+                    agent.action_state.conditions[Conditions::GuardedDefend as usize] ^= true;
                 }
                 if let Some(pos) = agent.action_state.positions[Positions::GuardedCover as usize] {
                     if pos.distance_squared(self.pos.0) < 3_f32.powi(2) {
                         agent.action_state.positions[Positions::GuardedCover as usize] = None;
                     }
                 }
-                if agent.action_state.conditions[Conditions::GuardedAttack as usize] {
+                if !agent.action_state.conditions[Conditions::GuardedDefend as usize] {
                     agent.action_state.positions[Positions::GuardedCover as usize] = None;
                     true
                 } else {
@@ -1046,18 +1046,25 @@ impl<'a> AgentData<'a> {
                     _ => 255,
                 }
             }
-            let could_use_input = |input| match input {
-                InputKind::Primary => primary.map_or(false, |p| p.could_use(attack_data, self)),
-                InputKind::Secondary => secondary.map_or(false, |s| s.could_use(attack_data, self)),
+            let could_use_input = |input, misc_data| match input {
+                InputKind::Primary => primary
+                    .as_ref()
+                    .map_or(false, |p| p.could_use(attack_data, self, misc_data)),
+                InputKind::Secondary => secondary
+                    .as_ref()
+                    .map_or(false, |s| s.could_use(attack_data, self, misc_data)),
                 InputKind::Ability(x) => abilities[x]
                     .as_ref()
-                    .map_or(false, |a| a.could_use(attack_data, self)),
+                    .map_or(false, |a| a.could_use(attack_data, self, misc_data)),
                 _ => false,
             };
             match SwordTactics::from_u8(
                 agent.action_state.int_counters[IntCounters::Tactics as usize],
             ) {
                 SwordTactics::Unskilled => {
+                    let misc_data = MiscData {
+                        desired_energy: 15.0,
+                    };
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -1086,7 +1093,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input) {
+                        if could_use_input(input, &misc_data) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -1096,7 +1103,51 @@ impl<'a> AgentData<'a> {
                         true
                     }
                 },
-                SwordTactics::Basic => true,
+                SwordTactics::Basic => {
+                    let misc_data = MiscData {
+                        desired_energy: 25.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if let input = InputKind::Secondary {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let attempt_ability = InputKind::Ability(rng.gen_range(0..5));
+                        if could_use_input(attempt_ability, &misc_data) {
+                            next_input = Some(attempt_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
                 SwordTactics::HeavySimple => true,
                 SwordTactics::AgileSimple => true,
                 SwordTactics::DefensiveSimple => true,
@@ -1112,7 +1163,7 @@ impl<'a> AgentData<'a> {
             false
         };
 
-        if attack_failed {
+        if attack_failed && attack_data.dist_sqrd > 1.5_f32.powi(2) {
             self.path_toward_target(
                 agent,
                 controller,

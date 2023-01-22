@@ -26,7 +26,7 @@ use fxhash::FxHasher64;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::PI,
-    ops::{Add, Div},
+    ops::{Add, Div, Mul},
     time::Duration,
 };
 use strum::Display;
@@ -1348,6 +1348,23 @@ pub enum ForcedMovement {
     Hover {
         move_input: f32,
     },
+}
+
+impl Mul<f32> for ForcedMovement {
+    type Output = Self;
+
+    fn mul(self, scalar: f32) -> Self {
+        use ForcedMovement::*;
+        match self {
+            Forward(x) => Forward(x * scalar),
+            Reverse(x) => Reverse(x * scalar),
+            Sideways(x) => Sideways(x * scalar),
+            DirectedReverse(x) => DirectedReverse(x * scalar),
+            AntiDirectedForward(x) => AntiDirectedForward(x * scalar),
+            Leap { vertical, forward, progress, direction } => Leap { vertical: vertical * scalar, forward: forward * scalar, progress, direction },
+            Hover { move_input } => Hover { move_input },
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
