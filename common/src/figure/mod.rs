@@ -40,7 +40,7 @@ impl Segment {
             let palette = dot_vox_data
                 .palette
                 .iter()
-                .map(|col| Rgba::from(col.to_ne_bytes()).into())
+                .map(|col| Rgb::new(col.r, col.g, col.b))
                 .collect::<Vec<_>>();
 
             let mut segment = Segment::filled(
@@ -207,7 +207,7 @@ impl MatSegment {
             let palette = dot_vox_data
                 .palette
                 .iter()
-                .map(|col| Rgba::from(col.to_ne_bytes()).into())
+                .map(|col| Rgb::new(col.r, col.g, col.b))
                 .collect::<Vec<_>>();
 
             let mut vol = Dyna::filled(

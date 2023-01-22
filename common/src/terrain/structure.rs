@@ -146,7 +146,7 @@ impl assets::Compound for BaseStructure {
             for (i, col) in dot_vox_data
                 .palette
                 .iter()
-                .map(|col| Rgba::from(col.to_ne_bytes()).into())
+                .map(|col| Rgb::new(col.r, col.g, col.b))
                 .enumerate()
             {
                 palette[(i + 1).min(255)] = StructureBlock::Filled(BlockKind::Misc, col);

@@ -1724,14 +1724,14 @@ dependencies = [
 
 [[package]]
 name = "dot_vox"
-version = "4.1.0"
+version = "5.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83c18405ef54de0398b77a3ec8394d3a1639e7bf060e1385201e8db40c44ab41"
+checksum = "822f8b56c7ce710d336190a76a03690238d19a214ce2b85db33a47cac30f106c"
 dependencies = [
- "byteorder",
+ "ahash 0.8.0",
  "lazy_static",
  "log",
- "nom 4.2.3",
+ "nom 7.1.1",
 ]
 
 [[package]]
