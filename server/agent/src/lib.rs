@@ -1,3 +1,5 @@
+#![feature(exclusive_range_pattern)]
+
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
 

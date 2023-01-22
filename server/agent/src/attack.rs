@@ -517,61 +517,61 @@ impl<'a> AgentData<'a> {
                         tactics.push(tactic);
                     }
                 };
-                try_tactic(
-                    SwordSkill::HeavyFortitude,
-                    SwordTactics::HeavyAdvanced,
-                    &mut tactics,
-                );
-                try_tactic(
-                    SwordSkill::AgileDancingEdge,
-                    SwordTactics::AgileAdvanced,
-                    &mut tactics,
-                );
-                try_tactic(
-                    SwordSkill::DefensiveStalwartSword,
-                    SwordTactics::DefensiveAdvanced,
-                    &mut tactics,
-                );
-                try_tactic(
-                    SwordSkill::CripplingEviscerate,
-                    SwordTactics::CripplingAdvanced,
-                    &mut tactics,
-                );
-                try_tactic(
-                    SwordSkill::CleavingBladeFever,
-                    SwordTactics::CleavingAdvanced,
-                    &mut tactics,
-                );
-                if tactics.is_empty() {
-                    try_tactic(
-                        SwordSkill::HeavyWindmillSlash,
-                        SwordTactics::HeavySimple,
-                        &mut tactics,
-                    );
-                    try_tactic(
-                        SwordSkill::AgileQuickDraw,
-                        SwordTactics::AgileSimple,
-                        &mut tactics,
-                    );
-                    try_tactic(
-                        SwordSkill::DefensiveDisengage,
-                        SwordTactics::DefensiveSimple,
-                        &mut tactics,
-                    );
-                    try_tactic(
-                        SwordSkill::CripplingGouge,
-                        SwordTactics::CripplingSimple,
-                        &mut tactics,
-                    );
-                    try_tactic(
-                        SwordSkill::CleavingWhirlwindSlice,
-                        SwordTactics::CleavingSimple,
-                        &mut tactics,
-                    );
-                }
-                if tactics.is_empty() {
-                    try_tactic(SwordSkill::CrescentSlash, SwordTactics::Basic, &mut tactics);
-                }
+                // try_tactic(
+                //     SwordSkill::HeavyFortitude,
+                //     SwordTactics::HeavyAdvanced,
+                //     &mut tactics,
+                // );
+                // try_tactic(
+                //     SwordSkill::AgileDancingEdge,
+                //     SwordTactics::AgileAdvanced,
+                //     &mut tactics,
+                // );
+                // try_tactic(
+                //     SwordSkill::DefensiveStalwartSword,
+                //     SwordTactics::DefensiveAdvanced,
+                //     &mut tactics,
+                // );
+                // try_tactic(
+                //     SwordSkill::CripplingEviscerate,
+                //     SwordTactics::CripplingAdvanced,
+                //     &mut tactics,
+                // );
+                // try_tactic(
+                //     SwordSkill::CleavingBladeFever,
+                //     SwordTactics::CleavingAdvanced,
+                //     &mut tactics,
+                // );
+                // if tactics.is_empty() {
+                // try_tactic(
+                //     SwordSkill::HeavyWindmillSlash,
+                //     SwordTactics::HeavySimple,
+                //     &mut tactics,
+                // );
+                // try_tactic(
+                //     SwordSkill::AgileQuickDraw,
+                //     SwordTactics::AgileSimple,
+                //     &mut tactics,
+                // );
+                // try_tactic(
+                //     SwordSkill::DefensiveDisengage,
+                //     SwordTactics::DefensiveSimple,
+                //     &mut tactics,
+                // );
+                // try_tactic(
+                //     SwordSkill::CripplingGouge,
+                //     SwordTactics::CripplingSimple,
+                //     &mut tactics,
+                // );
+                // try_tactic(
+                //     SwordSkill::CleavingWhirlwindSlice,
+                //     SwordTactics::CleavingSimple,
+                //     &mut tactics,
+                // );
+                // }
+                // if tactics.is_empty() {
+                // try_tactic(SwordSkill::CrescentSlash, SwordTactics::Basic, &mut tactics);
+                // }
                 if tactics.is_empty() {
                     tactics.push(SwordTactics::Unskilled);
                 }
@@ -753,10 +753,10 @@ impl<'a> AgentData<'a> {
 
         if let Some(health) = self.health {
             agent.action_state.int_counters[IntCounters::ActionMode as usize] =
-                if health.fraction() < 0.25 {
+                if health.fraction() < 0.2 {
                     agent.action_state.positions[Positions::GuardedCover as usize] = None;
                     ActionMode::Fleeing as u8
-                } else if health.fraction() < 0.75 {
+                } else if health.fraction() < 0.9 {
                     agent.action_state.positions[Positions::Flee as usize] = None;
                     ActionMode::Guarded as u8
                 } else {
@@ -769,6 +769,7 @@ impl<'a> AgentData<'a> {
         enum IntCounters {
             Tactics = 0,
             ActionMode = 1,
+            NextInput = 2,
         }
 
         enum Timers {
@@ -779,6 +780,7 @@ impl<'a> AgentData<'a> {
         enum Conditions {
             GuardedAttack = 0,
             RollingBreakThrough = 1,
+            TacticMisc = 2,
         }
 
         enum FloatCounters {
@@ -990,7 +992,7 @@ impl<'a> AgentData<'a> {
                                 - 1.0;
                             agent.action_state.conditions
                                 [Conditions::RollingBreakThrough as usize] = true;
-                            Some(self.pos.0 - rand_dir * actual_dist)
+                            Some(self.pos.0 - rand_dir * dist)
                         } else {
                             Some(self.pos.0 + rand_dir * actual_dist)
                         }
@@ -1027,23 +1029,85 @@ impl<'a> AgentData<'a> {
                 extract_ability(AbilityInput::Auxiliary(3)),
                 extract_ability(AbilityInput::Auxiliary(4)),
             ];
+            fn input_from_u8(x: u8) -> Option<InputKind> {
+                let input = match x {
+                    x @ 0..5 => InputKind::Ability(x as usize),
+                    6 => InputKind::Primary,
+                    7 => InputKind::Secondary,
+                    _ => return None,
+                };
+                Some(input)
+            }
+            fn input_to_u8(input: InputKind) -> u8 {
+                match input {
+                    InputKind::Ability(x) => x as u8,
+                    InputKind::Primary => 6,
+                    InputKind::Secondary => 7,
+                    _ => 255,
+                }
+            }
+            let could_use_input = |input| match input {
+                InputKind::Primary => primary.map_or(false, |p| p.could_use(attack_data, self)),
+                InputKind::Secondary => secondary.map_or(false, |s| s.could_use(attack_data, self)),
+                InputKind::Ability(x) => abilities[x]
+                    .as_ref()
+                    .map_or(false, |a| a.could_use(attack_data, self)),
+                _ => false,
+            };
             match SwordTactics::from_u8(
                 agent.action_state.int_counters[IntCounters::Tactics as usize],
             ) {
-                SwordTactics::Unskilled => {},
-                SwordTactics::Basic => {},
-                SwordTactics::HeavySimple => {},
-                SwordTactics::AgileSimple => {},
-                SwordTactics::DefensiveSimple => {},
-                SwordTactics::CripplingSimple => {},
-                SwordTactics::CleavingSimple => {},
-                SwordTactics::HeavyAdvanced => {},
-                SwordTactics::AgileAdvanced => {},
-                SwordTactics::DefensiveAdvanced => {},
-                SwordTactics::CripplingAdvanced => {},
-                SwordTactics::CleavingAdvanced => {},
+                SwordTactics::Unskilled => {
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if let input = InputKind::Secondary {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::Basic => true,
+                SwordTactics::HeavySimple => true,
+                SwordTactics::AgileSimple => true,
+                SwordTactics::DefensiveSimple => true,
+                SwordTactics::CripplingSimple => true,
+                SwordTactics::CleavingSimple => true,
+                SwordTactics::HeavyAdvanced => true,
+                SwordTactics::AgileAdvanced => true,
+                SwordTactics::DefensiveAdvanced => true,
+                SwordTactics::CripplingAdvanced => true,
+                SwordTactics::CleavingAdvanced => true,
             }
-            true
         } else {
             false
         };

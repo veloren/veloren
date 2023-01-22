@@ -230,6 +230,13 @@ pub enum AbilityData {
         strikes: u32,
         combo: u32,
     },
+    ChargedMelee {
+        range: f32,
+        angle: f32,
+        initial_energy: f32,
+        energy_drain: f32,
+        charge_dur: f32,
+    },
 }
 
 impl AbilityData {
@@ -310,6 +317,19 @@ impl AbilityData {
                 strikes: max_strikes.unwrap_or(100),
                 combo: *minimum_combo,
             },
+            ChargedMelee {
+                energy_cost,
+                energy_drain,
+                charge_duration,
+                melee_constructor,
+                ..
+            } => Self::ChargedMelee {
+                initial_energy: *energy_cost,
+                energy_drain: *energy_drain,
+                charge_dur: *charge_duration,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+            },
             _ => return None,
         };
         Some(inner)
@@ -378,6 +398,16 @@ impl AbilityData {
                 melee_check(*range, *angle)
                     && energy_check(*energy_per_strike * *strikes as f32)
                     && combo_check(*combo)
+            },
+            ChargedMelee {
+                range,
+                angle,
+                initial_energy,
+                energy_drain,
+                charge_dur,
+            } => {
+                melee_check(*range, *angle)
+                    && energy_check(*initial_energy + *energy_drain * *charge_dur)
             },
         }
     }
