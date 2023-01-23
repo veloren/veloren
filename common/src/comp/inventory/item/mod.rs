@@ -61,6 +61,8 @@ impl Lantern {
     pub fn strength(&self) -> f32 { self.strength_thousandths as f32 / 1000_f32 }
 
     pub fn color(&self) -> Rgb<f32> { self.color.map(|c| c as f32 / 255.0) }
+
+    pub fn flicker(&self) -> f32 { self.flicker_thousandths as f32 / 1000_f32 }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Copy, PartialOrd, Ord)]

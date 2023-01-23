@@ -16,7 +16,7 @@ use common::{
     combat::DamageContributor,
     comp::{
         self,
-        item::MaterialStatManifest,
+        item::{ItemKind, MaterialStatManifest},
         skills::{GeneralSkill, Skill},
         ChatType, Group, Inventory, Item, Player, Poise,
     },
@@ -299,6 +299,15 @@ impl StateExt for State {
     fn create_item_drop(&mut self, pos: comp::Pos, item: Item) -> EcsEntityBuilder {
         let item_drop = comp::item_drop::Body::from(&item);
         let body = comp::Body::ItemDrop(item_drop);
+        let light_emitter = match &*item.kind() {
+            ItemKind::Lantern(lantern) => Some(comp::LightEmitter {
+                col: lantern.color(),
+                strength: lantern.strength(),
+                flicker: lantern.flicker(),
+                animated: true,
+            }),
+            _ => None,
+        };
         self.ecs_mut()
             .create_entity_synced()
             .with(item)
@@ -309,6 +318,7 @@ impl StateExt for State {
             .with(item_drop.density())
             .with(body.collider())
             .with(body)
+            .maybe_with(light_emitter)
     }
 
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(

@@ -57,18 +57,18 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
                 .and_then(|inventory| inventory.equipped(EquipSlot::Lantern))
                 .and_then(|item| {
                     if let comp::item::ItemKind::Lantern(l) = &*item.kind() {
-                        Some((l.color(), l.strength()))
+                        Some((l.color(), l.strength(), l.flicker()))
                     } else {
                         None
                     }
                 });
-            if let Some((col, strength)) = lantern_info {
+            if let Some((col, strength, flicker)) = lantern_info {
                 let _ =
                     ecs.write_storage::<comp::LightEmitter>()
                         .insert(entity, comp::LightEmitter {
                             col,
                             strength,
-                            flicker: 0.35,
+                            flicker,
                             animated: true,
                         });
             }
