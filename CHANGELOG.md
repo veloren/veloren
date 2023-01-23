@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Command to toggle experimental shaders.
 - Faster Energy Regeneration while sitting.
+- Lantern glow for dropped lanterns.
 
 ### Changed
 - Bats move slower and use a simple proportional controller to maintain altitude

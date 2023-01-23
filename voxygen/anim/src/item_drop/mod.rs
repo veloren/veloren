@@ -35,7 +35,7 @@ impl Skeleton for ItemDropSkeleton {
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) =
             [make_bone(bone0_mat)];
         Offsets {
-            lantern: None,
+            lantern: Some((bone0_mat * Vec4::new(0.0, 0.0, 3.5, 1.0)).xyz()),
             viewpoint: None,
             mount_bone: Transform {
                 position: comp::Body::ItemDrop(body)
