@@ -1,7 +1,7 @@
 use crate::{consts::MAX_PATH_DIST, data::*, util::entities_have_line_of_sight};
 use common::{
     comp::{
-        ability::{ActiveAbilities, AuxiliaryAbility},
+        ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance},
         buff::BuffKind,
         item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
@@ -510,6 +510,7 @@ impl<'a> AgentData<'a> {
         }
 
         if !agent.action_state.initialized {
+            agent.action_state.initialized = true;
             let available_tactics = {
                 let mut tactics = Vec::new();
                 let try_tactic = |skill, tactic, tactics: &mut Vec<SwordTactics>| {
@@ -542,33 +543,33 @@ impl<'a> AgentData<'a> {
                 //     SwordTactics::CleavingAdvanced,
                 //     &mut tactics,
                 // );
-                // if tactics.is_empty() {
-                // try_tactic(
-                //     SwordSkill::HeavyWindmillSlash,
-                //     SwordTactics::HeavySimple,
-                //     &mut tactics,
-                // );
-                // try_tactic(
-                //     SwordSkill::AgileQuickDraw,
-                //     SwordTactics::AgileSimple,
-                //     &mut tactics,
-                // );
-                // try_tactic(
-                //     SwordSkill::DefensiveDisengage,
-                //     SwordTactics::DefensiveSimple,
-                //     &mut tactics,
-                // );
-                // try_tactic(
-                //     SwordSkill::CripplingGouge,
-                //     SwordTactics::CripplingSimple,
-                //     &mut tactics,
-                // );
-                // try_tactic(
-                //     SwordSkill::CleavingWhirlwindSlice,
-                //     SwordTactics::CleavingSimple,
-                //     &mut tactics,
-                // );
-                // }
+                if tactics.is_empty() {
+                    try_tactic(
+                        SwordSkill::HeavyWindmillSlash,
+                        SwordTactics::HeavySimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::AgileQuickDraw,
+                        SwordTactics::AgileSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::DefensiveDisengage,
+                        SwordTactics::DefensiveSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::CripplingGouge,
+                        SwordTactics::CripplingSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::CleavingWhirlwindSlice,
+                        SwordTactics::CleavingSimple,
+                        &mut tactics,
+                    );
+                }
                 if tactics.is_empty() {
                     try_tactic(SwordSkill::CrescentSlash, SwordTactics::Basic, &mut tactics);
                 }
@@ -586,147 +587,147 @@ impl<'a> AgentData<'a> {
             agent.action_state.int_counters[IntCounters::Tactics as usize] = tactic as u8;
 
             let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
-            let mut set_sword_ability = |slot, skill| {
+            let mut set_sword_ability = |controller: &mut Controller, slot, skill| {
                 controller.push_event(ControlEvent::ChangeAbility {
                     slot,
                     auxiliary_key,
                     new_ability: AuxiliaryAbility::MainWeapon(skill),
-                })
+                });
             };
 
             match tactic {
                 SwordTactics::Unskilled => {},
                 SwordTactics::Basic => {
                     // Crescent slash
-                    set_sword_ability(0, 0);
+                    set_sword_ability(controller, 0, 0);
                     // Fell strike
-                    set_sword_ability(1, 1);
+                    set_sword_ability(controller, 1, 1);
                     // Skewer
-                    set_sword_ability(2, 2);
+                    set_sword_ability(controller, 2, 2);
                     // Cascade
-                    set_sword_ability(3, 3);
+                    set_sword_ability(controller, 3, 3);
                     // Cross cut
-                    set_sword_ability(4, 4);
+                    set_sword_ability(controller, 4, 4);
                 },
                 SwordTactics::HeavySimple => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Crescent slash
-                    set_sword_ability(1, 0);
+                    set_sword_ability(controller, 1, 0);
                     // Cascade
-                    set_sword_ability(2, 3);
+                    set_sword_ability(controller, 2, 3);
                     // Windmill slash
-                    set_sword_ability(3, 6);
+                    set_sword_ability(controller, 3, 6);
                     // Pommel strike
-                    set_sword_ability(4, 7);
+                    set_sword_ability(controller, 4, 7);
                 },
                 SwordTactics::AgileSimple => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Skewer
-                    set_sword_ability(1, 2);
+                    set_sword_ability(controller, 1, 2);
                     // Cross cut
-                    set_sword_ability(2, 4);
+                    set_sword_ability(controller, 2, 4);
                     // Quick draw
-                    set_sword_ability(3, 8);
+                    set_sword_ability(controller, 3, 8);
                     // Feint
-                    set_sword_ability(4, 9);
+                    set_sword_ability(controller, 4, 9);
                 },
                 SwordTactics::DefensiveSimple => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Crescent slash
-                    set_sword_ability(1, 0);
+                    set_sword_ability(controller, 1, 0);
                     // Fell strike
-                    set_sword_ability(2, 1);
+                    set_sword_ability(controller, 2, 1);
                     // Riposte
-                    set_sword_ability(3, 10);
+                    set_sword_ability(controller, 3, 10);
                     // Disengage
-                    set_sword_ability(4, 11);
+                    set_sword_ability(controller, 4, 11);
                 },
                 SwordTactics::CripplingSimple => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Fell strike
-                    set_sword_ability(1, 1);
+                    set_sword_ability(controller, 1, 1);
                     // Skewer
-                    set_sword_ability(2, 2);
+                    set_sword_ability(controller, 2, 2);
                     // Gouge
-                    set_sword_ability(3, 12);
+                    set_sword_ability(controller, 3, 12);
                     // Hamstring
-                    set_sword_ability(4, 13);
+                    set_sword_ability(controller, 4, 13);
                 },
                 SwordTactics::CleavingSimple => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Cascade
-                    set_sword_ability(1, 3);
+                    set_sword_ability(controller, 1, 3);
                     // Cross cut
-                    set_sword_ability(2, 4);
+                    set_sword_ability(controller, 2, 4);
                     // Whirlwind slice
-                    set_sword_ability(3, 14);
+                    set_sword_ability(controller, 3, 14);
                     // Earth splitter
-                    set_sword_ability(4, 15);
+                    set_sword_ability(controller, 4, 15);
                 },
                 SwordTactics::HeavyAdvanced => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Windmill slash
-                    set_sword_ability(1, 6);
+                    set_sword_ability(controller, 1, 6);
                     // Pommel strike
-                    set_sword_ability(2, 7);
+                    set_sword_ability(controller, 2, 7);
                     // Fortitude
-                    set_sword_ability(3, 16);
+                    set_sword_ability(controller, 3, 16);
                     // Pillar Thrust
-                    set_sword_ability(4, 17);
+                    set_sword_ability(controller, 4, 17);
                 },
                 SwordTactics::AgileAdvanced => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Quick draw
-                    set_sword_ability(1, 8);
+                    set_sword_ability(controller, 1, 8);
                     // Feint
-                    set_sword_ability(2, 9);
+                    set_sword_ability(controller, 2, 9);
                     // Dancing edge
-                    set_sword_ability(3, 18);
+                    set_sword_ability(controller, 3, 18);
                     // Flurry
-                    set_sword_ability(4, 19);
+                    set_sword_ability(controller, 4, 19);
                 },
                 SwordTactics::DefensiveAdvanced => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Riposte
-                    set_sword_ability(1, 10);
+                    set_sword_ability(controller, 1, 10);
                     // Disengage
-                    set_sword_ability(2, 11);
+                    set_sword_ability(controller, 2, 11);
                     // Stalwart sword
-                    set_sword_ability(3, 20);
+                    set_sword_ability(controller, 3, 20);
                     // Deflect
-                    set_sword_ability(4, 21);
+                    set_sword_ability(controller, 4, 21);
                 },
                 SwordTactics::CripplingAdvanced => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Gouge
-                    set_sword_ability(1, 12);
+                    set_sword_ability(controller, 1, 12);
                     // Hamstring
-                    set_sword_ability(2, 13);
+                    set_sword_ability(controller, 2, 13);
                     // Eviscerate
-                    set_sword_ability(3, 22);
+                    set_sword_ability(controller, 3, 22);
                     // Bloody gash
-                    set_sword_ability(4, 23);
+                    set_sword_ability(controller, 4, 23);
                 },
                 SwordTactics::CleavingAdvanced => {
                     // Finisher
-                    set_sword_ability(0, 5);
+                    set_sword_ability(controller, 0, 5);
                     // Whirlwind slice
-                    set_sword_ability(1, 14);
+                    set_sword_ability(controller, 1, 14);
                     // Earth splitter
-                    set_sword_ability(2, 15);
+                    set_sword_ability(controller, 2, 15);
                     // Blade fever
-                    set_sword_ability(3, 24);
+                    set_sword_ability(controller, 3, 24);
                     // Sky splitter
-                    set_sword_ability(4, 25);
+                    set_sword_ability(controller, 4, 25);
                 },
             }
 
@@ -1047,15 +1048,15 @@ impl<'a> AgentData<'a> {
                 }
             }
             let could_use_input = |input, misc_data| match input {
-                InputKind::Primary => primary
-                    .as_ref()
-                    .map_or(false, |p| p.could_use(attack_data, self, misc_data)),
-                InputKind::Secondary => secondary
-                    .as_ref()
-                    .map_or(false, |s| s.could_use(attack_data, self, misc_data)),
-                InputKind::Ability(x) => abilities[x]
-                    .as_ref()
-                    .map_or(false, |a| a.could_use(attack_data, self, misc_data)),
+                InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                    p.could_use(attack_data, self, misc_data, tgt_data)
+                }),
+                InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                    s.could_use(attack_data, self, misc_data, tgt_data)
+                }),
+                InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                    a.could_use(attack_data, self, misc_data, tgt_data)
+                }),
                 _ => false,
             };
             match SwordTactics::from_u8(
@@ -1148,11 +1149,298 @@ impl<'a> AgentData<'a> {
                         true
                     }
                 },
-                SwordTactics::HeavySimple => true,
-                SwordTactics::AgileSimple => true,
-                SwordTactics::DefensiveSimple => true,
-                SwordTactics::CripplingSimple => true,
-                SwordTactics::CleavingSimple => true,
+                SwordTactics::HeavySimple => {
+                    let misc_data = MiscData {
+                        desired_energy: 25.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if let input = InputKind::Secondary {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Heavy))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            if could_use_input(InputKind::Ability(0), &misc_data) {
+                                next_input = Some(InputKind::Ability(0));
+                            } else if could_use_input(random_ability, &misc_data) {
+                                next_input = Some(random_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::AgileSimple => {
+                    let misc_data = MiscData {
+                        desired_energy: 25.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if let input = InputKind::Secondary {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Agile))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            if could_use_input(InputKind::Ability(0), &misc_data) {
+                                next_input = Some(InputKind::Ability(0));
+                            } else if could_use_input(random_ability, &misc_data) {
+                                next_input = Some(random_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::DefensiveSimple => {
+                    let misc_data = MiscData {
+                        desired_energy: 25.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if let input = InputKind::Secondary {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Defensive))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            if could_use_input(InputKind::Ability(0), &misc_data) {
+                                next_input = Some(InputKind::Ability(0));
+                            } else if could_use_input(InputKind::Ability(3), &misc_data) {
+                                next_input = Some(InputKind::Ability(3));
+                            } else if could_use_input(random_ability, &misc_data) {
+                                next_input = Some(random_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::CripplingSimple => {
+                    let misc_data = MiscData {
+                        desired_energy: 25.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if let input = InputKind::Secondary {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Crippling))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            if could_use_input(InputKind::Ability(0), &misc_data) {
+                                next_input = Some(InputKind::Ability(0));
+                            } else if could_use_input(random_ability, &misc_data) {
+                                next_input = Some(random_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::CleavingSimple => {
+                    let misc_data = MiscData {
+                        desired_energy: 25.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if let input = InputKind::Secondary {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Cleaving))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            if could_use_input(InputKind::Ability(0), &misc_data) {
+                                next_input = Some(InputKind::Ability(0));
+                            } else if could_use_input(random_ability, &misc_data) {
+                                next_input = Some(random_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
                 SwordTactics::HeavyAdvanced => true,
                 SwordTactics::AgileAdvanced => true,
                 SwordTactics::DefensiveAdvanced => true,

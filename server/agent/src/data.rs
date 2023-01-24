@@ -13,7 +13,7 @@ use common::{
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::RtSimEntity,
-    states::utils::ForcedMovement,
+    states::utils::{ForcedMovement, StageSection},
     terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
 };
@@ -195,6 +195,7 @@ pub enum Path {
     Partial,
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum AbilityData {
     ComboMelee {
         range: f32,
@@ -238,6 +239,11 @@ pub enum AbilityData {
         initial_energy: f32,
         energy_drain: f32,
         charge_dur: f32,
+    },
+    RiposteMelee {
+        range: f32,
+        angle: f32,
+        energy: f32,
     },
 }
 
@@ -346,6 +352,15 @@ impl AbilityData {
                 range: melee_constructor.range,
                 angle: melee_constructor.angle,
             },
+            RiposteMelee {
+                energy_cost,
+                melee_constructor,
+                ..
+            } => Self::RiposteMelee {
+                energy: *energy_cost,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+            },
             _ => return None,
         };
         Some(inner)
@@ -356,6 +371,7 @@ impl AbilityData {
         attack_data: &AttackData,
         agent_data: &AgentData,
         misc_data: &MiscData,
+        tgt_data: &TargetData,
     ) -> bool {
         let melee_check = |range: f32, angle, forced_movement: Option<ForcedMovement>| {
             let range_inc = forced_movement.map_or(0.0, |fm| match fm {
@@ -441,6 +457,25 @@ impl AbilityData {
             } => {
                 melee_check(*range, *angle, None)
                     && energy_check(*initial_energy + *energy_drain * *charge_dur)
+            },
+            RiposteMelee {
+                energy,
+                range,
+                angle,
+            } => {
+                melee_check(*range, *angle, None)
+                    && energy_check(*energy)
+                    && tgt_data.char_state.map_or(false, |cs| {
+                        cs.is_melee_attack()
+                            && matches!(
+                                cs.stage_section(),
+                                Some(
+                                    StageSection::Buildup
+                                        | StageSection::Charge
+                                        | StageSection::Movement
+                                )
+                            )
+                    })
             },
         }
     }
