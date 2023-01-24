@@ -14,6 +14,7 @@ hud-map-trees = Arbres Géants
 hud-map-tree = Arbre Géant
 hud-map-town = Ville
 hud-map-castle = Château
+hud-map-bridge = Pont
 hud-map-dungeon = Donjon
 hud-map-difficulty_dungeon =
     Difficulté
@@ -31,4 +32,5 @@ hud-map-zoom_minimap_explanation =
     Zoom sur la mini-carte afin
     de voir plus précisément la zone alentour
 hud-map-gnarling = Gnarling Fortification
+hud-map-chapel_site = Chapelle marine
 hud-map-placed_by = Ajouté par { $name }

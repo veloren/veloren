@@ -24,7 +24,7 @@
         ),
         "cyri": Font (
             asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
-            scale_ratio: 0.9,
+            scale_ratio: 1.0,
         ),
     }
 )

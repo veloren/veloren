@@ -32,3 +32,14 @@ hud-crafting-dismantle_explanation =
     ce que vous pouvez récupérer.
     
     Double-Clique pour pouvoir le démanteler.
+hud-crafting-modular_desc = Glissez ici les parties de l'objet ici pour fabriquer une arme
+hud-crafting-mod_weap_prim_slot_title = Composant principal de l'arme
+hud-crafting-mod_weap_prim_slot_desc = Placez ici un composant principale d'arme (par exemple, une lame d'épée, une tête de hache ou une partie d'arc).
+hud-crafting-mod_weap_sec_slot_title = Composant secondaire de l'arme
+hud-crafting-mod_weap_sec_slot_desc = Placez ici un composant secondaire d'arme (par exemple, une poignée d'épée, une poignée d'arc ou un cœur de bâton).
+hud-crafting-mod_comp_metal_prim_slot_title = Lingot de métal
+hud-crafting-mod_comp_metal_prim_slot_desc = Placez un lingot de métal ici, seuls certains métaux peuvent être utilisés pour fabriquer des armes.
+hud-crafting-mod_comp_wood_prim_slot_title = Bois
+hud-crafting-mod_comp_wood_prim_slot_desc = Placez un morceaux de bois ici, seuls certains bois peuvent être utilisés pour fabriquer des armes.
+hud-crafting-mod_comp_sec_slot_title = Composant animal
+hud-crafting-mod_comp_sec_slot_desc = Placez éventuellement un ingrédient d'origine animal, seuls certains ingrédients peuvent être utilisés pour améliorer les armes.
