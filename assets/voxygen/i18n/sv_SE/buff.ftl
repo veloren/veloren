@@ -67,6 +67,12 @@ buff-desc-fortitude = Du kan stå emot vacklande attacker.
 ## Parried
 buff-title-parried = Parerad
 buff-desc-parried = Du parerades och är nu långsam med att återhämta dig.
+## Potion sickness
+buff-title-potionsickness = Illamående från trolldryck
+buff-desc-potionsickness = Trolldrycker helar dig mindre efter att du nyligen druckit en trolldryck.
+buff-stat-potionsickness =
+    Minskar mängden du helas av
+    påföljande trolldrycker med { $strength }%.
 ## Util
 buff-text-over_seconds = under { $dur_secs } sekunder
 buff-text-for_seconds = i { $dur_secs } sekunder
