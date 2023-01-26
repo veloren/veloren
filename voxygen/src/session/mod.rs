@@ -113,6 +113,9 @@ impl SessionState {
         scene
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
+        client
+            .borrow_mut()
+            .set_lod_distance(global_state.settings.graphics.lod_distance);
         #[cfg(not(target_os = "macos"))]
         let mut mumble_link = SharedLink::new("veloren", "veloren-voxygen");
         {

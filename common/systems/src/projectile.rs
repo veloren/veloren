@@ -95,7 +95,7 @@ impl<'a> System<'a> for Sys {
             let mut projectile_vanished: bool = false;
 
             // Hit entity
-            for (&other, &pos_other) in physics.touch_entities.iter() {
+            for (&other, &pos_hit_other) in physics.touch_entities.iter() {
                 let same_group = projectile_owner
                     // Note: somewhat inefficient since we do the lookup for every touching
                     // entity, but if we pull this out of the loop we would want to do it only
@@ -127,8 +127,8 @@ impl<'a> System<'a> for Sys {
                 let entity_of =
                     |uid: Uid| read_data.uid_allocator.retrieve_entity_internal(uid.into());
 
-                // Don't hit if there is a surface in the entity's way in the direction the
-                // projectile is going
+                // Don't hit if there is terrain between the projectile and where the entity was
+                // supposed to be hit by it.
 
                 if physics.on_surface().is_some() {
                     let projectile_direction = orientations
@@ -138,7 +138,7 @@ impl<'a> System<'a> for Sys {
                     if !matches!(
                         read_data
                             .terrain
-                            .ray(pos_wall, pos_other)
+                            .ray(pos_wall, pos_hit_other)
                             .until(|b| b.is_filled())
                             .cast()
                             .1,
