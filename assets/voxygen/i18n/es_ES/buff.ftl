@@ -1,39 +1,90 @@
-buff-remove = Clic para quitar
-buff-title-missing = Sin Título
-buff-desc-missing = Sin Descripción
-buff-title-heal = Sanación
-buff-desc-heal = Restaura salud con el paso del tiempo.
+## Regeneración
+buff-title-heal = Regeneración de salud
+buff-desc-heal = Restaura salud progresivamente.
+buff-stat-health = Restaura { $str_total } de salud
+
+## Pociones
 buff-title-potion = Poción
 buff-desc-potion = Bebiendo...
+
+## Saturación
 buff-title-saturation = Saturación
-buff-desc-saturation = Restaura salud con el paso del tiempo gracias a los consumibles.
-buff-title-campfire_heal = Sanación en Hoguera
-buff-desc-campfire_heal = Descansar en una hoguera te sana { $rate }% por segundo.
+buff-desc-saturation = Los consumibles te hacen recuperar salud con el paso del tiempo.
+
+## Hogueras
+buff-title-campfire_heal = Descanso en hoguera
+buff-desc-campfire_heal = Descansar en una hoguera restaura { $rate } % de salud por segundo.
+
+## Regeneración de aguante
+buff-title-energy_regen = Regeneración de aguante
+buff-desc-energy_regen = Aumenta la regeneración de aguante.
+buff-stat-energy_regen = Restaura { $str_total } de aguante
+
+## Aumento de salud
+buff-title-increase_max_health = Aumento de salud
+buff-desc-increase_max_health = Aumenta la salud máxima
+buff-stat-increase_max_health = Aumenta en { $strength } puntos tu salud máxima
+
+## Aumento de aguante
+buff-title-increase_max_energy = Aumento de aguante
+buff-desc-increase_max_energy = Aumenta tu aguante máximo
+buff-stat-increase_max_energy = 
+    Aumenta en { $strength } puntos tu aguante máximo
+
+## Invulnerabilidad
 buff-title-invulnerability = Invulnerabilidad
-buff-desc-invulnerability = No puedes ser dañado por ningún ataque.
-buff-title-protectingward = Aura Protectora
-buff-desc-protectingward = Por alguna razón, estás siendo protegido de los ataques.
-buff-title-frenzied = Frenético
-buff-desc-frenzied = Estás imbuido con una velocidad sobrenatural y puedes ignorar heridas leves.
-buff-title-hastened = Acelerado
-buff-desc-hastened = Tus movimientos y ataques son más rápidos.
-buff-title-bleed = Sangrado
-buff-desc-bleed = Inflige un daño periódico.
-buff-title-cursed = Maldito
-buff-desc-cursed = Estás maldito.
-buff-title-burn = Ardiendo
-buff-desc-burn = Te estás quemando vivo.
-buff-title-crippled = Malherido
-buff-desc-crippled = Te cuesta moverte por el mal estado de tus piernas.
-buff-title-frozen = Congelado
-buff-desc-frozen = Tus movimientos y ataques son más lentos.
-buff-title-wet = Mojado
-buff-desc-wet = Resbalas sobre el suelo, dificultando que te detengas.
-buff-title-ensnared = Enredado
-buff-desc-ensnared = Las enredaderas te impiden moverte.
-buff-stat-health = Restaura { $str_total } de salud
-buff-stat-increase_max_energy = Aumenta la Energía Máxima en { $strength }
-buff-stat-increase_max_health = Aumenta la Salud Máxima en { $strength }
+buff-desc-invulnerability = Eres inmune a todo el daño.
 buff-stat-invulnerability = Concede invulnerabilidad
-buff-text-over_seconds = por { $dur_secs } segundos
+
+## Protection Ward
+buff-title-protectingward = Custodia
+buff-desc-protectingward = Los ataques no te hacen daño.
+
+## Frenesí
+buff-title-frenzied = Frenesí
+buff-desc-frenzied = Consigues una velocidad sobrehumana e ignoras las pequeñas heridas.
+
+## Prisa
+buff-title-hastened = Prisa
+buff-desc-hastened = Te mueves y atacas más rápido.
+
+## Hemorragia
+buff-title-bleed = Hemorragia
+buff-desc-bleed = Recibes daño periódico.
+
+## Maldición
+buff-title-cursed = Maldito
+buff-desc-cursed = Sufres una maldición.
+
+## En llamas
+buff-title-burn = En llamas
+buff-desc-burn = Te estás quemando vivo
+
+## Incapacitado
+buff-title-crippled = Incapacitado
+buff-desc-crippled = Te mueves con dificultad a causa de las heridas en tus piernas.
+
+## Congelado
+buff-title-frozen = Congelado
+buff-desc-frozen = Te mueves y atacas con más lentitud.
+
+## Mojado
+buff-title-wet = Mojado
+buff-desc-wet = El suelo te resulta resbaladizo por lo que te mueves con dificultad.
+
+## Atrapado
+buff-title-ensnared = Atrapado
+buff-desc-ensnared = Tus piernas permanecen inmóviles debido a las lianas que las agarran.
+
+## Fortaleza
+buff-title-fortitude = Aplomo
+buff-desc-fortitude = Ningún ataque enemigo consigue aturdirte.
+
+## Parada
+buff-title-parried = Parada
+buff-desc-parried = Tu arma ha sido parada por lo que te cuesta recuperarte.
+
+## Util
+buff-text-over_seconds = durante { $dur_secs } segundos
 buff-text-for_seconds = durante { $dur_secs } segundos
+buff-remove = Haz click para eliminar

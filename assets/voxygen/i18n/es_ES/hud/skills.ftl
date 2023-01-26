@@ -1,239 +1,267 @@
-hud-rank_up = Nuevo Punto de Habilidad
-hud-skill-sp_available = PH disponibles { $number }
-hud-skill-not_unlocked = Todavía no está desbloqueado
+# General - Todos los árboles de habilidades
+hud-rank_up = Nuevo punto de habilidad adquirido
+hud-skill-sp_available =
+    { $number ->
+        [0] Sin puntos de habilidad disponibles
+        [one] { $number } punto de habilidad disponible
+        *[other] { $number } puntos de habilidad disponibles
+    }
+hud-skill-not_unlocked = Bloqueado
 hud-skill-req_sp ={"\u000A"}
     
-    Requiere { $number } PH
-hud-skill-inc_health_title = Incrementar Salud
-hud-skill-inc_health = Incrementa la salud máxima en { $boost }{ $SP }
-hud-skill-inc_energy_title = Incrementar Energía
-hud-skill-inc_energy = Incrementa la Energía máxima en { $boost }{ $SP }
-hud-skill-unlck_sword_title = Desbloquear Espada
+    Requiere { $number ->
+        [one] { $number } punto de habilidad
+        *[other] { $number } puntos de habilidad
+    }
+
+hud-skill-set_as_exp_bar = Fijar en barra de experiencia
+
+# Combate general - Árbol de habilidades
+## Salud 
+hud-skill-inc_health_title = Aumentar salud
+hud-skill-inc_health = Aumenta la salud máxima en { $boost } puntos{ $SP }
+
+## Aguante
+hud-skill-inc_energy_title = Aumentar aguante
+hud-skill-inc_energy = Aumenta el aguante máximo en { $boost } puntos{ $SP }
+
+## Competencia con armas
+hud-skill-unlck_sword_title = Competencia con espadas
 hud-skill-unlck_sword = Desbloquea el árbol de habilidades de la espada{ $SP }
-hud-skill-unlck_axe_title = Desbloquear Hacha
+hud-skill-unlck_axe_title = Competencia con hachas
 hud-skill-unlck_axe = Desbloquea el árbol de habilidades del hacha{ $SP }
-hud-skill-unlck_hammer_title = Desbloquear Martillo
+hud-skill-unlck_hammer_title = Competencia con martillos
 hud-skill-unlck_hammer = Desbloquea el árbol de habilidades del martillo{ $SP }
-hud-skill-unlck_bow_title = Desbloquea Arco
+hud-skill-unlck_bow_title = Competencia con arcos
 hud-skill-unlck_bow = Desbloquea el árbol de habilidades del arco{ $SP }
-hud-skill-unlck_staff_title = Desbloquear Báculo
-hud-skill-unlck_staff = Desbloquea el árbol de habilidades del báculo{ $SP }
-hud-skill-unlck_sceptre_title = Desbloquear Cetro
+hud-skill-unlck_staff_title = Competencia con bastones
+hud-skill-unlck_staff = Desbloquea el árbol de habilidades del bastón{ $SP }
+hud-skill-unlck_sceptre_title = Competencia con cetros
 hud-skill-unlck_sceptre = Desbloquea el árbol de habilidades del cetro{ $SP }
+
+## Esquiva
 hud-skill-dodge_title = Esquivar
-hud-skill-dodge = Puedes rodar clicando la rueda del ratón, obteniendo inmunidad a los ataques cuerpo a cuerpo(i-frames) mientras ruedes.
-hud-skill-roll_energy_title = Coste de Energía al Rodar
-hud-skill-roll_energy = Rodar consume un { $boost }% menos de energía{ $SP }
-hud-skill-roll_speed_title = Velocidad al Rodar
-hud-skill-roll_speed = Ruedas un { $boost }% más rápido{ $SP }
-hud-skill-roll_dur_title = Duración de Rodar
-hud-skill-roll_dur = Ruedas un { $boost }% más de tiempo{ $SP }
-hud-skill-climbing_title = Escalada
-hud-skill-climbing = Subir pendientes
-hud-skill-climbing_cost_title = Coste de Energía de Escalar
-hud-skill-climbing_cost = Escalar consume un { $boost }% menos de energía{ $SP }
-hud-skill-climbing_speed_title = Velocidad al Escalar
-hud-skill-climbing_speed = Escalas un { $boost }% más rápido{ $SP }
+hud-skill-dodge = Ruedas por el suelo para darte un breve período de invulnerabilidad y así poder esquivar los ataques enemigos.
+hud-skill-roll_energy_title = Coste de aguante para esquivar
+hud-skill-roll_energy = Esquivar consume un { $boost } % menos de aguante{ $SP }
+hud-skill-roll_speed_title = Velocidad al esquivar
+hud-skill-roll_speed = Te desplazas un { $boost } % más rápido al rodar por el suelo{ $SP }
+hud-skill-roll_dur_title = Duración de esquiva
+hud-skill-roll_dur = Tu esquiva dura un { $boost } % más{ $SP }
+
+## Escalada
+hud-skill-climbing_title = Escalar
+hud-skill-climbing = Subir pendientes y trepar a grandes alturas
+hud-skill-climbing_cost_title = Coste de aguante para escalar
+hud-skill-climbing_cost = Escalar consume un { $boost } % menos de aguante{ $SP }
+hud-skill-climbing_speed_title = Velocidad de escalada
+hud-skill-climbing_speed = Escalas un { $boost } % más rápido{ $SP }
+
+## Nado
 hud-skill-swim_title = Nadar
-hud-skill-swim = Moverte por el agua
-hud-skill-swim_speed_title = Velocidad al Nadar
-hud-skill-swim_speed = Nadas un { $boost }% más rápido{ $SP }
-hud-skill-sc_lifesteal_title = Rayo Drenador
-hud-skill-sc_lifesteal = Succiona la salud de tus enemigos
+hud-skill-swim = Movimiento acuático
+hud-skill-swim_speed_title = Velocidad al nadar
+hud-skill-swim_speed = Nadas un { $boost } % más rápido{ $SP }
+
+# Martillo - Árbol de habilidades
+## Golpe único
+hud-skill-hmr_single_strike_title = Golpe sencillo
+hud-skill-hmr_single_strike = Tan sencillo como tú
+hud-skill-hmr_single_strike_knockback_title = Retroceso de {{ hud-skill-hmr_single_strike_title }}
+hud-skill-hmr_single_strike_knockback = Aumenta el retroceso de los golpes en un { $boost } %{ $SP }
+hud-skill-hmr_single_strike_regen_title = Regeneración de {{ hud-skill-hmr_single_strike_title }}
+hud-skill-hmr_single_strike_regen = Aumenta el aguante ganado con cada golpe sucesivo{ $SP }
+hud-skill-hmr_single_strike_damage_title = Daño de {{ hud-skill-hmr_single_strike_title }}
+hud-skill-hmr_single_strike_damage = Aumenta el daño infligido con cada golpe sucesivo{ $SP }
+hud-skill-hmr_single_strike_speed_title = Velocidad de {{ hud-skill-hmr_single_strike_title }}
+hud-skill-hmr_single_strike_speed = Aumenta la velocidad de ataque con cada golpe sucesivo{ $SP }
+
+## Martillazo
+hud-skill-hmr_charged_melee_title = Martillazo
+hud-skill-hmr_charged_melee = Un golpe más con el martillo... pero esta vez lleno de energía
+hud-skill-hmr_charged_rate_title = Velocidad de carga de {{ hud-skill-hmr_charged_melee_title }}
+hud-skill-hmr_charged_rate = El tiempo para preparar un martillazo es un { $boost } % más rápido{ $SP }
+hud-skill-hmr_charged_melee_nrg_drain_title = Consumo de aguante de {{ hud-skill-hmr_charged_melee_title }}
+hud-skill-hmr_charged_melee_nrg_drain = Reduce la velocidad con la que se consume el aguante mientras se prepara un golpe cargado con el martillo en un { $boost } %{ $SP }
+hud-skill-hmr_charged_melee_damage_title = Daño de {{ hud-skill-hmr_charged_melee_title }}
+hud-skill-hmr_charged_melee_damage = Aumenta el daño del golpe cargado en un { $boost } %{ $SP }
+hud-skill-hmr_charged_melee_knockback_title = Retroceso de {{ hud-skill-hmr_charged_melee_title }}
+hud-skill-hmr_charged_melee_knockback = Aumenta en gran medida el potencial para lanzar por los aires a los enemigos en un { $boost } %{ $SP }
+
+## Terremoto
+-hud-skill-hmr_leap_title = Terremoto
+hud-skill-hmr_unlock_leap_title = Desbloquear {{ -hud-skill-hmr_leap_title }}
+hud-skill-hmr_unlock_leap = Desbloquea el {{ -hud-skill-hmr_leap_title }}{ $SP }
+hud-skill-hmr_leap_damage_title = Daño de {{ -hud-skill-hmr_leap_title }}
+hud-skill-hmr_leap_damage = Aumenta el daño del salto en un { $boost } %{ $SP }
+hud-skill-hmr_leap_distance_title = Distancia de {{ -hud-skill-hmr_leap_title }}
+hud-skill-hmr_leap_distance = Aumenta la distancia de salto en un { $boost } %{ $SP }
+hud-skill-hmr_leap_knockback_title = Retroceso de {{ -hud-skill-hmr_leap_title }}
+hud-skill-hmr_leap_knockback = Aumenta el retroceso infligido del salto en un { $boost } %{ $SP }
+hud-skill-hmr_leap_cost_title = Coste de {{ -hud-skill-hmr_leap_title }}
+hud-skill-hmr_leap_cost = Reduce el coste del salto en un { $boost } %{ $SP }
+hud-skill-hmr_leap_radius_title = Radio de {{ -hud-skill-hmr_leap_title }}
+hud-skill-hmr_leap_radius = Aumenta el radio del golpe al suelo en { $boost } metros{ $SP }
+
+# Hacha - Árbol de habilidades
+## Golpe doble
+hud-skill-axe_double_strike_title = Golpe doble
+hud-skill-axe_double_strike = Haz picadillo a esos villanos
+hud-skill-axe_double_strike_combo_title = Golpe triple
+hud-skill-axe_double_strike_combo = Desbloquea un golpe adicional{ $SP }
+hud-skill-axe_double_strike_regen_title = Regeneración de {{ hud-skill-axe_double_strike_title }} 
+hud-skill-axe_double_strike_regen = Aumenta la ganancia de aguante con cada golpe sucesivo{ $SP }
+hud-skill-axe_double_strike_damage_title = Daño de {{ hud-skill-axe_double_strike_title }}
+hud-skill-axe_double_strike_damage = Aumenta el daño infligido con cada golpe sucesivo{ $SP }
+hud-skill-axe_double_strike_speed_title = Velocidad de {{ hud-skill-axe_double_strike_title }}
+hud-skill-axe_double_strike_speed = Aumenta la velocidad de ataque con cada golpe sucesivo{ $SP }
+
+## Giro de hacha
+hud-skill-axe_spin_title = Giro de hacha
+hud-skill-axe_spin = Haces girar el hacha...
+hud-skill-axe_infinite_axe_spin_title = {{ hud-skill-axe_spin_title }} infinito
+hud-skill-axe_infinite_axe_spin = Gira durante tanto tiempo como aguante tengas{ $SP }
+hud-skill-axe_spin_speed_title = Velocidad de {{ hud-skill-axe_spin_title }}
+hud-skill-axe_spin_speed = Aumenta tu velocidad de giro en un { $boost } %{ $SP }
+hud-skill-axe_spin_damage_title = Daño de {{ hud-skill-axe_spin_title }}
+hud-skill-axe_spin_damage = Aumenta el daño que hace cada giro en un { $boost } %{ $SP }
+hud-skill-axe_spin_helicopter_title = Helicóptero
+hud-skill-axe_spin_helicopter = Caes un poco más lento mientras giras{ $SP }
+hud-skill-axe_spin_cost_title = Coste de {{ hud-skill-axe_spin_helicopter_title }}
+hud-skill-axe_spin_cost = Reduce el coste de aguante de los giros en un { $boost } %{ $SP }
+
+## Salto con hacha
+-hud-skill-axe_unlock_title = Salto con hacha
+hud-skill-axe_unlock_leap_title = Desbloquear {{ -hud-skill-axe_unlock_title }}
+hud-skill-axe_unlock_leap = Desbloquea el salto giratorio{ $SP }
+hud-skill-axe_leap_damage_title = Daño de {{ -hud-skill-axe_unlock_title }}
+hud-skill-axe_leap_damage = Aumenta el daño del salto en un { $boost } %{ $SP }
+hud-skill-axe_leap_distance_title = Distancia de {{ -hud-skill-axe_unlock_title }}
+hud-skill-axe_leap_distance = Aumenta la distancia del salto en un { $boost } %{ $SP }
+hud-skill-axe_leap_knockback_title = Retroceso de {{ -hud-skill-axe_unlock_title }}
+hud-skill-axe_leap_knockback = Aumenta el retroceso del salto en un { $boost } %{ $SP }
+hud-skill-axe_leap_cost_title = Coste de {{ -hud-skill-axe_unlock_title }}
+hud-skill-axe_leap_cost = Reduce el coste del salto en un { $boost } %{ $SP }
+
+# Cetro - Árbol de habilidades
+## Drenar vida
+hud-skill-sc_lifesteal_title = Drenar vida
+hud-skill-sc_lifesteal = Lanza un rayo que absorbe la esencia vital de los enemigos
 hud-skill-sc_lifesteal_damage_title = Daño
-hud-skill-sc_lifesteal_damage = Hace un { $boost }% más de daño{ $SP }
+hud-skill-sc_lifesteal_damage = El rayo hace un { $boost } % más de daño{ $SP }
+hud-skill-sc_lifesteal_regen_title = Regeneración de aguante
+hud-skill-sc_lifesteal_regen = Recupera un { $boost } % de aguante adicional{ $SP }
 hud-skill-sc_lifesteal_range_title = Alcance
-hud-skill-sc_lifesteal_range = Tu rayo llega un { $boost }% más lejos{ $SP }
-hud-skill-sc_lifesteal_lifesteal_title = Robavida
-hud-skill-sc_lifesteal_lifesteal = Convierte un { $boost }% adicional del daño a vida{ $SP }
-hud-skill-sc_lifesteal_regen_title = Regeneración de Energía
-hud-skill-sc_lifesteal_regen = Recupera un { $boost }% de energía adicional{ $SP }
-hud-skill-sc_heal_title = Aura Sanadora
-hud-skill-sc_heal = Sanas a tus aliados usando la sangre de tus enemigos, tienes que atacar a una entidad para usarlo
-hud-skill-sc_heal_heal_title = Sanación
-hud-skill-sc_heal_heal = Incrementa la Sanación que haces en un { $boost }%{ $SP }
-hud-skill-sc_heal_cost_title = Coste de Energía
-hud-skill-sc_heal_cost = Sanar consume un { $boost }% menos de energía{ $SP }
-hud-skill-sc_heal_duration_title = Duración
-hud-skill-sc_heal_duration = Los efectos de tu aura de sanación duran un { $boost }% más{ $SP }
-hud-skill-sc_heal_range_title = Radio
-hud-skill-sc_heal_range = Tu aura sanadora llega un { $boost }% más lejos{ $SP }
-hud-skill-sc_wardaura_unlock_title = Desbloquear Aura Protectora
-hud-skill-sc_wardaura_unlock = Te permite proteger a tus aliados de los ataques enemigos{ $SP }
-hud-skill-sc_wardaura_strength_title = Fuerza
-hud-skill-sc_wardaura_strength = La fuerza de tu protección se incrementa en un { $boost }%{ $SP }
-hud-skill-sc_wardaura_duration_title = Duración
-hud-skill-sc_wardaura_duration = Los efectos de tu protección duran un { $boost }% más{ $SP }
-hud-skill-sc_wardaura_range_title = Radio
-hud-skill-sc_wardaura_range = Tu protección llega un { $boost }% más lejos{ $SP }
-hud-skill-sc_wardaura_cost_title = Coste de Energía
-hud-skill-sc_wardaura_cost = Crear la protección requiere un { $boost }% menos de energía{ $SP }
-hud-skill-st_shockwave_range_title = Alcance de Onda de Choque
-hud-skill-st_shockwave_range = Lanza cosas que antes estaban fuera de tu alcance, alcance incrementado { $boost }%{ $SP }
-hud-skill-st_shockwave_cost_title = Coste de Onda de Choque
-hud-skill-st_shockwave_cost = Reduce el coste de energía para lanzar a pobres aldeanos indefensos en un { $boost }%{ $SP }
-hud-skill-st_shockwave_knockback_title = Retroceso de Onda de Choque
-hud-skill-st_shockwave_knockback = Incrementa el potencial de lanzamiento por { $boost }%{ $SP }
-hud-skill-st_shockwave_damage_title = Daño de Onda de Choque
-hud-skill-st_shockwave_damage = Incrementa el daño causado en un { $boost }%{ $SP }
-hud-skill-st_shockwave_unlock_title = Desbloquear Onda De Choque
-hud-skill-st_shockwave_unlock = Desbloquea la habilidad de lanzar por los aires a los enemigos usando fuego{ $SP }
-hud-skill-st_flamethrower_title = Lanzallamas
-hud-skill-st_flamethrower = Lanza fuego, ¡fríelos a todos!
-hud-skill-st_flame_velocity_title = Velocidad de la Llama
-hud-skill-st_flame_velocity = Haz que el fuego vaya más rápido, en un { $boost }%{ $SP }
-hud-skill-st_flamethrower_range_title = Alcance del Lanzallamas
-hud-skill-st_flamethrower_range = Las llamas llegan un { $boost }% más lejos{ $SP }
-hud-skill-st_energy_drain_title = Drenaje de Energía
-hud-skill-st_energy_drain = Reduce la tasa de drenaje de energía en un { $boost }%{ $SP }
-hud-skill-st_flamethrower_damage_title = Daño del Lanzallamas
-hud-skill-st_flamethrower_damage = Incrementa el daño en un { $boost }%{ $SP }
-hud-skill-st_explosion_radius_title = Radio de explosión
-hud-skill-st_explosion_radius = Cuanto más grande, mejor. Incrementa el radio de explosión en un { $boost }%{ $SP }
-hud-skill-st_energy_regen_title = Regeneración de Energía
-hud-skill-st_energy_regen = Incrementa la regeneración de energía en un { $boost }%{ $SP }
+hud-skill-sc_lifesteal_range = El rayo llega un { $boost } % más lejos{ $SP }
+hud-skill-sc_lifesteal_lifesteal_title = Robo de vida
+hud-skill-sc_lifesteal_lifesteal = Convierte un { $boost } % adicional del daño infligido en salud{ $SP }
+
+## Campo de vida
+hud-skill-sc_heal_title = Campo vital
+hud-skill-sc_heal = Emana de ti un aura curativa que usa la esencia vital absorbida
+hud-skill-sc_heal_heal_title = Potencia de {{ hud-skill-sc_heal_title }}
+hud-skill-sc_heal_heal = Aumenta la curación que haces en un { $boost } %{ $SP }
+hud-skill-sc_heal_cost_title = Coste de {{ hud-skill-sc_heal_title }}
+hud-skill-sc_heal_cost = Curar consume un { $boost } % menos de aguante{ $SP }
+hud-skill-sc_heal_duration_title = Duración de {{ hud-skill-sc_heal_title }}
+hud-skill-sc_heal_duration = Los efectos del aura duran un { $boost } % más{ $SP }
+hud-skill-sc_heal_range_title = Alcance de {{ hud-skill-sc_heal_title }}
+hud-skill-sc_heal_range = El aura llega un { $boost } % más lejos{ $SP }
+
+## Aura de protección
+-hud-skill-sc_wardaura_title = Aura del guardián
+hud-skill-sc_wardaura_unlock_title = Desbloquear {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_unlock = Emana de ti un aura que te protege a ti y a tus aliados{ $SP }
+hud-skill-sc_wardaura_strength_title = Potencia de {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_strength = La potencia de la protección aumenta en un { $boost } %{ $SP }
+hud-skill-sc_wardaura_duration_title = Duración de {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_duration = Los efectos de la protección duran un { $boost } % más{ $SP }
+hud-skill-sc_wardaura_range_title = Alcance de {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_range = El aura llega un { $boost } % más lejos{ $SP }
+hud-skill-sc_wardaura_cost_title = Coste de aguante de {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_cost = El aura requiere un { $boost } % menos de aguante{ $SP }
+
+# Árco - Árbol de habilidades
+## Tiro de arco
+hud-skill-bow_charged_title = Tiro de arco
+hud-skill-bow_charged = Tensa tu arco para disparar una flecha
+hud-skill-bow_charged_damage_title = Daño de {{ hud-skill-bow_charged_title }}
+hud-skill-bow_charged_damage = Aumenta el daño infligido en un { $boost } %{ $SP }
+hud-skill-bow_charged_speed_title = Velocidad de {{ hud-skill-bow_charged_title }}
+hud-skill-bow_charged_speed = Aumenta la velocidad a la que tensas el arco en un { $boost } %{ $SP }
+hud-skill-bow_charged_knockback_title = Retroceso de {{ hud-skill-bow_charged_title }}
+hud-skill-bow_charged_knockback = Las flechas hacen retroceder a los enemigos un { $boost } % más{ $SP }
+
+## Metralleta
+hud-skill-bow_repeater_title = Metralleta
+hud-skill-bow_repeater = Dispara una serie de flechas que van aumentando de velocidad
+hud-skill-bow_repeater_damage_title = Daño de {{ hud-skill-bow_repeater_title }}
+hud-skill-bow_repeater_damage = Aumenta el daño infligido en un { $boost } %{ $SP }
+hud-skill-bow_repeater_cost_title = Coste de {{ hud-skill-bow_repeater_title }}
+hud-skill-bow_repeater_cost = Reduce el coste de aguante al empezar una ráfaga en un { $boost } %{ $SP }
+hud-skill-bow_repeater_speed_title = Velocidad de {{ hud-skill-bow_repeater_title }}
+hud-skill-bow_repeater_speed = Aumenta la velocidad a la que se disparan flechas en un { $boost } %{ $SP }
+
+## Escopeta
+-hud-skill-bow_shotgun_title = Escopeta
+hud-skill-bow_shotgun_unlock_title = Desbloquear Escopeta
+hud-skill-bow_shotgun_unlock = Desbloquea la capacidad de disparar una multitud de flechas al mismo tiempo{ $SP }
+hud-skill-bow_shotgun_damage_title = Daño de {{ -hud-skill-bow_shotgun_title }}
+hud-skill-bow_shotgun_damage = Aumenta el daño infligido en un { $boost } %{ $SP }
+hud-skill-bow_shotgun_spread_title = Dispersión de {{ -hud-skill-bow_shotgun_title }}
+hud-skill-bow_shotgun_spread = Reduce la dispersión de las flechas en un { $boost } %{ $SP }
+hud-skill-bow_shotgun_cost_title = Coste de {{ -hud-skill-bow_shotgun_title }}
+hud-skill-bow_shotgun_cost = Reduce el coste de escopeta en un { $boost } %{ $SP }
+hud-skill-bow_shotgun_arrow_count_title = Flechas de {{ -hud-skill-bow_shotgun_title }}
+hud-skill-bow_shotgun_arrow_count = Aumenta el número de flechas por disparo en { $boost }{ $SP }
+
+## Velocidad de proyectil
+hud-skill-bow_projectile_speed_title = Velocidad de proyectil
+hud-skill-bow_projectile_speed = Las flechas llegan más lejos al viajar un { $boost } % más rápido{ $SP }
+
+# Bastón de fuego - Árbol de habilidades
+## Bola de fuego
 hud-skill-st_fireball_title = Bola de Fuego
 hud-skill-st_fireball = Dispara una bola de fuego que explota al impactar
-hud-skill-st_damage_title = Daño
-hud-skill-st_damage = Incrementa el daño en un { $boost }%{ $SP }
-hud-skill-bow_projectile_speed_title = Velocidad de proyectil
-hud-skill-bow_projectile_speed = Te permite disparar flechas más lejos, más rápido, en un { $boost }%{ $SP }
-hud-skill-bow_charged_title = Tiro Cargado
-hud-skill-bow_charged = Cargas los disparos de tu arco
-hud-skill-bow_charged_damage_title = Daño Cargado
-hud-skill-bow_charged_damage = Incrementa el daño en un { $boost }%{ $SP }
-hud-skill-bow_energy_regen_title = Regeneración Cargada
-hud-skill-bow_energy_regen = Incrementa la recuperación de energía en un { $boost }%{ $SP }
-hud-skill-bow_charged_knockback_title = Retroceso Cargado
-hud-skill-bow_charged_knockback = Haz retroceder a los enemigos un { $boost }%{ $SP }
-hud-skill-bow_charged_speed_title = Velocidad de Cargado
-hud-skill-bow_charged_speed = Incrementa la velocidad a la que cargas el ataque en un { $boost }%{ $SP }
-hud-skill-bow_charged_move_speed_title = Velocidad de Mov. Cargado
-hud-skill-bow_charged_move_speed = Incrementa la velocidad con la que puedes desplazarte mientras cargas el ataque en un { $boost }%{ $SP }
-hud-skill-bow_repeater_title = Repetidor
-hud-skill-bow_repeater = Dispara varias fechas, cada vez más rápido
-hud-skill-bow_repeater_damage_title = Daño Repetidor
-hud-skill-bow_repeater_damage = Incrementa el daño realizado en un { $boost }%{ $SP }
-hud-skill-bow_repeater_cost_title = Coste Repetidor
-hud-skill-bow_repeater_cost = Reduce el coste energía al empezar un repetidor en un { $boost }%{ $SP }
-hud-skill-bow_repeater_speed_title = Velocidad Repetidor
-hud-skill-bow_repeater_speed = Incrementa la tasa de disparo de flechas en un { $boost }%{ $SP }
-hud-skill-bow_shotgun_unlock_title = Desbloquear Escopeta
-hud-skill-bow_shotgun_unlock = Desbloquea la capacidad de disparar multiples flechas a la vez{ $SP }
-hud-skill-bow_shotgun_damage_title = Daño Escopeta
-hud-skill-bow_shotgun_damage = Incrementa el daño hecho en un { $boost }%{ $SP }
-hud-skill-bow_shotgun_cost_title = Coste Escopeta
-hud-skill-bow_shotgun_cost = Reduce el coste de escopeta en un { $boost }%{ $SP }
-hud-skill-bow_shotgun_arrow_count_title = Flechas Escopeta
-hud-skill-bow_shotgun_arrow_count = Incrementa el número de flechas por disparo en { $boost }{ $SP }
-hud-skill-bow_shotgun_spread_title = Dispersión Escopeta
-hud-skill-bow_shotgun_spread = Reduce la dispersión de las flechas en un { $boost }%{ $SP }
-hud-skill-hmr_leap_radius_title = Radio de Salto
-hud-skill-hmr_leap_radius = Incrementa el radio del golpe en salto al suelo en { $boost } metros{ $SP }
-hud-skill-hmr_leap_distance_title = Distancia de Salto
-hud-skill-hmr_leap_distance = Incrementa la distancia del salto en un { $boost }%{ $SP }
-hud-skill-hmr_leap_cost_title = Coste del Salto
-hud-skill-hmr_leap_cost = Reduce el coste del salto en un { $boost }%{ $SP }
-hud-skill-hmr_leap_knockback_title = Retroceso de Salto
-hud-skill-hmr_leap_knockback = Incrementa el retroceso del salto en un { $boost }%{ $SP }
-hud-skill-hmr_leap_damage_title = Daño de Salto
-hud-skill-hmr_leap_damage = Incrementa el daño del salto en un { $boost }%{ $SP }
-hud-skill-hmr_unlock_leap_title = Desbloquear Salto
-hud-skill-hmr_unlock_leap = Desbloquea el Salto{ $SP }
-hud-skill-hmr_charged_melee_title = Cuerpo a Cuerpo Cargado
-hud-skill-hmr_charged_melee = Cuerpo a cuerpo pero... cargado
-hud-skill-hmr_charged_rate_title = Tasa de Cargado
-hud-skill-hmr_charged_rate = Incrementa la tasa de carga del golpe en un { $boost }%{ $SP }
-hud-skill-hmr_charged_melee_nrg_drain_title = Drenaje Energía Cuerpo a Cuerpo Cargado
-hud-skill-hmr_charged_melee_nrg_drain = Reduce la tasa de drenaje de energía al cargar en un { $boost }%{ $SP }
-hud-skill-hmr_charged_melee_damage_title = Daño Cuerpo a Cuerpo Cargado
-hud-skill-hmr_charged_melee_damage = Incrementa el daño del golpe cargado en un { $boost }%{ $SP }
-hud-skill-hmr_charged_melee_knockback_title = Retroceso Cuerpo a Cuerpo Cargado
-hud-skill-hmr_charged_melee_knockback = Incrementa masivamente el potencial de lanzamiento del golpe en un { $boost }%{ $SP }
-hud-skill-hmr_single_strike_title = Golpe único
-hud-skill-hmr_single_strike = Tan único como tú uWu
-hud-skill-hmr_single_strike_regen_title = Regeneración de Golpe Único
-hud-skill-hmr_single_strike_regen = Incrementa la energía ganada con cada golpe sucesivo{ $SP }
-hud-skill-hmr_single_strike_speed_title = Velocidad de Golpe Único
-hud-skill-hmr_single_strike_speed = Incrementa la velocidad de ataque con cada golpe sucesivo{ $SP }
-hud-skill-hmr_single_strike_damage_title = Daño de Golpe Único
-hud-skill-hmr_single_strike_damage = Incrementa el daño con cada golpe sucesivo{ $SP }
-hud-skill-hmr_single_strike_knockback_title = Retroceso de Golpe Único
-hud-skill-hmr_single_strike_knockback = Incrementa el retroceso de los golpes en un { $boost }%{ $SP }
-hud-skill-sw_trip_str_title = Golpe triple
-hud-skill-sw_trip_str = Golpea hasta tres veces
-hud-skill-sw_trip_str_combo_title = Combo de Golpe Triple
-hud-skill-sw_trip_str_combo = Desbloquea el combo potente de golpe triple{ $SP }
-hud-skill-sw_trip_str_dmg_title = Daño de Golpe Triple
-hud-skill-sw_trip_str_dmg = Incrementa el daño que hace cada golpe sucesivo{ $SP }
-hud-skill-sw_trip_str_sp_title = Velocidad de Golpe Triple
-hud-skill-sw_trip_str_sp = Incrementa la velocidad de ataque obtenida por cada golpe sucesivo{ $SP }
-hud-skill-sw_trip_str_reg_title = Regeneracion de Golpe Triple
-hud-skill-sw_trip_str_reg = Incrementa la energía ganada en cada golpe sucesivo{ $SP }
-hud-skill-sw_dash_title = Embestida
-hud-skill-sw_dash = Embiste a tus enemigos
-hud-skill-sw_dash_dmg_title = Daño de Embestida
-hud-skill-sw_dash_dmg = Incrementa el daño inicial de embestida en un { $boost }%{ $SP }
-hud-skill-sw_dash_drain_title = Drenaje de Carga
-hud-skill-sw_dash_drain = Reduce la tasa de drenaje de energía al embestir en un { $boost }%{ $SP }
-hud-skill-sw_dash_cost_title = Coste de Embestida
-hud-skill-sw_dash_cost = Reduce el coste inicial de la embestida en un { $boost }%{ $SP }
-hud-skill-sw_dash_speed_title = Velocidad de Embestida
-hud-skill-sw_dash_speed = Incrementa la velocidad al embestir en un { $boost }%{ $SP }
-hud-skill-sw_dash_charge_through_title = Embestida Atravesante
-hud-skill-sw_dash_charge_through = Te permite embestir atravesando a los primeros enemigos que golpeas{ $SP }
-hud-skill-sw_dash_scale_title = Intensidad Daño de Embestida
-hud-skill-sw_dash_scale = Incrementa el daño cuanto más embistes en un { $boost }%{ $SP }
-hud-skill-sw_spin_title = Desbloquear Giro
-hud-skill-sw_spin = Desbloquea el giro de la espada{ $SP }
-hud-skill-sw_spin_dmg_title = Daño por Giro
-hud-skill-sw_spin_dmg = Incrementa el daño realizado en un { $boost }%{ $SP }
-hud-skill-sw_spin_spd_title = Velocidad de Giro
-hud-skill-sw_spin_spd = Incrementa la velocidad de giro en un { $boost }%{ $SP }
-hud-skill-sw_spin_cost_title = Coste de Giro
-hud-skill-sw_spin_cost = Reduce el coste de energía de cada giro en un { $boost }%{ $SP }
-hud-skill-sw_spin_spins_title = Gira que Gira
-hud-skill-sw_spin_spins = Incrementa el número de veces que puedes girar{ $SP }
-hud-skill-sw_interrupt_title = Interrupción de Ataques
-hud-skill-sw_interrupt = Te permite cancelar inmediatamente un ataque con otro ataque{ $SP }
-hud-skill-axe_double_strike_title = Golpe Doble
-hud-skill-axe_double_strike = Haz picadillo a esos villanos
-hud-skill-axe_double_strike_combo_title = Combo Golpe Doble
-hud-skill-axe_double_strike_combo = Desbloquea un segundo golpe{ $SP }
-hud-skill-axe_double_strike_damage_title = Daño de Golpe Doble
-hud-skill-axe_double_strike_damage = Incrementa el daño infligido en cada golpe sucesivo{ $SP }
-hud-skill-axe_double_strike_speed_title = Velocidad de Golpe Doble
-hud-skill-axe_double_strike_speed = Incrementa la velocidad de ataque con cada golpe sucesivo{ $SP }
-hud-skill-axe_double_strike_regen_title = Regeneración de Golpe Doble 
-hud-skill-axe_double_strike_regen = Incrementa la ganancia de energía con cada golpe sucesivo{ $SP }
-hud-skill-axe_spin_title = Giro de Hacha
-hud-skill-axe_spin = Haces girar el hacha...
-hud-skill-axe_infinite_axe_spin_title = Giro de Hacha Infinito
-hud-skill-axe_infinite_axe_spin = Gira durante tanto tiempo como energía tengas{ $SP }
-hud-skill-axe_spin_damage_title = Daño Giro
-hud-skill-axe_spin_damage = Incrementa el daño que hace cada giro en un { $boost }%{ $SP }
-hud-skill-axe_spin_helicopter_title = Helicóptero Giratorio
-hud-skill-axe_spin_helicopter = Caes un poco más lento mientras giras{ $SP }
-hud-skill-axe_spin_speed_title = Velocidad de Giro
-hud-skill-axe_spin_speed = Incrementa tu velocidad de giro en un { $boost }%{ $SP }
-hud-skill-axe_spin_cost_title = Coste de Giro
-hud-skill-axe_spin_cost = Reduce el coste de energía de los giros en un { $boost }%
-hud-skill-axe_unlock_leap_title = Desbloquear Salto
-hud-skill-axe_unlock_leap = Desbloquea salto giratorio{ $SP }
-hud-skill-axe_leap_damage_title = Daño de Salto
-hud-skill-axe_leap_damage = Incrementa el daño del salto en un { $boost }%{ $SP }
-hud-skill-axe_leap_knockback_title = Retroceso de Salto
-hud-skill-axe_leap_knockback = Incrementa el retroceso del salto en un { $boost }%
-hud-skill-axe_leap_cost_title = Coste del Salto
-hud-skill-axe_leap_cost = Reduce el coste del salto en un { $boost }%{ $SP }
-hud-skill-axe_leap_distance_title = Distancia de Salto
-hud-skill-axe_leap_distance = Incrementa la distancia del salto en un { $boost }%{ $SP }
+hud-skill-st_damage_title = Daño de {{ hud-skill-st_fireball_title }}
+hud-skill-st_damage = Aumenta el daño infligido en un { $boost } %{ $SP }
+hud-skill-st_explosion_radius_title = Radio de explosión de {{ hud-skill-st_fireball_title }}
+hud-skill-st_explosion_radius = Aumenta el alcance de la explosión en un { $boost } %{ $SP }
+hud-skill-st_energy_regen_title = Ganancia de aguante de {{ hud-skill-st_fireball_title }}
+hud-skill-st_energy_regen = Aumenta la ganancia de aguante en un { $boost } %{ $SP }
+
+## Lanzallamas
+hud-skill-st_flamethrower_title = Lanzallamas
+hud-skill-st_flamethrower = Lanza fuego, ¡fríelos a todos!
+hud-skill-st_flamethrower_damage_title = Daño de {{ hud-skill-st_flamethrower_title }}
+hud-skill-st_flamethrower_damage = Aumenta el daño infligido en un { $boost } %{ $SP }
+hud-skill-st_flame_velocity_title = Velocidad de {{ hud-skill-st_flamethrower_title }}
+hud-skill-st_flame_velocity = El fuego viaja un { $boost } % más rápido{ $SP }
+hud-skill-st_energy_drain_title = Consumo de aguante de {{ hud-skill-st_flamethrower_title }}
+hud-skill-st_energy_drain = El aguante se reduce un { $boost } % más lento{ $SP }
+hud-skill-st_flamethrower_range_title = Alcance de {{ hud-skill-st_flamethrower_title }}
+hud-skill-st_flamethrower_range = Las llamas llegan un { $boost } % más lejos{ $SP }
+
+## Onda de choque
+-hud-skill-st_shockwave_title = Onda de choque
+hud-skill-st_shockwave_unlock_title = Desbloquear {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_unlock = Desbloquea la habilidad de lanzar por los aires a los enemigos usando fuego{ $SP }
+hud-skill-st_shockwave_damage_title = Daño de {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_damage = Aumenta el daño infligido en un { $boost } %{ $SP }
+hud-skill-st_shockwave_range_title = Alcance de {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_range = Aumenta el alcance de la onda en un { $boost } %{ $SP }
+hud-skill-st_shockwave_knockback_title = Retroceso de {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_knockback = Aumenta la potencia de lanzamiento en un { $boost } %{ $SP }
+hud-skill-st_shockwave_cost_title = Coste de {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_cost = Reduce el coste de aguante en un { $boost } %{ $SP }
+
+# Minería - Árbol de habilidades
 hud-skill-mining_title = Minería
-hud-skill-pick_strike_title = Golpe de Pico
-hud-skill-pick_strike = Pica rocas con el pico para ganar minerales, gemas y experiencia
-hud-skill-pick_strike_speed_title = Velocidad Golpe de Pico
+hud-skill-pick_strike_title = Picar
+hud-skill-pick_strike = Pica rocas con el pico para conseguir minerales, gemas y experiencia
+hud-skill-pick_strike_speed_title = Velocidad de {{ hud-skill-pick_strike_title }}
 hud-skill-pick_strike_speed = Pica rocas más rápido{ $SP }
-hud-skill-pick_strike_oregain_title = Producción de Minerales de Golpe de Pico
-hud-skill-pick_strike_oregain = Probabilidad de ganar minerales extras. Un ({ $boost }% por nivel){ $SP }
-hud-skill-pick_strike_gemgain_title = Producción de Gemas de Golpe de Pico
-hud-skill-pick_strike_gemgain = Probabilidad de ganar gemas extras. Un ({ $boost }% por nivel){ $SP }
+hud-skill-pick_strike_oregain_title = Producción de minerales de {{ hud-skill-pick_strike_title }}
+hud-skill-pick_strike_oregain = Concede un { $boost } % de probabilidad de conseguir minerales adicionales.{ $SP }
+hud-skill-pick_strike_gemgain_title = Producción de gemas de {{ hud-skill-pick_strike_title }}
+hud-skill-pick_strike_gemgain = Concede un { $boost } % de probabilidad de conseguir gemas adicionales.{ $SP }
