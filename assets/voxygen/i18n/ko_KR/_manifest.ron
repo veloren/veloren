@@ -1,0 +1,32 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Korean
+(
+    metadata: (
+        language_name: "한국어 (대한민국)",
+        language_identifier: "ko_KR",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+    }
+)
