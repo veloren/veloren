@@ -67,6 +67,12 @@ buff-desc-fortitude = Puoi resistere allo stordimento.
 ## Parried
 buff-title-parried = Bloccato
 buff-desc-parried = Sei stato bloccato e ora sei lento a riprenderti.
+## Potion sickness
+buff-title-potionsickness = Nausea da pozione
+buff-desc-potionsickness = Le pozioni ti cureranno meno.
+buff-stat-potionsickness =
+    Le pozioni che berrai ti cureranno
+    del { $strength }% in meno.
 ## Util
 buff-text-over_seconds = in { $dur_secs } secondi
 buff-text-for_seconds = per { $dur_secs } secondi
