@@ -6,7 +6,8 @@ mod cli;
 #[cfg(all(
     target_os = "windows",
     not(feature = "tracy-memory"),
-    not(feature = "hot-egui")
+    not(feature = "hot-egui"),
+    not(feature = "hot-anim"),
 ))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;

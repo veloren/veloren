@@ -7012,7 +7012,6 @@ version = "0.1.0"
 dependencies = [
  "itertools",
  "lazy_static",
- "mimalloc",
  "rand 0.8.5",
  "specs",
  "tracing",
@@ -7045,6 +7044,8 @@ dependencies = [
  "veloren-common-frontend",
  "veloren-common-net",
  "veloren-server",
+ "veloren-server-agent",
+ "veloren-world",
 ]
 
 [[package]]
@@ -7137,7 +7138,6 @@ version = "0.10.0"
 dependencies = [
  "bytemuck",
  "lazy_static",
- "mimalloc",
  "vek 0.15.8",
  "veloren-common",
  "veloren-common-dynlib",
@@ -7187,7 +7187,6 @@ dependencies = [
  "kiddo 0.2.4",
  "lazy_static",
  "lz-fear",
- "mimalloc",
  "minifb",
  "noise",
  "num 0.4.0",

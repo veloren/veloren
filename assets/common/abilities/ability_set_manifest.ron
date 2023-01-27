@@ -645,8 +645,8 @@
         abilities: [],
     ),
     Custom("IcyTalharpa"): (
-        primary: "common.abilities.music.icy_talharpa",
-        secondary: "common.abilities.music.icy_talharpa",
+        primary: Simple(None, "common.abilities.music.icy_talharpa"),
+        secondary: Simple(None, "common.abilities.music.icy_talharpa"),
         abilities: [],
     ),
     Custom("Washboard"): (
@@ -675,8 +675,8 @@
         abilities: [],
     ),
     Custom("DarkGuitar"): (
-        primary: "common.abilities.music.dark_guitar",
-        secondary: "common.abilities.music.dark_guitar",
+        primary: Simple(None, "common.abilities.music.dark_guitar"),
+        secondary: Simple(None, "common.abilities.music.dark_guitar"),
         abilities: [],
     ),
     Custom("Sitar"): (
