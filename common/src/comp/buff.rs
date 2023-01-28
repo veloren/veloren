@@ -392,7 +392,7 @@ impl Buff {
             BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
             BuffKind::Reckless => vec![
                 BuffEffect::DamageReduction(-data.strength),
-                BuffEffect::AttackDamage(data.strength),
+                BuffEffect::AttackDamage(1.0 + data.strength),
             ],
         };
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
