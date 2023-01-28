@@ -31,6 +31,7 @@ widget_ids! {
         chat_arrow,
         chat_icon_align,
         chat_icons[],
+        chat_badges[],
 
         chat_tab_align,
         chat_tab_all,
@@ -440,7 +441,17 @@ impl<'a> Widget for Chat<'a> {
                     true
                 }
             })
+            .map(|m| {
+                let is_moderator = m.chat_type.uid().and_then(|uid| self.client.lookup_msg_context(&m).player_alias.get(&uid).map(|i| i.is_moderator)).unwrap_or(false);
+                (is_moderator, m)
+            })
             .collect::<Vec<_>>();
+        let n_badges = messages.iter().filter(|t| t.0).count();
+        if state.ids.chat_badges.len() < n_badges {
+            state.update(|s| {
+                s.ids.chat_badges.resize(n_badges, &mut ui.widget_id_generator())
+            })
+        }
         Rectangle::fill_with([CHAT_ICON_WIDTH, CHAT_BOX_HEIGHT], color::TRANSPARENT)
             .top_left_with_margins_on(state.ids.message_box_bg, 0.0, 0.0)
             .crop_kids()
@@ -451,10 +462,11 @@ impl<'a> Widget for Chat<'a> {
             .scroll_kids_vertically()
             .set(state.ids.message_box, ui);
 
+        let mut badge_id = 0;
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < messages.len() {
-                let message = &messages[item.i];
+                let (is_moderator, message) = &messages[item.i];
                 let (color, icon) = render_chat_line(&message.chat_type, self.imgs);
                 // For each ChatType needing localization get/set matching pre-formatted
                 // localized string. This string will be formatted with the data
@@ -473,6 +485,18 @@ impl<'a> Widget for Chat<'a> {
                     _ => 0.0,
                 };
                 item.set(text.h(y), ui);
+
+                // If the user is a moderator display a moderator icon with their alias.
+                if *is_moderator {
+                    Image::new(self.imgs.chat_moderator_badge)
+                    .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
+                    .top_left_with_margins_on(item.widget_id, 2.0, 7.0)
+                    .parent(state.ids.message_box_bg)
+                    .set(state.ids.chat_badges[badge_id], ui);
+
+                    badge_id += 1;
+                }
+
                 let icon_id = state.ids.chat_icons[item.i];
                 Image::new(icon)
                     .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)

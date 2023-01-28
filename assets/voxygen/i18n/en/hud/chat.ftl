@@ -32,7 +32,6 @@ hud-chat-default_death_msg = [{ $name }] died
 ## Utils
 hud-chat-all = All
 hud-chat-you = You
-hud-chat-mod = Mod
 hud-chat-chat_tab_hover_tooltip = Right click for settings
 hud-loot-pickup-msg = {$actor} picked up { $amount ->
    [one] { $item }

@@ -674,6 +674,8 @@ image_ids! {
         chat_tell: "voxygen.element.ui.chat.icons.tell",
         chat_world: "voxygen.element.ui.chat.icons.world",
 
+        chat_moderator_badge: "voxygen.element.ui.chat.icons.mod_badge",
+
         // Buffs
         buff_plus_0: "voxygen.element.de_buffs.buff_plus_0",
         buff_saturation_0: "voxygen.element.de_buffs.buff_saturation_0",
