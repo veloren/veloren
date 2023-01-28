@@ -3,6 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
+use core::f32::consts::{PI, TAU};
 use std::ops::{Mul, Sub};
 
 pub struct RapidMeleeAnimation;
@@ -65,7 +66,7 @@ impl Animation for RapidMeleeAnimation {
                 next.hand_r.orientation = Quaternion::rotation_x(1.4);
                 next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                 next.control.orientation =
-                    Quaternion::rotation_x(s_a.sc.3) * Quaternion::rotation_z(move1 * 3.14);
+                    Quaternion::rotation_x(s_a.sc.3) * Quaternion::rotation_z(move1 * PI);
 
                 if move2 < f32::EPSILON {
                     next.main_weapon_trail = false;
@@ -83,7 +84,7 @@ impl Animation for RapidMeleeAnimation {
 
                 next.control.orientation.rotate_y(move2_pre * -1.6);
                 next.control.position += Vec3::new(0.0, 0.0, move2_pre * 4.0);
-                next.torso.orientation.rotate_z(move2_no_pullback * 6.28);
+                next.torso.orientation.rotate_z(move2_no_pullback * TAU);
                 next.chest.orientation.rotate_z(move2 * -2.0);
                 next.head.orientation.rotate_z(move2 * 1.3);
                 next.belt.orientation.rotate_z(move2 * 0.6);

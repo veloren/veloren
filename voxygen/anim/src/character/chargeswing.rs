@@ -6,7 +6,7 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use core::f32::consts::PI;
+use core::f32::consts::{PI, TAU};
 
 pub struct ChargeswingAnimation;
 
@@ -219,7 +219,7 @@ impl Animation for ChargeswingAnimation {
 
                 next.control.orientation.rotate_y(move2_pre * -1.6);
                 next.control.position += Vec3::new(0.0, 0.0, move2_pre * 4.0);
-                next.torso.orientation.rotate_z(move2_no_pullback * -6.28);
+                next.torso.orientation.rotate_z(move2_no_pullback * -TAU);
                 next.chest.orientation.rotate_z(move2 * -2.0);
                 next.head.orientation.rotate_z(move2 * 1.3);
                 next.belt.orientation.rotate_z(move2 * 0.6);

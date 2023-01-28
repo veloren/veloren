@@ -376,20 +376,7 @@ impl CharacterState {
     }
 
     pub fn is_melee_attack(&self) -> bool {
-        matches!(
-            self,
-            CharacterState::BasicMelee(_)
-                | CharacterState::DashMelee(_)
-                | CharacterState::ComboMelee(_)
-                | CharacterState::ComboMelee2(_)
-                | CharacterState::LeapMelee(_)
-                | CharacterState::SpinMelee(_)
-                | CharacterState::ChargedMelee(_)
-                | CharacterState::FinisherMelee(_)
-                | CharacterState::DiveMelee(_)
-                | CharacterState::RiposteMelee(_)
-                | CharacterState::RapidMelee(_)
-        )
+        matches!(self.attack_kind(), Some(AttackSource::Melee))
     }
 
     pub fn can_perform_mounted(&self) -> bool {
@@ -878,6 +865,67 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.timer),
             CharacterState::RiposteMelee(data) => Some(data.timer),
             CharacterState::RapidMelee(data) => Some(data.timer),
+        }
+    }
+
+    pub fn attack_kind(&self) -> Option<AttackSource> {
+        match self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Skate(_) => None,
+            CharacterState::Glide(_) => None,
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(_) => None,
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(_) => None,
+            CharacterState::Roll(_) => None,
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(_) => None,
+            CharacterState::ComboMelee(_) => Some(AttackSource::Melee),
+            CharacterState::ComboMelee2(_) => Some(AttackSource::Melee),
+            CharacterState::BasicMelee(_) => Some(AttackSource::Melee),
+            CharacterState::BasicRanged(data) => {
+                Some(if data.static_data.projectile.is_explosive() {
+                    AttackSource::Explosion
+                } else {
+                    AttackSource::Projectile
+                })
+            },
+            CharacterState::Boost(_) => None,
+            CharacterState::DashMelee(_) => Some(AttackSource::Melee),
+            CharacterState::LeapMelee(_) => Some(AttackSource::Melee),
+            CharacterState::SpinMelee(_) => Some(AttackSource::Melee),
+            CharacterState::ChargedMelee(_) => Some(AttackSource::Melee),
+            // TODO: When charged ranged not only arrow make this check projectile type
+            CharacterState::ChargedRanged(_) => Some(AttackSource::Projectile),
+            CharacterState::RepeaterRanged(data) => {
+                Some(if data.static_data.projectile.is_explosive() {
+                    AttackSource::Explosion
+                } else {
+                    AttackSource::Projectile
+                })
+            },
+            CharacterState::Shockwave(data) => Some(if data.static_data.requires_ground {
+                AttackSource::GroundShockwave
+            } else {
+                AttackSource::AirShockwave
+            }),
+            CharacterState::BasicBeam(_) => Some(AttackSource::Beam),
+            CharacterState::BasicAura(_) => None,
+            CharacterState::Blink(_) => None,
+            CharacterState::BasicSummon(_) => None,
+            CharacterState::SelfBuff(_) => None,
+            CharacterState::SpriteSummon(_) => None,
+            CharacterState::UseItem(_) => None,
+            CharacterState::SpriteInteract(_) => None,
+            CharacterState::FinisherMelee(_) => Some(AttackSource::Melee),
+            CharacterState::Music(_) => None,
+            CharacterState::DiveMelee(_) => Some(AttackSource::Melee),
+            CharacterState::RiposteMelee(_) => Some(AttackSource::Melee),
+            CharacterState::RapidMelee(_) => Some(AttackSource::Melee),
         }
     }
 }

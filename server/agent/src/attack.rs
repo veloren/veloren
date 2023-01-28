@@ -518,31 +518,31 @@ impl<'a> AgentData<'a> {
                         tactics.push(tactic);
                     }
                 };
-                // try_tactic(
-                //     SwordSkill::HeavyFortitude,
-                //     SwordTactics::HeavyAdvanced,
-                //     &mut tactics,
-                // );
-                // try_tactic(
-                //     SwordSkill::AgileDancingEdge,
-                //     SwordTactics::AgileAdvanced,
-                //     &mut tactics,
-                // );
-                // try_tactic(
-                //     SwordSkill::DefensiveStalwartSword,
-                //     SwordTactics::DefensiveAdvanced,
-                //     &mut tactics,
-                // );
-                // try_tactic(
-                //     SwordSkill::CripplingEviscerate,
-                //     SwordTactics::CripplingAdvanced,
-                //     &mut tactics,
-                // );
-                // try_tactic(
-                //     SwordSkill::CleavingBladeFever,
-                //     SwordTactics::CleavingAdvanced,
-                //     &mut tactics,
-                // );
+                try_tactic(
+                    SwordSkill::HeavyFortitude,
+                    SwordTactics::HeavyAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::AgileDancingEdge,
+                    SwordTactics::AgileAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::DefensiveStalwartSword,
+                    SwordTactics::DefensiveAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::CripplingEviscerate,
+                    SwordTactics::CripplingAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::CleavingBladeFever,
+                    SwordTactics::CleavingAdvanced,
+                    &mut tactics,
+                );
                 if tactics.is_empty() {
                     try_tactic(
                         SwordSkill::HeavyWindmillSlash,
@@ -587,7 +587,7 @@ impl<'a> AgentData<'a> {
             agent.action_state.int_counters[IntCounters::Tactics as usize] = tactic as u8;
 
             let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
-            let mut set_sword_ability = |controller: &mut Controller, slot, skill| {
+            let set_sword_ability = |controller: &mut Controller, slot, skill| {
                 controller.push_event(ControlEvent::ChangeAbility {
                     slot,
                     auxiliary_key,
@@ -770,7 +770,6 @@ impl<'a> AgentData<'a> {
         enum IntCounters {
             Tactics = 0,
             ActionMode = 1,
-            NextInput = 2,
         }
 
         enum Timers {
@@ -781,7 +780,6 @@ impl<'a> AgentData<'a> {
         enum Conditions {
             GuardedDefend = 0,
             RollingBreakThrough = 1,
-            TacticMisc = 2,
         }
 
         enum FloatCounters {
@@ -876,65 +874,61 @@ impl<'a> AgentData<'a> {
                                 Some(self.pos.0 + rand_dir * actual_dist)
                             };
                         }
+                    } else if let Some(pos) =
+                        agent.action_state.positions[Positions::GuardedCover as usize]
+                    {
+                        self.path_toward_target(
+                            agent,
+                            controller,
+                            pos,
+                            read_data,
+                            Path::Separate,
+                            None,
+                        );
+                        if agent.action_state.conditions[Conditions::RollingBreakThrough as usize] {
+                            controller.push_basic_input(InputKind::Roll);
+                            agent.action_state.conditions
+                                [Conditions::RollingBreakThrough as usize] = false;
+                        }
+                        if tgt_data.char_state.map_or(false, |cs| cs.is_melee_attack()) {
+                            controller.push_basic_input(InputKind::Block);
+                        }
                     } else {
-                        if let Some(pos) =
-                            agent.action_state.positions[Positions::GuardedCover as usize]
-                        {
-                            self.path_toward_target(
-                                agent,
-                                controller,
-                                pos,
-                                read_data,
-                                Path::Separate,
-                                None,
-                            );
-                            if agent.action_state.conditions
-                                [Conditions::RollingBreakThrough as usize]
+                        agent.action_state.positions[Positions::GuardedCover as usize] = {
+                            let backwards = (self.pos.0 - tgt_data.pos.0)
+                                .try_normalized()
+                                .unwrap_or(Vec3::unit_x())
+                                .xy();
+                            let pos = if read_data
+                                .terrain
+                                .ray(
+                                    self.pos.0 + Vec3::unit_z() * 0.5,
+                                    self.pos.0 + Vec3::unit_z() * 0.5 + backwards * 6.0,
+                                )
+                                .until(Block::is_solid)
+                                .cast()
+                                .0
+                                > 5.0
                             {
-                                controller.push_basic_input(InputKind::Roll);
+                                self.pos.0 + backwards * 5.0
+                            } else {
                                 agent.action_state.conditions
-                                    [Conditions::RollingBreakThrough as usize] = false;
-                            }
-                            if tgt_data.char_state.map_or(false, |cs| cs.is_melee_attack()) {
-                                controller.push_basic_input(InputKind::Block);
-                            }
-                        } else {
-                            agent.action_state.positions[Positions::GuardedCover as usize] = {
-                                let backwards = (self.pos.0 - tgt_data.pos.0)
-                                    .try_normalized()
-                                    .unwrap_or(Vec3::unit_x())
-                                    .xy();
-                                let pos = if read_data
-                                    .terrain
-                                    .ray(
-                                        self.pos.0 + Vec3::unit_z() * 0.5,
-                                        self.pos.0 + Vec3::unit_z() * 0.5 + backwards * 6.0,
-                                    )
-                                    .until(Block::is_solid)
-                                    .cast()
-                                    .0
-                                    > 5.0
-                                {
-                                    self.pos.0 + backwards * 5.0
-                                } else {
-                                    agent.action_state.conditions
-                                        [Conditions::RollingBreakThrough as usize] = true;
-                                    self.pos.0
-                                        - backwards
-                                            * read_data
-                                                .terrain
-                                                .ray(
-                                                    self.pos.0 + Vec3::unit_z() * 0.5,
-                                                    self.pos.0 + Vec3::unit_z() * 0.5
-                                                        - backwards * 10.0,
-                                                )
-                                                .until(Block::is_solid)
-                                                .cast()
-                                                .0
-                                        - 1.0
-                                };
-                                Some(pos)
-                            }
+                                    [Conditions::RollingBreakThrough as usize] = true;
+                                self.pos.0
+                                    - backwards
+                                        * read_data
+                                            .terrain
+                                            .ray(
+                                                self.pos.0 + Vec3::unit_z() * 0.5,
+                                                self.pos.0 + Vec3::unit_z() * 0.5
+                                                    - backwards * 10.0,
+                                            )
+                                            .until(Block::is_solid)
+                                            .cast()
+                                            .0
+                                    - 1.0
+                            };
+                            Some(pos)
                         }
                     }
                     false
@@ -1030,23 +1024,6 @@ impl<'a> AgentData<'a> {
                 extract_ability(AbilityInput::Auxiliary(3)),
                 extract_ability(AbilityInput::Auxiliary(4)),
             ];
-            fn input_from_u8(x: u8) -> Option<InputKind> {
-                let input = match x {
-                    x @ 0..5 => InputKind::Ability(x as usize),
-                    6 => InputKind::Primary,
-                    7 => InputKind::Secondary,
-                    _ => return None,
-                };
-                Some(input)
-            }
-            fn input_to_u8(input: InputKind) -> u8 {
-                match input {
-                    InputKind::Ability(x) => x as u8,
-                    InputKind::Primary => 6,
-                    InputKind::Secondary => 7,
-                    _ => 255,
-                }
-            }
             let could_use_input = |input, misc_data| match input {
                 InputKind::Primary => primary.as_ref().map_or(false, |p| {
                     p.could_use(attack_data, self, misc_data, tgt_data)
@@ -1069,7 +1046,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if let input = InputKind::Secondary {
+                        if matches!(input, InputKind::Secondary) {
                             let charging = matches!(
                                 self.char_state.stage_section(),
                                 Some(StageSection::Charge)
@@ -1086,12 +1063,10 @@ impl<'a> AgentData<'a> {
                         } else {
                             next_input = Some(input);
                         }
+                    } else if rng.gen_bool(0.5) {
+                        next_input = Some(InputKind::Primary);
                     } else {
-                        if rng.gen_bool(0.5) {
-                            next_input = Some(InputKind::Primary);
-                        } else {
-                            next_input = Some(InputKind::Secondary);
-                        }
+                        next_input = Some(InputKind::Secondary);
                     };
                     if let Some(input) = next_input {
                         if could_use_input(input, &misc_data) {
@@ -1111,7 +1086,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if let input = InputKind::Secondary {
+                        if matches!(input, InputKind::Secondary) {
                             let charging = matches!(
                                 self.char_state.stage_section(),
                                 Some(StageSection::Charge)
@@ -1151,12 +1126,12 @@ impl<'a> AgentData<'a> {
                 },
                 SwordTactics::HeavySimple => {
                     let misc_data = MiscData {
-                        desired_energy: 25.0,
+                        desired_energy: 35.0,
                     };
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if let input = InputKind::Secondary {
+                        if matches!(input, InputKind::Secondary) {
                             let charging = matches!(
                                 self.char_state.stage_section(),
                                 Some(StageSection::Charge)
@@ -1184,16 +1159,14 @@ impl<'a> AgentData<'a> {
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
                         } else {
-                            if could_use_input(InputKind::Ability(0), &misc_data) {
-                                next_input = Some(InputKind::Ability(0));
-                            } else if could_use_input(random_ability, &misc_data) {
-                                next_input = Some(random_ability);
-                            } else if rng.gen_bool(0.5) {
-                                next_input = Some(InputKind::Primary);
-                            } else {
-                                next_input = Some(InputKind::Secondary);
-                            }
+                            next_input = Some(InputKind::Secondary);
                         }
                     };
                     if let Some(input) = next_input {
@@ -1209,12 +1182,12 @@ impl<'a> AgentData<'a> {
                 },
                 SwordTactics::AgileSimple => {
                     let misc_data = MiscData {
-                        desired_energy: 25.0,
+                        desired_energy: 35.0,
                     };
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if let input = InputKind::Secondary {
+                        if matches!(input, InputKind::Secondary) {
                             let charging = matches!(
                                 self.char_state.stage_section(),
                                 Some(StageSection::Charge)
@@ -1242,16 +1215,14 @@ impl<'a> AgentData<'a> {
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
                         } else {
-                            if could_use_input(InputKind::Ability(0), &misc_data) {
-                                next_input = Some(InputKind::Ability(0));
-                            } else if could_use_input(random_ability, &misc_data) {
-                                next_input = Some(random_ability);
-                            } else if rng.gen_bool(0.5) {
-                                next_input = Some(InputKind::Primary);
-                            } else {
-                                next_input = Some(InputKind::Secondary);
-                            }
+                            next_input = Some(InputKind::Secondary);
                         }
                     };
                     if let Some(input) = next_input {
@@ -1267,12 +1238,12 @@ impl<'a> AgentData<'a> {
                 },
                 SwordTactics::DefensiveSimple => {
                     let misc_data = MiscData {
-                        desired_energy: 25.0,
+                        desired_energy: 35.0,
                     };
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if let input = InputKind::Secondary {
+                        if matches!(input, InputKind::Secondary) {
                             let charging = matches!(
                                 self.char_state.stage_section(),
                                 Some(StageSection::Charge)
@@ -1300,18 +1271,16 @@ impl<'a> AgentData<'a> {
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(InputKind::Ability(3), &misc_data) {
+                            next_input = Some(InputKind::Ability(3));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
                         } else {
-                            if could_use_input(InputKind::Ability(0), &misc_data) {
-                                next_input = Some(InputKind::Ability(0));
-                            } else if could_use_input(InputKind::Ability(3), &misc_data) {
-                                next_input = Some(InputKind::Ability(3));
-                            } else if could_use_input(random_ability, &misc_data) {
-                                next_input = Some(random_ability);
-                            } else if rng.gen_bool(0.5) {
-                                next_input = Some(InputKind::Primary);
-                            } else {
-                                next_input = Some(InputKind::Secondary);
-                            }
+                            next_input = Some(InputKind::Secondary);
                         }
                     };
                     if let Some(input) = next_input {
@@ -1327,12 +1296,12 @@ impl<'a> AgentData<'a> {
                 },
                 SwordTactics::CripplingSimple => {
                     let misc_data = MiscData {
-                        desired_energy: 25.0,
+                        desired_energy: 35.0,
                     };
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if let input = InputKind::Secondary {
+                        if matches!(input, InputKind::Secondary) {
                             let charging = matches!(
                                 self.char_state.stage_section(),
                                 Some(StageSection::Charge)
@@ -1360,16 +1329,14 @@ impl<'a> AgentData<'a> {
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
                         } else {
-                            if could_use_input(InputKind::Ability(0), &misc_data) {
-                                next_input = Some(InputKind::Ability(0));
-                            } else if could_use_input(random_ability, &misc_data) {
-                                next_input = Some(random_ability);
-                            } else if rng.gen_bool(0.5) {
-                                next_input = Some(InputKind::Primary);
-                            } else {
-                                next_input = Some(InputKind::Secondary);
-                            }
+                            next_input = Some(InputKind::Secondary);
                         }
                     };
                     if let Some(input) = next_input {
@@ -1385,12 +1352,12 @@ impl<'a> AgentData<'a> {
                 },
                 SwordTactics::CleavingSimple => {
                     let misc_data = MiscData {
-                        desired_energy: 25.0,
+                        desired_energy: 35.0,
                     };
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if let input = InputKind::Secondary {
+                        if matches!(input, InputKind::Secondary) {
                             let charging = matches!(
                                 self.char_state.stage_section(),
                                 Some(StageSection::Charge)
@@ -1418,16 +1385,14 @@ impl<'a> AgentData<'a> {
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
                         } else {
-                            if could_use_input(InputKind::Ability(0), &misc_data) {
-                                next_input = Some(InputKind::Ability(0));
-                            } else if could_use_input(random_ability, &misc_data) {
-                                next_input = Some(random_ability);
-                            } else if rng.gen_bool(0.5) {
-                                next_input = Some(InputKind::Primary);
-                            } else {
-                                next_input = Some(InputKind::Secondary);
-                            }
+                            next_input = Some(InputKind::Secondary);
                         }
                     };
                     if let Some(input) = next_input {
@@ -1441,11 +1406,290 @@ impl<'a> AgentData<'a> {
                         true
                     }
                 },
-                SwordTactics::HeavyAdvanced => true,
-                SwordTactics::AgileAdvanced => true,
-                SwordTactics::DefensiveAdvanced => true,
-                SwordTactics::CripplingAdvanced => true,
-                SwordTactics::CleavingAdvanced => true,
+                SwordTactics::HeavyAdvanced => {
+                    let misc_data = MiscData {
+                        desired_energy: 50.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if matches!(input, InputKind::Secondary) {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Heavy))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::AgileAdvanced => {
+                    let misc_data = MiscData {
+                        desired_energy: 50.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if matches!(input, InputKind::Secondary) {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Agile))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::DefensiveAdvanced => {
+                    let misc_data = MiscData {
+                        desired_energy: 50.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if matches!(input, InputKind::Secondary) {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..4));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Defensive))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if could_use_input(InputKind::Ability(4), &misc_data)
+                            && rng.gen_bool(2.0 * read_data.dt.0 as f64)
+                        {
+                            next_input = Some(InputKind::Ability(4));
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::CripplingAdvanced => {
+                    let misc_data = MiscData {
+                        desired_energy: 50.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if matches!(input, InputKind::Secondary) {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Crippling))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::CleavingAdvanced => {
+                    let misc_data = MiscData {
+                        desired_energy: 50.0,
+                    };
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        if matches!(input, InputKind::Secondary) {
+                            let charging = matches!(
+                                self.char_state.stage_section(),
+                                Some(StageSection::Charge)
+                            );
+                            let charged = self
+                                .char_state
+                                .durations()
+                                .and_then(|durs| durs.charge)
+                                .zip(self.char_state.timer())
+                                .map_or(false, |(dur, timer)| timer > dur);
+                            if !(charging && charged) {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else {
+                            next_input = Some(input);
+                        }
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Cleaving))) {
+                            if could_use_input(stance_ability, &misc_data) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, &misc_data) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, &misc_data) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
             }
         } else {
             false

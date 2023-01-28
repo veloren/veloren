@@ -776,4 +776,20 @@ impl ProjectileConstructor {
         }
         self
     }
+
+    pub fn is_explosive(&self) -> bool {
+        use ProjectileConstructor::*;
+        match self {
+            Arrow { .. } => false,
+            Fireball { .. } => true,
+            Frostball { .. } => true,
+            Poisonball { .. } => true,
+            NecroticSphere { .. } => true,
+            Possess => false,
+            ClayRocket { .. } => true,
+            Snowball { .. } => true,
+            ExplodingPumpkin { .. } => true,
+            DagonBomb { .. } => true,
+        }
+    }
 }

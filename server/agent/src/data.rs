@@ -2,6 +2,7 @@ use common::{
     comp::{
         ability::CharacterAbility,
         buff::{BuffKind, Buffs},
+        character_state::AttackFilters,
         group,
         item::MaterialStatManifest,
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
@@ -245,6 +246,11 @@ pub enum AbilityData {
         angle: f32,
         energy: f32,
     },
+    BasicBlock {
+        energy: f32,
+        blocked_attacks: AttackFilters,
+        angle: f32,
+    },
 }
 
 pub struct MiscData {
@@ -361,6 +367,16 @@ impl AbilityData {
                 range: melee_constructor.range,
                 angle: melee_constructor.angle,
             },
+            BasicBlock {
+                max_angle,
+                energy_cost,
+                blocked_attacks,
+                ..
+            } => Self::BasicBlock {
+                energy: *energy_cost,
+                angle: *max_angle,
+                blocked_attacks: *blocked_attacks,
+            },
             _ => return None,
         };
         Some(inner)
@@ -390,6 +406,12 @@ impl AbilityData {
                     || agent_data.energy.current() >= misc_data.desired_energy)
         };
         let combo_check = |combo| agent_data.combo.map_or(false, |c| c.counter() >= combo);
+        let attack_kind_check = |attacks: AttackFilters| {
+            tgt_data
+                .char_state
+                .and_then(|cs| cs.attack_kind())
+                .map_or(false, |ak| attacks.applies(ak))
+        };
         use AbilityData::*;
         match self {
             ComboMelee {
@@ -476,6 +498,19 @@ impl AbilityData {
                                 )
                             )
                     })
+            },
+            BasicBlock {
+                energy,
+                angle,
+                blocked_attacks,
+            } => {
+                melee_check(25.0, *angle, None)
+                    && energy_check(*energy)
+                    && attack_kind_check(*blocked_attacks)
+                    && tgt_data
+                        .char_state
+                        .and_then(|cs| cs.stage_section())
+                        .map_or(false, |ss| !matches!(ss, StageSection::Recover))
             },
         }
     }

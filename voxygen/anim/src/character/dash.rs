@@ -27,7 +27,7 @@ impl Animation for DashAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_hands, ability_id, _global_time, _stage_section, _ability_info): Self::Dependency<'_>,
+        (_hands, _ability_id, _global_time, _stage_section, _ability_info): Self::Dependency<'_>,
         _anim_time: f32,
         rate: &mut f32,
         _s_a: &SkeletonAttr,
@@ -41,10 +41,6 @@ impl Animation for DashAnimation {
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
         next.off_weapon_trail = true;
-
-        match ability_id {
-            _ => {},
-        }
 
         next
     }
