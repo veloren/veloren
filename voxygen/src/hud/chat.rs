@@ -442,14 +442,26 @@ impl<'a> Widget for Chat<'a> {
                 }
             })
             .map(|m| {
-                let is_moderator = m.chat_type.uid().and_then(|uid| self.client.lookup_msg_context(&m).player_alias.get(&uid).map(|i| i.is_moderator)).unwrap_or(false);
+                let is_moderator = m
+                    .chat_type
+                    .uid()
+                    .and_then(|uid| {
+                        self.client
+                            .lookup_msg_context(&m)
+                            .player_alias
+                            .get(&uid)
+                            .map(|i| i.is_moderator)
+                    })
+                    .unwrap_or(false);
                 (is_moderator, m)
             })
             .collect::<Vec<_>>();
         let n_badges = messages.iter().filter(|t| t.0).count();
         if state.ids.chat_badges.len() < n_badges {
             state.update(|s| {
-                s.ids.chat_badges.resize(n_badges, &mut ui.widget_id_generator())
+                s.ids
+                    .chat_badges
+                    .resize(n_badges, &mut ui.widget_id_generator())
             })
         }
         Rectangle::fill_with([CHAT_ICON_WIDTH, CHAT_BOX_HEIGHT], color::TRANSPARENT)
@@ -489,10 +501,10 @@ impl<'a> Widget for Chat<'a> {
                 // If the user is a moderator display a moderator icon with their alias.
                 if *is_moderator {
                     Image::new(self.imgs.chat_moderator_badge)
-                    .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
-                    .top_left_with_margins_on(item.widget_id, 2.0, 7.0)
-                    .parent(state.ids.message_box_bg)
-                    .set(state.ids.chat_badges[badge_id], ui);
+                        .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
+                        .top_left_with_margins_on(item.widget_id, 2.0, 7.0)
+                        .parent(state.ids.message_box_bg)
+                        .set(state.ids.chat_badges[badge_id], ui);
 
                     badge_id += 1;
                 }

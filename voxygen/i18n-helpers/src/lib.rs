@@ -219,10 +219,6 @@ fn insert_alias(you: bool, info: PlayerInfo, localisation: &Localization) -> Str
         (false, false) => info.player_alias,
         (false, true) => localisation.get_msg(YOU).to_string(),
         (true, false) => format!("{}{}", MOD_SPACING, info.player_alias),
-        (true, true) => format!(
-            "{}{}",
-            MOD_SPACING,
-            &localisation.get_msg(YOU),
-        ),
+        (true, true) => format!("{}{}", MOD_SPACING, &localisation.get_msg(YOU),),
     }
 }
