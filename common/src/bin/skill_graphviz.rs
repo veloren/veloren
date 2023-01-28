@@ -7,7 +7,9 @@ use std::{fs::File, io::Write};
 use structopt::StructOpt;
 use veloren_common::comp::{
     item::tool::ToolKind,
-    skillset::{skills::Skill, SkillGroupKind, SKILL_GROUP_DEFS, SKILL_PREREQUISITES},
+    skillset::{
+        skills::Skill, SkillGroupKind, SkillPrerequisite, SKILL_GROUP_DEFS, SKILL_PREREQUISITES,
+    },
 };
 
 #[derive(StructOpt)]
@@ -35,9 +37,13 @@ fn main() {
         *nodes.entry(node).or_insert_with(|| graph.add_node(node))
     };
     for skill in skills {
-        let prerequisites = SKILL_PREREQUISITES
-            .get(skill)
-            .map_or(Vec::new(), |p| p.iter().collect::<Vec<_>>());
+        let prerequisites = SKILL_PREREQUISITES.get(skill).map_or(Vec::new(), |p| {
+            let p = match p {
+                SkillPrerequisite::Any(skills) => skills,
+                SkillPrerequisite::All(skills) => skills,
+            };
+            p.iter().collect::<Vec<_>>()
+        });
 
         let out_node = add_node(&mut graph, *skill);
         for prerequisite in prerequisites.iter().map(|(s, _)| s) {

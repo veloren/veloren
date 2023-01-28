@@ -18,6 +18,10 @@ fn check_cyclic_skill_deps() {
 
     for (skill, prereqs) in skill_prereqs.iter() {
         let skill_node = add_node(&mut graph, *skill);
+        let prereqs = match prereqs {
+            SkillPrerequisite::Any(skills) => skills,
+            SkillPrerequisite::All(skills) => skills,
+        };
         for (prereq, _) in prereqs.iter() {
             let prereq_node = add_node(&mut graph, *prereq);
             graph.add_edge(prereq_node, skill_node, ());
