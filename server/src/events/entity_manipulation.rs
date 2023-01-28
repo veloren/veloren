@@ -11,6 +11,7 @@ use crate::{
     sys::terrain::SAFE_ZONE_RADIUS,
     Server, SpawnPoint, StateExt,
 };
+use authc::Uuid;
 use common::{
     combat,
     combat::DamageContributor,
@@ -1456,5 +1457,18 @@ pub fn handle_update_map_marker(
                 comp::MapMarkerUpdate::GroupMember(*uid, update),
             ));
         }
+    }
+}
+
+pub fn handle_make_admin(server: &mut Server, entity: EcsEntity, admin: comp::Admin, uuid: Uuid) {
+    if server
+        .state
+        .read_storage::<Player>()
+        .get(entity)
+        .map_or(false, |player| player.uuid() == uuid)
+    {
+        server
+            .state
+            .write_component_ignore_entity_dead(entity, admin);
     }
 }

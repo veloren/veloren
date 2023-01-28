@@ -1,7 +1,6 @@
 //! # Implementing new commands.
 //! To implement a new command provide a handler function
 //! in [do_command].
-
 use crate::{
     client::Client,
     location::Locations,
@@ -125,11 +124,11 @@ fn do_command(
         ServerChatCommand::Adminify => handle_adminify,
         ServerChatCommand::Airship => handle_spawn_airship,
         ServerChatCommand::Alias => handle_alias,
-        ServerChatCommand::ApplyBuff => handle_apply_buff,
         ServerChatCommand::Ban => handle_ban,
         ServerChatCommand::BattleMode => handle_battlemode,
         ServerChatCommand::BattleModeForce => handle_battlemode_force,
         ServerChatCommand::Body => handle_body,
+        ServerChatCommand::Buff => handle_buff,
         ServerChatCommand::Build => handle_build,
         ServerChatCommand::BuildAreaAdd => handle_build_area_add,
         ServerChatCommand::BuildAreaList => handle_build_area_list,
@@ -3510,7 +3509,7 @@ fn handle_server_physics(
     }
 }
 
-fn handle_apply_buff(
+fn handle_buff(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,

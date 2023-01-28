@@ -61,10 +61,10 @@ pub struct ReadData<'a> {
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
+        Read<'a, EventBus<ServerEvent>>,
         ReadData<'a>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Player>,
-        WriteStorage<'a, Admin>,
         WriteStorage<'a, PendingLogin>,
     );
 
@@ -74,7 +74,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut clients, mut players, mut admins, mut pending_logins): Self::SystemData,
+        (event_bus, read_data, mut clients, mut players, mut pending_logins): Self::SystemData,
     ) {
         // Player list to send new players, and lookup from UUID to entity (so we don't
         // have to do a linear scan over all entities on each login to see if
@@ -87,7 +87,7 @@ impl<'a> System<'a> for Sys {
             &read_data.uids,
             &players,
             read_data.stats.maybe(),
-            admins.maybe(),
+            read_data.trackers.admin.maybe(),
         )
             .join()
             .map(|(entity, uid, player, stats, admin)| {
@@ -379,6 +379,7 @@ impl<'a> System<'a> for Sys {
             .into_values()
             .map(|(entity, player, admin, msg)| {
                 let username = &player.alias;
+                let uuid = player.uuid();
                 info!(?username, "New User");
                 // Add Player component to this client.
                 //
@@ -396,9 +397,13 @@ impl<'a> System<'a> for Sys {
                 // Give the Admin component to the player if their name exists in
                 // admin list
                 if let Some(admin) = admin {
-                    admins
-                        .insert(entity, Admin(admin.role.into()))
-                        .expect("Inserting into players proves the entity exists.");
+                    // We need to defer writing to the Admin storage since it's borrowed immutably
+                    // by this system via TrackedStorages.
+                    event_bus.emit_now(ServerEvent::MakeAdmin {
+                        entity,
+                        admin: Admin(admin.role.into()),
+                        uuid,
+                    });
                 }
                 msg
             })

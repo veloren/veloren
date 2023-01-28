@@ -87,6 +87,7 @@ specs = { version = "0.18", features = ["serde", "storage-event-control", "deriv
 
 # Mathematics
 vek = {version = "0.15.8", features = ["serde"]}
+levenshtein = "1.0.5"
 
 # Controller
 gilrs = {version = "0.10.0", features = ["serde-serialize"]}

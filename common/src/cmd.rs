@@ -242,18 +242,20 @@ pub enum ServerChatCommand {
     Adminify,
     Airship,
     Alias,
-    ApplyBuff,
     Ban,
     BattleMode,
     BattleModeForce,
     Body,
+    Buff,
     Build,
     BuildAreaAdd,
     BuildAreaList,
     BuildAreaRemove,
     Campfire,
+    CreateLocation,
     DebugColumn,
     DebugWays,
+    DeleteLocation,
     DisconnectAllPlayers,
     DropAll,
     Dummy,
@@ -277,9 +279,12 @@ pub enum ServerChatCommand {
     Kit,
     Lantern,
     Light,
+    Lightning,
+    Location,
     MakeBlock,
     MakeNpc,
     MakeSprite,
+    MakeVolume,
     Motd,
     Object,
     PermitBuild,
@@ -305,15 +310,10 @@ pub enum ServerChatCommand {
     Unban,
     Version,
     Waypoint,
+    WeatherZone,
     Whitelist,
     Wiring,
     World,
-    MakeVolume,
-    Location,
-    CreateLocation,
-    DeleteLocation,
-    WeatherZone,
-    Lightning,
 }
 
 impl ServerChatCommand {
@@ -339,7 +339,7 @@ impl ServerChatCommand {
                 "Change your alias",
                 Some(Moderator),
             ),
-            ServerChatCommand::ApplyBuff => cmd(
+            ServerChatCommand::Buff => cmd(
                 vec![
                     Enum("buff", BUFFS.clone(), Required),
                     Float("strength", 0.01, Optional),
@@ -734,11 +734,11 @@ impl ServerChatCommand {
             ServerChatCommand::Adminify => "adminify",
             ServerChatCommand::Airship => "airship",
             ServerChatCommand::Alias => "alias",
-            ServerChatCommand::ApplyBuff => "buff",
             ServerChatCommand::Ban => "ban",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",
             ServerChatCommand::Body => "body",
+            ServerChatCommand::Buff => "buff",
             ServerChatCommand::Build => "build",
             ServerChatCommand::BuildAreaAdd => "build_area_add",
             ServerChatCommand::BuildAreaList => "build_area_list",
@@ -759,14 +759,14 @@ impl ServerChatCommand {
             ServerChatCommand::GroupPromote => "group_promote",
             ServerChatCommand::GroupLeave => "group_leave",
             ServerChatCommand::Health => "health",
-            ServerChatCommand::JoinFaction => "join_faction",
             ServerChatCommand::Help => "help",
             ServerChatCommand::Home => "home",
+            ServerChatCommand::JoinFaction => "join_faction",
             ServerChatCommand::Jump => "jump",
             ServerChatCommand::Kick => "kick",
             ServerChatCommand::Kill => "kill",
-            ServerChatCommand::Kit => "kit",
             ServerChatCommand::KillNpcs => "kill_npcs",
+            ServerChatCommand::Kit => "kit",
             ServerChatCommand::Lantern => "lantern",
             ServerChatCommand::Light => "light",
             ServerChatCommand::MakeBlock => "make_block",
@@ -824,7 +824,9 @@ impl ServerChatCommand {
     }
 
     /// Produce an iterator over all the available commands
-    pub fn iter() -> impl Iterator<Item = Self> { <Self as IntoEnumIterator>::iter() }
+    pub fn iter() -> impl Iterator<Item = Self> + Clone {
+         <Self as IntoEnumIterator>::iter()
+    }
 
     /// A message that explains what the command does
     pub fn help_string(&self) -> String {
@@ -1041,6 +1043,18 @@ macro_rules! parse_cmd_args {
 mod tests {
     use super::*;
     use crate::comp::Item;
+
+    #[test]
+    fn verify_cmd_list_sorted() {
+        let mut list = ServerChatCommand::iter()
+            .map(|c| c.keyword())
+            .collect::<Vec<_>>();
+
+        // Vec::is_sorted is unstable, so we do it the hard way
+        let list2 = list.clone();
+        list.sort_unstable();
+        assert_eq!(list, list2);
+    }
 
     #[test]
     fn test_loading_skill_presets() { SkillPresetManifest::load_expect(PRESET_MANIFEST_PATH); }
