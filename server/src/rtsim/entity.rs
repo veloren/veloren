@@ -48,7 +48,7 @@ const BIRD_MEDIUM_ROSTER: &[comp::bird_medium::Species] = &[
 ];
 
 const BIRD_LARGE_ROSTER: &[comp::bird_large::Species] = &[
-    // Flame Wyvern not included until proper introduction
+    // Wyverns not included until proper introduction
     comp::bird_large::Species::Phoenix,
     comp::bird_large::Species::Cockatrice,
     comp::bird_large::Species::Roc,

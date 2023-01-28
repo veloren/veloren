@@ -51,10 +51,13 @@ impl Animation for StunnedAnimation {
 
         next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
         next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-
-        next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
-        next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
-
+        if s_a.wyvern {
+            next.wing_in_l.position = Vec3::new(-s_a.wing_in.0 + 3.5, s_a.wing_in.1, s_a.wing_in.2);
+            next.wing_in_r.position = Vec3::new(s_a.wing_in.0 - 3.5, s_a.wing_in.1, s_a.wing_in.2);
+        } else {
+            next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
+            next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
+        }
         next.wing_in_l.orientation = Quaternion::rotation_y(wave_slow_cos * 0.06 + twitch2 * 0.8)
             * Quaternion::rotation_z(0.2 - movement1abs);
         next.wing_in_r.orientation = Quaternion::rotation_y(wave_slow_cos * 0.06 - twitch2 * 0.8)

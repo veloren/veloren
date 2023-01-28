@@ -340,7 +340,15 @@ impl<'a> AgentData<'a> {
                     .map_or(false, |item| {
                         item.ability_spec().map_or(false, |a_s| match &*a_s {
                             AbilitySpec::Custom(spec) => {
-                                matches!(spec.as_str(), "Simple Flying Melee")
+                                matches!(
+                                    spec.as_str(),
+                                    "Simple Flying Melee"
+                                        | "Flame Wyvern"
+                                        | "Frost Wyvern"
+                                        | "Cloud Wyvern"
+                                        | "Sea Wyvern"
+                                        | "Weald Wyvern"
+                                )
                             },
                             _ => false,
                         })
@@ -850,6 +858,8 @@ impl<'a> AgentData<'a> {
                             "Bird Large Breathe" => Tactic::BirdLargeBreathe,
                             "Bird Large Fire" => Tactic::BirdLargeFire,
                             "Bird Large Basic" => Tactic::BirdLargeBasic,
+                            "Flame Wyvern" | "Frost Wyvern" | "Cloud Wyvern" | "Sea Wyvern"
+                            | "Weald Wyvern" => Tactic::Wyvern,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
@@ -1224,6 +1234,9 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::Wyvern => {
+                self.handle_wyvern_attack(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
             Tactic::Minotaur => {
                 self.handle_minotaur_attack(agent, controller, &attack_data, tgt_data, read_data)
             },

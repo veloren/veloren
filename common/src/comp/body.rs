@@ -431,6 +431,11 @@ impl Body {
             Body::BirdLarge(body) => match body.species {
                 bird_large::Species::Cockatrice => Vec3::new(2.5, 5.5, 3.5),
                 bird_large::Species::Roc => Vec3::new(2.2, 7.5, 4.0),
+                bird_large::Species::FlameWyvern
+                | bird_large::Species::FrostWyvern
+                | bird_large::Species::CloudWyvern
+                | bird_large::Species::SeaWyvern
+                | bird_large::Species::WealdWyvern => Vec3::new(4.0, 9.0, 4.5),
                 _ => Vec3::new(2.0, 6.0, 3.5),
             },
             Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
@@ -724,6 +729,11 @@ impl Body {
             Body::Dragon(_) => 500,
             Body::BirdLarge(bird_large) => match bird_large.species {
                 bird_large::Species::Roc => 280,
+                bird_large::Species::FlameWyvern
+                | bird_large::Species::CloudWyvern
+                | bird_large::Species::FrostWyvern
+                | bird_large::Species::SeaWyvern
+                | bird_large::Species::WealdWyvern => 1000,
                 _ => 300,
             },
             Body::FishSmall(_) => 3,

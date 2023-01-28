@@ -464,6 +464,46 @@
             Simple(None, "common.abilities.custom.birdlargefire.fireshockwave"),
         ],
     ),
+    Custom("Flame Wyvern"): (
+        primary: "common.abilities.custom.flamewyvern.firebomb",
+        secondary: "common.abilities.custom.flamewyvern.fireshockwave",
+        abilities: [
+            Simple(None, "common.abilities.custom.flamewyvern.triplestrike"),
+            Simple(None, "common.abilities.custom.flamewyvern.flamethrower"),
+        ],
+    ),
+    Custom("Frost Wyvern"): (
+        primary: "common.abilities.custom.frostwyvern.frostbomb",
+        secondary: "common.abilities.custom.frostwyvern.iceshockwave",
+        abilities: [
+            Simple(None, "common.abilities.custom.frostwyvern.triplestrike"),
+            Simple(None, "common.abilities.custom.frostwyvern.frostthrower"),
+        ],
+    ),
+    Custom("Cloud Wyvern"): (
+        primary: "common.abilities.custom.cloudwyvern.windbomb",
+        secondary: "common.abilities.custom.cloudwyvern.windshockwave",
+        abilities: [
+            Simple(None, "common.abilities.custom.cloudwyvern.triplestrike"),
+            Simple(None, "common.abilities.custom.cloudwyvern.windthrower"),
+        ],
+    ),
+    Custom("Sea Wyvern"): (
+        primary: "common.abilities.custom.seawyvern.seabomb",
+        secondary: "common.abilities.custom.seawyvern.seashockwave",
+        abilities: [
+            Simple(None, "common.abilities.custom.seawyvern.triplestrike"),
+            Simple(None, "common.abilities.custom.seawyvern.bubblethrower"),
+        ],
+    ),
+    Custom("Weald Wyvern"): (
+        primary: "common.abilities.custom.wealdwyvern.firebomb",
+        secondary: "common.abilities.custom.wealdwyvern.fireshockwave",
+        abilities: [
+            Simple(None, "common.abilities.custom.wealdwyvern.triplestrike"),
+            Simple(None, "common.abilities.custom.wealdwyvern.flamethrower"),
+        ],
+    ),
     Custom("Bird Large Basic"): (
         primary: "common.abilities.custom.birdlargebasic.triplestrike",
         secondary: "common.abilities.custom.birdlargebasic.summontornadoes",

@@ -1,0 +1,6 @@
+[
+    (1.0, ItemQuantity("common.items.food.meat.bird_large_raw", 1, 2)),
+    (1.0, ItemQuantity("common.items.food.meat.beast_large_raw", 2, 2)),
+    (2.0, ItemQuantity("common.items.crafting_ing.animal_misc.elegant_crest", 1, 3)),
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.scales", 2, 6)),
+]

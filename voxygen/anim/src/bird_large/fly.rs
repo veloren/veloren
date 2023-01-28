@@ -85,10 +85,15 @@ impl Animation for FlyAnimation {
             next.chest.orientation = Quaternion::rotation_x(
                 (0.8 - 0.8 * velocity.xy().magnitude() / 5.0).max(-0.2) - flap1 * 0.2,
             ) * Quaternion::rotation_y(tilt * 1.8 + fast * 0.01);
-
-            next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
-            next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
-
+            if s_a.wyvern {
+                next.wing_in_l.position =
+                    Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2 + 2.0);
+                next.wing_in_r.position =
+                    Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2 + 2.0);
+            } else {
+                next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
+                next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
+            }
             next.wing_in_l.orientation =
                 Quaternion::rotation_y(-flap1 * 1.9 + 0.2) * Quaternion::rotation_x(0.4);
             next.wing_in_r.orientation =
@@ -135,9 +140,15 @@ impl Animation for FlyAnimation {
             next.chest.orientation =
                 Quaternion::rotation_x(-0.2 + slow * 0.05 + (0.8 * velocity.z / 80.0).min(0.8))
                     * Quaternion::rotation_y(tilt * 1.8 + fast * 0.01);
-
-            next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
-            next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
+            if s_a.wyvern {
+                next.wing_in_l.position =
+                    Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2 + 2.0);
+                next.wing_in_r.position =
+                    Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2 + 2.0);
+            } else {
+                next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
+                next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
+            }
 
             next.wing_in_l.orientation =
                 Quaternion::rotation_y(0.1 + slow * 0.04 + (0.8 * velocity.z / 80.0).min(0.8))

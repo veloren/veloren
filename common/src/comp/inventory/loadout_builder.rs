@@ -762,15 +762,7 @@ fn default_main_tool(body: &Body) -> Item {
             )),
         },
         Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {
-            (
-                bird_large::Species::Cockatrice
-                | bird_large::Species::FlameWyvern
-                | bird_large::Species::CloudWyvern
-                | bird_large::Species::FrostWyvern
-                | bird_large::Species::SeaWyvern
-                | bird_large::Species::WealdWyvern,
-                _,
-            ) => Some(Item::new_from_asset_expect(
+            (bird_large::Species::Cockatrice, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.birdlargebreathe",
             )),
             (bird_large::Species::Phoenix, _) => Some(Item::new_from_asset_expect(
@@ -778,6 +770,21 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (bird_large::Species::Roc, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.birdlargebasic",
+            )),
+            (bird_large::Species::FlameWyvern, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.flamewyvern",
+            )),
+            (bird_large::Species::FrostWyvern, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.frostwyvern",
+            )),
+            (bird_large::Species::CloudWyvern, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.cloudwyvern",
+            )),
+            (bird_large::Species::SeaWyvern, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.seawyvern",
+            )),
+            (bird_large::Species::WealdWyvern, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.wealdwyvern",
             )),
         },
         Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -898,6 +905,16 @@ impl LoadoutBuilder {
                 },
                 biped_large::Species::Cultistwarlock => {
                     Some("common.items.npc_armor.biped_large.warlock")
+                },
+                _ => None,
+            },
+            Body::BirdLarge(body) => match body.species {
+                bird_large::Species::FlameWyvern
+                | bird_large::Species::FrostWyvern
+                | bird_large::Species::CloudWyvern
+                | bird_large::Species::SeaWyvern
+                | bird_large::Species::WealdWyvern => {
+                    Some("common.items.npc_armor.bird_large.wyvern")
                 },
                 _ => None,
             },

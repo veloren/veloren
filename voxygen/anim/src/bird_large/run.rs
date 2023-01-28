@@ -126,18 +126,18 @@ impl Animation for RunAnimation {
                 Quaternion::rotation_x(-0.1 + short * -0.1) * Quaternion::rotation_z(tilt * 0.8);
 
             next.wing_in_l.position = Vec3::new(
-                -s_a.wing_in.0,
+                -s_a.wing_in.0 + 1.5,
                 s_a.wing_in.1 + foot1a * 2.0,
-                s_a.wing_in.2 + speednorm * 1.0 + foot1b * 1.0,
+                s_a.wing_in.2 + speednorm * 1.0 + foot1b * 1.0 - 3.0,
             );
             next.wing_in_r.position = Vec3::new(
-                s_a.wing_in.0,
+                s_a.wing_in.0 - 1.5,
                 s_a.wing_in.1 + foot2a * 2.0,
-                s_a.wing_in.2 + speednorm * 1.0 + foot2b * 1.0,
+                s_a.wing_in.2 + speednorm * 1.0 + foot2b * 1.0 - 3.0,
             );
 
             next.wing_in_l.orientation = Quaternion::rotation_x(foot2a * -0.05 + speednorm * -0.3)
-                * Quaternion::rotation_y(-0.8 + speednorm * 0.55 + foot2b * -0.2)
+                * Quaternion::rotation_y(-0.8 + speednorm * 0.5 + foot2b * -0.2)
                 * Quaternion::rotation_z(0.2 + foot2a * 0.6);
             next.wing_in_r.orientation = Quaternion::rotation_x(foot1a * -0.05 + speednorm * -0.3)
                 * Quaternion::rotation_y(0.8 + speednorm * -0.55 + foot1b * 0.2)
