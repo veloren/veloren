@@ -77,6 +77,16 @@ pub enum ProjectileConstructor {
         knockback: f32,
         min_falloff: f32,
     },
+    SeaBomb {
+        damage: f32,
+        radius: f32,
+        min_falloff: f32,
+    },
+    WindBomb {
+        damage: f32,
+        radius: f32,
+        min_falloff: f32,
+    },
     Snowball {
         damage: f32,
         radius: f32,
@@ -373,6 +383,74 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
+            SeaBomb {
+                damage,
+                radius,
+                min_falloff,
+            } => {
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_combo_increment();
+                let explosion = Explosion {
+                    effects: vec![RadiusEffect::Attack(attack)],
+                    radius,
+                    reagent: Some(Reagent::Blue),
+                    min_falloff,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
+            WindBomb {
+                damage,
+                radius,
+                min_falloff,
+            } => {
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_combo_increment();
+                let explosion = Explosion {
+                    effects: vec![RadiusEffect::Attack(attack)],
+                    radius,
+                    reagent: Some(Reagent::White),
+                    min_falloff,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
             Snowball {
                 damage,
                 radius,
@@ -572,6 +650,22 @@ impl ProjectileConstructor {
             },
             Possess => {},
             ClayRocket {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
+            SeaBomb {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
+            WindBomb {
                 ref mut damage,
                 ref mut radius,
                 ..

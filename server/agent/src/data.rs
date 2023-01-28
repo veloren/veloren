@@ -120,6 +120,7 @@ pub enum Tactic {
     BirdLargeBreathe,
     BirdLargeFire,
     BirdLargeBasic,
+    Wyvern,
     ArthropodMelee,
     ArthropodRanged,
     ArthropodAmbush,

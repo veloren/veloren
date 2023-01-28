@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("wyvern_sea"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.bird_large.wyvern"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)
