@@ -1105,20 +1105,20 @@ fn handle_ability(
                 }
             }
             update.used_inputs.push(input);
+            if let CharacterState::Roll(roll) = &mut update.character {
+                if let CharacterState::ComboMelee(c) = data.character {
+                    roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
+                    roll.was_wielded = true;
+                } else {
+                    if data.character.is_wield() || data.character.was_wielded() {
+                        roll.was_wielded = true;
+                    }
+                    if data.character.is_stealthy() {
+                        roll.is_sneaking = true;
+                    }
+                }
+            }
             return true;
-        }
-    }
-    if let CharacterState::Roll(roll) = &mut update.character {
-        if let CharacterState::ComboMelee(c) = data.character {
-            roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
-            roll.was_wielded = true;
-        } else {
-            if data.character.is_wield() {
-                roll.was_wielded = true;
-            }
-            if data.character.is_stealthy() {
-                roll.is_sneaking = true;
-            }
         }
     }
     false
