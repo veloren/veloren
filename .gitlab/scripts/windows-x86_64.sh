@@ -6,6 +6,6 @@ export VELOREN_USERDATA_STRATEGY=executable
 # RUSTFLAGS is set here in addition to env.sh (which is used for all targets not just windows) due to
 # https://github.com/rust-lang/cargo/issues/5376 which prevents the windows-specific rustflags set in
 # .cargo/config from being applied
-export RUSTFLAGS="-C link-arg=-lpsapi"
+export RUSTFLAGS="-D warnings -C link-arg=-lpsapi"
 
 time cargo build --target=x86_64-pc-windows-gnu --release --no-default-features --features default-publish
