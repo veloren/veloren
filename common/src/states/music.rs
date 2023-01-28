@@ -36,6 +36,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        leave_stance(data, output_events);
         handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
         handle_move(data, &mut update, 0.7);
         handle_jump(data, output_events, &mut update, 1.0);
@@ -70,7 +71,9 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) && input_is_pressed(data, InputKind::Roll) {
+        if !input_is_pressed(data, self.static_data.ability_info.input)
+            && input_is_pressed(data, InputKind::Roll)
+        {
             handle_input(data, output_events, &mut update, InputKind::Roll);
         }
 

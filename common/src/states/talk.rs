@@ -14,9 +14,10 @@ const TURN_RATE: f32 = 40.0;
 pub struct Data;
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        leave_stance(data, output_events);
         handle_wield(data, &mut update);
         handle_orientation(data, &mut update, TURN_RATE, None);
 

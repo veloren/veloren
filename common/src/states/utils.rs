@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        ability::{Ability, AbilityInitEvent, AbilityInput, AbilityMeta, Capability},
+        ability::{Ability, AbilityInitEvent, AbilityInput, AbilityMeta, Capability, Stance},
         arthropod, biped_large, biped_small, bird_medium,
         character_state::OutputEvents,
         controller::InventoryManip,
@@ -323,6 +323,7 @@ impl Body {
 pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
     if let Idle(idle::Data {
         is_sneaking,
+        time_entered,
         mut footwear,
     }) = data.character
     {
@@ -336,6 +337,7 @@ pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
             });
             update.character = Idle(idle::Data {
                 is_sneaking: *is_sneaking,
+                time_entered: *time_entered,
                 footwear,
             });
         }
@@ -770,6 +772,7 @@ pub fn attempt_sneak(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
         update.character = Idle(idle::Data {
             is_sneaking: true,
+            time_entered: *data.time,
             footwear: data.character.footwear(),
         });
     }
@@ -1361,7 +1364,17 @@ impl Mul<f32> for ForcedMovement {
             Sideways(x) => Sideways(x * scalar),
             DirectedReverse(x) => DirectedReverse(x * scalar),
             AntiDirectedForward(x) => AntiDirectedForward(x * scalar),
-            Leap { vertical, forward, progress, direction } => Leap { vertical: vertical * scalar, forward: forward * scalar, progress, direction },
+            Leap {
+                vertical,
+                forward,
+                progress,
+                direction,
+            } => Leap {
+                vertical: vertical * scalar,
+                forward: forward * scalar,
+                progress,
+                direction,
+            },
             Hover { move_input } => Hover { move_input },
         }
     }
@@ -1447,6 +1460,7 @@ pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
         update.character = CharacterState::Idle(idle::Data {
             is_sneaking: data.character.is_stealthy(),
             footwear: None,
+            time_entered: *data.time,
         });
     }
 }
@@ -1475,5 +1489,14 @@ impl HandInfo {
                 }
             },
         }
+    }
+}
+
+pub fn leave_stance(data: &JoinData<'_>, output_events: &mut OutputEvents) {
+    if !matches!(data.stance, Some(Stance::None)) {
+        output_events.emit_server(ServerEvent::ChangeStance {
+            entity: data.entity,
+            stance: Stance::None,
+        });
     }
 }

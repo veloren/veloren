@@ -790,6 +790,9 @@ impl ProjectileConstructor {
             Snowball { .. } => true,
             ExplodingPumpkin { .. } => true,
             DagonBomb { .. } => true,
+            SeaBomb { .. } => true,
+            WindBomb { .. } => true,
+            IceBomb { .. } => true,
         }
     }
 }

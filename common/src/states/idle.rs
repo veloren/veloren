@@ -4,13 +4,15 @@ use crate::{
         character_state::OutputEvents, controller::InputKind, inventory::item::armor::Friction,
         CharacterState, InventoryAction, StateUpdate,
     },
+    resources::Time,
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct Data {
     pub is_sneaking: bool,
+    pub(crate) time_entered: Time,
     // None means unknown
     pub(crate) footwear: Option<Friction>,
 }
@@ -18,6 +20,11 @@ pub struct Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        const LEAVE_STANCE_DELAY: f64 = 5.0;
+        if (self.time_entered.0 + LEAVE_STANCE_DELAY) < data.time.0 {
+            leave_stance(data, output_events);
+        }
 
         handle_skating(data, &mut update);
         handle_orientation(data, &mut update, 1.0, None);
@@ -36,6 +43,7 @@ impl CharacterBehavior for Data {
         {
             update.character = CharacterState::Idle(Data {
                 is_sneaking: false,
+                time_entered: self.time_entered,
                 footwear: self.footwear,
             });
         }
@@ -88,6 +96,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle(Data {
             is_sneaking: true,
+            time_entered: self.time_entered,
             footwear: self.footwear,
         });
         update

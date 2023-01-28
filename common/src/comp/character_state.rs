@@ -5,6 +5,7 @@ use crate::{
         Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
     },
     event::{LocalEvent, ServerEvent},
+    resources::Time,
     states::{
         self,
         behavior::{CharacterBehavior, JoinData},
@@ -201,7 +202,8 @@ impl CharacterState {
             self,
             CharacterState::Idle(idle::Data {
                 is_sneaking: true,
-                footwear: _
+                footwear: _,
+                time_entered: _,
             }) | CharacterState::Wielding(wielding::Data {
                 is_sneaking: true,
                 ..
@@ -926,6 +928,11 @@ impl CharacterState {
             CharacterState::DiveMelee(_) => Some(AttackSource::Melee),
             CharacterState::RiposteMelee(_) => Some(AttackSource::Melee),
             CharacterState::RapidMelee(_) => Some(AttackSource::Melee),
+            CharacterState::LeapShockwave(data) => Some(if data.static_data.requires_ground {
+                AttackSource::GroundShockwave
+            } else {
+                AttackSource::AirShockwave
+            }),
         }
     }
 }
@@ -967,6 +974,7 @@ impl Default for CharacterState {
         Self::Idle(idle::Data {
             is_sneaking: false,
             footwear: None,
+            time_entered: Time(0.0),
         })
     }
 }

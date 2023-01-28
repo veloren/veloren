@@ -35,12 +35,14 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        leave_stance(data, output_events);
         handle_wield(data, &mut update);
         handle_jump(data, output_events, &mut update, 1.0);
 
         if !data.physics.skating_active {
             update.character = CharacterState::Idle(idle::Data {
                 is_sneaking: false,
+                time_entered: *data.time,
                 footwear: Some(self.footwear),
             });
         } else {
