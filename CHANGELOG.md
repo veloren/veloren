@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Faster Energy Regeneration while sitting.
 - Lantern glow for dropped lanterns.
 - Suggests commands when an invalid one is entered in chat and added Client-side commands to /help.
+- Moderator badge in the chat.
 
 ### Changed
 - Bats move slower and use a simple proportional controller to maintain altitude

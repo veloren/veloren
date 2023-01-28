@@ -213,15 +213,12 @@ pub fn localize_chat_message(
 
 fn insert_alias(you: bool, info: PlayerInfo, localisation: &Localization) -> String {
     const YOU: &str = "hud-chat-you";
-    const MOD: &str = "hud-chat-mod";
+    // Leave space for a mod badge icon.
+    const MOD_SPACING: &str = "      ";
     match (info.is_moderator, you) {
         (false, false) => info.player_alias,
         (false, true) => localisation.get_msg(YOU).to_string(),
-        (true, false) => format!("{} - {}", &localisation.get_msg(MOD), info.player_alias),
-        (true, true) => format!(
-            "{} - {}",
-            &localisation.get_msg(MOD),
-            &localisation.get_msg(YOU)
-        ),
+        (true, false) => format!("{}{}", MOD_SPACING, info.player_alias),
+        (true, true) => format!("{}{}", MOD_SPACING, &localisation.get_msg(YOU),),
     }
 }
