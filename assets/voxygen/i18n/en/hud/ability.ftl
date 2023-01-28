@@ -51,7 +51,9 @@ common-abilities-sword-crippling_deep_rend = Deep Rend
 common-abilities-sword-cleaving_spiral_slash = Spiral Slash
     .desc = Sweep your blade fully around you to hit anyone nearby
 veloren-core-pseudo_abilities-sword-crescent_slash = Crescent Slash
-    .desc = An upwards diagonal slash
+    .desc =
+        An upwards diagonal slash
+        Is modified depending on your stance
 common-abilities-sword-basic_crescent_slash = Basic Crescent Slash
     .desc = A basic, upwards diagonal slash
 common-abilities-sword-heavy_crescent_slash = Heavy Crescent Slash
@@ -65,7 +67,9 @@ common-abilities-sword-crippling_crescent_slash = Crippling Crescent Slash
 common-abilities-sword-cleaving_crescent_slash = Cleaving Crescent Slash
     .desc = An upwards diagonal slash that can cleave through enemies
 veloren-core-pseudo_abilities-sword-fell_strike = Fell Strike
-    .desc = A quick strong slash
+    .desc =
+        A quick strong slash
+        Is modified depending on your stance
 common-abilities-sword-basic_fell_strike = Basic Fell Strike
     .desc = A basic, quick strong slash
 common-abilities-sword-heavy_fell_strike = Heavy Fell Strike
@@ -79,7 +83,9 @@ common-abilities-sword-crippling_fell_strike = Crippling Fell Strike
 common-abilities-sword-cleaving_fell_strike = Cleaving Fell Strike
     .desc = A quick strong slash that can cleave through enemies
 veloren-core-pseudo_abilities-sword-skewer = Skewer
-    .desc = A stabbing lunge
+    .desc =
+        A stabbing lunge
+        Is modified depending on your stance
 common-abilities-sword-basic_skewer = Basic Skewer
     .desc = A basic, stabbing lunge
 common-abilities-sword-heavy_skewer = Heavy Skewer
@@ -93,7 +99,9 @@ common-abilities-sword-crippling_skewer = Crippling Skewer
 common-abilities-sword-cleaving_skewer = Cleaving Skewer
     .desc = A stabbing lunge that can cleave through enemies
 veloren-core-pseudo_abilities-sword-cascade = Cascade
-    .desc = An overhead slash
+    .desc =
+        An overhead slash
+        Is modified depending on your stance
 common-abilities-sword-basic_cascade = Basic Cascade
     .desc = A basic, overhead slash
 common-abilities-sword-heavy_cascade = Heavy Cascade
@@ -107,7 +115,9 @@ common-abilities-sword-crippling_cascade = Crippling Cascade
 common-abilities-sword-cleaving_cascade = Cleaving Cascade
     .desc = An overhead slash that can cleave through enemies
 veloren-core-pseudo_abilities-sword-cross_cut = Cross Cut
-    .desc = A right and left slash
+    .desc =
+        A right and left slash
+        Is modified depending on your stance
 common-abilities-sword-basic_cross_cut = Basic Cross Cut
     .desc = A basic right and left slash
 common-abilities-sword-heavy_cross_cut = Heavy Cross Cut
@@ -121,7 +131,9 @@ common-abilities-sword-crippling_cross_cut = Crippling Cross Cut
 common-abilities-sword-cleaving_cross_cut = Cleaving Cross Cut
     .desc = A right and left slash which cleave through enemies
 veloren-core-pseudo_abilities-sword-finisher = Finisher
-    .desc = An ability that consumes combo and is meant to end a fight
+    .desc =
+        An ability that consumes combo and is meant to end a fight
+        The finisher will be different depending on your stance
 common-abilities-sword-basic_mighty_strike = Mighty Strike
     .desc = A simple, powerful slash
 common-abilities-sword-heavy_guillotine = Guillotine
