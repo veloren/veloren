@@ -94,6 +94,7 @@ pub struct State {
 
 pub enum Event {
     RemoveBuff(BuffKind),
+    LeaveStance,
 }
 
 const MULTIPLICITY_COLOR: Color = TEXT_COLOR;
@@ -283,7 +284,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     {
                         match buff.kind {
                             BuffIconKind::Buff { kind, .. } => event.push(Event::RemoveBuff(kind)),
-                            BuffIconKind::Ability { .. } => {},
+                            BuffIconKind::Stance(_) => event.push(Event::LeaveStance),
                         }
                     };
                 });
@@ -471,7 +472,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     {
                         match buff.kind {
                             BuffIconKind::Buff { kind, .. } => event.push(Event::RemoveBuff(kind)),
-                            BuffIconKind::Ability { .. } => {},
+                            BuffIconKind::Stance(_) => event.push(Event::LeaveStance),
                         }
                     }
                     Text::new(&remaining_time)

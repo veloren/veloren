@@ -1315,6 +1315,10 @@ impl Client {
         )));
     }
 
+    pub fn leave_stance(&mut self) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::LeaveStance));
+    }
+
     pub fn unlock_skill(&mut self, skill: Skill) {
         self.send_msg(ClientGeneral::UnlockSkill(skill));
     }

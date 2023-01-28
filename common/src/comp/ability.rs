@@ -2894,7 +2894,7 @@ pub struct AbilityRequirements {
     pub stance: Option<Stance>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
 pub enum SwordStance {
     Crippling,
     Cleaving,
@@ -2922,10 +2922,29 @@ bitflags::bitflags! {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
 pub enum Stance {
     None,
     Sword(SwordStance),
+}
+
+impl Stance {
+    pub fn pseudo_ability_id(&self) -> &str {
+        match self {
+            Stance::Sword(SwordStance::Heavy) => "veloren.core.pseudo_abilities.sword.heavy_stance",
+            Stance::Sword(SwordStance::Agile) => "veloren.core.pseudo_abilities.sword.agile_stance",
+            Stance::Sword(SwordStance::Defensive) => {
+                "veloren.core.pseudo_abilities.sword.defensive_stance"
+            },
+            Stance::Sword(SwordStance::Crippling) => {
+                "veloren.core.pseudo_abilities.sword.crippling_stance"
+            },
+            Stance::Sword(SwordStance::Cleaving) => {
+                "veloren.core.pseudo_abilities.sword.cleaving_stance"
+            },
+            Stance::None => "veloren.core.pseudo_abilities.no_stance",
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

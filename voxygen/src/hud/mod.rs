@@ -85,7 +85,7 @@ use common::{
     combat,
     comp::{
         self,
-        ability::AuxiliaryAbility,
+        ability::{AuxiliaryAbility, Stance},
         fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
         item::{
@@ -460,29 +460,27 @@ impl<W: Positionable> Position for W {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum BuffIconKind<'a> {
+pub enum BuffIconKind {
     Buff {
         kind: BuffKind,
         data: BuffData,
         multiplicity: usize,
     },
-    Ability {
-        ability_id: &'a str,
-    },
+    Stance(Stance),
 }
 
-impl<'a> BuffIconKind<'a> {
+impl BuffIconKind {
     pub fn image(&self, imgs: &Imgs) -> conrod_core::image::Id {
         match self {
             Self::Buff { kind, .. } => get_buff_image(*kind, imgs),
-            Self::Ability { ability_id, .. } => util::ability_image(imgs, ability_id),
+            Self::Stance(stance) => util::ability_image(imgs, stance.pseudo_ability_id()),
         }
     }
 
     pub fn max_duration(&self) -> Option<Secs> {
         match self {
             Self::Buff { data, .. } => data.duration,
-            Self::Ability { .. } => None,
+            Self::Stance(_) => None,
         }
     }
 
@@ -499,14 +497,14 @@ impl<'a> BuffIconKind<'a> {
                 get_buff_title(*kind, localized_strings),
                 get_buff_desc(*kind, *data, localized_strings),
             ),
-            Self::Ability { ability_id } => {
-                util::ability_description(ability_id, localized_strings)
+            Self::Stance(stance) => {
+                util::ability_description(stance.pseudo_ability_id(), localized_strings)
             },
         }
     }
 }
 
-impl<'a> PartialOrd for BuffIconKind<'a> {
+impl PartialOrd for BuffIconKind {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
             (
@@ -515,19 +513,16 @@ impl<'a> PartialOrd for BuffIconKind<'a> {
                     kind: other_kind, ..
                 },
             ) => Some(kind.cmp(other_kind)),
-            (BuffIconKind::Buff { .. }, BuffIconKind::Ability { .. }) => Some(Ordering::Greater),
-            (BuffIconKind::Ability { .. }, BuffIconKind::Buff { .. }) => Some(Ordering::Less),
-            (
-                BuffIconKind::Ability { ability_id },
-                BuffIconKind::Ability {
-                    ability_id: other_id,
-                },
-            ) => Some(ability_id.cmp(other_id)),
+            (BuffIconKind::Buff { .. }, BuffIconKind::Stance(_)) => Some(Ordering::Greater),
+            (BuffIconKind::Stance(_), BuffIconKind::Buff { .. }) => Some(Ordering::Less),
+            (BuffIconKind::Stance(stance), BuffIconKind::Stance(stance_other)) => {
+                Some(stance.cmp(stance_other))
+            },
         }
     }
 }
 
-impl<'a> Ord for BuffIconKind<'a> {
+impl Ord for BuffIconKind {
     fn cmp(&self, other: &Self) -> Ordering {
         // We know this is safe since we can look at the partialord implementation and
         // see that every variant is wrapped in Some
@@ -535,7 +530,7 @@ impl<'a> Ord for BuffIconKind<'a> {
     }
 }
 
-impl<'a> PartialEq for BuffIconKind<'a> {
+impl PartialEq for BuffIconKind {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (
@@ -544,31 +539,28 @@ impl<'a> PartialEq for BuffIconKind<'a> {
                     kind: other_kind, ..
                 },
             ) => kind == other_kind,
-            (
-                BuffIconKind::Ability { ability_id },
-                BuffIconKind::Ability {
-                    ability_id: other_id,
-                },
-            ) => ability_id == other_id,
+            (BuffIconKind::Stance(stance), BuffIconKind::Stance(stance_other)) => {
+                stance == stance_other
+            },
             _ => false,
         }
     }
 }
 
-impl<'a> Eq for BuffIconKind<'a> {}
+impl Eq for BuffIconKind {}
 
 #[derive(Clone, Copy, Debug)]
-pub struct BuffIcon<'a> {
-    kind: BuffIconKind<'a>,
+pub struct BuffIcon {
+    kind: BuffIconKind,
     is_buff: bool,
     end_time: Option<f64>,
 }
 
-impl<'a> BuffIcon<'a> {
+impl BuffIcon {
     pub fn multiplicity(&self) -> usize {
         match self.kind {
             BuffIconKind::Buff { multiplicity, .. } => multiplicity,
-            BuffIconKind::Ability { .. } => 1,
+            BuffIconKind::Stance(_) => 1,
         }
     }
 
@@ -589,25 +581,13 @@ impl<'a> BuffIcon<'a> {
     }
 
     fn from_stance(stance: &comp::Stance) -> Option<Self> {
-        use comp::ability::{Stance, SwordStance};
-        let id = match stance {
-            Stance::Sword(SwordStance::Heavy) => "veloren.core.pseudo_abilities.sword.heavy_stance",
-            Stance::Sword(SwordStance::Agile) => "veloren.core.pseudo_abilities.sword.agile_stance",
-            Stance::Sword(SwordStance::Defensive) => {
-                "veloren.core.pseudo_abilities.sword.defensive_stance"
-            },
-            Stance::Sword(SwordStance::Crippling) => {
-                "veloren.core.pseudo_abilities.sword.crippling_stance"
-            },
-            Stance::Sword(SwordStance::Cleaving) => {
-                "veloren.core.pseudo_abilities.sword.cleaving_stance"
-            },
-            Stance::None => {
-                return None;
-            },
+        let stance = if let Stance::None = stance {
+            return None;
+        } else {
+            stance
         };
         Some(BuffIcon {
-            kind: BuffIconKind::Ability { ability_id: id },
+            kind: BuffIconKind::Stance(*stance),
             is_buff: true,
             end_time: None,
         })
@@ -745,6 +725,7 @@ pub enum Event {
     LeaveGroup,
     AssignLeader(Uid),
     RemoveBuff(BuffKind),
+    LeaveStance,
     UnlockSkill(Skill),
     SelectExpBar(Option<SkillGroupKind>),
 
@@ -3170,6 +3151,7 @@ impl Hud {
             {
                 match event {
                     buffs::Event::RemoveBuff(buff_id) => events.push(Event::RemoveBuff(buff_id)),
+                    buffs::Event::LeaveStance => events.push(Event::LeaveStance),
                 }
             }
         }
