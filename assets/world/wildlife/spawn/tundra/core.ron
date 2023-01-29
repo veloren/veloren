@@ -8,6 +8,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.wendigo")),
                 (1, (2, 6, "common.entity.wild.peaceful.mammoth")),
                 (1, (1, 1, "common.entity.wild.aggressive.mountain_troll")),
+                (1, (1, 1, "common.entity.wild.aggressive.tursus")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],

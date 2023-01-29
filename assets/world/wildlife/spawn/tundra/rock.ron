@@ -6,6 +6,7 @@ SpawnEntry (
             groups: [
                 (1, (1, 1, "common.entity.wild.peaceful.jackalope")),
                 (1, (1, 1, "common.entity.wild.peaceful.arctic_hare")),
+                (1, (1, 1, "common.entity.wild.aggressive.tursus")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],

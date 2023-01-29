@@ -410,7 +410,7 @@ impl Body {
                 biped_large::Species::Cultistwarlord => Vec3::new(3.0, 3.0, 4.5),
                 biped_large::Species::Cultistwarlock => Vec3::new(3.0, 3.0, 3.5),
                 biped_large::Species::Huskbrute => Vec3::new(4.6, 3.0, 5.0),
-                biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 3.5),
+                biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 4.0),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -465,7 +465,7 @@ impl Body {
                 quadruped_medium::Species::Horse => Vec3::new(2.0, 3.0, 2.4),
                 quadruped_medium::Species::Lion => Vec3::new(2.0, 3.3, 2.0),
                 quadruped_medium::Species::Moose => Vec3::new(2.0, 4.0, 2.5),
-                quadruped_medium::Species::Bristleback => Vec3::new(2.0, 4.0, 2.5),
+                quadruped_medium::Species::Bristleback => Vec3::new(2.0, 3.0, 2.0),
                 quadruped_medium::Species::Roshwalr => Vec3::new(2.0, 3.5, 2.2),
                 quadruped_medium::Species::Saber => Vec3::new(2.0, 3.0, 2.0),
                 quadruped_medium::Species::Tarasque => Vec3::new(2.0, 4.0, 2.6),
@@ -520,7 +520,7 @@ impl Body {
                 theropod::Species::Sunlizard => Vec3::new(2.0, 3.6, 2.5),
                 theropod::Species::Woodraptor => Vec3::new(2.0, 3.0, 2.6),
                 theropod::Species::Yale => Vec3::new(2.0, 3.2, 4.0),
-                theropod::Species::Axebeak => Vec3::new(2.0, 3.2, 4.0),
+                theropod::Species::Axebeak => Vec3::new(2.0, 3.6, 3.0),
             },
             Body::Arthropod(body) => match body.species {
                 arthropod::Species::Tarantula => Vec3::new(4.0, 4.0, 1.8),

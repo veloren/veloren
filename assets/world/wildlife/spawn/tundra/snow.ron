@@ -10,6 +10,7 @@ SpawnEntry (
                 (1, (1, 3, "common.entity.wild.aggressive.snow_raptor")),
                 (1, (1, 1, "common.entity.wild.aggressive.roshwalr")),
                 (5, (5, 20, "common.entity.wild.peaceful.penguin")),
+                (5, (5, 10, "common.entity.wild.peaceful.seal")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
