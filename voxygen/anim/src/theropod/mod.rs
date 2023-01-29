@@ -103,6 +103,7 @@ pub struct SkeletonAttr {
     leg: (f32, f32, f32),
     foot: (f32, f32, f32),
     scaler: f32,
+    steady_wings: bool,
 }
 
 impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -130,6 +131,7 @@ impl Default for SkeletonAttr {
             leg: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
             scaler: 0.0,
+            steady_wings: false,
         }
     }
 }
@@ -160,7 +162,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Yale, _) => (2.0, -9.5),
                 (Dodarock, _) => (0.0, -5.0),
                 (Ntouka, _) => (0.0, -4.0),
-                (Axebeak, _) => (5.0, -9.5),
+                (Axebeak, _) => (2.5, -4.0),
             },
             neck: match (body.species, body.body_type) {
                 (Archaeos, _) => (4.5, -2.0),
@@ -270,6 +272,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Ntouka, _) => 2.93,
                 (Axebeak, _) => 1.1,
             },
+            steady_wings: matches!((body.species, body.body_type), (Axebeak, _)),
         }
     }
 }

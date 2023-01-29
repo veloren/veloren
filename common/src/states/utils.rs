@@ -89,7 +89,7 @@ impl Body {
                 quadruped_medium::Species::Llama => 120.0,
                 quadruped_medium::Species::Alpaca => 110.0,
                 quadruped_medium::Species::Akhlut => 90.0,
-                quadruped_medium::Species::Bristlemane => 135.0,
+                quadruped_medium::Species::Bristleback => 135.0,
             },
             Body::BipedLarge(body) => match body.species {
                 biped_large::Species::Slysaurok => 100.0,

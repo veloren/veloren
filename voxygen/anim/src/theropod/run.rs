@@ -103,13 +103,21 @@ impl Animation for RunAnimation {
         next.tail_back.position = Vec3::new(0.0, s_a.tail_back.0, s_a.tail_back.1);
         next.tail_back.orientation = Quaternion::rotation_x(0.2 + short * -0.1)
             * Quaternion::rotation_z(shortalt * -0.2 + tilt * 1.4);
+        if s_a.steady_wings {
+            next.hand_l.position = Vec3::new(-s_a.hand.0 - 8.0, s_a.hand.1, s_a.hand.2);
+            next.hand_l.orientation =
+                Quaternion::rotation_x(-0.2 * speednorm) * Quaternion::rotation_z(-0.6);
 
-        next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
-        next.hand_l.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot2a * 0.3);
+            next.hand_r.position = Vec3::new(s_a.hand.0 + 8.0, s_a.hand.1, s_a.hand.2);
+            next.hand_r.orientation =
+                Quaternion::rotation_x(-0.2 * speednorm) * Quaternion::rotation_z(0.6);
+        } else {
+            next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+            next.hand_l.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot2a * 0.3);
 
-        next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
-        next.hand_r.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot1a * 0.3);
-
+            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+            next.hand_r.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot1a * 0.3);
+        };
         next.leg_l.position = Vec3::new(
             -s_a.leg.0 + speednorm * 1.5,
             s_a.leg.1 + foot1b * -1.3,

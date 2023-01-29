@@ -2379,72 +2379,72 @@
             lateral: ("npc.akhlut.male.foot_br"),
         ),
     ),
-    (Bristlemane, Male): (
+    (Bristleback, Male): (
         leg_fl: (
             offset: (-1.5, -2.0, -2.0),
-            lateral: ("npc.bristlemane.male.leg_fr"),
+            lateral: ("npc.bristleback.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -2.0, -2.0),
-            lateral: ("npc.bristlemane.male.leg_fr"),
+            lateral: ("npc.bristleback.male.leg_fr"),
         ),
         leg_bl: (
             offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.bristlemane.male.leg_br"),
+            lateral: ("npc.bristleback.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.bristlemane.male.leg_br"),
+            lateral: ("npc.bristleback.male.leg_br"),
         ),
         foot_fl: (
             offset: (-1.5, -1.5, -5.0),
-            lateral: ("npc.bristlemane.male.foot_fr"),
+            lateral: ("npc.bristleback.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -1.5, -5.0),
-            lateral: ("npc.bristlemane.male.foot_fr"),
+            lateral: ("npc.bristleback.male.foot_fr"),
         ),
         foot_bl: (
             offset: (-1.0, -2.0, -5.0),
-            lateral: ("npc.bristlemane.male.foot_br"),
+            lateral: ("npc.bristleback.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.0, -2.0, -5.0),
-            lateral: ("npc.bristlemane.male.foot_br"),
+            lateral: ("npc.bristleback.male.foot_br"),
         ),
     ),
-    (Bristlemane, Female): (
+    (Bristleback, Female): (
         leg_fl: (
             offset: (-1.5, -2.0, -2.0),
-            lateral: ("npc.bristlemane.male.leg_fr"),
+            lateral: ("npc.bristleback.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -2.0, -2.0),
-            lateral: ("npc.bristlemane.male.leg_fr"),
+            lateral: ("npc.bristleback.male.leg_fr"),
         ),
         leg_bl: (
             offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.bristlemane.male.leg_br"),
+            lateral: ("npc.bristleback.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.bristlemane.male.leg_br"),
+            lateral: ("npc.bristleback.male.leg_br"),
         ),
         foot_fl: (
             offset: (-1.5, -1.5, -5.0),
-            lateral: ("npc.bristlemane.male.foot_fr"),
+            lateral: ("npc.bristleback.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -1.5, -5.0),
-            lateral: ("npc.bristlemane.male.foot_fr"),
+            lateral: ("npc.bristleback.male.foot_fr"),
         ),
         foot_bl: (
             offset: (-1.0, -2.0, -5.0),
-            lateral: ("npc.bristlemane.male.foot_br"),
+            lateral: ("npc.bristleback.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.0, -2.0, -5.0),
-            lateral: ("npc.bristlemane.male.foot_br"),
+            lateral: ("npc.bristleback.male.foot_br"),
         ),
     ),
 })

@@ -2099,26 +2099,26 @@
             central: ("npc.akhlut.male.tail"),
         ),
     ),
-    (Bristlemane, Male): (
+    (Bristleback, Male): (
         head: (
             offset: (-7.5, 0.0, -8.5),
-            central: ("npc.bristlemane.male.head"),
+            central: ("npc.bristleback.male.head"),
         ),
         neck: (
             offset: (-3.5, -2.0, -6.5),
-            central: ("npc.bristlemane.male.neck"),
+            central: ("npc.bristleback.male.neck"),
         ),
         jaw: (
             offset: (-3.5, -3.5, -0.5),
-            central: ("npc.bristlemane.male.jaw"),
+            central: ("npc.bristleback.male.jaw"),
         ),
         torso_front: (
             offset: (-6.5, -5.0, -6.0),
-            central: ("npc.bristlemane.male.torso_front"),
+            central: ("npc.bristleback.male.torso_front"),
         ),
         torso_back: (
             offset: (-3.5, -8.0, -6.0),
-            central: ("npc.bristlemane.male.torso_back"),
+            central: ("npc.bristleback.male.torso_back"),
         ),
         ears: (
             offset: (0.0, 0.0, 0.0),
@@ -2126,29 +2126,29 @@
         ),
         tail: (
             offset: (-1.5, -6.0, -4.5),
-            central: ("npc.bristlemane.male.tail"),
+            central: ("npc.bristleback.male.tail"),
         ),
     ),
-    (Bristlemane, Female): (
+    (Bristleback, Female): (
         head: (
             offset: (-7.5, 0.0, -8.5),
-            central: ("npc.bristlemane.male.head"),
+            central: ("npc.bristleback.male.head"),
         ),
         neck: (
             offset: (-3.5, -2.0, -6.5),
-            central: ("npc.bristlemane.male.neck"),
+            central: ("npc.bristleback.male.neck"),
         ),
         jaw: (
             offset: (-3.5, -3.5, -0.5),
-            central: ("npc.bristlemane.male.jaw"),
+            central: ("npc.bristleback.male.jaw"),
         ),
         torso_front: (
             offset: (-6.5, -5.0, -6.0),
-            central: ("npc.bristlemane.male.torso_front"),
+            central: ("npc.bristleback.male.torso_front"),
         ),
         torso_back: (
             offset: (-3.5, -8.0, -6.0),
-            central: ("npc.bristlemane.male.torso_back"),
+            central: ("npc.bristleback.male.torso_back"),
         ),
         ears: (
             offset: (0.0, 0.0, 0.0),
@@ -2156,7 +2156,7 @@
         ),
         tail: (
             offset: (-1.5, -6.0, -4.5),
-            central: ("npc.bristlemane.male.tail"),
+            central: ("npc.bristleback.male.tail"),
         ),
     ),
 })

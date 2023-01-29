@@ -567,9 +567,9 @@
                 keyword: "akhlut",
                 generic: "Akhlut"
             ),
-            bristlemane: (
-                keyword: "bristlemane",
-                generic: "Bristlemane"
+            bristleback: (
+                keyword: "bristleback",
+                generic: "Bristleback"
             ),
         )
     ),
