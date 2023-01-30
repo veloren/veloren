@@ -14,6 +14,7 @@ hud-map-trees = Árvores Gigantes
 hud-map-tree = Árvore Gigante
 hud-map-town = Cidade
 hud-map-castle = Castelo
+hud-map-bridge = Ponte
 hud-map-dungeon = Masmorra
 hud-map-difficulty_dungeon =
     Dificuldade da
