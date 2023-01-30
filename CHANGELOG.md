@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Debug hitboxes now scale with the `Scale` component
 - Potion quaffing no longer makes characters practically immortal.
 - Stat diff now displays correctly for armor
+- Lamps, embers and campfires use glowing indices
 
 ## [0.14.0] - 2023-01-07
 
