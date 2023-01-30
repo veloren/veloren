@@ -11,6 +11,7 @@ common-controls = Controles
 common-video = Vídeo
 common-sound = Som
 common-chat = Chat
+common-networking = Rede
 common-resume = Continuar
 common-characters = Personagens
 common-close = Fechar
@@ -40,6 +41,7 @@ common-video_settings = Configurações Gráficas
 common-sound_settings = Configurações de Som
 common-language_settings = Configurações de Idioma
 common-chat_settings = Configurações de Chat
+common-networking_settings = Configurações de Rede
 common-connection_lost =
     Conexão Perdida!
     Será que o servidor reiniciou?
@@ -107,5 +109,3 @@ common-material-stone = Pedra
 common-material-cloth = Tecido
 common-material-hide = Couro
 common-sprite-chest = Baú
-common-networking = Rede
-common-networking_settings = Configurações de Rede
