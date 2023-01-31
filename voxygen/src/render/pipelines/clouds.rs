@@ -62,7 +62,7 @@ impl CloudsLayout {
                         binding: 2,
                         visibility: wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
                             view_dimension: wgpu::TextureViewDimension::D2,
                             multisampled: false,
                         },
@@ -72,7 +72,7 @@ impl CloudsLayout {
                         binding: 3,
                         visibility: wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Sampler {
-                            filtering: true,
+                            filtering: false,
                             comparison: false,
                         },
                         count: None,
