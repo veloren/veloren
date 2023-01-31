@@ -448,6 +448,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
             state.notify_players(remove_player_msg);
             state.notify_players(add_player_msg);
         }
+        drop(admins);
 
         // Put possess item into loadout
         let mut inventories = ecs.write_storage::<Inventory>();
