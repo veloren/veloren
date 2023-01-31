@@ -61,6 +61,18 @@ buff-desc-wet = O chão desliza em sob seus pés, tornando difícil parar.
 ## Enraizado
 buff-title-ensnared = Enraizado
 buff-desc-ensnared = Trepadeiras agarram suas pernas, impedindo seus movimentos.
+## Fortitude
+buff-title-fortitude = Fortificado
+buff-desc-fortitude = Você está mais resistente a encontrões.
+## Parried
+buff-title-parried = Aparado
+buff-desc-parried = Você foi aparado e se recuperará mais lentamente.
+## Enjoo de Poção 
+buff-title-potionsickness = Enjoo de Poção
+buff-desc-potionsickness = Poções curam menos após consumir recentemente uma poção.
+buff-stat-potionsickness =
+    Reduz a quantidade de cura de uso
+    subsequente de poções por { $strength }%.
 ## Utilidades
 buff-text-over_seconds = durante { $dur_secs } segundos
 buff-text-for_seconds = durante { $dur_secs } segundos
