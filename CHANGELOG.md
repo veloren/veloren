@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Potion quaffing no longer makes characters practically immortal.
 - Stat diff now displays correctly for armor
 - Lamps, embers and campfires use glowing indices
+- Non-potion drinks no longer heal as much as potions.
 
 ## [0.14.0] - 2023-01-07
 
