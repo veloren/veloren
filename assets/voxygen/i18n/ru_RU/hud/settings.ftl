@@ -29,6 +29,7 @@ hud-settings-speech_bubble_dark_mode = Диалоговое окно (тёмна
 hud-settings-speech_bubble_icon = Иконка диалогового окна
 hud-settings-energybar_numbers = Значения на панели энергии
 hud-settings-always_show_bars = Всегда показывать панели энергии
+hud-settings-enable_poise_bar = Показывать шкалу равновесия
 hud-settings-experience_numbers = Очки опыта
 hud-settings-accumulate_experience = Складывать очки опыта
 hud-settings-values = Цифры
@@ -41,13 +42,25 @@ hud-settings-reset_interface = По умолчанию
 hud-settings-pan_sensitivity = Чувствительность мыши
 hud-settings-zoom_sensitivity = Чувствительность масштабирования
 hud-settings-camera_clamp_angle = Угол для режима вертикального фиксатора камеры
-hud-settings-invert_scroll_zoom = Инвертировать масштаб прокрутки
-hud-settings-invert_mouse_y_axis = Инвертировать ось Y мыши
-hud-settings-invert_controller_y_axis = Инвертировать ось Y контроллера
+hud-settings-invert_scroll_zoom =
+    Инвертировать
+    масштаб прокрутки
+hud-settings-invert_mouse_y_axis =
+    Инвентировать ось
+    Y мыши
+hud-settings-invert_controller_y_axis = 
+    Инвентировать ось
+    X контроллера
 hud-settings-enable_mouse_smoothing = Сглаживание камеры
-hud-settings-free_look_behavior = Переключение свободной камеры
-hud-settings-auto_walk_behavior = Переключение автоматической ходьбы
-hud-settings-camera_clamp_behavior = Переключение вертикального фиксатора камеры
+hud-settings-free_look_behavior =
+    Переключение
+    свободной камеры
+hud-settings-auto_walk_behavior =
+    Переключение
+    автоматической ходьбы
+hud-settings-camera_clamp_behavior =
+    Переключение вертикального
+    фиксатора камеры
 hud-settings-player_physics_behavior = Физика игрока (экспериментальная)
 hud-settings-stop_auto_walk_on_input = Остановить автоходьбу при движении
 hud-settings-auto_camera = Авто-камера
@@ -80,8 +93,13 @@ hud-settings-antialiasing_mode = Режим сглаживания
 hud-settings-upscale_factor = Внутреннее разрешение
 hud-settings-cloud_rendering_mode = Качество облаков
 hud-settings-fluid_rendering_mode = Качество воды
-hud-settings-fluid_rendering_mode-cheap = Низкое
-hud-settings-fluid_rendering_mode-shiny = Высокое
+hud-settings-fluid_rendering_mode-low = Низкое
+hud-settings-fluid_rendering_mode-medium = Среднее
+hud-settings-fluid_rendering_mode-high = Высокое
+hud-settings-reflection_rendering_mode = Качество отражений
+hud-settings-reflection_rendering_mode-low = Низкое
+hud-settings-reflection_rendering_mode-medium = Среднее
+hud-settings-reflection_rendering_mode-high = Высокое
 hud-settings-cloud_rendering_mode-minimal = Минимальное
 hud-settings-cloud_rendering_mode-low = Низкое
 hud-settings-cloud_rendering_mode-medium = Среднее
@@ -96,7 +114,7 @@ hud-settings-particles = Частицы
 hud-settings-lossy_terrain_compression = Сжатие рельефа с потерями
 hud-settings-weapon_trails = Эффект оружия
 hud-settings-flashing_lights = Мигающие источники света
-hud-settings-flashing_lights_info = Убирает все виды мигания, т. е. мерцание или молнии
+hud-settings-flashing_lights_info = Убирает все виды мигания, т. е. мерцания или молнии
 hud-settings-resolution = Разрешение
 hud-settings-bit_depth = Битовая глубина
 hud-settings-refresh_rate = Частота обновления
@@ -113,6 +131,11 @@ hud-settings-rain_occlusion-resolution = Разрешение дождевой �
 hud-settings-lod_detail = Уровень детализации LoD
 hud-settings-save_window_size = Сохранить размер окна
 hud-settings-reset_graphics = По умолчанию
+hud-settings-minimal_graphics = Минимальные
+hud-settings-low_graphics = Низкие
+hud-settings-medium_graphics = Средние
+hud-settings-high_graphics = Высокие
+hud-settings-ultra_graphics = Ультра
 hud-settings-bloom = Свечение
 hud-settings-point_glow = Источники света
 hud-settings-master_volume = Общая громкость
