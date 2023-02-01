@@ -1092,4 +1092,56 @@
             central: ("armor.empty"),
         )
     ),
+    (Tursus, Male): (
+        head: (
+            offset: (-6.5, 0.0, -6.5),
+            central: ("npc.tursus.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.0, -12.5, -10.5),
+            central: ("npc.tursus.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-7.5, -7.0, -10.0),
+            central: ("npc.tursus.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-4.5, 0.0, -4.0),
+            central: ("npc.tursus.male.jaw"),
+        ),
+        tail: (
+            offset: (-4.0, -27.0, -6.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Tursus, Female): (
+        head: (
+            offset: (-6.5, 0.0, -6.5),
+            central: ("npc.tursus.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.0, -12.5, -10.5),
+            central: ("npc.tursus.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-7.5, -7.0, -10.0),
+            central: ("npc.tursus.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-4.5, 0.0, -4.0),
+            central: ("npc.tursus.male.jaw"),
+        ),
+        tail: (
+            offset: (-4.0, -27.0, -6.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

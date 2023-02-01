@@ -467,4 +467,56 @@
             lateral: ("npc.ntouka.male.foot_r"),
         ),
     ),
+    (Axebeak, Male): (
+        hand_l: (
+            offset: (-10.0, -4.0, -12.0),
+            lateral: ("npc.axebeak.male.hand_r"),
+        ),
+        hand_r: (
+            offset: (0.0, -4.0, -12.0),
+            lateral: ("npc.axebeak.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-5.0, -4.5, -6.5),
+            lateral: ("npc.axebeak.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.5, -6.5),
+            lateral: ("npc.axebeak.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.5, -7.0, -5.0),
+            lateral: ("npc.axebeak.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-3.5, -7.0, -5.0),
+            lateral: ("npc.axebeak.male.foot_r"),
+        ),
+    ),
+    (Axebeak, Female): (
+        hand_l: (
+            offset: (-10.0, -4.0, -12.0),
+            lateral: ("npc.axebeak.male.hand_r"),
+        ),
+        hand_r: (
+            offset: (0.0, -4.0, -12.0),
+            lateral: ("npc.axebeak.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-5.0, -4.5, -6.5),
+            lateral: ("npc.axebeak.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.5, -6.5),
+            lateral: ("npc.axebeak.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.5, -7.0, -5.0),
+            lateral: ("npc.axebeak.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-3.5, -7.0, -5.0),
+            lateral: ("npc.axebeak.male.foot_r"),
+        ),
+    ),
 })

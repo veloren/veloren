@@ -727,4 +727,32 @@
             central: ("npc.goat.male.tail"),
         ),
     ),
+    (Seal, Male):(
+        head: (
+            offset: (-3.0, 0.0, -3.5),
+            central: ("npc.seal.male.head"),
+        ),
+        chest: (
+            offset: (-4.0, -8.0, -4.0),
+            central: ("npc.seal.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -7.5, -2.5),
+            central: ("armor.empty"),
+        ),
+    ),
+    (Seal, Female):(
+        head: (
+            offset: (-3.0, 0.0, -3.5),
+            central: ("npc.seal.male.head"),
+        ),
+        chest: (
+            offset: (-4.0, -8.0, -4.0),
+            central: ("npc.seal.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -7.5, -2.5),
+            central: ("armor.empty"),
+        ),
+    ),
 })

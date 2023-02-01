@@ -613,7 +613,8 @@ fn default_main_tool(body: &Body) -> Item {
         Body::Theropod(theropod) => match theropod.species {
             theropod::Species::Sandraptor
             | theropod::Species::Snowraptor
-            | theropod::Species::Woodraptor => Some(Item::new_from_asset_expect(
+            | theropod::Species::Woodraptor
+            | theropod::Species::Axebeak => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.theropodbird",
             )),
             theropod::Species::Yale => Some(Item::new_from_asset_expect(
@@ -684,6 +685,9 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.wendigo_magic",
             )),
             (biped_large::Species::Werewolf, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.beast_claws",
+            )),
+            (biped_large::Species::Tursus, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.beast_claws",
             )),
             (biped_large::Species::Cyclops, _) => Some(Item::new_from_asset_expect(

@@ -370,6 +370,7 @@ impl Body {
                 quadruped_small::Species::Squirrel => 1.0,
                 quadruped_small::Species::Truffler => 70.0,
                 quadruped_small::Species::Turtle => 40.0,
+                quadruped_small::Species::Seal => 15.0,
             },
             Body::Theropod(body) => match body.species {
                 // for reference, elephants are in the range of 2.6-6.9 tons
@@ -383,6 +384,7 @@ impl Body {
                 theropod::Species::Sunlizard => 500.0,
                 theropod::Species::Woodraptor => 500.0,
                 theropod::Species::Yale => 1_000.0,
+                theropod::Species::Axebeak => 300.0,
             },
             Body::Ship(ship) => ship.mass().0,
             Body::Arthropod(_) => 200.0,
@@ -408,6 +410,7 @@ impl Body {
                 biped_large::Species::Cultistwarlord => Vec3::new(3.0, 3.0, 4.5),
                 biped_large::Species::Cultistwarlock => Vec3::new(3.0, 3.0, 3.5),
                 biped_large::Species::Huskbrute => Vec3::new(4.6, 3.0, 5.0),
+                biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 4.0),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -462,6 +465,7 @@ impl Body {
                 quadruped_medium::Species::Horse => Vec3::new(2.0, 3.0, 2.4),
                 quadruped_medium::Species::Lion => Vec3::new(2.0, 3.3, 2.0),
                 quadruped_medium::Species::Moose => Vec3::new(2.0, 4.0, 2.5),
+                quadruped_medium::Species::Bristleback => Vec3::new(2.0, 3.0, 2.0),
                 quadruped_medium::Species::Roshwalr => Vec3::new(2.0, 3.5, 2.2),
                 quadruped_medium::Species::Saber => Vec3::new(2.0, 3.0, 2.0),
                 quadruped_medium::Species::Tarasque => Vec3::new(2.0, 4.0, 2.6),
@@ -516,6 +520,7 @@ impl Body {
                 theropod::Species::Sunlizard => Vec3::new(2.0, 3.6, 2.5),
                 theropod::Species::Woodraptor => Vec3::new(2.0, 3.0, 2.6),
                 theropod::Species::Yale => Vec3::new(2.0, 3.2, 4.0),
+                theropod::Species::Axebeak => Vec3::new(2.0, 3.6, 3.0),
             },
             Body::Arthropod(body) => match body.species {
                 arthropod::Species::Tarantula => Vec3::new(4.0, 4.0, 1.8),
@@ -683,6 +688,7 @@ impl Body {
                 quadruped_small::Species::Beaver => 15,
                 quadruped_small::Species::Dog => 30,
                 quadruped_small::Species::Sheep => 30,
+                quadruped_small::Species::Seal => 15,
                 _ => 20,
             },
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -711,6 +717,7 @@ impl Body {
                 quadruped_medium::Species::Panda => 90,
                 quadruped_medium::Species::Bear => 90,
                 quadruped_medium::Species::Moose => 80,
+                quadruped_medium::Species::Bristleback => 90,
                 quadruped_medium::Species::Dreadhorn => 370,
                 quadruped_medium::Species::Mammoth => 250,
                 quadruped_medium::Species::Ngoubou => 290,
@@ -977,6 +984,7 @@ impl Body {
                     (quadruped_medium::Species::Bear, _) => [0.0, -0.4, 2.5],
                     (quadruped_medium::Species::Dreadhorn, _) => [0.0, 0.2, 3.5],
                     (quadruped_medium::Species::Moose, _) => [0.0, -0.6, 2.1],
+                    (quadruped_medium::Species::Bristleback, _) => [0.0, -0.6, 2.1],
                     (quadruped_medium::Species::Snowleopard, _) => [-0.5, -0.5, 1.4],
                     (quadruped_medium::Species::Mammoth, _) => [0.0, 4.9, 7.2],
                     (quadruped_medium::Species::Ngoubou, _) => [0.0, 0.3, 2.0],

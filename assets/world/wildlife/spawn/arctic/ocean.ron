@@ -12,6 +12,7 @@ SpawnEntry (
         Pack(
             groups: [
                 (2, (4, 12, "common.entity.wild.peaceful.penguin")),
+                (2, (4, 8, "common.entity.wild.peaceful.seal")),
             ],
             spawn_mode: Ice,
             day_period: [Night, Morning, Noon, Evening],

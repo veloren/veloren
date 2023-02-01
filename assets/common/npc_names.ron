@@ -567,6 +567,10 @@
                 keyword: "akhlut",
                 generic: "Akhlut"
             ),
+            bristleback: (
+                keyword: "bristleback",
+                generic: "Bristleback"
+            ),
         )
     ),
     quadruped_small: (
@@ -781,6 +785,10 @@
             goat: (
                 keyword: "goat",
                 generic: "Goat"
+            ),
+            seal: (
+                keyword: "seal",
+                generic: "Seal"
             )
         )
     ),
@@ -922,6 +930,10 @@
                 keyword: "husk_brute",
                 generic: "Husk Brute"
             ),
+            tursus: (
+                keyword: "tursus",
+                generic: "Tursus"
+            )
         )
     ),
     golem: (
@@ -994,6 +1006,10 @@
                 keyword: "dodarock",
                 generic: "Dodarock"
             ),
+            axebeak: (
+                keyword: "axebeak",
+                generic: "Axebeak"
+            )
         )
     ),
     dragon: (
