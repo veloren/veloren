@@ -18,6 +18,7 @@ hud-map-tree =
     дерево
 hud-map-town = Город
 hud-map-castle = Замок
+hud-map-bridge = Мост
 hud-map-dungeon = Подземелье
 hud-map-difficulty_dungeon =
     Подземелье

@@ -61,6 +61,18 @@ buff-desc-wet = Земля запутывает ваши ноги, мешая х
 ## Ensnared
 buff-title-ensnared = Ловушка
 buff-desc-ensnared = Лоза опутывает ваши ноги затрудняя движение.
+## Fortitude
+buff-title-fortitude = Стойкость
+buff-desc-fortitude = Вы можете выдерживать оглушающие удары.
+## Parried
+buff-title-parried = Парированный
+buff-desc-parried = Вашу атаку отразили, и теперь вы медленно восстанавливаетесь.
+## Potion sickness
+buff-title-potionsickness = Зельевая тошнотв
+buff-desc-potionsickness = Зелья исцеляют вас меньше, если вы недавно уже употребили другое зелье.
+buff-stat-potionsickness =
+    Уменьшает исцеление от
+    последующих зелий на { $strength }%.
 ## Util
 buff-text-over_seconds = более { $dur_secs ->
     [one] секунды
