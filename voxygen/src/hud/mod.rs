@@ -899,12 +899,12 @@ impl Show {
         if !self.esc_menu {
             self.bag = open;
             self.map = false;
-            self.want_grab = !self.any_window_requires_cursor();
             self.crafting_fields.salvage = false;
-
             if !open {
                 self.crafting = false;
             }
+
+            self.want_grab = !self.any_window_requires_cursor();
         }
     }
 
