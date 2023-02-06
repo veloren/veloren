@@ -3009,6 +3009,7 @@ impl Hud {
                 context,
                 combos.get(entity),
                 char_states.get(entity),
+                stances.get(entity),
             )
             .set(self.ids.skillbar, ui_widgets)
             {

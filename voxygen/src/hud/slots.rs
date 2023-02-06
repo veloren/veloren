@@ -11,6 +11,7 @@ use common::{
         item::tool::{AbilityContext, ToolKind},
         slot::InvSlotId,
         ActiveAbilities, Body, CharacterState, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
+        Stance,
     },
     recipe::ComponentRecipeBook,
 };
@@ -131,6 +132,7 @@ type HotbarSource<'a> = (
     AbilityContext,
     Option<&'a Combo>,
     Option<&'a CharacterState>,
+    Option<&'a Stance>,
 );
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
 
@@ -139,7 +141,18 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, energy, skillset, active_abilities, body, context, combo, char_state): &HotbarSource<'a>,
+        (
+            hotbar,
+            inventory,
+            energy,
+            skillset,
+            active_abilities,
+            body,
+            context,
+            combo,
+            char_state,
+            stance,
+        ): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         const GREYED_OUT: Color = Color::Rgba(0.3, 0.3, 0.3, 0.8);
         hotbar.get(*self).and_then(|contents| match contents {
@@ -179,6 +192,10 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                     if energy.current() >= ability.energy_cost()
                                         && combo
                                             .map_or(false, |c| c.counter() >= ability.combo_cost())
+                                        && ability
+                                            .ability_meta()
+                                            .requirements
+                                            .requirements_met(*stance)
                                     {
                                         Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                     } else {

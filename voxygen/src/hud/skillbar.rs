@@ -24,7 +24,7 @@ use std::borrow::Cow;
 use client::{self, Client};
 use common::comp::{
     self,
-    ability::AbilityInput,
+    ability::{AbilityInput, Stance},
     item::{
         tool::{AbilityContext, ToolKind},
         ItemDesc, MaterialStatManifest,
@@ -314,6 +314,7 @@ pub struct Skillbar<'a> {
     context: AbilityContext,
     combo: Option<&'a Combo>,
     char_state: Option<&'a CharacterState>,
+    stance: Option<&'a Stance>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -346,6 +347,7 @@ impl<'a> Skillbar<'a> {
         context: AbilityContext,
         combo: Option<&'a Combo>,
         char_state: Option<&'a CharacterState>,
+        stance: Option<&'a Stance>,
     ) -> Self {
         Self {
             client,
@@ -376,6 +378,7 @@ impl<'a> Skillbar<'a> {
             context,
             combo,
             char_state,
+            stance,
         }
     }
 
@@ -926,6 +929,7 @@ impl<'a> Skillbar<'a> {
             self.context,
             self.combo,
             self.char_state,
+            self.stance,
         );
 
         let image_source = (self.item_imgs, self.imgs);
@@ -1007,7 +1011,7 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _, _) =
+            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _, _, _) =
                 content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
@@ -1154,6 +1158,7 @@ impl<'a> Skillbar<'a> {
                 .map_or(false, |(a, _)| {
                     self.energy.current() >= a.energy_cost()
                         && self.combo.map_or(false, |c| c.counter() >= a.combo_cost())
+                        && a.ability_meta().requirements.requirements_met(self.stance)
                 })
             {
                 Color::Rgba(1.0, 1.0, 1.0, 1.0)

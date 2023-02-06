@@ -850,14 +850,8 @@ impl CharacterAbility {
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         let from_meta = {
-            let AbilityMeta {
-                requirements: AbilityRequirements { stance },
-                ..
-            } = self.ability_meta();
-            stance.map_or(true, |req_stance| {
-                data.stance
-                    .map_or(false, |char_stance| req_stance == *char_stance)
-            })
+            let AbilityMeta { requirements, .. } = self.ability_meta();
+            requirements.requirements_met(data.stance)
         };
         from_meta
             && match self {
@@ -2892,6 +2886,15 @@ pub struct AbilityMeta {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AbilityRequirements {
     pub stance: Option<Stance>,
+}
+
+impl AbilityRequirements {
+    pub fn requirements_met(&self, stance: Option<&Stance>) -> bool {
+        let AbilityRequirements { stance: req_stance } = self;
+        req_stance.map_or(true, |req_stance| {
+            stance.map_or(false, |char_stance| req_stance == *char_stance)
+        })
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
