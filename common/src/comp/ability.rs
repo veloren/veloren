@@ -399,6 +399,11 @@ pub enum CharacterAbilityType {
     DashMelee(StageSection),
     BasicBlock,
     ComboMelee(StageSection, u32),
+    ComboMelee2(StageSection),
+    FinisherMelee(StageSection),
+    DiveMelee(StageSection),
+    RiposteMelee(StageSection),
+    RapidMelee(StageSection),
     LeapMelee(StageSection),
     SpinMelee(StageSection),
     Music(StageSection),
@@ -420,6 +425,13 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::BasicBlock(_) => Self::BasicBlock,
             CharacterState::LeapMelee(data) => Self::LeapMelee(data.stage_section),
             CharacterState::ComboMelee(data) => Self::ComboMelee(data.stage_section, data.stage),
+            CharacterState::ComboMelee2(data) => {
+                data.stage_section.map_or(Self::Other, Self::ComboMelee2)
+            },
+            CharacterState::FinisherMelee(data) => Self::FinisherMelee(data.stage_section),
+            CharacterState::DiveMelee(data) => Self::DiveMelee(data.stage_section),
+            CharacterState::RiposteMelee(data) => Self::RiposteMelee(data.stage_section),
+            CharacterState::RapidMelee(data) => Self::RapidMelee(data.stage_section),
             CharacterState::SpinMelee(data) => Self::SpinMelee(data.stage_section),
             CharacterState::ChargedMelee(data) => Self::ChargedMelee(data.stage_section),
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
@@ -446,12 +458,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::UseItem(_)
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
-            | CharacterState::Wallrun(_)
-            | CharacterState::ComboMelee2(_)
-            | CharacterState::FinisherMelee(_)
-            | CharacterState::DiveMelee(_)
-            | CharacterState::RiposteMelee(_)
-            | CharacterState::RapidMelee(_) => Self::Other,
+            | CharacterState::Wallrun(_) => Self::Other,
         }
     }
 }
