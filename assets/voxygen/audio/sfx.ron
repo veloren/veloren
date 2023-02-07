@@ -306,6 +306,54 @@
             ],
             threshold: 0.5,
         ),
+        Attack(ComboMelee2(Action), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(FinisherMelee(Action), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(DiveMelee(Action), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(RiposteMelee(Action), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(RapidMelee(Action), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(ChargedMelee(Action), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
+        ),
+        Attack(DashMelee(Action), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.sword_dash",
+            ],
+            threshold: 0.8,
+        ),
+        Attack(SpinMelee(Action), Sword): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.7,
+        ),
         Attack(ComboMelee(Action, 1), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.swing_sword",
@@ -321,18 +369,6 @@
         Attack(ComboMelee(Action, 3), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.separated_third_swing",
-            ],
-            threshold: 0.7,
-        ),
-        Attack(DashMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.sword_dash",
-            ],
-            threshold: 0.8,
-        ),
-        Attack(SpinMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
             ],
             threshold: 0.7,
         ),

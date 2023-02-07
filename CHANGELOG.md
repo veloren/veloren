@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stat diff now displays correctly for armor
 - Lamps, embers and campfires use glowing indices
 - Non-potion drinks no longer heal as much as potions.
+- Added SFX to the new sword abilities
 
 ## [0.14.0] - 2023-01-07
 
