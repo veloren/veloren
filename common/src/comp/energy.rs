@@ -22,7 +22,8 @@ pub struct Energy {
     /// Maximum is the amount of energy the entity has after temporary modifiers
     /// are considered
     maximum: u32,
-    pub regen_rate: f32,
+    /// Rate of regeneration per tick. Starts at zero and accelerates.
+    regen_rate: f32,
 }
 
 impl Energy {
@@ -93,6 +94,24 @@ impl Energy {
             regen_rate: 0.0,
         }
     }
+
+    /// Returns `true` if the current value is less than the maximum
+    pub fn needs_regen(&self) -> bool { self.current < self.maximum }
+
+    /// Regenerates energy based on the provided acceleration
+    pub fn regen(&mut self, accel: f32, dt: f32) {
+        if self.current < self.maximum {
+            self.change_by(self.regen_rate * dt);
+            self.regen_rate = (self.regen_rate + accel * dt).min(10.0);
+        }
+    }
+
+    /// Checks whether the `regen_rate` is zero or not. Returns true if the
+    /// value is anything other than `0.0`.
+    pub fn needs_regen_rate_reset(&self) -> bool { self.regen_rate != 0.0 }
+
+    /// Resets the energy regeneration rate to zero
+    pub fn reset_regen_rate(&mut self) { self.regen_rate = 0.0 }
 
     pub fn change_by(&mut self, change: f32) {
         self.current = (((self.current() + change).clamp(0.0, f32::from(Self::MAX_ENERGY))

@@ -4,8 +4,8 @@ use common::{
         self,
         item::MaterialStatManifest,
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Combo, Energy, Health, Inventory, Poise, PoiseChange, Pos, SkillSet,
-        Stats, StatsModifier,
+        Body, CharacterState, Combo, Energy, Health, Inventory, Poise, Pos, SkillSet, Stats,
+        StatsModifier,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, EntitiesDiedLastTick, Time},
@@ -16,9 +16,9 @@ use specs::{
     shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, Write,
     WriteStorage,
 };
-use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 1.0;
+const SIT_ENERGY_REGEN_ACCEL: f32 = 2.5;
 const POISE_REGEN_ACCEL: f32 = 2.0;
 
 #[derive(SystemData)]
@@ -145,10 +145,18 @@ impl<'a> System<'a> for Sys {
             (&read_data.char_states, &mut energies, &mut poises).join()
         {
             match character_state {
+                // Sitting accelerates recharging energy the most
+                CharacterState::Sit => {
+                    if energy.needs_regen() {
+                        energy.regen(SIT_ENERGY_REGEN_ACCEL, dt);
+                    }
+                    if poise.needs_regen() {
+                        poise.regen(POISE_REGEN_ACCEL, dt, *read_data.time);
+                    }
+                },
                 // Accelerate recharging energy.
                 CharacterState::Idle(_)
                 | CharacterState::Talk
-                | CharacterState::Sit
                 | CharacterState::Dance
                 | CharacterState::Glide(_)
                 | CharacterState::Skate(_)
@@ -160,34 +168,11 @@ impl<'a> System<'a> for Sys {
                     stage_section: None,
                     ..
                 }) => {
-                    let res = { energy.current() < energy.maximum() };
-
-                    if res {
-                        let energy = &mut *energy;
-                        energy.change_by(energy.regen_rate * dt);
-                        if matches!(character_state, CharacterState::Sit) {
-                            // Higher Energy-regeneration while sitting
-                            energy.regen_rate =
-                                (energy.regen_rate + ENERGY_REGEN_ACCEL * dt * 1.5).min(25.0);
-                        } else {
-                            energy.regen_rate =
-                                (energy.regen_rate + ENERGY_REGEN_ACCEL * dt).min(10.0);
-                        }
+                    if energy.needs_regen() {
+                        energy.regen(ENERGY_REGEN_ACCEL, dt);
                     }
-
-                    let res_poise = { poise.current() < poise.maximum() };
-
-                    if res_poise {
-                        let poise = &mut *poise;
-                        let poise_change = PoiseChange {
-                            amount: poise.regen_rate * dt,
-                            impulse: Vec3::zero(),
-                            by: None,
-                            cause: None,
-                            time: *read_data.time,
-                        };
-                        poise.change(poise_change);
-                        poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt).min(10.0);
+                    if poise.needs_regen() {
+                        poise.regen(POISE_REGEN_ACCEL, dt, *read_data.time);
                     }
                 },
                 // Ability use does not regen and sets the rate back to zero.
@@ -206,6 +191,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)
                 | CharacterState::Blink(_)
+                | CharacterState::Climb(_)
                 | CharacterState::BasicSummon(_)
                 | CharacterState::SelfBuff(_)
                 | CharacterState::SpriteSummon(_)
@@ -213,14 +199,13 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_) => {
-                    if energy.regen_rate != 0.0 {
-                        energy.regen_rate = 0.0
+                    if energy.needs_regen_rate_reset() {
+                        energy.reset_regen_rate();
                     }
                 },
                 // Abilities that temporarily stall energy gain, but preserve regen_rate.
                 CharacterState::Roll(_)
                 | CharacterState::Wallrun(_)
-                | CharacterState::Climb(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::UseItem(_)

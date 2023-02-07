@@ -52,8 +52,8 @@ pub struct Poise {
     maximum: u32,
     /// Direction that the last poise change came from
     pub last_change: Dir,
-    /// Rate of poise regeneration per tick. Starts at zero and accelerates.
-    pub regen_rate: f32,
+    /// Rate of regeneration per tick. Starts at zero and accelerates.
+    regen_rate: f32,
     /// Time that entity was last in a poise state
     last_stun_time: Option<Time>,
     /// The previous poise state
@@ -214,6 +214,24 @@ impl Poise {
                     .min(self.maximum);
                 self.last_change = Dir::from_unnormalized(change.impulse).unwrap_or_default();
             },
+        }
+    }
+
+    /// Returns `true` if the current value is less than the maximum
+    pub fn needs_regen(&self) -> bool { self.current < self.maximum }
+
+    /// Regenerates poise based on a provided acceleration
+    pub fn regen(&mut self, accel: f32, dt: f32, now: Time) {
+        if self.current < self.maximum {
+            let poise_change = PoiseChange {
+                amount: self.regen_rate * dt,
+                impulse: Vec3::zero(),
+                by: None,
+                cause: None,
+                time: now,
+            };
+            self.change(poise_change);
+            self.regen_rate = (self.regen_rate + accel * dt).min(10.0);
         }
     }
 
