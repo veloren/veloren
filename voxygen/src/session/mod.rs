@@ -921,8 +921,8 @@ impl PlayState for SessionState {
                             },
                             GameInput::Interact => {
                                 if state {
+                                    let mut client = self.client.borrow_mut();
                                     if let Some(interactable) = &self.interactable {
-                                        let mut client = self.client.borrow_mut();
                                         match interactable {
                                             Interactable::Block(block, pos, interaction) => {
                                                 match interaction {
@@ -937,6 +937,11 @@ impl PlayState for SessionState {
                                                             *tab,
                                                             block.get_sprite().map(|s| (*pos, s)),
                                                         )
+                                                    },
+                                                    BlockInteraction::Mount(_) => {
+                                                        if block.is_mountable() {
+                                                            client.mount_sprite(*pos);
+                                                        }
                                                     },
                                                     BlockInteraction::Mine(_) => {},
                                                 }
@@ -964,6 +969,8 @@ impl PlayState for SessionState {
                                                 }
                                             },
                                         }
+                                    } else {
+                                        client.stand_if_mounted()
                                     }
                                 }
                             },

@@ -1,16 +1,20 @@
 use crate::hud::CraftingTab;
-use common::terrain::{BlockKind, SpriteKind, TerrainChunk};
+use common::{
+    states::utils::sprite_mount_points,
+    terrain::{BlockKind, SpriteKind, TerrainChunk},
+};
 use common_base::span;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use vek::*;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum Interaction {
     /// This covers mining, unlocking, and regular collectable things (e.g.
     /// twigs).
     Collect,
     Craft(CraftingTab),
+    Mount(Vec<Vec3<f32>>),
 }
 
 pub enum FireplaceType {
@@ -168,6 +172,21 @@ impl BlocksOfInterest {
                     Some(SpriteKind::RepairBench) => {
                         interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                     },
+                    Some(
+                        sprite_kind @ SpriteKind::ChairSingle
+                        | sprite_kind @ SpriteKind::ChairDouble,
+                    ) => interactables.push((
+                        pos,
+                        Interaction::Mount(
+                            sprite_mount_points(
+                                sprite_kind,
+                                Vec3::zero(),
+                                block.get_ori().unwrap_or(0),
+                            )
+                            .map(|(pos, _)| pos)
+                            .collect(),
+                        ),
+                    )),
                     _ => {},
                 },
             }

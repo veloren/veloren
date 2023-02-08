@@ -71,10 +71,9 @@ use crate::{
     render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
-        interactable::{BlockInteraction, Interactable},
         settings_change::{
             Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
-        },
+        }, interactable::{Interactable, BlockInteraction},
     },
     settings::chat::ChatFilter,
     ui::{
@@ -2107,10 +2106,34 @@ impl Hud {
                             }
                         }
                     },
+                    BlockInteraction::Mount(_) => vec![(
+                        Some(GameInput::Interact),
+                        i18n.get_msg("hud-sit").to_string(),
+                    )],
                 };
 
                 // This is only done once per frame, so it's not a performance issue
                 if let Some(desc) = block
+                    .get_sprite()
+                    .filter(|s| s.is_mountable())
+                    .and_then(|s| get_sprite_desc(s, i18n))
+                {
+                    overitem::Overitem::new(
+                        desc,
+                        overitem::TEXT_COLOR,
+                        pos.distance_squared(player_pos),
+                        &self.fonts,
+                        i18n,
+                        &global_state.settings.controls,
+                        overitem_properties,
+                        self.pulse,
+                        &global_state.window.key_layout,
+                        vec![(Some(GameInput::Interact), i18n.get_msg("hud-sit").to_string())],
+                    )
+                    .x_y(0.0, 100.0)
+                    .position_ingame(over_pos)
+                    .set(overitem_id, ui_widgets);
+                } else if let Some(desc) = block
                     .get_sprite()
                     .filter(|s| s.is_container())
                     .and_then(|s| get_sprite_desc(s, i18n))
@@ -5130,6 +5153,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::DungeonChest3
         | SpriteKind::DungeonChest4
         | SpriteKind::DungeonChest5 => "common-sprite-chest",
+        SpriteKind::ChairSingle | SpriteKind::ChairDouble => "common-sprite-chair",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(localized_strings.get_msg(i18n_key))

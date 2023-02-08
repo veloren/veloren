@@ -9,13 +9,13 @@ use super::{
 use client::Client;
 use common::{
     comp,
-    comp::tool::ToolKind,
+    comp::{tool::ToolKind, CharacterState},
     consts::MAX_PICKUP_RANGE,
     link::Is,
     mounting::Mount,
     terrain::{Block, TerrainGrid, UnlockKind},
     util::find_dist::{Cube, Cylinder, FindDist},
-    vol::ReadVol,
+    vol::ReadVol, states::utils::SPRITE_MOUNT_DIST_SQR,
 };
 use common_base::span;
 
@@ -32,6 +32,7 @@ pub enum BlockInteraction {
     // TODO: mining blocks don't use the interaction key, so it might not be the best abstraction
     // to have them here, will see how things turn out
     Mine(ToolKind),
+    Mount(Vec<Vec3<f32>>),
 }
 
 #[derive(Clone, Debug)]
@@ -82,6 +83,7 @@ impl Interactable {
                 }
             },
             Interaction::Craft(tab) => BlockInteraction::Craft(tab),
+            Interaction::Mount(points) => BlockInteraction::Mount(points),
         };
         Some(Self::Block(block, pos, block_interaction))
     }
@@ -176,11 +178,12 @@ pub(super) fn select_interactable(
         let items = ecs.read_storage::<comp::Item>();
         let stats = ecs.read_storage::<comp::Stats>();
 
+        let player_char_state = char_states.get(player_entity);
         let player_cylinder = Cylinder::from_components(
             player_pos,
             scales.get(player_entity).copied(),
             colliders.get(player_entity),
-            char_states.get(player_entity),
+            player_char_state,
         );
 
         let closest_interactable_entity = (
@@ -248,11 +251,24 @@ pub(super) fn select_interactable(
                     .interactables
                     .iter()
                     .map(move |(block_offset, interaction)| (chunk_pos + block_offset, interaction))
+                    .filter_map(|(pos, interaction)| {
+                        if matches!(player_char_state, Some(CharacterState::MountSprite(_))) && matches!(interaction, Interaction::Mount(_) | Interaction::Collect) {
+                            None
+                        } else if let Interaction::Mount(mount_points) = interaction {
+                            mount_points.iter()
+                                .map(|p| (p + pos.as_()).distance_squared(player_pos))
+                                .filter(|dist| *dist < SPRITE_MOUNT_DIST_SQR)
+                                .min_by_key(|dist| OrderedFloat(*dist))
+                                .map(|dist| (pos, dist))
+                                .zip(Some(interaction))
+                        } else {
+                            Some(((pos, (pos.as_() + 0.5).distance_squared(player_pos)), interaction))
+                        }
+                    })
             })
-            .map(|(block_pos, interaction)| (
+            .map(|((block_pos, dis), interaction)| (
                 block_pos,
-                block_pos.map(|e| e as f32 + 0.5)
-                    .distance_squared(player_pos),
+                dis,
                 interaction,
             ))
             .min_by_key(|(_, dist_sqr, _)| OrderedFloat(*dist_sqr))
@@ -267,7 +283,7 @@ pub(super) fn select_interactable(
                 }) < search_dist
             })
             .and_then(|(block_pos, interaction)| {
-                Interactable::from_block_pos(&terrain, block_pos, *interaction)
+                Interactable::from_block_pos(&terrain, block_pos, interaction.clone())
             })
             .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
     }

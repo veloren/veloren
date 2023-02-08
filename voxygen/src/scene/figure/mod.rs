@@ -1977,7 +1977,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Sit { .. } => {
+                        CharacterState::Sit { .. } | CharacterState::MountSprite(_) => {
                             anim::character::SitAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, second_tool_kind, time),

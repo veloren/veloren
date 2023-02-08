@@ -366,7 +366,8 @@ impl<'a> PhysicsData<'a> {
                     char_state_maybe,
                 )| {
                     let is_sticky = sticky.is_some();
-                    let is_immovable = immovable.is_some();
+                    let is_immovable = immovable.is_some()
+                        || matches!(char_state_maybe, Some(CharacterState::MountSprite(_)));
                     let is_mid_air = physics.on_surface().is_none();
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
@@ -621,6 +622,7 @@ impl<'a> PhysicsData<'a> {
             !&read.is_ridings,
         )
             .par_join()
+            .filter(|tuple| !matches!(tuple.4, Some(CharacterState::MountSprite(_))))
             .for_each_init(
                 || {
                     prof_span!(guard, "velocity update rayon job");
@@ -751,7 +753,10 @@ impl<'a> PhysicsData<'a> {
             !&read.is_ridings,
         )
             .par_join()
-            .filter(|tuple| tuple.3.is_voxel() == terrain_like_entities)
+            .filter(|tuple| {
+                tuple.3.is_voxel() == terrain_like_entities
+                    && !matches!(tuple.8, Some(CharacterState::MountSprite(_)))
+            })
             .map_init(
                 || {
                     prof_span!(guard, "physics e<>t rayon job");

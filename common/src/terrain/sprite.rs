@@ -12,6 +12,7 @@ use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt};
 use strum::EnumIter;
+use vek::Vec3;
 
 make_case_elim!(
     sprite_kind,
@@ -472,6 +473,39 @@ impl SpriteKind {
     #[inline]
     pub fn is_container(&self) -> bool {
         matches!(self.collectible_id(), Some(Some(LootSpec::LootTable(_))))
+    }
+
+    /// Is the sprite a container that will emit a mystery item?
+    #[inline]
+    pub fn mount_offsets(&self) -> &'static [(Vec3<f32>, Vec3<f32>)] {
+        const UNIT_Y: Vec3<f32> = Vec3 {
+            x: 0.0,
+            y: -1.0,
+            z: 0.0,
+        };
+        match self {
+            SpriteKind::ChairSingle => &[(Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.5,
+            }, UNIT_Y)],
+            SpriteKind::ChairDouble => &[(Vec3 {
+                x: -0.5,
+                y: 0.0,
+                z: 0.6,
+            }, UNIT_Y),
+            (Vec3 {
+                x: 0.5,
+                y: -0.1,
+                z: 0.6,
+            }, UNIT_Y)],
+            _ => &[],
+        }
+    }
+
+    #[inline]
+    pub fn is_mountable(&self) -> bool {
+        !self.mount_offsets().is_empty()
     }
 
     /// Which tool (if any) is needed to collect this sprite?

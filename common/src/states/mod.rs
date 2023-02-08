@@ -40,3 +40,4 @@ pub mod use_item;
 pub mod utils;
 pub mod wallrun;
 pub mod wielding;
+pub mod mount_sprite;

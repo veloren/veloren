@@ -145,7 +145,7 @@ impl<'a> System<'a> for Sys {
         {
             match character_state {
                 // Sitting accelerates recharging energy the most
-                CharacterState::Sit => {
+                CharacterState::Sit | CharacterState::MountSprite(_) => {
                     if energy.needs_regen() {
                         energy.regen(SIT_ENERGY_REGEN_ACCEL, dt);
                     }

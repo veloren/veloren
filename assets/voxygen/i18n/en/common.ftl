@@ -112,3 +112,4 @@ common-material-stone = Stone
 common-material-cloth = Cloth
 common-material-hide = Hide
 common-sprite-chest = Chest
+common-sprite-chair = Chair

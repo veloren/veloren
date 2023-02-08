@@ -165,6 +165,7 @@ pub enum ControlAction {
     GlideWield,
     Unwield,
     Sit,
+    MountSprite(Vec3<i32>),
     Dance,
     Sneak,
     Stand,

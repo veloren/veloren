@@ -421,6 +421,12 @@ impl Block {
     }
 
     #[inline]
+    pub fn is_mountable(&self) -> bool {
+        self.get_sprite()
+            .map_or(false, |s| s.is_mountable())
+    }
+
+    #[inline]
     pub fn is_bonkable(&self) -> bool {
         match self.get_sprite() {
             Some(

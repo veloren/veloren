@@ -59,6 +59,9 @@ pub trait CharacterBehavior {
     fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
+    fn mount_sprite(&self, data: &JoinData, _output_events: &mut OutputEvents, _pos: Vec3<i32>) -> StateUpdate {
+        StateUpdate::from(data)
+    }
     // start_input has custom implementation in the following character states that
     // may also need to be modified when changes are made here: ComboMelee2
     fn start_input(
@@ -111,6 +114,7 @@ pub trait CharacterBehavior {
                 select_pos,
             } => self.start_input(data, input, target_entity, select_pos),
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
+            ControlAction::MountSprite(pos) => self.mount_sprite(data, output_events, pos),
         }
     }
 }

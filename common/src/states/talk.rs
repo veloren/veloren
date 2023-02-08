@@ -7,6 +7,7 @@ use crate::{
     },
 };
 use serde::{Deserialize, Serialize};
+use vek::Vec3;
 
 const TURN_RATE: f32 = 40.0;
 
@@ -44,6 +45,13 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle(idle::Data::default());
         attempt_sit(data, &mut update);
+        update
+    }
+
+    fn mount_sprite(&self, data: &JoinData, _: &mut OutputEvents, pos: Vec3<i32>) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Idle(idle::Data::default());
+        attempt_mount_sprite(data, &mut update, pos);
         update
     }
 

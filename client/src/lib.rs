@@ -1530,12 +1530,27 @@ impl Client {
             .ecs()
             .read_storage::<CharacterState>()
             .get(self.entity())
-            .map(|cs| matches!(cs, CharacterState::Sit));
+            .map(|cs| matches!(cs, CharacterState::Sit | CharacterState::MountSprite(_)));
 
         match is_sitting {
             Some(true) => self.control_action(ControlAction::Stand),
             Some(false) => self.control_action(ControlAction::Sit),
             None => warn!("Can't toggle sit, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn stand_if_mounted(&mut self) {
+        let is_sitting = self
+            .state
+            .ecs()
+            .read_storage::<CharacterState>()
+            .get(self.entity())
+            .map(|cs| matches!(cs, CharacterState::MountSprite(_)));
+
+        match is_sitting {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => {},
+            None => warn!("Can't stand, client entity doesn't have a `CharacterState`"),
         }
     }
 
@@ -1720,6 +1735,10 @@ impl Client {
         self.control_action(ControlAction::InventoryAction(InventoryAction::Collect(
             pos,
         )));
+    }
+
+    pub fn mount_sprite(&mut self, pos: Vec3<i32>) {
+        self.control_action(ControlAction::MountSprite(pos));
     }
 
     pub fn change_ability(&mut self, slot: usize, new_ability: comp::ability::AuxiliaryAbility) {
