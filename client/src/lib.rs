@@ -1539,7 +1539,7 @@ impl Client {
         }
     }
 
-    pub fn stand_if_mounted(&mut self) {
+    pub fn stand_if_mounted(&mut self) -> bool {
         let is_sitting = self
             .state
             .ecs()
@@ -1552,6 +1552,7 @@ impl Client {
             Some(false) => {},
             None => warn!("Can't stand, client entity doesn't have a `CharacterState`"),
         }
+        is_sitting.unwrap_or(false)
     }
 
     pub fn toggle_dance(&mut self) {

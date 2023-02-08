@@ -2128,7 +2128,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        vec![(Some(GameInput::Interact), i18n.get_msg("hud-sit").to_string())],
+                        vec![(Some(GameInput::Mount), i18n.get_msg("hud-sit").to_string())],
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
