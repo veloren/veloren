@@ -13,9 +13,10 @@ use common::{
     consts::MAX_PICKUP_RANGE,
     link::Is,
     mounting::Mount,
+    states::utils::SPRITE_MOUNT_RANGE_SQR,
     terrain::{Block, TerrainGrid, UnlockKind},
     util::find_dist::{Cube, Cylinder, FindDist},
-    vol::ReadVol, states::utils::SPRITE_MOUNT_DIST_SQR,
+    vol::ReadVol,
 };
 use common_base::span;
 
@@ -257,7 +258,7 @@ pub(super) fn select_interactable(
                         } else if let Interaction::Mount(mount_points) = interaction {
                             mount_points.iter()
                                 .map(|p| (p + pos.as_()).distance_squared(player_pos))
-                                .filter(|dist| *dist < SPRITE_MOUNT_DIST_SQR)
+                                .filter(|dist| *dist < SPRITE_MOUNT_RANGE_SQR)
                                 .min_by_key(|dist| OrderedFloat(*dist))
                                 .map(|dist| (pos, dist))
                                 .zip(Some(interaction))

@@ -887,14 +887,15 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 if client.is_riding() {
                                     client.unmount();
-                                } else if client.stand_if_mounted() { } else {
+                                } else if client.stand_if_mounted() {
+                                } else {
                                     if let Some(interactable) = &self.interactable {
                                         match interactable {
                                             Interactable::Block(_, pos, interaction) => {
                                                 if matches!(interaction, BlockInteraction::Mount(_)) {
                                                     client.mount_sprite(*pos)
                                                 }
-                                            }
+                                            },
                                             Interactable::Entity(entity) => client.mount(*entity),
                                         }
                                     }
