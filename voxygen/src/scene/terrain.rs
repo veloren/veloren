@@ -1536,6 +1536,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         &'a self,
         drawer: &mut TerrainShadowDrawer<'_, 'a>,
         focus_pos: Vec3<f32>,
+        is_underground: bool,
     ) {
         span!(_guard, "render_shadows", "Terrain::render_shadows");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
@@ -1558,12 +1559,15 @@ impl<V: RectRasterableVol> Terrain<V> {
             .filter(|chunk| chunk.can_shadow_sun())
             .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
             .filter_map(|chunk| {
-                chunk
-                    .opaque_model
-                    .as_ref()
-                    .map(|model| (model, &chunk.locals))
+                Some((
+                    chunk.opaque_model.as_ref()?,
+                    &chunk.locals,
+                    &chunk.alt_indices,
+                ))
             })
-            .for_each(|(model, locals)| drawer.draw(model, locals));
+            .for_each(|(model, locals, alt_indices)| {
+                drawer.draw(model, locals, alt_indices, is_underground)
+            });
     }
 
     pub fn render_rain_occlusion<'a>(
@@ -1585,13 +1589,14 @@ impl<V: RectRasterableVol> Terrain<V> {
         chunk_iter
             // Find a way to keep this?
             // .filter(|chunk| chunk.can_shadow_sun())
-            .filter_map(|chunk| {
+            .filter_map(|chunk| Some((
                 chunk
                     .opaque_model
-                    .as_ref()
-                    .map(|model| (model, &chunk.locals))
-            })
-            .for_each(|(model, locals)| drawer.draw(model, locals));
+                    .as_ref()?,
+                &chunk.locals,
+                &chunk.alt_indices,
+            )))
+            .for_each(|(model, locals, alt_indices)| drawer.draw(model, locals, alt_indices, false));
     }
 
     pub fn chunks_for_point_shadows(

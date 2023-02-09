@@ -1262,8 +1262,11 @@ impl Scene {
                 prof_span!("directed shadows");
                 if let Some(mut shadow_pass) = drawer.shadow_pass() {
                     // Render terrain directed shadows.
-                    self.terrain
-                        .render_shadows(&mut shadow_pass.draw_terrain_shadows(), focus_pos);
+                    self.terrain.render_shadows(
+                        &mut shadow_pass.draw_terrain_shadows(),
+                        focus_pos,
+                        is_underground,
+                    );
 
                     // Render figure directed shadows.
                     self.figure_mgr.render_shadows(
