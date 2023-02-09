@@ -1249,9 +1249,9 @@ impl Scene {
         let is_underground = scene_data
             .state
             .terrain()
-            .get_key(scene_data.state.terrain().pos_key(focus_pos.as_()))
+            .get_key(scene_data.state.terrain().pos_key(cam_pos.as_()))
             .map_or(false, |c| {
-                focus_pos.z < c.meta().alt() - (terrain::SHALLOW_ALT + terrain::DEEP_ALT) / 2.0
+                cam_pos.z < c.meta().alt() - (terrain::SHALLOW_ALT + terrain::DEEP_ALT) / 2.0
             });
 
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
