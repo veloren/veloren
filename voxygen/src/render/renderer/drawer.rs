@@ -976,11 +976,11 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
         col_lights: &'data Arc<ColLights<terrain::Locals>>,
         locals: &'data terrain::BoundLocals,
         alt_indices: &'data crate::scene::terrain::AltIndices,
-        is_underground: bool,
+        is_underground: Option<bool>,
     ) {
         // Don't render anything if there's nothing to render!
-        if (alt_indices.underground_end == 0 && is_underground)
-            || (alt_indices.deep_end == model.len() && !is_underground)
+        if (alt_indices.underground_end == 0 && is_underground == Some(true))
+            || (alt_indices.deep_end == model.len() && is_underground == Some(false))
         {
             return;
         }
@@ -998,10 +998,10 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
 
         self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
 
-        let submodel = if is_underground {
-            model.submodel(0..alt_indices.underground_end as u32)
-        } else {
-            model.submodel(alt_indices.deep_end as u32..model.len() as u32)
+        let submodel = match is_underground {
+            Some(true) => model.submodel(0..alt_indices.underground_end as u32),
+            Some(false) => model.submodel(alt_indices.deep_end as u32..model.len() as u32),
+            None => model.submodel(0..model.len() as u32),
         };
 
         self.render_pass.set_vertex_buffer(0, submodel.buf());
@@ -1044,11 +1044,11 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
         terrain_locals: &'data terrain::BoundLocals,
         instances: &'data Instances<sprite::Instance>,
         alt_indices: &'data crate::scene::terrain::AltIndices,
-        is_underground: bool,
+        is_underground: Option<bool>,
     ) {
         // Don't render anything if there's nothing to render!
-        if (alt_indices.underground_end == 0 && is_underground)
-            || (alt_indices.deep_end == instances.count() && !is_underground)
+        if (alt_indices.underground_end == 0 && is_underground == Some(true))
+            || (alt_indices.deep_end == instances.count() && is_underground == Some(false))
         {
             return;
         }
@@ -1056,10 +1056,12 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
         self.render_pass
             .set_bind_group(3, &terrain_locals.bind_group, &[]);
 
-        let subinstances = if is_underground {
-            instances.subinstances(0..alt_indices.underground_end as u32)
-        } else {
-            instances.subinstances(alt_indices.deep_end as u32..instances.count() as u32)
+        let subinstances = match is_underground {
+            Some(true) => instances.subinstances(0..alt_indices.underground_end as u32),
+            Some(false) => {
+                instances.subinstances(alt_indices.deep_end as u32..instances.count() as u32)
+            },
+            None => instances.subinstances(0..instances.count() as u32),
         };
 
         self.render_pass.set_vertex_buffer(0, subinstances.buf());

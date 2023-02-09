@@ -1645,17 +1645,26 @@ impl<V: RectRasterableVol> Terrain<V> {
         Spiral2d::new()
             .filter_map(|rpos| {
                 let pos = focus_chunk + rpos;
-                self.chunks.get(&pos)
+                Some((rpos, self.chunks.get(&pos)?))
             })
             .take(self.chunks.len())
-            .filter(|chunk| chunk.visible.is_visible())
-            .filter_map(|chunk| {
-                chunk
-                    .opaque_model
-                    .as_ref()
-                    .map(|model| (model, &chunk.col_lights, &chunk.locals, &chunk.alt_indices))
+            .filter(|(_, chunk)| chunk.visible.is_visible())
+            .filter_map(|(rpos, chunk)| {
+                Some((
+                    rpos,
+                    chunk.opaque_model.as_ref()?,
+                    &chunk.col_lights,
+                    &chunk.locals,
+                    &chunk.alt_indices,
+                ))
             })
-            .for_each(|(model, col_lights, locals, alt_indices)| {
+            .for_each(|(rpos, model, col_lights, locals, alt_indices)| {
+                // Always draw all of close chunks to avoid terrain 'popping'
+                let is_underground = if rpos.magnitude_squared() < 3i32.pow(2) {
+                    None
+                } else {
+                    Some(is_underground)
+                };
                 drawer.draw(model, col_lights, locals, alt_indices, is_underground)
             });
     }
@@ -1677,7 +1686,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         let chunk_iter = Spiral2d::new()
             .filter_map(|rpos| {
                 let pos = focus_chunk + rpos;
-                self.chunks.get(&pos).map(|c| (pos, c))
+                Some((rpos, pos, self.chunks.get(&pos)?))
             })
             .take(self.chunks.len());
 
@@ -1694,8 +1703,8 @@ impl<V: RectRasterableVol> Terrain<V> {
         let mut sprite_drawer = drawer.draw_sprites(&self.sprite_globals, &self.sprite_col_lights);
         chunk_iter
             .clone()
-            .filter(|(_, c)| c.visible.is_visible())
-            .for_each(|(pos, chunk)| {
+            .filter(|(_, _, c)| c.visible.is_visible())
+            .for_each(|(rpos, pos, chunk)| {
                 // Skip chunk if it has no sprites
                 if chunk.sprite_instances[0].0.count() == 0 {
                     return;
@@ -1723,6 +1732,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                         4
                     };
 
+                    // Always draw all of close chunks to avoid terrain 'popping'
+                    let is_underground = if rpos.magnitude_squared() < 3i32.pow(2) {
+                        None
+                    } else {
+                        Some(is_underground)
+                    };
+
                     sprite_drawer.draw(
                         &chunk.locals,
                         &chunk.sprite_instances[lod_level].0,
@@ -1738,8 +1754,8 @@ impl<V: RectRasterableVol> Terrain<V> {
         span!(guard, "Fluid chunks");
         let mut fluid_drawer = drawer.draw_fluid();
         chunk_iter
-            .filter(|(_, chunk)| chunk.visible.is_visible())
-            .filter_map(|(_, chunk)| {
+            .filter(|(_, _, chunk)| chunk.visible.is_visible())
+            .filter_map(|(_, _, chunk)| {
                 chunk
                     .fluid_model
                     .as_ref()
