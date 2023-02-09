@@ -462,8 +462,8 @@ pub fn generate_mesh<'a>(
                         create_opaque(atlas_pos, pos, norm, meta)
                     },
                 );
-                let max_alt = mesh_delta.z as f32 + max_z.unwrap_or(0.0);
-                let min_alt = mesh_delta.z as f32 + min_z.unwrap_or(0.0);
+                let max_alt = mesh_delta.z + max_z.unwrap_or(0.0);
+                let min_alt = mesh_delta.z + min_z.unwrap_or(0.0);
 
                 if max_alt < deep_alt {
                     opaque_deep.push(quad);

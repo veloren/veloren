@@ -1006,7 +1006,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
 
         self.render_pass.set_vertex_buffer(0, submodel.buf());
         self.render_pass
-            .draw_indexed(0..submodel.len() as u32 / 4 * 6, 0, 0..1);
+            .draw_indexed(0..submodel.len() / 4 * 6, 0, 0..1);
     }
 }
 
@@ -1066,7 +1066,7 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
         self.render_pass.draw_indexed(
             0..sprite::VERT_PAGE_SIZE / 4 * 6,
             0,
-            0..subinstances.count() as u32,
+            0..subinstances.count(),
         );
     }
 }
