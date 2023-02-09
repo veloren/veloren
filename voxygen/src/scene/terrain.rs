@@ -1566,7 +1566,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 ))
             })
             .for_each(|(model, locals, alt_indices)| {
-                drawer.draw(model, locals, alt_indices, is_underground)
+                drawer.draw(model, locals, alt_indices, Some(is_underground))
             });
     }
 
@@ -1596,7 +1596,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 &chunk.locals,
                 &chunk.alt_indices,
             )))
-            .for_each(|(model, locals, alt_indices)| drawer.draw(model, locals, alt_indices, false));
+            .for_each(|(model, locals, alt_indices)| drawer.draw(model, locals, alt_indices, None));
     }
 
     pub fn chunks_for_point_shadows(

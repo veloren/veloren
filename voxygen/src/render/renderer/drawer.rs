@@ -795,17 +795,19 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
         model: &'data Model<terrain::Vertex>,
         locals: &'data terrain::BoundLocals,
         alt_indices: &'data crate::scene::terrain::AltIndices,
-        is_underground: bool,
+        is_underground: Option<bool>,
     ) {
         // Don't render anything if there's nothing to render!
-        if is_underground || alt_indices.deep_end == model.len() {
+        if is_underground == Some(true)
+            || (alt_indices.deep_end == model.len() && is_underground == Some(false))
+        {
             return;
         }
 
-        let submodel = if is_underground {
-            model.submodel(0..alt_indices.underground_end as u32)
-        } else {
-            model.submodel(alt_indices.deep_end as u32..model.len() as u32)
+        let submodel = match is_underground {
+            Some(true) => model.submodel(0..alt_indices.underground_end as u32),
+            Some(false) => model.submodel(alt_indices.deep_end as u32..model.len() as u32),
+            None => model.submodel(0..model.len() as u32),
         };
 
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
