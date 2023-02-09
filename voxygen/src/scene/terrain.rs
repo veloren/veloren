@@ -89,7 +89,7 @@ pub struct TerrainChunkData {
     col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
     light_map: LightMapFn,
     glow_map: LightMapFn,
-    sprite_instances: [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
+    sprite_instances: [(Instances<SpriteInstance>, AltIndices); SPRITE_LOD_LEVELS],
     locals: pipelines::terrain::BoundLocals,
     pub blocks_of_interest: BlocksOfInterest,
 
@@ -98,6 +98,16 @@ pub struct TerrainChunkData {
     can_shadow_sun: bool,
     z_bounds: (f32, f32),
     frustum_last_plane_index: u8,
+
+    alt_indices: AltIndices,
+}
+
+pub const SHALLOW_ALT: f32 = 24.0;
+pub const DEEP_ALT: f32 = 96.0;
+
+pub struct AltIndices {
+    pub deep_end: usize,
+    pub underground_end: usize,
 }
 
 #[derive(Copy, Clone)]
@@ -117,13 +127,14 @@ pub struct MeshWorkerResponseMesh {
     col_lights_info: ColLightInfo,
     light_map: LightMapFn,
     glow_map: LightMapFn,
+    alt_indices: AltIndices,
 }
 
 /// A type produced by mesh worker threads corresponding to the position and
 /// mesh of a chunk.
 struct MeshWorkerResponse {
     pos: Vec2<i32>,
-    sprite_instances: [Vec<SpriteInstance>; SPRITE_LOD_LEVELS],
+    sprite_instances: [(Vec<SpriteInstance>, AltIndices); SPRITE_LOD_LEVELS],
     /// If None, this update was requested without meshing.
     mesh: Option<MeshWorkerResponseMesh>,
     started_tick: u64,
@@ -244,15 +255,19 @@ fn mesh_worker(
         mesh = None;
         (&**light_map, &**glow_map)
     } else {
-        let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
-            generate_mesh(
-                &volume,
-                (
-                    range,
-                    Vec2::new(max_texture_size, max_texture_size),
-                    &blocks_of_interest,
-                ),
-            );
+        let (
+            opaque_mesh,
+            fluid_mesh,
+            _shadow_mesh,
+            (bounds, col_lights_info, light_map, glow_map, alt_indices),
+        ) = generate_mesh(
+            &volume,
+            (
+                range,
+                Vec2::new(max_texture_size, max_texture_size),
+                &blocks_of_interest,
+            ),
+        );
         mesh = Some(MeshWorkerResponseMesh {
             // TODO: Take sprite bounds into account somehow?
             z_bounds: (bounds.min.z, bounds.max.z),
@@ -261,6 +276,7 @@ fn mesh_worker(
             col_lights_info,
             light_map,
             glow_map,
+            alt_indices,
         });
         // Pointer juggling so borrows work out.
         let mesh = mesh.as_ref().unwrap();
@@ -272,7 +288,19 @@ fn mesh_worker(
         // Extract sprite locations from volume
         sprite_instances: {
             prof_span!("extract sprite_instances");
-            let mut instances = [(); SPRITE_LOD_LEVELS].map(|()| Vec::new());
+            let mut instances = [(); SPRITE_LOD_LEVELS].map(|()| {
+                (
+                    Vec::new(), // Deep
+                    Vec::new(), // Shallow
+                    Vec::new(), // Surface
+                )
+            });
+
+            let (underground_alt, deep_alt) = volume
+                .get_key(volume.pos_key((range.min + range.max) / 2))
+                .map_or((0.0, 0.0), |c| {
+                    (c.meta().alt() - SHALLOW_ALT, c.meta().alt() - DEEP_ALT)
+                });
 
             for x in 0..TerrainChunk::RECT_SIZE.x as i32 {
                 for y in 0..TerrainChunk::RECT_SIZE.y as i32 {
@@ -304,7 +332,7 @@ fn mesh_worker(
                             let light = light_map(wpos);
                             let glow = glow_map(wpos);
 
-                            for (lod_level, sprite_data) in
+                            for ((deep_level, shallow_level, surface_level), sprite_data) in
                                 instances.iter_mut().zip(&sprite_data[&key])
                             {
                                 let mat = Mat4::identity()
@@ -332,7 +360,13 @@ fn mesh_worker(
                                         page,
                                         matches!(sprite, SpriteKind::Door),
                                     );
-                                    lod_level.push(instance);
+                                    if (wpos.z as f32) < deep_alt {
+                                        deep_level.push(instance);
+                                    } else if wpos.z as f32 > underground_alt {
+                                        surface_level.push(instance);
+                                    } else {
+                                        shallow_level.push(instance);
+                                    }
                                 }
                             }
                         }
@@ -340,7 +374,21 @@ fn mesh_worker(
                 }
             }
 
-            instances
+            instances.map(|(deep_level, shallow_level, surface_level)| {
+                let deep_end = deep_level.len();
+                let alt_indices = AltIndices {
+                    deep_end,
+                    underground_end: deep_end + shallow_level.len(),
+                };
+                (
+                    deep_level
+                        .into_iter()
+                        .chain(shallow_level.into_iter())
+                        .chain(surface_level.into_iter())
+                        .collect(),
+                    alt_indices,
+                )
+            })
         },
         mesh,
         blocks_of_interest,
@@ -1141,11 +1189,15 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Some(todo) if response.started_tick <= todo.started_tick => {
                     let started_tick = todo.started_tick;
 
-                    let sprite_instances = response.sprite_instances.map(|instances| {
-                        renderer
-                            .create_instances(&instances)
-                            .expect("Failed to upload chunk sprite instances to the GPU!")
-                    });
+                    let sprite_instances =
+                        response.sprite_instances.map(|(instances, alt_indices)| {
+                            (
+                                renderer
+                                    .create_instances(&instances)
+                                    .expect("Failed to upload chunk sprite instances to the GPU!"),
+                                alt_indices,
+                            )
+                        });
 
                     if let Some(mesh) = response.mesh {
                         // Full update, insert the whole chunk.
@@ -1226,6 +1278,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             blocks_of_interest: response.blocks_of_interest,
                             z_bounds: mesh.z_bounds,
                             frustum_last_plane_index: 0,
+                            alt_indices: mesh.alt_indices,
                         });
                     } else if let Some(chunk) = self.chunks.get_mut(&response.pos) {
                         // There was an update that didn't require a remesh (probably related to
@@ -1576,7 +1629,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
     }
 
-    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>, focus_pos: Vec3<f32>) {
+    pub fn render<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
+        focus_pos: Vec3<f32>,
+        is_underground: bool,
+    ) {
         span!(_guard, "render", "Terrain::render");
         let mut drawer = drawer.draw_terrain();
 
@@ -1595,9 +1653,11 @@ impl<V: RectRasterableVol> Terrain<V> {
                 chunk
                     .opaque_model
                     .as_ref()
-                    .map(|model| (model, &chunk.col_lights, &chunk.locals))
+                    .map(|model| (model, &chunk.col_lights, &chunk.locals, &chunk.alt_indices))
             })
-            .for_each(|(model, col_lights, locals)| drawer.draw(model, col_lights, locals));
+            .for_each(|(model, col_lights, locals, alt_indices)| {
+                drawer.draw(model, col_lights, locals, alt_indices, is_underground)
+            });
     }
 
     pub fn render_translucent<'a>(
@@ -1606,6 +1666,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         focus_pos: Vec3<f32>,
         cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
+        is_underground: bool,
     ) {
         span!(_guard, "render_translucent", "Terrain::render_translucent");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
@@ -1636,7 +1697,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             .filter(|(_, c)| c.visible.is_visible())
             .for_each(|(pos, chunk)| {
                 // Skip chunk if it has no sprites
-                if chunk.sprite_instances[0].count() == 0 {
+                if chunk.sprite_instances[0].0.count() == 0 {
                     return;
                 }
 
@@ -1662,7 +1723,12 @@ impl<V: RectRasterableVol> Terrain<V> {
                         4
                     };
 
-                    sprite_drawer.draw(&chunk.locals, &chunk.sprite_instances[lod_level]);
+                    sprite_drawer.draw(
+                        &chunk.locals,
+                        &chunk.sprite_instances[lod_level].0,
+                        &chunk.sprite_instances[lod_level].1,
+                        is_underground,
+                    );
                 }
             });
         drop(sprite_drawer);

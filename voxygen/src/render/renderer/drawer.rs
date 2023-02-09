@@ -975,7 +975,16 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
         model: &'data Model<terrain::Vertex>,
         col_lights: &'data Arc<ColLights<terrain::Locals>>,
         locals: &'data terrain::BoundLocals,
+        alt_indices: &'data crate::scene::terrain::AltIndices,
+        is_underground: bool,
     ) {
+        // Don't render anything if there's nothing to render!
+        if (alt_indices.underground_end == 0 && is_underground)
+            || (alt_indices.deep_end == model.len() && !is_underground)
+        {
+            return;
+        }
+
         if self.col_lights
             // Check if we are still using the same atlas texture as the previous drawn
             // chunk
@@ -988,9 +997,16 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
         };
 
         self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+
+        let submodel = if is_underground {
+            model.submodel(0..alt_indices.underground_end as u32)
+        } else {
+            model.submodel(alt_indices.deep_end as u32..model.len() as u32)
+        };
+
+        self.render_pass.set_vertex_buffer(0, submodel.buf());
         self.render_pass
-            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
+            .draw_indexed(0..submodel.len() as u32 / 4 * 6, 0, 0..1);
     }
 }
 
@@ -1027,16 +1043,30 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
         &mut self,
         terrain_locals: &'data terrain::BoundLocals,
         instances: &'data Instances<sprite::Instance>,
+        alt_indices: &'data crate::scene::terrain::AltIndices,
+        is_underground: bool,
     ) {
+        // Don't render anything if there's nothing to render!
+        if (alt_indices.underground_end == 0 && is_underground)
+            || (alt_indices.deep_end == instances.count() && !is_underground)
+        {
+            return;
+        }
+
         self.render_pass
             .set_bind_group(3, &terrain_locals.bind_group, &[]);
 
-        self.render_pass
-            .set_vertex_buffer(0, instances.buf().slice(..));
+        let subinstances = if is_underground {
+            instances.subinstances(0..alt_indices.underground_end as u32)
+        } else {
+            instances.subinstances(alt_indices.deep_end as u32..instances.count() as u32)
+        };
+
+        self.render_pass.set_vertex_buffer(0, subinstances.buf());
         self.render_pass.draw_indexed(
             0..sprite::VERT_PAGE_SIZE / 4 * 6,
             0,
-            0..instances.count() as u32,
+            0..subinstances.count() as u32,
         );
     }
 }

@@ -5,8 +5,8 @@ use crate::{
         greedy::{self, GreedyConfig, GreedyMesh},
         MeshGen,
     },
-    render::{ColLightInfo, FluidVertex, Mesh, TerrainVertex},
-    scene::terrain::BlocksOfInterest,
+    render::{ColLightInfo, FluidVertex, Mesh, TerrainVertex, Vertex},
+    scene::terrain::{AltIndices, BlocksOfInterest, DEEP_ALT, SHALLOW_ALT},
 };
 use common::{
     terrain::{Block, TerrainChunk},
@@ -238,6 +238,7 @@ pub fn generate_mesh<'a>(
         ColLightInfo,
         Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
         Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
+        AltIndices,
     ),
 > {
     span!(
@@ -274,6 +275,12 @@ pub fn generate_mesh<'a>(
     // Calculate chunk lighting (sunlight defaults to 1.0, glow to 0.0)
     let light = calc_light(true, SUNLIGHT, range, vol, core::iter::empty());
     let glow = calc_light(false, 0, range, vol, glow_blocks.into_iter());
+
+    let (underground_alt, deep_alt) = vol
+        .get_key(vol.pos_key((range.min + range.max) / 2))
+        .map_or((0.0, 0.0), |c| {
+            (c.meta().alt() - SHALLOW_ALT, c.meta().alt() - DEEP_ALT)
+        });
 
     let mut opaque_limits = None::<Limits>;
     let mut fluid_limits = None::<Limits>;
@@ -424,7 +431,9 @@ pub fn generate_mesh<'a>(
 
     let mut greedy =
         GreedyMesh::<guillotiere::SimpleAtlasAllocator>::new(max_size, greedy::general_config());
-    let mut opaque_mesh = Mesh::new();
+    let mut opaque_deep = Vec::new();
+    let mut opaque_shallow = Vec::new();
+    let mut opaque_surface = Vec::new();
     let mut fluid_mesh = Mesh::new();
     greedy.push(GreedyConfig {
         data: (),
@@ -438,15 +447,31 @@ pub fn generate_mesh<'a>(
         should_draw,
         push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &FaceKind| match meta {
             FaceKind::Opaque(meta) => {
-                opaque_mesh.push_quad(greedy::create_quad(
+                let mut max_z = None;
+                let mut min_z = None;
+                let quad = greedy::create_quad(
                     atlas_origin,
                     dim,
                     origin,
                     draw_dim,
                     norm,
                     meta,
-                    |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
-                ));
+                    |atlas_pos, pos, norm, &meta| {
+                        max_z = Some(max_z.map_or(pos.z, |z: f32| z.max(pos.z)));
+                        min_z = Some(min_z.map_or(pos.z, |z: f32| z.min(pos.z)));
+                        create_opaque(atlas_pos, pos, norm, meta)
+                    },
+                );
+                let max_alt = mesh_delta.z as f32 + max_z.unwrap_or(0.0);
+                let min_alt = mesh_delta.z as f32 + min_z.unwrap_or(0.0);
+
+                if max_alt < deep_alt {
+                    opaque_deep.push(quad);
+                } else if min_alt > underground_alt {
+                    opaque_surface.push(quad);
+                } else {
+                    opaque_shallow.push(quad);
+                }
             },
             FaceKind::Fluid => {
                 fluid_mesh.push_quad(greedy::create_quad(
@@ -472,8 +497,29 @@ pub fn generate_mesh<'a>(
     };
     let (col_lights, col_lights_size) = greedy.finalize();
 
+    let deep_end = opaque_deep.len()
+        * if TerrainVertex::QUADS_INDEX.is_some() {
+            4
+        } else {
+            6
+        };
+    let alt_indices = AltIndices {
+        deep_end,
+        underground_end: deep_end
+            + opaque_shallow.len()
+                * if TerrainVertex::QUADS_INDEX.is_some() {
+                    4
+                } else {
+                    6
+                },
+    };
+
     (
-        opaque_mesh,
+        opaque_deep
+            .into_iter()
+            .chain(opaque_shallow.into_iter())
+            .chain(opaque_surface.into_iter())
+            .collect(),
         fluid_mesh,
         Mesh::new(),
         (
@@ -481,6 +527,7 @@ pub fn generate_mesh<'a>(
             (col_lights, col_lights_size),
             Arc::new(light),
             Arc::new(glow),
+            alt_indices,
         ),
     )
 }

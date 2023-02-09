@@ -124,7 +124,11 @@ impl<V: Vertex> IntoIterator for Mesh<V> {
 
 impl<V: Vertex> FromIterator<Tri<V>> for Mesh<V> {
     fn from_iter<I: IntoIterator<Item = Tri<V>>>(tris: I) -> Self {
-        tris.into_iter().fold(Self::new(), |mut this, tri| {
+        let mut this = Self::new();
+        let tris = tris.into_iter();
+        let (lower, upper) = tris.size_hint();
+        this.verts.reserve(3 * upper.unwrap_or(lower));
+        tris.fold(this, |mut this, tri| {
             this.push_tri(tri);
             this
         })
@@ -133,7 +137,12 @@ impl<V: Vertex> FromIterator<Tri<V>> for Mesh<V> {
 
 impl<V: Vertex> FromIterator<Quad<V>> for Mesh<V> {
     fn from_iter<I: IntoIterator<Item = Quad<V>>>(quads: I) -> Self {
-        quads.into_iter().fold(Self::new(), |mut this, quad| {
+        let mut this = Self::new();
+        let quads = quads.into_iter();
+        let (lower, upper) = quads.size_hint();
+        this.verts
+            .reserve(if V::QUADS_INDEX.is_some() { 4 } else { 6 } * upper.unwrap_or(lower));
+        quads.fold(this, |mut this, quad| {
             this.push_quad(quad);
             this
         })

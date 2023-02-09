@@ -1246,6 +1246,13 @@ impl Scene {
         let focus_pos = self.camera.get_focus_pos();
         let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
         let is_rain = state.max_weather_near(cam_pos.xy()).rain > RAIN_THRESHOLD;
+        let is_underground = scene_data
+            .state
+            .terrain()
+            .get_key(scene_data.state.terrain().pos_key(focus_pos.as_()))
+            .map_or(false, |c| {
+                focus_pos.z < c.meta().alt() - (terrain::SHALLOW_ALT + terrain::DEEP_ALT) / 2.0
+            });
 
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
@@ -1305,7 +1312,8 @@ impl Scene {
                 camera_data,
             );
 
-            self.terrain.render(&mut first_pass, focus_pos);
+            self.terrain
+                .render(&mut first_pass, focus_pos, is_underground);
 
             self.figure_mgr.render(
                 &mut first_pass.draw_figures(),
@@ -1326,6 +1334,7 @@ impl Scene {
                 focus_pos,
                 cam_pos,
                 scene_data.sprite_render_distance,
+                is_underground,
             );
 
             // Render particle effects.
