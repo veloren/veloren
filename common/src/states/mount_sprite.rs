@@ -25,6 +25,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.pos.0 = self.static_data.mount_pos;
+        update.vel.0 = Vec3::zero();
 
         handle_orientation(data, &mut update, 1.0, Some(Dir::new(self.static_data.mount_dir)));
 
