@@ -298,28 +298,29 @@ fn cant_run_during_fall() -> Result<(), Box<dyn Error>> {
 
 #[derive(Clone, Copy)]
 struct FricParams {
-    friction_co: f64,
-    projected_area: f64,
-    density: f64,
-    mass: f64,
+    friction_co: f32,
+    projected_area: f32,
+    density: f32,
+    mass: f32,
+    max_acc: f32,
 }
 impl Default for FricParams {
     fn default() -> Self {
         Self {
-            friction_co: 0.9_f64,
-            projected_area: 0.75_f64,
-            density: 1.225_f64,
-            mass: 1.0_f64,
+            friction_co: 0.9_f32,
+            projected_area: 0.75_f32,
+            density: 1.225_f32,
+            mass: 1.0_f32,
+            max_acc: 9.2_f32, /* on ground the maximum speed you can get by walking is the speed
+                               * of gravity */
         }
     }
 }
 impl FricParams {
-    const MAX_ACC: f64 = 9.2;
-
     // https://en.wikipedia.org/wiki/Drag_(physics)
     // Todo: old impl was (mass * acc.abs() / (friction_co * projected_area * 0.5 *
     // density * mass )).sqrt();
-    fn v_term(&self, acc: f64) -> f64 {
+    fn v_term(&self, acc: f32) -> f32 {
         ((2.0 * self.mass * acc.abs()) / (self.density * self.projected_area * self.friction_co))
             .sqrt()
     }
@@ -328,7 +329,7 @@ trait MathHelp {
     fn coth(&self) -> Self;
     fn acoth(&self) -> Self;
 }
-impl MathHelp for f64 {
+impl MathHelp for f32 {
     // coth(x) = 1/tanh(x)`
     fn coth(&self) -> Self { 1.0 / self.tanh() }
 
@@ -338,16 +339,15 @@ impl MathHelp for f64 {
 
 fn test_run_helper(
     tps: u32,
-    start_vel: f64,
-    start_pos: f64,
-    test_series: Vec<(/* acc */ f64, /* duration */ f64)>,
-) -> (f64, f64) {
+    start_vel: Vec3<f32>,
+    start_pos: Vec3<f32>,
+    test_series: &Vec<(/* acc */ Vec3<f32>, /* duration */ f64)>,
+) -> (Vec3<f32>, Vec3<f32>) {
     let dt = 1.0 / tps as f64;
     let params = FricParams::default();
-    let v_term = params.v_term(FricParams::MAX_ACC);
-    println!("");
+    let v_term = params.v_term(params.max_acc);
     println!(
-        "dt: {:0>4.4} - mass: {:0>4.4} - v_term: {:0>4.4}",
+        "\ndt: {:0>4.4} - mass: {:0>4.4} - v_term: {:0>4.4}",
         dt, params.mass, v_term
     );
     let (mut vel, mut pos) = (start_vel, start_pos);
@@ -356,7 +356,7 @@ fn test_run_helper(
         let count = (duration / dt).round() as usize;
         println!("move_dir: {:0>4.4}", move_dir);
         for _ in 0..count {
-            (vel, pos) = acc_with_frict_tick(i, move_dir, vel, pos, dt, params);
+            (vel, pos) = acc_with_frict_tick_print(i, *move_dir, vel, pos, dt, params);
             i += 1;
         }
     }
@@ -365,14 +365,48 @@ fn test_run_helper(
 
 macro_rules! veriy_diffs {
     ($vel1:expr, $pos1:expr, $vel2:expr, $pos2:expr) => {
-        let vel_diff = ($vel2 - $vel1).abs();
-        let pos_diff = ($pos2 - $pos1).abs();
+        let vel_diff = ($vel2 - $vel1).map(|xyz| xyz.abs());
+        let pos_diff = ($pos2 - $pos1).map(|xyz| xyz.abs());
         println!("vel_diff: {:4.4},   pos_diff: {:4.4}", vel_diff, pos_diff);
-        assert_relative_eq!(vel_diff, 0.0, epsilon = EPSILON as f64);
-        assert_relative_eq!(pos_diff, 0.0, epsilon = EPSILON as f64);
+        assert_relative_eq!(vel_diff.x, 0.0, epsilon = EPSILON);
+        assert_relative_eq!(vel_diff.y, 0.0, epsilon = EPSILON);
+        assert_relative_eq!(vel_diff.z, 0.0, epsilon = EPSILON);
+        assert_relative_eq!(pos_diff.x, 0.0, epsilon = EPSILON);
+        assert_relative_eq!(pos_diff.y, 0.0, epsilon = EPSILON);
+        assert_relative_eq!(pos_diff.z, 0.0, epsilon = EPSILON);
     };
 }
 
+#[inline(always)]
+fn acc_with_frict_tick_print(
+    i: usize,
+    move_dir: Vec3<f32>,
+    vel: Vec3<f32>,
+    pos: Vec3<f32>,
+    dt: f64,
+    params: FricParams,
+) -> (Vec3<f32>, Vec3<f32>) {
+    let acc = move_dir * params.max_acc;
+    let vel_t = acc.map(|xyz| xyz.signum() * params.v_term(xyz));
+    let revert_fak = vel / vel_t;
+
+    let (vel, pos) = acc_with_frict_tick(move_dir, vel, pos, dt, params);
+    let ending = ((i + 1) as f64 * dt * 100.0).round() as i64;
+    let line = format!(
+        "[{:0>2.2}]:    acc: {:0>5.4},    revert_fak: {:0>4.4},    vel: {:0>4.4},    pos: {:0>7.4}",
+        (i + 1) as f64 * dt,
+        acc,
+        revert_fak,
+        vel,
+        pos
+    );
+    if ending % 10 != 0 {
+        println!("\x1b[94m{}\x1b[0m", line)
+    } else {
+        println!("{}", line)
+    }
+    (vel, pos)
+}
 /// ROLLING_FRICTION_FORCE + AIR_FRICTION_FORCE + TILT_FRICT_FORCE + ACCEL_FORCE
 /// = TOTAL_FORCE
 ///
@@ -389,14 +423,13 @@ macro_rules! veriy_diffs {
 /// https://sciencing.com/calculate-force-friction-6454395.html
 /// https://www.leifiphysik.de/mechanik/reibung-und-fortbewegung
 fn acc_with_frict_tick(
-    i: usize,
-    move_dir: f64,
-    vel: f64,
-    pos: f64,
+    move_dir: Vec3<f32>,
+    vel: Vec3<f32>,
+    pos: Vec3<f32>,
     dt: f64,
     params: FricParams,
-) -> (f64, f64) {
-    let acc = FricParams::MAX_ACC * move_dir; // btw: cant accelerate faster than gravity on foot
+) -> (Vec3<f32>, Vec3<f32>) {
+    let acc = move_dir * params.max_acc; // btw: cant accelerate faster than gravity on foot
 
     // controller
     // I know what you think, wtf, yep: https://math.stackexchange.com/questions/1929436/line-integral-of-force-of-air-resistanc
@@ -405,187 +438,217 @@ fn acc_with_frict_tick(
 
     // terminal velocity equals the maximum velocity that can be reached by acc
     // alone
-    let vel_t = acc.signum() * params.v_term(acc);
+    let vel_t = acc.map(|xyz| xyz.signum() * params.v_term(xyz));
 
     // thanks to kilpkonn for figuring this out
     // https://en.wikipedia.org/wiki/Drag_(physics)
     //
     // upper and lower are upper and lower bound for integral
     let revert_fak = vel / vel_t;
-    let (vel, pos) = if acc.abs() < f64::EPSILON {
-        // https://www.wolframalpha.com/input?i=m%2F%28Cx+%2B+m%2FV%29+dx+integrate
-        let c = params.density * params.projected_area * params.friction_co;
-        let lower = params.mass * params.mass.ln() / c;
-        let upper = params.mass * (c * vel * dt + params.mass).ln() / c;
-        let pos = pos + (upper - lower);
-        let vel = params.mass
-            / (params.density * params.projected_area * params.friction_co * dt
-                + params.mass / vel);
-        (vel, pos)
-    } else if revert_fak <= 0.0 {
-        // Handle passing through 0 differently as the function changes
-        // https://www.wolframalpha.com/input?i=V*tan%28x*g%2FV+%2B+atan%28v%2FV%29%29+%3D+0+solve+for+x
-        let dt_to_zero = vel_t * (vel / vel_t).atan() / acc.abs();
-        if dt_to_zero < dt {
-            // Step with only part of dt that is left after reaching 0 vel
-            let lower = vel_t.powi(2) * (vel / vel_t).atan().cos().ln() / acc;
-            let upper =
-                -vel_t.powi(2) * (acc * dt_to_zero / vel_t + (vel / vel_t).atan()).cos().ln() / acc;
-            let pos = pos + (upper - lower);
-            let dt = dt - dt_to_zero;
-            // https://www.wolframalpha.com/input?i=V+*+tanh%28xg%2FV%29+dx+integrate
-            // lower bound is 0
-            let pos = pos + vel_t.powi(2) * (acc * dt / vel_t).cosh().ln() / acc;
-            let vel = vel_t * (dt * acc / vel_t).tanh();
-            (vel, pos)
-        } else {
-            // https://www.wolframalpha.com/input?i=V+*+tan%28xg%2FV+%2B+atan%28v%2FV%29%29+dx+integrate
-            let lower = -vel_t.powi(2) * (vel / vel_t).atan().cos().ln() / acc;
-            let upper = -vel_t.powi(2) * (acc * dt / vel_t + (vel / vel_t).atan()).cos().ln() / acc;
-            let pos = pos + (upper - lower);
-            let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).atan()).tan();
-            (vel, pos)
-        }
-    } else if revert_fak >= 1.0 {
-        // https://www.wolframalpha.com/input?i=V+*+coth%28xg%2FV+%2B+acoth%28v%2FV%29%29+dx+integrate
-        let lower = (vel_t.powi(2) * (vel / vel_t).acoth().cosh().ln()
-            + (vel / vel_t).acoth().tanh().ln())
-            / acc;
-        let upper = (vel_t.powi(2) * (acc * dt / vel_t + (vel / vel_t).acoth()).cosh().ln()
-            + (acc * dt / vel_t + (vel / vel_t).acoth()).tanh().ln())
-            / acc;
-        let pos = pos + (upper - lower);
-        let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).acoth()).coth();
-        (vel, pos)
-    } else {
-        // https://www.wolframalpha.com/input?i=V+*+tanh%28xg%2FV+%2B+atanh%28v%2FV%29%29+dx+integrate
-        let lower = vel_t.powi(2) * ((vel / vel_t).atanh()).cosh().ln() / acc;
-        let upper = vel_t.powi(2) * (acc * dt / vel_t + (vel / vel_t).atanh()).cosh().ln() / acc;
-        let pos = pos + (upper - lower);
-        let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).atanh()).tanh();
-        (vel, pos)
-    };
 
-    let ending = ((i + 1) as f64 * dt * 100.0).round() as i64;
-    let line = format!(
-        "[{:0>2.2}]:    acc: {:0>5.4},    revert_fak: {:0>4.4},    vel: {:0>4.4},    pos: {:0>7.4}",
-        (i + 1) as f64 * dt,
-        acc,
-        revert_fak,
-        vel,
-        pos
-    );
-    if ending % 10 != 0 {
-        println!("\x1b[94m{}\x1b[0m", line)
-    } else {
-        println!("{}", line)
+    let (mut pos, mut vel) = (pos, vel);
+    for i in 0..2 {
+        let dt = dt as f32;
+        let (v, p) = {
+            let acc = acc[i];
+            let vel = vel[i];
+            let pos = pos[i];
+            let vel_t = vel_t[i];
+            let revert_fak = revert_fak[i];
+            if acc.abs() < f32::EPSILON {
+                // https://www.wolframalpha.com/input?i=m%2F%28Cx+%2B+m%2FV%29+dx+integrate
+                let c = params.density * params.projected_area * params.friction_co;
+                let lower = params.mass * params.mass.ln() / c;
+                let upper = params.mass * (c * vel * dt + params.mass).ln() / c;
+                let pos = pos + (upper - lower);
+                let vel = params.mass
+                    / (params.density * params.projected_area * params.friction_co * dt
+                        + params.mass / vel);
+                (vel, pos)
+            } else if revert_fak <= 0.0 {
+                // Handle passing through 0 differently as the function changes
+                // https://www.wolframalpha.com/input?i=V*tan%28x*g%2FV+%2B+atan%28v%2FV%29%29+%3D+0+solve+for+x
+                let dt_to_zero = vel_t * (vel / vel_t).atan() / acc.abs();
+                if dt_to_zero < dt {
+                    // Step with only part of dt that is left after reaching 0 vel
+                    let lower = vel_t.powi(2) * (vel / vel_t).atan().cos().ln() / acc;
+                    let upper = -vel_t.powi(2)
+                        * (acc * dt_to_zero / vel_t + (vel / vel_t).atan()).cos().ln()
+                        / acc;
+                    let pos = pos + (upper - lower);
+                    let dt = dt - dt_to_zero;
+                    // https://www.wolframalpha.com/input?i=V+*+tanh%28xg%2FV%29+dx+integrate
+                    // lower bound is 0
+                    let pos = pos + vel_t.powi(2) * (acc * dt / vel_t).cosh().ln() / acc;
+                    let vel = vel_t * (dt * acc / vel_t).tanh();
+                    (vel, pos)
+                } else {
+                    // https://www.wolframalpha.com/input?i=V+*+tan%28xg%2FV+%2B+atan%28v%2FV%29%29+dx+integrate
+                    let lower = -vel_t.powi(2) * (vel / vel_t).atan().cos().ln() / acc;
+                    let upper =
+                        -vel_t.powi(2) * (acc * dt / vel_t + (vel / vel_t).atan()).cos().ln() / acc;
+                    let pos = pos + (upper - lower);
+                    let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).atan()).tan();
+                    (vel, pos)
+                }
+            } else if revert_fak >= 1.0 {
+                // https://www.wolframalpha.com/input?i=V+*+coth%28xg%2FV+%2B+acoth%28v%2FV%29%29+dx+integrate
+                let lower = (vel_t.powi(2) * (vel / vel_t).acoth().cosh().ln()
+                    + (vel / vel_t).acoth().tanh().ln())
+                    / acc;
+                let upper = (vel_t.powi(2)
+                    * (acc * dt / vel_t + (vel / vel_t).acoth()).cosh().ln()
+                    + (acc * dt / vel_t + (vel / vel_t).acoth()).tanh().ln())
+                    / acc;
+                let pos = pos + (upper - lower);
+                let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).acoth()).coth();
+                (vel, pos)
+            } else {
+                // https://www.wolframalpha.com/input?i=V+*+tanh%28xg%2FV+%2B+atanh%28v%2FV%29%29+dx+integrate
+                let lower = vel_t.powi(2) * ((vel / vel_t).atanh()).cosh().ln() / acc;
+                let upper =
+                    vel_t.powi(2) * (acc * dt / vel_t + (vel / vel_t).atanh()).cosh().ln() / acc;
+                let pos = pos + (upper - lower);
+                let vel = vel_t * (dt * acc / vel_t + (vel / vel_t).atanh()).tanh();
+                (vel, pos)
+            }
+        };
+        vel[i] = v;
+        pos[i] = p;
     }
-
     (vel, pos)
 }
 
 #[test]
 fn physics_constant_walk() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 0.5)]);
+    let series = vec![(0.5_f32 * Vec3::unit_x(), 0.5)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_constant_stay() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.0, 1.0)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.0, 1.0)]);
+    let series = vec![(Vec3::zero(), 1.0)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
-    assert_relative_eq!(vel_05, 0.0, epsilon = EPSILON as f64);
-    assert_relative_eq!(pos_05, 0.0, epsilon = EPSILON as f64);
+    assert_relative_eq!(vel_05.x, 0.0, epsilon = EPSILON);
+    assert_relative_eq!(vel_05.y, 0.0, epsilon = EPSILON);
+    assert_relative_eq!(vel_05.z, 0.0, epsilon = EPSILON);
+    assert_relative_eq!(pos_05.x, 0.0, epsilon = EPSILON);
+    assert_relative_eq!(pos_05.y, 0.0, epsilon = EPSILON);
+    assert_relative_eq!(pos_05.z, 0.0, epsilon = EPSILON);
 }
 
 #[test]
 fn physics_walk_run_b() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 2.0), (1.0, 2.0)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 2.0), (1.0, 2.0)]);
+    let series = vec![(0.5_f32 * Vec3::unit_x(), 2.0), (Vec3::unit_x(), 2.0)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_walk_run_walk() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 2.0), (1.0, 3.0), (0.5, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 2.0), (1.0, 3.0), (0.5, 0.5)]);
+    let series = vec![
+        (0.5_f32 * Vec3::unit_x(), 2.0),
+        (Vec3::unit_x(), 3.0),
+        (0.5_f32 * Vec3::unit_x(), 0.5),
+    ];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_run_walk_b() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(1.0, 0.5), (0.5, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(1.0, 0.5), (0.5, 0.5)]);
+    let series = vec![(Vec3::unit_x(), 0.5), (0.5_f32 * Vec3::unit_x(), 0.5)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_runlong_walk_b() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(1.0, 3.0), (0.5, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(1.0, 3.0), (0.5, 0.5)]);
+    let series = vec![(Vec3::unit_x(), 3.0), (0.5_f32 * Vec3::unit_x(), 0.5)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_walk_stop() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 0.5), (0.0, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 0.5), (0.0, 0.5)]);
+    let series = vec![(0.5_f32 * Vec3::unit_x(), 0.5), (Vec3::zero(), 0.5)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_runlong_stop() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(1.0, 3.0), (0.0, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(1.0, 3.0), (0.0, 0.5)]);
+    let series = vec![(Vec3::unit_x(), 3.0), (Vec3::zero(), 0.5)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_stop_walk() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.0, 0.5), (0.5, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.0, 0.5), (0.5, 0.5)]);
+    let series = vec![(Vec3::zero(), 0.5), (0.5_f32 * Vec3::unit_x(), 0.5)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_run_walkback() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(0.5, 0.5), (-0.5, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(0.5, 0.5), (-0.5, 0.5)]);
+    let series = vec![
+        (0.5_f32 * Vec3::unit_x(), 0.5),
+        (-0.5_f32 * Vec3::unit_x(), 0.5),
+    ];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_runlong_walkback_stop() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(1.0, 3.0), (-0.5, 0.5), (0.0, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(1.0, 3.0), (-0.5, 0.5), (0.0, 0.5)]);
+    let series = vec![
+        (Vec3::unit_x(), 3.0),
+        (-0.5_f32 * Vec3::unit_x(), 0.5),
+        (Vec3::zero(), 0.5),
+    ];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_walkback_stop() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(-0.5, 0.5), (0.0, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(-0.5, 0.5), (0.0, 0.5)]);
+    let series = vec![(-0.5_f32 * Vec3::unit_x(), 0.5), (Vec3::zero(), 0.5)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
 
 #[test]
 fn physics_walkback_run() {
-    let (vel_05, pos_05) = test_run_helper(20, 0.0, 0.0, vec![(-0.5, 5.0), (1.0, 0.5)]);
-    let (vel_10, pos_10) = test_run_helper(10, 0.0, 0.0, vec![(-0.5, 5.0), (1.0, 0.5)]);
+    let series = vec![(-0.5_f32 * Vec3::unit_x(), 5.0), (Vec3::unit_x(), 0.5)];
+    let (vel_05, pos_05) = test_run_helper(20, Vec3::zero(), Vec3::zero(), &series);
+    let (vel_10, pos_10) = test_run_helper(10, Vec3::zero(), Vec3::zero(), &series);
 
     veriy_diffs!(vel_05, pos_05, vel_10, pos_10);
 }
