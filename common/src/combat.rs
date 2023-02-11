@@ -219,7 +219,11 @@ impl Attack {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
                 && (target_dodging || !may_harm)
         };
-        let is_crit = rng.gen::<f32>() < self.crit_chance;
+        let is_crit = rng.gen::<f32>()
+            < self.crit_chance
+                * attacker
+                    .and_then(|a| a.stats)
+                    .map_or(1.0, |s| s.crit_chance_modifier);
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         let damage_modifier = attacker
@@ -487,6 +491,19 @@ impl Attack {
                                 });
                             }
                         },
+                        CombatEffect::StunnedVulnerable(damage) => {
+                            if target.char_state.map_or(false, |cs| cs.is_stunned()) {
+                                let change = {
+                                    let mut change = change;
+                                    change.amount *= damage;
+                                    change
+                                };
+                                emit(ServerEvent::HealthChange {
+                                    entity: target.entity,
+                                    change,
+                                });
+                            }
+                        },
                     }
                 }
             }
@@ -658,6 +675,7 @@ impl Attack {
                     },
                     // Only has an effect when attached to a damage
                     CombatEffect::BuffsVulnerable(_, _) => {},
+                    CombatEffect::StunnedVulnerable(_) => {},
                 }
             }
         }
@@ -799,11 +817,19 @@ pub enum CombatEffect {
     /// Resets duration of all buffs of this buffkind, with some probability
     RefreshBuff(f32, BuffKind),
     /// If the target hit by an attack has this buff, they will take increased
-    /// damage Only has an effect when attached to a damage, otherwise does
-    /// nothing if only attached to the attack
+    /// damage.
+    /// Only has an effect when attached to a damage, otherwise does nothing if
+    /// only attached to the attack
     // TODO: Maybe try to make it do something if tied to attack, not sure if it should double
     // count in that instance?
     BuffsVulnerable(f32, BuffKind),
+    /// If the target hit by an attack is in a stunned state, they will take
+    /// increased damage.
+    /// Only has an effect when attached to a damage, otherwise does nothing if
+    /// only attached to the attack
+    // TODO: Maybe try to make it do something if tied to attack, not sure if it should double
+    // count in that instance?
+    StunnedVulnerable(f32),
 }
 
 #[cfg(not(target_arch = "wasm32"))]

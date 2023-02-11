@@ -71,42 +71,27 @@ impl Animation for FinisherMeleeAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
-
-                let move1_fast = move1.powf(0.5);
-
                 let pullback = 1.0 - move3;
                 let move1 = move1 * pullback;
-                let move1_fast = move1_fast * pullback;
                 let move2 = move2 * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
-                next.hand_r.position = Vec3::new(
-                    -s_a.sc.0 + 6.0 + move1_fast * -12.0,
-                    -4.0 + move1_fast * 3.0,
-                    -2.0,
-                );
-                next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);
+                next.hand_r.position =
+                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
                 next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
+                next.control.orientation = Quaternion::rotation_x(s_a.sc.3)
+                    * Quaternion::rotation_z(move1 * 0.3 + move2 * -0.7);
 
-                next.chest.orientation = Quaternion::rotation_z(move1 * 0.6);
-                next.head.orientation = Quaternion::rotation_z(move1 * -0.3);
-                next.shorts.orientation = Quaternion::rotation_z(move1 * -0.4);
-                next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
-                next.control.orientation.rotate_x(move1 * 1.5);
-                next.control.position += Vec3::new(move1 * 1.0, move1 * 1.0, move1 * 10.0);
-                next.hand_l.position += Vec3::new(0.0, 0.0, move1.powi(2) * 12.0);
-                next.hand_r.position += Vec3::new(0.0, 0.0, move1 * 2.0);
+                next.control.orientation.rotate_x(move1 * 1.4);
+                next.control.position += Vec3::new(move1 * -1.0, move1 * 2.0, move1 * 8.0);
+                next.chest.orientation = Quaternion::rotation_z(move1 * 0.4);
 
-                next.chest.orientation.rotate_z(move2 * -0.9);
-                next.head.orientation.rotate_z(move2 * 0.5);
-                next.shorts.orientation.rotate_z(move2 * 0.6);
-                next.belt.orientation.rotate_z(move2 * 0.3);
-                next.control.orientation.rotate_x(move2 * 0.5);
-                next.control.position += Vec3::new(0.0, move2 * 12.0, 0.0);
-                next.control.orientation.rotate_z(move2 * -0.1);
+                next.control.orientation.rotate_x(move2 * -3.0);
+                next.control.orientation.rotate_z(move2 * -0.4);
+                next.control.position += Vec3::new(move2 * 10.0, 0.0, move2 * -10.0);
+                next.chest.orientation.rotate_z(move2 * -0.6);
             },
             Some("common.abilities.sword.defensive_counter") => {
                 let (move1, move2, move3) = match stage_section {

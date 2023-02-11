@@ -52,9 +52,9 @@ pub enum BuffKind {
     /// Strength scales the movement speed linearly. 0.5 is 150% speed, 1.0 is
     /// 200% speed. Provides regeneration at 10x the value of the strength
     Frenzied,
-    /// Increases movement and attack speed.
-    /// Strength scales strength of both effects linearly. 0.5 is a 50%
-    /// increase, 1.0 is a 100% increase.
+    /// Increases movement and attack speed, but removes chance to get critical
+    /// hits. Strength scales strength of both effects linearly. 0.5 is a
+    /// 50% increase, 1.0 is a 100% increase.
     Hastened,
     /// Increases resistance to incoming poise, and poise damage dealt as health
     /// is lost from the time the buff activated
@@ -227,6 +227,8 @@ pub enum BuffEffect {
     PoiseDamageFromLostHealth { initial_health: f32, strength: f32 },
     /// Modifier to the amount of damage dealt with attacks
     AttackDamage(f32),
+    /// Multiplies crit chance of attacks
+    CriticalChance(f32),
 }
 
 /// Actual de/buff.
@@ -380,6 +382,7 @@ impl Buff {
             BuffKind::Hastened => vec![
                 BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::AttackSpeed(1.0 + data.strength),
+                BuffEffect::CriticalChance(0.0),
             ],
             BuffKind::Fortitude => vec![
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),

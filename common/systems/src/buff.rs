@@ -589,5 +589,8 @@ fn execute_effect(
         BuffEffect::AttackDamage(dam) => {
             stat.attack_damage_modifier *= *dam;
         },
+        BuffEffect::CriticalChance(cc) => {
+            stat.crit_chance_modifier *= *cc;
+        },
     };
 }
