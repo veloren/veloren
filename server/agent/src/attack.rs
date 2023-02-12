@@ -814,9 +814,13 @@ impl<'a> AgentData<'a> {
                     > agent.action_state.counters[FloatCounters::GuardedTimer as usize]
                 {
                     agent.action_state.timers[Timers::GuardedCycle as usize] = 0.0;
-                    agent.action_state.counters[FloatCounters::GuardedTimer as usize] =
-                        rng.gen_range(3.0..6.0);
                     agent.action_state.conditions[Conditions::GuardedDefend as usize] ^= true;
+                    agent.action_state.counters[FloatCounters::GuardedTimer as usize] =
+                        if agent.action_state.conditions[Conditions::GuardedDefend as usize] {
+                            rng.gen_range(3.0..6.0)
+                        } else {
+                            rng.gen_range(6.0..10.0)
+                        };
                 }
                 if let Some(pos) = agent.action_state.positions[Positions::GuardedCover as usize] {
                     if pos.distance_squared(self.pos.0) < 3_f32.powi(2) {
