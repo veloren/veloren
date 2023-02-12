@@ -271,18 +271,11 @@ impl Sys {
         *join.ori = state_update.ori;
 
         for (input, attr) in state_update.queued_inputs {
-            join.controller
-                .queued_inputs
-                .insert(input, (Time(0.0), attr));
-            join.controller.held_inputs.insert(input, attr);
-        }
-        for input in state_update.used_inputs {
-            join.controller.queued_inputs.remove(&input);
+            join.controller.queued_inputs.insert(input, attr);
         }
         for input in state_update.removed_inputs {
-            join.controller.held_inputs.remove(&input);
+            join.controller.queued_inputs.remove(&input);
         }
-        join.controller.cull_queued_inputs(Time(0.0));
         if state_update.swap_equipped_weapons {
             output_events.emit_server(ServerEvent::InventoryManip(
                 join.entity,

@@ -29,7 +29,6 @@ pub struct StateUpdate {
     pub swap_equipped_weapons: bool,
     pub should_strafe: bool,
     pub queued_inputs: BTreeMap<InputKind, InputAttr>,
-    pub used_inputs: Vec<InputKind>,
     pub removed_inputs: Vec<InputKind>,
 }
 
@@ -60,7 +59,6 @@ impl From<&JoinData<'_>> for StateUpdate {
             should_strafe: data.inputs.strafing,
             character: data.character.clone(),
             queued_inputs: BTreeMap::new(),
-            used_inputs: Vec::new(),
             removed_inputs: Vec::new(),
         }
     }

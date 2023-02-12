@@ -1727,7 +1727,6 @@ impl Client {
                     entry
                         .or_insert_with(|| Controller {
                             inputs: inputs.clone(),
-                            held_inputs: BTreeMap::new(),
                             queued_inputs: BTreeMap::new(),
                             events: Vec::new(),
                             actions: Vec::new(),

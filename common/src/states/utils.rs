@@ -702,9 +702,7 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
 /// Checks if an input related to an attack is held. If one is, moves entity
 /// into wielding state
 pub fn handle_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
-    if data.controller.queued_inputs.keys().any(|i| i.is_ability())
-        || data.controller.held_inputs.keys().any(|i| i.is_ability())
-    {
+    if data.controller.queued_inputs.keys().any(|i| i.is_ability()) {
         attempt_wield(data, update);
     }
 }
@@ -1051,7 +1049,7 @@ pub fn attempt_glide_wield(
 pub fn handle_jump(
     data: &JoinData<'_>,
     output_events: &mut OutputEvents,
-    update: &mut StateUpdate,
+    _update: &mut StateUpdate,
     strength: f32,
 ) -> bool {
     (input_is_pressed(data, InputKind::Jump) && data.physics.on_ground.is_some())
@@ -1062,7 +1060,6 @@ pub fn handle_jump(
                 data.entity,
                 strength * impulse / data.mass.0 * data.stats.move_speed_modifier,
             ));
-            update.used_inputs.push(InputKind::Jump);
         })
         .is_some()
 }
@@ -1104,7 +1101,6 @@ fn handle_ability(
                     },
                 }
             }
-            update.used_inputs.push(input);
             if let CharacterState::Roll(roll) = &mut update.character {
                 if let CharacterState::ComboMelee(c) = data.character {
                     roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
@@ -1150,13 +1146,7 @@ pub fn attempt_input(
     update: &mut StateUpdate,
 ) {
     // TODO: look into using first() when it becomes stable
-    if let Some(input) = data
-        .controller
-        .queued_inputs
-        .keys()
-        .next()
-        .or_else(|| data.controller.held_inputs.keys().next())
-    {
+    if let Some(input) = data.controller.queued_inputs.keys().next() {
         handle_input(data, output_events, update, *input);
     }
 }
@@ -1176,7 +1166,6 @@ pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool
                 AbilityInfo::from_input(data, false, InputKind::Block, Default::default()),
                 data,
             ));
-            update.used_inputs.push(InputKind::Block);
             true
         } else {
             false
@@ -1300,7 +1289,6 @@ pub fn get_buff_strength(data: &JoinData<'_>, ai: AbilityInfo) -> f32 {
 
 pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {
     data.controller.queued_inputs.contains_key(&input)
-        || data.controller.held_inputs.contains_key(&input)
 }
 
 /// Checked `Duration` addition. Computes `timer` + `dt`, applying relevant stat
@@ -1439,12 +1427,7 @@ impl AbilityInfo {
             tool,
             hand,
             input,
-            input_attr: data
-                .controller
-                .queued_inputs
-                .get(&input)
-                .map(|x| x.1)
-                .or_else(|| data.controller.held_inputs.get(&input).copied()),
+            input_attr: data.controller.queued_inputs.get(&input).copied(),
             ability_meta,
             ability,
         }
