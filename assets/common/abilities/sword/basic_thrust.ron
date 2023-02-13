@@ -9,7 +9,7 @@ ChargedMelee(
             energy_regen: 0,
         ),
         scaled: Some(Stab(
-            damage: 25,
+            damage: 20,
             poise: 10,
             knockback: 0,
             energy_regen: 20,

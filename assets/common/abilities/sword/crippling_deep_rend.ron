@@ -9,7 +9,7 @@ ChargedMelee(
             energy_regen: 0,
         ),
         scaled: Some(Slash(
-            damage: 16,
+            damage: 12,
             poise: 5,
             knockback: 0,
             energy_regen: 15,
@@ -20,7 +20,7 @@ ChargedMelee(
     ),
     buildup_strike: Some((0.3, (
         kind: Slash(
-            damage: 8,
+            damage: 6,
             poise: 0,
             knockback: 0,
             energy_regen: 5,

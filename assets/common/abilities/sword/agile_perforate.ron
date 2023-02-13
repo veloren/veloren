@@ -4,7 +4,7 @@ RapidMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Slash(
-            damage: 2.5,
+            damage: 2,
             poise: 1,
             knockback: 0,
             energy_regen: 2,

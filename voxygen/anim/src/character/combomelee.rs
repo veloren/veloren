@@ -255,32 +255,30 @@ impl Animation for ComboAnimation {
 
                     // Right feint if x < 0, else left
                     if move_dir.x < 0.0 {
-                        next.chest.orientation = Quaternion::rotation_z(move1 * -0.7);
+                        next.chest.orientation = Quaternion::rotation_z(move1 * -0.5);
                         next.head.orientation = Quaternion::rotation_z(move1 * 0.3);
                         next.shorts.orientation = Quaternion::rotation_z(move1 * 0.4);
                         next.belt.orientation = Quaternion::rotation_z(move1 * 0.2);
                         next.control.position += Vec3::new(move1 * 12.0, 0.0, 0.0);
                         next.control.orientation.rotate_y(move1 * 1.5);
 
-                        next.chest.orientation.rotate_z(move2 * -1.5);
-                        next.head.orientation.rotate_z(move2 * 0.9);
-                        next.shorts.orientation.rotate_z(move2 * 1.1);
-                        next.belt.orientation.rotate_z(move2 * 0.5);
-                        next.control.orientation.rotate_z(move2 * -1.5);
-                        next.control.position += Vec3::new(move2 * 10.0, move2 * 2.0, 0.0);
+                        next.chest.orientation.rotate_z(move2 * -0.4);
+                        next.head.orientation.rotate_z(move2 * 0.2);
+                        next.belt.orientation.rotate_z(move2 * 0.1);
+                        next.control.orientation.rotate_z(move2 * -0.4);
+                        next.control.position += Vec3::new(move2 * 5.0, move2 * 2.0, 0.0);
                     } else {
-                        next.chest.orientation = Quaternion::rotation_z(move1 * 0.7);
+                        next.chest.orientation = Quaternion::rotation_z(move1 * 0.5);
                         next.head.orientation = Quaternion::rotation_z(move1 * -0.3);
                         next.shorts.orientation = Quaternion::rotation_z(move1 * -0.4);
                         next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
                         next.control.orientation.rotate_y(move1 * -1.5);
 
-                        next.chest.orientation.rotate_z(move2 * 1.5);
-                        next.head.orientation.rotate_z(move2 * -0.9);
-                        next.shorts.orientation.rotate_z(move2 * -1.1);
-                        next.belt.orientation.rotate_z(move2 * -0.5);
-                        next.control.orientation.rotate_z(move2 * 1.5);
-                        next.control.position += Vec3::new(move2 * -10.0, move2 * 2.0, 0.0);
+                        next.chest.orientation.rotate_z(move2 * 0.4);
+                        next.head.orientation.rotate_z(move2 * -0.2);
+                        next.belt.orientation.rotate_z(move2 * -0.1);
+                        next.control.orientation.rotate_z(move2 * 0.4);
+                        next.control.position += Vec3::new(move2 * -5.0, move2 * 2.0, 0.0);
                     }
                 },
                 Some("common.abilities.sword.defensive_disengage") => {
@@ -534,9 +532,9 @@ impl Animation for ComboAnimation {
                     next.head.orientation.rotate_z(move2 * 0.9);
                     next.shorts.orientation.rotate_z(move2 * 0.8);
                     next.belt.orientation.rotate_z(move2 * 0.3);
-                    next.control.orientation.rotate_x(move2 * 0.6);
+                    next.control.orientation.rotate_x(move2 * 0.3);
                     next.control.orientation.rotate_z(move2 * -1.7);
-                    next.control.position += Vec3::new(move2 * 12.0, move2 * 4.0, move2 * 7.0);
+                    next.control.position += Vec3::new(move2 * 12.0, move2 * 4.0, move2 * 4.0);
                     next.control.orientation.rotate_x(move2 * 0.7);
                 },
                 Some(
@@ -702,7 +700,8 @@ impl Animation for ComboAnimation {
                             next.control.position +=
                                 Vec3::new(move1 * 3.0, move1 * 4.0, move1 * 8.0);
                             next.control.orientation.rotate_x(move1 * 1.0);
-                            next.control.orientation.rotate_z(move1 * -0.4);
+                            next.control.orientation.rotate_z(move1 * -0.5);
+                            next.control.orientation.rotate_y(move1 * -0.3);
                             next.chest.orientation = Quaternion::rotation_z(move1 * 0.3);
                             next.head.orientation = Quaternion::rotation_z(move1 * -0.25);
                             next.shorts.orientation = Quaternion::rotation_z(move1 * -0.2);
@@ -713,22 +712,22 @@ impl Animation for ComboAnimation {
                             next.shorts.orientation.rotate_z(move2 * 0.4);
                             next.belt.orientation.rotate_z(move2 * 0.2);
                             next.control.orientation.rotate_x(move2 * -1.9);
-                            next.control.orientation.rotate_z(move2 * 0.1);
+                            next.control.orientation.rotate_z(move2 * -0.4);
                             next.control.position +=
-                                Vec3::new(move2 * 4.0, move2 * 2.0, move2 * -9.0);
+                                Vec3::new(move2 * 8.0, move2 * 2.0, move2 * -9.0);
                         },
                         1 => {
                             next.control.position +=
-                                Vec3::new(move1 * 3.0, move1 * -2.0, move1 * 9.0);
+                                Vec3::new(move1 * 5.0, move1 * -2.0, move1 * 9.0);
                             next.control.orientation.rotate_x(move1 * 1.6);
-                            next.control.orientation.rotate_z(move1 * 0.9);
+                            next.control.orientation.rotate_z(move1 * 1.1);
                             next.control.orientation.rotate_y(move1 * 0.6);
 
                             next.chest.orientation.rotate_z(move2 * 1.1);
                             next.head.orientation.rotate_z(move2 * -0.6);
                             next.shorts.orientation.rotate_z(move2 * -0.8);
                             next.belt.orientation.rotate_z(move2 * -0.2);
-                            next.control.position += Vec3::new(move2 * -6.0, 0.0, move2 * -7.0);
+                            next.control.position += Vec3::new(move2 * -9.0, 0.0, move2 * -7.0);
                             next.control.orientation.rotate_x(move2 * -2.1);
                             next.control.orientation.rotate_z(move2 * 0.4);
                         },

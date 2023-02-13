@@ -3,13 +3,13 @@ ChargedMelee(
     energy_drain: 0,
     melee_constructor: (
         kind: Slash(
-            damage: 5,
+            damage: 0,
             poise: 0,
             knockback: 0,
             energy_regen: 0,
         ),
         scaled: Some(Slash(
-            damage: 15,
+            damage: 16,
             poise: 10,
             knockback: 0,
             energy_regen: 10,

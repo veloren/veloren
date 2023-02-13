@@ -5,7 +5,7 @@ FinisherMelee(
     recover_duration: 0.6,
     melee_constructor: (
         kind: Slash(
-            damage: 20,
+            damage: 30,
             poise: 10,
             knockback: 0,
             energy_regen: 0,

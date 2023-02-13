@@ -16,8 +16,8 @@ ComboMelee2(
             hit_timing: 1.0,
             recover_duration: 0.15,
             movement: (
-                buildup: Some(DirectedReverse(1.5)),
-                swing: Some(AntiDirectedForward(3.2)),
+                buildup: Some(DirectedReverse(1.8)),
+                swing: Some(AntiDirectedForward(2.7)),
                 recover: None,
             ),
             ori_modifier: 0.6,
