@@ -7,6 +7,7 @@ use super::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, shadow,
             skybox, sprite, terrain, trail, ui, ColLights, GlobalsBindGroup,
         },
+        AltIndices,
     },
     rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -794,7 +795,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
         &mut self,
         model: &'data Model<terrain::Vertex>,
         locals: &'data terrain::BoundLocals,
-        alt_indices: &'data crate::scene::terrain::AltIndices,
+        alt_indices: &'data AltIndices,
         is_underground: Option<bool>,
     ) {
         // Don't render anything if there's nothing to render!
@@ -990,7 +991,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
         model: &'data Model<terrain::Vertex>,
         col_lights: &'data Arc<ColLights<terrain::Locals>>,
         locals: &'data terrain::BoundLocals,
-        alt_indices: &'data crate::scene::terrain::AltIndices,
+        alt_indices: &'data AltIndices,
         is_underground: Option<bool>,
     ) {
         // Don't render anything if there's nothing to render!
@@ -1058,7 +1059,7 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
         &mut self,
         terrain_locals: &'data terrain::BoundLocals,
         instances: &'data Instances<sprite::Instance>,
-        alt_indices: &'data crate::scene::terrain::AltIndices,
+        alt_indices: &'data AltIndices,
         is_underground: Option<bool>,
     ) {
         // Don't render anything if there's nothing to render!

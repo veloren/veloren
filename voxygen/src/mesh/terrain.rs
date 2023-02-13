@@ -5,8 +5,8 @@ use crate::{
         greedy::{self, GreedyConfig, GreedyMesh},
         MeshGen,
     },
-    render::{ColLightInfo, FluidVertex, Mesh, TerrainVertex, Vertex},
-    scene::terrain::{AltIndices, BlocksOfInterest, DEEP_ALT, SHALLOW_ALT},
+    render::{AltIndices, ColLightInfo, FluidVertex, Mesh, TerrainVertex, Vertex},
+    scene::terrain::{BlocksOfInterest, DEEP_ALT, SHALLOW_ALT},
 };
 use common::{
     terrain::{Block, TerrainChunk},
@@ -239,6 +239,7 @@ pub fn generate_mesh<'a>(
         Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
         Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
         AltIndices,
+        (f32, f32),
     ),
 > {
     span!(
@@ -513,6 +514,7 @@ pub fn generate_mesh<'a>(
                     6
                 },
     };
+    let sun_occluder_z_bounds = (underground_alt.max(bounds.min.z), bounds.max.z);
 
     (
         opaque_deep
@@ -528,6 +530,7 @@ pub fn generate_mesh<'a>(
             Arc::new(light),
             Arc::new(glow),
             alt_indices,
+            sun_occluder_z_bounds,
         ),
     )
 }

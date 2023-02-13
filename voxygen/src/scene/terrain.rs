@@ -10,9 +10,9 @@ use crate::{
     },
     render::{
         pipelines::{self, ColLights},
-        ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
-        RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts,
-        TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
+        AltIndices, ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData,
+        Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex,
+        SpriteVerts, TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -97,6 +97,7 @@ pub struct TerrainChunkData {
     can_shadow_point: bool,
     can_shadow_sun: bool,
     z_bounds: (f32, f32),
+    sun_occluder_z_bounds: (f32, f32),
     frustum_last_plane_index: u8,
 
     alt_indices: AltIndices,
@@ -104,11 +105,6 @@ pub struct TerrainChunkData {
 
 pub const SHALLOW_ALT: f32 = 24.0;
 pub const DEEP_ALT: f32 = 96.0;
-
-pub struct AltIndices {
-    pub deep_end: usize,
-    pub underground_end: usize,
-}
 
 #[derive(Copy, Clone)]
 struct ChunkMeshState {
@@ -122,6 +118,7 @@ struct ChunkMeshState {
 /// Just the mesh part of a mesh worker response.
 pub struct MeshWorkerResponseMesh {
     z_bounds: (f32, f32),
+    sun_occluder_z_bounds: (f32, f32),
     opaque_mesh: Mesh<TerrainVertex>,
     fluid_mesh: Mesh<FluidVertex>,
     col_lights_info: ColLightInfo,
@@ -259,7 +256,7 @@ fn mesh_worker(
             opaque_mesh,
             fluid_mesh,
             _shadow_mesh,
-            (bounds, col_lights_info, light_map, glow_map, alt_indices),
+            (bounds, col_lights_info, light_map, glow_map, alt_indices, sun_occluder_z_bounds),
         ) = generate_mesh(
             &volume,
             (
@@ -271,6 +268,7 @@ fn mesh_worker(
         mesh = Some(MeshWorkerResponseMesh {
             // TODO: Take sprite bounds into account somehow?
             z_bounds: (bounds.min.z, bounds.max.z),
+            sun_occluder_z_bounds,
             opaque_mesh,
             fluid_mesh,
             col_lights_info,
@@ -1277,6 +1275,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             can_shadow_sun: false,
                             blocks_of_interest: response.blocks_of_interest,
                             z_bounds: mesh.z_bounds,
+                            sun_occluder_z_bounds: mesh.sun_occluder_z_bounds,
                             frustum_last_plane_index: 0,
                             alt_indices: mesh.alt_indices,
                         });
@@ -1342,7 +1341,10 @@ impl<V: RectRasterableVol> Terrain<V> {
             };
 
             if in_frustum {
-                let visible_box = chunk_box;
+                let visible_box = Aabb {
+                    min: chunk_box.min.xy().with_z(chunk.sun_occluder_z_bounds.0),
+                    max: chunk_box.max.xy().with_z(chunk.sun_occluder_z_bounds.1),
+                };
                 visible_bounding_box = visible_bounding_box
                     .map(|e| e.union(visible_box))
                     .or(Some(visible_box));

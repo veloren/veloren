@@ -1552,3 +1552,12 @@ fn create_quad_index_buffer_u32(device: &wgpu::Device, vert_length: usize) -> Bu
 
     Buffer::new(device, wgpu::BufferUsage::INDEX, &indices)
 }
+
+/// Terrain-related buffers segment themselves by depth to allow us to do
+/// primitive occlusion culling based on whether the camera is underground or
+/// not. This struct specifies the buffer offsets at whcih various layers start
+/// and end.
+pub struct AltIndices {
+    pub deep_end: usize,
+    pub underground_end: usize,
+}
