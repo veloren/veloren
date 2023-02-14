@@ -112,7 +112,7 @@ impl CharacterBehavior for Data {
                     // Fire
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     // Gets offsets
                     let body_offsets = data.body.projectile_offsets(update.ori.look_vec());
                     let pos = Pos(data.pos.0 + body_offsets);
@@ -120,7 +120,7 @@ impl CharacterBehavior for Data {
                         Some(*data.uid),
                         crit_chance,
                         crit_mult,
-                        buff_strength,
+                        tool_stats,
                         self.static_data.damage_effect,
                     );
                     output_events.emit_server(ServerEvent::Shoot {

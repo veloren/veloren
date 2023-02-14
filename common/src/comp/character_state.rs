@@ -913,6 +913,11 @@ impl CharacterState {
             } else {
                 AttackSource::AirShockwave
             }),
+            CharacterState::LeapShockwave(data) => Some(if data.static_data.requires_ground {
+                AttackSource::GroundShockwave
+            } else {
+                AttackSource::AirShockwave
+            }),
             CharacterState::BasicBeam(_) => Some(AttackSource::Beam),
             CharacterState::BasicAura(_) => None,
             CharacterState::Blink(_) => None,
@@ -926,11 +931,6 @@ impl CharacterState {
             CharacterState::DiveMelee(_) => Some(AttackSource::Melee),
             CharacterState::RiposteMelee(_) => Some(AttackSource::Melee),
             CharacterState::RapidMelee(_) => Some(AttackSource::Melee),
-            CharacterState::LeapShockwave(data) => Some(if data.static_data.requires_ground {
-                AttackSource::GroundShockwave
-            } else {
-                AttackSource::AirShockwave
-            }),
         }
     }
 }

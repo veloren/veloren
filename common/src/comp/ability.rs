@@ -1305,15 +1305,7 @@ impl CharacterAbility {
                 *poise_damage *= stats.effect_power;
                 *shockwave_duration *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *damage_effect = damage_effect.map(|de| de.adjusted_by_stats(stats));
             },
             BasicBeam {
                 ref mut buildup_duration,
@@ -1338,15 +1330,7 @@ impl CharacterAbility {
                 // Duration modified to keep velocity constant
                 *beam_duration *= stats.range;
                 *energy_drain /= stats.energy_efficiency;
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *damage_effect = damage_effect.map(|de| de.adjusted_by_stats(stats));
             },
             BasicAura {
                 ref mut buildup_duration,

@@ -7,7 +7,11 @@ use crate::{
         character_state::OutputEvents,
         controller::InventoryManip,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
-        item::{armor::Friction, tool::AbilityContext, Hands, ItemKind, ToolKind},
+        item::{
+            armor::Friction,
+            tool::{self, AbilityContext},
+            Hands, ItemKind, ToolKind,
+        },
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -1269,8 +1273,7 @@ pub fn get_crit_data(data: &JoinData<'_>, ai: AbilityInfo) -> (f32, f32) {
     (crit_chance, crit_mult)
 }
 
-/// Returns buff strength from the weapon used in the ability
-pub fn get_buff_strength(data: &JoinData<'_>, ai: AbilityInfo) -> f32 {
+pub fn get_tool_stats(data: &JoinData<'_>, ai: AbilityInfo) -> tool::Stats {
     ai.hand
         .map(|hand| match hand {
             HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
@@ -1279,12 +1282,12 @@ pub fn get_buff_strength(data: &JoinData<'_>, ai: AbilityInfo) -> f32 {
         .and_then(|slot| data.inventory.and_then(|inv| inv.equipped(slot)))
         .and_then(|item| {
             if let ItemKind::Tool(tool) = &*item.kind() {
-                Some(tool.base_buff_strength())
+                Some(tool.stats)
             } else {
                 None
             }
         })
-        .unwrap_or(1.0)
+        .unwrap_or(tool::Stats::one())
 }
 
 pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {

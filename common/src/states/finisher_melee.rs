@@ -107,11 +107,11 @@ impl CharacterBehavior for Data {
                     }
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
-                        melee_constructor.create_melee(crit_data, buff_strength),
+                        melee_constructor.create_melee(crit_data, tool_stats),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

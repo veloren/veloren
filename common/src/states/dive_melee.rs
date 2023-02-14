@@ -95,7 +95,7 @@ impl CharacterBehavior for Data {
                 if !self.exhausted {
                     // Attack
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     let scaling = self.max_vertical_speed / self.static_data.vertical_speed;
                     let scaling = scaling.min(self.static_data.max_scaling);
 
@@ -104,7 +104,7 @@ impl CharacterBehavior for Data {
                         self.static_data
                             .melee_constructor
                             .handle_scaling(scaling)
-                            .create_melee(crit_data, buff_strength),
+                            .create_melee(crit_data, tool_stats),
                     );
 
                     if let CharacterState::DiveMelee(c) = &mut update.character {

@@ -4,7 +4,11 @@ use crate::{
     comp::{
         ability::Capability,
         inventory::{
-            item::{armor::Protection, tool::ToolKind, ItemDesc, ItemKind, MaterialStatManifest},
+            item::{
+                armor::Protection,
+                tool::{self, ToolKind},
+                ItemDesc, ItemKind, MaterialStatManifest,
+            },
             slot::EquipSlot,
         },
         skillset::SkillGroupKind,
@@ -28,7 +32,7 @@ use crate::{comp::Group, resources::Time};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::{saveload::MarkerAllocator, Entity as EcsEntity, ReadStorage};
 #[cfg(not(target_arch = "wasm32"))]
-use std::ops::MulAssign;
+use std::ops::{Mul, MulAssign};
 #[cfg(not(target_arch = "wasm32"))] use vek::*;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -832,6 +836,46 @@ pub enum CombatEffect {
     StunnedVulnerable(f32),
 }
 
+impl CombatEffect {
+    pub fn adjusted_by_stats(self, stats: tool::Stats) -> Self {
+        match self {
+            CombatEffect::Heal(h) => CombatEffect::Heal(h * stats.effect_power),
+            CombatEffect::Buff(CombatBuff {
+                kind,
+                dur_secs,
+                strength,
+                chance,
+            }) => CombatEffect::Buff(CombatBuff {
+                kind,
+                dur_secs,
+                strength: strength * stats.buff_strength,
+                chance,
+            }),
+            CombatEffect::Knockback(Knockback {
+                direction,
+                strength,
+            }) => CombatEffect::Knockback(Knockback {
+                direction,
+                strength: strength * stats.buff_strength,
+            }),
+            CombatEffect::EnergyReward(e) => CombatEffect::EnergyReward(e),
+            CombatEffect::Lifesteal(l) => CombatEffect::Lifesteal(l * stats.effect_power),
+            CombatEffect::Poise(p) => CombatEffect::Poise(p * stats.effect_power),
+            CombatEffect::Combo(c) => CombatEffect::Combo(c),
+            CombatEffect::StageVulnerable(v, s) => {
+                CombatEffect::StageVulnerable(v * stats.effect_power, s)
+            },
+            CombatEffect::RefreshBuff(c, b) => CombatEffect::RefreshBuff(c, b),
+            CombatEffect::BuffsVulnerable(v, b) => {
+                CombatEffect::BuffsVulnerable(v * stats.effect_power, b)
+            },
+            CombatEffect::StunnedVulnerable(v) => {
+                CombatEffect::StunnedVulnerable(v * stats.effect_power)
+            },
+        }
+    }
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CombatRequirement {
@@ -1106,11 +1150,16 @@ impl CombatBuffStrength {
 }
 
 impl MulAssign<f32> for CombatBuffStrength {
-    fn mul_assign(&mut self, mul: f32) {
+    fn mul_assign(&mut self, mul: f32) { *self = *self * mul; }
+}
+
+impl Mul<f32> for CombatBuffStrength {
+    type Output = Self;
+
+    fn mul(self, mult: f32) -> Self {
         match self {
-            Self::DamageFraction(ref mut val) | Self::Value(ref mut val) => {
-                *val *= mul;
-            },
+            Self::DamageFraction(val) => Self::DamageFraction(val * mult),
+            Self::Value(val) => Self::Value(val * mult),
         }
     }
 }

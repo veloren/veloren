@@ -1,5 +1,5 @@
 use crate::{
-    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
     comp::{
         character_state::OutputEvents,
         melee::MultiTarget,
@@ -72,16 +72,7 @@ impl Stage<f32> {
     }
 
     #[must_use]
-    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
-        if let Some(CombatEffect::Buff(CombatBuff {
-            kind: _,
-            dur_secs: _,
-            ref mut strength,
-            chance: _,
-        })) = self.damage_effect
-        {
-            *strength *= stats.buff_strength;
-        }
+    pub fn adjusted_by_stats(self, stats: Stats) -> Self {
         Self {
             stage: self.stage,
             base_damage: self.base_damage * stats.power,
@@ -97,7 +88,7 @@ impl Stage<f32> {
             base_recover_duration: self.base_recover_duration / stats.speed,
             forward_movement: self.forward_movement,
             damage_kind: self.damage_kind,
-            damage_effect: self.damage_effect,
+            damage_effect: self.damage_effect.map(|de| de.adjusted_by_stats(stats)),
         }
     }
 

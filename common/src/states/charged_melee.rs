@@ -71,9 +71,9 @@ impl CharacterBehavior for Data {
                         }
                     } else {
                         let crit_data = get_crit_data(data, self.static_data.ability_info);
-                        let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                        let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                         data.updater
-                            .insert(data.entity, strike.create_melee(crit_data, buff_strength));
+                            .insert(data.entity, strike.create_melee(crit_data, tool_stats));
 
                         if let CharacterState::ChargedMelee(c) = &mut update.character {
                             c.stage_section = StageSection::Charge;
@@ -141,14 +141,14 @@ impl CharacterBehavior for Data {
                     });
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
                             .handle_scaling(self.charge_amount)
-                            .create_melee(crit_data, buff_strength),
+                            .create_melee(crit_data, tool_stats),
                     );
 
                     if let Some(FrontendSpecifier::GroundCleave) = self.static_data.specifier {

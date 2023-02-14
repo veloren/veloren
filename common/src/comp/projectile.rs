@@ -3,7 +3,10 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
         CombatRequirement, Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
-    comp::{buff::BuffKind, item::Reagent},
+    comp::{
+        buff::BuffKind,
+        item::{tool, Reagent},
+    },
     uid::Uid,
     Explosion, RadiusEffect,
 };
@@ -119,7 +122,7 @@ impl ProjectileConstructor {
         owner: Option<Uid>,
         crit_chance: f32,
         crit_mult: f32,
-        buff_strength: f32,
+        tool_stats: tool::Stats,
         damage_effect: Option<CombatEffect>,
     ) -> Projectile {
         let instance = rand::random();
@@ -135,7 +138,8 @@ impl ProjectileConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
                 let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
@@ -143,9 +147,10 @@ impl ProjectileConstructor {
                 let buff = CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Bleeding,
                     dur_secs: 10.0,
-                    strength: CombatBuffStrength::DamageFraction(0.1 * buff_strength),
+                    strength: CombatBuffStrength::DamageFraction(0.1),
                     chance: 0.1,
-                });
+                })
+                .adjusted_by_stats(tool_stats);
                 let mut damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Projectile,
@@ -187,9 +192,10 @@ impl ProjectileConstructor {
                 let buff = CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Burning,
                     dur_secs: 5.0,
-                    strength: CombatBuffStrength::DamageFraction(0.1 * buff_strength),
+                    strength: CombatBuffStrength::DamageFraction(0.1),
                     chance: 0.1,
-                });
+                })
+                .adjusted_by_stats(tool_stats);
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
@@ -268,9 +274,10 @@ impl ProjectileConstructor {
                     CombatEffect::Buff(CombatBuff {
                         kind: BuffKind::Poisoned,
                         dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.8 * buff_strength),
+                        strength: CombatBuffStrength::DamageFraction(0.8),
                         chance: 1.0,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
                 let damage = AttackDamage::new(
@@ -359,7 +366,8 @@ impl ProjectileConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
                 let damage = AttackDamage::new(
@@ -506,7 +514,8 @@ impl ProjectileConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
                 let buff = AttackEffect::new(
@@ -514,9 +523,10 @@ impl ProjectileConstructor {
                     CombatEffect::Buff(CombatBuff {
                         kind: BuffKind::Burning,
                         dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.2 * buff_strength),
+                        strength: CombatBuffStrength::DamageFraction(0.2),
                         chance: 1.0,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
                 let damage = AttackDamage::new(
@@ -563,7 +573,8 @@ impl ProjectileConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
                 let buff = AttackEffect::new(
@@ -571,9 +582,10 @@ impl ProjectileConstructor {
                     CombatEffect::Buff(CombatBuff {
                         kind: BuffKind::Burning,
                         dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.2 * buff_strength),
+                        strength: CombatBuffStrength::DamageFraction(0.2),
                         chance: 1.0,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
                 let damage = AttackDamage::new(
@@ -628,9 +640,10 @@ impl ProjectileConstructor {
                     CombatEffect::Buff(CombatBuff {
                         kind: BuffKind::Frozen,
                         dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.05 * buff_strength),
+                        strength: CombatBuffStrength::DamageFraction(0.05),
                         chance: 1.0,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
                 let damage = AttackDamage::new(
