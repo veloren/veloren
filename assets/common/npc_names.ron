@@ -804,9 +804,29 @@
                 keyword: "duck",
                 generic: "Duck"
             ),
+            snowy_owl: (
+                keyword: "snowy_owl",
+                generic: "SnowyOwl"
+            ),
+            horned_owl: (
+                keyword: "horned_owl",
+                generic: "HornedOwl"
+            ),
+            cockatiel: (
+                keyword: "cockatiel",
+                generic: "Cockatiel"
+            ),
             chicken: (
                 keyword: "chicken",
                 generic: "Chicken"
+            ),
+            bat: (
+                keyword: "bat",
+                generic: "Bat"
+            ),
+            penguin: (
+                keyword: "penguin",
+                generic: "Penguin"
             ),
             goose: (
                 keyword: "goose",
@@ -820,21 +840,29 @@
                 keyword: "eagle",
                 generic: "Eagle"
             ),
-            owl: (
-                keyword: "owl",
-                generic: "Owl"
-            ),
             parrot: (
                 keyword: "parrot",
                 generic: "Parrot"
             ),
-            penguin: (
-                keyword: "penguin",
-                generic: "Penguin"
+            crow: (
+                keyword: "crow",
+                generic: "Crow"
             ),
-            bat: (
-                keyword: "bat",
-                generic: "Bat"
+            dodo: (
+                keyword: "dodo",
+                generic: "Dodo"
+            ),
+            parakeet: (
+                keyword: "parakeet",
+                generic: "Parakeet"
+            ),
+            puffin: (
+                keyword: "puffin",
+                generic: "Puffin"
+            ),
+            toucan: (
+                keyword: "toucan",
+                generic: "Toucan"
             ),
         )
     ),

@@ -1,12 +1,68 @@
 ({
+    (SnowyOwl, Male): (
+        head: (
+            offset: (-3.5, -4.0, -3.5),
+            central: ("npc.snowy_owl.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.5, -4.0),
+            central: ("npc.snowy_owl.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -3.0, -1.5),
+            central: ("npc.snowy_owl.male.tail"),
+        ),
+    ),
+    (SnowyOwl, Female): (
+        head: (
+            offset: (-3.5, -4.0, -3.5),
+            central: ("npc.snowy_owl.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.5, -4.0),
+            central: ("npc.snowy_owl.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -3.0, -1.5),
+            central: ("npc.snowy_owl.male.tail"),
+        ),
+    ),
+    (HornedOwl, Male): (
+        head: (
+            offset: (-4.5, -4.0, -4.5),
+            central: ("npc.horned_owl.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.5, -4.0),
+            central: ("npc.horned_owl.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -3.0, -2.5),
+            central: ("npc.horned_owl.male.tail"),
+        ),
+    ),
+    (HornedOwl, Female): (
+        head: (
+            offset: (-4.5, -4.0, -4.5),
+            central: ("npc.horned_owl.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.5, -4.0),
+            central: ("npc.horned_owl.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -3.0, -2.5),
+            central: ("npc.horned_owl.male.tail"),
+        ),
+    ),
     (Duck, Male): (
         head: (
             offset: (-2.0, -1.5, -2.5),
             central: ("npc.duck.male.head"),
         ),
-        torso: (
+        chest: (
             offset: (-3.0, -4.5, -3.0),
-            central: ("npc.duck.male.torso"),
+            central: ("npc.duck.male.chest"),
         ),
         tail: (
             offset: (-2.0, -1.5, -3.0),
@@ -16,28 +72,56 @@
     (Duck, Female): (
         head: (
             offset: (-2.0, -1.5, -2.5),
-            central: ("npc.duck.male.head"),
+            central: ("npc.duck.female.head"),
         ),
-        torso: (
+        chest: (
             offset: (-3.0, -4.5, -3.0),
-            central: ("npc.duck.male.torso"),
+            central: ("npc.duck.female.chest"),
         ),
         tail: (
             offset: (-2.0, -1.5, -3.0),
-            central: ("npc.duck.male.tail"),
+            central: ("npc.duck.female.tail"),
         )
+    ),
+    (Cockatiel, Male): (
+        head: (
+            offset: (-1.5, -3.0, -3.5),
+            central: ("npc.cockatiel.male.head"),
+        ),
+        chest: (
+            offset: (-1.5, -3.0, -2.5),
+            central: ("npc.cockatiel.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -8.0, -1.0),
+            central: ("npc.cockatiel.male.tail"),
+        ),
+    ),
+    (Cockatiel, Female): (
+        head: (
+            offset: (-1.5, -3.0, -3.5),
+            central: ("npc.cockatiel.male.head"),
+        ),
+        chest: (
+            offset: (-1.5, -3.0, -2.5),
+            central: ("npc.cockatiel.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -8.0, -1.0),
+            central: ("npc.cockatiel.male.tail"),
+        ),
     ),
     (Chicken, Male): (
         head: (
             offset: (-1.5, -3.0, -3.0),
             central: ("npc.chicken.male.head"),
         ),
-        torso: (
+        chest: (
             offset: (-2.5, -4.5, -3.5),
-            central: ("npc.chicken.male.torso"),
+            central: ("npc.chicken.male.chest"),
         ),
         tail: (
-            offset: (-1.5, -2.0, -3.0),
+            offset: (-1.5, -3.0, -4.0),
             central: ("npc.chicken.male.tail"),
         )
     ),
@@ -46,181 +130,13 @@
             offset: (-1.5, -3.0, -4.0),
             central: ("npc.chicken.female.head"),
         ),
-        torso: (
+        chest: (
             offset: (-2.5, -5.0, -3.5),
-            central: ("npc.chicken.female.torso"),
+            central: ("npc.chicken.female.chest"),
         ),
         tail: (
             offset: (-1.5, -3.5, -3.5),
             central: ("npc.chicken.female.tail"),
-        )
-    ),
-    (Goose, Male): (
-        head: (
-            offset: (-2.0, -3.5, -0.0),
-            central: ("npc.goose.male.head"),
-        ),
-        torso: (
-            offset: (-3.5, -4.5, -3.0),
-            central: ("npc.goose.male.torso"),
-        ),
-        tail: (
-            offset: (-2.0, -1.0, -3.5),
-            central: ("npc.goose.male.tail"),
-        )
-    ),
-    (Goose, Female): (
-        head: (
-            offset: (-2.0, -3.5, -0.0),
-            central: ("npc.goose.male.head"),
-        ),
-        torso: (
-            offset: (-3.5, -4.5, -3.0),
-            central: ("npc.goose.male.torso"),
-        ),
-        tail: (
-            offset: (-2.0, -1.0, -3.5),
-            central: ("npc.goose.male.tail"),
-        )
-    ),
-    (Peacock, Male): (
-        head: (
-            offset: (-2.0, -1.5, -0.0),
-            central: ("npc.peacock.male.head"),
-        ),
-        torso: (
-            offset: (-2.5, -5.5, -4.5),
-            central: ("npc.peacock.male.torso"),
-        ),
-        tail: (
-            offset: (-3.0, -1.5, -5.0),
-            central: ("npc.peacock.male.tail"),
-        )
-    ),
-    (Peacock, Female): (
-        head: (
-            offset: (-2.0, -1.5, -0.0),
-            central: ("npc.peacock.female.head"),
-        ),
-        torso: (
-            offset: (-2.5, -5.5, -4.5),
-            central: ("npc.peacock.female.torso"),
-        ),
-        tail: (
-            offset: (-3.0, -1.5, -5.0),
-            central: ("npc.peacock.female.tail"),
-        )
-    ),
-    (Eagle, Male): (
-        head: (
-            offset: (-2.0, -2.0, -3.5),
-            central: ("npc.eagle.male.head"),
-        ),
-        torso: (
-            offset: (-3.0, -4.5, -4.5),
-            central: ("npc.eagle.male.torso"),
-        ),
-        tail: (
-            offset: (-2.0, -3.5, -3.5),
-            central: ("npc.eagle.male.tail"),
-        )
-    ),
-    (Eagle, Female): (
-        head: (
-            offset: (-2.0, -2.0, -3.5),
-            central: ("npc.eagle.male.head"),
-        ),
-        torso: (
-            offset: (-3.0, -4.5, -4.5),
-            central: ("npc.eagle.male.torso"),
-        ),
-        tail: (
-            offset: (-2.0, -3.5, -3.5),
-            central: ("npc.eagle.male.tail"),
-        )
-    ),
-    (Owl, Male): (
-        head: (
-            offset: (-3.5, -4.5, -4.0),
-            central: ("npc.owl.male.head"),
-        ),
-        torso: (
-            offset: (-3.5, -5.0, -3.0),
-            central: ("npc.owl.male.torso"),
-        ),
-        tail: (
-            offset: (-2.5, -3.0, -2.0),
-            central: ("npc.owl.male.tail"),
-        )
-    ),
-    (Owl, Female): (
-        head: (
-            offset: (-4.5, -4.5, -4.5),
-            central: ("npc.owl.female.head"),
-        ),
-        torso: (
-            offset: (-3.5, -5.0, -3.5),
-            central: ("npc.owl.female.torso"),
-        ),
-        tail: (
-            offset: (-2.5, -3.0, -2.0),
-            central: ("npc.owl.female.tail"),
-        )
-    ),
-    (Parrot, Male): (
-        head: (
-            offset: (-1.5, -1.5, -2.5),
-            central: ("npc.parrot.male.head"),
-        ),
-        torso: (
-            offset: (-1.5, -3.5, -3.5),
-            central: ("npc.parrot.male.torso"),
-        ),
-        tail: (
-            offset: (-1.5, -4.5, -1.5),
-            central: ("npc.parrot.male.tail"),
-        )
-    ),
-    (Parrot, Female): (
-        head: (
-            offset: (-1.5, -1.5, -2.5),
-            central: ("npc.parrot.male.head"),
-        ),
-        torso: (
-            offset: (-1.5, -3.5, -3.5),
-            central: ("npc.parrot.male.torso"),
-        ),
-        tail: (
-            offset: (-2.5, -4.5, -1.5),
-            central: ("npc.parrot.male.tail"),
-        )
-    ),
-    (Penguin, Male): (
-        head: (
-            offset: (-1.5, -2.0, -2.0),
-            central: ("npc.penguin.male.head"),
-        ),
-        torso: (
-            offset: (-3.5, -4.0, -5.5),
-            central: ("npc.penguin.male.torso"),
-        ),
-        tail: (
-            offset: (-2.5, -4.5, -1.5),
-            central: ("npc.penguin.male.tail"),
-        )
-    ),
-    (Penguin, Female): (
-        head: (
-            offset: (-1.5, -2.0, -2.0),
-            central: ("npc.penguin.male.head"),
-        ),
-        torso: (
-            offset: (-3.5, -4.0, -5.5),
-            central: ("npc.penguin.male.torso"),
-        ),
-        tail: (
-            offset: (-2.5, -4.5, -1.5),
-            central: ("npc.penguin.male.tail"),
         )
     ),
     (Bat, Male): (
@@ -228,9 +144,9 @@
             offset: (-4.5, 2.0, -11.0),
             central: ("npc.bat.male.head"),
         ),
-        torso: (
+        chest: (
             offset: (-3.5, -5.0, -6.5),
-            central: ("npc.bat.male.torso"),
+            central: ("npc.bat.male.chest"),
         ),
         tail: (
             offset: (-2.5, -1.5, -1.5),
@@ -242,13 +158,293 @@
             offset: (-4.5, 2.0, -11.0),
             central: ("npc.bat.male.head"),
         ),
-        torso: (
+        chest: (
             offset: (-3.5, -5.0, -6.5),
-            central: ("npc.bat.male.torso"),
+            central: ("npc.bat.male.chest"),
         ),
         tail: (
             offset: (-2.5, -1.5, -1.5),
             central: ("npc.bat.male.tail"),
         )
+    ),
+    (Penguin, Male): (
+        head: (
+            offset: (-1.5, -2.0, -2.0),
+            central: ("npc.penguin.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -4.0, -5.5),
+            central: ("npc.penguin.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -4.5, -1.5),
+            central: ("npc.penguin.male.tail"),
+        ),
+    ),
+    (Penguin, Female): (
+        head: (
+            offset: (-1.5, -2.0, -2.0),
+            central: ("npc.penguin.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -4.0, -5.5),
+            central: ("npc.penguin.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -4.5, -1.5),
+            central: ("npc.penguin.male.tail"),
+        ),
+    ),
+    (Goose, Male): (
+        head: (
+            offset: (-2.0, -4.5, -6.0),
+            central: ("npc.goose.male.head"),
+        ),
+        chest: (
+            offset: (-4.0, -5.5, -3.0),
+            central: ("npc.goose.male.chest"),
+        ),
+        tail: (
+            offset: (-2.0, -3.0, -2.5),
+            central: ("npc.goose.male.tail"),
+        ),
+    ),
+    (Goose, Female): (
+        head: (
+            offset: (-2.0, -4.5, -6.0),
+            central: ("npc.goose.male.head"),
+        ),
+        chest: (
+            offset: (-4.0, -5.5, -3.0),
+            central: ("npc.goose.male.chest"),
+        ),
+        tail: (
+            offset: (-2.0, -3.0, -2.5),
+            central: ("npc.goose.male.tail"),
+        ),
+    ),
+    (Peacock, Male): (
+        head: (
+            offset: (-1.5, -4.5, -7.0),
+            central: ("npc.peacock.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.5, -3.5),
+            central: ("npc.peacock.male.chest"),
+        ),
+        tail: (
+            offset: (-10.5, -14.0, -2.5),
+            central: ("npc.peacock.male.tail"),
+        ),
+    ),
+    (Peacock, Female): (
+        head: (
+            offset: (-1.5, -4.5, -7.0),
+            central: ("npc.peacock.female.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.5, -3.5),
+            central: ("npc.peacock.female.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -7.0, -4.5),
+            central: ("npc.peacock.female.tail"),
+        ),
+    ),
+    (Eagle, Male): (
+        head: (
+            offset: (-2.0, -5.0, -3.5),
+            central: ("npc.eagle.male.head"),
+        ),
+        chest: (
+            offset: (-3.0, -6.0, -4.0),
+            central: ("npc.eagle.male.chest"),
+        ),
+        tail: (
+            offset: (-4.0, -3.5, -1.5),
+            central: ("npc.eagle.male.tail"),
+        ),
+    ),
+    (Eagle, Female): (
+        head: (
+            offset: (-2.0, -4.5, -3.5),
+            central: ("npc.eagle.female.head"),
+        ),
+        chest: (
+            offset: (-3.0, -6.0, -4.0),
+            central: ("npc.eagle.female.chest"),
+        ),
+        tail: (
+            offset: (-4.0, -3.5, -1.5),
+            central: ("npc.eagle.female.tail"),
+        ),
+    ),
+    (Parrot, Male): (
+        head: (
+            offset: (-1.5, -4.0, -3.0),
+            central: ("npc.parrot.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -4.5, -3.5),
+            central: ("npc.parrot.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -10.0, -3.5),
+            central: ("npc.parrot.male.tail"),
+        ),
+    ),
+    (Parrot, Female): (
+        head: (
+            offset: (-1.5, -5.5, -4.0),
+            central: ("npc.parrot.female.head"),
+        ),
+        chest: (
+            offset: (-2.5, -4.5, -3.5),
+            central: ("npc.parrot.female.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -10.0, -3.5),
+            central: ("npc.parrot.female.tail"),
+        ),
+    ),
+    (Crow, Male): (
+        head: (
+            offset: (-1.5, -4.5, -2.5),
+            central: ("npc.crow.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -4.0, -3.0),
+            central: ("npc.crow.male.chest"),
+        ),
+        tail: (
+            offset: (-3.5, -3.5, -1.5),
+            central: ("npc.crow.male.tail"),
+        ),
+    ),
+    (Crow, Female): (
+        head: (
+            offset: (-1.5, -4.5, -2.5),
+            central: ("npc.crow.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -4.0, -3.0),
+            central: ("npc.crow.male.chest"),
+        ),
+        tail: (
+            offset: (-3.5, -3.5, -1.5),
+            central: ("npc.crow.male.tail"),
+        ),
+    ),
+    (Dodo, Male): (
+        head: (
+            offset: (-2.5, -6.0, -6.0),
+            central: ("npc.dodo.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -5.5, -4.0),
+            central: ("npc.dodo.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -4.0, -3.5),
+            central: ("npc.dodo.male.tail"),
+        ),
+    ),
+    (Dodo, Female): (
+        head: (
+            offset: (-2.5, -6.0, -6.0),
+            central: ("npc.dodo.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -5.5, -4.0),
+            central: ("npc.dodo.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -4.0, -3.5),
+            central: ("npc.dodo.male.tail"),
+        ),
+    ),
+    (Parakeet, Male): (
+        head: (
+            offset: (-1.5, -3.0, -2.0),
+            central: ("npc.parakeet.male.head"),
+        ),
+        chest: (
+            offset: (-1.5, -3.0, -2.5),
+            central: ("npc.parakeet.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -4.0, -2.0),
+            central: ("npc.parakeet.male.tail"),
+        ),
+    ),
+    (Parakeet, Female): (
+        head: (
+            offset: (-1.5, -3.0, -2.0),
+            central: ("npc.parakeet.male.head"),
+        ),
+        chest: (
+            offset: (-1.5, -3.0, -2.5),
+            central: ("npc.parakeet.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -4.0, -2.0),
+            central: ("npc.parakeet.male.tail"),
+        ),
+    ),
+    (Puffin, Male): (
+        head: (
+            offset: (-2.5, -5.0, -3.5),
+            central: ("npc.puffin.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.0, -4.0),
+            central: ("npc.puffin.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -3.5, -2.0),
+            central: ("npc.puffin.male.tail"),
+        ),
+    ),
+    (Puffin, Female): (
+        head: (
+            offset: (-2.5, -5.0, -3.5),
+            central: ("npc.puffin.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.0, -4.0),
+            central: ("npc.puffin.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -3.5, -2.0),
+            central: ("npc.puffin.male.tail"),
+        ),
+    ),
+    (Toucan, Male): (
+        head: (
+            offset: (-1.5, -2.0, -3.0),
+            central: ("npc.toucan.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -4.5, -3.5),
+            central: ("npc.toucan.male.chest"),
+        ),
+        tail: (
+            offset: (-3.5, -5.0, -4.0),
+            central: ("npc.toucan.male.tail"),
+        ),
+    ),
+    (Toucan, Female): (
+        head: (
+            offset: (-1.5, -2.0, -3.0),
+            central: ("npc.toucan.female.head"),
+        ),
+        chest: (
+            offset: (-2.5, -4.5, -3.5),
+            central: ("npc.toucan.female.chest"),
+        ),
+        tail: (
+            offset: (-3.5, -5.0, -4.0),
+            central: ("npc.toucan.female.tail"),
+        ),
     ),
 })

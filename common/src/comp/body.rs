@@ -280,21 +280,26 @@ impl Body {
                 _ => 400.0,
             },
             Body::BipedSmall(_) => 50.0,
-
             // ravens are 0.69-2 kg, crows are 0.51 kg on average.
             Body::BirdMedium(body) => match body.species {
-                bird_medium::Species::Chicken => 2.0, // ~✅ Red junglefowl are 1-1.5 kg
-                bird_medium::Species::Duck => 2.0,
-                bird_medium::Species::Eagle => 10.0, // ~✅ Steller's sea eagle are 5-9 kg
-                bird_medium::Species::Goose => 3.5,  // ~✅ Swan geese are 2.8-3.5 kg
-                bird_medium::Species::Owl => 2.0,
-                bird_medium::Species::Parrot => 2.0,
-                bird_medium::Species::Penguin => 8.0,
-                bird_medium::Species::Peacock => 5.0,
-                bird_medium::Species::Bat => 2.0,
+                bird_medium::Species::SnowyOwl => 3.0,
+                bird_medium::Species::HornedOwl => 3.0,
+                bird_medium::Species::Duck => 3.5,
+                bird_medium::Species::Cockatiel => 2.0,
+                bird_medium::Species::Chicken => 2.5, // ~✅ Red junglefowl are 1-1.5 kg
+                bird_medium::Species::Bat => 1.5,
+                bird_medium::Species::Penguin => 10.0,
+                bird_medium::Species::Eagle => 7.0, // ~✅ Steller's sea eagle are 5-9 kg
+                bird_medium::Species::Goose => 3.5, // ~✅ Swan geese are 2.8-3.5 kg
+                bird_medium::Species::Parrot => 1.0,
+                bird_medium::Species::Peacock => 6.0,
+                bird_medium::Species::Crow => 3.0,
+                bird_medium::Species::Dodo => 4.0,
+                bird_medium::Species::Parakeet => 1.0,
+                bird_medium::Species::Puffin => 2.0,
+                bird_medium::Species::Toucan => 4.5,
             },
             Body::BirdLarge(_) => 100.0,
-
             Body::Dragon(_) => 20_000.0,
             Body::FishMedium(_) => 5.0,
             Body::FishSmall(_) => 1.0,
@@ -423,14 +428,6 @@ impl Body {
 
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
-            Body::BirdMedium(body) => match body.species {
-                bird_medium::Species::Chicken => Vec3::new(1.0, 1.0, 1.35),
-                bird_medium::Species::Duck => Vec3::new(0.9, 1.0, 1.4),
-                bird_medium::Species::Goose => Vec3::new(1.0, 1.2, 1.5),
-                bird_medium::Species::Peacock => Vec3::new(1.3, 1.1, 1.4),
-                bird_medium::Species::Bat => Vec3::new(4.0, 2.0, 2.0),
-                _ => Vec3::new(2.0, 1.0, 1.5),
-            },
             Body::BirdLarge(body) => match body.species {
                 bird_large::Species::Cockatrice => Vec3::new(2.5, 5.5, 3.5),
                 bird_large::Species::Roc => Vec3::new(2.2, 7.5, 4.0),
@@ -534,6 +531,24 @@ impl Body {
                 arthropod::Species::Moltencrawler => Vec3::new(3.2, 4.0, 1.5),
                 arthropod::Species::Mosscrawler => Vec3::new(3.2, 4.0, 1.4),
                 arthropod::Species::Sandcrawler => Vec3::new(3.2, 4.0, 1.4),
+            },
+            Body::BirdMedium(body) => match body.species {
+                bird_medium::Species::SnowyOwl => Vec3::new(1.8, 1.8, 1.8),
+                bird_medium::Species::HornedOwl => Vec3::new(1.8, 1.8, 1.8),
+                bird_medium::Species::Duck => Vec3::new(1.0, 1.5, 1.5),
+                bird_medium::Species::Cockatiel => Vec3::new(1.2, 1.0, 1.6),
+                bird_medium::Species::Chicken => Vec3::new(1.2, 1.5, 2.0),
+                bird_medium::Species::Bat => Vec3::new(2.0, 2.0, 1.5),
+                bird_medium::Species::Penguin => Vec3::new(1.5, 1.1, 2.5),
+                bird_medium::Species::Goose => Vec3::new(1.8, 1.8, 2.3),
+                bird_medium::Species::Peacock => Vec3::new(2.2, 2.5, 2.8),
+                bird_medium::Species::Eagle => Vec3::new(3.3, 2.5, 2.0),
+                bird_medium::Species::Parrot => Vec3::new(1.5, 1.5, 1.6),
+                bird_medium::Species::Crow => Vec3::new(2.0, 2.5, 1.5),
+                bird_medium::Species::Dodo => Vec3::new(2.5, 2.0, 2.0),
+                bird_medium::Species::Parakeet => Vec3::new(1.2, 1.0, 1.6),
+                bird_medium::Species::Puffin => Vec3::new(2.0, 2.0, 2.0),
+                bird_medium::Species::Toucan => Vec3::new(2.5, 2.0, 1.5),
             },
         }
     }
@@ -723,15 +738,6 @@ impl Body {
                 quadruped_medium::Species::Ngoubou => 290,
                 _ => 70,
             },
-            Body::BirdMedium(bird_medium) => match bird_medium.species {
-                bird_medium::Species::Goose => 30,
-                bird_medium::Species::Peacock => 35,
-                bird_medium::Species::Eagle => 45,
-                bird_medium::Species::Owl => 45,
-                bird_medium::Species::Duck => 10,
-                bird_medium::Species::Bat => 1,
-                _ => 15,
-            },
             Body::FishMedium(_) => 15,
             Body::Dragon(_) => 500,
             Body::BirdLarge(bird_large) => match bird_large.species {
@@ -742,6 +748,24 @@ impl Body {
                 | bird_large::Species::SeaWyvern
                 | bird_large::Species::WealdWyvern => 1000,
                 _ => 300,
+            },
+            Body::BirdMedium(bird_medium) => match bird_medium.species {
+                bird_medium::Species::SnowyOwl => 45,
+                bird_medium::Species::HornedOwl => 45,
+                bird_medium::Species::Duck => 10,
+                bird_medium::Species::Cockatiel => 10,
+                bird_medium::Species::Chicken => 10,
+                bird_medium::Species::Bat => 20,
+                bird_medium::Species::Goose => 30,
+                bird_medium::Species::Peacock => 35,
+                bird_medium::Species::Penguin => 35,
+                bird_medium::Species::Eagle => 45,
+                bird_medium::Species::Parrot => 20,
+                bird_medium::Species::Crow => 20,
+                bird_medium::Species::Dodo => 20,
+                bird_medium::Species::Parakeet => 20,
+                bird_medium::Species::Puffin => 20,
+                bird_medium::Species::Toucan => 20,
             },
             Body::FishSmall(_) => 3,
             Body::BipedLarge(biped_large) => match biped_large.species {

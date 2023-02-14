@@ -7,6 +7,7 @@ SpawnEntry (
                 // Casual
                 (5, (1, 1, "common.entity.wild.peaceful.parrot")),
                 (5, (1, 1, "common.entity.wild.peaceful.quokka")),
+                (5, (1, 1, "common.entity.wild.peaceful.parakeet")),
                 // Rare
                 (1, (1, 1, "common.entity.wild.peaceful.tortoise")),
                 (1, (1, 1, "common.entity.wild.aggressive.monitor")),
@@ -15,6 +16,8 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.peaceful.crawler_moss")),
                 (1, (1, 1, "common.entity.wild.aggressive.rootsnapper")),
                 (1, (1, 1, "common.entity.wild.aggressive.axebeak")),
+                (1, (1, 1, "common.entity.wild.peaceful.toucan")),
+                (1, (1, 1, "common.entity.wild.peaceful.peacock")),
             ],
             spawn_mode: Land,
             day_period: [Morning, Noon, Evening],

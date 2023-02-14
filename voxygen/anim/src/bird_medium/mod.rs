@@ -1,10 +1,22 @@
+pub mod alpha;
+pub mod breathe;
+pub mod dash;
 pub mod feed;
 pub mod fly;
 pub mod idle;
 pub mod run;
+pub mod shockwave;
+pub mod shoot;
+pub mod stunned;
+pub mod summon;
+pub mod swim;
 
 // Reexports
-pub use self::{feed::FeedAnimation, fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
+pub use self::{
+    alpha::AlphaAnimation, breathe::BreatheAnimation, dash::DashAnimation, feed::FeedAnimation,
+    fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    shoot::ShootAnimation, stunned::StunnedAnimation, summon::SummonAnimation, swim::SwimAnimation,
+};
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
 use common::comp::{self};
@@ -14,10 +26,12 @@ pub type Body = comp::bird_medium::Body;
 
 skeleton_impls!(struct BirdMediumSkeleton {
     + head,
-    + torso,
+    + chest,
     + tail,
-    + wing_l,
-    + wing_r,
+    + wing_in_l,
+    + wing_in_r,
+    + wing_out_l,
+    + wing_out_r,
     + leg_l,
     + leg_r,
 });
@@ -26,7 +40,7 @@ impl Skeleton for BirdMediumSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
 
-    const BONE_COUNT: usize = 7;
+    const BONE_COUNT: usize = 9;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"bird_medium_compute_mats\0";
 
@@ -38,18 +52,28 @@ impl Skeleton for BirdMediumSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
     ) -> Offsets {
-        let base_mat = base_mat * Mat4::scaling_3d(1.0 / 11.0);
-        let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
-        let head_mat = torso_mat * Mat4::<f32>::from(self.head);
+        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
+
+        let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
+        let head_mat = chest_mat * Mat4::<f32>::from(self.head);
+        let tail_mat = chest_mat * Mat4::<f32>::from(self.tail);
+        let wing_in_l_mat = chest_mat * Mat4::<f32>::from(self.wing_in_l);
+        let wing_in_r_mat = chest_mat * Mat4::<f32>::from(self.wing_in_r);
+        let wing_out_l_mat = wing_in_l_mat * Mat4::<f32>::from(self.wing_out_l);
+        let wing_out_r_mat = wing_in_r_mat * Mat4::<f32>::from(self.wing_out_r);
+        let leg_l_mat = base_mat * Mat4::<f32>::from(self.leg_l);
+        let leg_r_mat = base_mat * Mat4::<f32>::from(self.leg_r);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
-            make_bone(torso_mat),
-            make_bone(torso_mat * Mat4::<f32>::from(self.tail)),
-            make_bone(torso_mat * Mat4::<f32>::from(self.wing_l)),
-            make_bone(torso_mat * Mat4::<f32>::from(self.wing_r)),
-            make_bone(base_mat * Mat4::<f32>::from(self.leg_l)),
-            make_bone(base_mat * Mat4::<f32>::from(self.leg_r)),
+            make_bone(chest_mat),
+            make_bone(tail_mat),
+            make_bone(wing_in_l_mat),
+            make_bone(wing_in_r_mat),
+            make_bone(wing_out_l_mat),
+            make_bone(wing_out_r_mat),
+            make_bone(leg_l_mat),
+            make_bone(leg_r_mat),
         ];
         use common::comp::body::bird_medium::Species::*;
         Offsets {
@@ -76,8 +100,10 @@ pub struct SkeletonAttr {
     head: (f32, f32),
     chest: (f32, f32),
     tail: (f32, f32),
-    wing: (f32, f32, f32),
-    foot: (f32, f32, f32),
+    wing_in: (f32, f32, f32),
+    wing_out: (f32, f32, f32),
+    leg: (f32, f32, f32),
+    scaler: f32,
     feed: f32,
 }
 
@@ -95,11 +121,13 @@ impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
 impl Default for SkeletonAttr {
     fn default() -> Self {
         Self {
-            head: (0.0, 0.0),
             chest: (0.0, 0.0),
+            head: (0.0, 0.0),
             tail: (0.0, 0.0),
-            wing: (0.0, 0.0, 0.0),
-            foot: (0.0, 0.0, 0.0),
+            wing_in: (0.0, 0.0, 0.0),
+            wing_out: (0.0, 0.0, 0.0),
+            leg: (0.0, 0.0, 0.0),
+            scaler: 0.0,
             feed: 0.0,
         }
     }
@@ -109,79 +137,155 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     fn from(body: &'a Body) -> Self {
         use comp::bird_medium::{BodyType::*, Species::*};
         Self {
-            head: match (body.species, body.body_type) {
-                (Duck, _) => (2.0, 5.5),
-                (Chicken, Male) => (3.0, 4.5),
-                (Chicken, Female) => (3.0, 6.0),
-                (Goose, _) => (5.0, 2.5),
-                (Peacock, _) => (1.0, 1.0),
-                (Eagle, _) => (2.5, 5.0),
-                (Owl, Male) => (2.5, 5.0),
-                (Owl, Female) => (2.5, 7.0),
-                (Parrot, _) => (0.5, 4.5),
-                (Penguin, _) => (1.5, 6.0),
-                (Bat, _) => (2.5, 5.0),
-            },
             chest: match (body.species, body.body_type) {
-                (Duck, _) => (0.0, 6.0),
+                (SnowyOwl, _) => (0.0, 4.5),
+                (HornedOwl, _) => (0.0, 4.5),
+                (Duck, _) => (0.0, 4.0),
+                (Cockatiel, _) => (0.0, 4.0),
                 (Chicken, Male) => (0.0, 6.5),
                 (Chicken, Female) => (0.0, 6.5),
-                (Goose, _) => (0.0, 8.0),
-                (Peacock, _) => (0.0, 10.0),
-                (Eagle, _) => (0.0, 8.0),
-                (Owl, Male) => (0.0, 4.5),
-                (Owl, Female) => (0.0, 4.5),
-                (Parrot, _) => (0.0, 5.0),
-                (Penguin, _) => (0.0, 8.0),
                 (Bat, _) => (0.0, 8.0),
+                (Penguin, _) => (0.0, 8.0),
+                (Goose, _) => (0.0, 7.0),
+                (Peacock, _) => (0.0, 9.5),
+                (Eagle, _) => (0.0, 6.0),
+                (Parrot, _) => (0.0, 5.0),
+                (Crow, _) => (0.0, 4.0),
+                (Dodo, _) => (0.0, 6.0),
+                (Parakeet, _) => (0.0, 4.0),
+                (Puffin, _) => (0.0, 7.0),
+                (Toucan, _) => (0.0, 5.0),
+            },
+            head: match (body.species, body.body_type) {
+                (SnowyOwl, _) => (3.5, 5.0),
+                (HornedOwl, _) => (3.5, 5.0),
+                (Duck, _) => (2.0, 5.5),
+                (Cockatiel, _) => (3.0, 5.5),
+                (Chicken, Male) => (3.0, 4.5),
+                (Chicken, Female) => (3.0, 6.0),
+                (Bat, _) => (2.5, 5.0),
+                (Penguin, _) => (1.5, 6.0),
+                (Goose, _) => (5.0, 4.0),
+                (Peacock, _) => (3.0, 5.0),
+                (Eagle, _) => (4.5, 5.0),
+                (Parrot, _) => (1.5, 4.5),
+                (Crow, _) => (4.5, 4.0),
+                (Dodo, _) => (3.5, 4.5),
+                (Parakeet, _) => (2.0, 4.0),
+                (Puffin, _) => (3.5, 5.5),
+                (Toucan, _) => (2.5, 4.5),
             },
             tail: match (body.species, body.body_type) {
+                (SnowyOwl, _) => (-6.0, -2.0),
+                (HornedOwl, _) => (-6.0, -2.0),
                 (Duck, _) => (-5.0, 1.0),
+                (Cockatiel, _) => (-3.0, -0.5),
                 (Chicken, Male) => (-7.5, 3.5),
                 (Chicken, Female) => (-4.5, 3.0),
-                (Goose, _) => (-5.0, 3.0),
-                (Peacock, _) => (-5.5, 2.0),
-                (Eagle, _) => (-8.0, -4.0),
-                (Owl, Male) => (-6.0, -2.0),
-                (Owl, Female) => (-6.0, -2.5),
-                (Parrot, _) => (-8.0, -2.0),
-                (Penguin, _) => (-3.0, -4.0),
                 (Bat, _) => (-8.0, -4.0),
+                (Penguin, _) => (-3.0, -4.0),
+                (Goose, _) => (-4.0, 3.0),
+                (Peacock, _) => (-5.5, 1.0),
+                (Eagle, _) => (-6.0, -2.0),
+                (Parrot, _) => (-6.0, 0.0),
+                (Crow, _) => (-5.0, -1.5),
+                (Dodo, _) => (-7.5, -0.5),
+                (Parakeet, _) => (-5.0, -1.0),
+                (Puffin, _) => (-7.0, -2.0),
+                (Toucan, _) => (-6.0, 0.0),
             },
-            wing: match (body.species, body.body_type) {
-                (Duck, _) => (3.5, -0.5, 2.0),
-                (Chicken, Male) => (3.0, -1.0, 2.5),
-                (Chicken, Female) => (3.0, -1.5, 2.5),
-                (Goose, _) => (3.75, -1.0, 2.0),
-                (Peacock, _) => (3.0, 0.0, 1.0),
-                (Eagle, _) => (3.0, -8.0, 4.0),
-                (Owl, Male) => (3.5, -5.5, 4.0),
-                (Owl, Female) => (3.5, -6.0, 3.5),
-                (Parrot, _) => (2.0, -4.5, 3.0),
-                (Penguin, _) => (4.0, 0.5, 1.0),
-                (Bat, _) => (1.0, -8.0, -2.0),
+            wing_in: match (body.species, body.body_type) {
+                (SnowyOwl, _) => (2.5, 1.0, 1.5),
+                (HornedOwl, _) => (2.5, 1.0, 1.5),
+                (Duck, _) => (2.5, 0.5, 1.0),
+                (Cockatiel, _) => (1.5, 0.5, 1.0),
+                (Chicken, Male) => (2.0, 1.0, 1.0),
+                (Chicken, Female) => (2.0, 1.5, 1.0),
+                (Bat, _) => (2.0, 2.0, -2.0),
+                (Penguin, _) => (3.0, 0.5, 1.0),
+                (Goose, _) => (2.5, 1.0, 2.0),
+                (Peacock, _) => (2.0, 1.0, 1.0),
+                (Eagle, _) => (3.0, 1.5, 1.0),
+                (Parrot, _) => (2.0, 0.5, 0.0),
+                (Crow, _) => (2.0, 0.5, 1.0),
+                (Dodo, _) => (3.0, -1.0, 1.0),
+                (Parakeet, _) => (1.0, 0.5, 0.0),
+                (Puffin, _) => (2.0, 0.0, 1.0),
+                (Toucan, _) => (2.0, 0.5, 0.0),
             },
-            foot: match (body.species, body.body_type) {
+            wing_out: match (body.species, body.body_type) {
+                (SnowyOwl, _) => (4.5, 3.5, 1.0),
+                (HornedOwl, _) => (4.5, 3.5, 1.0),
+                (Duck, _) => (3.0, 2.0, 0.5),
+                (Cockatiel, _) => (3.0, 2.0, 0.5),
+                (Chicken, Male) => (3.0, 2.0, 0.5),
+                (Chicken, Female) => (3.0, 2.0, 0.5),
+                (Bat, _) => (5.0, 3.0, 0.0),
+                (Penguin, _) => (3.0, 2.5, 0.5),
+                (Goose, _) => (4.0, 3.0, 0.5),
+                (Peacock, _) => (5.0, 3.0, 0.5),
+                (Eagle, _) => (8.0, 4.5, 0.5),
+                (Parrot, _) => (5.0, 3.0, 0.5),
+                (Crow, _) => (5.0, 3.0, 0.5),
+                (Dodo, _) => (3.0, 3.0, 0.5),
+                (Parakeet, _) => (3.0, 0.0, 0.5),
+                (Puffin, _) => (5.0, 3.0, 0.5),
+                (Toucan, _) => (5.0, 3.0, 0.5),
+            },
+            leg: match (body.species, body.body_type) {
+                (SnowyOwl, _) => (1.5, -2.5, 7.0),
+                (HornedOwl, _) => (1.5, -2.5, 7.0),
                 (Duck, _) => (2.5, -2.0, 4.0),
+                (Cockatiel, _) => (1.5, -1.0, 4.0),
                 (Chicken, Male) => (2.0, 0.0, 6.0),
                 (Chicken, Female) => (2.0, 0.0, 6.0),
-                (Goose, _) => (2.0, -1.5, 7.0),
-                (Peacock, _) => (2.0, -2.5, 8.0),
-                (Eagle, _) => (2.0, -2.0, 8.0),
-                (Owl, Male) => (1.5, -2.5, 7.0),
-                (Owl, Female) => (1.5, -3.0, 6.5),
-                (Parrot, _) => (1.5, -3.0, 3.0),
-                (Penguin, _) => (2.5, -2.0, 6.0),
                 (Bat, _) => (5.0, -1.0, 8.0),
+                (Penguin, _) => (2.5, -2.0, 6.0),
+                (Goose, _) => (2.0, -3.5, 6.0),
+                (Peacock, _) => (1.0, -2.5, 9.5),
+                (Eagle, _) => (2.0, -4.0, 6.0),
+                (Parrot, _) => (1.5, -3.0, 3.0),
+                (Crow, _) => (2.0, -2.5, 3.0),
+                (Dodo, _) => (1.5, -3.0, 4.0),
+                (Parakeet, _) => (1.5, -2.0, 2.0),
+                (Puffin, _) => (2.0, -3.0, 3.5),
+                (Toucan, _) => (1.5, -3.0, 3.0),
+            },
+            scaler: match (body.species, body.body_type) {
+                (SnowyOwl, _) => 1.0,
+                (HornedOwl, _) => 1.0,
+                (Duck, _) => 1.0,
+                (Cockatiel, _) => 1.0,
+                (Chicken, _) => 1.0,
+                (Bat, _) => 1.0,
+                (Penguin, _) => 1.0,
+                (Goose, _) => 1.0,
+                (Peacock, _) => 1.0,
+                (Eagle, _) => 1.0,
+                (Parrot, _) => 1.0,
+                (Crow, _) => 1.0,
+                (Dodo, _) => 1.0,
+                (Parakeet, _) => 1.0,
+                (Puffin, _) => 1.0,
+                (Toucan, _) => 1.0,
             },
             feed: match (body.species, body.body_type) {
+                (SnowyOwl, _) => -0.65,
+                (HornedOwl, _) => -0.65,
+                (Duck, _) => -0.65,
+                (Cockatiel, _) => -0.65,
                 (Chicken, _) => 1.2,
+                (Bat, _) => -0.65,
+                (Penguin, _) => -0.65,
                 (Goose, _) => 1.4,
                 (Peacock, _) => 1.6,
                 (Eagle, _) => 1.2,
                 (Parrot, _) => 1.2,
-                (Penguin, _) => 1.2,
-                _ => 1.0,
+                (Crow, _) => 1.2,
+                (Dodo, _) => 1.2,
+                (Parakeet, _) => 1.2,
+                (Puffin, _) => 1.2,
+                (Toucan, _) => 1.2,
             },
         }
     }

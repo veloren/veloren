@@ -999,7 +999,8 @@ fn bird_medium_config(body: comp::bird_medium::Body) -> &'static str {
         comp::bird_medium::Species::Goose => "common.entity.wild.peaceful.goose",
         comp::bird_medium::Species::Peacock => "common.entity.wild.peaceful.peacock",
         comp::bird_medium::Species::Eagle => "common.entity.wild.peaceful.eagle",
-        comp::bird_medium::Species::Owl => "common.entity.wild.peaceful.owl",
+        comp::bird_medium::Species::SnowyOwl => "common.entity.wild.peaceful.snowy_owl",
+        comp::bird_medium::Species::HornedOwl => "common.entity.wild.peaceful.horned_owl",
         comp::bird_medium::Species::Parrot => "common.entity.wild.peaceful.parrot",
         _ => unimplemented!(),
     }
