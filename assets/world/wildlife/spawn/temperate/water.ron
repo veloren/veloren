@@ -7,6 +7,7 @@ SpawnEntry (
                 (1, (3, 4, "common.entity.wild.peaceful.marlin")),
                 (1, (3, 4, "common.entity.wild.peaceful.piranha")),
                 (1, (3, 4, "common.entity.wild.peaceful.clownfish")),
+                (1, (1, 1, "common.entity.wild.peaceful.puffin")),
             ],
             spawn_mode: Water,
             day_period: [Night, Morning, Noon, Evening],

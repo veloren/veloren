@@ -11,6 +11,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.roshwalr")),
                 (5, (5, 20, "common.entity.wild.peaceful.penguin")),
                 (5, (5, 10, "common.entity.wild.peaceful.seal")),
+                (1, (1, 1, "common.entity.wild.peaceful.snowy_owl")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],

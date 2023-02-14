@@ -37,15 +37,22 @@ make_case_elim!(
     )]
     #[repr(u32)]
     pub enum Species {
-        Duck = 0,
-        Chicken = 1,
-        Goose = 2,
-        Peacock = 3,
-        Eagle = 4,
-        Owl = 5,
-        Parrot = 6,
-        Penguin = 7,
-        Bat = 8,
+        SnowyOwl = 0,
+        HornedOwl = 1,
+        Duck = 2,
+        Cockatiel = 3,
+        Chicken = 4,
+        Bat = 5,
+        Penguin = 6,
+        Goose = 7,
+        Peacock = 8,
+        Eagle = 9,
+        Parrot = 10,
+        Crow = 11,
+        Dodo = 12,
+        Parakeet = 13,
+        Puffin = 14,
+        Toucan = 15,
     }
 );
 
@@ -54,15 +61,22 @@ make_case_elim!(
 /// NOTE: Deliberately don't (yet?) implement serialize.
 #[derive(Clone, Debug, Deserialize)]
 pub struct AllSpecies<SpeciesMeta> {
+    pub snowy_owl: SpeciesMeta,
+    pub horned_owl: SpeciesMeta,
     pub duck: SpeciesMeta,
+    pub cockatiel: SpeciesMeta,
     pub chicken: SpeciesMeta,
+    pub bat: SpeciesMeta,
+    pub penguin: SpeciesMeta,
     pub goose: SpeciesMeta,
     pub peacock: SpeciesMeta,
     pub eagle: SpeciesMeta,
-    pub owl: SpeciesMeta,
     pub parrot: SpeciesMeta,
-    pub penguin: SpeciesMeta,
-    pub bat: SpeciesMeta,
+    pub crow: SpeciesMeta,
+    pub dodo: SpeciesMeta,
+    pub parakeet: SpeciesMeta,
+    pub puffin: SpeciesMeta,
+    pub toucan: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -71,29 +85,43 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     #[inline]
     fn index(&self, &index: &'a Species) -> &Self::Output {
         match index {
+            Species::SnowyOwl => &self.snowy_owl,
+            Species::HornedOwl => &self.horned_owl,
             Species::Duck => &self.duck,
+            Species::Cockatiel => &self.cockatiel,
             Species::Chicken => &self.chicken,
+            Species::Bat => &self.bat,
+            Species::Penguin => &self.penguin,
             Species::Goose => &self.goose,
             Species::Peacock => &self.peacock,
             Species::Eagle => &self.eagle,
-            Species::Owl => &self.owl,
             Species::Parrot => &self.parrot,
-            Species::Penguin => &self.penguin,
-            Species::Bat => &self.bat,
+            Species::Crow => &self.crow,
+            Species::Dodo => &self.dodo,
+            Species::Parakeet => &self.parakeet,
+            Species::Puffin => &self.puffin,
+            Species::Toucan => &self.toucan,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 9] = [
+pub const ALL_SPECIES: [Species; 16] = [
+    Species::SnowyOwl,
+    Species::HornedOwl,
     Species::Duck,
+    Species::Cockatiel,
     Species::Chicken,
+    Species::Bat,
+    Species::Penguin,
     Species::Goose,
     Species::Peacock,
     Species::Eagle,
-    Species::Owl,
     Species::Parrot,
-    Species::Penguin,
-    Species::Bat,
+    Species::Crow,
+    Species::Dodo,
+    Species::Parakeet,
+    Species::Puffin,
+    Species::Toucan,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

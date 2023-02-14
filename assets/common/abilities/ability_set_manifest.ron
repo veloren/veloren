@@ -511,6 +511,11 @@
             Simple(None, "common.abilities.custom.birdlargebasic.dash"),
         ],
     ),
+    Custom("Bird Medium Basic"): (
+        primary: "common.abilities.custom.birdmediumbasic.singlestrike",
+        secondary: "common.abilities.custom.birdmediumbasic.singlestrike",
+        abilities: [],
+    ),
     Custom("Tornado"): (
         primary: "common.abilities.custom.tornado.spin",
         secondary: "common.abilities.empty.basic",

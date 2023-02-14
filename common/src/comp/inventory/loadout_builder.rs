@@ -792,10 +792,16 @@ fn default_main_tool(body: &Body) -> Item {
             )),
         },
         Body::BirdMedium(bird_medium) => match bird_medium.species {
-            bird_medium::Species::Bat => Some(Item::new_from_asset_expect(
+            bird_medium::Species::Cockatiel
+            | bird_medium::Species::Bat
+            | bird_medium::Species::Parrot
+            | bird_medium::Species::Crow
+            | bird_medium::Species::Parakeet => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.simpleflyingbasic",
             )),
-            _ => None,
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.birdmediumbasic",
+            )),
         },
         _ => None,
     };

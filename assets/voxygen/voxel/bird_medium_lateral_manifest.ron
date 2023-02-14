@@ -1,326 +1,834 @@
 ({
+    (SnowyOwl, Male): (
+        wing_in_l: (
+            offset: (-5.0, -4.0, -0.5),
+            lateral: ("npc.snowy_owl.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -4.0, -0.5),
+            lateral: ("npc.snowy_owl.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -7.0, -1.0),
+            lateral: ("npc.snowy_owl.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -7.0, -1.0),
+            lateral: ("npc.snowy_owl.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -6.5),
+            lateral: ("npc.snowy_owl.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -6.5),
+            lateral: ("npc.snowy_owl.male.leg_r"),
+        ),
+    ),
+    (SnowyOwl, Female): (
+        wing_in_l: (
+            offset: (-5.0, -4.0, -0.5),
+            lateral: ("npc.snowy_owl.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -4.0, -0.5),
+            lateral: ("npc.snowy_owl.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -7.0, -1.0),
+            lateral: ("npc.snowy_owl.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -7.0, -1.0),
+            lateral: ("npc.snowy_owl.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -6.5),
+            lateral: ("npc.snowy_owl.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -6.5),
+            lateral: ("npc.snowy_owl.male.leg_r"),
+        ),
+    ),
+    (HornedOwl, Male): (
+        wing_in_l: (
+            offset: (-5.0, -4.0, -0.5),
+            lateral: ("npc.horned_owl.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -4.0, -0.5),
+            lateral: ("npc.horned_owl.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -7.0, -1.0),
+            lateral: ("npc.horned_owl.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -7.0, -1.0),
+            lateral: ("npc.horned_owl.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.0, 0.0, -6.5),
+            lateral: ("npc.horned_owl.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.0, 0.0, -6.5),
+            lateral: ("npc.horned_owl.male.leg_r"),
+        ),
+    ),
+    (HornedOwl, Female): (
+        wing_in_l: (
+            offset: (-5.0, -4.0, -0.5),
+            lateral: ("npc.horned_owl.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -4.0, -0.5),
+            lateral: ("npc.horned_owl.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -7.0, -1.0),
+            lateral: ("npc.horned_owl.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -7.0, -1.0),
+            lateral: ("npc.horned_owl.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.0, 0.0, -6.5),
+            lateral: ("npc.horned_owl.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.0, 0.0, -6.5),
+            lateral: ("npc.horned_owl.male.leg_r"),
+        ),
+    ),
     (Duck, Male): (
-        wing_l: (
-            offset: (-0.5, -4.0, -4.0),
-            lateral: ("npc.duck.male.wing"),
+        wing_in_l: (
+            offset: (-3.0, -2.0, -0.5),
+            lateral: ("npc.duck.male.wing_in_r"),
         ),
-        wing_r: (
-            offset: (-0.5, -4.0, -4.0),
-            lateral: ("npc.duck.male.wing"),
+        wing_in_r: (
+            offset: (-0.0, -2.0, -0.5),
+            lateral: ("npc.duck.male.wing_in_r"),
         ),
-        foot_l: (
+        wing_out_l: (
+            offset: (-4.0, -4.0, -1.0),
+            lateral: ("npc.duck.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -4.0, -1.0),
+            lateral: ("npc.duck.male.wing_out_r"),
+        ),
+        leg_l: (
             offset: (-1.5, -1.5, -4.0),
             lateral: ("npc.duck.male.leg_r"),
         ),
-        foot_r: (
+        leg_r: (
             offset: (-1.5, -1.5, -4.0),
             lateral: ("npc.duck.male.leg_r"),
         )
     ),
     (Duck, Female): (
-        wing_l: (
-            offset: (-0.5, -4.0, -4.0),
-            lateral: ("npc.duck.female.wing"),
+        wing_in_l: (
+            offset: (-3.0, -2.0, -0.5),
+            lateral: ("npc.duck.female.wing_in_r"),
         ),
-        wing_r: (
-            offset: (-0.5, -4.0, -4.0),
-            lateral: ("npc.duck.female.wing"),
+        wing_in_r: (
+            offset: (-0.0, -2.0, -0.5),
+            lateral: ("npc.duck.female.wing_in_r"),
         ),
-        foot_l: (
+        wing_out_l: (
+            offset: (-4.0, -4.0, -1.0),
+            lateral: ("npc.duck.female.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -4.0, -1.0),
+            lateral: ("npc.duck.female.wing_out_r"),
+        ),
+        leg_l: (
             offset: (-1.5, -1.5, -4.0),
             lateral: ("npc.duck.female.leg_r"),
         ),
-        foot_r: (
+        leg_r: (
             offset: (-1.5, -1.5, -4.0),
             lateral: ("npc.duck.female.leg_r"),
         )
     ),
+    (Cockatiel, Male): (
+        wing_in_l: (
+            offset: (-3.0, -2.0, -0.5),
+            lateral: ("npc.cockatiel.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -2.0, -0.5),
+            lateral: ("npc.cockatiel.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-5.0, -4.0, -1.0),
+            lateral: ("npc.cockatiel.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -4.0, -1.0),
+            lateral: ("npc.cockatiel.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.0, -1.0, -4.0),
+            lateral: ("npc.cockatiel.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.0, -1.0, -4.0),
+            lateral: ("npc.cockatiel.male.leg_r"),
+        )
+    ),
+    (Cockatiel, Female): (
+        wing_in_l: (
+            offset: (-3.0, -2.0, -0.5),
+            lateral: ("npc.cockatiel.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -2.0, -0.5),
+            lateral: ("npc.cockatiel.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-5.0, -4.0, -1.0),
+            lateral: ("npc.cockatiel.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -4.0, -1.0),
+            lateral: ("npc.cockatiel.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.0, -1.0, -4.0),
+            lateral: ("npc.cockatiel.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.0, -1.0, -4.0),
+            lateral: ("npc.cockatiel.male.leg_r"),
+        )
+    ),
     (Chicken, Male): (
-        wing_l: (
-            offset: (-0.5, -2.5, -4.0),
-            lateral: ("npc.chicken.male.wing"),
+        wing_in_l: (
+            offset: (-3.0, -2.0, -0.5),
+            lateral: ("npc.chicken.male.wing_in_r"),
         ),
-        wing_r: (
-            offset: (-0.5, -2.5, -4.0),
-            lateral: ("npc.chicken.male.wing"),
+        wing_in_r: (
+            offset: (-0.0, -2.0, -0.5),
+            lateral: ("npc.chicken.male.wing_in_r"),
         ),
-        foot_l: (
+        wing_out_l: (
+            offset: (-3.0, -4.0, -1.0),
+            lateral: ("npc.chicken.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -4.0, -1.0),
+            lateral: ("npc.chicken.male.wing_out_r"),
+        ),
+        leg_l: (
             offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.chicken.male.leg_r"),
         ),
-        foot_r: (
+        leg_r: (
             offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.chicken.male.leg_r"),
         )
     ),
     (Chicken, Female): (
-        wing_l: (
-            offset: (-0.5, -2.5, -4.0),
-            lateral: ("npc.chicken.female.wing"),
+        wing_in_l: (
+            offset: (-3.0, -2.0, -0.5),
+            lateral: ("npc.chicken.female.wing_in_r"),
         ),
-        wing_r: (
-            offset: (-0.5, -2.5, -4.0),
-            lateral: ("npc.chicken.female.wing"),
+        wing_in_r: (
+            offset: (-0.0, -2.0, -0.5),
+            lateral: ("npc.chicken.female.wing_in_r"),
         ),
-        foot_l: (
+        wing_out_l: (
+            offset: (-3.0, -4.0, -1.0),
+            lateral: ("npc.chicken.female.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -4.0, -1.0),
+            lateral: ("npc.chicken.female.wing_out_r"),
+        ),
+        leg_l: (
             offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.chicken.female.leg_r"),
         ),
-        foot_r: (
+        leg_r: (
             offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.chicken.female.leg_r"),
-        )
-    ),
-    (Goose, Male): (
-        wing_l: (
-            offset: (-0.5, -2.5, -4.0),
-            lateral: ("npc.goose.male.wing"),
-        ),
-        wing_r: (
-            offset: (-0.5, -2.5, -4.0),
-            lateral: ("npc.goose.male.wing"),
-        ),
-        foot_l: (
-            offset: (-1.0, 0.0, -6.5),
-            lateral: ("npc.goose.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.0, 0.0, -6.5),
-            lateral: ("npc.goose.male.leg_r"),
-        )
-    ),
-    (Goose, Female): (
-        wing_l: (
-            offset: (-0.5, -2.5, -4.0),
-            lateral: ("npc.goose.male.wing"),
-        ),
-        wing_r: (
-            offset: (-0.5, -2.5, -4.0),
-            lateral: ("npc.goose.male.wing"),
-        ),
-        foot_l: (
-            offset: (-1.0, 0.0, -6.5),
-            lateral: ("npc.goose.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.0, 0.0, -6.5),
-            lateral: ("npc.goose.male.leg_r"),
-        )
-    ),
-    (Peacock, Male): (
-        wing_l: (
-            offset: (-1.0, -3.5, -5.0),
-            lateral: ("npc.peacock.male.wing_r"),
-        ),
-        wing_r: (
-            offset: (-1.0, -3.5, -5.0),
-            lateral: ("npc.peacock.male.wing_r"),
-        ),
-        foot_l: (
-            offset: (-1.0, 0.0, -8.0),
-            lateral: ("npc.peacock.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.0, 0.0, -8.0),
-            lateral: ("npc.peacock.male.leg_r"),
-        )
-    ),
-    (Peacock, Female): (
-        wing_l: (
-            offset: (-1.0, -3.5, -5.0),
-            lateral: ("npc.peacock.female.wing_r"),
-        ),
-        wing_r: (
-            offset: (-1.0, -3.5, -5.0),
-            lateral: ("npc.peacock.female.wing_r"),
-        ),
-        foot_l: (
-            offset: (-1.0, 0.0, -8.0),
-            lateral: ("npc.peacock.female.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.0, 0.0, -8.0),
-            lateral: ("npc.peacock.female.leg_r"),
-        )
-    ),
-    (Eagle, Male): (
-        wing_l: (
-            offset: (-1.0, -3.5, -12.0),
-            lateral: ("npc.eagle.male.wing_r"),
-        ),
-        wing_r: (
-            offset: (-1.0, -3.5, -12.0),
-            lateral: ("npc.eagle.male.wing_r"),
-        ),
-        foot_l: (
-            offset: (-1.5, 0.0, -8.0),
-            lateral: ("npc.eagle.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.5, 0.0, -8.0),
-            lateral: ("npc.eagle.male.leg_r"),
-        )
-    ),
-    (Eagle, Female): (
-        wing_l: (
-            offset: (-1.0, -3.5, -12.0),
-            lateral: ("npc.eagle.male.wing_r"),
-        ),
-        wing_r: (
-            offset: (-1.0, -3.5, -12.0),
-            lateral: ("npc.eagle.male.wing_r"),
-        ),
-        foot_l: (
-            offset: (-1.5, 0.0, -8.0),
-            lateral: ("npc.eagle.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.5, 0.0, -8.0),
-            lateral: ("npc.eagle.male.leg_r"),
-        )
-    ),
-    (Owl, Male): (
-        wing_l: (
-            offset: (-1.0, -2.5, -8.0),
-            lateral: ("npc.owl.male.wing_r"),
-        ),
-        wing_r: (
-            offset: (-1.0, -2.5, -8.0),
-            lateral: ("npc.owl.male.wing_r"),
-        ),
-        foot_l: (
-            offset: (-1.0, 0.0, -6.5),
-            lateral: ("npc.owl.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.0, 0.0, -6.5),
-            lateral: ("npc.owl.male.leg_r"),
-        )
-    ),
-    (Owl, Female): (
-        wing_l: (
-            offset: (-1.0, -2.5, -8.0),
-            lateral: ("npc.owl.female.wing_r"),
-        ),
-        wing_r: (
-            offset: (-1.0, -2.5, -8.0),
-            lateral: ("npc.owl.female.wing_r"),
-        ),
-        foot_l: (
-            offset: (-1.0, 0.0, -6.5),
-            lateral: ("npc.owl.female.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.0, 0.0, -6.5),
-            lateral: ("npc.owl.female.leg_r"),
-        )
-    ),
-    (Parrot, Male): (
-        wing_l: (
-            offset: (-0.5, -2.5, -8.0),
-            lateral: ("npc.parrot.male.wing"),
-        ),
-        wing_r: (
-            offset: (-0.5, -2.5, -8.0),
-            lateral: ("npc.parrot.male.wing"),
-        ),
-        foot_l: (
-            offset: (-1.0, 0.0, -3.0),
-            lateral: ("npc.parrot.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.0, 0.0, -3.0),
-            lateral: ("npc.parrot.male.leg_r"),
-        )
-    ),
-    (Parrot, Female): (
-        wing_l: (
-            offset: (-0.5, -2.5, -8.0),
-            lateral: ("npc.parrot.male.wing"),
-        ),
-        wing_r: (
-            offset: (-0.5, -2.5, -8.0),
-            lateral: ("npc.parrot.male.wing"),
-        ),
-        foot_l: (
-            offset: (-1.0, 0.0, -3.0),
-            lateral: ("npc.parrot.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-1.0, 0.0, -3.0),
-            lateral: ("npc.parrot.male.leg_r"),
-        )
-    ),
-    (Penguin, Male): (
-        wing_l: (
-            offset: (-0.5, -1.5, -8.0),
-            lateral: ("npc.penguin.male.wing"),
-        ),
-        wing_r: (
-            offset: (-0.5, -1.5, -8.0),
-            lateral: ("npc.penguin.male.wing"),
-        ),
-        foot_l: (
-            offset: (-2.5, 0.0, -6.0),
-            lateral: ("npc.penguin.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-2.5, 0.0, -6.0),
-            lateral: ("npc.penguin.male.leg_r"),
-        )
-    ),
-    (Penguin, Female): (
-        wing_l: (
-            offset: (-0.5, -1.5, -8.0),
-            lateral: ("npc.penguin.male.wing"),
-        ),
-        wing_r: (
-            offset: (-0.5, -1.5, -8.0),
-            lateral: ("npc.penguin.male.wing"),
-        ),
-        foot_l: (
-            offset: (-2.5, 0.0, -6.0),
-            lateral: ("npc.penguin.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-2.5, 0.0, -6.0),
-            lateral: ("npc.penguin.male.leg_r"),
         )
     ),
     (Bat, Male): (
-        wing_l: (
-            offset: (-15.0, 2.5, -2.5),
-            lateral: ("npc.bat.male.wing_r"),
+        wing_in_l: (
+            offset: (-5.0, -6.0, -1.0),
+            lateral: ("npc.bat.male.wing_in_r"),
         ),
-        wing_r: (
-            offset: (1.0, 2.5, -2.5),
-            lateral: ("npc.bat.male.wing_r"),
+        wing_in_r: (
+            offset: (-0.0, -6.0, -1.0),
+            lateral: ("npc.bat.male.wing_in_r"),
         ),
-        foot_l: (
+        wing_out_l: (
+            offset: (-9.0, -10.0, -1.0),
+            lateral: ("npc.bat.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -10.0, -1.0),
+            lateral: ("npc.bat.male.wing_out_r"),
+        ),
+        leg_l: (
             offset: (-2.0, 2.0, -8.5),
             lateral: ("npc.bat.male.leg_r"),
         ),
-        foot_r: (
+        leg_r: (
             offset: (-2.0, 2.0, -8.5),
             lateral: ("npc.bat.male.leg_r"),
         )
     ),
     (Bat, Female): (
-        wing_l: (
-            offset: (-15.0, 2.5, -2.5),
-            lateral: ("npc.bat.male.wing_r"),
+        wing_in_l: (
+            offset: (-5.0, -6.0, -1.0),
+            lateral: ("npc.bat.male.wing_in_r"),
         ),
-        wing_r: (
-            offset: (1.0, 2.5, -2.5),
-            lateral: ("npc.bat.male.wing_r"),
+        wing_in_r: (
+            offset: (-0.0, -6.0, -1.0),
+            lateral: ("npc.bat.male.wing_in_r"),
         ),
-        foot_l: (
+        wing_out_l: (
+            offset: (-9.0, -10.0, -1.0),
+            lateral: ("npc.bat.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -10.0, -1.0),
+            lateral: ("npc.bat.male.wing_out_r"),
+        ),
+        leg_l: (
             offset: (-2.0, 2.0, -8.5),
             lateral: ("npc.bat.male.leg_r"),
         ),
-        foot_r: (
+        leg_r: (
             offset: (-2.0, 2.0, -8.5),
             lateral: ("npc.bat.male.leg_r"),
         )
+    ),
+    (Penguin, Male): (
+        wing_in_l: (
+            offset: (-3.0, -1.5, -0.5),
+            lateral: ("npc.penguin.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -1.5, -0.5),
+            lateral: ("npc.penguin.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-6.0, -3.0, -1.0),
+            lateral: ("npc.penguin.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -3.0, -1.0),
+            lateral: ("npc.penguin.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.penguin.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.penguin.male.leg_r"),
+        ),
+    ),
+    (Penguin, Female): (
+        wing_in_l: (
+            offset: (-3.0, -1.5, -0.5),
+            lateral: ("npc.penguin.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -1.5, -0.5),
+            lateral: ("npc.penguin.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-6.0, -3.0, -1.0),
+            lateral: ("npc.penguin.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -3.0, -1.0),
+            lateral: ("npc.penguin.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.penguin.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.penguin.male.leg_r"),
+        ),
+    ),
+    (Goose, Male): (
+        wing_in_l: (
+            offset: (-4.0, -3.0, -0.5),
+            lateral: ("npc.goose.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.goose.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -6.0, -1.0),
+            lateral: ("npc.goose.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.goose.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.goose.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.goose.male.leg_r"),
+        ),
+    ),
+    (Goose, Female): (
+        wing_in_l: (
+            offset: (-4.0, -3.0, -0.5),
+            lateral: ("npc.goose.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.goose.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -6.0, -1.0),
+            lateral: ("npc.goose.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.goose.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.goose.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.goose.male.leg_r"),
+        ),
+    ),
+    (Peacock, Male): (
+        wing_in_l: (
+            offset: (-5.0, -4.0, -0.5),
+            lateral: ("npc.peacock.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -4.0, -0.5),
+            lateral: ("npc.peacock.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-7.0, -8.0, -1.0),
+            lateral: ("npc.peacock.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -8.0, -1.0),
+            lateral: ("npc.peacock.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -9.5),
+            lateral: ("npc.peacock.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -9.5),
+            lateral: ("npc.peacock.male.leg_r"),
+        ),
+    ),
+    (Peacock, Female): (
+        wing_in_l: (
+            offset: (-5.0, -4.0, -0.5),
+            lateral: ("npc.peacock.female.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -4.0, -0.5),
+            lateral: ("npc.peacock.female.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-7.0, -8.0, -1.0),
+            lateral: ("npc.peacock.female.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -8.0, -1.0),
+            lateral: ("npc.peacock.female.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -9.5),
+            lateral: ("npc.peacock.female.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -9.5),
+            lateral: ("npc.peacock.female.leg_r"),
+        ),
+    ),
+    (Eagle, Male): (
+        wing_in_l: (
+            offset: (-8.0, -4.5, -0.5),
+            lateral: ("npc.eagle.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -4.5, -0.5),
+            lateral: ("npc.eagle.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-12.0, -8.0, -1.0),
+            lateral: ("npc.eagle.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -8.0, -1.0),
+            lateral: ("npc.eagle.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.0, 0.0, -6.0),
+            lateral: ("npc.eagle.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.0, 0.0, -6.0),
+            lateral: ("npc.eagle.male.leg_r"),
+        ),
+    ),
+    (Eagle, Female): (
+        wing_in_l: (
+            offset: (-8.0, -4.5, -0.5),
+            lateral: ("npc.eagle.female.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -4.5, -0.5),
+            lateral: ("npc.eagle.female.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-12.0, -8.0, -1.0),
+            lateral: ("npc.eagle.female.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -8.0, -1.0),
+            lateral: ("npc.eagle.female.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.0, 0.0, -6.0),
+            lateral: ("npc.eagle.female.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.0, 0.0, -6.0),
+            lateral: ("npc.eagle.female.leg_r"),
+        ),
+    ),
+    (Parrot, Male): (
+        wing_in_l: (
+            offset: (-5.0, -3.0, -0.5),
+            lateral: ("npc.parrot.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.parrot.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -6.0, -1.0),
+            lateral: ("npc.parrot.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.parrot.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.parrot.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.parrot.male.leg_r"),
+        ),
+    ),
+    (Parrot, Female): (
+        wing_in_l: (
+            offset: (-5.0, -3.0, -0.5),
+            lateral: ("npc.parrot.female.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.parrot.female.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -6.0, -1.0),
+            lateral: ("npc.parrot.female.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.parrot.female.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.parrot.female.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.parrot.female.leg_r"),
+        ),
+    ),
+    (Crow, Male): (
+        wing_in_l: (
+            offset: (-5.0, -3.0, -0.5),
+            lateral: ("npc.crow.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.crow.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-9.0, -6.0, -1.0),
+            lateral: ("npc.crow.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.crow.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.crow.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.crow.male.leg_r"),
+        ),
+    ),
+    (Crow, Female): (
+        wing_in_l: (
+            offset: (-5.0, -3.0, -0.5),
+            lateral: ("npc.crow.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.crow.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-9.0, -6.0, -1.0),
+            lateral: ("npc.crow.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.crow.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.crow.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.crow.male.leg_r"),
+        ),
+    ),
+    (Dodo, Male): (
+        wing_in_l: (
+            offset: (-3.0, -3.0, -0.5),
+            lateral: ("npc.dodo.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.dodo.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-4.0, -6.0, -1.0),
+            lateral: ("npc.dodo.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.dodo.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.0, 0.0, -4.0),
+            lateral: ("npc.dodo.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.0, 0.0, -4.0),
+            lateral: ("npc.dodo.male.leg_r"),
+        ),
+    ),
+    (Dodo, Female): (
+        wing_in_l: (
+            offset: (-3.0, -3.0, -0.5),
+            lateral: ("npc.dodo.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.dodo.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-4.0, -6.0, -1.0),
+            lateral: ("npc.dodo.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.dodo.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.0, 0.0, -4.0),
+            lateral: ("npc.dodo.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.0, 0.0, -4.0),
+            lateral: ("npc.dodo.male.leg_r"),
+        ),
+    ),
+    (Parakeet, Male): (
+        wing_in_l: (
+            offset: (-3.0, -2.0, -0.5),
+            lateral: ("npc.parakeet.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -2.0, -0.5),
+            lateral: ("npc.parakeet.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-5.0, -2.0, -1.0),
+            lateral: ("npc.parakeet.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -2.0, -1.0),
+            lateral: ("npc.parakeet.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.0, 0.0, -2.0),
+            lateral: ("npc.parakeet.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.0, 0.0, -2.0),
+            lateral: ("npc.parakeet.male.leg_r"),
+        ),
+    ),
+    (Parakeet, Female): (
+        wing_in_l: (
+            offset: (-3.0, -2.0, -0.5),
+            lateral: ("npc.parakeet.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -2.0, -0.5),
+            lateral: ("npc.parakeet.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-5.0, -2.0, -1.0),
+            lateral: ("npc.parakeet.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -2.0, -1.0),
+            lateral: ("npc.parakeet.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.0, 0.0, -2.0),
+            lateral: ("npc.parakeet.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.0, 0.0, -2.0),
+            lateral: ("npc.parakeet.male.leg_r"),
+        ),
+    ),
+    (Puffin, Male): (
+        wing_in_l: (
+            offset: (-5.0, -3.0, -0.5),
+            lateral: ("npc.puffin.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.puffin.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -6.0, -1.0),
+            lateral: ("npc.puffin.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.puffin.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.5, 0.0, -3.5),
+            lateral: ("npc.puffin.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.5, 0.0, -3.5),
+            lateral: ("npc.puffin.male.leg_r"),
+        ),
+    ),
+    (Puffin, Female): (
+        wing_in_l: (
+            offset: (-5.0, -3.0, -0.5),
+            lateral: ("npc.puffin.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.puffin.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -6.0, -1.0),
+            lateral: ("npc.puffin.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.puffin.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.5, 0.0, -3.5),
+            lateral: ("npc.puffin.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.5, 0.0, -3.5),
+            lateral: ("npc.puffin.male.leg_r"),
+        ),
+    ),
+    (Toucan, Male): (
+        wing_in_l: (
+            offset: (-5.0, -3.0, -0.5),
+            lateral: ("npc.toucan.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.toucan.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -6.0, -1.0),
+            lateral: ("npc.toucan.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.toucan.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.toucan.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.toucan.male.leg_r"),
+        ),
+    ),
+    (Toucan, Female): (
+        wing_in_l: (
+            offset: (-5.0, -3.0, -0.5),
+            lateral: ("npc.toucan.female.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -3.0, -0.5),
+            lateral: ("npc.toucan.female.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-10.0, -6.0, -1.0),
+            lateral: ("npc.toucan.female.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -6.0, -1.0),
+            lateral: ("npc.toucan.female.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.toucan.female.leg_r"),
+        ),
+        leg_r: (
+            offset: (-1.5, 0.0, -3.0),
+            lateral: ("npc.toucan.female.leg_r"),
+        ),
     ),
 })

@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("crow"),
+    alignment: Alignment(Wild),
+    loot: LootTable("common.loot_tables.creature.bird_medium"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

@@ -19,6 +19,7 @@ SpawnEntry (
                 (1, (1, 7, "common.entity.wild.peaceful.llama")),
                 (1, (1, 7, "common.entity.wild.peaceful.alpaca")),
                 (1, (1, 7, "common.entity.wild.peaceful.chicken")),
+                (1, (1, 4, "common.entity.wild.peaceful.crow")),
                 // Solitary
                 (2, (1, 1, "common.entity.wild.peaceful.forest_fox")),
                 (2, (1, 1, "common.entity.wild.peaceful.donkey")),

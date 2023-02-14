@@ -874,6 +874,7 @@ impl<'a> AgentData<'a> {
                             "Bird Large Basic" => Tactic::BirdLargeBasic,
                             "Flame Wyvern" | "Frost Wyvern" | "Cloud Wyvern" | "Sea Wyvern"
                             | "Weald Wyvern" => Tactic::Wyvern,
+                            "Bird Medium Basic" => Tactic::BirdMediumBasic,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
@@ -1250,6 +1251,9 @@ impl<'a> AgentData<'a> {
             ),
             Tactic::Wyvern => {
                 self.handle_wyvern_attack(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
+            Tactic::BirdMediumBasic => {
+                self.handle_simple_melee(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
             Tactic::Minotaur => {
                 self.handle_minotaur_attack(agent, controller, &attack_data, tgt_data, read_data)
