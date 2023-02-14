@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bats move slower and use a simple proportional controller to maintain altitude
 - Bats now have less health
+- Climbing no longer requires having 10 energy
 
 ### Removed
 
