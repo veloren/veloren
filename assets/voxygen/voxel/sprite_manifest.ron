@@ -4046,6 +4046,17 @@ EnsnaringWeb: Some((
     ],
     wind_sway: 0.0,
 )),
+// Ice spike
+IceSpike: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.icespike",
+            offset: (-5.0, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // WOOOOOOD
 Wood: Some((
     variations: [

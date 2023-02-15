@@ -1144,4 +1144,56 @@
             central: ("armor.empty"),
         )
     ),
+    (Gigasfrost, Male): (
+        head: (
+            offset: (-13.0, -7.0, 0.0),
+            central: ("npc.gigas_frost.male.head"),
+        ),
+        torso_upper: (
+            offset: (-11.0, -15.5, -10.0),
+            central: ("npc.gigas_frost.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-15.0, -12.5, -17.0),
+            central: ("npc.gigas_frost.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-3.0, 0.0, -3.5),
+            central: ("npc.gigas_frost.male.jaw"),
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Gigasfrost, Female): (
+        head: (
+            offset: (-13.0, -7.0, 0.0),
+            central: ("npc.gigas_frost.male.head"),
+        ),
+        torso_upper: (
+            offset: (-11.0, -15.5, -10.0),
+            central: ("npc.gigas_frost.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-15.0, -12.5, -17.0),
+            central: ("npc.gigas_frost.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-3.0, 0.0, -3.5),
+            central: ("npc.gigas_frost.male.jaw"),
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

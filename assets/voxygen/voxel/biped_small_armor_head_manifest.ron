@@ -1,4 +1,5 @@
  ((
+     // (<x>, <y>, <z>)
     default: (
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
     ),
@@ -74,6 +75,9 @@
         ),
         "common.items.npc_armor.biped_small.husk.head.husk": (
             vox_spec: ("npc.husk.male.head", (-6.0, -6.0, -5.5)),
+        ),
+        "common.items.npc_armor.biped_small.boreal.head.warrior": (
+            vox_spec: ("npc.boreal.warrior.head", (-8.0, -6.0, -8.0)),
         ),
     },
 ))

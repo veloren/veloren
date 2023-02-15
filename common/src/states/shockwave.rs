@@ -4,7 +4,8 @@ use crate::{
         DamageSource, GroupTarget, Knockback,
     },
     comp::{character_state::OutputEvents, shockwave, CharacterState, StateUpdate},
-    event::ServerEvent,
+    event::{LocalEvent, ServerEvent},
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -48,6 +49,8 @@ pub struct StaticData {
     pub damage_kind: DamageKind,
     /// Used to specify the shockwave to the frontend
     pub specifier: shockwave::FrontendSpecifier,
+    /// How fast enemy can rotate
+    pub ori_rate: f32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -65,7 +68,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 1.0, None);
+        handle_orientation(data, &mut update, self.static_data.ori_rate, None);
         handle_move(data, &mut update, self.static_data.move_efficiency);
 
         match self.stage_section {
@@ -139,6 +142,14 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
+                    // Send local event used for frontend shenanigans
+                    if self.static_data.specifier == shockwave::FrontendSpecifier::IceSpikes {
+                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::FlashFreeze {
+                            pos: data.pos.0
+                                + *data.ori.look_dir()
+                                * (data.body.max_radius()),
+                        }));
+                    }
                 } else {
                     // Transitions to recover
                     update.character = CharacterState::Shockwave(Data {

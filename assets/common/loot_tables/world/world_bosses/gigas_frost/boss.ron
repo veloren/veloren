@@ -1,0 +1,4 @@
+[
+    (1.0, LootTable("common.loot_tables.armor.boreal")),
+    (1.0, ItemQuantity("common.items.crafting_ing.glacial_crystal", 5, 15)),
+]

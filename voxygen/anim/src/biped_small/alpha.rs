@@ -113,7 +113,7 @@ impl Animation for AlphaAnimation {
                 next.tail.orientation = Quaternion::rotation_x(0.05 * fastalt * speednormcancel)
                     * Quaternion::rotation_z(fast * 0.15 * speednormcancel);
             },
-            Some(ToolKind::Axe) => {
+            Some(ToolKind::Axe) | Some(ToolKind::Hammer) => {
                 next.head.orientation = Quaternion::rotation_z(move1abs * 0.3 + move2abs * -0.6);
                 next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
                 next.control_r.position = Vec3::new(

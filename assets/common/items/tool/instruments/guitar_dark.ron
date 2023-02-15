@@ -15,7 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         ),
     )),
-    quality: Common,
+    quality: Legendary,
     tags: [Utility],
     ability_spec: Some(Custom("DarkGuitar")),
 )

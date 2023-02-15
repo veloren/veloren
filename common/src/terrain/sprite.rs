@@ -226,6 +226,7 @@ make_case_elim!(
         SeaDecorPillar = 0xC7,
         SeashellLantern = 0xC8,
         Rope = 0xC9,
+        IceSpike = 0xDA,
     }
 );
 
@@ -291,6 +292,7 @@ impl SpriteKind {
             SpriteKind::Anvil => 1.1,
             SpriteKind::CookingPot => 1.36,
             SpriteKind::DismantlingBench => 1.18,
+            SpriteKind::IceSpike => 1.0,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
             | SpriteKind::RoundCactus

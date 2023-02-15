@@ -88,6 +88,15 @@ pub enum Outcome {
     GroundSlam {
         pos: Vec3<f32>,
     },
+    IceSpikes {
+        pos: Vec3<f32>,
+    },
+    IceCrack {
+        pos: Vec3<f32>,
+    },
+    FlashFreeze {
+        pos: Vec3<f32>,
+    },
     Utterance {
         pos: Vec3<f32>,
         body: comp::Body,
@@ -118,6 +127,9 @@ impl Outcome {
             | Outcome::Block { pos, .. }
             | Outcome::PoiseChange { pos, .. }
             | Outcome::GroundSlam { pos }
+            | Outcome::FlashFreeze { pos }
+            | Outcome::IceSpikes { pos }
+            | Outcome::IceCrack { pos }
             | Outcome::Utterance { pos, .. }
             | Outcome::SpriteDelete { pos, .. }
             | Outcome::Glider { pos, .. } => Some(*pos),

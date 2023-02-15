@@ -100,6 +100,7 @@ impl Body {
                 biped_large::Species::Huskbrute => 130.0,
                 biped_large::Species::Cultistwarlord => 110.0,
                 biped_large::Species::Cultistwarlock => 90.0,
+                biped_large::Species::Gigasfrost => 45.0,
                 _ => 80.0,
             },
             Body::BirdMedium(_) => 80.0,
@@ -109,6 +110,7 @@ impl Body {
             Body::FishSmall(_) => 60.0,
             Body::BipedSmall(biped_small) => match biped_small.species {
                 biped_small::Species::Haniwa => 65.0,
+                biped_small::Species::Boreal => 100.0,
                 _ => 80.0,
             },
             Body::Object(_) => 0.0,

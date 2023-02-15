@@ -277,6 +277,7 @@ impl Body {
                 biped_large::Species::Cavetroll => 600.0,
                 biped_large::Species::Mountaintroll => 600.0,
                 biped_large::Species::Swamptroll => 600.0,
+                biped_large::Species::Gigasfrost => 400.0,
                 _ => 400.0,
             },
             Body::BipedSmall(_) => 50.0,
@@ -416,6 +417,7 @@ impl Body {
                 biped_large::Species::Cultistwarlock => Vec3::new(3.0, 3.0, 3.5),
                 biped_large::Species::Huskbrute => Vec3::new(4.6, 3.0, 5.0),
                 biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 4.0),
+                biped_large::Species::Gigasfrost => Vec3::new(6.0, 3.0, 8.0),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -425,6 +427,7 @@ impl Body {
                 biped_small::Species::Sahagin => Vec3::new(1.3, 2.0, 1.7),
                 biped_small::Species::Myrmidon => Vec3::new(1.3, 1.0, 2.2),
                 biped_small::Species::Husk => Vec3::new(1.7, 0.7, 2.7),
+                biped_small::Species::Boreal => Vec3::new(1.3, 2.0, 2.5),
 
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
@@ -786,6 +789,7 @@ impl Body {
                 biped_large::Species::Huskbrute => 800,
                 biped_large::Species::Cultistwarlord => 250,
                 biped_large::Species::Cultistwarlock => 250,
+                biped_large::Species::Gigasfrost => 20000,
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -795,6 +799,7 @@ impl Body {
                 biped_small::Species::Haniwa => 100,
                 biped_small::Species::Myrmidon => 100,
                 biped_small::Species::Husk => 50,
+                biped_small::Species::Boreal => 100,
                 _ => 60,
             },
             Body::Object(object) => match object {
@@ -874,8 +879,14 @@ impl Body {
         match buff {
             BuffKind::Bleeding => match self {
                 Body::Object(_) | Body::Golem(_) | Body::Ship(_) => true,
-                Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Husk),
-                Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Huskbrute),
+                Body::BipedSmall(b) => matches!(
+                    b.species,
+                    biped_small::Species::Husk | biped_small::Species::Boreal
+                ),
+                Body::BipedLarge(b) => matches!(
+                    b.species,
+                    biped_large::Species::Huskbrute | biped_large::Species::Gigasfrost
+                ),
                 _ => false,
             },
             BuffKind::Burning => match self {
@@ -910,6 +921,16 @@ impl Body {
                             | object::Body::GnarlingTotemWhite
                     )
                 )
+            },
+            BuffKind::Frozen => match self {
+                Body::BipedLarge(b) => matches!(
+                    b.species,
+                    biped_large::Species::Yeti | biped_large::Species::Gigasfrost
+                ),
+                Body::QuadrupedLow(q) => matches!(q.species, quadruped_low::Species::Icedrake),
+                Body::BirdLarge(b) => matches!(b.species, bird_large::Species::FrostWyvern),
+                Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Boreal),
+                _ => false,
             },
             BuffKind::ProtectingWard => matches!(self, Body::Object(object::Body::BarrelOrgan)),
             _ => false,

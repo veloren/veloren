@@ -24,6 +24,10 @@
             vox_spec: ("armor.ferocious.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        "common.items.armor.boreal.foot": (
+            vox_spec: ("armor.boreal.foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
         "common.items.armor.cloth_blue.foot": (
             vox_spec: ("armor.cloth_blue.foot", (-2.5, -3.5, -2.0)),
             color: None

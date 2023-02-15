@@ -1751,4 +1751,16 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
+    Tool("common.items.npc_weapons.axe.gigas_frost_axe"): (
+        vox_spec: ("weapon.axe.2haxe_gigas_frost", (-3.0, -15.5, -14.0)),
+        color: None
+    ),
+    Tool("common.items.npc_weapons.biped_small.boreal.bow"): (
+        vox_spec: ("weapon.biped_small.bow.boreal_bow", (-2.5, -6.0, -12.0)),
+        color: None
+    ),
+    Tool("common.items.npc_weapons.biped_small.boreal.hammer"): (
+        vox_spec: ("weapon.biped_small.hammer.boreal_hammer", (-2.5, -6.0, -4.0)),
+        color: None
+    ),
 })

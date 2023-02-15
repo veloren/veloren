@@ -32,6 +32,10 @@
             vox_spec: ("armor.ferocious.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
+        "common.items.armor.boreal.chest": (
+            vox_spec: ("armor.boreal.chest", (-7.0, -3.5, 2.0)),
+            color: None
+        ),
         "common.items.armor.assassin.chest": (
             vox_spec: ("armor.assassin.chest", (-7.0, -3.5, 2.0)),
             color: None

@@ -79,6 +79,7 @@ const int LIGHTNING = 38;
 const int STEAM = 39;
 const int BARRELORGAN = 40;
 const int POTION_SICKNESS = 41;
+const int GIGA_SNOW = 42;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -654,6 +655,15 @@ void main() {
                 vec3((2.0 * (1 - slow_start(0.8)))),
                 vec4(0.075, 0.625, 0, 1),
                 spin_in_axis(vec3(1,0,0),0)
+            );
+            break;
+        case GIGA_SNOW:
+            f_reflect = 0.0;
+            attr = Attr(
+                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                vec3((3.5 * (1 - slow_start(0.2)))),
+                vec4(vec3(2, 2, 2), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
         default:

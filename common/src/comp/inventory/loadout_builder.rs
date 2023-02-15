@@ -726,6 +726,9 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::Huskbrute, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.husk_brute",
             )),
+            (biped_large::Species::Gigasfrost, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.axe.gigas_frost_axe",
+            )),
         },
         Body::Object(body) => match body {
             object::Body::Crossbow => Some(Item::new_from_asset_expect(
@@ -830,6 +833,7 @@ pub struct LoadoutBuilder(Loadout);
 #[derive(Copy, Clone, PartialEq, Eq, Deserialize, Serialize, Debug, EnumIter)]
 pub enum Preset {
     HuskSummon,
+    BorealSummon,
 }
 
 impl LoadoutBuilder {
@@ -916,6 +920,9 @@ impl LoadoutBuilder {
                 biped_large::Species::Cultistwarlock => {
                     Some("common.items.npc_armor.biped_large.warlock")
                 },
+                biped_large::Species::Gigasfrost => {
+                    Some("common.items.npc_armor.biped_large.gigas_frost")
+                },
                 _ => None,
             },
             Body::BirdLarge(body) => match body.species {
@@ -980,6 +987,9 @@ impl LoadoutBuilder {
         match preset {
             Preset::HuskSummon => {
                 self = self.with_asset_expect("common.loadout.dungeon.tier-5.husk", rng);
+            },
+            Preset::BorealSummon => {
+                self = self.with_asset_expect("common.loadout.world.boreal.boreal_warrior", rng);
             },
         }
 

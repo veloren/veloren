@@ -1,5 +1,6 @@
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
+    combat::CombatEffect,
     event::LocalEvent,
     outcome::Outcome,
     states::{
@@ -31,6 +32,8 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// Used to specify the melee attack to the frontend
     pub specifier: Option<FrontendSpecifier>,
+    /// Adds an effect onto the main damage of the attack
+    pub damage_effect: Option<CombatEffect>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -302,7 +302,7 @@ impl<'a> From<&'a Body> for Psyche {
                     biped_small::Species::Haniwa => 0.1,
                     biped_small::Species::Sahagin => 0.1,
                     biped_small::Species::Myrmidon => 0.0,
-                    biped_small::Species::Husk => 0.0,
+                    biped_small::Species::Husk | biped_small::Species::Boreal => 0.0,
                     _ => 0.5,
                 },
                 Body::BirdMedium(bird_medium) => match bird_medium.species {

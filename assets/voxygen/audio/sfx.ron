@@ -348,6 +348,12 @@
             ],
             threshold: 0.8,
         ),
+        Attack(DashMelee(Action), Hammer): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing",
+            ],
+            threshold: 0.7,
+        ),
         Attack(SpinMelee(Action), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.swing_sword",
@@ -453,6 +459,12 @@
             threshold: 0.8,
         ),
         Attack(LeapMelee(Action), Axe): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing",
+            ],
+            threshold: 0.8,
+        ),
+        Attack(BasicMelee(Action), Axe): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],
@@ -1231,6 +1243,30 @@
                     "voxygen.audio.sfx.abilities.minotaur_smash_2",
                 ],
             threshold: 0.2,
+        ),
+        GigaRoar: (
+            files: [
+                    "voxygen.audio.sfx.abilities.gigas_frost_roar",
+                ],
+            threshold: 1.3,
+        ),
+        FlashFreeze: (
+            files: [
+                    "voxygen.audio.sfx.abilities.minotaur_smash_2",
+                ],
+            threshold: 0.2,
+        ),
+        IceSpikes: (
+            files: [
+                    "voxygen.audio.sfx.abilities.minotaur_smash_2",
+                ],
+            threshold: 0.2,
+        ),
+        IceCrack: (
+            files: [
+                    "voxygen.audio.sfx.abilities.ice_crack",
+                ],
+            threshold: 0.9,
         ),
         Utterance(Angry, Alligator): (
             files: [

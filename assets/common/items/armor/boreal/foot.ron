@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Boreal's Wrappings",
+    description: "The blistering cold makes it hard to move.",
+    kind: Armor((
+        kind: Foot,
+        stats: FromSet("Boreal"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

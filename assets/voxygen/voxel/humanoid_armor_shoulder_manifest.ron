@@ -51,6 +51,16 @@
                 color: None
             )
         ),
+        "common.items.armor.boreal.shoulder": (
+            left: (
+                vox_spec: ("armor.boreal.shoulder", (-3.5, -3.5, -3.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.boreal.shoulder", (-1.5, -3.5, -3.0)),
+                color: None
+            )
+        ),
         "common.items.armor.cloth_purple.shoulder": (
             left: (
                 vox_spec: ("armor.cloth_purple.shoulder", (-3.2, -3.5, 0.0)),

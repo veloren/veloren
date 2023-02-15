@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.boreal.head.warrior"),
+    chest: Item("common.items.npc_armor.biped_small.boreal.chest.warrior"),
+    gloves: Item("common.items.npc_armor.biped_small.boreal.hand.warrior"),
+    legs: Item("common.items.npc_armor.biped_small.boreal.pants.warrior"),
+    feet: Item("common.items.npc_armor.biped_small.boreal.foot.warrior"),
+    active_hands: InHands((Choice([
+        (1, Item("common.items.npc_weapons.biped_small.boreal.bow")),
+        (1, Item("common.items.npc_weapons.biped_small.boreal.hammer")),
+    ]), None)),
+)

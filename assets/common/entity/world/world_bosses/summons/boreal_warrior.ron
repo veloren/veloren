@@ -1,0 +1,19 @@
+#![enable(implicit_some)]
+(
+    name: Name("Boreal Warrior"),
+    body: RandomWith("boreal"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.world.world_bosses.gigas_frost.summon"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.world.boreal.boreal_warrior"),
+            active_hands: InHands((Choice([
+                (1, Item("common.items.npc_weapons.biped_small.boreal.bow")),
+                (1, Item("common.items.npc_weapons.biped_small.boreal.hammer")),
+            ]), None)),
+        )),
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
+    ],
+)

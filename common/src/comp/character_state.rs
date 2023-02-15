@@ -95,6 +95,8 @@ pub enum CharacterState {
     ComboMelee2(combo_melee2::Data),
     /// A leap followed by a small aoe ground attack
     LeapMelee(leap_melee::Data),
+    /// A leap followed by a shockwave
+    LeapShockwave(leap_shockwave::Data),
     /// Spin around, dealing damage to enemies surrounding you
     SpinMelee(spin_melee::Data),
     /// A charged ranged attack (e.g. bow)
@@ -153,6 +155,7 @@ impl CharacterState {
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
+                | CharacterState::LeapShockwave(_)
                 | CharacterState::SpinMelee(_)
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
@@ -215,6 +218,7 @@ impl CharacterState {
                 | CharacterState::ComboMelee(_)
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::LeapMelee(_)
+                | CharacterState::LeapShockwave(_)
                 | CharacterState::SpinMelee(_)
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
@@ -243,6 +247,7 @@ impl CharacterState {
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
+                | CharacterState::LeapShockwave(_)
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
@@ -435,6 +440,7 @@ impl CharacterState {
             CharacterState::Boost(data) => data.behavior(j, output_events),
             CharacterState::DashMelee(data) => data.behavior(j, output_events),
             CharacterState::LeapMelee(data) => data.behavior(j, output_events),
+            CharacterState::LeapShockwave(data) => data.behavior(j, output_events),
             CharacterState::SpinMelee(data) => data.behavior(j, output_events),
             CharacterState::ChargedMelee(data) => data.behavior(j, output_events),
             CharacterState::ChargedRanged(data) => data.behavior(j, output_events),
@@ -488,6 +494,7 @@ impl CharacterState {
             CharacterState::Boost(data) => data.handle_event(j, output_events, action),
             CharacterState::DashMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::LeapMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::LeapShockwave(data) => data.handle_event(j, output_events, action),
             CharacterState::SpinMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::ChargedMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::ChargedRanged(data) => data.handle_event(j, output_events, action),
@@ -541,6 +548,7 @@ impl CharacterState {
             CharacterState::Boost(data) => Some(data.static_data.ability_info),
             CharacterState::DashMelee(data) => Some(data.static_data.ability_info),
             CharacterState::LeapMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::LeapShockwave(data) => Some(data.static_data.ability_info),
             CharacterState::SpinMelee(data) => Some(data.static_data.ability_info),
             CharacterState::ChargedMelee(data) => Some(data.static_data.ability_info),
             CharacterState::ChargedRanged(data) => Some(data.static_data.ability_info),
@@ -585,6 +593,7 @@ impl CharacterState {
             CharacterState::Boost(_) => None,
             CharacterState::DashMelee(data) => Some(data.stage_section),
             CharacterState::LeapMelee(data) => Some(data.stage_section),
+            CharacterState::LeapShockwave(data) => Some(data.stage_section),
             CharacterState::SpinMelee(data) => Some(data.stage_section),
             CharacterState::ChargedMelee(data) => Some(data.stage_section),
             CharacterState::ChargedRanged(data) => Some(data.stage_section),
@@ -681,6 +690,13 @@ impl CharacterState {
                 ..Default::default()
             }),
             CharacterState::LeapMelee(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.swing_duration),
+                recover: Some(data.static_data.recover_duration),
+                movement: Some(data.static_data.movement_duration),
+                ..Default::default()
+            }),
+            CharacterState::LeapShockwave(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
                 action: Some(data.static_data.swing_duration),
                 recover: Some(data.static_data.recover_duration),
@@ -817,6 +833,7 @@ impl CharacterState {
             CharacterState::Boost(data) => Some(data.timer),
             CharacterState::DashMelee(data) => Some(data.timer),
             CharacterState::LeapMelee(data) => Some(data.timer),
+            CharacterState::LeapShockwave(data) => Some(data.timer),
             CharacterState::SpinMelee(data) => Some(data.timer),
             CharacterState::ChargedMelee(data) => Some(data.timer),
             CharacterState::ChargedRanged(data) => Some(data.timer),

@@ -10,6 +10,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use std::time::Duration;
+use vek::Rgb;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Effect {
@@ -104,6 +105,12 @@ pub enum ProjectileConstructor {
         knockback: f32,
         min_falloff: f32,
     },
+    IceBomb {
+        damage: f32,
+        radius: f32,
+        knockback: f32,
+        min_falloff: f32,
+    },
 }
 
 impl ProjectileConstructor {
@@ -113,6 +120,7 @@ impl ProjectileConstructor {
         crit_chance: f32,
         crit_mult: f32,
         buff_strength: f32,
+        damage_effect: Option<CombatEffect>,
     ) -> Projectile {
         let instance = rand::random();
         use ProjectileConstructor::*;
@@ -138,7 +146,7 @@ impl ProjectileConstructor {
                     strength: CombatBuffStrength::DamageFraction(0.1 * buff_strength),
                     chance: 0.1,
                 });
-                let damage = AttackDamage::new(
+                let mut damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Projectile,
                         kind: DamageKind::Piercing,
@@ -148,6 +156,9 @@ impl ProjectileConstructor {
                     instance,
                 )
                 .with_effect(buff);
+                if let Some(damage_effect) = damage_effect {
+                    damage = damage.with_effect(damage_effect);
+                }
                 let attack = Attack::default()
                     .with_damage(damage)
                     .with_crit(crit_chance, crit_mult)
@@ -197,7 +208,7 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(2.0),
+                        RadiusEffect::TerrainDestruction(2.0, Rgb::black()),
                     ],
                     radius,
                     reagent: Some(Reagent::Red),
@@ -278,7 +289,7 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(5.0),
+                        RadiusEffect::TerrainDestruction(5.0, Rgb::black()),
                     ],
                     radius,
                     reagent: Some(Reagent::Purple),
@@ -367,7 +378,7 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(5.0),
+                        RadiusEffect::TerrainDestruction(5.0, Rgb::black()),
                     ],
                     radius,
                     reagent: Some(Reagent::Red),
@@ -525,7 +536,7 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(5.0),
+                        RadiusEffect::TerrainDestruction(5.0, Rgb::black()),
                     ],
                     radius,
                     reagent: Some(Reagent::Red),
@@ -582,10 +593,67 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(75.0),
+                        RadiusEffect::TerrainDestruction(25.0, Rgb::black()),
                     ],
                     radius,
                     reagent: Some(Reagent::Blue),
+                    min_falloff,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
+            IceBomb {
+                damage,
+                radius,
+                knockback,
+                min_falloff,
+            } => {
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let buff = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Buff(CombatBuff {
+                        kind: BuffKind::Frozen,
+                        dur_secs: 5.0,
+                        strength: CombatBuffStrength::DamageFraction(0.05 * buff_strength),
+                        chance: 1.0,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(knockback)
+                    .with_effect(buff);
+                let explosion = Explosion {
+                    effects: vec![
+                        RadiusEffect::Attack(attack),
+                        RadiusEffect::TerrainDestruction(30.0, Rgb::new(255.0, 255.0, 255.0)),
+                    ],
+                    radius,
+                    reagent: Some(Reagent::White),
                     min_falloff,
                 };
                 Projectile {
@@ -690,6 +758,14 @@ impl ProjectileConstructor {
                 *radius *= range;
             },
             DagonBomb {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
+            IceBomb {
                 ref mut damage,
                 ref mut radius,
                 ..

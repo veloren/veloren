@@ -1,0 +1,10 @@
+[
+    (1.0, Item("common.items.armor.boreal.belt")),
+    (1.0, Item("common.items.armor.boreal.chest")),
+    (1.0, Item("common.items.armor.boreal.foot")),
+    (1.0, Item("common.items.armor.boreal.hand")),
+    (1.0, Item("common.items.armor.boreal.pants")),
+    (1.0, Item("common.items.armor.boreal.shoulder")),
+    (1.0, Item("common.items.armor.boreal.back")),
+    (1.0, Item("common.items.armor.misc.head.boreal_warhelm")),
+]

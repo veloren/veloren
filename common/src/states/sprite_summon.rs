@@ -1,6 +1,7 @@
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, StateUpdate},
-    event::ServerEvent,
+    event::{LocalEvent, ServerEvent},
+    outcome::Outcome,
     spiral::Spiral2d,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -31,6 +32,8 @@ pub struct StaticData {
     pub summon_distance: (f32, f32),
     /// Chance that sprite is not created on a particular square
     pub sparseness: f64,
+    /// Angle of total coverage, centered on the forward-facing orientation
+    pub angle: f32,
     /// Miscellaneous information about the ability
     pub ability_info: AbilityInfo,
 }
@@ -88,8 +91,8 @@ impl CharacterBehavior for Data {
                         // Creates a spiral iterator for the newly achieved radius
                         let spiral = Spiral2d::with_edge_radius(radius);
                         for point in spiral {
-                            // If square is not sparse, generate sprite
-                            if !thread_rng().gen_bool(self.static_data.sparseness) {
+                            // If square is in the angle and is not sparse, generate sprite
+                            if data.ori.look_vec().xy().angle_between(point.as_()).to_degrees() <= (self.static_data.angle / 2.0) && !thread_rng().gen_bool(self.static_data.sparseness) {
                                 // The coordinates of where the sprite is created
                                 let sprite_pos = Vec3::new(
                                     data.pos.0.x.floor() as i32 + point.x,
@@ -141,6 +144,14 @@ impl CharacterBehavior for Data {
                         achieved_radius: summon_distance,
                         ..*self
                     });
+                    // Send local event used for frontend shenanigans
+                    if self.static_data.sprite == SpriteKind::IceSpike {
+                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::IceCrack {
+                            pos: data.pos.0
+                                + *data.ori.look_dir()
+                                * (data.body.max_radius()),
+                        }));
+                    }
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::SpriteSummon(Data {

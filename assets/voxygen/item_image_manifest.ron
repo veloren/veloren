@@ -1950,6 +1950,35 @@
         "voxel.armor.ferocious.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
+    //Boreal Armor
+    Simple("common.items.armor.boreal.chest"): VoxTrans(
+        "voxel.armor.boreal.chest",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    Simple("common.items.armor.boreal.pants"): VoxTrans(
+        "voxel.armor.boreal.pants",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.boreal.belt"): VoxTrans(
+        "voxel.armor.boreal.belt",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.boreal.foot"): VoxTrans(
+        "voxel.armor.boreal.foot",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.boreal.hand"): VoxTrans(
+        "voxel.armor.boreal.hand",
+        (0.0, 0.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Simple("common.items.armor.boreal.shoulder"): VoxTrans(
+        "voxel.armor.boreal.shoulder",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    ),
+    Simple("common.items.armor.boreal.back"): VoxTrans(
+        "voxel.armor.boreal.back",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
     //Blue Leather Armor
     Simple("common.items.npc_armor.chest.leather_blue"): VoxTrans(
         "voxel.armor.leather_blue.chest",
@@ -3592,8 +3621,16 @@
         "voxel.sprite.crafting_ing.abyssal_heart",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
+    Simple("common.items.crafting_ing.pearl"): VoxTrans(
+        "voxel.sprite.crafting_ing.pearl",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.5,
+    ),
     Simple("common.items.crafting_ing.coral_branch"): VoxTrans(
         "voxel.sprite.crafting_ing.coral_branch",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.glacial_crystal"): VoxTrans(
+        "voxel.object.glacial_crystal",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Gliders
@@ -3655,6 +3692,10 @@
     ),
     Simple("common.items.glider.leaves"): VoxTrans(
         "voxel.glider.leaves",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
+    ),
+    Simple("common.items.glider.winter_wings"): VoxTrans(
+        "voxel.glider.winter_wings",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     // Debug Items

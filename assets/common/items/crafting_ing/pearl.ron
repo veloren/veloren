@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Pearl",
+    description: "Would make a nice lamp.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Epic,
+    tags: [],
+)

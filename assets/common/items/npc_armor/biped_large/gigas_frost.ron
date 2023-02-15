@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Frost Gigas Armor",
+    description: "The best defense is a good offense.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(140.0)),
+            poise_resilience: Some(Normal(25.0)),
+            energy_max: Some(150.0),
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+)

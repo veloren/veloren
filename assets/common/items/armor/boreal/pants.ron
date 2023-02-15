@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Boreal's Tunic",
+    description: "Colder than the climate it protects you from.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Boreal"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

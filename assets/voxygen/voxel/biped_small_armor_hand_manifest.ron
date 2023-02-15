@@ -200,5 +200,13 @@
                  vox_spec: ("npc.husk.male.hand_r", (0.0, -2.5, -10.0)),
             )
         ),
-    },
+        "common.items.npc_armor.biped_small.boreal.hand.warrior": (
+            left: (
+                vox_spec: ("npc.boreal.warrior.hand_r", (-6.0, -2.5, -10.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.boreal.warrior.hand_r", (0.0, -2.5, -10.0)),
+            )
+        ),
+    }
 ))

@@ -3,7 +3,7 @@ use super::{
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use core::f32::consts::PI;
+use core::f32::consts::{PI, TAU};
 
 pub struct SpinMeleeAnimation;
 
@@ -115,7 +115,61 @@ impl Animation for SpinMeleeAnimation {
                 next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.8);
                 next.torso.position = Vec3::new(0.0, 0.0, move1 * 6.4);
             },
+            Some(ToolKind::Axe) => {
+                let (move1base, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => ((anim_time.powf(0.25)), 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, (anim_time), 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1base * pullback;
+                let move2ret = move2 * pullback;
 
+                next.shoulder_r.orientation =
+                    Quaternion::rotation_y(move1 * 0.5) * Quaternion::rotation_x(move1 * 0.5);
+                next.head.orientation = Quaternion::rotation_x(move2ret * 0.7)
+                    * Quaternion::rotation_y(move1 * 0.3)
+                    * Quaternion::rotation_z(move1 * -0.2 - move2ret * 0.5);
+
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+
+                next.hand_l.position = Vec3::new(s_a.grip.1, 0.0, s_a.grip.0);
+                next.hand_r.position = Vec3::new(-s_a.grip.1, 0.0, s_a.grip.0);
+
+                next.hand_l.orientation = Quaternion::rotation_x(0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0);
+
+                next.control_l.position = Vec3::new(-1.0, 2.0, 12.0);
+                next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
+
+                next.control.position = Vec3::new(
+                    4.0 + move1 * -25.0,
+                    0.0 + s_a.grip.0 / 1.0 + move1 * -TAU,
+                    -s_a.grip.0 / 0.8 + move1 * 10.0,
+                );
+
+                next.control_l.orientation =
+                    Quaternion::rotation_x(PI / 2.0 + move1 * 0.3) * Quaternion::rotation_y(-0.0);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.control.orientation = Quaternion::rotation_x(-1.0 + move1 * -1.2)
+                    * Quaternion::rotation_y(-1.8 + move1 * -1.0)
+                    * Quaternion::rotation_z(0.0 + move1 * -1.5);
+                next.upper_torso.orientation = Quaternion::rotation_y(move1 * -0.4);
+
+                next.lower_torso.orientation = Quaternion::rotation_y(move1 * 0.5);
+                next.torso.position = Vec3::new(move1 * -2.0, 0.0, 0.0);
+
+                next.leg_l.orientation = Quaternion::rotation_x(0.0);
+                next.leg_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                next.foot_r.orientation =
+                    Quaternion::rotation_x(move1 * -0.5) * Quaternion::rotation_y(move1 * -0.2);
+                next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
+                next.torso.orientation = Quaternion::rotation_z(move2 * -TAU);
+            },
             _ => {},
         }
 

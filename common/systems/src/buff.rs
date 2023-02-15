@@ -168,6 +168,31 @@ impl<'a> System<'a> for Sys {
                     });
                 }
                 if matches!(
+                    physics_state.on_ground.and_then(|b| b.get_sprite()),
+                    Some(SpriteKind::IceSpike)
+                ) {
+                    // When standing on IceSpike, apply bleeding
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Bleeding,
+                            BuffData::new(15.0, Some(Duration::from_secs_f32(0.1)), None),
+                            Vec::new(),
+                            BuffSource::World,
+                        )),
+                    });
+                    // When standing on IceSpike also apply Frozen
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Frozen,
+                            BuffData::new(0.2, Some(Duration::from_secs_f32(1.0)), None),
+                            Vec::new(),
+                            BuffSource::World,
+                        )),
+                    });
+                }
+                if matches!(
                     physics_state.in_fluid,
                     Some(Fluid::Liquid {
                         kind: LiquidKind::Lava,

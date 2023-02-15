@@ -102,6 +102,34 @@ impl Animation for SelfBuffAnimation {
         // TODO: Remove clippy allow when second species is added
         #[allow(clippy::single_match)]
         match active_tool_kind {
+            Some(ToolKind::Axe) => {
+                next.control_l.position = Vec3::new(-1.0, 2.0, 12.0);
+                next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
+
+                next.control.position = Vec3::new(
+                    4.0 + move1 * -20.0 + tension2 * 5.0,
+                    0.0 + s_a.grip.0 / 1.0 + move1 * -5.0,
+                    -s_a.grip.0 / 0.8 + move1 * 5.0,
+                );
+                next.jaw.orientation = Quaternion::rotation_x(move1 * -0.3 + tension2 * -0.15);
+                next.head.orientation =
+                    Quaternion::rotation_x(move1 * 0.3) * Quaternion::rotation_z(tension2 * 0.5);
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1 * 0.2)
+                    * Quaternion::rotation_y(move1 * -1.0);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2 + move1 * -0.2)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+
+                next.control.orientation = Quaternion::rotation_x(-1.0 + move1 * 1.0)
+                    * Quaternion::rotation_y(-1.8 + move1 * 1.2 + tension * 0.09)
+                    * Quaternion::rotation_z(move1 * 1.5);
+                next.shoulder_l.orientation =
+                    Quaternion::rotation_x(move1 * -0.5) * Quaternion::rotation_y(move1 * 0.5);
+                next.shoulder_r.orientation =
+                    Quaternion::rotation_x(move1 * 0.6) * Quaternion::rotation_y(move1 * 0.4);
+                next.upper_torso.orientation = Quaternion::rotation_z(tension2 * -0.08);
+                next.lower_torso.orientation = Quaternion::rotation_z(tension2 * 0.08);
+            },
             Some(ToolKind::Natural) => {
                 if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
                     match spec.as_str() {

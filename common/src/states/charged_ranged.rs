@@ -3,6 +3,7 @@ use crate::{
         character_state::OutputEvents, projectile::ProjectileConstructor, Body, CharacterState,
         LightEmitter, Pos, StateUpdate,
     },
+    combat::CombatEffect,
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -44,6 +45,8 @@ pub struct StaticData {
     pub move_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Adds an effect onto the main damage of the attack
+    pub damage_effect: Option<CombatEffect>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -118,6 +121,7 @@ impl CharacterBehavior for Data {
                         crit_chance,
                         crit_mult,
                         buff_strength,
+                        self.static_data.damage_effect,
                     );
                     output_events.emit_server(ServerEvent::Shoot {
                         entity: data.entity,

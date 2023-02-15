@@ -52,6 +52,64 @@ impl Animation for SpriteSummonAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
         match active_tool_kind {
+            Some(ToolKind::Axe) => {
+                let (move1base, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => ((anim_time.powf(0.25)), 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, (anim_time), 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1base * pullback;
+                let move2 = move2 * pullback;
+                let move2cyc = (move2 * 10.0).sin() * pullback;
+
+                next.shoulder_r.orientation =
+                    Quaternion::rotation_y(move1 * 0.5) * Quaternion::rotation_x(move1 * 0.5);
+                next.shoulder_l.orientation =
+                    Quaternion::rotation_y(move1 * 0.5) * Quaternion::rotation_x(move1 * 0.5);
+                next.head.orientation = Quaternion::rotation_x(move1 * -0.2)
+                    * Quaternion::rotation_z(move1 * -0.6 + move2 * 1.2);
+
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+
+                next.hand_l.position = Vec3::new(s_a.grip.1, 0.0, s_a.grip.0);
+                next.hand_r.position = Vec3::new(-s_a.grip.1, 0.0, s_a.grip.0);
+
+                next.hand_l.orientation = Quaternion::rotation_x(0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0);
+
+                next.main.orientation = Quaternion::rotation_x(move2 * -0.5);
+
+                next.control_l.position =
+                    Vec3::new(-1.0 + move1 * 16.0, 2.0, 12.0 + move1 * 20.0 + move2 * 20.0);
+                next.control_r.position = Vec3::new(1.0, 2.0 + move1 * 3.0, -2.0);
+
+                next.control.position = Vec3::new(
+                    4.0 + move1 * 5.0 + move2 * 10.0,
+                    0.0 + s_a.grip.0 / 1.0 + move1 * 5.0 + move2 * -5.0,
+                    -s_a.grip.0 / 0.8 + move1 * -2.0,
+                );
+
+                next.control_l.orientation =
+                    Quaternion::rotation_x(PI / 2.0 + move1 * -0.2 + move2 * 0.9)
+                        * Quaternion::rotation_z(move1 * -3.0 + move2cyc * 0.15);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(PI / 2.0 + 0.2 + move1 * -0.35 + move2 * -0.5)
+                        * Quaternion::rotation_y(move1 * 0.5)
+                        * Quaternion::rotation_z(0.0);
+                next.control.orientation = Quaternion::rotation_x(-1.0 + move1 * -1.8)
+                    * Quaternion::rotation_y(-1.8 + move1 * -0.0)
+                    * Quaternion::rotation_z(0.0 + move1 * -2.5);
+
+                next.torso.position = Vec3::new(0.0, 0.0, 0.0);
+                next.upper_torso.orientation = Quaternion::rotation_z(move1 * -0.5 + move2 * 0.5)
+                    * Quaternion::rotation_y(move2 * 0.1);
+
+                next.lower_torso.orientation = Quaternion::rotation_z(move1 * 0.5 + move2 * -0.5)
+                    * Quaternion::rotation_y(move2 * -0.1);
+            },
             Some(ToolKind::Natural) => {
                 if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
                     match spec.as_str() {

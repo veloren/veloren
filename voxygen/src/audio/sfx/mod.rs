@@ -165,6 +165,10 @@ pub enum SfxEvent {
     FlameThrower,
     PoiseChange(PoiseState),
     GroundSlam,
+    FlashFreeze,
+    GigaRoar,
+    IceSpikes,
+    IceCrack,
     Utterance(UtteranceKind, VoiceKind),
     Lightning,
     Music(ToolKind, AbilitySpec),
@@ -426,6 +430,31 @@ impl SfxMgr {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GroundSlam);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
+            Outcome::FlashFreeze { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlashFreeze);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
+            Outcome::SummonedCreature { pos, body, .. } => {
+                match body {
+                    Body::BipedSmall(body) => match body.species {
+                        biped_small::Species::Boreal => {
+                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GigaRoar);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                        },
+                        _ => {},
+                    },
+                    _ => { // not mapped to sfx file
+                    },
+                }
+            },
+            Outcome::IceSpikes { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::IceSpikes);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
+            Outcome::IceCrack { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::IceCrack);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
             Outcome::ProjectileShot { pos, body, .. } => {
                 match body {
                     Body::Object(
@@ -602,9 +631,7 @@ impl SfxMgr {
                     _ => {},
                 };
             },
-            Outcome::ExpChange { .. }
-            | Outcome::ComboChange { .. }
-            | Outcome::SummonedCreature { .. } => {},
+            Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},
         }
     }
 

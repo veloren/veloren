@@ -9,6 +9,7 @@ pub mod equip;
 pub mod idle;
 pub mod jump;
 pub mod leapmelee;
+pub mod leapshockwave;
 pub mod run;
 pub mod selfbuff;
 pub mod shockwave;
@@ -25,10 +26,10 @@ pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, blink::BlinkAnimation,
     charge::ChargeAnimation, chargemelee::ChargeMeleeAnimation, dash::DashAnimation,
     equip::EquipAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
-    run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
-    shoot::ShootAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
-    spritesummon::SpriteSummonAnimation, stunned::StunnedAnimation, summon::SummonAnimation,
-    wield::WieldAnimation,
+    leapshockwave::LeapShockAnimation, run::RunAnimation, selfbuff::SelfBuffAnimation,
+    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spin::SpinAnimation,
+    spinmelee::SpinMeleeAnimation, spritesummon::SpriteSummonAnimation, stunned::StunnedAnimation,
+    summon::SummonAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -249,6 +250,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (0.5, 11.0),
                 (Huskbrute, _) => (8.5, 4.0),
                 (Tursus, _) => (-4.5, -14.0),
+                (Gigasfrost, _) => (-1.5, 5.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -273,6 +275,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (0.0, 3.5),
                 (Huskbrute, _) => (-5.0, -5.0),
                 (Tursus, _) => (4.0, 10.5),
+                (Gigasfrost, _) => (-1.0, 5.5),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
@@ -298,6 +301,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (-1.0, 17.5),
                 (Huskbrute, _) => (-1.0, 23.5),
                 (Tursus, _) => (3.0, 26.0),
+                (Gigasfrost, _) => (-1.0, 30.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -323,6 +327,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (1.0, -2.5),
                 (Huskbrute, _) => (-0.5, -7.0),
                 (Tursus, _) => (-5.0, -9.0),
+                (Gigasfrost, _) => (0.0, -5.5),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -356,6 +361,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (8.0, 0.0, 3.5),
                 (Huskbrute, _) => (10.5, 0.0, -1.5),
                 (Tursus, _) => (12.5, -2.5, 1.0),
+                (Gigasfrost, _) => (10.5, 0.5, 0.0),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
@@ -381,6 +387,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (9.5, -1.0, 1.0),
                 (Huskbrute, _) => (13.0, 0.5, -4.0),
                 (Tursus, _) => (15.5, -2.5, -8.0),
+                (Gigasfrost, _) => (17.0, 0.5, -6.0),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -406,6 +413,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (3.5, -1.0, -8.5),
                 (Huskbrute, _) => (4.0, 0.0, -7.5),
                 (Tursus, _) => (4.5, 1.0, -9.0),
+                (Gigasfrost, _) => (6.0, 0.0, -10.0),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
@@ -431,6 +439,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (3.5, 0.0, -10.5),
                 (Huskbrute, _) => (4.5, 0.5, -12.5),
                 (Tursus, _) => (5.5, 3.0, -14.5),
+                (Gigasfrost, _) => (6.5, 2.0, -19.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.12,
@@ -456,6 +465,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => 1.0,
                 (Huskbrute, _) => 1.2,
                 (Tursus, _) => 1.0,
+                (Gigasfrost, _) => 1.7,
             },
             tempo: match (body.species, body.body_type) {
                 (Ogre, Male) => 0.9,
@@ -492,6 +502,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlock, _) => (8.0, 0.0),
                 (Huskbrute, _) => (12.5, 0.0),
                 (Tursus, _) => (13.0, 0.0),
+                (Gigasfrost, _) => (16.0, 0.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),

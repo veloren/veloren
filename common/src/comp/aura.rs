@@ -44,6 +44,9 @@ pub struct Aura {
     /// `AuraTarget::All`. Whereas auras which only affect a player's party
     /// members will have the type `AuraTarget::GroupOf`.
     pub target: AuraTarget,
+    /// Contains data about the original state of the aura that does not change
+    /// over time
+    pub data: AuraData,
 }
 
 /// Information about whether aura addition or removal was requested.
@@ -74,6 +77,7 @@ pub enum AuraTarget {
 pub enum Specifier {
     WardingAura,
     HealingAura,
+    Frozen,
 }
 
 impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {
@@ -84,6 +88,16 @@ impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {
             _ => Self::All,
         }
     }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AuraData {
+    pub duration: Option<Duration>,
+}
+
+impl AuraData {
+    #[must_use]
+    fn new(duration: Option<Duration>) -> Self { Self { duration } }
 }
 
 impl Aura {
@@ -99,6 +113,7 @@ impl Aura {
             radius,
             duration,
             target,
+            data: AuraData::new(duration),
         }
     }
 }

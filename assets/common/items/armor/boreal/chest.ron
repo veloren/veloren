@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Boreal's Chestplate",
+    description: "So frigid that you can feel it in your heart.",
+    kind: Armor((
+        kind: Chest,
+        stats: FromSet("Boreal"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

@@ -479,6 +479,14 @@
     Simple("common.items.armor.ferocious.hand"): "voxel.armor.ferocious.hand",
     Simple("common.items.armor.ferocious.shoulder"): "voxel.armor.ferocious.shoulder",
     Simple("common.items.armor.ferocious.back"): "voxel.armor.ferocious.back",
+    //Boreal Armor
+    Simple("common.items.armor.boreal.chest"): "voxel.armor.boreal.chest",
+    Simple("common.items.armor.boreal.pants"): "voxel.armor.boreal.pants",
+    Simple("common.items.armor.boreal.belt"): "voxel.armor.boreal.belt",
+    Simple("common.items.armor.boreal.foot"): "voxel.armor.boreal.foot",
+    Simple("common.items.armor.boreal.hand"): "voxel.armor.boreal.hand",
+    Simple("common.items.armor.boreal.shoulder"): "voxel.armor.boreal.shoulder",
+    Simple("common.items.armor.boreal.back"): "voxel.armor.boreal.back",
     //Blue Leather Armor
     Simple("common.items.npc_armor.chest.leather_blue"): "voxel.armor.leather_blue.chest",
     Simple("common.items.npc_armor.pants.leather_blue"): "voxel.armor.leather_blue.pants",
@@ -863,6 +871,7 @@
     Simple("common.items.flowers.plant_fiber"): "voxel.sprite.crafting_ing.plant_fiber",
     Simple("common.items.flowers.moonbell"): "voxel.sprite.flowers.moonbell",
     Simple("common.items.crafting_ing.abyssal_heart"): "voxel.sprite.crafting_ing.abyssal_heart",
+    Simple("common.items.crafting_ing.pearl"): "voxel.sprite.crafting_ing.pearl",
     Simple("common.items.crafting_ing.coral_branch"): "voxel.sprite.crafting_ing.coral_branch",
     Simple("common.items.flowers.pyrebloom"): "voxel.sprite.flowers.pyrebloom",
     Simple("common.items.flowers.wild_flax"): "voxel.sprite.flowers.flax",
@@ -877,6 +886,7 @@
     Simple("common.items.crafting_ing.cloth.linen_red"): "voxel.sprite.crafting_ing.cloth.linen_red",
     Simple("common.items.crafting_ing.sticky_thread"): "voxel.sprite.crafting_ing.sticky_thread",
     Simple("common.items.crafting_ing.resin"): "voxel.sprite.crafting_ing.resin",
+    Simple("common.items.crafting_ing.glacial_crystal"): "voxel.object.glacial_crystal",
     Simple("common.items.mineral.ingot.silver"): "voxel.sprite.mineral.ingot.silver",
     Simple("common.items.mineral.ingot.gold"): "voxel.sprite.mineral.ingot.gold",
     Simple("common.items.mineral.ingot.orichalcum"): "voxel.sprite.mineral.ingot.orichalcum",
@@ -925,6 +935,7 @@
     Simple("common.items.glider.moonrise"): "voxel.glider.moonrise",
     Simple("common.items.glider.skullgrin"): "voxel.glider.cultists",
     Simple("common.items.glider.leaves"): "voxel.glider.leaves",
+    Simple("common.items.glider.winter_wings"): "voxel.glider.winter_wings",
     // Debug Items
     Simple("common.items.debug.admin_stick"): "voxel.weapon.tool.broom_belzeshrub_purple",
     // Misc
