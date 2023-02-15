@@ -68,6 +68,83 @@ pub struct GenCtx<'a, R: Rng> {
     rng: R,
 }
 
+struct ProximitySpec {
+    location: Vec2<i32>,
+    min_distance: Option<i32>,
+    max_distance: Option<i32>,
+}
+
+impl ProximitySpec {
+    pub fn satisfied_by(&self, site: Vec2<i32>) -> bool {
+        let distance_squared = site.distance_squared(self.location);
+        let min_ok = self
+            .min_distance
+            .map(|mind| distance_squared > (mind * mind))
+            .unwrap_or(true);
+        let max_ok = self
+            .max_distance
+            .map(|maxd| distance_squared < (maxd * maxd))
+            .unwrap_or(true);
+        min_ok && max_ok
+    }
+
+    pub fn avoid(location: Vec2<i32>, min_distance: i32) -> Self {
+        ProximitySpec {
+            location,
+            min_distance: Some(min_distance),
+            max_distance: None,
+        }
+    }
+
+    pub fn be_near(location: Vec2<i32>, max_distance: i32) -> Self {
+        ProximitySpec {
+            location,
+            min_distance: None,
+            max_distance: Some(max_distance),
+        }
+    }
+}
+
+struct ProximityRequirements {
+    all_of: Vec<ProximitySpec>,
+    any_of: Vec<ProximitySpec>,
+}
+
+impl ProximityRequirements {
+    pub fn satisfied_by(&self, site: Vec2<i32>) -> bool {
+        let all_of_compliance = self.all_of.iter().all(|spec| spec.satisfied_by(site));
+        let any_of_compliance = if self.any_of.is_empty() {
+            true
+        } else {
+            self.any_of.iter().any(|spec| spec.satisfied_by(site))
+        };
+        all_of_compliance && any_of_compliance
+    }
+
+    pub fn new() -> Self {
+        ProximityRequirements {
+            all_of: Vec::new(),
+            any_of: Vec::new(),
+        }
+    }
+
+    pub fn avoid_all_of(mut self, locations: Vec<Vec2<i32>>, distance: i32) -> Self {
+        let specs = locations
+            .into_iter()
+            .map(|loc| ProximitySpec::avoid(loc, distance));
+        self.all_of.extend(specs);
+        self
+    }
+
+    pub fn close_to_one_of(mut self, locations: Vec<Vec2<i32>>, distance: i32) -> Self {
+        let specs = locations
+            .into_iter()
+            .map(|loc| ProximitySpec::be_near(loc, distance));
+        self.any_of.extend(specs);
+        self
+    }
+}
+
 impl<'a, R: Rng> GenCtx<'a, R> {
     pub fn reseed(&mut self) -> GenCtx<'_, impl Rng> {
         let mut entropy = self.rng.gen::<[u8; 32]>();
@@ -114,7 +191,11 @@ impl Civs {
             attempt(5, || {
                 let (loc, kind) = match ctx.rng.gen_range(0..64) {
                     0..=5 => (
-                        find_site_loc(&mut ctx, (&this.castle_enemies(), 40), SiteKind::Castle)?,
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirements::new().avoid_all_of(this.castle_enemies(), 40),
+                            SiteKind::Castle,
+                        )?,
                         SiteKind::Castle,
                     ),
                     28..=31 => {
@@ -122,7 +203,8 @@ impl Civs {
                             (
                                 find_site_loc(
                                     &mut ctx,
-                                    (&this.tree_enemies(), 40),
+                                    &ProximityRequirements::new()
+                                        .avoid_all_of(this.tree_enemies(), 40),
                                     SiteKind::GiantTree,
                                 )?,
                                 SiteKind::GiantTree,
@@ -131,7 +213,8 @@ impl Civs {
                             (
                                 find_site_loc(
                                     &mut ctx,
-                                    (&this.tree_enemies(), 40),
+                                    &ProximityRequirements::new()
+                                        .avoid_all_of(this.tree_enemies(), 40),
                                     SiteKind::Tree,
                                 )?,
                                 SiteKind::Tree,
@@ -141,7 +224,7 @@ impl Civs {
                     32..=37 => (
                         find_site_loc(
                             &mut ctx,
-                            (&this.gnarling_enemies(), 40),
+                            &ProximityRequirements::new().avoid_all_of(this.gnarling_enemies(), 40),
                             SiteKind::Gnarling,
                         )?,
                         SiteKind::Gnarling,
@@ -150,13 +233,18 @@ impl Civs {
                     38..=43 => (
                         find_site_loc(
                             &mut ctx,
-                            (&this.chapel_site_enemies(), 40),
+                            &ProximityRequirements::new()
+                                .avoid_all_of(this.chapel_site_enemies(), 40),
                             SiteKind::ChapelSite,
                         )?,
                         SiteKind::ChapelSite,
                     ),
                     _ => (
-                        find_site_loc(&mut ctx, (&this.dungeon_enemies(), 40), SiteKind::Dungeon)?,
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirements::new().avoid_all_of(this.dungeon_enemies(), 40),
+                            SiteKind::Dungeon,
+                        )?,
                         SiteKind::Dungeon,
                     ),
                 };
@@ -600,7 +688,9 @@ impl Civs {
             _ => SiteKind::Refactor,
         };
         let site = attempt(100, || {
-            let loc = find_site_loc(ctx, (&self.town_enemies(), 60), kind)?;
+            let avoid_town_enemies =
+                ProximityRequirements::new().avoid_all_of(self.town_enemies(), 60);
+            let loc = find_site_loc(ctx, &avoid_town_enemies, kind)?;
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
                 site_tmp: None,
@@ -1198,6 +1288,18 @@ impl Civs {
             })
             .collect()
     }
+
+    fn towns(&self) -> Vec<Vec2<i32>> {
+        self.sites()
+            .filter_map(|s| {
+                if s.is_settlement() {
+                    Some(s.center)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
 }
 
 /// Attempt to find a path between two locations
@@ -1314,12 +1416,11 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
 /// Attempt to search for a location that's suitable for site construction
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
-    avoid: (&Vec<Vec2<i32>>, i32),
+    proximity_reqs: &ProximityRequirements,
     site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 10000;
     let mut loc = None;
-    let (avoid_locs, distance) = avoid;
     for _ in 0..MAX_ATTEMPTS {
         let test_loc = loc.unwrap_or_else(|| {
             Vec2::new(
@@ -1328,23 +1429,18 @@ fn find_site_loc(
             )
         });
 
-        if avoid_locs
-            .iter()
-            .any(|l| l.distance_squared(test_loc) < distance * distance)
-        {
-            continue;
-        }
+        if proximity_reqs.satisfied_by(test_loc) {
+            if loc_suitable_for_site(ctx.sim, test_loc, site_kind) {
+                return Some(test_loc);
+            }
 
-        if loc_suitable_for_site(ctx.sim, test_loc, site_kind) {
-            return Some(test_loc);
+            loc = ctx.sim.get(test_loc).and_then(|c| {
+                site_kind.is_suitable_loc(test_loc, ctx.sim).then_some(
+                    c.downhill?
+                        .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)),
+                )
+            });
         }
-
-        loc = ctx.sim.get(test_loc).and_then(|c| {
-            site_kind.is_suitable_loc(test_loc, ctx.sim).then_some(
-                c.downhill?
-                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)),
-            )
-        });
     }
     warn!("Failed to place site {:?}.", site_kind);
     None
@@ -1641,4 +1737,29 @@ pub enum PoiKind {
     Peak(u32),
     /// Lake stores a metric relating to size
     Biome(u32),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn empty_proximity_requirements() {
+        let reqs = ProximityRequirements::new();
+        assert!(reqs.satisfied_by(Vec2 { x: 0, y: 0 }));
+    }
+
+    #[test]
+    fn avoid_proximity_requirements() {
+        let reqs = ProximityRequirements::new().avoid_all_of(vec![Vec2 { x: 0, y: 0 }], 10);
+        assert!(reqs.satisfied_by(Vec2 { x: 8, y: -8 }));
+        assert!(!reqs.satisfied_by(Vec2 { x: -1, y: 1 }));
+    }
+
+    #[test]
+    fn near_proximity_requirements() {
+        let reqs = ProximityRequirements::new().close_to_one_of(vec![Vec2 { x: 0, y: 0 }], 10);
+        assert!(reqs.satisfied_by(Vec2 { x: 1, y: -1 }));
+        assert!(!reqs.satisfied_by(Vec2 { x: -8, y: 8 }));
+    }
 }
