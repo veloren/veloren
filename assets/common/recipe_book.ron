@@ -489,6 +489,17 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
+    "winter_wings": (
+        output: ("common.items.glider.winter_wings", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.glacial_crystal"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.icy_fang"), 32, false),
+            (Item("common.items.mineral.gem.sapphire"), 18, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
     "healing_sceptre": (
         output: ("common.items.weapons.sceptre.starter_sceptre", 1),
         inputs: [
@@ -1899,6 +1910,17 @@
         ],
         craft_sprite: Some(Anvil),
     ),
+    "polaris": (
+            output: ("common.items.lantern.polaris", 1),
+            inputs: [
+                (Item("common.items.crafting_ing.glacial_crystal"), 1, false),
+                (Item("common.items.crafting_ing.animal_misc.icy_fang"), 16, false),
+                (Item("common.items.crafting_ing.pearl"), 1, false),
+                (Item("common.items.tool.craftsman_hammer"), 0, false),
+            ],
+            craft_sprite: Some(CraftingBench),
+            is_recycling: false,
+        ),
 /// MODULAR WEAPONS/SWORDS/SECONDARY COMPONENTS
     "short_hilt": (
         output: ("common.items.modular.weapon.secondary.sword.short", 1),
@@ -2160,6 +2182,17 @@
             (Item("common.items.crafting_ing.resin"), 2, false),
             (Item("common.items.mineral.ore.iron"), 2, false),
             (Item("common.items.mineral.ore.silver"), 12, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
+    "icy_talharpa": (
+        output: ("common.items.tool.instruments.icy_talharpa", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.glacial_crystal"), 4, false),
+            (Item("common.items.crafting_ing.animal_misc.icy_fang"), 8, false),
+            (Item("common.items.crafting_ing.cloth.silk"), 3, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,

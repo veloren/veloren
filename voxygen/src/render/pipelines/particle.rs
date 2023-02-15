@@ -93,6 +93,8 @@ pub enum ParticleMode {
     Steam = 39,
     BarrelOrgan = 40,
     PotionSickness = 41,
+    GigaSnow = 42,
+    SnowStorm = 43,
 }
 
 impl ParticleMode {

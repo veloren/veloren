@@ -1,0 +1,15 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.5,
+    recover_duration: 0.9,
+    projectile: IceBomb(
+        damage: 30.0,
+        radius: 3.0,
+        knockback: 12.0,
+        min_falloff: 0.1,
+    ),
+    projectile_body: Object(IceBomb),
+    projectile_speed: 25.0,
+    num_projectiles: 5,
+    projectile_spread: 0.07,
+)

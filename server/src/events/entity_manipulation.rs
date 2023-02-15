@@ -725,7 +725,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     let mut rng = rand::thread_rng();
     'effects: for effect in explosion.effects {
         match effect {
-            RadiusEffect::TerrainDestruction(power) => {
+            RadiusEffect::TerrainDestruction(power, new_color) => {
                 const RAYS: usize = 500;
 
                 let spatial_grid = ecs.read_resource::<common::CachedSpatialGrid>();
@@ -793,11 +793,14 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
                             if let Some(mut color) = block.get_color() {
                                 let r = color[0] as f32
-                                    + (fade * (color[0] as f32 * 0.5 - color[0] as f32));
+                                    + (fade
+                                        * (color[0] as f32 * 0.5 - color[0] as f32 + new_color[0]));
                                 let g = color[1] as f32
-                                    + (fade * (color[1] as f32 * 0.3 - color[1] as f32));
+                                    + (fade
+                                        * (color[1] as f32 * 0.3 - color[1] as f32 + new_color[1]));
                                 let b = color[2] as f32
-                                    + (fade * (color[2] as f32 * 0.3 - color[2] as f32));
+                                    + (fade
+                                        * (color[2] as f32 * 0.3 - color[2] as f32 + new_color[2]));
                                 // Darken blocks, but not too much
                                 color[0] = (r as u8).max(30);
                                 color[1] = (g as u8).max(30);

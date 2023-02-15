@@ -56,10 +56,13 @@ impl Animation for JumpAnimation {
         next.control.position = Vec3::new(0.0, 0.0, 0.0);
         next.control.orientation = Quaternion::rotation_z(0.0);
 
-        next.second.position = Vec3::new(0.0, 0.0, 0.0);
-        next.second.orientation =
-            Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
-        next.second.scale = Vec3::one() * 1.0;
+        if active_tool_kind != Some(ToolKind::Axe) {
+            next.second.position = Vec3::new(0.0, 0.0, 0.0);
+            next.second.orientation = Quaternion::rotation_x(PI)
+                * Quaternion::rotation_y(0.0)
+                * Quaternion::rotation_z(0.0);
+            next.second.scale = Vec3::one() * 1.0;
+        };
 
         match active_tool_kind {
             Some(ToolKind::Bow) => {

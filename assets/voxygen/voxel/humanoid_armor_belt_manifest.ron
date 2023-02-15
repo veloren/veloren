@@ -28,6 +28,10 @@
             vox_spec: ("armor.ferocious.belt", (-4.0, -3.5, -1.0)),
             color: None
         ),
+        "common.items.armor.boreal.belt": (
+            vox_spec: ("armor.boreal.belt", (-4.0, -3.0, 2.0)),
+            color: None
+        ),
         "common.items.armor.cloth_purple.belt": (
             vox_spec: ("armor.cloth_purple.belt", (-5.0, -3.5, 2.0)),
             color: None

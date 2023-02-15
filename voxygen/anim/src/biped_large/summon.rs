@@ -190,6 +190,39 @@ impl Animation for SummonAnimation {
                     }
                 }
             },
+            Some(ToolKind::Axe) => {
+                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                    match spec.as_str() {
+                        "Frost Gigas" => {
+                            next.shoulder_l.position = Vec3::new(
+                                -s_a.shoulder.0,
+                                s_a.shoulder.1,
+                                s_a.shoulder.2 - foothorir * 1.0,
+                            );
+                            next.shoulder_l.orientation =
+                                Quaternion::rotation_x(move1 * 2.7 + 0.1 * speednorm)
+                                    * Quaternion::rotation_y(move1 * 0.7 + 0.1 * speednorm);
+                            next.head.orientation = Quaternion::rotation_x(0.0);
+                            next.hand_l.position = Vec3::new(
+                                -14.0 + move1 * -5.0,
+                                2.0 + move1 * -2.0,
+                                -2.0 + move1 * 6.0 + move2 * 4.0,
+                            );
+                            next.hand_r.position = Vec3::new(14.0, 2.0, -4.0);
+                            next.hand_l.orientation =
+                                Quaternion::rotation_x(PI / 3.0 + move1 * 2.2)
+                                    * Quaternion::rotation_y(move1 * 0.1)
+                                    * Quaternion::rotation_z(-0.35);
+                            next.hand_r.orientation =
+                                Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
+                            next.main.position = Vec3::new(14.0, 2.0, -4.0);
+                            next.main.orientation =
+                                Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
+                        },
+                        _ => {},
+                    }
+                }
+            },
             _ => {},
         }
 

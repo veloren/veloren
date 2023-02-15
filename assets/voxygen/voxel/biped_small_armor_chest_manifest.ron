@@ -75,5 +75,8 @@
         "common.items.npc_armor.biped_small.husk.chest.husk": (
             vox_spec: ("npc.husk.male.chest", (-6.0, -4.5, -4.0)),
         ),
+        "common.items.npc_armor.biped_small.boreal.chest.warrior": (
+            vox_spec: ("npc.boreal.warrior.chest", (-9.0, -6.0, -8.5)),
+        ),
     },
 ))

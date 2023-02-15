@@ -961,6 +961,10 @@
             tursus: (
                 keyword: "tursus",
                 generic: "Tursus"
+            ),
+            gigas_frost: (
+                keyword: "gigas_frost",
+                generic: "Frost Gigas"
             )
         )
     ),
@@ -1128,7 +1132,11 @@
             husk: (
                 keyword: "husk",
                 generic: "Husk"
-            )
+            ),
+            boreal: (
+                keyword: "boreal",
+                generic: "Boreal",
+            ),
         )
     ),
     fish_small: (

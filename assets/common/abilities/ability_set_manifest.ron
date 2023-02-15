@@ -516,6 +516,31 @@
         secondary: "common.abilities.custom.birdmediumbasic.singlestrike",
         abilities: [],
     ),
+    Custom("Frost Gigas"): (
+        primary: "common.abilities.custom.gigas_frost.cleave",
+        secondary: "common.abilities.custom.gigas_frost.wide_cleave",
+        abilities: [
+            Simple(None, "common.abilities.custom.gigas_frost.icespike_smash"),
+            Simple(None, "common.abilities.custom.gigas_frost.leapshockwave"),
+            Simple(None, "common.abilities.custom.gigas_frost.ice_volley"),
+            Simple(None, "common.abilities.custom.gigas_frost.frost_summons"),
+            Simple(None, "common.abilities.custom.gigas_frost.flashfreeze"),
+        ],
+    ),
+    Custom("Boreal Bow"): (
+        primary: "common.abilities.custom.boreal_warrior.bow.charged",
+        secondary: "common.abilities.custom.boreal_warrior.bow.repeater",
+        abilities: [
+            Simple(None, "common.abilities.custom.boreal_warrior.bow.shotgun")
+        ],
+    ),
+    Custom("Boreal Hammer"): (
+        primary: "common.abilities.custom.boreal_warrior.hammer.singlestrike",
+        secondary: "common.abilities.custom.boreal_warrior.hammer.dash",
+        abilities: [
+            Simple(None, "common.abilities.custom.boreal_warrior.hammer.leap")
+        ],
+    ),
     Custom("Tornado"): (
         primary: "common.abilities.custom.tornado.spin",
         secondary: "common.abilities.empty.basic",

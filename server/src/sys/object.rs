@@ -7,6 +7,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
+use vek::Rgb;
 
 /// This system is responsible for handling misc object behaviours
 #[derive(Default)]
@@ -56,7 +57,7 @@ impl<'a> System<'a> for Sys {
                                         value: 40.0,
                                     })),
                                     RadiusEffect::Entity(Effect::Poise(-100.0)),
-                                    RadiusEffect::TerrainDestruction(4.0),
+                                    RadiusEffect::TerrainDestruction(4.0, Rgb::black()),
                                 ],
                                 radius: 12.0,
                                 reagent: None,
@@ -76,7 +77,7 @@ impl<'a> System<'a> for Sys {
                             };
                             use rand::Rng;
                             use std::{f32::consts::PI, time::Duration};
-                            use vek::{Rgb, Vec3};
+                            use vek::Vec3;
                             let mut rng = rand::thread_rng();
                             // Note that if the expected fireworks per firework is > 1, this will
                             // eventually cause enough server lag that more players can't log in.
@@ -149,7 +150,7 @@ impl<'a> System<'a> for Sys {
                                         value: 5.0,
                                     })),
                                     RadiusEffect::Entity(Effect::Poise(-40.0)),
-                                    RadiusEffect::TerrainDestruction(4.0),
+                                    RadiusEffect::TerrainDestruction(4.0, Rgb::black()),
                                 ],
                                 radius: 12.0,
                                 reagent: Some(*reagent),

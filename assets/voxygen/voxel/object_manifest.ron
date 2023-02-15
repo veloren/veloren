@@ -879,4 +879,14 @@
             central: ("armor.empty"),
         )
     ),
+    IceBomb: (
+        bone0: (
+            offset: (-12.5, -12.5, 0.0),
+            central: ("weapon.projectile.ice_bomb"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

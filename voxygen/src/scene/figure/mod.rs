@@ -3868,6 +3868,37 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::LeapMelee(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Movement => {
+                                    stage_time / s.static_data.movement_duration.as_secs_f32()
+                                },
+                                StageSection::Action => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::biped_small::LeapAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    rel_vel,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Shockwave(s) => {
                             let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
@@ -5102,6 +5133,7 @@ impl FigureMgr {
                                     Some(s.stage_section),
                                     state.acc_vel,
                                     state.state_time,
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -5297,6 +5329,7 @@ impl FigureMgr {
                                         Some(s.stage_section),
                                         state.acc_vel,
                                         state.state_time,
+                                        ability_id,
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -5421,6 +5454,38 @@ impl FigureMgr {
                             };
 
                             anim::biped_large::LeapAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    rel_vel,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::LeapShockwave(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Movement => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Action => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+
+                            anim::biped_large::LeapShockAnimation::update_skeleton(
                                 &target_base,
                                 (
                                     active_tool_kind,

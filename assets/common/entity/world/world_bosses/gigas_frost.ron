@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Frost Gigas"),
+    body: RandomWith("gigas_frost"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.world.world_bosses.gigas_frost.boss"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

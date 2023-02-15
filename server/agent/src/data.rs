@@ -142,6 +142,8 @@ pub enum Tactic {
     Dagon,
     Cardinal,
     Roshwalr,
+    FrostGigas,
+    BorealHammer,
 }
 
 #[derive(SystemData)]

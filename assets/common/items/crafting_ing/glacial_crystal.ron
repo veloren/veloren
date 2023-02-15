@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Glacial Crystal",
+    description: "The purest form of ice, cold enough to cool lava.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Legendary,
+    tags: [],
+)

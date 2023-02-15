@@ -2,6 +2,7 @@ pub mod alpha;
 pub mod beam;
 pub mod dash;
 pub mod idle;
+pub mod leapmelee;
 pub mod run;
 pub mod shockwave;
 pub mod shoot;
@@ -13,9 +14,9 @@ pub mod wield;
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, dash::DashAnimation, idle::IdleAnimation,
-    run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
-    spinmelee::SpinMeleeAnimation, stunned::StunnedAnimation, summon::SummonAnimation,
-    wield::WieldAnimation,
+    leapmelee::LeapAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    shoot::ShootAnimation, spinmelee::SpinMeleeAnimation, stunned::StunnedAnimation,
+    summon::SummonAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -144,6 +145,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => (0.0, 7.0),
                 (Myrmidon, _) => (0.0, 8.0),
                 (Husk, _) => (0.5, 8.5),
+                (Boreal, _) => (-0.5, 13.0),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -157,6 +159,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => (0.0, 11.0),
                 (Myrmidon, _) => (0.0, 11.0),
                 (Husk, _) => (0.0, 13.0),
+                (Boreal, _) => (0.0, 12.0),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -170,6 +173,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => (0.0, -3.5),
                 (Myrmidon, _) => (0.0, -3.0),
                 (Husk, _) => (-1.0, -3.0),
+                (Boreal, _) => (1.5, -5.0),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -183,6 +187,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => (-4.5, -2.0),
                 (Myrmidon, _) => (-2.5, -1.0),
                 (Husk, _) => (0.0, 0.0),
+                (Boreal, _) => (0.0, 0.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -196,6 +201,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => (4.25, -1.0, 1.5),
                 (Myrmidon, _) => (3.5, 1.5, 2.0),
                 (Husk, _) => (4.0, 0.0, 1.0),
+                (Boreal, _) => (5.0, 0.5, 5.0),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -209,6 +215,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => (3.0, 0.5, 8.0),
                 (Myrmidon, _) => (3.0, 0.5, 7.0),
                 (Husk, _) => (4.0, 0.5, 7.0),
+                (Boreal, _) => (3.0, 0.0, 9.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -222,6 +229,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => (0.0, 0.5, 8.0),
                 (Myrmidon, _) => (0.0, 0.0, 8.0),
                 (Husk, _) => (0.0, 0.0, 8.0),
+                (Boreal, _) => (1.0, 0.0, 5.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 0.8,
@@ -235,6 +243,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => 1.12,
                 (Myrmidon, _) => 1.24,
                 (Husk, _) => 1.12,
+                (Boreal, _) => 1.0,
             },
         }
     }

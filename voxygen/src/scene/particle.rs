@@ -243,6 +243,32 @@ impl ParticleMgr {
                         },
                     );
                 },
+                Body::BipedSmall(b) if matches!(b.species, body::biped_small::Species::Boreal) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
+                        || {
+                            let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
+                            let end_pos = pos
+                                + Vec3::new(
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    0.0,
+                                )
+                                .normalized()
+                                    * (body.max_radius() + 4.0)
+                                + Vec3::unit_z() * (body.height() + 20.0) * rng.gen::<f32>();
+
+                            Particle::new_directed(
+                                Duration::from_secs_f32(0.5),
+                                time,
+                                ParticleMode::GigaSnow,
+                                start_pos,
+                                end_pos,
+                            )
+                        },
+                    );
+                },
                 _ => {},
             },
             Outcome::ProjectileHit { pos, target, .. } => {
@@ -293,6 +319,33 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::FlashFreeze { pos, .. } => {
+                self.particles.resize_with(
+                    self.particles.len()
+                        + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
+                    || {
+                        let start_pos = pos + Vec3::unit_z() - 1.0;
+                        let end_pos = pos
+                            + Vec3::new(
+                                4.0 * rng.gen::<f32>() - 1.0,
+                                4.0 * rng.gen::<f32>() - 1.0,
+                                0.0,
+                            )
+                            .normalized()
+                                * 1.5
+                            + Vec3::unit_z()
+                            + 5.0 * rng.gen::<f32>();
+
+                        Particle::new_directed(
+                            Duration::from_secs_f32(0.5),
+                            time,
+                            ParticleMode::GigaSnow,
+                            start_pos,
+                            end_pos,
+                        )
+                    },
+                );
+            },
             Outcome::Death { pos, .. } => {
                 self.particles.resize_with(self.particles.len() + 40, || {
                     Particle::new(
@@ -314,6 +367,8 @@ impl ParticleMgr {
             | Outcome::HealthChange { .. }
             | Outcome::PoiseChange { .. }
             | Outcome::Utterance { .. }
+            | Outcome::IceSpikes { .. }
+            | Outcome::IceCrack { .. }
             | Outcome::Glider { .. } => {},
         }
     }
@@ -1023,10 +1078,11 @@ impl ParticleMgr {
         let mut rng = thread_rng();
         let dt = scene_data.state.get_delta_time();
 
-        for (interp, pos, auras) in (
+        for (interp, pos, auras, body_maybe) in (
             ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<comp::Auras>(),
+            ecs.read_storage::<comp::Body>().maybe(),
         )
             .join()
         {
@@ -1135,6 +1191,39 @@ impl ParticleMgr {
                                 )
                             },
                         );
+                    },
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::Frozen,
+                        ..
+                    } => {
+                        let is_new_aura = aura.data.duration.map_or(true, |max_dur| {
+                            aura.duration.map_or(true, |rem_dur| {
+                                rem_dur.as_secs_f32() > max_dur.as_secs_f32() * 0.9
+                            })
+                        });
+                        if is_new_aura {
+                            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+                            self.particles.resize_with(
+                                self.particles.len()
+                                    + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                                || {
+                                    let rand_angle = rng.gen_range(0.0..TAU);
+                                    let offset =
+                                        Vec2::new(rand_angle.cos(), rand_angle.sin()) * aura.radius;
+                                    let z_start = body_maybe
+                                        .map_or(0.0, |b| rng.gen_range(0.5..0.75) * b.height());
+                                    let z_end = body_maybe
+                                        .map_or(0.0, |b| rng.gen_range(0.0..3.0) * b.height());
+                                    Particle::new_directed(
+                                        Duration::from_secs(3),
+                                        time,
+                                        ParticleMode::Ice,
+                                        pos.x + Vec3::unit_z() * z_start,
+                                        pos.x + offset.with_z(z_end),
+                                    )
+                                },
+                            );
+                        }
                     },
                     _ => {},
                 }
@@ -1691,10 +1780,14 @@ impl ParticleMgr {
                     // Reserves capacity for new particles
                     let new_particle_count = particles_per_length * heartbeats as usize;
                     self.particles.reserve(new_particle_count);
-
+                    // higher wave when wave doesn't require ground
+                    let wave = if shockwave.properties.requires_ground {
+                        0.5
+                    } else {
+                        8.0
+                    };
                     // Used to make taller the further out spikes are
-                    let height_scale = 0.5 + 1.5 * percent;
-
+                    let height_scale = wave + 1.5 * percent;
                     for i in 0..particles_per_length {
                         let angle = theta + dtheta * i as f32;
                         let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
@@ -1702,8 +1795,37 @@ impl ParticleMgr {
                             // Sub tick dt
                             let dt = (j as f32 / heartbeats as f32) * dt;
                             let scaled_distance = scaled_distance + scaled_speed * dt;
-                            let pos1 = pos + (scaled_distance * direction).floor() * scale;
+                            let mut pos1 = pos + (scaled_distance * direction).floor() * scale;
                             let time = time + dt as f64;
+
+                            // Arbitrary number chosen that is large enough to be able to accurately
+                            // place particles most of the time, but also not too big as to make ray
+                            // be too large (for performance reasons)
+                            let half_ray_length = 10.0;
+                            let mut last_air = false;
+                            // TODO: Optimize ray to only be cast at most once per block per tick if
+                            // it becomes an issue.
+                            // From imbris:
+                            //      each ray is ~2 us
+                            //      at 30 FPS, it peaked at 113 rays in a tick
+                            //      total time was 240 us (although potentially half that is
+                            //          overhead from the profiling of each ray)
+                            let _ = terrain
+                                .ray(
+                                    pos1 + Vec3::unit_z() * half_ray_length,
+                                    pos1 - Vec3::unit_z() * half_ray_length,
+                                )
+                                .for_each(|block: &Block, pos: Vec3<i32>| {
+                                    if block.is_solid() && block.get_sprite().is_none() {
+                                        if last_air {
+                                            pos1 = pos1.xy().with_z(pos.z as f32 + 1.0);
+                                            last_air = false;
+                                        }
+                                    } else {
+                                        last_air = true;
+                                    }
+                                })
+                                .cast();
 
                             let get_positions = |a| {
                                 let pos1 = match a {

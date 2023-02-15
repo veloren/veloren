@@ -1,5 +1,6 @@
 use crate::{combat::Attack, comp::item::Reagent, effect::Effect};
 use serde::{Deserialize, Serialize};
+use vek::Rgb;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Explosion {
@@ -11,7 +12,7 @@ pub struct Explosion {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum RadiusEffect {
-    TerrainDestruction(f32),
+    TerrainDestruction(f32, Rgb<f32>),
     Entity(Effect),
     Attack(Attack),
 }

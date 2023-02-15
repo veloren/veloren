@@ -304,7 +304,7 @@ impl Block {
                 | SpriteKind::SeaDecorWindowVer
                 | SpriteKind::Rope
                 | SpriteKind::GlassBarrier => None,
-                SpriteKind::EnsnaringVines | SpriteKind::EnsnaringWeb | SpriteKind::SeaUrchin => {
+                SpriteKind::EnsnaringVines | SpriteKind::EnsnaringWeb | SpriteKind::SeaUrchin | SpriteKind::IceSpike => {
                     Some(0.1)
                 },
                 _ => Some(0.25),

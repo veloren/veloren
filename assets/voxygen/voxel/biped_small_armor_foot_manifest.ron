@@ -200,5 +200,13 @@
                  vox_spec: ("npc.husk.male.foot_r", (-2.0, -3.5, -7.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.boreal.foot.warrior": (
+            left: (
+                vox_spec: ("npc.boreal.warrior.foot_r", (-2.5, -3.5, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.boreal.warrior.foot_r", (-2.5, -3.5, -9.0)),
+            )
+        ),
     },
 ))

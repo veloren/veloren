@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Boreal's Guantlets",
+    description: "Colder than the touch of death.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Boreal"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

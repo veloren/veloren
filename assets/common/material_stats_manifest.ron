@@ -317,5 +317,12 @@
             energy_reward: Some(0.5),
             crit_power: Some(0.8),
         ),
+        "Boreal": (
+            protection: Some(Normal(98.0)),
+            poise_resilence: Some(Normal(34.0)),
+            energy_reward: Some(-0.35),
+            crit_power: Some(0.35),
+            stealth: Some(0.5),
+        )
     },
 )

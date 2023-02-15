@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Boreal Belt",
+    description: "It's cold.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Boreal"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

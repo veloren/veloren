@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Boreal's Spaulders",
+    description: "I should probbaly think of something before merging",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Boreal"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

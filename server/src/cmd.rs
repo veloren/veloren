@@ -2222,7 +2222,7 @@ fn handle_explosion(
                         kind: DamageKind::Energy,
                         value: 100.0 * power,
                     })),
-                    RadiusEffect::TerrainDestruction(power),
+                    RadiusEffect::TerrainDestruction(power, Rgb::black()),
                 ],
                 radius: 3.0 * power,
                 reagent: None,

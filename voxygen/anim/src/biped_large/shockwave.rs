@@ -197,6 +197,79 @@ impl Animation for ShockwaveAnimation {
                     }
                 }
             },
+            Some(ToolKind::Axe) => {
+                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                    match spec.as_str() {
+                        "Frost Gigas" => {
+                            next.second.scale = Vec3::one() * 0.0;
+
+                            next.head.orientation =
+                                Quaternion::rotation_x(move1pow * 0.8 + move2 * -1.2);
+                            next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                            next.jaw.orientation = Quaternion::rotation_x(move2 * -0.3);
+                            next.control_l.position = Vec3::new(-0.5, 4.0, 1.0);
+                            next.control_r.position = Vec3::new(-0.5, 4.0, 1.0);
+                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.weapon_l.position =
+                                Vec3::new(-12.0 + (move1pow * 20.0).min(10.0), -1.0, -15.0);
+                            next.weapon_r.position =
+                                Vec3::new(12.0 + (move1pow * -20.0).max(-10.0), -1.0, -15.0);
+
+                            next.weapon_l.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1)
+                                * Quaternion::rotation_z(move1pow * -1.0);
+                            next.weapon_r.orientation = Quaternion::rotation_x(-PI / 2.0 - 0.1)
+                                * Quaternion::rotation_z(move1pow * 1.0);
+
+                            next.shoulder_l.orientation =
+                                Quaternion::rotation_x(-0.3 + move1pow * 2.8 + move2 * -2.8);
+
+                            next.shoulder_r.orientation =
+                                Quaternion::rotation_x(-0.3 + move1pow * 2.8 + move2 * -2.8);
+
+                            next.control.orientation =
+                                Quaternion::rotation_x(move1pow * 1.5 + move2 * 0.6);
+
+                            let twist = move1 * 0.6 + move3 * -0.6;
+                            next.upper_torso.position =
+                                Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
+                            next.upper_torso.orientation =
+                                Quaternion::rotation_x(move1pow * 0.4 + move2 * -1.1)
+                                    * Quaternion::rotation_z(
+                                        twist * -0.2 + move1 * -0.1 + move2 * 0.3,
+                                    );
+
+                            next.lower_torso.orientation =
+                                Quaternion::rotation_x(move1pow * -0.4 + move2 * 1.1)
+                                    * Quaternion::rotation_z(twist);
+
+                            next.foot_l.position = Vec3::new(
+                                -s_a.foot.0,
+                                s_a.foot.1 + move1pow * -7.0 + move2 * 7.0,
+                                s_a.foot.2,
+                            );
+                            next.foot_l.orientation =
+                                Quaternion::rotation_x(move1pow * -0.8 + move2 * 0.8)
+                                    * Quaternion::rotation_z(move1pow * 0.3 + move2 * -0.3);
+
+                            next.foot_r.position = Vec3::new(
+                                s_a.foot.0,
+                                s_a.foot.1 + move1pow * 5.0 + move2 * -5.0,
+                                s_a.foot.2,
+                            );
+                            next.foot_r.orientation =
+                                Quaternion::rotation_y(move1pow * -0.3 + move2 * 0.3)
+                                    * Quaternion::rotation_z(move1pow * 0.4 + move2 * -0.4);
+                            next.main.position =
+                                Vec3::new(-5.0 + (move1pow * 20.0).min(10.0), 4.0, 12.0);
+                            next.main.orientation =
+                                Quaternion::rotation_y(move1 * 0.4 + move2 * -0.1)
+                                    * Quaternion::rotation_x(PI);
+                        },
+                        _ => {},
+                    }
+                }
+            },
             _ => {},
         }
         next

@@ -3708,6 +3708,188 @@ impl<'a> AgentData<'a> {
         );
     }
 
+    pub fn handle_frostgigas_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const GIGAS_MELEE_RANGE: f32 = 6.0;
+        const GIGAS_SPIKE_RANGE: f32 = 12.0;
+        const GIGAS_FREEZE_RANGE: f32 = 20.0;
+        const GIGAS_LEAP_RANGE: f32 = 30.0;
+        const MINION_SUMMON_THRESHOLD: f32 = 0.2;
+
+        enum ActionStateFCounters {
+            MinionSummonThreshold = 0,
+        }
+        enum ActionStateTimers {
+            AttackChange = 0,
+        }
+        if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 2.5 {
+            agent.action_state.timers[ActionStateTimers::AttackChange as usize] = 0.0;
+        }
+
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
+        };
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // Sets counter at start of combat, using `condition` to keep track of whether
+        // it was already initialized
+        if !agent.action_state.initialized {
+            agent.action_state.counters[ActionStateFCounters::MinionSummonThreshold as usize] =
+                1.0 - MINION_SUMMON_THRESHOLD;
+            agent.action_state.initialized = true;
+        } else if health_fraction
+            < agent.action_state.counters[ActionStateFCounters::MinionSummonThreshold as usize]
+        {
+            // Summon minions at particular thresholds of health
+            controller.push_basic_input(InputKind::Ability(3));
+
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.counters
+                    [ActionStateFCounters::MinionSummonThreshold as usize] -=
+                    MINION_SUMMON_THRESHOLD;
+            }
+        } else {
+            // If the target is in melee range of frost use primary and secondary
+            // attacks accordingly
+            if attack_data.dist_sqrd < GIGAS_MELEE_RANGE.powi(2) {
+                if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 1.0 {
+                    // Backhand anyone trying to circle strafe frost
+                    if attack_data.angle > 160.0 {
+                        // Use reorientate strike
+                        controller.push_basic_input(InputKind::Secondary);
+                        // If in front of frost use primary
+                    } else {
+                        // Hit them regularly
+                        controller.push_basic_input(InputKind::Primary);
+                    }
+                } else {
+                    controller.push_basic_input(InputKind::Ability(4));
+                }
+            } else if attack_data.dist_sqrd < GIGAS_SPIKE_RANGE.powi(2)
+                && line_of_sight_with_target()
+            {
+                if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 1.0 {
+                    // Use icespike attack
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else {
+                    // or Flashfreeze
+                    controller.push_basic_input(InputKind::Ability(4));
+                }
+            } else if attack_data.dist_sqrd < GIGAS_FREEZE_RANGE.powi(2)
+                && line_of_sight_with_target()
+            {
+                // Use Flashfreeze
+                controller.push_basic_input(InputKind::Ability(4));
+            } else if attack_data.dist_sqrd > GIGAS_LEAP_RANGE.powi(2) {
+                // Use ranged attack (icebombs) when past a certain distance
+                controller.push_basic_input(InputKind::Ability(2));
+            } else if attack_data.dist_sqrd < GIGAS_LEAP_RANGE.powi(2) {
+                // Use a leap attack (custom comp made by ythern) that goes
+                // after the furthest entity in range, Angle
+                // doesn't matter, should be spurratic
+                if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 1.0 {
+                    controller.push_basic_input(InputKind::Ability(1));
+                } else {
+                    // or icebombs
+                    controller.push_basic_input(InputKind::Ability(2));
+                }
+            }
+            agent.action_state.timers[ActionStateTimers::AttackChange as usize] += read_data.dt.0;
+        }
+        // Always attempt to path towards target
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Partial,
+            None,
+        );
+    }
+
+    pub fn handle_boreal_hammer_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        enum ActionStateTimers {
+            TimerHandleHammerAttack = 0,
+        }
+        let has_leap = || {
+            self.skill_set
+                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
+        };
+
+        let has_energy = |need| self.energy.current() > need;
+
+        let use_leap = |controller: &mut Controller| {
+            controller.push_basic_input(InputKind::Ability(0));
+        };
+
+        if attack_data.in_min_range() && attack_data.angle < 45.0 {
+            controller.inputs.move_dir = Vec2::zero();
+            if agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] > 4.0
+            {
+                controller.push_cancel_input(InputKind::Secondary);
+                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] =
+                    0.0;
+            } else if agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize]
+                > 3.0
+            {
+                controller.push_basic_input(InputKind::Secondary);
+                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
+                    read_data.dt.0;
+            } else if has_leap() && has_energy(50.0) && rng.gen_bool(0.9) {
+                use_leap(controller);
+                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
+                    read_data.dt.0;
+            } else {
+                controller.push_basic_input(InputKind::Primary);
+                agent.action_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
+                    read_data.dt.0;
+            }
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+
+            if attack_data.dist_sqrd < 32.0f32.powi(2)
+                && has_leap()
+                && has_energy(50.0)
+                && entities_have_line_of_sight(
+                    self.pos,
+                    self.body,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    read_data,
+                )
+            {
+                use_leap(controller);
+            }
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && rng.gen::<f32>() < 0.02
+            {
+                controller.push_basic_input(InputKind::Roll);
+            }
+        }
+    }
+
     pub fn handle_cardinal_attack(
         &self,
         agent: &mut Agent,

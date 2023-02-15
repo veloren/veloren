@@ -100,6 +100,7 @@ make_case_elim!(
         GnarlingTotemWhite = 85,
         DagonBomb = 86,
         BarrelOrgan = 87,
+        IceBomb = 88,
     }
 );
 
@@ -110,7 +111,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 88] = [
+pub const ALL_OBJECTS: [Body; 89] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -199,6 +200,7 @@ pub const ALL_OBJECTS: [Body; 88] = [
     Body::GnarlingTotemGreen,
     Body::DagonBomb,
     Body::BarrelOrgan,
+    Body::IceBomb,
 ];
 
 impl From<Body> for super::Body {
@@ -296,6 +298,7 @@ impl Body {
             Body::GnarlingTotemWhite => "gnarling_totem_white",
             Body::DagonBomb => "dagon_bomb",
             Body::BarrelOrgan => "barrel_organ",
+            Body::IceBomb => "ice_bomb",
         }
     }
 
@@ -409,6 +412,7 @@ impl Body {
             Body::Hive => 2.0,
             Body::Coconut => 2.0,
             Body::GnarlingTotemRed | Body::GnarlingTotemGreen | Body::GnarlingTotemWhite => 100.0,
+            Body::IceBomb => 12298.0, // 2.5 m diamter but ice
         };
 
         Mass(m)
@@ -430,6 +434,7 @@ impl Body {
                 Vec3::new(0.8, 0.8, 1.4)
             },
             Body::BarrelOrgan => Vec3::new(4.0, 2.0, 3.0),
+            Body::IceBomb => Vec3::broadcast(2.5),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

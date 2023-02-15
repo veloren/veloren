@@ -1,0 +1,7 @@
+ItemDef(
+    name: "Wings of Winter",
+    description: "Sparkles brilliantly and cooly even under the warm sun.",
+    kind: Glider,
+    quality: Legendary,
+    tags: [],
+)

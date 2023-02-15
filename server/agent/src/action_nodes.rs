@@ -834,7 +834,7 @@ impl<'a> AgentData<'a> {
                             "Oni" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
                             "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
-                            "Bow Simple" => Tactic::Bow,
+                            "Bow Simple" | "Boreal Bow" => Tactic::Bow,
                             "Stone Golem" => Tactic::StoneGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
                                 radius: 3,
@@ -894,6 +894,8 @@ impl<'a> AgentData<'a> {
                             "Mandragora" => Tactic::Mandragora,
                             "Wood Golem" => Tactic::WoodGolem,
                             "Gnarling Chieftain" => Tactic::GnarlingChieftain,
+                            "Frost Gigas" => Tactic::FrostGigas,
+                            "Boreal Hammer" => Tactic::BorealHammer,
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1014,9 +1016,11 @@ impl<'a> AgentData<'a> {
                     ),
                 )
             },
-            CharacterState::LeapMelee(_) if matches!(tactic, Tactic::Hammer | Tactic::Axe) => {
+            CharacterState::LeapMelee(_)
+                if matches!(tactic, Tactic::Hammer | Tactic::BorealHammer | Tactic::Axe) =>
+            {
                 let direction_weight = match tactic {
-                    Tactic::Hammer => 0.1,
+                    Tactic::Hammer | Tactic::BorealHammer => 0.1,
                     Tactic::Axe => 0.3,
                     _ => unreachable!("Direction weight called on incorrect tactic."),
                 };
@@ -1302,6 +1306,17 @@ impl<'a> AgentData<'a> {
                 self.handle_wood_golem(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::GnarlingChieftain => self.handle_gnarling_chieftain(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::FrostGigas => {
+                self.handle_frostgigas_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::BorealHammer => self.handle_boreal_hammer_attack(
                 agent,
                 controller,
                 &attack_data,
