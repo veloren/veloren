@@ -113,11 +113,8 @@ struct ProximityRequirements {
 impl ProximityRequirements {
     pub fn satisfied_by(&self, site: Vec2<i32>) -> bool {
         let all_of_compliance = self.all_of.iter().all(|spec| spec.satisfied_by(site));
-        let any_of_compliance = if self.any_of.is_empty() {
-            true
-        } else {
-            self.any_of.iter().any(|spec| spec.satisfied_by(site))
-        };
+        let any_of_compliance =
+            self.any_of.is_empty() || self.any_of.iter().any(|spec| spec.satisfied_by(site));
         all_of_compliance && any_of_compliance
     }
 
@@ -193,7 +190,9 @@ impl Civs {
                     0..=5 => (
                         find_site_loc(
                             &mut ctx,
-                            &ProximityRequirements::new().avoid_all_of(this.castle_enemies(), 40),
+                            &ProximityRequirements::new()
+                                .avoid_all_of(this.castle_enemies(), 40)
+                                .close_to_one_of(this.towns(), 20),
                             SiteKind::Castle,
                         )?,
                         SiteKind::Castle,
