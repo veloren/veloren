@@ -13,7 +13,7 @@ common-abilities-sceptre-wardingaura = Warding Aura
 
 # Sword abilities
 veloren-core-pseudo_abilities-sword-heavy_stance = Heavy Stance
-    .desc = Attacks in this stance stagger enemies more but are slower
+    .desc = Attacks in this stance can stagger enemies and deal more damage to staggered enemies but are slower
 veloren-core-pseudo_abilities-sword-agile_stance = Agile Stance
     .desc = Attacks are faster but weaker in this stance
 veloren-core-pseudo_abilities-sword-defensive_stance = Defensive Stance
@@ -135,17 +135,29 @@ veloren-core-pseudo_abilities-sword-finisher = Finisher
         An ability that consumes combo and is meant to end a fight
         The finisher will be different depending on your stance
 common-abilities-sword-basic_mighty_strike = Mighty Strike
-    .desc = A simple, powerful slash
+    .desc =
+        A simple, powerful slash
+        Requires a moderate amount of combo to use
 common-abilities-sword-heavy_guillotine = Guillotine
-    .desc = A strong cleave that will likely stagger what it doesn't kill
+    .desc =
+        A strong cleave that will likely stagger what it doesn't kill
+        Requires a moderate amount of combo to use
 common-abilities-sword-agile_hundred_cuts = Hundred Cuts
-    .desc = Many very rapid slashes on a target
+    .desc =
+        Many very rapid slashes on a target
+        Requires a moderate amount of combo to use
 common-abilities-sword-defensive_counter = Counter
-    .desc = A rapidly launched attack that deals substantially more damage to a parried foe
+    .desc =
+        A rapidly launched attack that deals substantially more damage to a parried foe
+        Requires a moderate amount of combo to use
 common-abilities-sword-crippling_mutilate = Mutilate
-    .desc = Mutilate your foe by sawing through their injuries, deals more damage to bleeding foes
+    .desc =
+        Mutilate your foe by sawing through their injuries, deals more damage to bleeding foes
+        Requires a moderate amount of combo to use
 common-abilities-sword-cleaving_bladestorm = Bladestorm
-    .desc = Decimate your enemies with multiple cyclic swings of your sword
+    .desc =
+        Decimate your enemies with multiple cyclic swings of your sword
+        Requires a moderate amount of combo to use
 common-abilities-sword-heavy_windmill_slash = Windmill Slash
     .desc =
         Double overhead swings that can heavily stagger
