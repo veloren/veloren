@@ -1,4 +1,8 @@
-use crate::{consts::MAX_PATH_DIST, data::*, util::entities_have_line_of_sight};
+use crate::{
+    consts::MAX_PATH_DIST,
+    data::*,
+    util::{entities_have_line_of_sight, handle_attack_aggression},
+};
 use common::{
     comp::{
         ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance},
@@ -472,43 +476,6 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        #[derive(Copy, Clone)]
-        enum SwordTactics {
-            Unskilled = 0,
-            Basic = 1,
-            HeavySimple = 2,
-            AgileSimple = 3,
-            DefensiveSimple = 4,
-            CripplingSimple = 5,
-            CleavingSimple = 6,
-            HeavyAdvanced = 7,
-            AgileAdvanced = 8,
-            DefensiveAdvanced = 9,
-            CripplingAdvanced = 10,
-            CleavingAdvanced = 11,
-        }
-
-        impl SwordTactics {
-            fn from_u8(x: u8) -> Self {
-                use SwordTactics::*;
-                match x {
-                    0 => Unskilled,
-                    1 => Basic,
-                    2 => HeavySimple,
-                    3 => AgileSimple,
-                    4 => DefensiveSimple,
-                    5 => CripplingSimple,
-                    6 => CleavingSimple,
-                    7 => HeavyAdvanced,
-                    8 => AgileAdvanced,
-                    9 => DefensiveAdvanced,
-                    10 => CripplingAdvanced,
-                    11 => CleavingAdvanced,
-                    _ => Unskilled,
-                }
-            }
-        }
-
         if !agent.action_state.initialized {
             agent.action_state.initialized = true;
             let available_tactics = {
@@ -735,38 +702,6 @@ impl<'a> AgentData<'a> {
                 ActionMode::Reckless as u8;
         }
 
-        enum ActionMode {
-            Reckless = 0,
-            Guarded = 1,
-            Fleeing = 2,
-        }
-
-        impl ActionMode {
-            fn from_u8(x: u8) -> Self {
-                match x {
-                    0 => ActionMode::Reckless,
-                    1 => ActionMode::Guarded,
-                    2 => ActionMode::Fleeing,
-                    _ => ActionMode::Guarded,
-                }
-            }
-        }
-
-        if let Some(health) = self.health {
-            agent.action_state.int_counters[IntCounters::ActionMode as usize] =
-                if health.fraction() < 0.1 {
-                    agent.action_state.positions[Positions::GuardedCover as usize] = None;
-                    ActionMode::Fleeing as u8
-                } else if health.fraction() < 0.9 {
-                    agent.action_state.positions[Positions::Flee as usize] = None;
-                    ActionMode::Guarded as u8
-                } else {
-                    agent.action_state.positions[Positions::GuardedCover as usize] = None;
-                    agent.action_state.positions[Positions::Flee as usize] = None;
-                    ActionMode::Reckless as u8
-                };
-        }
-
         enum IntCounters {
             Tactics = 0,
             ActionMode = 1,
@@ -791,215 +726,23 @@ impl<'a> AgentData<'a> {
             Flee = 1,
         }
 
-        if self.vel.0.magnitude_squared() < 1_f32.powi(2) {
-            agent.action_state.timers[Timers::PosTimeOut as usize] += read_data.dt.0;
-        } else {
-            agent.action_state.timers[Timers::PosTimeOut as usize] = 0.0;
-        }
-
-        if agent.action_state.timers[Timers::PosTimeOut as usize] > 2.0 {
-            agent.action_state.positions.iter_mut().for_each(|pos| {
-                *pos = None;
-            });
-            agent.action_state.timers[Timers::PosTimeOut as usize] = 0.0;
-        }
-
-        let attempt_attack = match ActionMode::from_u8(
-            agent.action_state.int_counters[IntCounters::ActionMode as usize],
-        ) {
-            ActionMode::Reckless => true,
-            ActionMode::Guarded => {
-                agent.action_state.timers[Timers::GuardedCycle as usize] += read_data.dt.0;
-                if agent.action_state.timers[Timers::GuardedCycle as usize]
-                    > agent.action_state.counters[FloatCounters::GuardedTimer as usize]
-                {
-                    agent.action_state.timers[Timers::GuardedCycle as usize] = 0.0;
-                    agent.action_state.conditions[Conditions::GuardedDefend as usize] ^= true;
-                    agent.action_state.counters[FloatCounters::GuardedTimer as usize] =
-                        if agent.action_state.conditions[Conditions::GuardedDefend as usize] {
-                            rng.gen_range(3.0..6.0)
-                        } else {
-                            rng.gen_range(6.0..10.0)
-                        };
-                }
-                if let Some(pos) = agent.action_state.positions[Positions::GuardedCover as usize] {
-                    if pos.distance_squared(self.pos.0) < 3_f32.powi(2) {
-                        agent.action_state.positions[Positions::GuardedCover as usize] = None;
-                    }
-                }
-                if !agent.action_state.conditions[Conditions::GuardedDefend as usize] {
-                    agent.action_state.positions[Positions::GuardedCover as usize] = None;
-                    true
-                } else {
-                    if attack_data.dist_sqrd > 10_f32.powi(2) {
-                        // Choose random point to either side when looking at target and move
-                        // towards it
-                        if let Some(pos) =
-                            agent.action_state.positions[Positions::GuardedCover as usize]
-                        {
-                            if pos.distance_squared(self.pos.0) < 5_f32.powi(2) {
-                                agent.action_state.positions[Positions::GuardedCover as usize] =
-                                    None;
-                            }
-                            self.path_toward_target(
-                                agent,
-                                controller,
-                                pos,
-                                read_data,
-                                Path::Separate,
-                                None,
-                            );
-                        } else {
-                            agent.action_state.positions[Positions::GuardedCover as usize] = {
-                                let rand_dir = {
-                                    let dir = (tgt_data.pos.0 - self.pos.0)
-                                        .try_normalized()
-                                        .unwrap_or(Vec3::unit_x())
-                                        .xy();
-                                    if rng.gen_bool(0.5) {
-                                        dir.rotated_z(PI / 2.0 + rng.gen_range(-0.75..0.0))
-                                    } else {
-                                        dir.rotated_z(-PI / 2.0 + rng.gen_range(-0.0..0.75))
-                                    }
-                                };
-                                let attempted_dist = rng.gen_range(6.0..16.0);
-                                let actual_dist = read_data
-                                    .terrain
-                                    .ray(
-                                        self.pos.0 + Vec3::unit_z() * 0.5,
-                                        self.pos.0
-                                            + Vec3::unit_z() * 0.5
-                                            + rand_dir * attempted_dist,
-                                    )
-                                    .until(Block::is_solid)
-                                    .cast()
-                                    .0
-                                    - 1.0;
-                                Some(self.pos.0 + rand_dir * actual_dist)
-                            };
-                        }
-                    } else if let Some(pos) =
-                        agent.action_state.positions[Positions::GuardedCover as usize]
-                    {
-                        self.path_toward_target(
-                            agent,
-                            controller,
-                            pos,
-                            read_data,
-                            Path::Separate,
-                            None,
-                        );
-                        if agent.action_state.conditions[Conditions::RollingBreakThrough as usize] {
-                            controller.push_basic_input(InputKind::Roll);
-                            agent.action_state.conditions
-                                [Conditions::RollingBreakThrough as usize] = false;
-                        }
-                        if tgt_data.char_state.map_or(false, |cs| cs.is_melee_attack()) {
-                            controller.push_basic_input(InputKind::Block);
-                        }
-                    } else {
-                        agent.action_state.positions[Positions::GuardedCover as usize] = {
-                            let backwards = (self.pos.0 - tgt_data.pos.0)
-                                .try_normalized()
-                                .unwrap_or(Vec3::unit_x())
-                                .xy();
-                            let pos = if read_data
-                                .terrain
-                                .ray(
-                                    self.pos.0 + Vec3::unit_z() * 0.5,
-                                    self.pos.0 + Vec3::unit_z() * 0.5 + backwards * 6.0,
-                                )
-                                .until(Block::is_solid)
-                                .cast()
-                                .0
-                                > 5.0
-                            {
-                                self.pos.0 + backwards * 5.0
-                            } else {
-                                agent.action_state.conditions
-                                    [Conditions::RollingBreakThrough as usize] = true;
-                                self.pos.0
-                                    - backwards
-                                        * read_data
-                                            .terrain
-                                            .ray(
-                                                self.pos.0 + Vec3::unit_z() * 0.5,
-                                                self.pos.0 + Vec3::unit_z() * 0.5
-                                                    - backwards * 10.0,
-                                            )
-                                            .until(Block::is_solid)
-                                            .cast()
-                                            .0
-                                    - 1.0
-                            };
-                            Some(pos)
-                        }
-                    }
-                    false
-                }
-            },
-            ActionMode::Fleeing => {
-                if agent.action_state.conditions[Conditions::RollingBreakThrough as usize] {
-                    controller.push_basic_input(InputKind::Roll);
-                    agent.action_state.conditions[Conditions::RollingBreakThrough as usize] = false;
-                }
-                if let Some(pos) = agent.action_state.positions[Positions::Flee as usize] {
-                    if let Some(dir) = Dir::from_unnormalized(pos - self.pos.0) {
-                        controller.inputs.look_dir = dir;
-                    }
-                    if pos.distance_squared(self.pos.0) < 5_f32.powi(2) {
-                        agent.action_state.positions[Positions::Flee as usize] = None;
-                    }
-                    self.path_toward_target(
-                        agent,
-                        controller,
-                        pos,
-                        read_data,
-                        Path::Separate,
-                        None,
-                    );
-                } else {
-                    agent.action_state.positions[Positions::Flee as usize] = {
-                        let rand_dir = {
-                            let dir = (self.pos.0 - tgt_data.pos.0)
-                                .try_normalized()
-                                .unwrap_or(Vec3::unit_x())
-                                .xy();
-                            dir.rotated_z(rng.gen_range(-0.75..0.75))
-                        };
-                        let attempted_dist = rng.gen_range(16.0..26.0);
-                        let actual_dist = read_data
-                            .terrain
-                            .ray(
-                                self.pos.0 + Vec3::unit_z() * 0.5,
-                                self.pos.0 + Vec3::unit_z() * 0.5 + rand_dir * attempted_dist,
-                            )
-                            .until(Block::is_solid)
-                            .cast()
-                            .0
-                            - 1.0;
-                        if actual_dist < 10.0 {
-                            let dist = read_data
-                                .terrain
-                                .ray(
-                                    self.pos.0 + Vec3::unit_z() * 0.5,
-                                    self.pos.0 + Vec3::unit_z() * 0.5 - rand_dir * attempted_dist,
-                                )
-                                .until(Block::is_solid)
-                                .cast()
-                                .0
-                                - 1.0;
-                            agent.action_state.conditions
-                                [Conditions::RollingBreakThrough as usize] = true;
-                            Some(self.pos.0 - rand_dir * dist)
-                        } else {
-                            Some(self.pos.0 + rand_dir * actual_dist)
-                        }
-                    };
-                }
-                false
-            },
-        };
+        let attempt_attack = handle_attack_aggression(
+            self,
+            agent,
+            controller,
+            attack_data,
+            tgt_data,
+            read_data,
+            rng,
+            Timers::PosTimeOut as usize,
+            Timers::GuardedCycle as usize,
+            FloatCounters::GuardedTimer as usize,
+            IntCounters::ActionMode as usize,
+            Conditions::GuardedDefend as usize,
+            Conditions::RollingBreakThrough as usize,
+            Positions::GuardedCover as usize,
+            Positions::Flee as usize,
+        );
 
         let attack_failed = if attempt_attack {
             let context = AbilityContext::from(self.stance);
@@ -1040,6 +783,23 @@ impl<'a> AgentData<'a> {
                 }),
                 _ => false,
             };
+            let continue_current_input = |current_input, next_input: &mut Option<InputKind>| {
+                if matches!(current_input, InputKind::Secondary) {
+                    let charging =
+                        matches!(self.char_state.stage_section(), Some(StageSection::Charge));
+                    let charged = self
+                        .char_state
+                        .durations()
+                        .and_then(|durs| durs.charge)
+                        .zip(self.char_state.timer())
+                        .map_or(false, |(dur, timer)| timer > dur);
+                    if !(charging && charged) {
+                        *next_input = Some(InputKind::Secondary);
+                    }
+                } else {
+                    *next_input = Some(current_input);
+                }
+            };
             match SwordTactics::from_u8(
                 agent.action_state.int_counters[IntCounters::Tactics as usize],
             ) {
@@ -1050,23 +810,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else if rng.gen_bool(0.5) {
                         next_input = Some(InputKind::Primary);
                     } else {
@@ -1090,23 +834,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let attempt_ability = InputKind::Ability(rng.gen_range(0..5));
                         if could_use_input(attempt_ability, &misc_data) {
@@ -1135,23 +863,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
@@ -1191,23 +903,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
@@ -1247,23 +943,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
@@ -1305,23 +985,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
@@ -1361,23 +1025,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
@@ -1417,23 +1065,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
@@ -1473,23 +1105,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
@@ -1529,23 +1145,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..4));
@@ -1589,23 +1189,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
@@ -1645,23 +1229,7 @@ impl<'a> AgentData<'a> {
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
-                        if matches!(input, InputKind::Secondary) {
-                            let charging = matches!(
-                                self.char_state.stage_section(),
-                                Some(StageSection::Charge)
-                            );
-                            let charged = self
-                                .char_state
-                                .durations()
-                                .and_then(|durs| durs.charge)
-                                .zip(self.char_state.timer())
-                                .map_or(false, |(dur, timer)| timer > dur);
-                            if !(charging && charged) {
-                                next_input = Some(InputKind::Secondary);
-                            }
-                        } else {
-                            next_input = Some(input);
-                        }
+                        continue_current_input(input, &mut next_input);
                     } else {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));

@@ -89,6 +89,23 @@ impl AttackData {
     pub fn in_min_range(&self) -> bool { self.dist_sqrd < self.min_attack_dist.powi(2) }
 }
 
+pub enum ActionMode {
+    Reckless = 0,
+    Guarded = 1,
+    Fleeing = 2,
+}
+
+impl ActionMode {
+    pub fn from_u8(x: u8) -> Self {
+        match x {
+            0 => ActionMode::Reckless,
+            1 => ActionMode::Guarded,
+            2 => ActionMode::Fleeing,
+            _ => ActionMode::Guarded,
+        }
+    }
+}
+
 #[derive(Eq, PartialEq)]
 // When adding a new variant, first decide if it should instead fall under one
 // of the pre-existing tactics
@@ -149,6 +166,43 @@ pub enum Tactic {
     Roshwalr,
     FrostGigas,
     BorealHammer,
+}
+
+#[derive(Copy, Clone)]
+pub enum SwordTactics {
+    Unskilled = 0,
+    Basic = 1,
+    HeavySimple = 2,
+    AgileSimple = 3,
+    DefensiveSimple = 4,
+    CripplingSimple = 5,
+    CleavingSimple = 6,
+    HeavyAdvanced = 7,
+    AgileAdvanced = 8,
+    DefensiveAdvanced = 9,
+    CripplingAdvanced = 10,
+    CleavingAdvanced = 11,
+}
+
+impl SwordTactics {
+    pub fn from_u8(x: u8) -> Self {
+        use SwordTactics::*;
+        match x {
+            0 => Unskilled,
+            1 => Basic,
+            2 => HeavySimple,
+            3 => AgileSimple,
+            4 => DefensiveSimple,
+            5 => CripplingSimple,
+            6 => CleavingSimple,
+            7 => HeavyAdvanced,
+            8 => AgileAdvanced,
+            9 => DefensiveAdvanced,
+            10 => CripplingAdvanced,
+            11 => CleavingAdvanced,
+            _ => Unskilled,
+        }
+    }
 }
 
 #[derive(SystemData)]
