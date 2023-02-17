@@ -32,7 +32,6 @@ hud-chat-default_death_msg = [{ $name }] dog
 ## Utils
 hud-chat-all = Alla
 hud-chat-you = Du
-hud-chat-mod = Mod
 hud-chat-chat_tab_hover_tooltip = Högerklicka för inställningar
 hud-loot-pickup-msg = {$actor} plockade upp { $amount ->
 [one] { $item }
