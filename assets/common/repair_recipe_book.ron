@@ -39,6 +39,7 @@ recipes: {
     ModularWeapon(material: "common.items.mineral.ingot.orichalcum"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
@@ -73,6 +74,7 @@ recipes: {
     ModularWeapon(material: "common.items.log.eldwood"): (
         inputs: [
             (Item("common.items.log.eldwood"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
@@ -90,7 +92,7 @@ recipes: {
     ItemDefId("common.items.weapons.axe.malachite"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 1),
-            (Item("common.items.mineral.ore.veloritefrag"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
         ],
     ),
     ItemDefId("common.items.weapons.hammer.cultist_purp_2h-0"): (
@@ -101,7 +103,7 @@ recipes: {
     ItemDefId("common.items.weapons.bow.velorite"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 1),
-            (Item("common.items.mineral.ore.veloritefrag"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
         ],
     ),
     ItemDefId("common.items.weapons.staff.cultist_staff"): (
@@ -117,37 +119,43 @@ recipes: {
     ItemDefId("common.items.weapons.scepter.sceptre_velorite_0"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 1),
-            (Item("common.items.mineral.ore.veloritefrag"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
         ],
     ),
     ItemDefId("common.items.weapons.sword.caladbolg"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
         ],
     ),
     ItemDefId("common.items.weapons.axe.parashu"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
         ],
     ),
     ItemDefId("common.items.weapons.hammer.mjolnir"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
         ],
     ),
     ItemDefId("common.items.weapons.bow.sagitta"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
         ],
     ),
     ItemDefId("common.items.weapons.staff.laevateinn"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
         ],
     ),
     ItemDefId("common.items.weapons.scepter.caduceus"): (
         inputs: [
             (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
         ],
     ),
     // ARMOR
@@ -359,42 +367,49 @@ recipes: {
     ItemDefId("common.items.armor.hide.dragonscale.back"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.hide.dragonscale.belt"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.hide.dragonscale.chest"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 12),
             (Item("common.items.mineral.ore.velorite"), 3),
         ],
     ),
     ItemDefId("common.items.armor.hide.dragonscale.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.hide.dragonscale.hand"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.hide.dragonscale.pants"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
             (Item("common.items.mineral.ore.velorite"), 2),
         ],
     ),
     ItemDefId("common.items.armor.hide.dragonscale.shoulder"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.dragon_scale"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
             (Item("common.items.mineral.ore.velorite"), 2),
         ],
     ),
@@ -603,42 +618,49 @@ recipes: {
     ItemDefId("common.items.armor.cloth.sunsilk.back"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.sunsilk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.cloth.sunsilk.belt"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.sunsilk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.cloth.sunsilk.chest"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.sunsilk"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 12),
             (Item("common.items.mineral.ore.velorite"), 3),
         ],
     ),
     ItemDefId("common.items.armor.cloth.sunsilk.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.sunsilk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.cloth.sunsilk.hand"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.sunsilk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.cloth.sunsilk.pants"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.sunsilk"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
             (Item("common.items.mineral.ore.velorite"), 2),
         ],
     ),
     ItemDefId("common.items.armor.cloth.sunsilk.shoulder"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.sunsilk"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
             (Item("common.items.mineral.ore.velorite"), 2),
         ],
     ),
@@ -847,42 +869,49 @@ recipes: {
     ItemDefId("common.items.armor.mail.orichalcum.back"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.mail.orichalcum.belt"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.mail.orichalcum.chest"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 12),
             (Item("common.items.mineral.ore.velorite"), 3),
         ],
     ),
     ItemDefId("common.items.armor.mail.orichalcum.foot"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.mail.orichalcum.hand"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.mail.orichalcum.pants"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
             (Item("common.items.mineral.ore.velorite"), 2),
         ],
     ),
     ItemDefId("common.items.armor.mail.orichalcum.shoulder"): (
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
             (Item("common.items.mineral.ore.velorite"), 2),
         ],
     ),
