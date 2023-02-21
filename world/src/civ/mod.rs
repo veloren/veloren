@@ -125,18 +125,22 @@ impl ProximityRequirements {
         }
     }
 
-    pub fn avoid_all_of(mut self, locations: Vec<Vec2<i32>>, distance: i32) -> Self {
-        let specs = locations
-            .into_iter()
-            .map(|loc| ProximitySpec::avoid(loc, distance));
+    pub fn avoid_all_of(
+        mut self,
+        locations: impl Iterator<Item = Vec2<i32>>,
+        distance: i32,
+    ) -> Self {
+        let specs = locations.map(|loc| ProximitySpec::avoid(loc, distance));
         self.all_of.extend(specs);
         self
     }
 
-    pub fn close_to_one_of(mut self, locations: Vec<Vec2<i32>>, distance: i32) -> Self {
-        let specs = locations
-            .into_iter()
-            .map(|loc| ProximitySpec::be_near(loc, distance));
+    pub fn close_to_one_of(
+        mut self,
+        locations: impl Iterator<Item = Vec2<i32>>,
+        distance: i32,
+    ) -> Self {
+        let specs = locations.map(|loc| ProximitySpec::be_near(loc, distance));
         self.any_of.extend(specs);
         self
     }
@@ -1230,74 +1234,60 @@ impl Civs {
         site
     }
 
-    fn gnarling_enemies(&self) -> Vec<Vec2<i32>> {
-        self.sites()
-            .filter_map(|s| match s.kind {
-                SiteKind::Tree | SiteKind::GiantTree => None,
-                _ => Some(s.center),
-            })
-            .collect()
+    fn gnarling_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
     }
 
-    fn chapel_site_enemies(&self) -> Vec<Vec2<i32>> {
-        self.sites()
-            .filter_map(|s| match s.kind {
-                SiteKind::Tree | SiteKind::GiantTree => None,
-                _ => Some(s.center),
-            })
-            .collect()
+    fn chapel_site_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
     }
 
-    fn dungeon_enemies(&self) -> Vec<Vec2<i32>> {
-        self.sites()
-            .filter_map(|s| match s.kind {
-                SiteKind::Tree | SiteKind::GiantTree => None,
-                _ => Some(s.center),
-            })
-            .collect()
+    fn dungeon_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
     }
 
-    fn tree_enemies(&self) -> Vec<Vec2<i32>> {
-        self.sites()
-            .filter_map(|s| match s.kind {
-                SiteKind::Castle => Some(s.center),
-                _ if s.is_settlement() => Some(s.center),
-                _ => None,
-            })
-            .collect()
+    fn tree_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Castle => Some(s.center),
+            _ if s.is_settlement() => Some(s.center),
+            _ => None,
+        })
     }
 
-    fn castle_enemies(&self) -> Vec<Vec2<i32>> {
-        self.sites()
-            .filter_map(|s| {
-                if s.is_settlement() {
-                    None
-                } else {
-                    Some(s.center)
-                }
-            })
-            .collect()
+    fn castle_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| {
+            if s.is_settlement() {
+                None
+            } else {
+                Some(s.center)
+            }
+        })
     }
 
-    fn town_enemies(&self) -> Vec<Vec2<i32>> {
-        self.sites()
-            .filter_map(|s| match s.kind {
-                SiteKind::Castle | SiteKind::Citadel => None,
-                _ => Some(s.center),
-            })
-            .collect()
+    fn town_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Castle | SiteKind::Citadel => None,
+            _ => Some(s.center),
+        })
     }
 
-    fn towns(&self) -> Vec<Vec2<i32>> {
-        self.sites()
-            .filter_map(|s| {
-                if s.is_settlement() {
-                    Some(s.center)
-                } else {
-                    None
-                }
-            })
-            .collect()
+    fn towns(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| {
+            if s.is_settlement() {
+                Some(s.center)
+            } else {
+                None
+            }
+        })
     }
 }
 
@@ -1750,14 +1740,16 @@ mod tests {
 
     #[test]
     fn avoid_proximity_requirements() {
-        let reqs = ProximityRequirements::new().avoid_all_of(vec![Vec2 { x: 0, y: 0 }], 10);
+        let reqs =
+            ProximityRequirements::new().avoid_all_of(vec![Vec2 { x: 0, y: 0 }].into_iter(), 10);
         assert!(reqs.satisfied_by(Vec2 { x: 8, y: -8 }));
         assert!(!reqs.satisfied_by(Vec2 { x: -1, y: 1 }));
     }
 
     #[test]
     fn near_proximity_requirements() {
-        let reqs = ProximityRequirements::new().close_to_one_of(vec![Vec2 { x: 0, y: 0 }], 10);
+        let reqs =
+            ProximityRequirements::new().close_to_one_of(vec![Vec2 { x: 0, y: 0 }].into_iter(), 10);
         assert!(reqs.satisfied_by(Vec2 { x: 1, y: -1 }));
         assert!(!reqs.satisfied_by(Vec2 { x: -8, y: 8 }));
     }
