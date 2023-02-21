@@ -49,6 +49,7 @@ gameinput-togglewield = Waffe ziehen/wegstecken
 gameinput-interact = Interagieren
 gameinput-freelook = Freie Sicht
 gameinput-autowalk = Automatisch Laufen/Schwimmen
+gameinput-zoomlock = Kamera-Zoomsperre
 gameinput-cameraclamp = Kamera fixieren
 gameinput-dance = Tanzen
 gameinput-select = Einheit auswählen

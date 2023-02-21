@@ -1,7 +1,7 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
-    hud::{img_ids::Imgs, PressBehavior, MENU_BG, TEXT_COLOR},
+    hud::{img_ids::Imgs, AutoPressBehavior, PressBehavior, MENU_BG, TEXT_COLOR},
     session::settings_change::{Gameplay as GameplayChange, Gameplay::*},
     ui::{fonts::Fonts, ImageSlider, ToggleButton},
     GlobalState,
@@ -44,12 +44,16 @@ widget_ids! {
         auto_walk_behavior_list,
         camera_clamp_behavior_text,
         camera_clamp_behavior_list,
+        zoom_lock_behavior_text,
+        zoom_lock_behavior_list,
         stop_auto_walk_on_input_button,
         stop_auto_walk_on_input_label,
         auto_camera_button,
         auto_camera_label,
         bow_zoom_button,
         bow_zoom_label,
+        zoom_lock_button,
+        zoom_lock_label,
     }
 }
 
@@ -527,6 +531,68 @@ impl<'a> Widget for Gameplay<'a> {
             .graphics_for(state.ids.bow_zoom_button)
             .color(TEXT_COLOR)
             .set(state.ids.bow_zoom_label, ui);
+
+        let zoom_lock_label_list = [
+            self.localized_strings
+                .get_msg("hud-settings-autopress_behavior-toggle"),
+            self.localized_strings
+                .get_msg("hud-settings-autopress_behavior-auto"),
+        ];
+
+        // Camera zoom lock behavior
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-zoom_lock_behavior"),
+        )
+        .down_from(state.ids.auto_walk_behavior_list, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.zoom_lock_behavior_text, ui);
+
+        let zoom_lock_selected = self.global_state.settings.gameplay.zoom_lock_behavior as usize;
+
+        if let Some(clicked) = DropDownList::new(&zoom_lock_label_list, Some(zoom_lock_selected))
+            .w_h(200.0, 30.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.zoom_lock_behavior_text, 8.0)
+            .set(state.ids.zoom_lock_behavior_list, ui)
+        {
+            match clicked {
+                0 => events.push(ChangeZoomLockBehavior(AutoPressBehavior::Toggle)),
+                1 => events.push(ChangeZoomLockBehavior(AutoPressBehavior::Auto)),
+                _ => unreachable!(),
+            }
+        }
+
+        // Camera zoom lock toggle
+        let zoom_lock_toggle = ToggleButton::new(
+            self.global_state.settings.gameplay.zoom_lock,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.bow_zoom_button, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.zoom_lock_button, ui);
+
+        if self.global_state.settings.gameplay.zoom_lock != zoom_lock_toggle {
+            events.push(ChangeZoomLock(
+                !self.global_state.settings.gameplay.zoom_lock,
+            ));
+        }
+
+        Text::new(&self.localized_strings.get_msg("hud-settings-zoom_lock"))
+            .right_from(state.ids.zoom_lock_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.zoom_lock_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.zoom_lock_label, ui);
 
         // Reset the gameplay settings to the default settings
         if Button::image(self.imgs.button)

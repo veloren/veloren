@@ -1,4 +1,4 @@
-use crate::hud::PressBehavior;
+use crate::hud::{AutoPressBehavior, PressBehavior};
 use serde::{Deserialize, Serialize};
 
 /// `GameplaySettings` contains sensitivity and gameplay options.
@@ -14,9 +14,11 @@ pub struct GameplaySettings {
     pub free_look_behavior: PressBehavior,
     pub auto_walk_behavior: PressBehavior,
     pub camera_clamp_behavior: PressBehavior,
+    pub zoom_lock_behavior: AutoPressBehavior,
     pub stop_auto_walk_on_input: bool,
     pub auto_camera: bool,
     pub bow_zoom: bool,
+    pub zoom_lock: bool,
 }
 
 impl Default for GameplaySettings {
@@ -31,9 +33,11 @@ impl Default for GameplaySettings {
             free_look_behavior: PressBehavior::Toggle,
             auto_walk_behavior: PressBehavior::Toggle,
             camera_clamp_behavior: PressBehavior::Toggle,
+            zoom_lock_behavior: AutoPressBehavior::Auto,
             stop_auto_walk_on_input: true,
             auto_camera: false,
             bow_zoom: true,
+            zoom_lock: false,
         }
     }
 }

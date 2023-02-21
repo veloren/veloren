@@ -2,6 +2,8 @@ hud-settings-general = Allgemein
 hud-settings-none = Keine
 hud-settings-press_behavior-toggle = Umschalten
 hud-settings-press_behavior-hold = Halten
+hud-settings-autopress_behavior-toggle = Umschalten
+hud-settings-autopress_behavior-auto = Auto
 hud-settings-help_window = Hilfe zu Fenstern
 hud-settings-debug_info = Debug-Informationen
 hud-settings-show_hitboxes = Hitboxen anzeigen
@@ -50,10 +52,12 @@ hud-settings-enable_mouse_smoothing = Kamera-Glättung
 hud-settings-free_look_behavior = Verhalten bei freiem Kameramodus
 hud-settings-auto_walk_behavior = Verhalten bei automatischem Gehen
 hud-settings-camera_clamp_behavior = Verhalten bei starrer Kamera
+hud-settings-zoom_lock_behavior = Verhalten bei Kamera-Zoomsperre
 hud-settings-player_physics_behavior = Spielerphysik (experimentell)
 hud-settings-stop_auto_walk_on_input = Automatisches Gehen bei Spieleraktivität anhalten
 hud-settings-auto_camera = Auto Kamera
 hud-settings-bow_zoom = Hinein zoomen, wenn der Bogen aufgeladen wird
+hud-settings-zoom_lock = Kamera-Zoomsperre
 hud-settings-reset_gameplay =
     Einstellungen
     zurücksetzen

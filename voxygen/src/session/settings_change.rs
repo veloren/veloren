@@ -3,8 +3,8 @@ use crate::{
     controller::ControllerSettings,
     game_input::GameInput,
     hud::{
-        BarNumbers, BuffPosition, ChatTab, CrosshairType, Intro, PressBehavior, ScaleChange,
-        ShortcutNumbers, XpBar,
+        AutoPressBehavior, BarNumbers, BuffPosition, ChatTab, CrosshairType, Intro, PressBehavior,
+        ScaleChange, ShortcutNumbers, XpBar,
     },
     render::RenderMode,
     settings::{
@@ -68,9 +68,11 @@ pub enum Gameplay {
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeCameraClampBehavior(PressBehavior),
+    ChangeZoomLockBehavior(AutoPressBehavior),
     ChangeStopAutoWalkOnInput(bool),
     ChangeAutoCamera(bool),
     ChangeBowZoom(bool),
+    ChangeZoomLock(bool),
 
     ResetGameplaySettings,
 }
@@ -386,6 +388,9 @@ impl SettingsChange {
                     Gameplay::ChangeCameraClampBehavior(behavior) => {
                         settings.gameplay.camera_clamp_behavior = behavior;
                     },
+                    Gameplay::ChangeZoomLockBehavior(state) => {
+                        settings.gameplay.zoom_lock_behavior = state;
+                    },
                     Gameplay::ChangeStopAutoWalkOnInput(state) => {
                         settings.gameplay.stop_auto_walk_on_input = state;
                     },
@@ -394,6 +399,9 @@ impl SettingsChange {
                     },
                     Gameplay::ChangeBowZoom(state) => {
                         settings.gameplay.bow_zoom = state;
+                    },
+                    Gameplay::ChangeZoomLock(state) => {
+                        settings.gameplay.zoom_lock = state;
                     },
                     Gameplay::ResetGameplaySettings => {
                         // Reset Gameplay Settings
