@@ -1441,7 +1441,7 @@ fn find_site_loc(
             });
         }
     }
-    warn!("Failed to place site {:?}.", site_kind);
+    debug!("Failed to place site {:?}.", site_kind);
     None
 }
 
