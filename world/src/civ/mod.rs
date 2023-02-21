@@ -1180,10 +1180,12 @@ impl Civs {
 
     fn castle_enemies(&self) -> Vec<Vec2<i32>> {
         self.sites()
-            .filter_map(|s| match s.kind {
-                SiteKind::Tree | SiteKind::GiantTree => None,
-                _ if s.is_settlement() => None,
-                _ => Some(s.center),
+            .filter_map(|s| {
+                if s.is_settlement() {
+                    None
+                } else {
+                    Some(s.center)
+                }
             })
             .collect()
     }
