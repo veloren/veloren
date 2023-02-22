@@ -655,8 +655,13 @@ impl Scene {
         lights.clear();
 
         // Maintain the particles.
-        self.particle_mgr
-            .maintain(renderer, scene_data, &self.terrain, lights);
+        self.particle_mgr.maintain(
+            renderer,
+            scene_data,
+            &self.terrain,
+            &self.figure_mgr,
+            lights,
+        );
 
         // Maintain the trails.
         self.trail_mgr.maintain(renderer, scene_data);

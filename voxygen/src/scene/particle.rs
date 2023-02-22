@@ -1,4 +1,4 @@
-use super::{terrain::BlocksOfInterest, SceneData, Terrain};
+use super::{terrain::BlocksOfInterest, FigureMgr, SceneData, Terrain};
 use crate::{
     ecs::comp::Interpolated,
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
@@ -400,6 +400,7 @@ impl ParticleMgr {
         renderer: &mut Renderer,
         scene_data: &SceneData,
         terrain: &Terrain<TerrainChunk>,
+        figure_mgr: &FigureMgr,
         lights: &mut Vec<Light>,
     ) {
         span!(_guard, "maintain", "ParticleMgr::maintain");
@@ -415,7 +416,7 @@ impl ParticleMgr {
             self.maintain_body_particles(scene_data);
             self.maintain_char_state_particles(scene_data);
             self.maintain_beam_particles(scene_data, lights);
-            self.maintain_block_particles(scene_data, terrain);
+            self.maintain_block_particles(scene_data, terrain, figure_mgr);
             self.maintain_shockwave_particles(scene_data);
             self.maintain_aura_particles(scene_data);
             self.maintain_buff_particles(scene_data);
@@ -1434,6 +1435,7 @@ impl ParticleMgr {
         &mut self,
         scene_data: &SceneData,
         terrain: &Terrain<TerrainChunk>,
+        figure_mgr: &FigureMgr,
     ) {
         span!(
             _guard,
@@ -1533,6 +1535,7 @@ impl ParticleMgr {
             },
         ];
 
+        let ecs = scene_data.state.ecs();
         let mut rng = thread_rng();
         for particles in particles.iter() {
             if !(particles.cond)(scene_data) {
@@ -1563,6 +1566,45 @@ impl ParticleMgr {
                             )
                         })
                 });
+            }
+
+            for (entity, body, pos, ori, collider) in (
+                &ecs.entities(),
+                &ecs.read_storage::<comp::Body>(),
+                &ecs.read_storage::<comp::Pos>(),
+                &ecs.read_storage::<comp::Ori>(),
+                ecs.read_storage::<comp::Collider>().maybe(),
+            )
+                .join()
+            {
+                if let Some((blocks_of_interest, offset)) =
+                    figure_mgr.get_blocks_of_interest(entity, body, collider)
+                {
+                    let blocks = (particles.blocks)(blocks_of_interest);
+
+                    let avg_particles = dt * blocks.len() as f32 * particles.rate;
+                    let particle_count = avg_particles.trunc() as usize
+                        + (rng.gen::<f32>() < avg_particles.fract()) as usize;
+
+                    self.particles
+                        .resize_with(self.particles.len() + particle_count, || {
+                            let rel_pos = blocks
+                                .choose(&mut rng)
+                                .copied()
+                                .unwrap()
+                                .map(|e: i32| e as f32 + rng.gen::<f32>()); // Can't fail
+                            let wpos = (Mat4::from(ori.to_quat()).translated_3d(pos.0)
+                                * (rel_pos + offset).with_w(1.0))
+                            .xyz();
+
+                            Particle::new(
+                                Duration::from_secs_f32(particles.lifetime),
+                                time,
+                                particles.mode,
+                                wpos,
+                            )
+                        })
+                }
             }
         }
         // smoke is more complex as it comes with varying rate and color

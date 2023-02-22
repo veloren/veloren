@@ -143,6 +143,8 @@ pub struct TerrainModelEntry<const N: usize> {
     lod_vertex_ranges: [Range<u32>; N],
     model: FigureModel,
 
+    blocks_offset: Vec3<f32>,
+
     terrain_locals: BoundTerrainLocals,
     sprite_instances: [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
 
@@ -6939,14 +6941,14 @@ impl FigureMgr {
         }
     }
 
-    fn get_sprite_instances(
-        &self,
+    fn get_sprite_instances<'a>(
+        &'a self,
         entity: EcsEntity,
         body: &Body,
         collider: Option<&Collider>,
     ) -> Option<(
-        &BoundTerrainLocals,
-        &[Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
+        &'a BoundTerrainLocals,
+        &'a [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
     )> {
         match body {
             Body::Ship(body) => {
@@ -6958,6 +6960,28 @@ impl FigureMgr {
                     self.volume_model_cache.get_sprites(vk)
                 } else {
                     self.ship_model_cache.get_sprites(*body)
+                }
+            },
+            _ => None,
+        }
+    }
+
+    pub fn get_blocks_of_interest<'a>(
+        &'a self,
+        entity: EcsEntity,
+        body: &Body,
+        collider: Option<&Collider>,
+    ) -> Option<(&'a BlocksOfInterest, Vec3<f32>)> {
+        match body {
+            Body::Ship(body) => {
+                if let Some(Collider::Volume(vol)) = collider {
+                    let vk = VolumeKey {
+                        entity,
+                        mut_count: vol.mut_count,
+                    };
+                    self.volume_model_cache.get_blocks_of_interest(vk)
+                } else {
+                    self.ship_model_cache.get_blocks_of_interest(*body)
                 }
             },
             _ => None,
@@ -7151,6 +7175,7 @@ impl FigureColLights {
         ori: Quaternion<f32>,
         sprite_instances: [Vec<SpriteInstance>; SPRITE_LOD_LEVELS],
         blocks_of_interest: BlocksOfInterest,
+        blocks_offset: Vec3<f32>,
     ) -> TerrainModelEntry<N> {
         span!(_guard, "create_figure", "FigureColLights::create_figure");
         let atlas = &mut self.atlas;
@@ -7192,6 +7217,7 @@ impl FigureColLights {
             terrain_locals,
             sprite_instances,
             blocks_of_interest,
+            blocks_offset,
         }
     }
 

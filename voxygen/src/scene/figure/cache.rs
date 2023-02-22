@@ -31,7 +31,7 @@ use common::{
     },
     figure::{Segment, TerrainSegment},
     slowjob::SlowJobPool,
-    vol::{BaseVol, IntoVolIterator},
+    vol::{BaseVol, IntoVolIterator, ReadVol},
 };
 use core::{hash::Hash, ops::Range};
 use crossbeam_utils::atomic;
@@ -58,6 +58,7 @@ pub struct TerrainMeshWorkerResponse<const N: usize> {
     vertex_range: [Range<u32>; N],
     sprite_instances: [Vec<SpriteInstance>; SPRITE_LOD_LEVELS],
     blocks_of_interest: BlocksOfInterest,
+    blocks_offset: Vec3<f32>,
 }
 
 /// NOTE: To test this cell for validity, we currently first use
@@ -655,6 +656,7 @@ where
                                 vertex_range,
                                 sprite_instances,
                                 blocks_of_interest,
+                                blocks_offset,
                             }) = Arc::get_mut(recv).take().and_then(|cell| cell.take())
                             {
                                 let model_entry = col_lights.create_terrain(
@@ -666,6 +668,7 @@ where
                                     ori,
                                     sprite_instances,
                                     blocks_of_interest,
+                                    blocks_offset,
                                 );
                                 *model = TerrainModelEntryFuture::Done(model_entry);
                                 // NOTE: Borrow checker isn't smart enough to figure this out.
@@ -834,13 +837,16 @@ where
                                     lod.push(instance);
                                 },
                                 block_iter.clone().map(|(pos, block)| (pos.as_() + *offset, block)),
-                                |p| p.as_(), |_| 1.0, |_| 0.0,
+                                |p| p.as_(),
+                                |_| 1.0,
+                                |pos| dyna.get(pos).ok().and_then(|block| block.get_glow()).map(|glow| glow as f32 / 255.0).unwrap_or(0.0),
                                 &sprite_data,
                                 &sprite_config,
                             );
                             instances
                         },
                         blocks_of_interest: BlocksOfInterest::from_blocks(block_iter, 0.0, 10.0, 0.0),
+                        blocks_offset: *offset,
                     }));
                 });
 
@@ -856,7 +862,10 @@ where
         }
     }
 
-    pub fn get_blocks_of_interest(&self, body: Skel::Body) -> Option<&BlocksOfInterest> {
+    pub fn get_blocks_of_interest(
+        &self,
+        body: Skel::Body,
+    ) -> Option<(&BlocksOfInterest, Vec3<f32>)> {
         let key = FigureKey {
             body,
             item_key: None,
@@ -867,7 +876,7 @@ where
                 return None;
             };
 
-            Some(&model.blocks_of_interest)
+            Some((&model.blocks_of_interest, model.blocks_offset))
         })
     }
 
