@@ -241,6 +241,7 @@ where
 
 /// Convenience iterator type that can be used to quickly implement
 /// `IntoPosIterator`.
+#[derive(Clone)]
 pub struct DefaultPosIterator {
     current: Vec3<i32>,
     begin: Vec2<i32>,
@@ -288,6 +289,7 @@ impl Iterator for DefaultPosIterator {
 
 /// Convenience iterator type that can be used to quickly implement
 /// `IntoVolIterator`.
+#[derive(Clone)]
 pub struct DefaultVolIterator<'a, T: ReadVol> {
     vol: &'a T,
     pos_iter: DefaultPosIterator,

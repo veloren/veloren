@@ -137,17 +137,28 @@ impl VertexTrait for Vertex {
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 // TODO: new function and private fields??
 pub struct Locals {
-    model_offs: [f32; 3],
-    load_time: f32,
+    model_mat0: [f32; 4],
+    model_mat1: [f32; 4],
+    model_mat2: [f32; 4],
+    model_mat3: [f32; 4],
     atlas_offs: [i32; 4],
+    load_time: f32,
+    _dummy: [f32; 3],
 }
 
 impl Locals {
-    pub fn new(model_offs: Vec3<f32>, atlas_offs: Vec2<u32>, load_time: f32) -> Self {
+    pub fn new(model_offs: Vec3<f32>, ori: Quaternion<f32>, atlas_offs: Vec2<u32>, load_time: f32) -> Self {
+        let mat = Mat4::from(ori).translated_3d(model_offs);
+
+        let mat_arr = mat.into_col_arrays();
         Self {
-            model_offs: model_offs.into_array(),
+            model_mat0: mat_arr[0],
+            model_mat1: mat_arr[1],
+            model_mat2: mat_arr[2],
+            model_mat3: mat_arr[3],
             load_time,
             atlas_offs: Vec4::new(atlas_offs.x as i32, atlas_offs.y as i32, 0, 0).into_array(),
+            _dummy: [0.0; 3],
         }
     }
 }
@@ -155,9 +166,13 @@ impl Locals {
 impl Default for Locals {
     fn default() -> Self {
         Self {
-            model_offs: [0.0; 3],
+            model_mat0: [1.0, 0.0, 0.0, 0.0],
+            model_mat1: [0.0, 1.0, 0.0, 0.0],
+            model_mat2: [0.0, 0.0, 1.0, 0.0],
+            model_mat3: [0.0, 0.0, 0.0, 1.0],
             load_time: 0.0,
             atlas_offs: [0; 4],
+            _dummy: [0.0; 3],
         }
     }
 }

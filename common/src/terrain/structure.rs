@@ -5,6 +5,7 @@ use crate::{
     vol::{BaseVol, ReadVol, SizedVol, WriteVol},
     volumes::dyna::{Dyna, DynaError},
 };
+use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use serde::Deserialize;
 use std::{num::NonZeroU8, sync::Arc};
@@ -44,6 +45,12 @@ make_case_elim!(
     }
 );
 
+impl Default for StructureBlock {
+    fn default() -> Self {
+        StructureBlock::None
+    }
+}
+
 #[derive(Debug)]
 pub enum StructureError {
     OutOfBounds,
@@ -52,14 +59,14 @@ pub enum StructureError {
 #[derive(Clone, Debug)]
 pub struct Structure {
     center: Vec3<i32>,
-    base: Arc<BaseStructure>,
+    base: Arc<BaseStructure<StructureBlock>>,
     custom_indices: [Option<StructureBlock>; 256],
 }
 
 #[derive(Debug)]
-struct BaseStructure {
-    vol: Dyna<Option<NonZeroU8>, ()>,
-    palette: [StructureBlock; 256],
+pub(crate) struct BaseStructure<B> {
+    pub(crate) vol: Dyna<Option<NonZeroU8>, ()>,
+    pub(crate) palette: [B; 256],
 }
 
 pub struct StructuresGroup(Vec<Structure>);
@@ -79,7 +86,7 @@ impl assets::Compound for StructuresGroup {
                 .0
                 .iter()
                 .map(|sp| {
-                    let base = cache.load::<Arc<BaseStructure>>(&sp.specifier)?.cloned();
+                    let base = cache.load::<Arc<BaseStructure<StructureBlock>>>(&sp.specifier)?.cloned();
                     Ok(Structure {
                         center: Vec3::from(sp.center),
                         base,
@@ -138,43 +145,46 @@ impl ReadVol for Structure {
     }
 }
 
-impl assets::Compound for BaseStructure {
+pub(crate) fn load_base_structure<B: Default>(dot_vox_data: &DotVoxData, mut to_block: impl FnMut(Rgb<u8>) -> B) -> BaseStructure<B> {
+    let mut palette = std::array::from_fn(|_| B::default());
+    if let Some(model) = dot_vox_data.models.get(0) {
+        for (i, col) in dot_vox_data
+            .palette
+            .iter()
+            .map(|col| Rgb::new(col.r, col.g, col.b))
+            .enumerate()
+        {
+            palette[(i + 1).min(255)] = to_block(col);
+        }
+
+        let mut vol = Dyna::filled(
+            Vec3::new(model.size.x, model.size.y, model.size.z),
+            None,
+            (),
+        );
+
+        for voxel in &model.voxels {
+            let _ = vol.set(
+                Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from),
+                Some(NonZeroU8::new(voxel.i + 1).unwrap()),
+            );
+        }
+
+        BaseStructure { vol, palette }
+    } else {
+        BaseStructure {
+            vol: Dyna::filled(Vec3::zero(), None, ()),
+            palette,
+        }
+    }
+}
+
+impl assets::Compound for BaseStructure<StructureBlock> {
     fn load(cache: assets::AnyCache, specifier: &assets::SharedString) -> Result<Self, BoxedError> {
         let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();
         let dot_vox_data = &dot_vox_data.0;
 
-        if let Some(model) = dot_vox_data.models.get(0) {
-            let mut palette = std::array::from_fn(|_| StructureBlock::None);
-
-            for (i, col) in dot_vox_data
-                .palette
-                .iter()
-                .map(|col| Rgb::new(col.r, col.g, col.b))
-                .enumerate()
-            {
-                palette[(i + 1).min(255)] = StructureBlock::Filled(BlockKind::Misc, col);
-            }
-
-            let mut vol = Dyna::filled(
-                Vec3::new(model.size.x, model.size.y, model.size.z),
-                None,
-                (),
-            );
-
-            for voxel in &model.voxels {
-                let _ = vol.set(
-                    Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from),
-                    Some(NonZeroU8::new(voxel.i + 1).unwrap()),
-                );
-            }
-
-            Ok(BaseStructure { vol, palette })
-        } else {
-            Ok(BaseStructure {
-                vol: Dyna::filled(Vec3::zero(), None, ()),
-                palette: std::array::from_fn(|_| StructureBlock::None),
-            })
-        }
+        Ok(load_base_structure(dot_vox_data, |col| StructureBlock::Filled(BlockKind::Misc, col)))
     }
 }
 

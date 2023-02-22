@@ -40,9 +40,12 @@ layout(location = 2) in vec2 f_vel;
 
 layout(std140, set = 2, binding = 0)
 uniform u_locals {
-    vec3 model_offs;
-    float load_time;
+    vec4 model_mat0;
+    vec4 model_mat1;
+    vec4 model_mat2;
+    vec4 model_mat3;
     ivec4 atlas_offs;
+    float load_time;
 };
 
 layout(location = 0) out vec4 tgt_color;

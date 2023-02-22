@@ -20,7 +20,7 @@ use tracing::error;
 use vek::*;
 
 #[derive(Clone, Copy, PartialEq)]
-enum FaceKind {
+pub enum FaceKind {
     /// Opaque face that is facing something non-opaque; either
     /// water (Opaque(true)) or something else (Opaque(false)).
     Opaque(bool),
@@ -537,7 +537,7 @@ pub fn generate_mesh<'a>(
 
 /// NOTE: Make sure to reflect any changes to how meshing is performanced in
 /// [scene::terrain::Terrain::skip_remesh].
-fn should_draw_greedy(
+pub fn should_draw_greedy(
     pos: Vec3<i32>,
     delta: Vec3<i32>,
     flat_get: impl Fn(Vec3<i32>) -> Block,

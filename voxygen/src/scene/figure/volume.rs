@@ -1,14 +1,9 @@
 use super::{
-    cache::FigureKey,
-    load::{BodySpec, BoneMeshes},
+    cache::{FigureKey, TerrainModelEntryFuture},
+    load::{BodySpec, ShipBoneMeshes},
     EcsEntity,
 };
-use common::{
-    assets,
-    comp::ship::figuredata::VoxelCollider,
-    figure::{Cell, Segment},
-    vol::ReadVol,
-};
+use common::{assets, comp::ship::figuredata::VoxelCollider};
 use std::{convert::TryFrom, sync::Arc};
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
@@ -68,8 +63,10 @@ impl anim::Skeleton for VolumeKey {
 }
 
 impl BodySpec for VolumeKey {
+    type BoneMesh = ShipBoneMeshes;
     type Extra = Arc<VoxelCollider>;
     type Manifests = ();
+    type ModelEntryFuture<const N: usize> = TerrainModelEntryFuture<N>;
     type Spec = ();
 
     fn load_spec() -> Result<Self::Manifests, assets::Error> { Ok(()) }
@@ -82,16 +79,11 @@ impl BodySpec for VolumeKey {
         _: &FigureKey<Self>,
         _: &Self::Manifests,
         collider: Self::Extra,
-    ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT] {
+    ) -> [Option<Self::BoneMesh>; anim::MAX_BONE_COUNT] {
         println!("Generating segment...");
         [
             Some((
-                Segment::from_fn(collider.volume().sz, (), |pos| {
-                    match collider.volume().get(pos).unwrap().get_color() {
-                        Some(col) => Cell::new(col, false, false, false),
-                        None => Cell::Empty,
-                    }
-                }),
+                collider.volume().clone(),
                 -collider.volume().sz.map(|e| e as f32) / 2.0,
             )),
             None,

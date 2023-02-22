@@ -1347,14 +1347,28 @@ impl Scene {
             // Render the skybox.
             first_pass.draw_skybox(&self.skybox.model);
 
-            // Draws translucent terrain and sprites
-            self.terrain.render_translucent(
-                &mut first_pass,
+            // Draws sprites
+            let mut sprite_drawer = first_pass.draw_sprites(
+                &self.terrain.sprite_globals,
+                &self.terrain.sprite_col_lights,
+            );
+            self.figure_mgr.render_sprites(
+                &mut sprite_drawer,
+                state,
+                focus_pos,
+                scene_data.sprite_render_distance,
+            );
+            self.terrain.render_sprites(
+                &mut sprite_drawer,
                 focus_pos,
                 cam_pos,
                 scene_data.sprite_render_distance,
                 culling_mode,
             );
+            drop(sprite_drawer);
+
+            // Draws translucent
+            self.terrain.render_translucent(&mut first_pass, focus_pos);
 
             // Render particle effects.
             self.particle_mgr

@@ -37,9 +37,12 @@ layout(set = 0, binding = 15) restrict readonly buffer sprite_verts {
 
 layout (std140, set = 3, binding = 0)
 uniform u_terrain_locals {
-    vec3 model_offs;
-    float load_time;
+    vec4 model_mat0;
+    vec4 model_mat1;
+    vec4 model_mat2;
+    vec4 model_mat3;
     ivec4 atlas_offs;
+    float load_time;
 };
 
 // TODO: consider grouping into vec4's
@@ -89,15 +92,23 @@ float wind_wave(float off, float scaling, float speed, float strength) {
 }
 
 void main() {
+    mat4 model_mat;
+    model_mat[0] = model_mat0;
+    model_mat[1] = model_mat1;
+    model_mat[2] = model_mat2;
+    model_mat[3] = model_mat3;
+
     // Matrix to transform this sprite instance from model space to chunk space
     mat4 inst_mat;
     inst_mat[0] = inst_mat0;
     inst_mat[1] = inst_mat1;
     inst_mat[2] = inst_mat2;
-    inst_mat[3] = inst_mat3;
+    inst_mat[3] = inst_mat3;// + vec4(-14.5, -16.5, 0.0, 0.0);
+
+    inst_mat = model_mat * inst_mat;
 
     // Worldpos of the chunk that this sprite is in
-    vec3 chunk_offs = model_offs - focus_off.xyz;
+    vec3 chunk_offs = -focus_off.xyz;
 
     f_inst_light = vec2(inst_light, inst_glow);
 
@@ -116,15 +127,14 @@ void main() {
 
     // Position of the sprite block in the chunk
     // Used for highlighting the selected sprite, and for opening doors
-    vec3 inst_chunk_pos = vec3(inst_pos_ori_door & 0x3Fu, (inst_pos_ori_door >> 6) & 0x3Fu, float((inst_pos_ori_door >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
-    vec3 sprite_pos = inst_chunk_pos + chunk_offs;
+    vec3 sprite_pos = inst_mat[3].xyz + chunk_offs;
     float sprite_ori = (inst_pos_ori_door >> 29) & 0x7u;
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
         if((inst_pos_ori_door & (1 << 28)) != 0) {
             const float MIN_OPEN_DIST = 0.2;
             const float MAX_OPEN_DIST = 1.5;
-            float min_entity_dist = nearest_entity(sprite_pos + 0.5, 1.0).w;
+            float min_entity_dist = nearest_entity(sprite_pos, 1.0).w;
 
             if (min_entity_dist < MAX_OPEN_DIST) {
                 float flip = sprite_ori <= 3 ? 1.0 : -1.0;

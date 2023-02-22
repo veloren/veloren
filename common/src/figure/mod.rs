@@ -10,10 +10,31 @@ pub use self::{
 
 use crate::{
     vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
-    volumes::dyna::Dyna,
+    volumes::dyna::Dyna, terrain::{Block, BlockKind},
 };
 use dot_vox::DotVoxData;
 use vek::*;
+
+pub type TerrainSegment = Dyna<Block, ()>;
+
+impl From<Segment> for TerrainSegment {
+    fn from(value: Segment) -> Self {
+        TerrainSegment::from_fn(value.sz, (), |pos| {
+            match value.get(pos) {
+                Err(_) | Ok(Cell::Empty) => Block::empty(),
+                Ok(cell) => {
+                    if cell.is_hollow() {
+                        Block::empty()
+                    } else if cell.is_glowy() {
+                        Block::new(BlockKind::GlowingRock, cell.get_color().unwrap())
+                    } else {
+                        Block::new(BlockKind::Misc, cell.get_color().unwrap())
+                    }
+                }
+            }
+        })
+    }
+}
 
 /// A type representing a volume that may be part of an animated figure.
 ///

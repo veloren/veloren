@@ -1,6 +1,7 @@
 use crate::{
     mesh::{
         greedy::{self, GreedyConfig, GreedyMesh},
+        terrain::FaceKind,
         MeshGen,
     },
     render::{Mesh, ParticleVertex, SpriteVertex, TerrainVertex},
@@ -8,6 +9,7 @@ use crate::{
 };
 use common::{
     figure::Cell,
+    terrain::Block,
     vol::{BaseVol, ReadVol, SizedVol, Vox},
 };
 use core::convert::TryFrom;
@@ -16,7 +18,7 @@ use vek::*;
 //    /// NOTE: bone_idx must be in [0, 15] (may be bumped to [0, 31] at some
 //    /// point).
 // TODO: this function name...
-pub fn generate_mesh_base_vol_terrain<'a: 'b, 'b, V: 'a>(
+pub fn generate_mesh_base_vol_figure<'a: 'b, 'b, V: 'a>(
     vol: V,
     (greedy, opaque_mesh, offs, scale, bone_idx): (
         &'b mut GreedyMesh<'a>,
@@ -103,6 +105,120 @@ where
                 .and_then(|vox| vox.get_color())
                 .unwrap_or_else(Rgb::zero);
             TerrainVertex::make_col_light_figure(light, glowy, shiny, col)
+        },
+    });
+    let bounds = math::Aabb {
+        // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
+        min: math::Vec3::from((lower_bound.as_::<f32>() + offs) * scale),
+        max: math::Vec3::from((upper_bound.as_::<f32>() + offs) * scale),
+    }
+    .made_valid();
+
+    (Mesh::new(), Mesh::new(), Mesh::new(), bounds)
+}
+
+pub fn generate_mesh_base_vol_terrain<'a: 'b, 'b, V: 'a>(
+    vol: V,
+    (greedy, opaque_mesh, offs, scale, bone_idx): (
+        &'b mut GreedyMesh<'a>,
+        &'b mut Mesh<TerrainVertex>,
+        Vec3<f32>,
+        Vec3<f32>,
+        u8,
+    ),
+) -> MeshGen<TerrainVertex, TerrainVertex, TerrainVertex, math::Aabb<f32>>
+where
+    V: BaseVol<Vox = Block> + ReadVol + SizedVol,
+{
+    assert!(bone_idx <= 15, "Bone index for figures must be in [0, 15]");
+    let max_size = greedy.max_size();
+    // NOTE: Required because we steal two bits from the normal in the shadow uint
+    // in order to store the bone index.  The two bits are instead taken out
+    // of the atlas coordinates, which is why we "only" allow 1 << 15 per
+    // coordinate instead of 1 << 16.
+    assert!(max_size.reduce_max() < 1 << 15);
+
+    let lower_bound = vol.lower_bound();
+    let upper_bound = vol.upper_bound();
+    assert!(
+        lower_bound.x <= upper_bound.x
+            && lower_bound.y <= upper_bound.y
+            && lower_bound.z <= upper_bound.z
+    );
+    // NOTE: Figure sizes should be no more than 512 along each axis.
+    let greedy_size = upper_bound - lower_bound + 1;
+    assert!(greedy_size.x <= 512 && greedy_size.y <= 512 && greedy_size.z <= 512);
+    // NOTE: Cast to usize is safe because of previous check, since all values fit
+    // into u16 which is safe to cast to usize.
+    let greedy_size = greedy_size.as_::<usize>();
+    let greedy_size_cross = greedy_size;
+    let draw_delta = lower_bound;
+
+    let get_light = |vol: &mut V, pos: Vec3<i32>| {
+        if vol.get(pos).map_or(true, |vox| vox.is_fluid()) {
+            1.0
+        } else {
+            0.0
+        }
+    };
+    let get_ao = |vol: &mut V, pos: Vec3<i32>| {
+        if vol.get(pos).map_or(false, |vox| vox.is_opaque()) {
+            0.0
+        } else {
+            1.0
+        }
+    };
+    let get_glow = |vol: &mut V, pos: Vec3<i32>| {
+        vol.get(pos)
+            .ok()
+            .and_then(|vox| vox.get_glow())
+            .unwrap_or(0) as f32
+            / 255.0
+    };
+    let get_opacity = |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_fluid());
+    let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
+        super::terrain::should_draw_greedy(pos, delta, &|vox| {
+            vol.get(vox)
+                .map(|vox| *vox)
+                .unwrap_or_else(|_| Block::empty())
+        })
+    };
+
+    let create_opaque = |atlas_pos, pos, norm| {
+        TerrainVertex::new_figure(atlas_pos, (pos + offs) * scale, norm, bone_idx)
+    };
+
+    greedy.push(GreedyConfig {
+        data: vol,
+        draw_delta,
+        greedy_size,
+        greedy_size_cross,
+        get_ao,
+        get_light,
+        get_glow,
+        get_opacity,
+        should_draw,
+        push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &FaceKind| match meta {
+            FaceKind::Opaque(meta) => {
+                opaque_mesh.push_quad(greedy::create_quad(
+                    atlas_origin,
+                    dim,
+                    origin,
+                    draw_dim,
+                    norm,
+                    meta,
+                    |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
+                ));
+            },
+            FaceKind::Fluid => {},
+        },
+        make_face_texel: |vol: &mut V, pos, light, _, _| {
+            let block = vol.get(pos).ok();
+            let glowy = block.map(|c| c.get_glow().is_some()).unwrap_or_default();
+            let col = block
+                .and_then(|vox| vox.get_color())
+                .unwrap_or_else(Rgb::zero);
+            TerrainVertex::make_col_light_figure(light, glowy, false, col)
         },
     });
     let bounds = math::Aabb {

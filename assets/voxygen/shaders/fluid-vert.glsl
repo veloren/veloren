@@ -26,9 +26,12 @@ layout(location = 1) in uint v_vel;
 
 layout(std140, set = 2, binding = 0)
 uniform u_locals {
-    vec3 model_offs;
-    float load_time;
+    vec4 model_mat0;
+    vec4 model_mat1;
+    vec4 model_mat2;
+    vec4 model_mat3;
     ivec4 atlas_offs;
+    float load_time;
 };
 
 // struct ShadowLocals {
@@ -51,7 +54,14 @@ layout(location = 2) out vec2 f_vel;
 const float EXTRA_NEG_Z = 65536.0/*65536.1*/;
 
 void main() {
-    f_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0x1FFFFu) - EXTRA_NEG_Z) + model_offs - focus_off.xyz;
+    mat4 model_mat;
+    model_mat[0] = model_mat0;
+    model_mat[1] = model_mat1;
+    model_mat[2] = model_mat2;
+    model_mat[3] = model_mat3;
+    vec3 rel_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0x1FFFFu) - EXTRA_NEG_Z);
+    f_pos = (model_mat * vec4(rel_pos, 1.0)).xyz - focus_off.xyz;
+
     f_vel = vec2(
         (float(v_vel & 0xFFFFu) - 32768.0) / 1000.0,
         (float((v_vel >> 16u) & 0xFFFFu) - 32768.0) / 1000.0
@@ -68,7 +78,7 @@ void main() {
         #endif
     #endif
 
-    float pull_down = pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0) * 0.7;
+    // float pull_down = pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0) * 0.7;
     //f_pos.z -= pull_down;
 
     #ifdef EXPERIMENTAL_CURVEDWORLD

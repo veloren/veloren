@@ -1945,9 +1945,7 @@ impl ParticleMgr {
             .collect::<Vec<ParticleInstance>>();
 
         // TODO: optimise buffer writes
-        let gpu_instances = renderer
-            .create_instances(&all_cpu_instances)
-            .expect("Failed to upload particle instances to the GPU!");
+        let gpu_instances = renderer.create_instances(&all_cpu_instances);
 
         self.instances = gpu_instances;
     }
@@ -1972,9 +1970,7 @@ impl ParticleMgr {
 fn default_instances(renderer: &mut Renderer) -> Instances<ParticleInstance> {
     let empty_vec = Vec::new();
 
-    renderer
-        .create_instances(&empty_vec)
-        .expect("Failed to upload particle instances to the GPU!")
+    renderer.create_instances(&empty_vec)
 }
 
 const DEFAULT_MODEL_KEY: &str = "voxygen.voxel.particle";

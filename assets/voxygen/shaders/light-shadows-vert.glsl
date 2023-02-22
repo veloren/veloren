@@ -33,9 +33,12 @@ layout(location = 1) in uint v_pos_norm;
 // Light projection matrices.
 layout (std140, set = 1,  binding = 0)
 uniform u_locals {
-    vec3 model_offs;
-    float load_time;
+    vec4 model_mat0;
+    vec4 model_mat1;
+    vec4 model_mat2;
+    vec4 model_mat3;
     ivec4 atlas_offs;
+    float load_time;
 };
 
 // out vec4 shadowMapCoord;
@@ -43,12 +46,16 @@ uniform u_locals {
 const int EXTRA_NEG_Z = 32768;
 
 void main() {
-    vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
-    vec3 f_pos = f_chunk_pos + model_offs - focus_off.xyz;
-    // f_pos = v_pos;
-    // vec3 f_pos = f_chunk_pos + model_offs;
+    mat4 model_mat;
+    model_mat[0] = model_mat0;
+    model_mat[1] = model_mat1;
+    model_mat[2] = model_mat2;
+    model_mat[3] = model_mat3;
 
-    // gl_Position = v_pos + vec4(model_offs, 0.0);
+    vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+    vec3 f_pos = (vec4(f_chunk_pos, 1.0) * model_mat).xyz - focus_off.xyz;
+    // f_pos = v_pos;
+
     gl_Position = /*all_mat * */vec4(f_pos/*, 1.0*/, /*float(((f_pos_norm >> 29) & 0x7u) ^ 0x1)*//*uintBitsToFloat(v_pos_norm)*/1.0);
     // shadowMapCoord = lights[gl_InstanceID].light_pos * gl_Vertex;
     // vec4(v_pos, 0.0, 1.0);

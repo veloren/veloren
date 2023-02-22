@@ -3,7 +3,7 @@ use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
     lottery::LootSpec,
-    make_case_elim, rtsim,
+    make_case_elim, rtsim, vol::Vox,
 };
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
@@ -115,6 +115,16 @@ impl BlockKind {
 pub struct Block {
     kind: BlockKind,
     attr: [u8; 3],
+}
+
+impl Vox for Block {
+    fn empty() -> Self {
+        Block::empty()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.is_air() && self.get_sprite().is_none()
+    }
 }
 
 impl Deref for Block {
