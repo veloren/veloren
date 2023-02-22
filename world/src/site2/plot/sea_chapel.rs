@@ -2539,7 +2539,7 @@ impl Structure for SeaChapel {
                 min: Vec3::new(
                     cr_center.x + (diameter / 3) - 1,
                     cr_center.y - 2,
-                    base - (2 * (diameter / 3)) - (diameter / 4),
+                    base - (2 * (diameter / 3)) - (diameter / 4) + 2,
                 ),
                 max: Vec3::new(
                     cr_center.x + (diameter / 3) + 6,

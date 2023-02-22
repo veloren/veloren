@@ -211,6 +211,11 @@
         secondary: "common.abilities.custom.beastclaws.basic",
         abilities: [],
     ),
+    Custom("Tursus Claws"): (
+        primary: "common.abilities.custom.tursus_claws.basic",
+        secondary: "common.abilities.custom.tursus_claws.basic",
+        abilities: [],
+    ),
     Custom("Wendigo Magic"): (
         primary: "common.abilities.custom.wendigomagic.frostbomb",
         secondary: "common.abilities.custom.wendigomagic.singlestrike",

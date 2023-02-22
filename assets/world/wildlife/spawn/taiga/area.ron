@@ -10,6 +10,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.peaceful.moose")),
                 (1, (1, 1, "common.entity.wild.peaceful.arctic_hare")),
                 (1, (1, 1, "common.entity.wild.peaceful.tuskram")),
+                (1, (1, 1, "common.entity.wild.aggressive.bristleback")),
                 (1, (1, 4, "common.entity.wild.peaceful.crow")),
             ],
             spawn_mode: Land,

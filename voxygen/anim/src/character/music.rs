@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::{
-    comp::item::{AbilitySpec, Hands, ToolKind},
+    comp::item::{Hands, ToolKind},
     states::utils::AbilityInfo,
 };
 use std::{f32::consts::PI, ops::Mul};
@@ -12,8 +12,9 @@ pub struct MusicAnimation;
 
 type MusicAnimationDependency<'a> = (
     (Option<Hands>, Option<Hands>),
-    (Option<AbilityInfo>, Option<&'a AbilitySpec>, f32),
+    (Option<AbilityInfo>, f32),
     Vec3<f32>,
+    Option<&'a str>,
 );
 impl Animation for MusicAnimation {
     type Dependency<'a> = MusicAnimationDependency<'a>;
@@ -25,7 +26,7 @@ impl Animation for MusicAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_music")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_hands, (ability_info, active_tool_spec, global_time), rel_vel): Self::Dependency<'_>,
+        (_hands, (ability_info, global_time), rel_vel, ability_id): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -98,228 +99,236 @@ impl Animation for MusicAnimation {
             (global_time + anim_time / 6.0).floor().mul(1337.0).sin() * 0.15,
         );
 
-        // TODO: create Instrument SubToolKinds to distinguish instruments
         match ability_info.and_then(|a| a.tool) {
             Some(ToolKind::Instrument) => {
-                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
-                    // instrument specific head_bop
-                    let head_bop = match spec.as_str() {
-                        "Flute" | "GlassFlute" | "Melodica" => 0.2,
-                        "Guitar" | "DarkGuitar" | "Lute" | "Sitar" => 0.5,
-                        "Lyre" | "IcyTalharpa" | "Kalimba" => 0.3,
-                        _ => 1.0,
-                    };
-                    next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-                    next.head.orientation = Quaternion::rotation_z((short * head_bop) * -0.6)
-                        * Quaternion::rotation_x(
-                            0.2 + head_look.y.max(0.0) + (shorte * head_bop).abs() * -0.2,
+                // instrument specific head_bop
+                let head_bop = match ability_id {
+                    Some("common.abilities.music.flute")
+                    | Some("common.abilities.music.glass_flute")
+                    | Some("common.abilities.music.melodica") => 0.2,
+
+                    Some("common.abilities.music.guitar")
+                    | Some("common.abilities.music.dark_guitar")
+                    | Some("common.abilities.music.lute")
+                    | Some("common.abilities.music.sitar") => 0.5,
+
+                    Some("common.abilities.music.lyre")
+                    | Some("common.abilities.music.icy_talharpa")
+                    | Some("common.abilities.music.kalimba") => 0.3,
+                    _ => 1.0,
+                };
+                next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+                next.head.orientation = Quaternion::rotation_z((short * head_bop) * -0.6)
+                    * Quaternion::rotation_x(
+                        0.2 + head_look.y.max(0.0) + (shorte * head_bop).abs() * -0.2,
+                    );
+                // instrument specific hand and instrument animations
+                match ability_id {
+                    Some("common.abilities.music.double_bass") => {
+                        next.hand_l.position = Vec3::new(
+                            3.5 - s_a.hand.0,
+                            7.0 + s_a.hand.1 + shortealt * -3.0,
+                            8.0 + s_a.hand.2 + shortealt * -0.75,
                         );
-                    // instrument specific hand and instrument animations
-                    match spec.as_str() {
-                        "DoubleBass" => {
-                            next.hand_l.position = Vec3::new(
-                                3.5 - s_a.hand.0,
-                                7.0 + s_a.hand.1 + shortealt * -3.0,
-                                8.0 + s_a.hand.2 + shortealt * -0.75,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(2.4 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.5);
+                        next.hand_l.orientation = Quaternion::rotation_x(2.4 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.5);
 
-                            next.hand_r.position = Vec3::new(
-                                -2.0 + s_a.hand.0,
-                                4.0 + s_a.hand.1 + shortealt * 6.0,
-                                4.0 + s_a.hand.2 + shortealt * 0.75,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
-                                * Quaternion::rotation_y(0.4);
+                        next.hand_r.position = Vec3::new(
+                            -2.0 + s_a.hand.0,
+                            4.0 + s_a.hand.1 + shortealt * 6.0,
+                            4.0 + s_a.hand.2 + shortealt * 0.75,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
+                            * Quaternion::rotation_y(0.4);
 
-                            next.main.position = Vec3::new(-4.0, 6.0, 16.0);
-                            next.main.orientation = Quaternion::rotation_x(0.1)
-                                * Quaternion::rotation_y(3.0)
-                                * Quaternion::rotation_z(PI / -3.0);
-                        },
-                        "Flute" | "GlassFlute" => {
-                            next.hand_l.position = Vec3::new(
-                                4.0 - s_a.hand.0,
-                                6.0 + s_a.hand.1 + shortealt * -0.5,
-                                4.0 + s_a.hand.2 + shortealt * -0.75,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(2.4 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.9);
+                        next.main.position = Vec3::new(-4.0, 6.0, 16.0);
+                        next.main.orientation = Quaternion::rotation_x(0.1)
+                            * Quaternion::rotation_y(3.0)
+                            * Quaternion::rotation_z(PI / -3.0);
+                    },
+                    Some("common.abilities.music.flute")
+                    | Some("common.abilities.music.glass_flute") => {
+                        next.hand_l.position = Vec3::new(
+                            4.0 - s_a.hand.0,
+                            6.0 + s_a.hand.1 + shortealt * -0.5,
+                            4.0 + s_a.hand.2 + shortealt * -0.75,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(2.4 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.9);
 
-                            next.hand_r.position = Vec3::new(
-                                -4.5 + s_a.hand.0,
-                                4.0 + s_a.hand.1 + shortealt * 2.0,
-                                2.0 + s_a.hand.2 + shortealt * 0.75,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
-                                * Quaternion::rotation_y(0.6);
+                        next.hand_r.position = Vec3::new(
+                            -4.5 + s_a.hand.0,
+                            4.0 + s_a.hand.1 + shortealt * 2.0,
+                            2.0 + s_a.hand.2 + shortealt * 0.75,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
+                            * Quaternion::rotation_y(0.6);
 
-                            next.main.position = Vec3::new(-2.5, 10.0, -11.0);
-                            next.main.orientation = Quaternion::rotation_x(3.5)
-                                * Quaternion::rotation_y(PI)
-                                * Quaternion::rotation_z(0.05);
-                        },
-                        "Guitar" | "DarkGuitar" => {
-                            next.hand_l.position = Vec3::new(
-                                1.0 - s_a.hand.0,
-                                6.0 + s_a.hand.1 + shortealt * -1.0,
-                                2.0 + s_a.hand.2 + shortealt * -1.5,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(1.8 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.6)
-                                * Quaternion::rotation_z(0.8);
+                        next.main.position = Vec3::new(-2.5, 10.0, -11.0);
+                        next.main.orientation = Quaternion::rotation_x(3.5)
+                            * Quaternion::rotation_y(PI)
+                            * Quaternion::rotation_z(0.05);
+                    },
+                    Some("common.abilities.music.guitar")
+                    | Some("common.abilities.music.dark_guitar") => {
+                        next.hand_l.position = Vec3::new(
+                            1.0 - s_a.hand.0,
+                            6.0 + s_a.hand.1 + shortealt * -1.0,
+                            2.0 + s_a.hand.2 + shortealt * -1.5,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(1.8 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.6)
+                            * Quaternion::rotation_z(0.8);
 
-                            next.hand_r.position = Vec3::new(
-                                -2.0 + s_a.hand.0 - shortealt * 1.25,
-                                6.0 + s_a.hand.1 + shortealt * 2.0,
-                                3.0 + s_a.hand.2 + shortealt * 0.25,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.0 + foot * -0.15)
-                                * Quaternion::rotation_y(0.6);
+                        next.hand_r.position = Vec3::new(
+                            -2.0 + s_a.hand.0 - shortealt * 1.25,
+                            6.0 + s_a.hand.1 + shortealt * 2.0,
+                            3.0 + s_a.hand.2 + shortealt * 0.25,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.0 + foot * -0.15)
+                            * Quaternion::rotation_y(0.6);
 
-                            next.main.position = Vec3::new(-14.0, 6.0, 5.0);
-                            next.main.orientation = Quaternion::rotation_x(0.1)
-                                * Quaternion::rotation_y(2.0)
-                                * Quaternion::rotation_z(PI / -3.0);
-                        },
-                        "Lyre" | "IcyTalharpa" => {
-                            next.hand_l.position = Vec3::new(
-                                3.0 - s_a.hand.0,
-                                4.0 + s_a.hand.1 + shortealt * -0.1,
-                                1.0 + s_a.hand.2 + shortealt * -0.2,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(1.4 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.6);
+                        next.main.position = Vec3::new(-14.0, 6.0, 5.0);
+                        next.main.orientation = Quaternion::rotation_x(0.1)
+                            * Quaternion::rotation_y(2.0)
+                            * Quaternion::rotation_z(PI / -3.0);
+                    },
+                    Some("common.abilities.music.lyre")
+                    | Some("common.abilities.music.icy_talharpa") => {
+                        next.hand_l.position = Vec3::new(
+                            3.0 - s_a.hand.0,
+                            4.0 + s_a.hand.1 + shortealt * -0.1,
+                            1.0 + s_a.hand.2 + shortealt * -0.2,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(1.4 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.6);
 
-                            next.hand_r.position = Vec3::new(
-                                -4.0 + s_a.hand.0 + shortealt * 2.0,
-                                5.0 + s_a.hand.1 - shortealt * 3.0,
-                                2.0 + s_a.hand.2 + shortealt * 0.75,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
-                                * Quaternion::rotation_y(0.9);
+                        next.hand_r.position = Vec3::new(
+                            -4.0 + s_a.hand.0 + shortealt * 2.0,
+                            5.0 + s_a.hand.1 - shortealt * 3.0,
+                            2.0 + s_a.hand.2 + shortealt * 0.75,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
+                            * Quaternion::rotation_y(0.9);
 
-                            next.main.position = Vec3::new(8.0, 14.0, -6.0);
-                            next.main.orientation = Quaternion::rotation_x(0.2)
-                                * Quaternion::rotation_y(-0.75)
-                                * Quaternion::rotation_z(0.20);
-                        },
+                        next.main.position = Vec3::new(8.0, 14.0, -6.0);
+                        next.main.orientation = Quaternion::rotation_x(0.2)
+                            * Quaternion::rotation_y(-0.75)
+                            * Quaternion::rotation_z(0.20);
+                    },
+                    Some("common.abilities.music.kalimba") => {
+                        next.hand_l.position = Vec3::new(
+                            3.0 - s_a.hand.0,
+                            4.0 + s_a.hand.1 + shortealt * -0.1,
+                            1.0 + s_a.hand.2 + shortealt * -0.2,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(1.4 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.6);
 
-                        "Kalimba" => {
-                            next.hand_l.position = Vec3::new(
-                                3.0 - s_a.hand.0,
-                                4.0 + s_a.hand.1 + shortealt * -0.1,
-                                1.0 + s_a.hand.2 + shortealt * -0.2,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(1.4 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.6);
+                        next.hand_r.position = Vec3::new(
+                            -2.0 + s_a.hand.0 + shortealt * 2.0,
+                            5.0 + s_a.hand.1 - shortealt * 3.0,
+                            2.0 + s_a.hand.2 + shortealt * 0.75,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
+                            * Quaternion::rotation_y(0.9);
 
-                            next.hand_r.position = Vec3::new(
-                                -2.0 + s_a.hand.0 + shortealt * 2.0,
-                                5.0 + s_a.hand.1 - shortealt * 3.0,
-                                2.0 + s_a.hand.2 + shortealt * 0.75,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
-                                * Quaternion::rotation_y(0.9);
+                        next.main.position = Vec3::new(8.0, 12.0, -8.0);
+                        next.main.orientation = Quaternion::rotation_x(0.2)
+                            * Quaternion::rotation_y(-0.75)
+                            * Quaternion::rotation_z(PI - 0.2);
+                    },
+                    Some("common.abilities.music.lute") => {
+                        next.hand_l.position = Vec3::new(
+                            2.0 - s_a.hand.0,
+                            5.0 + s_a.hand.1 + shortealt * -1.0,
+                            2.0 + s_a.hand.2 + shortealt * -1.5,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(1.8 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.6)
+                            * Quaternion::rotation_z(0.8);
 
-                            next.main.position = Vec3::new(8.0, 12.0, -8.0);
-                            next.main.orientation = Quaternion::rotation_x(0.2)
-                                * Quaternion::rotation_y(-0.75)
-                                * Quaternion::rotation_z(PI - 0.2);
-                        },
-                        "Lute" => {
-                            next.hand_l.position = Vec3::new(
-                                2.0 - s_a.hand.0,
-                                5.0 + s_a.hand.1 + shortealt * -1.0,
-                                2.0 + s_a.hand.2 + shortealt * -1.5,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(1.8 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.6)
-                                * Quaternion::rotation_z(0.8);
+                        next.hand_r.position = Vec3::new(
+                            -1.0 + s_a.hand.0 - shortealt * 1.25,
+                            6.0 + s_a.hand.1 + shortealt * 2.0,
+                            2.0 + s_a.hand.2 + shortealt * 0.25,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.0 + foot * -0.15)
+                            * Quaternion::rotation_y(0.6);
 
-                            next.hand_r.position = Vec3::new(
-                                -1.0 + s_a.hand.0 - shortealt * 1.25,
-                                6.0 + s_a.hand.1 + shortealt * 2.0,
-                                2.0 + s_a.hand.2 + shortealt * 0.25,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.0 + foot * -0.15)
-                                * Quaternion::rotation_y(0.6);
+                        next.main.position = Vec3::new(-14.0, 6.0, 4.0);
+                        next.main.orientation = Quaternion::rotation_x(0.1)
+                            * Quaternion::rotation_y(2.0)
+                            * Quaternion::rotation_z(PI / -3.0);
+                    },
+                    Some("common.abilities.music.melodica") => {
+                        next.hand_l.position = Vec3::new(
+                            4.0 - s_a.hand.0,
+                            6.0 + s_a.hand.1 + shortealt * -0.5,
+                            4.0 + s_a.hand.2 + shortealt * -0.75,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(2.4 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.9);
 
-                            next.main.position = Vec3::new(-14.0, 6.0, 4.0);
-                            next.main.orientation = Quaternion::rotation_x(0.1)
-                                * Quaternion::rotation_y(2.0)
-                                * Quaternion::rotation_z(PI / -3.0);
-                        },
-                        "Melodica" => {
-                            next.hand_l.position = Vec3::new(
-                                4.0 - s_a.hand.0,
-                                6.0 + s_a.hand.1 + shortealt * -0.5,
-                                4.0 + s_a.hand.2 + shortealt * -0.75,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(2.4 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.9);
+                        next.hand_r.position = Vec3::new(
+                            -3.5 + s_a.hand.0,
+                            4.0 + s_a.hand.1 + shortealt * 2.0,
+                            2.0 + s_a.hand.2 + shortealt * 0.75,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
+                            * Quaternion::rotation_y(0.6);
 
-                            next.hand_r.position = Vec3::new(
-                                -3.5 + s_a.hand.0,
-                                4.0 + s_a.hand.1 + shortealt * 2.0,
-                                2.0 + s_a.hand.2 + shortealt * 0.75,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
-                                * Quaternion::rotation_y(0.6);
+                        next.main.position = Vec3::new(-1.0, 2.0, 16.0);
+                        next.main.orientation = Quaternion::rotation_x(0.3)
+                            * Quaternion::rotation_y(PI)
+                            * Quaternion::rotation_z(PI / -2.0);
+                    },
+                    Some("common.abilities.music.washboard") => {
+                        next.hand_l.position = Vec3::new(
+                            3.0 - s_a.hand.0,
+                            4.0 + s_a.hand.1 + shortealt * -0.1,
+                            1.0 + s_a.hand.2 + shortealt * -0.2,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(1.4 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.6);
 
-                            next.main.position = Vec3::new(-1.0, 2.0, 16.0);
-                            next.main.orientation = Quaternion::rotation_x(0.3)
-                                * Quaternion::rotation_y(PI)
-                                * Quaternion::rotation_z(PI / -2.0);
-                        },
-                        "Washboard" => {
-                            next.hand_l.position = Vec3::new(
-                                3.0 - s_a.hand.0,
-                                4.0 + s_a.hand.1 + shortealt * -0.1,
-                                1.0 + s_a.hand.2 + shortealt * -0.2,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(1.4 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.6);
+                        next.hand_r.position = Vec3::new(
+                            -4.0 + s_a.hand.0 + shortealt * 2.0,
+                            5.0 + s_a.hand.1 - shortealt * 3.0,
+                            2.0 + s_a.hand.2 + shortealt * 0.75,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
+                            * Quaternion::rotation_y(0.9);
 
-                            next.hand_r.position = Vec3::new(
-                                -4.0 + s_a.hand.0 + shortealt * 2.0,
-                                5.0 + s_a.hand.1 - shortealt * 3.0,
-                                2.0 + s_a.hand.2 + shortealt * 0.75,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
-                                * Quaternion::rotation_y(0.9);
+                        next.main.position = Vec3::new(8.0, 14.0, -6.0);
+                        next.main.orientation = Quaternion::rotation_x(0.2)
+                            * Quaternion::rotation_y(-0.75)
+                            * Quaternion::rotation_z(0.20);
+                    },
+                    Some("common.abilities.music.sitar") => {
+                        next.hand_l.position = Vec3::new(
+                            2.0 - s_a.hand.0,
+                            6.0 + s_a.hand.1 + shortealt * -1.0,
+                            1.0 + s_a.hand.2 + shortealt * -1.5,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(1.8 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.6)
+                            * Quaternion::rotation_z(0.8);
 
-                            next.main.position = Vec3::new(8.0, 14.0, -6.0);
-                            next.main.orientation = Quaternion::rotation_x(0.2)
-                                * Quaternion::rotation_y(-0.75)
-                                * Quaternion::rotation_z(0.20);
-                        },
-                        "Sitar" => {
-                            next.hand_l.position = Vec3::new(
-                                2.0 - s_a.hand.0,
-                                6.0 + s_a.hand.1 + shortealt * -1.0,
-                                1.0 + s_a.hand.2 + shortealt * -1.5,
-                            );
-                            next.hand_l.orientation = Quaternion::rotation_x(1.8 + foot * 0.15)
-                                * Quaternion::rotation_y(-0.6)
-                                * Quaternion::rotation_z(0.8);
+                        next.hand_r.position = Vec3::new(
+                            -2.0 + s_a.hand.0 - shortealt * 1.25,
+                            6.0 + s_a.hand.1 + shortealt * 2.0,
+                            2.0 + s_a.hand.2 + shortealt * 0.25,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.0 + foot * -0.15)
+                            * Quaternion::rotation_y(0.6);
 
-                            next.hand_r.position = Vec3::new(
-                                -2.0 + s_a.hand.0 - shortealt * 1.25,
-                                6.0 + s_a.hand.1 + shortealt * 2.0,
-                                2.0 + s_a.hand.2 + shortealt * 0.25,
-                            );
-                            next.hand_r.orientation = Quaternion::rotation_x(1.0 + foot * -0.15)
-                                * Quaternion::rotation_y(0.6);
-
-                            next.main.position = Vec3::new(-15.0, 6.0, 4.0);
-                            next.main.orientation = Quaternion::rotation_x(0.1)
-                                * Quaternion::rotation_y(2.0)
-                                * Quaternion::rotation_z(PI / -3.0);
-                        },
-                        _ => {},
-                    }
+                        next.main.position = Vec3::new(-15.0, 6.0, 4.0);
+                        next.main.orientation = Quaternion::rotation_x(0.1)
+                            * Quaternion::rotation_y(2.0)
+                            * Quaternion::rotation_z(PI / -3.0);
+                    },
+                    _ => {},
                 }
             },
             _ => {},

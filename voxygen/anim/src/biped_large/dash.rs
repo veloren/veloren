@@ -12,12 +12,13 @@ pub struct DashAnimation;
 
 impl Animation for DashAnimation {
     type Dependency<'a> = (
-        (Option<ToolKind>, Option<&'a AbilitySpec>),
+        Option<ToolKind>,
         (Option<ToolKind>, Option<&'a AbilitySpec>),
         Vec3<f32>,
         f32,
         Option<StageSection>,
         f32,
+        Option<&'a str>,
     );
     type Skeleton = BipedLargeSkeleton;
 
@@ -28,12 +29,13 @@ impl Animation for DashAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
-            (active_tool_kind, active_tool_spec),
+            active_tool_kind,
             _second_tool,
             velocity,
             _global_time,
             stage_section,
             acc_vel,
+            ability_id,
         ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
@@ -152,77 +154,65 @@ impl Animation for DashAnimation {
                         * Quaternion::rotation_y(-1.8 + move1 * -0.2 + move3 * -0.2)
                         * Quaternion::rotation_z(move1 * -0.8 + move3 * -0.1);
             },
-            Some(ToolKind::Natural) => {
-                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
-                    match spec.as_str() {
-                        "Minotaur" => {
-                            next.head.orientation =
-                                Quaternion::rotation_x(move1 * 0.4 + move3 * 0.5)
-                                    * Quaternion::rotation_z(move1 * -0.3 + move3 * -0.3);
-                            next.upper_torso.orientation =
-                                Quaternion::rotation_x(move1 * -0.4 + move3 * 0.9)
-                                    * Quaternion::rotation_z(move1 * 0.6 + move3 * -1.5);
-                            next.lower_torso.orientation =
-                                Quaternion::rotation_y(move1 * -0.2 + move3 * -0.1)
-                                    * Quaternion::rotation_x(
-                                        move1 * 0.4 + move3 * -0.7 + footrotr * 0.1,
-                                    )
-                                    * Quaternion::rotation_z(move1 * -0.6 + move3 * 1.6);
-                            next.control_l.position = Vec3::new(0.0, 4.0, 5.0);
-                            next.control_r.position = Vec3::new(0.0, 4.0, 5.0);
-                            next.weapon_l.position = Vec3::new(-12.0 + move1 * -3.0, -6.0, -18.0);
-                            next.weapon_r.position = Vec3::new(
-                                12.0 + move1 * -3.0,
-                                -6.0 + move1 * 2.0,
-                                -18.0 + move1 * 2.0,
-                            );
-                            next.second.scale = Vec3::one() * 1.0;
+            Some(ToolKind::Natural) => match ability_id {
+                Some("common.abilities.custom.minotaur.charge") => {
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.4 + move3 * 0.5)
+                        * Quaternion::rotation_z(move1 * -0.3 + move3 * -0.3);
+                    next.upper_torso.orientation =
+                        Quaternion::rotation_x(move1 * -0.4 + move3 * 0.9)
+                            * Quaternion::rotation_z(move1 * 0.6 + move3 * -1.5);
+                    next.lower_torso.orientation =
+                        Quaternion::rotation_y(move1 * -0.2 + move3 * -0.1)
+                            * Quaternion::rotation_x(move1 * 0.4 + move3 * -0.7 + footrotr * 0.1)
+                            * Quaternion::rotation_z(move1 * -0.6 + move3 * 1.6);
+                    next.control_l.position = Vec3::new(0.0, 4.0, 5.0);
+                    next.control_r.position = Vec3::new(0.0, 4.0, 5.0);
+                    next.weapon_l.position = Vec3::new(-12.0 + move1 * -3.0, -6.0, -18.0);
+                    next.weapon_r.position =
+                        Vec3::new(12.0 + move1 * -3.0, -6.0 + move1 * 2.0, -18.0 + move1 * 2.0);
+                    next.second.scale = Vec3::one() * 1.0;
 
-                            next.weapon_l.orientation = Quaternion::rotation_x(-1.67 + move1 * 0.4)
-                                * Quaternion::rotation_y(move1 * 0.4 + move2 * 0.2)
-                                * Quaternion::rotation_z(move3 * -0.5);
-                            next.weapon_r.orientation = Quaternion::rotation_x(-1.67 + move1 * 0.3)
-                                * Quaternion::rotation_y(move1 * 0.6 + move2 * -0.6)
-                                * Quaternion::rotation_z(move3 * -0.5);
+                    next.weapon_l.orientation = Quaternion::rotation_x(-1.67 + move1 * 0.4)
+                        * Quaternion::rotation_y(move1 * 0.4 + move2 * 0.2)
+                        * Quaternion::rotation_z(move3 * -0.5);
+                    next.weapon_r.orientation = Quaternion::rotation_x(-1.67 + move1 * 0.3)
+                        * Quaternion::rotation_y(move1 * 0.6 + move2 * -0.6)
+                        * Quaternion::rotation_z(move3 * -0.5);
 
-                            next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
-                            next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.0);
 
-                            next.control.orientation =
-                                Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
-                            next.shoulder_l.orientation = Quaternion::rotation_x(-0.3);
+                    next.control.orientation =
+                        Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
+                    next.shoulder_l.orientation = Quaternion::rotation_x(-0.3);
 
-                            next.shoulder_r.orientation = Quaternion::rotation_x(-0.3);
-                        },
-                        "Tidal Warrior" => {
-                            next.head.orientation =
-                                Quaternion::rotation_x(0.0) * Quaternion::rotation_z(move1 * -0.3);
-                            next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.1)
-                                * Quaternion::rotation_z(move1 * PI / 2.0);
-                            next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.1)
-                                * Quaternion::rotation_x(move1 * -0.1)
-                                * Quaternion::rotation_z(move1 * -0.2);
+                    next.shoulder_r.orientation = Quaternion::rotation_x(-0.3);
+                },
+                Some("common.abilities.custom.tidalwarrior.scuttle") => {
+                    next.head.orientation =
+                        Quaternion::rotation_x(0.0) * Quaternion::rotation_z(move1 * -0.3);
+                    next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.1)
+                        * Quaternion::rotation_z(move1 * PI / 2.0);
+                    next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.1)
+                        * Quaternion::rotation_x(move1 * -0.1)
+                        * Quaternion::rotation_z(move1 * -0.2);
 
-                            next.hand_l.position = Vec3::new(-14.0, 2.0 + motion * 1.5, -4.0);
+                    next.hand_l.position = Vec3::new(-14.0, 2.0 + motion * 1.5, -4.0);
 
-                            next.hand_l.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
-                                    * Quaternion::rotation_y(0.0)
-                                    * Quaternion::rotation_z(-0.35 + motion * -0.6);
-                            next.hand_r.position = Vec3::new(14.0, 2.0 + motion * -1.5, -4.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
+                        * Quaternion::rotation_y(0.0)
+                        * Quaternion::rotation_z(-0.35 + motion * -0.6);
+                    next.hand_r.position = Vec3::new(14.0, 2.0 + motion * -1.5, -4.0);
 
-                            next.hand_r.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
-                                    * Quaternion::rotation_y(0.0)
-                                    * Quaternion::rotation_z(0.35 + motion * 0.6);
+                    next.hand_r.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
+                        * Quaternion::rotation_y(0.0)
+                        * Quaternion::rotation_z(0.35 + motion * 0.6);
 
-                            next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 0.8);
+                    next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 0.8);
 
-                            next.shoulder_r.orientation = Quaternion::rotation_x(move1 * 0.8);
-                        },
-                        _ => {},
-                    }
-                }
+                    next.shoulder_r.orientation = Quaternion::rotation_x(move1 * 0.8);
+                },
+                _ => {},
             },
             _ => {},
         }

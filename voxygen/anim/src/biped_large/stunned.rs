@@ -225,7 +225,7 @@ impl Animation for StunnedAnimation {
                                 next.hand_r.orientation =
                                     Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
                             },
-                            "Beast Claws" => {
+                            "Beast Claws" | "Tursus Claws" => {
                                 next.shoulder_l.position =
                                     Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
 

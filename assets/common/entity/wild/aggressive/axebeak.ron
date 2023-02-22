@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("axebeak"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.theropod.horned"),
+    loot: LootTable("common.loot_tables.creature.theropod.axebeak"),
     inventory: (
         loadout: FromBody,
     ),

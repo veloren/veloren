@@ -43,7 +43,6 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.batfox")),
                 (5, (1, 1, "common.entity.wild.peaceful.forest_fox")),
                 (5, (1, 1, "common.entity.wild.peaceful.raccoon")),
-                (3, (1, 1, "common.entity.wild.aggressive.bristleback")),
                 // Pack
                 (5, (1, 3, "common.entity.wild.peaceful.rat")),
                 (5, (1, 3, "common.entity.wild.peaceful.squirrel")),

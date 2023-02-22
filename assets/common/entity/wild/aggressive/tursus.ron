@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("tursus"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.biped_large.default"),
+    loot: LootTable("common.loot_tables.creature.biped_large.tursus"),
     inventory: (
         loadout: FromBody,
     ),
