@@ -64,7 +64,7 @@ void main() {
     model_mat[3] = model_mat3;
 
     vec3 f_chunk_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
-    vec3 f_pos = (vec4(f_chunk_pos, 1.0) * model_mat).xyz - focus_off.xyz;
+    vec3 f_pos = (model_mat * vec4(f_chunk_pos, 1.0)).xyz - focus_off.xyz;
     // f_pos = v_pos;
 
     gl_Position = /*all_mat * */shadowMatrices * vec4(f_pos/*, 1.0*/, /*float(((f_pos_norm >> 29) & 0x7u) ^ 0x1)*//*uintBitsToFloat(v_pos_norm)*/1.0);

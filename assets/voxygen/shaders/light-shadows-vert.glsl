@@ -53,7 +53,7 @@ void main() {
     model_mat[3] = model_mat3;
 
     vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
-    vec3 f_pos = (vec4(f_chunk_pos, 1.0) * model_mat).xyz - focus_off.xyz;
+    vec3 f_pos = (model_mat * vec4(f_chunk_pos, 1.0)).xyz - focus_off.xyz;
     // f_pos = v_pos;
 
     gl_Position = /*all_mat * */vec4(f_pos/*, 1.0*/, /*float(((f_pos_norm >> 29) & 0x7u) ^ 0x1)*//*uintBitsToFloat(v_pos_norm)*/1.0);
