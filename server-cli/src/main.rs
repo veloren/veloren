@@ -91,6 +91,10 @@ fn main() -> io::Result<()> {
             .unwrap(),
     );
 
+    // agent and world imported here so that mim-alloc can be used when hot
+    // reloading these crates without separately declaring mim-alloc as the
+    // allocator in those crates (doing so causes UB when a vec (and presumably
+    // other allocations) are passed to a dynlib and resized within that dynlib)
     #[cfg(feature = "hot-agent")]
     {
         agent::init();

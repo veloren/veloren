@@ -771,15 +771,15 @@ impl<'a> AgentData<'a> {
                 extract_ability(AbilityInput::Auxiliary(3)),
                 extract_ability(AbilityInput::Auxiliary(4)),
             ];
-            let could_use_input = |input, misc_data| match input {
+            let could_use_input = |input, desired_energy| match input {
                 InputKind::Primary => primary.as_ref().map_or(false, |p| {
-                    p.could_use(attack_data, self, misc_data, tgt_data)
+                    p.could_use(attack_data, self, tgt_data, desired_energy)
                 }),
                 InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
-                    s.could_use(attack_data, self, misc_data, tgt_data)
+                    s.could_use(attack_data, self, tgt_data, desired_energy)
                 }),
                 InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
-                    a.could_use(attack_data, self, misc_data, tgt_data)
+                    a.could_use(attack_data, self, tgt_data, desired_energy)
                 }),
                 _ => false,
             };
@@ -804,9 +804,7 @@ impl<'a> AgentData<'a> {
                 agent.action_state.int_counters[IntCounters::Tactics as usize],
             ) {
                 SwordTactics::Unskilled => {
-                    let misc_data = MiscData {
-                        desired_energy: 15.0,
-                    };
+                    let desired_energy = 15.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -817,7 +815,7 @@ impl<'a> AgentData<'a> {
                         next_input = Some(InputKind::Secondary);
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -828,16 +826,14 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::Basic => {
-                    let misc_data = MiscData {
-                        desired_energy: 25.0,
-                    };
+                    let desired_energy = 25.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
                         continue_current_input(input, &mut next_input);
                     } else {
                         let attempt_ability = InputKind::Ability(rng.gen_range(0..5));
-                        if could_use_input(attempt_ability, &misc_data) {
+                        if could_use_input(attempt_ability, desired_energy) {
                             next_input = Some(attempt_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -846,7 +842,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -857,9 +853,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::HeavySimple => {
-                    let misc_data = MiscData {
-                        desired_energy: 35.0,
-                    };
+                    let desired_energy = 35.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -868,16 +862,16 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Heavy))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -886,7 +880,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -897,9 +891,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::AgileSimple => {
-                    let misc_data = MiscData {
-                        desired_energy: 35.0,
-                    };
+                    let desired_energy = 35.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -908,16 +900,16 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Agile))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -926,7 +918,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -937,9 +929,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::DefensiveSimple => {
-                    let misc_data = MiscData {
-                        desired_energy: 35.0,
-                    };
+                    let desired_energy = 35.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -948,18 +938,18 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Defensive))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(InputKind::Ability(3), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(3), desired_energy) {
                             next_input = Some(InputKind::Ability(3));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -968,7 +958,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -979,9 +969,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::CripplingSimple => {
-                    let misc_data = MiscData {
-                        desired_energy: 35.0,
-                    };
+                    let desired_energy = 35.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -990,16 +978,16 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Crippling))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -1008,7 +996,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -1019,9 +1007,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::CleavingSimple => {
-                    let misc_data = MiscData {
-                        desired_energy: 35.0,
-                    };
+                    let desired_energy = 35.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -1030,16 +1016,16 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(3..5));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Cleaving))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -1048,7 +1034,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -1059,9 +1045,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::HeavyAdvanced => {
-                    let misc_data = MiscData {
-                        desired_energy: 50.0,
-                    };
+                    let desired_energy = 50.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -1070,16 +1054,16 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Heavy))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -1088,7 +1072,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -1099,9 +1083,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::AgileAdvanced => {
-                    let misc_data = MiscData {
-                        desired_energy: 50.0,
-                    };
+                    let desired_energy = 50.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -1110,16 +1092,16 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Agile))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -1128,7 +1110,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -1139,9 +1121,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::DefensiveAdvanced => {
-                    let misc_data = MiscData {
-                        desired_energy: 50.0,
-                    };
+                    let desired_energy = 50.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -1150,18 +1130,18 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..4));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Defensive))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
-                        } else if could_use_input(InputKind::Ability(4), &misc_data)
+                        } else if could_use_input(InputKind::Ability(4), desired_energy)
                             && rng.gen_bool(2.0 * read_data.dt.0 as f64)
                         {
                             next_input = Some(InputKind::Ability(4));
@@ -1172,7 +1152,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -1183,9 +1163,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::CripplingAdvanced => {
-                    let misc_data = MiscData {
-                        desired_energy: 50.0,
-                    };
+                    let desired_energy = 50.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -1194,16 +1172,16 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Crippling))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -1212,7 +1190,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {
@@ -1223,9 +1201,7 @@ impl<'a> AgentData<'a> {
                     }
                 },
                 SwordTactics::CleavingAdvanced => {
-                    let misc_data = MiscData {
-                        desired_energy: 50.0,
-                    };
+                    let desired_energy = 50.0;
                     let current_input = self.char_state.ability_info().map(|ai| ai.input);
                     let mut next_input = None;
                     if let Some(input) = current_input {
@@ -1234,16 +1210,16 @@ impl<'a> AgentData<'a> {
                         let stance_ability = InputKind::Ability(rng.gen_range(1..3));
                         let random_ability = InputKind::Ability(rng.gen_range(1..5));
                         if !matches!(self.stance, Some(Stance::Sword(SwordStance::Cleaving))) {
-                            if could_use_input(stance_ability, &misc_data) {
+                            if could_use_input(stance_ability, desired_energy) {
                                 next_input = Some(stance_ability);
                             } else if rng.gen_bool(0.5) {
                                 next_input = Some(InputKind::Primary);
                             } else {
                                 next_input = Some(InputKind::Secondary);
                             }
-                        } else if could_use_input(InputKind::Ability(0), &misc_data) {
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
                             next_input = Some(InputKind::Ability(0));
-                        } else if could_use_input(random_ability, &misc_data) {
+                        } else if could_use_input(random_ability, desired_energy) {
                             next_input = Some(random_ability);
                         } else if rng.gen_bool(0.5) {
                             next_input = Some(InputKind::Primary);
@@ -1252,7 +1228,7 @@ impl<'a> AgentData<'a> {
                         }
                     };
                     if let Some(input) = next_input {
-                        if could_use_input(input, &misc_data) {
+                        if could_use_input(input, desired_energy) {
                             controller.push_basic_input(input);
                             false
                         } else {

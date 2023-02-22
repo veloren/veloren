@@ -307,10 +307,6 @@ pub enum AbilityData {
     },
 }
 
-pub struct MiscData {
-    pub desired_energy: f32,
-}
-
 impl AbilityData {
     pub fn from_ability(ability: &CharacterAbility) -> Option<Self> {
         use CharacterAbility::*;
@@ -440,8 +436,8 @@ impl AbilityData {
         &self,
         attack_data: &AttackData,
         agent_data: &AgentData,
-        misc_data: &MiscData,
         tgt_data: &TargetData,
+        desired_energy: f32,
     ) -> bool {
         let melee_check = |range: f32, angle, forced_movement: Option<ForcedMovement>| {
             let range_inc = forced_movement.map_or(0.0, |fm| match fm {
@@ -456,8 +452,7 @@ impl AbilityData {
         };
         let energy_check = |energy: f32| {
             agent_data.energy.current() >= energy
-                && (energy < f32::EPSILON
-                    || agent_data.energy.current() >= misc_data.desired_energy)
+                && (energy < f32::EPSILON || agent_data.energy.current() >= desired_energy)
         };
         let combo_check = |combo| agent_data.combo.map_or(false, |c| c.counter() >= combo);
         let attack_kind_check = |attacks: AttackFilters| {
