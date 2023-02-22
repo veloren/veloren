@@ -71,9 +71,10 @@ use crate::{
     render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
+        interactable::{BlockInteraction, Interactable},
         settings_change::{
             Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
-        }, interactable::{Interactable, BlockInteraction},
+        },
     },
     settings::chat::ChatFilter,
     ui::{

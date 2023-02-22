@@ -1,4 +1,6 @@
-use super::cache::{FigureKey, ToolKey, TerrainModelEntryFuture, FigureModelEntryFuture, ModelEntryFuture};
+use super::cache::{
+    FigureKey, FigureModelEntryFuture, ModelEntryFuture, TerrainModelEntryFuture, ToolKey,
+};
 use common::{
     assets::{self, AssetExt, AssetHandle, DotVoxAsset, ReloadWatcher, Ron},
     comp::{
@@ -24,7 +26,9 @@ use common::{
         theropod::{self, BodyType as TBodyType, Species as TSpecies},
     },
     figure::{Cell, DynaUnionizer, MatCell, MatSegment, Material, Segment},
-    vol::{IntoFullPosIterator, ReadVol, Vox}, terrain::Block, volumes::dyna::Dyna,
+    terrain::Block,
+    vol::{IntoFullPosIterator, ReadVol, Vox},
+    volumes::dyna::Dyna,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Deserializer};
@@ -5273,7 +5277,7 @@ fn mesh_ship_bone<'a, K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> Option<&'a Voxe
         Some(spec) => spec,
         None => {
             error!("No specification exists for {:?}", obj);
-            
+
             return None;
         },
     };
@@ -5283,11 +5287,11 @@ fn mesh_ship_bone<'a, K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> Option<&'a Voxe
 }
 
 impl BodySpec for ship::Body {
+    type BoneMesh = ShipBoneMeshes;
     type Extra = ();
     type Manifests = AssetHandle<Self::Spec>;
-    type Spec = ShipSpec;
-    type BoneMesh = ShipBoneMeshes;
     type ModelEntryFuture<const N: usize> = TerrainModelEntryFuture<N>;
+    type Spec = ShipSpec;
 
     fn load_spec() -> Result<Self::Manifests, assets::Error> { Self::Spec::load("") }
 

@@ -10,9 +10,10 @@ use crate::{
     },
     render::{
         pipelines::{self, ColLights},
-        AltIndices, ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
-        RenderError, Renderer, SpriteDrawer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex,
-        SpriteVerts, TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE, CullingMode,
+        AltIndices, ColLightInfo, CullingMode, FirstPassDrawer, FluidVertex, GlobalModel,
+        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteDrawer,
+        SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts, TerrainLocals,
+        TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -260,7 +261,13 @@ pub fn get_sprite_instances<'a, I: 'a>(
         };
 
         let wpos = to_wpos(rel_pos);
-        let seed = (wpos.x as u64).overflowing_mul(3).0.overflowing_add((wpos.y as u64).overflowing_mul(7).0).0.overflowing_add((wpos.x as u64).overflowing_mul(wpos.y as u64).0).0; // Awful PRNG
+        let seed = (wpos.x as u64)
+            .overflowing_mul(3)
+            .0
+            .overflowing_add((wpos.y as u64).overflowing_mul(7).0)
+            .0
+            .overflowing_add((wpos.x as u64).overflowing_mul(wpos.y as u64).0)
+            .0; // Awful PRNG
 
         let ori = (block.get_ori().unwrap_or((seed % 4) as u8 * 2)) & 0b111;
         let variation = seed as usize % cfg.variations.len();
@@ -360,7 +367,9 @@ fn mesh_worker(
         let mesh = mesh.as_ref().unwrap();
         (&*mesh.light_map, &*mesh.glow_map)
     };
-    let to_wpos = |rel_pos: Vec3<f32>| Vec3::from(pos * TerrainChunk::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos.as_();
+    let to_wpos = |rel_pos: Vec3<f32>| {
+        Vec3::from(pos * TerrainChunk::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos.as_()
+    };
     MeshWorkerResponse {
         pos,
         // Extract sprite locations from volume
@@ -394,7 +403,8 @@ fn mesh_worker(
                 (0..TerrainChunk::RECT_SIZE.x as i32)
                     .flat_map(|x| {
                         (0..TerrainChunk::RECT_SIZE.y as i32).flat_map(move |y| {
-                            (z_bounds.0 as i32..z_bounds.1 as i32).map(move |z| Vec3::new(x, y, z).as_())
+                            (z_bounds.0 as i32..z_bounds.1 as i32)
+                                .map(move |z| Vec3::new(x, y, z).as_())
                         })
                     })
                     .filter_map(|rel_pos| Some((rel_pos, *volume.get(to_wpos(rel_pos)).ok()?))),
@@ -1228,11 +1238,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
                     let sprite_instances =
                         response.sprite_instances.map(|(instances, alt_indices)| {
-                            (
-                                renderer
-                                    .create_instances(&instances),
-                                alt_indices,
-                            )
+                            (renderer.create_instances(&instances), alt_indices)
                         });
 
                     if let Some(mesh) = response.mesh {

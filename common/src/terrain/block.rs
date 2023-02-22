@@ -3,7 +3,8 @@ use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
     lottery::LootSpec,
-    make_case_elim, rtsim, vol::Vox,
+    make_case_elim, rtsim,
+    vol::Vox,
 };
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
@@ -118,13 +119,9 @@ pub struct Block {
 }
 
 impl Vox for Block {
-    fn empty() -> Self {
-        Block::empty()
-    }
+    fn empty() -> Self { Block::empty() }
 
-    fn is_empty(&self) -> bool {
-        self.is_air() && self.get_sprite().is_none()
-    }
+    fn is_empty(&self) -> bool { self.is_air() && self.get_sprite().is_none() }
 }
 
 impl Deref for Block {
@@ -431,10 +428,7 @@ impl Block {
     }
 
     #[inline]
-    pub fn is_mountable(&self) -> bool {
-        self.get_sprite()
-            .map_or(false, |s| s.is_mountable())
-    }
+    pub fn is_mountable(&self) -> bool { self.get_sprite().map_or(false, |s| s.is_mountable()) }
 
     #[inline]
     pub fn is_bonkable(&self) -> bool {

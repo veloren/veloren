@@ -59,7 +59,12 @@ pub trait CharacterBehavior {
     fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
-    fn mount_sprite(&self, data: &JoinData, _output_events: &mut OutputEvents, _pos: Vec3<i32>) -> StateUpdate {
+    fn mount_sprite(
+        &self,
+        data: &JoinData,
+        _output_events: &mut OutputEvents,
+        _pos: Vec3<i32>,
+    ) -> StateUpdate {
         StateUpdate::from(data)
     }
     // start_input has custom implementation in the following character states that

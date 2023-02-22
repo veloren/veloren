@@ -177,7 +177,7 @@ where
     };
     let get_opacity = |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_fluid());
     let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
-        super::terrain::should_draw_greedy(pos, delta, &|vox| {
+        super::terrain::should_draw_greedy(pos, delta, |vox| {
             vol.get(vox)
                 .map(|vox| *vox)
                 .unwrap_or_else(|_| Block::empty())

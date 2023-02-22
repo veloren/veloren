@@ -1,9 +1,16 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use vek::Vec3;
 
-use crate::{comp::{character_state::OutputEvents, StateUpdate, CharacterState}, util::Dir};
+use crate::{
+    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
+    util::Dir,
+};
 
-use super::{behavior::{CharacterBehavior, JoinData}, utils::{handle_orientation, end_ability, handle_wield}, idle};
+use super::{
+    behavior::{CharacterBehavior, JoinData},
+    idle,
+    utils::{end_ability, handle_orientation, handle_wield},
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
@@ -12,7 +19,6 @@ pub struct StaticData {
     /// Position sprite is located at
     pub sprite_pos: Vec3<i32>,
 }
-
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
@@ -27,7 +33,12 @@ impl CharacterBehavior for Data {
         update.pos.0 = self.static_data.mount_pos;
         update.vel.0 = Vec3::zero();
 
-        handle_orientation(data, &mut update, 1.0, Some(Dir::new(self.static_data.mount_dir)));
+        handle_orientation(
+            data,
+            &mut update,
+            1.0,
+            Some(Dir::new(self.static_data.mount_dir)),
+        );
 
         handle_wield(data, &mut update);
 

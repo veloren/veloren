@@ -21,7 +21,7 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
-    terrain::{TerrainGrid, UnlockKind, SpriteKind},
+    terrain::{SpriteKind, TerrainGrid, UnlockKind},
     util::Dir,
     vol::ReadVol,
 };
@@ -785,26 +785,40 @@ pub fn attempt_sit(data: &JoinData<'_>, update: &mut StateUpdate) {
     }
 }
 
-pub fn sprite_mount_points(sprite_kind: SpriteKind, pos: Vec3<i32>, ori: u8) -> impl ExactSizeIterator<Item = (Vec3<f32>, Vec3<f32>)> {
+pub fn sprite_mount_points(
+    sprite_kind: SpriteKind,
+    pos: Vec3<i32>,
+    ori: u8,
+) -> impl ExactSizeIterator<Item = (Vec3<f32>, Vec3<f32>)> {
     let mat = Mat4::identity()
-            .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
-            .translated_3d(
-                pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)
-            );
-    sprite_kind.mount_offsets().iter().map(move |(pos, dir)| {
-        ((mat * pos.with_w(1.0)).xyz(), (mat * dir.with_w(0.0)).xyz())
-    })
-} 
+        .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
+        .translated_3d(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0));
+    sprite_kind
+        .mount_offsets()
+        .iter()
+        .map(move |(pos, dir)| ((mat * pos.with_w(1.0)).xyz(), (mat * dir.with_w(0.0)).xyz()))
+}
 
 const SPRITE_MOUNT_RANGE: f32 = 2.0;
 pub const SPRITE_MOUNT_RANGE_SQR: f32 = SPRITE_MOUNT_RANGE * SPRITE_MOUNT_RANGE;
 
 pub fn attempt_mount_sprite(data: &JoinData<'_>, update: &mut StateUpdate, pos: Vec3<i32>) {
-    if let Some((kind, ori)) = data.terrain.get(pos).ok().and_then(|block| block.get_sprite().zip(block.get_ori())) {
-        if let Some((mount_pos, mount_dir)) = sprite_mount_points(kind, pos, ori).min_by_key(|(pos, _)| {
-            OrderedFloat(data.pos.0.distance_squared(*pos))
-        }) {
-            if reach_block(data.pos.0, pos, SPRITE_MOUNT_RANGE_SQR, data.body, data.terrain) {
+    if let Some((kind, ori)) = data
+        .terrain
+        .get(pos)
+        .ok()
+        .and_then(|block| block.get_sprite().zip(block.get_ori()))
+    {
+        if let Some((mount_pos, mount_dir)) = sprite_mount_points(kind, pos, ori)
+            .min_by_key(|(pos, _)| OrderedFloat(data.pos.0.distance_squared(*pos)))
+        {
+            if reach_block(
+                data.pos.0,
+                pos,
+                SPRITE_MOUNT_RANGE_SQR,
+                data.body,
+                data.terrain,
+            ) {
                 update.character = CharacterState::MountSprite(mount_sprite::Data {
                     static_data: mount_sprite::StaticData {
                         mount_pos,
@@ -887,13 +901,18 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpda
     }
 }
 
-fn reach_block(player_pos: Vec3<f32>, block_pos: Vec3<i32>, range: f32, body: &Body, terrain: &TerrainGrid) -> bool {
+fn reach_block(
+    player_pos: Vec3<f32>,
+    block_pos: Vec3<i32>,
+    range: f32,
+    body: &Body,
+    terrain: &TerrainGrid,
+) -> bool {
     let block_pos_f32 = block_pos.map(|x| x as f32 + 0.5);
     // Closure to check if distance between a point and the block is less than
     // MAX_PICKUP_RANGE and the radius of the body
     let block_range_check = |pos: Vec3<f32>| {
-        (block_pos_f32 - pos).magnitude_squared()
-            < (range + body.max_radius()).powi(2)
+        (block_pos_f32 - pos).magnitude_squared() < (range + body.max_radius()).powi(2)
     };
 
     // Checks if player's feet or head is near to block
@@ -903,12 +922,10 @@ fn reach_block(player_pos: Vec3<f32>, block_pos: Vec3<i32>, range: f32, body: &B
         // Do a check that a path can be found between sprite and entity
         // interacting with sprite Use manhattan distance * 1.5 for number
         // of iterations
-        let iters =
-            (3.0 * (block_pos_f32 - player_pos).map(|x| x.abs()).sum()) as usize;
+        let iters = (3.0 * (block_pos_f32 - player_pos).map(|x| x.abs()).sum()) as usize;
         // Heuristic compares manhattan distance of start and end pos
-        let heuristic = move |pos: &Vec3<i32>, _: &Vec3<i32>| {
-            (block_pos - pos).map(|x| x.abs()).sum() as f32
-        };
+        let heuristic =
+            move |pos: &Vec3<i32>, _: &Vec3<i32>| (block_pos - pos).map(|x| x.abs()).sum() as f32;
 
         let mut astar = Astar::new(
             iters,
@@ -994,18 +1011,27 @@ pub fn handle_manipulate_loadout(
         },
         InventoryAction::Collect(sprite_pos) => {
             // First, get sprite data for position, if there is a sprite
-            let sprite_at_pos = data.terrain
+            let sprite_at_pos = data
+                .terrain
                 .get(sprite_pos)
                 .ok()
                 .copied()
                 .and_then(|b| b.get_sprite());
             // Checks if position has a collectible sprite as well as what sprite is at the
             // position
-            let sprite_interact = sprite_at_pos.and_then(Option::<sprite_interact::SpriteInteractKind>::from);
+            let sprite_interact =
+                sprite_at_pos.and_then(Option::<sprite_interact::SpriteInteractKind>::from);
             if let Some(sprite_interact) = sprite_interact {
-                if reach_block(data.pos.0, sprite_pos, MAX_PICKUP_RANGE, data.body, data.terrain) {
+                if reach_block(
+                    data.pos.0,
+                    sprite_pos,
+                    MAX_PICKUP_RANGE,
+                    data.body,
+                    data.terrain,
+                ) {
                     let sprite_chunk_pos = TerrainGrid::chunk_offs(sprite_pos);
-                    let sprite_cfg = data.terrain
+                    let sprite_cfg = data
+                        .terrain
                         .pos_chunk(sprite_pos)
                         .and_then(|chunk| chunk.meta().sprite_cfg_at(sprite_chunk_pos));
                     let required_item =
@@ -1034,21 +1060,20 @@ pub fn handle_manipulate_loadout(
                         let (buildup_duration, use_duration, recover_duration) =
                             sprite_interact.durations();
 
-                        update.character =
-                            CharacterState::SpriteInteract(sprite_interact::Data {
-                                static_data: sprite_interact::StaticData {
-                                    buildup_duration,
-                                    use_duration,
-                                    recover_duration,
-                                    sprite_pos,
-                                    sprite_kind: sprite_interact,
-                                    was_wielded: data.character.is_wield(),
-                                    was_sneak: data.character.is_stealthy(),
-                                    required_item,
-                                },
-                                timer: Duration::default(),
-                                stage_section: StageSection::Buildup,
-                            })
+                        update.character = CharacterState::SpriteInteract(sprite_interact::Data {
+                            static_data: sprite_interact::StaticData {
+                                buildup_duration,
+                                use_duration,
+                                recover_duration,
+                                sprite_pos,
+                                sprite_kind: sprite_interact,
+                                was_wielded: data.character.is_wield(),
+                                was_sneak: data.character.is_stealthy(),
+                                required_item,
+                            },
+                            timer: Duration::default(),
+                            stage_section: StageSection::Buildup,
+                        })
                     } else {
                         output_events.emit_local(LocalEvent::CreateOutcome(
                             Outcome::FailedSpriteUnlock { pos: sprite_pos },

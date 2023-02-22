@@ -173,13 +173,13 @@ pub mod figuredata {
 
     impl DeBlock {
         fn to_block(&self, color: Rgb<u8>) -> Block {
-            match self {
-                &DeBlock::Block(block) => Block::new(block, color),
-                &DeBlock::Air(sprite, ori) => {
+            match *self {
+                DeBlock::Block(block) => Block::new(block, color),
+                DeBlock::Air(sprite, ori) => {
                     let block = Block::new(BlockKind::Air, color).with_sprite(sprite);
                     block.with_ori(ori).unwrap_or(block)
                 },
-                &DeBlock::Water(sprite, ori) => {
+                DeBlock::Water(sprite, ori) => {
                     let block = Block::new(BlockKind::Water, color).with_sprite(sprite);
                     block.with_ori(ori).unwrap_or(block)
                 },

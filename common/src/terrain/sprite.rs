@@ -484,29 +484,38 @@ impl SpriteKind {
             z: 0.0,
         };
         match self {
-            SpriteKind::ChairSingle => &[(Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.5,
-            }, UNIT_Y)],
-            SpriteKind::ChairDouble => &[(Vec3 {
-                x: -0.5,
-                y: 0.0,
-                z: 0.6,
-            }, UNIT_Y),
-            (Vec3 {
-                x: 0.5,
-                y: -0.1,
-                z: 0.6,
-            }, UNIT_Y)],
+            SpriteKind::ChairSingle => &[(
+                Vec3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.5,
+                },
+                UNIT_Y,
+            )],
+            SpriteKind::ChairDouble => &[
+                (
+                    Vec3 {
+                        x: -0.5,
+                        y: 0.0,
+                        z: 0.6,
+                    },
+                    UNIT_Y,
+                ),
+                (
+                    Vec3 {
+                        x: 0.5,
+                        y: -0.1,
+                        z: 0.6,
+                    },
+                    UNIT_Y,
+                ),
+            ],
             _ => &[],
         }
     }
 
     #[inline]
-    pub fn is_mountable(&self) -> bool {
-        !self.mount_offsets().is_empty()
-    }
+    pub fn is_mountable(&self) -> bool { !self.mount_offsets().is_empty() }
 
     /// Which tool (if any) is needed to collect this sprite?
     #[inline]

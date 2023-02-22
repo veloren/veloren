@@ -14,9 +14,9 @@ use crate::{
             terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
             trail, ColLights,
         },
-        ColLightInfo, FigureBoneData, FigureDrawer, FigureLocals, FigureModel, FigureShadowDrawer,
-        Instances, Mesh, Quad, RenderError, Renderer, SpriteDrawer, SpriteInstance, SubModel,
-        TerrainVertex, CullingMode, AltIndices,
+        AltIndices, ColLightInfo, CullingMode, FigureBoneData, FigureDrawer, FigureLocals,
+        FigureModel, FigureShadowDrawer, Instances, Mesh, Quad, RenderError, Renderer,
+        SpriteDrawer, SpriteInstance, SubModel, TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -6312,7 +6312,7 @@ impl FigureMgr {
         &'a self,
         drawer: &mut SpriteDrawer<'_, 'a>,
         state: &State,
-        focus_pos: Vec3<f32>,
+        cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
     ) {
         span!(_guard, "render", "FigureManager::render_sprites");
@@ -6322,28 +6322,48 @@ impl FigureMgr {
         let sprite_hid_detail_distance = sprite_render_distance * 0.35;
         let sprite_high_detail_distance = sprite_render_distance * 0.15;
 
-        for (entity, pos, body, _, inventory, scale, collider) in (
+        for (entity, pos, body, _, collider) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Health>().maybe(),
-            ecs.read_storage::<Inventory>().maybe(),
-            ecs.read_storage::<Scale>().maybe(),
             ecs.read_storage::<Collider>().maybe(),
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, health, _, _, _)| health.map_or(true, |h| !h.is_dead))
+        .filter(|(_, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
         {
-            if let Some((data, sprite_instances)) = self.get_sprite_instances(
-                entity,
-                body,
-                collider,
-            ) {
-                let focus_dist_sqrd = pos.0.distance_squared(focus_pos);
+            if let Some((data, sprite_instances)) =
+                self.get_sprite_instances(entity, body, collider)
+            {
+                let dist_sqrd = cam_pos.distance_squared(pos.0);
+                let radius = collider.map_or(f32::INFINITY, |collider| collider.bounding_radius());
 
-                // TODO NOW: LOD
-                drawer.draw(data, &sprite_instances[0], &AltIndices { deep_end: 0, underground_end: 0 }, CullingMode::None)
+                let dist_sqrd = dist_sqrd - radius * radius;
+
+                if dist_sqrd < sprite_render_distance.powi(2) {
+                    let lod_level = if dist_sqrd < sprite_high_detail_distance.powi(2) {
+                        0
+                    } else if dist_sqrd < sprite_hid_detail_distance.powi(2) {
+                        1
+                    } else if dist_sqrd < sprite_mid_detail_distance.powi(2) {
+                        2
+                    } else if dist_sqrd < sprite_low_detail_distance.powi(2) {
+                        3
+                    } else {
+                        4
+                    };
+
+                    drawer.draw(
+                        data,
+                        &sprite_instances[lod_level],
+                        &AltIndices {
+                            deep_end: 0,
+                            underground_end: 0,
+                        },
+                        CullingMode::None,
+                    )
+                }
             }
         }
     }
@@ -6935,13 +6955,9 @@ impl FigureMgr {
                         entity,
                         mut_count: vol.mut_count,
                     };
-                    self.volume_model_cache.get_sprites(
-                        vk,
-                    )
+                    self.volume_model_cache.get_sprites(vk)
                 } else {
-                    self.ship_model_cache.get_sprites(
-                        *body,
-                    )
+                    self.ship_model_cache.get_sprites(*body)
                 }
             },
             _ => None,
@@ -7157,8 +7173,12 @@ impl FigureColLights {
             );
         });
 
-        let terrain_locals =
-            renderer.create_terrain_bound_locals(&[TerrainLocals::new(pos, ori, Vec2::zero(), 0.0)]);
+        let terrain_locals = renderer.create_terrain_bound_locals(&[TerrainLocals::new(
+            pos,
+            ori,
+            Vec2::zero(),
+            0.0,
+        )]);
 
         let sprite_instances =
             sprite_instances.map(|instances| renderer.create_instances(&instances));

@@ -8,8 +8,9 @@ use crate::{
         segment::{generate_mesh_base_vol_figure, generate_mesh_base_vol_terrain},
     },
     render::{
-        pipelines::terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals}, BoneMeshes, ColLightInfo,
-        FigureModel, Instances, Mesh, Renderer, SpriteInstance, TerrainVertex,
+        pipelines::terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
+        BoneMeshes, ColLightInfo, FigureModel, Instances, Mesh, Renderer, SpriteInstance,
+        TerrainVertex,
     },
     scene::{
         camera::CameraMode,
@@ -36,7 +37,7 @@ use core::{hash::Hash, ops::Range};
 use crossbeam_utils::atomic;
 use hashbrown::{hash_map::Entry, HashMap};
 use serde::Deserialize;
-use std::{sync::Arc, array::from_fn};
+use std::{array::from_fn, sync::Arc};
 use vek::*;
 
 /// A type produced by mesh worker threads corresponding to the information
@@ -321,16 +322,20 @@ where
     /// the model, we don't return skeleton data.
     pub fn get_model<'b>(
         &'b self,
-    // TODO: If we ever convert to using an atlas here, use this.
+        // TODO: If we ever convert to using an atlas here, use this.
         _col_lights: &super::FigureColLights,
         body: Skel::Body,
         inventory: Option<&Inventory>,
-    // TODO: Consider updating the tick by putting it in a Cell.
+        // TODO: Consider updating the tick by putting it in a Cell.
         _tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
         item_key: Option<ItemKey>,
-    ) -> Option<&<<Skel::Body as BodySpec>::ModelEntryFuture<LOD_COUNT> as ModelEntryFuture<LOD_COUNT>>::ModelEntry>{
+    ) -> Option<
+        &'b <<Skel::Body as BodySpec>::ModelEntryFuture<LOD_COUNT> as ModelEntryFuture<
+            LOD_COUNT,
+        >>::ModelEntry,
+    > {
         // TODO: Use raw entries to avoid lots of allocation (among other things).
         let key = FigureKey {
             body,
@@ -851,10 +856,7 @@ where
         }
     }
 
-    pub fn get_blocks_of_interest<'c>(
-        &'c self,
-        body: Skel::Body,
-    ) -> Option<&'c BlocksOfInterest> {
+    pub fn get_blocks_of_interest(&self, body: Skel::Body) -> Option<&BlocksOfInterest> {
         let key = FigureKey {
             body,
             item_key: None,
@@ -869,12 +871,12 @@ where
         })
     }
 
-    pub fn get_sprites<'c>(
-        &'c self,
+    pub fn get_sprites(
+        &self,
         body: Skel::Body,
     ) -> Option<(
-        &'c BoundTerrainLocals,
-        &'c [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
+        &BoundTerrainLocals,
+        &[Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
     )> {
         let key = FigureKey {
             body,
@@ -909,7 +911,12 @@ where
                 None
             }
         }) {
-            renderer.update_consts(&mut *model.terrain_locals, &[TerrainLocals::new(pos, ori, Vec2::zero(), 0.0)])
+            renderer.update_consts(&mut *model.terrain_locals, &[TerrainLocals::new(
+                pos,
+                ori,
+                Vec2::zero(),
+                0.0,
+            )])
         }
     }
 }

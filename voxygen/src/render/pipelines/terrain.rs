@@ -147,7 +147,12 @@ pub struct Locals {
 }
 
 impl Locals {
-    pub fn new(model_offs: Vec3<f32>, ori: Quaternion<f32>, atlas_offs: Vec2<u32>, load_time: f32) -> Self {
+    pub fn new(
+        model_offs: Vec3<f32>,
+        ori: Quaternion<f32>,
+        atlas_offs: Vec2<u32>,
+        load_time: f32,
+    ) -> Self {
         let mat = Mat4::from(ori).translated_3d(model_offs);
 
         let mat_arr = mat.into_col_arrays();

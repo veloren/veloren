@@ -46,9 +46,7 @@ make_case_elim!(
 );
 
 impl Default for StructureBlock {
-    fn default() -> Self {
-        StructureBlock::None
-    }
+    fn default() -> Self { StructureBlock::None }
 }
 
 #[derive(Debug)]
@@ -86,7 +84,9 @@ impl assets::Compound for StructuresGroup {
                 .0
                 .iter()
                 .map(|sp| {
-                    let base = cache.load::<Arc<BaseStructure<StructureBlock>>>(&sp.specifier)?.cloned();
+                    let base = cache
+                        .load::<Arc<BaseStructure<StructureBlock>>>(&sp.specifier)?
+                        .cloned();
                     Ok(Structure {
                         center: Vec3::from(sp.center),
                         base,
@@ -145,7 +145,10 @@ impl ReadVol for Structure {
     }
 }
 
-pub(crate) fn load_base_structure<B: Default>(dot_vox_data: &DotVoxData, mut to_block: impl FnMut(Rgb<u8>) -> B) -> BaseStructure<B> {
+pub(crate) fn load_base_structure<B: Default>(
+    dot_vox_data: &DotVoxData,
+    mut to_block: impl FnMut(Rgb<u8>) -> B,
+) -> BaseStructure<B> {
     let mut palette = std::array::from_fn(|_| B::default());
     if let Some(model) = dot_vox_data.models.get(0) {
         for (i, col) in dot_vox_data
@@ -184,7 +187,9 @@ impl assets::Compound for BaseStructure<StructureBlock> {
         let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();
         let dot_vox_data = &dot_vox_data.0;
 
-        Ok(load_base_structure(dot_vox_data, |col| StructureBlock::Filled(BlockKind::Misc, col)))
+        Ok(load_base_structure(dot_vox_data, |col| {
+            StructureBlock::Filled(BlockKind::Misc, col)
+        }))
     }
 }
 

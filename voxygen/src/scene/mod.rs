@@ -1355,7 +1355,7 @@ impl Scene {
             self.figure_mgr.render_sprites(
                 &mut sprite_drawer,
                 state,
-                focus_pos,
+                cam_pos,
                 scene_data.sprite_render_distance,
             );
             self.terrain.render_sprites(

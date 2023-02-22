@@ -892,7 +892,8 @@ impl PlayState for SessionState {
                                     if let Some(interactable) = &self.interactable {
                                         match interactable {
                                             Interactable::Block(_, pos, interaction) => {
-                                                if matches!(interaction, BlockInteraction::Mount(_)) {
+                                                if matches!(interaction, BlockInteraction::Mount(_))
+                                                {
                                                     client.mount_sprite(*pos)
                                                 }
                                             },
