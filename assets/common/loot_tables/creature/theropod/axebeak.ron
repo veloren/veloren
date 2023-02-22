@@ -1,0 +1,5 @@
+[
+    (4.0, ItemQuantity("common.items.crafting_ing.animal_misc.elegant_crest", 3, 6)),
+    (1.0, Item("common.items.crafting_ing.animal_misc.raptor_feather")),
+    (0.5, Item("common.items.weapons.hammer.burnt_drumstick")),
+]

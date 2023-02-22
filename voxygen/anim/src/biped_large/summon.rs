@@ -12,12 +12,13 @@ pub struct SummonAnimation;
 
 impl Animation for SummonAnimation {
     type Dependency<'a> = (
-        (Option<ToolKind>, Option<&'a AbilitySpec>),
+        Option<ToolKind>,
         (Option<ToolKind>, Option<&'a AbilitySpec>),
         Vec3<f32>,
         f32,
         Option<StageSection>,
         f32,
+        Option<&'a str>,
     );
     type Skeleton = BipedLargeSkeleton;
 
@@ -28,12 +29,13 @@ impl Animation for SummonAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
-            (active_tool_kind, active_tool_spec),
+            active_tool_kind,
             _second_tool_kind,
             velocity,
             _global_time,
             stage_section,
             acc_vel,
+            ability_id,
         ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
@@ -119,109 +121,95 @@ impl Animation for SummonAnimation {
                 next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * 1.0)
                     * Quaternion::rotation_y(-0.1 + move2 * -0.8);
             },
-            Some(ToolKind::Natural) => {
-                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
-                    match spec.as_str() {
-                        "Tidal Warrior" => {
-                            let (move1base, move2base, move3) = match stage_section {
-                                Some(StageSection::Buildup) => ((anim_time.powi(2)), 0.0, 0.0),
-                                Some(StageSection::Action) => (1.0, (anim_time * 30.0).sin(), 0.0),
-                                Some(StageSection::Recover) => (1.0, 1.0, anim_time),
-                                _ => (0.0, 0.0, 0.0),
-                            };
-                            let pullback = 1.0 - move3;
-                            let move1 = move1base * pullback;
-                            let move2 = move2base * pullback;
-                            next.torso.position = Vec3::new(0.0, 0.0 + move1 * 4.7, move1 * -18.8);
-                            next.upper_torso.position =
-                                Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
+            Some(ToolKind::Natural) => match ability_id {
+                Some("common.abilities.custom.tidalwarrior.totem") => {
+                    let (move1base, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => ((anim_time.powi(2)), 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, (anim_time * 30.0).sin(), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1 = move1base * pullback;
+                    let move2 = move2base * pullback;
+                    next.torso.position = Vec3::new(0.0, 0.0 + move1 * 4.7, move1 * -18.8);
+                    next.upper_torso.position =
+                        Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
 
-                            next.lower_torso.position =
-                                Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1);
+                    next.lower_torso.position =
+                        Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1);
 
-                            next.head.position =
-                                Vec3::new(0.0, s_a.head.0 + move1 * -8.0, s_a.head.1 + move1 * 6.0);
-                            next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 2.5)
-                                * Quaternion::rotation_y(move1 * 0.4 + move2 * 0.05);
-                            next.shoulder_r.orientation = Quaternion::rotation_x(move1 * 2.5)
-                                * Quaternion::rotation_y(move1 * -0.4 + move2 * -0.05);
-                            next.head.orientation = Quaternion::rotation_x(move1 * 1.4)
-                                * Quaternion::rotation_y(move2 * 0.02);
-                            next.upper_torso.orientation = Quaternion::rotation_x(move1 * -1.5)
-                                * Quaternion::rotation_y(move2 * -0.02);
-                            next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.2)
-                                * Quaternion::rotation_y(move2 * 0.02);
-                            next.hand_l.position = Vec3::new(
-                                -14.0 + move1 * -5.0,
-                                2.0 + move1 * -2.0,
-                                -4.0 + move1 * 12.0,
-                            );
-                            next.hand_r.position = Vec3::new(
-                                14.0 + move1 * 5.0,
-                                2.0 + move1 * -2.0,
-                                -4.0 + move1 * 12.0,
-                            );
+                    next.head.position =
+                        Vec3::new(0.0, s_a.head.0 + move1 * -8.0, s_a.head.1 + move1 * 6.0);
+                    next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 2.5)
+                        * Quaternion::rotation_y(move1 * 0.4 + move2 * 0.05);
+                    next.shoulder_r.orientation = Quaternion::rotation_x(move1 * 2.5)
+                        * Quaternion::rotation_y(move1 * -0.4 + move2 * -0.05);
+                    next.head.orientation =
+                        Quaternion::rotation_x(move1 * 1.4) * Quaternion::rotation_y(move2 * 0.02);
+                    next.upper_torso.orientation = Quaternion::rotation_x(move1 * -1.5)
+                        * Quaternion::rotation_y(move2 * -0.02);
+                    next.lower_torso.orientation =
+                        Quaternion::rotation_x(move1 * 0.2) * Quaternion::rotation_y(move2 * 0.02);
+                    next.hand_l.position = Vec3::new(
+                        -14.0 + move1 * -5.0,
+                        2.0 + move1 * -2.0,
+                        -4.0 + move1 * 12.0,
+                    );
+                    next.hand_r.position =
+                        Vec3::new(14.0 + move1 * 5.0, 2.0 + move1 * -2.0, -4.0 + move1 * 12.0);
 
-                            next.hand_l.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.5)
-                                    * Quaternion::rotation_y(-move1 * 0.7 + move2 * 0.2)
-                                    * Quaternion::rotation_z(-0.35);
-                            next.hand_r.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 1.5)
-                                    * Quaternion::rotation_y(move1 * 0.7 + move2 * 0.2)
-                                    * Quaternion::rotation_z(0.35);
-                            next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2);
-                            next.leg_l.orientation =
-                                Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1 * -0.8);
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 1.5)
+                        * Quaternion::rotation_y(-move1 * 0.7 + move2 * 0.2)
+                        * Quaternion::rotation_z(-0.35);
+                    next.hand_r.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 1.5)
+                        * Quaternion::rotation_y(move1 * 0.7 + move2 * 0.2)
+                        * Quaternion::rotation_z(0.35);
+                    next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2);
+                    next.leg_l.orientation =
+                        Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1 * -0.8);
 
-                            next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2);
-                            next.foot_l.position =
-                                Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
-                            next.foot_r.position =
-                                Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
-                            next.leg_r.orientation =
-                                Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1 * -0.8);
-                            next.foot_l.orientation =
-                                Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1 * 0.8);
-                            next.foot_r.orientation =
-                                Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1 * 0.8);
-                        },
-                        _ => {},
-                    }
-                }
+                    next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2);
+                    next.foot_l.position =
+                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
+                    next.foot_r.position =
+                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
+                    next.leg_r.orientation =
+                        Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1 * -0.8);
+                    next.foot_l.orientation =
+                        Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1 * 0.8);
+                    next.foot_r.orientation =
+                        Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1 * 0.8);
+                },
+                _ => {},
             },
-            Some(ToolKind::Axe) => {
-                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
-                    match spec.as_str() {
-                        "Frost Gigas" => {
-                            next.shoulder_l.position = Vec3::new(
-                                -s_a.shoulder.0,
-                                s_a.shoulder.1,
-                                s_a.shoulder.2 - foothorir * 1.0,
-                            );
-                            next.shoulder_l.orientation =
-                                Quaternion::rotation_x(move1 * 2.7 + 0.1 * speednorm)
-                                    * Quaternion::rotation_y(move1 * 0.7 + 0.1 * speednorm);
-                            next.head.orientation = Quaternion::rotation_x(0.0);
-                            next.hand_l.position = Vec3::new(
-                                -14.0 + move1 * -5.0,
-                                2.0 + move1 * -2.0,
-                                -2.0 + move1 * 6.0 + move2 * 4.0,
-                            );
-                            next.hand_r.position = Vec3::new(14.0, 2.0, -4.0);
-                            next.hand_l.orientation =
-                                Quaternion::rotation_x(PI / 3.0 + move1 * 2.2)
-                                    * Quaternion::rotation_y(move1 * 0.1)
-                                    * Quaternion::rotation_z(-0.35);
-                            next.hand_r.orientation =
-                                Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
-                            next.main.position = Vec3::new(14.0, 2.0, -4.0);
-                            next.main.orientation =
-                                Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
-                        },
-                        _ => {},
-                    }
-                }
+            Some(ToolKind::Axe) => match ability_id {
+                Some("common.abilities.custom.gigas_frost.frost_summons") => {
+                    next.shoulder_l.position = Vec3::new(
+                        -s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothorir * 1.0,
+                    );
+                    next.shoulder_l.orientation =
+                        Quaternion::rotation_x(move1 * 2.7 + 0.1 * speednorm)
+                            * Quaternion::rotation_y(move1 * 0.7 + 0.1 * speednorm);
+                    next.head.orientation = Quaternion::rotation_x(0.0);
+                    next.hand_l.position = Vec3::new(
+                        -14.0 + move1 * -5.0,
+                        2.0 + move1 * -2.0,
+                        -2.0 + move1 * 6.0 + move2 * 4.0,
+                    );
+                    next.hand_r.position = Vec3::new(14.0, 2.0, -4.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 2.2)
+                        * Quaternion::rotation_y(move1 * 0.1)
+                        * Quaternion::rotation_z(-0.35);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
+                    next.main.position = Vec3::new(14.0, 2.0, -4.0);
+                    next.main.orientation =
+                        Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
+                },
+                _ => {},
             },
             _ => {},
         }

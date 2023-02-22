@@ -1622,6 +1622,10 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
+    Tool("common.items.npc_weapons.unique.tursus_claws"): (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
     Tool("common.items.npc_weapons.unique.wendigo_magic"): (
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None

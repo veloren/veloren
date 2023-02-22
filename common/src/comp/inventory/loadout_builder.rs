@@ -570,6 +570,9 @@ fn default_main_tool(body: &Body) -> Item {
             | quadruped_medium::Species::Yak => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedbasicgentle",
             )),
+            quadruped_medium::Species::Akhlut => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.akhlut",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedbasic",
             )),
@@ -688,7 +691,7 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.beast_claws",
             )),
             (biped_large::Species::Tursus, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.beast_claws",
+                "common.items.npc_weapons.unique.tursus_claws",
             )),
             (biped_large::Species::Cyclops, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.hammer.cyclops_hammer",

@@ -360,7 +360,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlord, _) => (11.5, -1.0, 4.5),
                 (Cultistwarlock, _) => (8.0, 0.0, 3.5),
                 (Huskbrute, _) => (10.5, 0.0, -1.5),
-                (Tursus, _) => (12.5, -2.5, 1.0),
+                (Tursus, _) => (12.5, -2.5, -2.0),
                 (Gigasfrost, _) => (10.5, 0.5, 0.0),
             },
             hand: match (body.species, body.body_type) {
@@ -386,7 +386,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cultistwarlord, _) => (11.5, -1.0, -1.0),
                 (Cultistwarlock, _) => (9.5, -1.0, 1.0),
                 (Huskbrute, _) => (13.0, 0.5, -4.0),
-                (Tursus, _) => (15.5, -2.5, -8.0),
+                (Tursus, _) => (15.5, 0.0, -7.0),
                 (Gigasfrost, _) => (17.0, 0.5, -6.0),
             },
             leg: match (body.species, body.body_type) {

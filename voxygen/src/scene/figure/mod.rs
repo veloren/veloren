@@ -2062,8 +2062,9 @@ impl FigureMgr {
                                 &target_base,
                                 (
                                     hands,
-                                    (Some(s.static_data.ability_info), active_tool_spec, time),
+                                    (Some(s.static_data.ability_info), time),
                                     rel_vel,
+                                    ability_id,
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -5064,12 +5065,13 @@ impl FigureMgr {
                             anim::biped_large::ChargeMeleeAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
                                     state.acc_vel,
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -5126,7 +5128,7 @@ impl FigureMgr {
                             anim::biped_large::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
@@ -5157,7 +5159,7 @@ impl FigureMgr {
                             anim::biped_large::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     // TODO: Update to use the quaternion.
@@ -5166,6 +5168,7 @@ impl FigureMgr {
                                     time,
                                     Some(s.stage_section),
                                     state.acc_vel,
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -5251,7 +5254,7 @@ impl FigureMgr {
                             anim::biped_large::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     // TODO: Update to use the quaternion.
@@ -5260,6 +5263,7 @@ impl FigureMgr {
                                     time,
                                     Some(s.stage_section),
                                     state.acc_vel,
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -5286,12 +5290,13 @@ impl FigureMgr {
                             anim::biped_large::DashAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
                                     state.acc_vel,
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -5322,7 +5327,7 @@ impl FigureMgr {
                                 1 => anim::biped_large::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        (active_tool_kind, active_tool_spec),
+                                        active_tool_kind,
                                         (second_tool_kind, second_tool_spec),
                                         rel_vel,
                                         time,
@@ -5338,12 +5343,13 @@ impl FigureMgr {
                                 2 => anim::biped_large::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        (active_tool_kind, active_tool_spec),
+                                        active_tool_kind,
                                         (second_tool_kind, second_tool_spec),
                                         rel_vel,
                                         time,
                                         Some(s.stage_section),
                                         state.acc_vel,
+                                        ability_id,
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -5352,12 +5358,13 @@ impl FigureMgr {
                                 _ => anim::biped_large::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        (active_tool_kind, active_tool_spec),
+                                        active_tool_kind,
                                         (second_tool_kind, second_tool_spec),
                                         rel_vel,
                                         time,
                                         Some(s.stage_section),
                                         state.acc_vel,
+                                        ability_id,
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -5415,12 +5422,13 @@ impl FigureMgr {
                             anim::biped_large::SummonAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
                                     state.acc_vel,
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -5516,11 +5524,12 @@ impl FigureMgr {
                             anim::biped_large::ShockwaveAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     time,
                                     rel_vel.magnitude(),
                                     Some(s.stage_section),
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -5542,13 +5551,14 @@ impl FigureMgr {
                             anim::biped_large::BeamAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     time,
                                     rel_vel,
                                     Some(s.stage_section),
                                     state.acc_vel,
                                     state.state_time,
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -5572,11 +5582,12 @@ impl FigureMgr {
                             anim::biped_large::SpriteSummonAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    (active_tool_kind, active_tool_spec),
+                                    active_tool_kind,
                                     (second_tool_kind, second_tool_spec),
                                     time,
                                     rel_vel.magnitude(),
                                     Some(s.stage_section),
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,

@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("bristleback"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.quad_medium.generic"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.tuskram"),
     inventory: (
         loadout: FromBody,
     ),
