@@ -23,17 +23,17 @@ default = ["worldgen", "persistent_world"]
 tracy = ["common-frontend/tracy"]
 plugins = ["server/plugins"]
 hot-reloading = ["server/hot-reloading"]
-hot-agent = ["server/hot-agent"]
-hot-site = ["server/hot-site"]
+hot-agent = ["server/hot-agent", "agent"]
+hot-site = ["server/hot-site", "world"]
 
 [dependencies]
 server = { package = "veloren-server", path = "../server", default-features = false, features = ["simd"] }
-agent = { package = "veloren-server-agent", path = "../server/agent" }
+agent = { package = "veloren-server-agent", path = "../server/agent", optional = true }
 common = { package = "veloren-common", path = "../common" }
 common-base = { package = "veloren-common-base", path = "../common/base" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
-world = { package = "veloren-world", path = "../world" }
+world = { package = "veloren-world", path = "../world", optional = true }
 
 tokio = { version = "1.14", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
