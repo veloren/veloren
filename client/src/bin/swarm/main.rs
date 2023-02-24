@@ -13,6 +13,8 @@ use tokio::runtime::Runtime;
 use vek::*;
 use veloren_client::{addr::ConnectionArgs, Client};
 
+const CHUNK_SIZE = 32.0;
+
 #[derive(Clone, Copy, StructOpt)]
 struct Opt {
     /// Number of clients to spin up
@@ -210,7 +212,7 @@ fn run_client(
     }
 
     // Main loop
-    let chunk_size = 32.0; // TODO: replace with the actual constant
+    let chunk_size = CHUNK_SIZE; // TODO: replace with the actual constant
     let world_center = client
         .world_data()
         .chunk_size()
@@ -237,7 +239,7 @@ fn run_client(
 // Use client index, opts, and current system time to determine position
 fn position(index: u32, opt: Opt) -> Vec3<f32> {
     // TODO: replace 32 with constant for chunk size
-    let chunk_size = 32.0;
+    let chunk_size = CHUNK_SIZE;
 
     let width = (opt.size as f32).sqrt().round() as u32;
 
