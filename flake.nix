@@ -1,14 +1,16 @@
 {
   description = "Flake providing Veloren, a multiplayer voxel RPG written in Rust.";
 
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   inputs.nci.url = "github:yusdacra/nix-cargo-integration";
+  inputs.nci.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.parts.url = "github:hercules-ci/flake-parts";
 
-  outputs = inputs: let
-    lib = inputs.nci.inputs.nixpkgs.lib;
-    ncl = inputs.nci.lib.nci-lib;
+  outputs = inp: let
+    lib = inp.nci.inputs.nixpkgs.lib;
 
     git = let
-      sourceInfo = inputs.self.sourceInfo;
+      sourceInfo = inp.self.sourceInfo;
       dateTimeFormat = import ./nix/dateTimeFormat.nix;
       dateTime = dateTimeFormat sourceInfo.lastModified;
       shortRev = sourceInfo.shortRev or "dirty";
@@ -45,46 +47,61 @@
         # filter out unnecessary paths
         filter = ignorePaths;
       };
-    checkIfLfsIsSetup = pkgs: checkFile: ''
-      checkFile="${checkFile}"
-      result="$(${pkgs.file}/bin/file --mime-type $checkFile)"
-      if [ "$result" = "$checkFile: image/jpeg" ]; then
-        echo "Git LFS seems to be setup properly."
-        true
-      else
-        echo "
-          Git Large File Storage (git-lfs) has not been set up correctly.
-          Most common reasons:
-            - git-lfs was not installed before cloning this repository.
-            - This repository was not cloned from the primary GitLab mirror.
-            - The GitHub mirror does not support LFS.
-          See the book at https://book.veloren.net/ for details.
-          Run 'nix-shell -p git git-lfs --run \"git lfs install --local && git lfs fetch && git lfs checkout\"'
-          or 'nix shell nixpkgs#git-lfs nixpkgs#git -c sh -c \"git lfs install --local && git lfs fetch && git lfs checkout\"'.
-        "
-        false
-      fi
-    '';
   in
-    inputs.nci.lib.makeOutputs {
-      root = ./.;
-      config = common: {
-        cCompiler.package = common.pkgs.clang;
-        outputs.defaults = {
-          package = "veloren-voxygen";
-          app = "veloren-voxygen";
-        };
-        shell = {
-          startup.checkLfsSetup.text = ''
-            ${checkIfLfsIsSetup common.pkgs "$PWD/assets/voxygen/background/bg_main.jpg"}
-            if [ $? -ne 0 ]; then
-              exit 1
-            fi
+    inp.parts.lib.mkFlake {inputs = inp;} {
+      imports = [inp.nci.flakeModule];
+      systems = ["x86_64-linux"];
+      perSystem = {
+        config,
+        pkgs,
+        lib,
+        ...
+      }: let
+        checkIfLfsIsSetup = checkFile: ''
+          checkFile="${checkFile}"
+          result="$(${pkgs.file}/bin/file --mime-type $checkFile)"
+          if [ "$result" = "$checkFile: image/jpeg" ]; then
+            echo "Git LFS seems to be setup properly."
+            true
+          else
+            echo "
+              Git Large File Storage (git-lfs) has not been set up correctly.
+              Most common reasons:
+                - git-lfs was not installed before cloning this repository.
+                - This repository was not cloned from the primary GitLab mirror.
+                - The GitHub mirror does not support LFS.
+              See the book at https://book.veloren.net/ for details.
+              Run 'nix-shell -p git git-lfs --run \"git lfs install --local && git lfs fetch && git lfs checkout\"'
+              or 'nix shell nixpkgs#git-lfs nixpkgs#git -c sh -c \"git lfs install --local && git lfs fetch && git lfs checkout\"'.
+            "
+            false
+          fi
+        '';
+        assets = pkgs.runCommand "veloren-assets" {} ''
+          mkdir $out
+          ln -sf ${./assets} $out/assets
+          ${checkIfLfsIsSetup "$out/assets/voxygen/background/bg_main.jpg"}
+        '';
+        wrapWithAssets = old:
+          pkgs.runCommand
+          old.name
+          {
+            inherit (old) pname version;
+            meta = old.meta or {};
+            passthru =
+              (old.passthru or {})
+              // {
+                unwrapped = old;
+              };
+            nativeBuildInputs = [pkgs.makeWrapper];
+          }
+          ''
+            cp -rs --no-preserve=mode,ownership ${old} $out
+            wrapProgram $out/bin/* \
+              --set VELOREN_ASSETS ${assets} \
+              --set VELOREN_GIT_VERSION "${git.prettyRev}" \
+              --set VELOREN_GIT_TAG "${git.tag}"
           '';
-        };
-      };
-      pkgConfig = common: let
-        inherit (common) pkgs;
         veloren-common-ov = {
           # We don't add in any information here because otherwise anything
           # that depends on common will be recompiled. We will set these in
@@ -92,12 +109,78 @@
           NIX_GIT_HASH = "";
           NIX_GIT_TAG = "";
         };
-        assets = pkgs.runCommand "veloren-assets" {} ''
-          mkdir $out
-          ln -sf ${./assets} $out/assets
-          ${checkIfLfsIsSetup pkgs "$out/assets/voxygen/background/bg_main.jpg"}
-        '';
-        wrapWithAssets = _: old: let
+        voxygenOut = config.nci.outputs."veloren-voxygen";
+        serverCliOut = config.nci.outputs."veloren-server-cli";
+      in {
+        packages.veloren-voxygen = wrapWithAssets voxygenOut.packages.release;
+        packages.veloren-voxygen-dev = wrapWithAssets voxygenOut.packages.dev;
+        packages.veloren-server-cli = wrapWithAssets serverCliOut.packages.release;
+        packages.veloren-server-cli-dev = wrapWithAssets serverCliOut.packages.dev;
+        packages.default = config.packages."veloren-voxygen";
+
+        devShells.default = config.nci.outputs."veloren".devShell.overrideAttrs (old: {
+          shellHook = ''
+            ${checkIfLfsIsSetup "$PWD/assets/voxygen/background/bg_main.jpg"}
+            if [ $? -ne 0 ]; then
+              exit 1
+            fi
+          '';
+        });
+
+        nci.projects."veloren".relPath = "";
+        nci.crates."veloren-server-cli" = let
+          veloren-server-cli-deps-ov = _: {
+            doCheck = false;
+            dontCheck = true;
+          };
+        in {
+          profiles = {
+            release.features = ["default-publish"];
+            dev.features = ["default-publish"];
+          };
+          depsOverrides.fix-build.overrideAttrs = veloren-server-cli-deps-ov;
+          overrides = {
+            fix-veloren-common = veloren-common-ov;
+            add-deps-reqs.overrideAttrs = veloren-server-cli-deps-ov;
+            fix-build.override = _: {
+              src = filteredSource;
+              VELOREN_USERDATA_STRATEGY = "system";
+            };
+          };
+        };
+        nci.crates."veloren-voxygen" = let
+          veloren-voxygen-deps-ov = prev: {
+            buildInputs =
+              (prev.buildInputs or [])
+              ++ (
+                with pkgs; [
+                  alsa-lib
+                  libxkbcommon
+                  udev
+                  xorg.libxcb
+                ]
+              );
+            nativeBuildInputs =
+              (prev.nativeBuildInputs or [])
+              ++ (
+                with pkgs; [
+                  python3
+                  pkg-config
+                  cmake
+                  gnumake
+                ]
+              );
+
+            SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
+            VELOREN_ASSETS = "${assets}";
+
+            checkPhase = ":";
+          };
+        in {
+          profiles = {
+            release.features = ["default-publish"];
+            dev.features = ["default-publish"];
+          };
           runtimeLibs = with pkgs; [
             xorg.libX11
             xorg.libXi
@@ -109,48 +192,8 @@
             udev
             alsa-lib
             vulkan-loader
+            stdenv.cc.cc.lib
           ];
-          wrapped =
-            common.internal.pkgsSet.utils.wrapDerivation old
-            {nativeBuildInputs = [pkgs.makeWrapper];}
-            ''
-              rm -rf $out/bin
-              mkdir $out/bin
-              ln -sf ${old}/bin/* $out/bin/
-              wrapProgram $out/bin/* \
-                ${lib.optionalString (old.pname == "veloren-voxygen") "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeLibs}"} \
-                --set VELOREN_ASSETS ${assets} \
-                --set VELOREN_GIT_VERSION "${git.prettyRev}" \
-                --set VELOREN_GIT_TAG "${git.tag}"
-            '';
-        in
-          wrapped;
-      in {
-        veloren-voxygen = let
-          veloren-voxygen-deps-ov = oldAttrs: {
-            buildInputs = ncl.addBuildInputs oldAttrs (
-              with pkgs; [
-                alsa-lib
-                libxkbcommon
-                udev
-                xorg.libxcb
-              ]
-            );
-            nativeBuildInputs =
-              ncl.addNativeBuildInputs oldAttrs (with pkgs; [python3 pkg-config]);
-
-            SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
-            VELOREN_ASSETS = "${assets}";
-
-            doCheck = false;
-            dontCheck = true;
-          };
-        in {
-          features = {
-            release = ["default-publish"];
-            dev = ["default-publish"];
-            test = ["default-publish"];
-          };
           depsOverrides.fix-build.overrideAttrs = veloren-voxygen-deps-ov;
           overrides = {
             fix-veloren-common = veloren-common-ov;
@@ -171,29 +214,6 @@
               '';
             };
           };
-          wrapper = wrapWithAssets;
-        };
-        veloren-server-cli = let
-          veloren-server-cli-deps-ov = oldAttrs: {
-            doCheck = false;
-            dontCheck = true;
-          };
-        in {
-          features = {
-            release = ["default-publish"];
-            dev = ["default-publish"];
-            test = ["default-publish"];
-          };
-          depsOverrides.fix-build.overrideAttrs = veloren-server-cli-deps-ov;
-          overrides = {
-            fix-veloren-common = veloren-common-ov;
-            add-deps-reqs.overrideAttrs = veloren-server-cli-deps-ov;
-            fix-build = {
-              src = filteredSource;
-              VELOREN_USERDATA_STRATEGY = "system";
-            };
-          };
-          wrapper = wrapWithAssets;
         };
       };
     };
