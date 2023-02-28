@@ -76,6 +76,23 @@ impl TerrainChunkSize {
     }
 }
 
+pub trait CoordinateConversions {
+    fn wpos_to_cpos(&self) -> Self;
+    fn cpos_to_wpos(&self) -> Self;
+}
+
+impl CoordinateConversions for Vec2<i32> {
+    fn wpos_to_cpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as i32) }
+
+    fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32) }
+}
+
+impl CoordinateConversions for Vec2<f32> {
+    fn wpos_to_cpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32) }
+
+    fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as f32) }
+}
+
 // TerrainChunkMeta
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -165,21 +182,15 @@ impl TerrainChunkMeta {
 
     pub fn tracks(&self) -> &[CubicBezier3<f32>] { &self.tracks }
 
-    pub fn add_track(&mut self, bezier: CubicBezier3<f32>) {
-        self.tracks.push(bezier);
-    }
+    pub fn add_track(&mut self, bezier: CubicBezier3<f32>) { self.tracks.push(bezier); }
 
     pub fn debug_points(&self) -> &[Vec3<f32>] { &self.debug_points }
 
-    pub fn add_debug_point(&mut self, point: Vec3<f32>) {
-        self.debug_points.push(point);
-    }
+    pub fn add_debug_point(&mut self, point: Vec3<f32>) { self.debug_points.push(point); }
 
     pub fn debug_lines(&self) -> &[LineSegment3<f32>] { &self.debug_lines }
 
-    pub fn add_debug_line(&mut self, line: LineSegment3<f32>) {
-        self.debug_lines.push(line);
-    }
+    pub fn add_debug_line(&mut self, line: LineSegment3<f32>) { self.debug_lines.push(line); }
 }
 
 // Terrain type aliases

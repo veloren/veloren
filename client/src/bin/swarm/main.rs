@@ -1,4 +1,8 @@
-use common::comp;
+use common::{
+    comp,
+    terrain::{CoordinateConversions, TerrainChunkSize},
+    vol::RectVolSize,
+};
 use hashbrown::HashSet;
 use std::{
     sync::{
@@ -12,6 +16,8 @@ use structopt::StructOpt;
 use tokio::runtime::Runtime;
 use vek::*;
 use veloren_client::{addr::ConnectionArgs, Client};
+
+const CHUNK_SIZE: f32 = TerrainChunkSize::RECT_SIZE.x as f32;
 
 #[derive(Clone, Copy, StructOpt)]
 struct Opt {
@@ -210,12 +216,7 @@ fn run_client(
     }
 
     // Main loop
-    let chunk_size = 32.0; // TODO: replace with the actual constant
-    let world_center = client
-        .world_data()
-        .chunk_size()
-        .map(|e| e as f32 * chunk_size)
-        / 2.0;
+    let world_center = client.world_data().chunk_size().as_::<f32>().cpos_to_wpos() / 2.0;
     loop {
         // TODO: doesn't seem to produce an error when server is shutdown (process keeps
         // running)
@@ -236,9 +237,6 @@ fn run_client(
 
 // Use client index, opts, and current system time to determine position
 fn position(index: u32, opt: Opt) -> Vec3<f32> {
-    // TODO: replace 32 with constant for chunk size
-    let chunk_size = 32.0;
-
     let width = (opt.size as f32).sqrt().round() as u32;
 
     let spacing = if opt.clustered {
@@ -246,7 +244,7 @@ fn position(index: u32, opt: Opt) -> Vec3<f32> {
     } else {
         use common::region::REGION_SIZE;
         // Attempt to make regions subscribed to by each client not overlapping
-        opt.vd as f32 * 2.0 * chunk_size + 2.0 * REGION_SIZE as f32
+        opt.vd as f32 * 2.0 * CHUNK_SIZE + 2.0 * REGION_SIZE as f32
     };
 
     // Offset to center the grid of clients
@@ -266,7 +264,7 @@ fn position(index: u32, opt: Opt) -> Vec3<f32> {
 
         // move in a square route
         // in blocks
-        let route_side_length = chunk_size * opt.vd as f32 * 3.0;
+        let route_side_length = CHUNK_SIZE * opt.vd as f32 * 3.0;
         let route_length = route_side_length * 4.0;
         // in secs
         let route_time = route_length / SPEED;
