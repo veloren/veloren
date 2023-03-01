@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lantern glow for dropped lanterns.
 - Suggests commands when an invalid one is entered in chat and added Client-side commands to /help.
 - Moderator badge in the chat.
+- More aggressive scene culling based on camera position to improve performance.
 
 ### Changed
 - Bats move slower and use a simple proportional controller to maintain altitude
