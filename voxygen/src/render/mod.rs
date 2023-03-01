@@ -54,7 +54,7 @@ pub use self::{
             TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer,
             TransparentPassDrawer, UiDrawer, VolumetricPassDrawer,
         },
-        AltIndices, ColLightInfo, Renderer,
+        AltIndices, ColLightInfo, CullingMode, Renderer,
     },
     texture::Texture,
 };

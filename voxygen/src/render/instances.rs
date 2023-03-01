@@ -18,7 +18,6 @@ impl<'a, T: Copy + Pod> SubInstances<'a, T> {
         self.buf.slice(start..end)
     }
 
-    #[allow(clippy::len_without_is_empty)]
     pub fn count(&self) -> u32 { self.inst_range.end - self.inst_range.start }
 }
 

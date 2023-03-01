@@ -10,9 +10,10 @@ use crate::{
     },
     render::{
         pipelines::{self, ColLights},
-        AltIndices, ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData,
-        Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex,
-        SpriteVerts, TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
+        AltIndices, ColLightInfo, CullingMode, FirstPassDrawer, FluidVertex, GlobalModel,
+        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup,
+        SpriteInstance, SpriteVertex, SpriteVerts, TerrainLocals, TerrainShadowDrawer,
+        TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -103,8 +104,19 @@ pub struct TerrainChunkData {
     alt_indices: AltIndices,
 }
 
+/// The depth at which the intermediate zone between underground and surface
+/// begins
 pub const SHALLOW_ALT: f32 = 24.0;
+/// The depth at which the intermediate zone between underground and surface
+/// ends
 pub const DEEP_ALT: f32 = 96.0;
+/// The depth below the surface altitude at which the camera switches from
+/// displaying surface elements to underground elements
+pub const UNDERGROUND_ALT: f32 = (SHALLOW_ALT + DEEP_ALT) * 0.5;
+
+// The distance (in chunks) within which all levels of the chunks will be drawn
+// to minimise cull-related popping.
+const NEVER_CULL_DIST: i32 = 3;
 
 #[derive(Copy, Clone)]
 struct ChunkMeshState {
@@ -861,6 +873,10 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     /// Maintain terrain data. To be called once per tick.
+    ///
+    /// The returned visible bounding volumes take into account the current
+    /// camera position (i.e: when underground, surface structures will be
+    /// culled from the volume).
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -901,6 +917,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         span!(_guard, "maintain", "Terrain::maintain");
         let current_tick = scene_data.tick;
         let current_time = scene_data.state.get_time();
+        // The visible bounding box of all chunks, not including culled regions
         let mut visible_bounding_box: Option<Aabb<f32>> = None;
 
         // Add any recently created or changed chunks to the list of chunks to be
@@ -1327,7 +1344,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             let chunk_max = [
                 chunk_pos.x + chunk_sz,
                 chunk_pos.y + chunk_sz,
-                chunk.z_bounds.1,
+                chunk.sun_occluder_z_bounds.1,
             ];
 
             let (in_frustum, last_plane_index) = AABB::new(chunk_min, chunk_max)
@@ -1335,15 +1352,15 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             chunk.frustum_last_plane_index = last_plane_index;
             chunk.visible.in_frustum = in_frustum;
-            let chunk_box = Aabb {
-                min: Vec3::from(chunk_min),
-                max: Vec3::from(chunk_max),
+            let chunk_area = Aabr {
+                min: chunk_pos,
+                max: chunk_pos + chunk_sz,
             };
 
             if in_frustum {
                 let visible_box = Aabb {
-                    min: chunk_box.min.xy().with_z(chunk.sun_occluder_z_bounds.0),
-                    max: chunk_box.max.xy().with_z(chunk.sun_occluder_z_bounds.1),
+                    min: chunk_area.min.with_z(chunk.sun_occluder_z_bounds.0),
+                    max: chunk_area.max.with_z(chunk.sun_occluder_z_bounds.1),
                 };
                 visible_bounding_box = visible_bounding_box
                     .map(|e| e.union(visible_box))
@@ -1538,7 +1555,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         &'a self,
         drawer: &mut TerrainShadowDrawer<'_, 'a>,
         focus_pos: Vec3<f32>,
-        is_underground: bool,
+        culling_mode: CullingMode,
     ) {
         span!(_guard, "render_shadows", "Terrain::render_shadows");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
@@ -1568,7 +1585,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 ))
             })
             .for_each(|(model, locals, alt_indices)| {
-                drawer.draw(model, locals, alt_indices, Some(is_underground))
+                drawer.draw(model, locals, alt_indices, culling_mode)
             });
     }
 
@@ -1598,7 +1615,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 &chunk.locals,
                 &chunk.alt_indices,
             )))
-            .for_each(|(model, locals, alt_indices)| drawer.draw(model, locals, alt_indices, None));
+            .for_each(|(model, locals, alt_indices)| drawer.draw(model, locals, alt_indices, CullingMode::None));
     }
 
     pub fn chunks_for_point_shadows(
@@ -1640,7 +1657,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         &'a self,
         drawer: &mut FirstPassDrawer<'a>,
         focus_pos: Vec3<f32>,
-        is_underground: bool,
+        culling_mode: CullingMode,
     ) {
         span!(_guard, "render", "Terrain::render");
         let mut drawer = drawer.draw_terrain();
@@ -1667,12 +1684,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .for_each(|(rpos, model, col_lights, locals, alt_indices)| {
                 // Always draw all of close chunks to avoid terrain 'popping'
-                let is_underground = if rpos.magnitude_squared() < 3i32.pow(2) {
-                    None
+                let culling_mode = if rpos.magnitude_squared() < NEVER_CULL_DIST.pow(2) {
+                    CullingMode::None
                 } else {
-                    Some(is_underground)
+                    culling_mode
                 };
-                drawer.draw(model, col_lights, locals, alt_indices, is_underground)
+                drawer.draw(model, col_lights, locals, alt_indices, culling_mode)
             });
     }
 
@@ -1682,7 +1699,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         focus_pos: Vec3<f32>,
         cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
-        is_underground: bool,
+        culling_mode: CullingMode,
     ) {
         span!(_guard, "render_translucent", "Terrain::render_translucent");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
@@ -1740,17 +1757,17 @@ impl<V: RectRasterableVol> Terrain<V> {
                     };
 
                     // Always draw all of close chunks to avoid terrain 'popping'
-                    let is_underground = if rpos.magnitude_squared() < 3i32.pow(2) {
-                        None
+                    let culling_mode = if rpos.magnitude_squared() < NEVER_CULL_DIST.pow(2) {
+                        CullingMode::None
                     } else {
-                        Some(is_underground)
+                        culling_mode
                     };
 
                     sprite_drawer.draw(
                         &chunk.locals,
                         &chunk.sprite_instances[lod_level].0,
                         &chunk.sprite_instances[lod_level].1,
-                        is_underground,
+                        culling_mode,
                     );
                 }
             });

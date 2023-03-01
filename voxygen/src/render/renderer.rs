@@ -1555,9 +1555,29 @@ fn create_quad_index_buffer_u32(device: &wgpu::Device, vert_length: usize) -> Bu
 
 /// Terrain-related buffers segment themselves by depth to allow us to do
 /// primitive occlusion culling based on whether the camera is underground or
-/// not. This struct specifies the buffer offsets at whcih various layers start
+/// not. This struct specifies the buffer offsets at which various layers start
 /// and end.
+///
+/// 'Deep' structures appear within the range `0..deep_end`.
+///
+/// 'Shallow' structures appear within the range `deep_end..underground_end`.
+///
+/// 'Surface' structures appear within the range `underground_end..`.
 pub struct AltIndices {
     pub deep_end: usize,
     pub underground_end: usize,
+}
+
+/// The mode with which culling based on the camera position relative to the
+/// terrain is performed.
+#[derive(Copy, Clone)]
+pub enum CullingMode {
+    /// We need to render all elements of the given structure
+    None,
+    /// We only need to render surface and shallow (i.e: in the overlapping
+    /// region) elements of the structure
+    Surface,
+    /// We only need to render shallow (i.e: in the overlapping region) and deep
+    /// elements of the structure
+    Underground,
 }
