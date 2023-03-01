@@ -791,7 +791,7 @@
     ),
     Apple: (
         bone0: (
-            offset: (-5.5, -5.5, 0.0),
+            offset: (-3.5, -3.5, 0.0),
             central: ("sprite.fruit.apple"),
         ),
         bone1: (

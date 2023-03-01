@@ -7,6 +7,7 @@ use super::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, shadow,
             skybox, sprite, terrain, trail, ui, ColLights, GlobalsBindGroup,
         },
+        AltIndices, CullingMode,
     },
     rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -794,11 +795,28 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
         &mut self,
         model: &'data Model<terrain::Vertex>,
         locals: &'data terrain::BoundLocals,
+        alt_indices: &'data AltIndices,
+        culling_mode: CullingMode,
     ) {
+        let index_range = match culling_mode {
+            // Don't bother rendering shadows when underground
+            // TODO: Does this break point shadows in certain cases?
+            CullingMode::Underground => return, //0..alt_indices.underground_end as u32,
+            CullingMode::Surface => alt_indices.deep_end as u32..model.len() as u32,
+            CullingMode::None => 0..model.len() as u32,
+        };
+
+        // Don't render anything if there's nothing to render!
+        if index_range.is_empty() {
+            return;
+        }
+
+        let submodel = model.submodel(index_range);
+
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass.set_vertex_buffer(0, submodel.buf());
         self.render_pass
-            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
+            .draw_indexed(0..submodel.len() / 4 * 6, 0, 0..1);
     }
 }
 
@@ -975,7 +993,22 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
         model: &'data Model<terrain::Vertex>,
         col_lights: &'data Arc<ColLights<terrain::Locals>>,
         locals: &'data terrain::BoundLocals,
+        alt_indices: &'data AltIndices,
+        culling_mode: CullingMode,
     ) {
+        let index_range = match culling_mode {
+            CullingMode::Underground => 0..alt_indices.underground_end as u32,
+            CullingMode::Surface => alt_indices.deep_end as u32..model.len() as u32,
+            CullingMode::None => 0..model.len() as u32,
+        };
+
+        // Don't render anything if there's nothing to render!
+        if index_range.is_empty() {
+            return;
+        }
+
+        let submodel = model.submodel(index_range);
+
         if self.col_lights
             // Check if we are still using the same atlas texture as the previous drawn
             // chunk
@@ -988,9 +1021,10 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
         };
 
         self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+
+        self.render_pass.set_vertex_buffer(0, submodel.buf());
         self.render_pass
-            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
+            .draw_indexed(0..submodel.len() / 4 * 6, 0, 0..1);
     }
 }
 
@@ -1027,16 +1061,30 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
         &mut self,
         terrain_locals: &'data terrain::BoundLocals,
         instances: &'data Instances<sprite::Instance>,
+        alt_indices: &'data AltIndices,
+        culling_mode: CullingMode,
     ) {
+        let instance_range = match culling_mode {
+            CullingMode::Underground => 0..alt_indices.underground_end as u32,
+            CullingMode::Surface => alt_indices.deep_end as u32..instances.count() as u32,
+            CullingMode::None => 0..instances.count() as u32,
+        };
+
+        // Don't render anything if there's nothing to render!
+        if instance_range.is_empty() {
+            return;
+        }
+
         self.render_pass
             .set_bind_group(3, &terrain_locals.bind_group, &[]);
 
-        self.render_pass
-            .set_vertex_buffer(0, instances.buf().slice(..));
+        let subinstances = instances.subinstances(instance_range);
+
+        self.render_pass.set_vertex_buffer(0, subinstances.buf());
         self.render_pass.draw_indexed(
             0..sprite::VERT_PAGE_SIZE / 4 * 6,
             0,
-            0..instances.count() as u32,
+            0..subinstances.count(),
         );
     }
 }

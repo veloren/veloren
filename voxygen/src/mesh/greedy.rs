@@ -868,7 +868,7 @@ pub fn create_quad<O: Vertex, M>(
     draw_dim: Vec2<Vec3<f32>>,
     norm: Vec3<f32>,
     meta: &M,
-    create_vertex: impl Fn(Vec2<u16>, Vec3<f32>, Vec3<f32>, &M) -> O,
+    mut create_vertex: impl FnMut(Vec2<u16>, Vec3<f32>, Vec3<f32>, &M) -> O,
 ) -> Quad<O> {
     Quad::new(
         create_vertex(atlas_pos, origin, norm, meta),

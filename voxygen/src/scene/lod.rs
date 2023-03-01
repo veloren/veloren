@@ -1,8 +1,8 @@
 use crate::{
     render::{
         pipelines::lod_terrain::{LodData, Vertex},
-        FirstPassDrawer, Instances, LodObjectInstance, LodObjectVertex, LodTerrainVertex, Mesh,
-        Model, Quad, Renderer, Tri,
+        CullingMode, FirstPassDrawer, Instances, LodObjectInstance, LodObjectVertex,
+        LodTerrainVertex, Mesh, Model, Quad, Renderer, Tri,
     },
     scene::{camera, Camera},
     settings::Settings,
@@ -200,17 +200,19 @@ impl Lod {
         );
     }
 
-    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>) {
+    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>, culling_mode: CullingMode) {
         if let Some((_, model)) = self.model.as_ref() {
             drawer.draw_lod_terrain(model);
         }
 
-        // Draw LoD objects
-        let mut drawer = drawer.draw_lod_objects();
-        for groups in self.zone_objects.values() {
-            for (kind, group) in groups.iter().filter(|(_, g)| g.visible) {
-                if let Some(model) = self.object_data.get(kind) {
-                    drawer.draw(model, &group.instances);
+        if !matches!(culling_mode, CullingMode::Underground) {
+            // Draw LoD objects
+            let mut drawer = drawer.draw_lod_objects();
+            for groups in self.zone_objects.values() {
+                for (kind, group) in groups.iter().filter(|(_, g)| g.visible) {
+                    if let Some(model) = self.object_data.get(kind) {
+                        drawer.draw(model, &group.instances);
+                    }
                 }
             }
         }

@@ -21,9 +21,9 @@ pub use self::{
 use crate::{
     audio::{ambient, ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
-        create_skybox_mesh, CloudsLocals, Consts, Drawer, GlobalModel, Globals, GlobalsBindGroup,
-        Light, Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals, Renderer, Shadow,
-        ShadowLocals, SkyboxVertex,
+        create_skybox_mesh, CloudsLocals, Consts, CullingMode, Drawer, GlobalModel, Globals,
+        GlobalsBindGroup, Light, Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals,
+        Renderer, Shadow, ShadowLocals, SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -1246,6 +1246,17 @@ impl Scene {
         let focus_pos = self.camera.get_focus_pos();
         let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
         let is_rain = state.max_weather_near(cam_pos.xy()).rain > RAIN_THRESHOLD;
+        let culling_mode = if scene_data
+            .state
+            .terrain()
+            .get_key(scene_data.state.terrain().pos_key(cam_pos.as_()))
+            .map_or(false, |c| {
+                cam_pos.z < c.meta().alt() - terrain::UNDERGROUND_ALT
+            }) {
+            CullingMode::Underground
+        } else {
+            CullingMode::Surface
+        };
 
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
@@ -1255,8 +1266,11 @@ impl Scene {
                 prof_span!("directed shadows");
                 if let Some(mut shadow_pass) = drawer.shadow_pass() {
                     // Render terrain directed shadows.
-                    self.terrain
-                        .render_shadows(&mut shadow_pass.draw_terrain_shadows(), focus_pos);
+                    self.terrain.render_shadows(
+                        &mut shadow_pass.draw_terrain_shadows(),
+                        focus_pos,
+                        culling_mode,
+                    );
 
                     // Render figure directed shadows.
                     self.figure_mgr.render_shadows(
@@ -1305,7 +1319,8 @@ impl Scene {
                 camera_data,
             );
 
-            self.terrain.render(&mut first_pass, focus_pos);
+            self.terrain
+                .render(&mut first_pass, focus_pos, culling_mode);
 
             self.figure_mgr.render(
                 &mut first_pass.draw_figures(),
@@ -1315,7 +1330,7 @@ impl Scene {
                 camera_data,
             );
 
-            self.lod.render(&mut first_pass);
+            self.lod.render(&mut first_pass, culling_mode);
 
             // Render the skybox.
             first_pass.draw_skybox(&self.skybox.model);
@@ -1326,6 +1341,7 @@ impl Scene {
                 focus_pos,
                 cam_pos,
                 scene_data.sprite_render_distance,
+                culling_mode,
             );
 
             // Render particle effects.

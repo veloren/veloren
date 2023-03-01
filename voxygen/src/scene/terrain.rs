@@ -10,9 +10,10 @@ use crate::{
     },
     render::{
         pipelines::{self, ColLights},
-        ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
-        RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts,
-        TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
+        AltIndices, ColLightInfo, CullingMode, FirstPassDrawer, FluidVertex, GlobalModel,
+        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup,
+        SpriteInstance, SpriteVertex, SpriteVerts, TerrainLocals, TerrainShadowDrawer,
+        TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -89,7 +90,7 @@ pub struct TerrainChunkData {
     col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
     light_map: LightMapFn,
     glow_map: LightMapFn,
-    sprite_instances: [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
+    sprite_instances: [(Instances<SpriteInstance>, AltIndices); SPRITE_LOD_LEVELS],
     locals: pipelines::terrain::BoundLocals,
     pub blocks_of_interest: BlocksOfInterest,
 
@@ -97,8 +98,25 @@ pub struct TerrainChunkData {
     can_shadow_point: bool,
     can_shadow_sun: bool,
     z_bounds: (f32, f32),
+    sun_occluder_z_bounds: (f32, f32),
     frustum_last_plane_index: u8,
+
+    alt_indices: AltIndices,
 }
+
+/// The depth at which the intermediate zone between underground and surface
+/// begins
+pub const SHALLOW_ALT: f32 = 24.0;
+/// The depth at which the intermediate zone between underground and surface
+/// ends
+pub const DEEP_ALT: f32 = 96.0;
+/// The depth below the surface altitude at which the camera switches from
+/// displaying surface elements to underground elements
+pub const UNDERGROUND_ALT: f32 = (SHALLOW_ALT + DEEP_ALT) * 0.5;
+
+// The distance (in chunks) within which all levels of the chunks will be drawn
+// to minimise cull-related popping.
+const NEVER_CULL_DIST: i32 = 3;
 
 #[derive(Copy, Clone)]
 struct ChunkMeshState {
@@ -112,18 +130,20 @@ struct ChunkMeshState {
 /// Just the mesh part of a mesh worker response.
 pub struct MeshWorkerResponseMesh {
     z_bounds: (f32, f32),
+    sun_occluder_z_bounds: (f32, f32),
     opaque_mesh: Mesh<TerrainVertex>,
     fluid_mesh: Mesh<FluidVertex>,
     col_lights_info: ColLightInfo,
     light_map: LightMapFn,
     glow_map: LightMapFn,
+    alt_indices: AltIndices,
 }
 
 /// A type produced by mesh worker threads corresponding to the position and
 /// mesh of a chunk.
 struct MeshWorkerResponse {
     pos: Vec2<i32>,
-    sprite_instances: [Vec<SpriteInstance>; SPRITE_LOD_LEVELS],
+    sprite_instances: [(Vec<SpriteInstance>, AltIndices); SPRITE_LOD_LEVELS],
     /// If None, this update was requested without meshing.
     mesh: Option<MeshWorkerResponseMesh>,
     started_tick: u64,
@@ -244,23 +264,29 @@ fn mesh_worker(
         mesh = None;
         (&**light_map, &**glow_map)
     } else {
-        let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info, light_map, glow_map)) =
-            generate_mesh(
-                &volume,
-                (
-                    range,
-                    Vec2::new(max_texture_size, max_texture_size),
-                    &blocks_of_interest,
-                ),
-            );
+        let (
+            opaque_mesh,
+            fluid_mesh,
+            _shadow_mesh,
+            (bounds, col_lights_info, light_map, glow_map, alt_indices, sun_occluder_z_bounds),
+        ) = generate_mesh(
+            &volume,
+            (
+                range,
+                Vec2::new(max_texture_size, max_texture_size),
+                &blocks_of_interest,
+            ),
+        );
         mesh = Some(MeshWorkerResponseMesh {
             // TODO: Take sprite bounds into account somehow?
             z_bounds: (bounds.min.z, bounds.max.z),
+            sun_occluder_z_bounds,
             opaque_mesh,
             fluid_mesh,
             col_lights_info,
             light_map,
             glow_map,
+            alt_indices,
         });
         // Pointer juggling so borrows work out.
         let mesh = mesh.as_ref().unwrap();
@@ -272,7 +298,19 @@ fn mesh_worker(
         // Extract sprite locations from volume
         sprite_instances: {
             prof_span!("extract sprite_instances");
-            let mut instances = [(); SPRITE_LOD_LEVELS].map(|()| Vec::new());
+            let mut instances = [(); SPRITE_LOD_LEVELS].map(|()| {
+                (
+                    Vec::new(), // Deep
+                    Vec::new(), // Shallow
+                    Vec::new(), // Surface
+                )
+            });
+
+            let (underground_alt, deep_alt) = volume
+                .get_key(volume.pos_key((range.min + range.max) / 2))
+                .map_or((0.0, 0.0), |c| {
+                    (c.meta().alt() - SHALLOW_ALT, c.meta().alt() - DEEP_ALT)
+                });
 
             for x in 0..TerrainChunk::RECT_SIZE.x as i32 {
                 for y in 0..TerrainChunk::RECT_SIZE.y as i32 {
@@ -304,7 +342,7 @@ fn mesh_worker(
                             let light = light_map(wpos);
                             let glow = glow_map(wpos);
 
-                            for (lod_level, sprite_data) in
+                            for ((deep_level, shallow_level, surface_level), sprite_data) in
                                 instances.iter_mut().zip(&sprite_data[&key])
                             {
                                 let mat = Mat4::identity()
@@ -332,7 +370,13 @@ fn mesh_worker(
                                         page,
                                         matches!(sprite, SpriteKind::Door),
                                     );
-                                    lod_level.push(instance);
+                                    if (wpos.z as f32) < deep_alt {
+                                        deep_level.push(instance);
+                                    } else if wpos.z as f32 > underground_alt {
+                                        surface_level.push(instance);
+                                    } else {
+                                        shallow_level.push(instance);
+                                    }
                                 }
                             }
                         }
@@ -340,7 +384,21 @@ fn mesh_worker(
                 }
             }
 
-            instances
+            instances.map(|(deep_level, shallow_level, surface_level)| {
+                let deep_end = deep_level.len();
+                let alt_indices = AltIndices {
+                    deep_end,
+                    underground_end: deep_end + shallow_level.len(),
+                };
+                (
+                    deep_level
+                        .into_iter()
+                        .chain(shallow_level.into_iter())
+                        .chain(surface_level.into_iter())
+                        .collect(),
+                    alt_indices,
+                )
+            })
         },
         mesh,
         blocks_of_interest,
@@ -815,6 +873,10 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     /// Maintain terrain data. To be called once per tick.
+    ///
+    /// The returned visible bounding volumes take into account the current
+    /// camera position (i.e: when underground, surface structures will be
+    /// culled from the volume).
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -855,6 +917,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         span!(_guard, "maintain", "Terrain::maintain");
         let current_tick = scene_data.tick;
         let current_time = scene_data.state.get_time();
+        // The visible bounding box of all chunks, not including culled regions
         let mut visible_bounding_box: Option<Aabb<f32>> = None;
 
         // Add any recently created or changed chunks to the list of chunks to be
@@ -1141,11 +1204,15 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Some(todo) if response.started_tick <= todo.started_tick => {
                     let started_tick = todo.started_tick;
 
-                    let sprite_instances = response.sprite_instances.map(|instances| {
-                        renderer
-                            .create_instances(&instances)
-                            .expect("Failed to upload chunk sprite instances to the GPU!")
-                    });
+                    let sprite_instances =
+                        response.sprite_instances.map(|(instances, alt_indices)| {
+                            (
+                                renderer
+                                    .create_instances(&instances)
+                                    .expect("Failed to upload chunk sprite instances to the GPU!"),
+                                alt_indices,
+                            )
+                        });
 
                     if let Some(mesh) = response.mesh {
                         // Full update, insert the whole chunk.
@@ -1225,7 +1292,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                             can_shadow_sun: false,
                             blocks_of_interest: response.blocks_of_interest,
                             z_bounds: mesh.z_bounds,
+                            sun_occluder_z_bounds: mesh.sun_occluder_z_bounds,
                             frustum_last_plane_index: 0,
+                            alt_indices: mesh.alt_indices,
                         });
                     } else if let Some(chunk) = self.chunks.get_mut(&response.pos) {
                         // There was an update that didn't require a remesh (probably related to
@@ -1275,7 +1344,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             let chunk_max = [
                 chunk_pos.x + chunk_sz,
                 chunk_pos.y + chunk_sz,
-                chunk.z_bounds.1,
+                chunk.sun_occluder_z_bounds.1,
             ];
 
             let (in_frustum, last_plane_index) = AABB::new(chunk_min, chunk_max)
@@ -1283,13 +1352,16 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             chunk.frustum_last_plane_index = last_plane_index;
             chunk.visible.in_frustum = in_frustum;
-            let chunk_box = Aabb {
-                min: Vec3::from(chunk_min),
-                max: Vec3::from(chunk_max),
+            let chunk_area = Aabr {
+                min: chunk_pos,
+                max: chunk_pos + chunk_sz,
             };
 
             if in_frustum {
-                let visible_box = chunk_box;
+                let visible_box = Aabb {
+                    min: chunk_area.min.with_z(chunk.sun_occluder_z_bounds.0),
+                    max: chunk_area.max.with_z(chunk.sun_occluder_z_bounds.1),
+                };
                 visible_bounding_box = visible_bounding_box
                     .map(|e| e.union(visible_box))
                     .or(Some(visible_box));
@@ -1483,6 +1555,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         &'a self,
         drawer: &mut TerrainShadowDrawer<'_, 'a>,
         focus_pos: Vec3<f32>,
+        culling_mode: CullingMode,
     ) {
         span!(_guard, "render_shadows", "Terrain::render_shadows");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
@@ -1505,12 +1578,15 @@ impl<V: RectRasterableVol> Terrain<V> {
             .filter(|chunk| chunk.can_shadow_sun())
             .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
             .filter_map(|chunk| {
-                chunk
-                    .opaque_model
-                    .as_ref()
-                    .map(|model| (model, &chunk.locals))
+                Some((
+                    chunk.opaque_model.as_ref()?,
+                    &chunk.locals,
+                    &chunk.alt_indices,
+                ))
             })
-            .for_each(|(model, locals)| drawer.draw(model, locals));
+            .for_each(|(model, locals, alt_indices)| {
+                drawer.draw(model, locals, alt_indices, culling_mode)
+            });
     }
 
     pub fn render_rain_occlusion<'a>(
@@ -1532,13 +1608,14 @@ impl<V: RectRasterableVol> Terrain<V> {
         chunk_iter
             // Find a way to keep this?
             // .filter(|chunk| chunk.can_shadow_sun())
-            .filter_map(|chunk| {
+            .filter_map(|chunk| Some((
                 chunk
                     .opaque_model
-                    .as_ref()
-                    .map(|model| (model, &chunk.locals))
-            })
-            .for_each(|(model, locals)| drawer.draw(model, locals));
+                    .as_ref()?,
+                &chunk.locals,
+                &chunk.alt_indices,
+            )))
+            .for_each(|(model, locals, alt_indices)| drawer.draw(model, locals, alt_indices, CullingMode::None));
     }
 
     pub fn chunks_for_point_shadows(
@@ -1576,7 +1653,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
     }
 
-    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>, focus_pos: Vec3<f32>) {
+    pub fn render<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
+        focus_pos: Vec3<f32>,
+        culling_mode: CullingMode,
+    ) {
         span!(_guard, "render", "Terrain::render");
         let mut drawer = drawer.draw_terrain();
 
@@ -1587,17 +1669,28 @@ impl<V: RectRasterableVol> Terrain<V> {
         Spiral2d::new()
             .filter_map(|rpos| {
                 let pos = focus_chunk + rpos;
-                self.chunks.get(&pos)
+                Some((rpos, self.chunks.get(&pos)?))
             })
             .take(self.chunks.len())
-            .filter(|chunk| chunk.visible.is_visible())
-            .filter_map(|chunk| {
-                chunk
-                    .opaque_model
-                    .as_ref()
-                    .map(|model| (model, &chunk.col_lights, &chunk.locals))
+            .filter(|(_, chunk)| chunk.visible.is_visible())
+            .filter_map(|(rpos, chunk)| {
+                Some((
+                    rpos,
+                    chunk.opaque_model.as_ref()?,
+                    &chunk.col_lights,
+                    &chunk.locals,
+                    &chunk.alt_indices,
+                ))
             })
-            .for_each(|(model, col_lights, locals)| drawer.draw(model, col_lights, locals));
+            .for_each(|(rpos, model, col_lights, locals, alt_indices)| {
+                // Always draw all of close chunks to avoid terrain 'popping'
+                let culling_mode = if rpos.magnitude_squared() < NEVER_CULL_DIST.pow(2) {
+                    CullingMode::None
+                } else {
+                    culling_mode
+                };
+                drawer.draw(model, col_lights, locals, alt_indices, culling_mode)
+            });
     }
 
     pub fn render_translucent<'a>(
@@ -1606,6 +1699,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         focus_pos: Vec3<f32>,
         cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
+        culling_mode: CullingMode,
     ) {
         span!(_guard, "render_translucent", "Terrain::render_translucent");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
@@ -1616,7 +1710,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         let chunk_iter = Spiral2d::new()
             .filter_map(|rpos| {
                 let pos = focus_chunk + rpos;
-                self.chunks.get(&pos).map(|c| (pos, c))
+                Some((rpos, pos, self.chunks.get(&pos)?))
             })
             .take(self.chunks.len());
 
@@ -1633,10 +1727,10 @@ impl<V: RectRasterableVol> Terrain<V> {
         let mut sprite_drawer = drawer.draw_sprites(&self.sprite_globals, &self.sprite_col_lights);
         chunk_iter
             .clone()
-            .filter(|(_, c)| c.visible.is_visible())
-            .for_each(|(pos, chunk)| {
+            .filter(|(_, _, c)| c.visible.is_visible())
+            .for_each(|(rpos, pos, chunk)| {
                 // Skip chunk if it has no sprites
-                if chunk.sprite_instances[0].count() == 0 {
+                if chunk.sprite_instances[0].0.count() == 0 {
                     return;
                 }
 
@@ -1662,7 +1756,19 @@ impl<V: RectRasterableVol> Terrain<V> {
                         4
                     };
 
-                    sprite_drawer.draw(&chunk.locals, &chunk.sprite_instances[lod_level]);
+                    // Always draw all of close chunks to avoid terrain 'popping'
+                    let culling_mode = if rpos.magnitude_squared() < NEVER_CULL_DIST.pow(2) {
+                        CullingMode::None
+                    } else {
+                        culling_mode
+                    };
+
+                    sprite_drawer.draw(
+                        &chunk.locals,
+                        &chunk.sprite_instances[lod_level].0,
+                        &chunk.sprite_instances[lod_level].1,
+                        culling_mode,
+                    );
                 }
             });
         drop(sprite_drawer);
@@ -1672,8 +1778,8 @@ impl<V: RectRasterableVol> Terrain<V> {
         span!(guard, "Fluid chunks");
         let mut fluid_drawer = drawer.draw_fluid();
         chunk_iter
-            .filter(|(_, chunk)| chunk.visible.is_visible())
-            .filter_map(|(_, chunk)| {
+            .filter(|(_, _, chunk)| chunk.visible.is_visible())
+            .filter_map(|(_, _, chunk)| {
                 chunk
                     .fluid_model
                     .as_ref()
