@@ -1,0 +1,11 @@
+ItemDef(
+    name: "Common Lockpick",
+    description: "Used to open common locks. Will break after use.",
+    kind: Utility(
+        kind: Key,
+    ),
+    amount: 1,
+    quality: Common,
+    tags: [Utility],
+)
+

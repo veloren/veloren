@@ -1,0 +1,17 @@
+#![enable(implicit_some)]
+(
+    name: Name("Overseer"),
+    body: RandomWith("cultist_warlock"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.spots.wizard_tower.wizard_spellbinder"), 
+            active_hands: InHands((Choice([
+                (1, Item("common.items.npc_weapons.staff.bipedlarge-cultist")),
+                (1, Item("common.items.npc_weapons.bow.bipedlarge-velorite")),
+            ]), None)),
+        )),
+    ),
+    meta: [],
+)

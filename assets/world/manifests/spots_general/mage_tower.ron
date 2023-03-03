@@ -1,0 +1,32 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.spots.mage_tower",
+        center: (32, 32, 19),
+        custom_indices: {
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            10: Sprite(WitchWindow),
+            11: RotatedSprite(Window1, 0),
+            12: RotatedSprite(Window1, 2),
+            44: Filled(GlowingRock, (r: 46, g: 10, b: 27)),
+            45: Filled(GlowingRock, (r: 0, g: 204, b: 204)),
+            233: RotatedSprite(DoorDark, 2),
+            234: RotatedSprite(DoorDark, 6),
+            239: EntitySpawner("common.entity.spot.wizard.wizard_argo", 1.0),
+            240: EntitySpawner("common.entity.spot.wizard.wizard_trish", 1.0),
+            241: EntitySpawner("common.entity.spot.wizard.wizard_haku", 1.0),
+            242: EntitySpawner("common.entity.spot.wizard.novice", 1.0),
+            243: EntitySpawner("common.entity.spot.wizard.adept", 1.0),
+            245: EntitySpawner("common.entity.wild.aggressive.bat", 0.4),
+            246: Sprite(WallLampWizard),
+            249: RotatedSprite(DoorDark, 8),
+            250: RotatedSprite(DoorDark, 4),            
+            252: Keyhole("common.items.keys.rusty_tower_key"),
+            253: Sprite(KeyDoor),            
+            235: Sprite(Candle),
+            },
+    ),
+]
+
+

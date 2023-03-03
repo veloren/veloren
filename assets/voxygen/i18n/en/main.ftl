@@ -92,4 +92,4 @@ loading-tips =
     .a18 = Need more bags or better armor to continue your journey? Press '{ $gameinput-crafting }' to open the crafting menu!
     .a19 = Press '{ $gameinput-roll }' to roll. Rolling can be used to move faster and dodge enemy attacks.
     .a20 = Wondering what an item is used for? Search 'input:<item name>' in crafting to see what recipes it's used in.
-    .a21 = Find something cool? Take a screenshot of it with '{ $gameinput-screenshot }'.
+    .a21 = You can take screenshots with '{ $gameinput-screenshot }'.

@@ -1,0 +1,25 @@
+#![enable(implicit_some)]
+(
+    name: Name("Bowman"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Npc),
+    loot: LootTable("common.loot_tables.creature.humanoid"),
+    inventory: (
+        loadout: Inline((
+            inherit: Choice([                
+                (1, Asset("common.loadout.world.traveler1.leather")),  
+                (1, Asset("common.loadout.world.traveler2.carapace")),  
+                (1, Asset("common.loadout.world.traveler2.scale")),            
+            ]),
+            active_hands: InHands((Choice([
+                (1, ModularWeapon(tool: Bow, material: Ironwood, hands: None)),                
+
+            ]), None)),
+        )),
+        items: [
+            (10, "common.items.consumable.potion_big"),
+            (10, "common.items.food.sunflower_icetea"),
+        ],
+    ),
+    meta: [],
+)

@@ -12,11 +12,12 @@ pub use self::{
     block::{Block, BlockKind},
     map::MapSizeLg,
     site::SiteKindMeta,
-    sprite::SpriteKind,
+    sprite::{SpriteKind, SpriteCfg, UnlockKind},
     structure::{Structure, StructuresGroup},
 };
 use roots::find_roots_cubic;
 use serde::{Deserialize, Serialize};
+use hashbrown::HashMap;
 
 use crate::{
     vol::{ReadVol, RectVolSize},
@@ -110,6 +111,7 @@ pub struct TerrainChunkMeta {
     tracks: Vec<CubicBezier3<f32>>,
     debug_points: Vec<Vec3<f32>>,
     debug_lines: Vec<LineSegment3<f32>>,
+    sprite_cfgs: HashMap<Vec3<i32>, SpriteCfg>,
 }
 
 impl TerrainChunkMeta {
@@ -139,6 +141,7 @@ impl TerrainChunkMeta {
             tracks: Vec::new(),
             debug_points: Vec::new(),
             debug_lines: Vec::new(),
+            sprite_cfgs: HashMap::default(),
         }
     }
 
@@ -157,6 +160,7 @@ impl TerrainChunkMeta {
             tracks: Vec::new(),
             debug_points: Vec::new(),
             debug_lines: Vec::new(),
+            sprite_cfgs: HashMap::default(),
         }
     }
 
@@ -190,7 +194,17 @@ impl TerrainChunkMeta {
 
     pub fn debug_lines(&self) -> &[LineSegment3<f32>] { &self.debug_lines }
 
-    pub fn add_debug_line(&mut self, line: LineSegment3<f32>) { self.debug_lines.push(line); }
+    pub fn add_debug_line(&mut self, line: LineSegment3<f32>) {
+        self.debug_lines.push(line);
+    }
+
+    pub fn sprite_cfg_at(&self, rpos: Vec3<i32>) -> Option<&SpriteCfg> {
+        self.sprite_cfgs.get(&rpos)
+    }
+
+    pub fn set_sprite_cfg_at(&mut self, rpos: Vec3<i32>, sprite_cfg: SpriteCfg) {
+        self.sprite_cfgs.insert(rpos, sprite_cfg);
+    }
 }
 
 // Terrain type aliases

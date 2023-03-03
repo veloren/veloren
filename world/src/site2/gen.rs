@@ -462,14 +462,22 @@ impl Fill {
                     let col_sample = canvas_info.col(canvas_info.wpos)?;
                     block_from_structure(
                         canvas_info.index,
-                        *sb,
+                        sb,
                         pos - tr,
                         p.get_bounds().center().xy(),
                         *seed,
                         col_sample,
                         Block::air,
                         canvas_info.calendar(),
+                        &Vec2::new(Vec2::new(1, 0), Vec2::new(0, 1)),
                     )
+                    .map(|(block, sprite_cfg)| {
+                        assert!(
+                            sprite_cfg.is_none(),
+                            "SpriteCfg is not currently implemented for site2 prefabs"
+                        );
+                        block
+                    })
                 }),
                 Fill::Sampling(f) => f(pos),
             }

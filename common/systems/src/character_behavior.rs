@@ -5,7 +5,9 @@ use specs::{
 
 use common::{
     comp::{
-        self, character_state::OutputEvents, inventory::item::MaterialStatManifest,
+        self,
+        character_state::OutputEvents,
+        inventory::item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterState, Combo, Controller, Density, Energy, Health,
         Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos, SkillSet,
         StateUpdate, Stats, Vel,
@@ -44,6 +46,7 @@ pub struct ReadData<'a> {
     skill_sets: ReadStorage<'a, SkillSet>,
     active_abilities: ReadStorage<'a, ActiveAbilities>,
     msm: ReadExpect<'a, MaterialStatManifest>,
+    ability_map: ReadExpect<'a, AbilityMap>,
     combos: ReadStorage<'a, Combo>,
     alignments: ReadStorage<'a, comp::Alignment>,
     terrain: ReadExpect<'a, TerrainGrid>,
@@ -205,6 +208,7 @@ impl<'a> System<'a> for Sys {
                     &read_data.lazy_update,
                     &read_data.dt,
                     &read_data.msm,
+                    &read_data.ability_map,
                 );
                 let state_update = j.character.handle_event(&j, &mut output_events, action);
                 Self::publish_state_update(&mut join_struct, state_update, &mut output_events);
@@ -223,6 +227,7 @@ impl<'a> System<'a> for Sys {
                 &read_data.lazy_update,
                 &read_data.dt,
                 &read_data.msm,
+                &read_data.ability_map,
             );
 
             let state_update = j.character.behavior(&j, &mut output_events);

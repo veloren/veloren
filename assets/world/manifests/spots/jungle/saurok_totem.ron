@@ -1,0 +1,12 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.spots.saurok_totem_0",
+        center: (8, 8, 20)
+    ),
+    (
+        specifier: "world.structure.spots.saurok_totem_1",
+        center: (8, 8, 20)
+    ),
+]

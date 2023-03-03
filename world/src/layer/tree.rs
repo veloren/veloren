@@ -273,16 +273,16 @@ pub fn apply_trees_to(
                 ) + Vec3::unit_z() * (wpos.z - tree.pos.z);
                 block_from_structure(
                     info.index(),
-                    if let Some(block) = match &tree.model {
-                        TreeModel::Structure(s) => s.get(model_pos).ok().copied(),
+                    &if let Some(block) = match &tree.model {
+                        TreeModel::Structure(s) => s.get(model_pos).ok().cloned(),
                         TreeModel::Procedural(t, leaf_block) => Some(
                             match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
                                 (_, _, true, _) => {
                                     StructureBlock::Filled(BlockKind::Wood, Rgb::new(150, 98, 41))
                                 },
                                 (_, _, _, true) => StructureBlock::None,
-                                (true, _, _, _) => t.config.trunk_block,
-                                (_, true, _, _) => *leaf_block,
+                                (true, _, _, _) => t.config.trunk_block.clone(),
+                                (_, true, _, _) => leaf_block.clone(),
                                 _ => StructureBlock::None,
                             },
                         ),
@@ -297,8 +297,9 @@ pub fn apply_trees_to(
                     col,
                     Block::air,
                     calendar,
+                    &Vec2::new(tree.units.0, tree.units.1),
                 )
-                .map(|block| {
+                .map(|(block, sprite_cfg)| {
                     // Add lights to the tree
                     if tree.lights
                         && last_block.is_air()
@@ -318,6 +319,9 @@ pub fn apply_trees_to(
                         );
                     }
                     canvas.set(wpos, block);
+                    if let Some(sprite_cfg) = sprite_cfg {
+                        canvas.set_sprite_cfg(wpos, sprite_cfg);
+                    }
                     is_leaf_top = false;
                     is_top = false;
                     last_block = block;

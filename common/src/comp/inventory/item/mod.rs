@@ -48,6 +48,7 @@ pub enum Reagent {
 pub enum Utility {
     Coins,
     Collar,
+    Key,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -474,7 +475,7 @@ pub enum ItemDefinitionId<'a> {
     },
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub enum ItemDefinitionIdOwned {
     Simple(String),
     Modular {
@@ -1032,6 +1033,15 @@ impl Item {
         })
     }
 
+    /// Generate a human-readable description of the item and amount.
+    pub fn describe(&self) -> String {
+        if self.amount() > 1 {
+            format!("{} x {}", self.amount(), self.name())
+        } else {
+            self.name().to_string()
+        }
+    }
+
     pub fn name(&self) -> Cow<str> {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
@@ -1112,7 +1122,7 @@ impl Item {
     pub fn slot_mut(&mut self, slot: usize) -> Option<&mut InvSlot> { self.slots.get_mut(slot) }
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
-        block.get_sprite()?.collectible_id()?.to_item()
+        block.get_sprite()?.collectible_id()??.to_item()
     }
 
     pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {

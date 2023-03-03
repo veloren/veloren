@@ -2197,4 +2197,12 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
+    "lockpick": (
+        output: ("common.items.utility.lockpick_0", 10),
+        inputs: [
+            (Item("common.items.mineral.ingot.copper"), 3, false),            
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
 }

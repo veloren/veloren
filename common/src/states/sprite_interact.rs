@@ -1,7 +1,8 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, InventoryManip, StateUpdate},
-    event::ServerEvent,
+    comp::{character_state::OutputEvents, CharacterState, InventoryManip, StateUpdate, item::{Item, ItemDefinitionIdOwned}},
+    event::{ServerEvent, LocalEvent},
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
     },
@@ -13,7 +14,7 @@ use std::time::Duration;
 use vek::Vec3;
 
 /// Separated out to condense update portions of character state
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// Buildup to sprite interaction
     pub buildup_duration: Duration,
@@ -29,11 +30,14 @@ pub struct StaticData {
     pub was_wielded: bool,
     /// Was sneaking
     pub was_sneak: bool,
+    /// The item required to interact with the sprite, if one was required
+    // If second field is true, item should be consumed on collection
+    pub required_item: Option<(ItemDefinitionIdOwned, bool)>,
     /// Miscellaneous information about the ability
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -58,46 +62,54 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::SpriteInteract(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::SpriteInteract(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to use section of stage
-                    update.character = CharacterState::SpriteInteract(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        ..*self
-                    });
+                    if let CharacterState::SpriteInteract(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
                 }
             },
             StageSection::Action => {
                 if self.timer < self.static_data.use_duration {
                     // sprite interaction
-                    update.character = CharacterState::SpriteInteract(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::SpriteInteract(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to recover section of stage
-                    update.character = CharacterState::SpriteInteract(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        ..*self
-                    });
+                    if let CharacterState::SpriteInteract(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovery
-                    update.character = CharacterState::SpriteInteract(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::SpriteInteract(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Create inventory manipulation event
-                    let inv_manip = InventoryManip::Collect(self.static_data.sprite_pos);
-                    output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+                    let required_item = self.static_data.required_item
+                        .as_ref()
+                        .and_then(|(i, consume)| Some((
+                            Item::new_from_item_definition_id(i.as_ref(), data.ability_map, data.msm).ok()?,
+                            *consume,
+                        )));
+                    let has_required_item = required_item.as_ref().map_or(true, |(item, _consume)| data.inventory.map_or(false, |inv| inv.contains(item)));
+                    if has_required_item {
+                        let inv_slot = required_item.and_then(|(item, consume)| Some((data.inventory.and_then(|inv| inv.get_slot_of_item(&item))?, consume)));
+                        let inv_manip = InventoryManip::Collect { sprite_pos: self.static_data.sprite_pos, required_item: inv_slot };
+                        output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::SpriteUnlocked {
+                            pos: self.static_data.sprite_pos,
+                        }));
+                    }
                     // Done
                     end_ability(data, &mut update);
                 }
@@ -124,6 +136,7 @@ pub enum SpriteInteractKind {
     Chest,
     Harvestable,
     Collectible,
+    Unlock,
     Fallback,
 }
 
@@ -156,6 +169,7 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::PotionMinor
             | SpriteKind::Seashells
             | SpriteKind::Bomb => Some(SpriteInteractKind::Collectible),
+            SpriteKind::Keyhole => Some(SpriteInteractKind::Unlock),
             // Collectible checked in addition to container for case that sprite requires a tool to
             // collect and cannot be collected by hand, yet still meets the container check
             _ if sprite_kind.is_container() && sprite_kind.is_collectible() => {
@@ -190,6 +204,11 @@ impl SpriteInteractKind {
                 Duration::from_secs_f32(5.0),
                 Duration::from_secs_f32(5.0),
                 Duration::from_secs_f32(5.0),
+            ),
+            Self::Unlock => (
+                Duration::from_secs_f32(0.8),
+                Duration::from_secs_f32(0.5),
+                Duration::from_secs_f32(0.3),
             ),
         }
     }

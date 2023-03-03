@@ -5,9 +5,10 @@ use crate::{
 };
 use common::{
     calendar::{Calendar, CalendarEvent},
+    comp::item::ItemDefinitionIdOwned,
     terrain::{
         structure::{self, StructureBlock},
-        Block, BlockKind, SpriteKind,
+        Block, BlockKind, SpriteCfg, SpriteKind, UnlockKind,
     },
 };
 use core::ops::{Div, Mul, Range};
@@ -176,31 +177,64 @@ impl<'a> ZCache<'a> {
     }
 }
 
+fn ori_of_unit(unit: &Vec2<i32>) -> u8 {
+    if unit.y != 0 {
+        if unit.y < 0 { 6 } else { 2 }
+    } else if unit.x < 0 {
+        4
+    } else {
+        0
+    }
+}
+
+fn rotate_for_units(ori: u8, units: &Vec2<Vec2<i32>>) -> u8 {
+    let ox = ori_of_unit(&units.x);
+    let oy = ori_of_unit(&units.y);
+    let positive = ((ox + 8 - oy) & 4) != 0;
+    if positive {
+        // I have no idea why ox&2 is special here, but it is
+        (ox + ori + if (ox & 2) != 0 { 4 } else { 0 }) % 8
+    } else {
+        (ox + 8 - ori) % 8
+    }
+}
+
 pub fn block_from_structure(
     index: IndexRef,
-    sblock: StructureBlock,
+    sblock: &StructureBlock,
     pos: Vec3<i32>,
     structure_pos: Vec2<i32>,
     structure_seed: u32,
     sample: &ColumnSample,
     mut with_sprite: impl FnMut(SpriteKind) -> Block,
     calendar: Option<&Calendar>,
-) -> Option<Block> {
+    units: &Vec2<Vec2<i32>>,
+) -> Option<(Block, Option<SpriteCfg>)> {
     let field = RandomField::new(structure_seed);
 
     let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.8
         + ((field.get(pos + i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.2;
 
-    match sblock {
+    let block = match sblock {
         StructureBlock::None => None,
         StructureBlock::Hollow => Some(Block::air(SpriteKind::Empty)),
         StructureBlock::Grass => Some(Block::new(
             BlockKind::Grass,
             sample.surface_color.map(|e| (e * 255.0) as u8),
         )),
-        StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, color)),
-        StructureBlock::Filled(kind, color) => Some(Block::new(kind, color)),
-        StructureBlock::Sprite(kind) => Some(with_sprite(kind).into_vacant().with_sprite(kind)),
+        StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, *color)),
+        StructureBlock::Filled(kind, color) => Some(Block::new(*kind, *color)),
+        StructureBlock::Sprite(kind) => Some(with_sprite(*kind).into_vacant().with_sprite(*kind)),
+        StructureBlock::RotatedSprite(kind, ori) => Some(
+            with_sprite(*kind)
+                .into_vacant()
+                .with_sprite(*kind)
+                .with_ori(rotate_for_units(*ori, units))
+                .unwrap_or(Block::air(*kind)),
+        ),
+        StructureBlock::EntitySpawner(_entitykind, _spawn_chance) => {
+            Some(Block::new(BlockKind::Air, Rgb::new(255, 255, 255)))
+        },
         StructureBlock::Water => Some(Block::water(SpriteKind::Empty)),
         // TODO: If/when liquid supports other colors again, revisit this.
         StructureBlock::GreenSludge => Some(Block::water(SpriteKind::Empty)),
@@ -266,7 +300,7 @@ pub fn block_from_structure(
                 {
                     Block::new(BlockKind::GlowingWeakRock, Rgb::new(255, 0, 0))
                 } else if calendar.map_or(false, |c| c.is_event(CalendarEvent::Halloween))
-                    && sblock != StructureBlock::PineLeaves
+                    && *sblock != StructureBlock::PineLeaves
                 {
                     let (c0, c1) = match structure_seed % 6 {
                         0 => (Rgb::new(165.0, 150.0, 11.0), Rgb::new(170.0, 165.0, 16.0)),
@@ -304,5 +338,17 @@ pub fn block_from_structure(
                 Some(Block::new(BlockKind::Wood, Rgb::new(220, 170, 160)))
             }
         },
-    }
+        StructureBlock::Keyhole(consumes) => {
+            return Some((
+                Block::air(SpriteKind::Keyhole),
+                Some(SpriteCfg {
+                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                        consumes.clone(),
+                    ))),
+                }),
+            ));
+        },
+    };
+
+    Some((block?, None))
 }

@@ -10,9 +10,10 @@ use serde::Deserialize;
 use std::{num::NonZeroU8, sync::Arc};
 use vek::*;
 
+
 make_case_elim!(
     structure_block,
-    #[derive(Copy, Clone, PartialEq, Eq, Debug, Deserialize)]
+    #[derive(Clone, PartialEq, Debug, Deserialize)]
     #[repr(u8)]
     pub enum StructureBlock {
         None = 0,
@@ -38,6 +39,9 @@ make_case_elim!(
         Baobab = 20,
         BirchWood = 21,
         FrostpineLeaves = 22,
+        RotatedSprite(kind: SpriteKind, ori: u8) = 23,
+        EntitySpawner(entitykind: String, spawn_chance: f32) = 24,
+        Keyhole(consumes: String) = 25,
     }
 );
 
@@ -81,12 +85,12 @@ impl assets::Compound for StructuresGroup {
                         center: Vec3::from(sp.center),
                         base,
                         custom_indices: {
-                            let mut indices = [None; 256];
-                            for (&idx, &custom) in default_custom_indices()
+                            let mut indices = std::array::from_fn(|_| None);
+                            for (&idx, custom) in default_custom_indices()
                                 .iter()
                                 .chain(sp.custom_indices.iter())
                             {
-                                indices[idx as usize] = Some(custom);
+                                indices[idx as usize] = Some(custom.clone());
                             }
                             indices
                         },
@@ -141,7 +145,7 @@ impl assets::Compound for BaseStructure {
         let dot_vox_data = &dot_vox_data.0;
 
         if let Some(model) = dot_vox_data.models.get(0) {
-            let mut palette = [StructureBlock::None; 256];
+            let mut palette = std::array::from_fn(|_| StructureBlock::None);
 
             for (i, col) in dot_vox_data
                 .palette
@@ -169,7 +173,7 @@ impl assets::Compound for BaseStructure {
         } else {
             Ok(BaseStructure {
                 vol: Dyna::filled(Vec3::zero(), None, ()),
-                palette: [StructureBlock::None; 256],
+                palette: std::array::from_fn(|_| StructureBlock::None),
             })
         }
     }
@@ -206,7 +210,7 @@ fn default_custom_indices() -> HashMap<u8, StructureBlock> {
     blocks
         .iter()
         .enumerate()
-        .filter_map(|(i, sb)| Some((i as u8 + 1, (*sb)?)))
+        .filter_map(|(i, sb)| sb.as_ref().map(|sb| (i as u8 + 1, sb.clone())))
         .collect()
 }
 

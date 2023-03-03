@@ -101,7 +101,7 @@ use common::{
     mounting::Mount,
     outcome::Outcome,
     slowjob::SlowJobPool,
-    terrain::{SpriteKind, TerrainChunk},
+    terrain::{SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
     util::{srgba_to_linear, Dir},
@@ -1411,7 +1411,7 @@ impl Hud {
         dt: Duration,
         info: HudInfo,
         camera: &Camera,
-        interactable: Option<Interactable>,
+        interactable: Option<&Interactable>,
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
@@ -1936,17 +1936,11 @@ impl Hud {
 
             let make_overitem =
                 |item: &Item, pos, distance, properties, fonts, interaction_options| {
-                    let text = if item.amount() > 1 {
-                        format!("{} x {}", item.amount(), item.name())
-                    } else {
-                        item.name().to_string()
-                    };
-
                     let quality = get_quality_col(item);
 
                     // Item
                     overitem::Overitem::new(
-                        text.into(),
+                        item.describe().into(),
                         quality,
                         distance,
                         fonts,
@@ -1982,7 +1976,7 @@ impl Hud {
                     pos.0 + Vec3::unit_z() * 1.2,
                     distance,
                     overitem::OveritemProperties {
-                        active: interactable.as_ref().and_then(|i| i.entity()) == Some(entity),
+                        active: interactable.and_then(|i| i.entity()) == Some(entity),
                         pickup_failed_pulse: self.failed_entity_pickups.get(&entity).cloned(),
                     },
                     &self.fonts,
@@ -2000,10 +1994,39 @@ impl Hud {
 
                 let overitem_properties = overitem::OveritemProperties {
                     active: true,
-                    pickup_failed_pulse: self.failed_block_pickups.get(&pos).cloned(),
+                    pickup_failed_pulse: self.failed_block_pickups.get(pos).cloned(),
                 };
                 let pos = pos.map(|e| e as f32 + 0.5);
                 let over_pos = pos + Vec3::unit_z() * 0.7;
+
+                let interaction_text = || match interaction {
+                    Interaction::Collect => {
+                        vec![(GameInput::Interact, i18n.get_msg("hud-collect").to_string())]
+                    },
+                    Interaction::Craft(_) => {
+                        vec![(GameInput::Interact, i18n.get_msg("hud-use").to_string())]
+                    },
+                    Interaction::Unlock(kind) => vec![(GameInput::Interact, match kind {
+                        UnlockKind::Free => i18n.get_msg("hud-open").to_string(),
+                        UnlockKind::Requires(item) => i18n
+                            .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
+                                "item" => item.as_ref().itemdef_id()
+                                    .map(|id| Item::new_from_asset_expect(id).describe())
+                                    .unwrap_or_else(|| "modular item".to_string()),
+                            })
+                            .to_string(),
+                        UnlockKind::Consumes(item) => i18n
+                            .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
+                                "item" => item.as_ref().itemdef_id()
+                                    .map(|id| Item::new_from_asset_expect(id).describe())
+                                    .unwrap_or_else(|| "modular item".to_string()),
+                            })
+                            .to_string(),
+                    })],
+                    Interaction::Mine => {
+                        vec![(GameInput::Primary, i18n.get_msg("hud-mine").to_string())]
+                    },
+                };
 
                 // This is only done once per frame, so it's not a performance issue
                 if let Some(desc) = block
@@ -2026,24 +2049,14 @@ impl Hud {
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
                     .set(overitem_id, ui_widgets);
-                } else if let Some(item) = Item::try_reclaim_from_block(block) {
+                } else if let Some(item) = Item::try_reclaim_from_block(*block) {
                     make_overitem(
                         &item,
                         over_pos,
                         pos.distance_squared(player_pos),
                         overitem_properties,
                         &self.fonts,
-                        match interaction {
-                            Interaction::Collect => {
-                                vec![(GameInput::Interact, i18n.get_msg("hud-collect").to_string())]
-                            },
-                            Interaction::Craft(_) => {
-                                vec![(GameInput::Interact, i18n.get_msg("hud-use").to_string())]
-                            },
-                            Interaction::Mine => {
-                                vec![(GameInput::Primary, i18n.get_msg("hud-mine").to_string())]
-                            },
-                        },
+                        interaction_text(),
                     )
                     .set(overitem_id, ui_widgets);
                 } else if let Some(desc) = block.get_sprite().and_then(|s| get_sprite_desc(s, i18n))
@@ -2058,19 +2071,19 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        vec![(GameInput::Interact, i18n.get_msg("hud-use").to_string())],
+                        interaction_text(),
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
                     .set(overitem_id, ui_widgets);
                 }
-            } else if let Some(Interactable::Entity(e)) = interactable {
+            } else if let Some(Interactable::Entity(entity)) = interactable {
                 // show hud for campfire
                 if client
                     .state()
                     .ecs()
                     .read_storage::<comp::Body>()
-                    .get(e)
+                    .get(*entity)
                     .map_or(false, |b| b.is_campfire())
                 {
                     let overitem_id = overitem_walker.next(
@@ -2086,7 +2099,7 @@ impl Hud {
                         .state()
                         .ecs()
                         .read_storage::<comp::Pos>()
-                        .get(e)
+                        .get(*entity)
                         .map_or(Vec3::zero(), |e| e.0);
                     let over_pos = pos + Vec3::unit_z() * 1.5;
 
@@ -2259,8 +2272,7 @@ impl Hud {
                         // TODO: Don't use `MAX_MOUNT_RANGE` here, add dedicated interaction range
                         Some(comp::Alignment::Npc)
                             if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2)
-                                && interactable.as_ref().and_then(|i| i.entity())
-                                    == Some(entity) =>
+                                && interactable.and_then(|i| i.entity()) == Some(entity) =>
                         {
                             vec![
                                 (GameInput::Interact, i18n.get_msg("hud-talk").to_string()),
@@ -4463,7 +4475,7 @@ impl Hud {
         camera: &Camera,
         dt: Duration,
         info: HudInfo,
-        interactable: Option<Interactable>,
+        interactable: Option<&Interactable>,
     ) -> Vec<Event> {
         span!(_guard, "maintain", "Hud::maintain");
         // conrod eats tabs. Un-eat a tabstop so tab completion can work

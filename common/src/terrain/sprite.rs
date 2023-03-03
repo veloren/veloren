@@ -1,4 +1,8 @@
-use crate::{comp::tool::ToolKind, lottery::LootSpec, make_case_elim};
+use crate::{
+    comp::{item::{ItemDefinitionId, ItemDefinitionIdOwned}, tool::ToolKind},
+    lottery::LootSpec,
+    make_case_elim,
+};
 use strum::EnumIter;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -226,7 +230,22 @@ make_case_elim!(
         SeaDecorPillar = 0xC7,
         SeashellLantern = 0xC8,
         Rope = 0xC9,
-        IceSpike = 0xDA,
+        IceSpike = 0xCA,        
+        Bedroll = 0xCB,        
+        BedrollSnow = 0xCC,        
+        BedrollPirate = 0xCD,
+        Tent = 0xCE,
+        Grave = 0xCF,
+        Gravestone = 0xD0,
+        PotionDummy = 0xD1,
+        DoorDark = 0xD2,
+        MagicalBarrier = 0xD3,
+        MagicalSeal = 0xD4,
+        WallLampWizard = 0xD5,
+        Candle = 0xD6,  
+        Keyhole = 0xD7,
+        KeyDoor = 0xD8,     
+        CommonLockedChest = 0xD9, 
     }
 );
 
@@ -236,6 +255,9 @@ impl SpriteKind {
         // Beware: the height *must* be <= `MAX_HEIGHT` or the collision system will not
         // properly detect it!
         Some(match self {
+            SpriteKind::Bedroll => 0.3,
+            SpriteKind::BedrollSnow => 0.4,
+            SpriteKind::BedrollPirate => 0.3,
             SpriteKind::Tomato => 1.65,
             SpriteKind::LargeCactus => 2.5,
             SpriteKind::Scarecrow => 3.0,
@@ -243,6 +265,7 @@ impl SpriteKind {
             SpriteKind::Pumpkin => 0.81,
             SpriteKind::Cabbage => 0.45,
             SpriteKind::Chest => 1.09,
+            SpriteKind::CommonLockedChest => 1.09,
             SpriteKind::DungeonChest0 => 1.09,
             SpriteKind::DungeonChest1 => 1.09,
             SpriteKind::DungeonChest2 => 1.09,
@@ -261,8 +284,6 @@ impl SpriteKind {
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,
             SpriteKind::FireBowlGround => 0.55,
-            // TODO: Uncomment this when we have a way to open doors
-            // SpriteKind::Door => 3.0,
             SpriteKind::Bed => 1.54,
             SpriteKind::Bench => 0.5,
             SpriteKind::ChairSingle => 0.5,
@@ -313,6 +334,8 @@ impl SpriteKind {
             | SpriteKind::WitchWindow
             | SpriteKind::SeaUrchin
             | SpriteKind::GlassBarrier
+            | SpriteKind::Keyhole
+            | SpriteKind::KeyDoor
             | SpriteKind::Bomb => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
@@ -353,16 +376,21 @@ impl SpriteKind {
             | SpriteKind::Frostwood
             | SpriteKind::Eldwood => 7.0 / 11.0,
             SpriteKind::Bamboo => 9.0 / 11.0,
+            SpriteKind::MagicalBarrier => 3.0,
+            SpriteKind::MagicalSeal => 1.0,
             _ => return None,
         })
     }
 
     /// What loot table does collecting this sprite draw from?
+    /// None = block cannot be collected
+    /// Some(None) = block can be collected, but does not give back an item
+    /// Some(Some(_)) = block can be collected and gives back an item
     #[inline]
-    pub fn collectible_id(&self) -> Option<LootSpec<&'static str>> {
+    pub fn collectible_id(&self) -> Option<Option<LootSpec<&'static str>>> {
         let item = LootSpec::Item;
         let table = LootSpec::LootTable;
-        Some(match self {
+        Some(Some(match self {
             SpriteKind::Apple => item("common.items.food.apple"),
             SpriteKind::Mushroom => item("common.items.food.mushroom"),
             SpriteKind::Velorite => item("common.items.mineral.ore.velorite"),
@@ -420,9 +448,11 @@ impl SpriteKind {
             SpriteKind::DungeonChest4 => table("common.loot_tables.dungeon.tier-4.chest"),
             SpriteKind::DungeonChest5 => table("common.loot_tables.dungeon.tier-5.chest"),
             SpriteKind::Chest => table("common.loot_tables.sprite.chest"),
+            SpriteKind::CommonLockedChest => table("common.loot_tables.dungeon.tier-2.chest"),
             SpriteKind::ChestBuried => table("common.loot_tables.sprite.chest-buried"),
             SpriteKind::CoralChest => table("common.loot_tables.dungeon.sea_chapel.chest_coral"),
             SpriteKind::Mud => table("common.loot_tables.sprite.mud"),
+            SpriteKind::Grave => table("common.loot_tables.sprite.mud"),
             SpriteKind::Crate => table("common.loot_tables.sprite.crate"),
             SpriteKind::Wood => item("common.items.log.wood"),
             SpriteKind::Bamboo => item("common.items.log.bamboo"),
@@ -430,8 +460,10 @@ impl SpriteKind {
             SpriteKind::Ironwood => item("common.items.log.ironwood"),
             SpriteKind::Frostwood => item("common.items.log.frostwood"),
             SpriteKind::Eldwood => item("common.items.log.eldwood"),
+            SpriteKind::MagicalBarrier => table("common.loot_tables.sprite.chest"),
+            SpriteKind::Keyhole => return Some(None),
             _ => return None,
-        })
+        }))
     }
 
     /// Can this sprite be picked up to yield an item without a tool?
@@ -443,7 +475,7 @@ impl SpriteKind {
     /// Is the sprite a container that will emit a mystery item?
     #[inline]
     pub fn is_container(&self) -> bool {
-        matches!(self.collectible_id(), Some(LootSpec::LootTable(_)))
+        matches!(self.collectible_id(), Some(Some(LootSpec::LootTable(_))))
     }
 
     /// Which tool (if any) is needed to collect this sprite?
@@ -476,6 +508,18 @@ impl SpriteKind {
             | SpriteKind::GlassBarrier => Some(ToolKind::Pick),
             _ => None,
         }
+    }
+
+    /// Requires this item in the inventory to harvest, uses item_definition_id
+    // TODO: Do we want to consolidate this with mine_tool at all? Main differences are that mine tool requires item to be an equippable tool, be equipped, and does not consume item while required_item requires that the item be in the inventory and will consume the item on collecting the sprite.
+    pub fn unlock_condition(&self, cfg: Option<SpriteCfg>) -> UnlockKind {
+        cfg
+            .and_then(|cfg| cfg.unlock)
+            .unwrap_or_else(|| match self {
+                // Example, do not let this merge with twigs requiring cheese to pick up
+                SpriteKind::CommonLockedChest => UnlockKind::Requires(ItemDefinitionId::Simple("common.items.utility.lockpick_0").to_owned()),
+                _ => UnlockKind::Free,
+            })
     }
 
     #[inline]
@@ -522,8 +566,10 @@ impl SpriteKind {
                 | SpriteKind::DropGate
                 | SpriteKind::DropGateBottom
                 | SpriteKind::Door
+                | SpriteKind::DoorDark
                 | SpriteKind::Beehive
                 | SpriteKind::PotionMinor
+                | SpriteKind::PotionDummy
                 | SpriteKind::Bowl
                 | SpriteKind::VialEmpty
                 | SpriteKind::FireBowlGround
@@ -551,6 +597,11 @@ impl SpriteKind {
                 | SpriteKind::OvenArabic
                 | SpriteKind::Hearth
                 | SpriteKind::ForgeTools
+                | SpriteKind::Tent
+                | SpriteKind::Bedroll
+                | SpriteKind::Grave
+                | SpriteKind::Gravestone
+                | SpriteKind::MagicalBarrier
         )
     }
 }
@@ -572,4 +623,19 @@ impl<'a> TryFrom<&'a str> for SpriteKind {
 
     #[inline]
     fn try_from(s: &'a str) -> Result<Self, Self::Error> { SPRITE_KINDS.get(s).copied().ok_or(()) }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum UnlockKind {
+    /// The sprite can be freely unlocked without any conditions
+    Free,
+    /// The sprite requires that the opening character has a given item in their inventory
+    Requires(ItemDefinitionIdOwned),
+    /// The sprite will consume the given item from the opening character's inventory
+    Consumes(ItemDefinitionIdOwned),
+}
+
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct SpriteCfg {
+    pub unlock: Option<UnlockKind>,
 }

@@ -1,0 +1,19 @@
+#![enable(implicit_some)]
+
+(
+    name: Name("Haku"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Npc),
+    loot: LootTable("common.loot_tables.dungeon.tier-5.miniboss"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.spots.wizard_tower.wizard_boss"),
+            active_hands: InHands((Choice([                
+                (1, Item("common.items.weapons.sceptre.sceptre_velorite_0")),                             
+            ]), None)),
+        )),
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
+    ],
+)

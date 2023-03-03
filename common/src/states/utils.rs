@@ -5,8 +5,9 @@ use crate::{
         ability::{Ability, AbilityInput, AbilityMeta, Capability},
         arthropod, biped_large, biped_small, bird_medium,
         character_state::OutputEvents,
+        controller::InventoryManip,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
-        item::{armor::Friction, tool::AbilityContext, Hands, ItemKind, ToolKind},
+        item::{armor::Friction, tool::AbilityContext, Hands, ItemKind, ToolKind, Item},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -17,7 +18,8 @@ use crate::{
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
     util::Dir,
-    vol::ReadVol,
+    vol::{ReadVol, RectVolSize},
+    terrain::{TerrainChunkSize, UnlockKind},
 };
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
@@ -794,7 +796,7 @@ pub fn handle_manipulate_loadout(
     inv_action: InventoryAction,
 ) {
     match inv_action {
-        InventoryAction::Use(Slot::Inventory(inv_slot)) => {
+        InventoryAction::Use(slot @ Slot::Inventory(inv_slot)) => {
             // If inventory action is using a slot, and slot is in the inventory
             // TODO: Do some non lazy way of handling the possibility that items equipped in
             // the loadout will have effects that are desired to be non-instantaneous
@@ -823,8 +825,9 @@ pub fn handle_manipulate_loadout(
                 });
             } else {
                 // Else emit inventory action instantaneously
+                let inv_manip = InventoryManip::Use(slot);
                 output_events
-                    .emit_server(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+                    .emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
             }
         },
         InventoryAction::Collect(sprite_pos) => {
@@ -842,6 +845,14 @@ pub fn handle_manipulate_loadout(
             if close_to_sprite {
                 // First, get sprite data for position, if there is a sprite
                 use sprite_interact::SpriteInteractKind;
+                let sprite_chunk_pos = sprite_pos
+                    .xy()
+                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e.rem_euclid(sz as i32))
+                    .with_z(sprite_pos.z);
+                let sprite_cfg = data
+                    .terrain
+                    .pos_chunk(sprite_pos)
+                    .and_then(|chunk| chunk.meta().sprite_cfg_at(sprite_chunk_pos));
                 let sprite_at_pos = data
                     .terrain
                     .get(sprite_pos)
@@ -902,37 +913,66 @@ pub fn handle_manipulate_loadout(
                         .into_path()
                         .is_some();
 
+                    let required_item = sprite_at_pos.and_then(|s| match s.unlock_condition(sprite_cfg.cloned()) {
+                        UnlockKind::Free => None,
+                        UnlockKind::Requires(item) => Some((item, false)),
+                        UnlockKind::Consumes(item) => Some((item, true)),
+                    });
+                    let has_required_items = required_item
+                        .as_ref()
+                        .and_then(|(i, _consume)| Item::new_from_item_definition_id(i.as_ref(), data.ability_map, data.msm).ok())
+                        .map_or(true, |i| data.inventory.map_or(false, |inv| inv.contains(&i)));
+
                     // If path can be found between entity interacting with sprite and entity, start
                     // interaction with sprite
                     if not_blocked_by_terrain {
-                        // If the sprite is collectible, enter the sprite interaction character
-                        // state TODO: Handle cases for sprite being
-                        // interactible, but not collectible (none currently
-                        // exist)
-                        let (buildup_duration, use_duration, recover_duration) =
-                            sprite_interact.durations();
+                        if has_required_items {
+                            // If the sprite is collectible, enter the sprite interaction character
+                            // state TODO: Handle cases for sprite being
+                            // interactible, but not collectible (none currently
+                            // exist)
+                            let (buildup_duration, use_duration, recover_duration) =
+                                sprite_interact.durations();
 
-                        update.character = CharacterState::SpriteInteract(sprite_interact::Data {
-                            static_data: sprite_interact::StaticData {
-                                buildup_duration,
-                                use_duration,
-                                recover_duration,
-                                sprite_pos,
-                                sprite_kind: sprite_interact,
-                                was_wielded: data.character.is_wield(),
-                                was_sneak: data.character.is_stealthy(),
-                                ability_info: AbilityInfo::from_forced_state_change(data.character),
-                            },
-                            timer: Duration::default(),
-                            stage_section: StageSection::Buildup,
-                        })
+                            update.character = CharacterState::SpriteInteract(sprite_interact::Data {
+                                static_data: sprite_interact::StaticData {
+                                    buildup_duration,
+                                    use_duration,
+                                    recover_duration,
+                                    sprite_pos,
+                                    sprite_kind: sprite_interact,
+                                    was_wielded: data.character.is_wield(),
+                                    was_sneak: data.character.is_stealthy(),
+                                    required_item,
+                                    ability_info: AbilityInfo::from_forced_state_change(data.character),
+                                },
+                                timer: Duration::default(),
+                                stage_section: StageSection::Buildup,
+                            })
+                        } else {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::FailedSpriteUnlock {
+                                pos: sprite_pos,
+                            }));
+                        }
                     }
                 }
             }
         },
-        _ => {
-            // Else just do event instantaneously
-            output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+        // For inventory actions without a dedicated character state, just do action instantaneously
+        InventoryAction::Swap(equip, slot) => {
+            let inv_manip = InventoryManip::Swap(Slot::Equip(equip), slot);
+            output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+        },
+        InventoryAction::Drop(equip) => {
+            let inv_manip = InventoryManip::Drop(Slot::Equip(equip));
+            output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+        },
+        InventoryAction::Sort => {
+            output_events.emit_server(ServerEvent::InventoryManip(data.entity, InventoryManip::Sort));
+        },
+        InventoryAction::Use(slot @ Slot::Equip(_)) => {
+            let inv_manip = InventoryManip::Use(slot);
+            output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
         },
     }
 }

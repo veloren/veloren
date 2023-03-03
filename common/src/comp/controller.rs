@@ -43,7 +43,10 @@ pub enum InventoryAction {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InventoryManip {
     Pickup(Uid),
-    Collect(Vec3<i32>),
+    Collect {
+        sprite_pos: Vec3<i32>,
+        required_item: Option<(InvSlotId, bool)>,
+    },
     Use(Slot),
     Swap(Slot, Slot),
     SplitSwap(Slot, Slot),
@@ -55,18 +58,6 @@ pub enum InventoryManip {
         craft_sprite: Option<Vec3<i32>>,
     },
     SwapEquippedWeapons,
-}
-
-impl From<InventoryAction> for InventoryManip {
-    fn from(inv_action: InventoryAction) -> Self {
-        match inv_action {
-            InventoryAction::Use(slot) => Self::Use(slot),
-            InventoryAction::Swap(equip, slot) => Self::Swap(Slot::Equip(equip), slot),
-            InventoryAction::Drop(equip) => Self::Drop(Slot::Equip(equip)),
-            InventoryAction::Sort => Self::Sort,
-            InventoryAction::Collect(collect) => Self::Collect(collect),
-        }
-    }
 }
 
 impl From<InventoryEvent> for InventoryManip {

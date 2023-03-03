@@ -784,12 +784,7 @@ Chest: Some((
             model: "voxygen.voxel.sprite.chests.chest",
             offset: (-7.0, -5.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.chests.chest_gold",
-            offset: (-7.0, -5.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
+        ),        
         (
             model: "voxygen.voxel.sprite.chests.chest_dark",
             offset: (-7.0, -5.0, -0.0),
@@ -800,6 +795,17 @@ Chest: Some((
             offset: (-7.0, -5.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
+    ],
+    wind_sway: 0.0,
+)),
+CommonLockedChest: Some((
+    variations: [        
+        (
+            model: "voxygen.voxel.sprite.chests.chest_gold",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        
     ],
     wind_sway: 0.0,
 )),
@@ -1889,10 +1895,21 @@ StreetLampTall: Some((
     wind_sway: 0.0,
 )),
 // Door
+// To make doors swing add them in voxygen\src\scene\terrain L. 333
 Door: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.door.door-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+DoorDark: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.door.door_dark-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2157,6 +2174,16 @@ WallLampSmall: Some((
         (
             model: "voxygen.voxel.sprite.furniture.lamp_wall-0",
             offset: (-5.5, 0.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+WallLampWizard: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.lamp_wall-2",
+            offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -2560,6 +2587,16 @@ PotionMinor: Some((
     variations: [
         (
             model: "voxygen.voxel.object.potion_red",
+            offset: (-5.0, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+],
+    wind_sway: 0.0,
+)),
+PotionDummy: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.potion_green",
             offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -3784,6 +3821,26 @@ WitchWindow: Some((
     ],
     wind_sway: 0.0,
 )),
+Keyhole: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.keyhole_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+KeyDoor: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.door_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Bones
 Bones: Some((
     variations: [
@@ -4113,6 +4170,109 @@ Eldwood: Some((
         (
             model: "voxygen.voxel.sprite.wood.log.eldwood",
             offset: (-4.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Bedrolls
+Bedroll: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.camp.camp",
+            offset: (-8.0, -16.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Tent: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.tent",
+            offset: (-7.5, -15.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+BedrollSnow: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.camp.camp_snow",
+            offset: (-8.0, -16.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+BedrollPirate: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.camp.camp_pirate",
+            offset: (-8.0, -16.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Graves
+Grave: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grave.mud",
+            offset: (-6.0, -7.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Gravestone: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grave.grave_0",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_1",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_2",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Wizard assets
+MagicalBarrier: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wizard.magical_barrier",
+            offset: (-10.0, -0.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+MagicalSeal: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wizard.magical_seal",
+            offset: (-16.0, -16.0, -1.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Candle: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wizard.candle",
+            offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

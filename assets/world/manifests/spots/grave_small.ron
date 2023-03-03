@@ -1,0 +1,16 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.spots.grave_small",
+        center: (2, 2, 1),
+        custom_indices: {            
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            9: RotatedSprite(Grave, 6),  
+            10: RotatedSprite(Gravestone, 6),
+            11: Grass,  
+            12: None,         
+            13: RotatedSprite(Bones, 4),                          
+         },
+    ),
+]

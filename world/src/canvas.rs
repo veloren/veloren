@@ -5,14 +5,19 @@ use crate::{
     land::Land,
     layer::spot::Spot,
     sim::{SimChunk, WorldSim},
-    util::{Grid, Sampler},
+    util::{seed_expan, Grid, Sampler},
 };
 use common::{
     calendar::Calendar,
     generation::EntityInfo,
-    terrain::{Block, BlockKind, Structure, TerrainChunk, TerrainChunkSize},
+    terrain::{
+        structure::StructureBlock, Block, BlockKind, SpriteCfg, Structure, TerrainChunk,
+        TerrainChunkSize,
+    },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
+use rand::prelude::*;
+use rand_chacha::ChaChaRng;
 use std::{borrow::Cow, ops::Deref};
 use vek::*;
 
@@ -161,6 +166,11 @@ impl<'a> Canvas<'a> {
         let _ = self.chunk.map(pos - self.wpos(), f);
     }
 
+    pub fn set_sprite_cfg(&mut self, pos: Vec3<i32>, sprite_cfg: SpriteCfg) {
+        let rpos = pos - self.wpos();
+        self.chunk.meta_mut().set_sprite_cfg_at(rpos, sprite_cfg);
+    }
+
     pub fn foreach_col_area(
         &mut self,
         aabr: Aabr<i32>,
@@ -209,6 +219,8 @@ impl<'a> Canvas<'a> {
         units: Vec2<Vec2<i32>>,
         with_snow: bool,
     ) {
+        let mut entities: Vec<(Vec3<f32>, String)> = Vec::new();
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let info = self.info();
         self.foreach_col(|canvas, wpos2d, col| {
             let rpos2d = wpos2d - origin.xy();
@@ -218,17 +230,21 @@ impl<'a> Canvas<'a> {
             for z in (structure.get_bounds().min.z..structure.get_bounds().max.z).rev() {
                 if let Ok(sblock) = structure.get(rpos2d.with_z(z)) {
                     let mut add_snow = false;
-                    canvas.map(wpos2d.with_z(origin.z + z), |block| {
-                        if let Some(new_block) = block_from_structure(
+                    let mut new_sprite_cfg = None;
+                    let wpos = wpos2d.with_z(origin.z + z);
+                    canvas.map(wpos, |block| {
+                        if let Some((new_block, sprite_cfg)) = block_from_structure(
                             info.index,
-                            *sblock,
+                            sblock,
                             wpos2d.with_z(origin.z + z),
                             origin.xy(),
                             seed,
                             col,
                             |sprite| block.with_sprite(sprite),
                             info.calendar,
+                            &units,
                         ) {
+                            new_sprite_cfg = sprite_cfg;
                             if !new_block.is_air() {
                                 if with_snow && col.snow_cover && above {
                                     add_snow = true;
@@ -241,6 +257,22 @@ impl<'a> Canvas<'a> {
                         }
                     });
 
+                    // Add sprite configuration for those that need it
+                    if let Some(sprite_cfg) = new_sprite_cfg {
+                        canvas.set_sprite_cfg(wpos, sprite_cfg);
+                    }
+
+                    // Spawn NPCs at the pos of this block
+                    if let StructureBlock::EntitySpawner(spec, spawn_chance) = sblock {
+                        if rng.gen::<f32>() < *spawn_chance {
+                            entities.push((
+                                wpos2d.with_z(origin.z + z).map(|e| e as f32)
+                                    + Vec3::new(0.5, 0.5, 0.0),
+                                spec.clone(),
+                            ));
+                        }
+                    }
+
                     if add_snow {
                         canvas.set(
                             wpos2d.with_z(origin.z + z + 1),
@@ -250,6 +282,9 @@ impl<'a> Canvas<'a> {
                 }
             }
         });
+        for (pos, spec) in entities.drain(..) {
+            self.spawn(EntityInfo::at(pos).with_asset_expect(&spec, &mut rng));
+        }
     }
 
     pub fn find_spawn_pos(&self, wpos: Vec3<i32>) -> Option<Vec3<i32>> {

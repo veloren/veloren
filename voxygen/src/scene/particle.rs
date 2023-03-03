@@ -216,6 +216,18 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::SpriteUnlocked { .. } => {},
+            Outcome::FailedSpriteUnlock { pos } => {
+                // TODO: Use color field when particle colors are a thing
+                self.particles.resize_with(self.particles.len() + 10, || {
+                    Particle::new(
+                        Duration::from_millis(50),
+                        time,
+                        ParticleMode::Shrapnel,
+                        pos.map(|e| e as f32 + 0.5),
+                    )
+                });
+            },
             Outcome::SummonedCreature { pos, body } => match body {
                 Body::BipedSmall(b) if matches!(b.species, body::biped_small::Species::Husk) => {
                     self.particles.resize_with(

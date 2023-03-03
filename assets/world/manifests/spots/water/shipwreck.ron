@@ -2,7 +2,7 @@
 
 [
     (
-        specifier: "world.structure.natural.shipwreck",
+        specifier: "world.structure.spots.shipwreck",
         center: (32, 14, 16),
     ),
 ]

@@ -1,0 +1,16 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.troll_cave",
+        center: (23, 25, 17),
+        custom_indices: {            
+            8: Filled(Air, (r: 255, g: 255, b: 255)),            
+            241: EntitySpawner("common.entity.wild.aggressive.mountain_troll", 1.0),
+            242: Sprite(Mushroom),
+            243: Sprite(CommonLockedChest),
+            244: Sprite(Bones),
+            245: EntitySpawner("common.entity.wild.aggressive.bat", 0.4),           
+         },
+    ),
+]
