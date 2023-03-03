@@ -2,6 +2,7 @@ use common::{
     comp::{
         inventory::item::MaterialStatManifest,
         skills::{GeneralSkill, Skill},
+        tool::AbilityMap,
         Auras, Buffs, CharacterState, Collider, Combo, Controller, Energy, Health, Ori, Pos, Stats,
         Vel,
     },
@@ -42,6 +43,7 @@ pub fn setup() -> State {
         Arc::new(TerrainChunk::water(0)),
     );
     state.ecs_mut().insert(MaterialStatManifest::with_empty());
+    state.ecs_mut().insert(AbilityMap::load().cloned());
     state.ecs_mut().read_resource::<Time>();
     state.ecs_mut().read_resource::<DeltaTime>();
     for x in 0..2 {

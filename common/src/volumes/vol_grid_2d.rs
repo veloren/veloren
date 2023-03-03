@@ -224,6 +224,11 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     #[inline(always)]
     pub fn pos_key(&self, pos: Vec3<i32>) -> Vec2<i32> { Self::chunk_key(pos) }
 
+    #[inline(always)]
+    pub fn pos_chunk(&self, pos: Vec3<i32>) -> Option<&V> {
+        self.get_key(self.pos_key(pos))
+    }
+
     pub fn iter(&self) -> ChunkIter<V> {
         ChunkIter {
             iter: self.chunks.iter(),

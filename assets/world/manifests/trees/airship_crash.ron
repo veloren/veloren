@@ -2,7 +2,7 @@
 
 [
     (
-        specifier: "world.structure.natural.airship-crashsite_0",
+        specifier: "world.structure.spots.airship-crashsite_0",
         center: (28, 40, 14),
     ),
 ]

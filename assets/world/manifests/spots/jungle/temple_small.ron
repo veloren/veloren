@@ -1,0 +1,12 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.spots.temple_small_0",
+        center: (11, 25, 27)
+    ),
+    (
+        specifier: "world.structure.spots.temple_small_1",
+        center: (11, 11, 27)
+    ),
+]

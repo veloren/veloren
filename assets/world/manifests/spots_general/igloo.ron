@@ -2,7 +2,7 @@
 
 [
     (
-        specifier: "world.structure.natural.igloo",
+        specifier: "world.structure.spots.igloo",
         center: (14, 13, 3),
     ),
 ]

@@ -1,3 +1,4 @@
+use hashbrown::HashSet;
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
 use tracing::{debug, error, warn};
@@ -12,7 +13,7 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     recipe::{self, default_component_recipe_book, default_recipe_book},
-    terrain::SpriteKind,
+    terrain::{Block, SpriteKind},
     trade::Trades,
     uid::Uid,
     util::find_dist::{self, FindDist},
@@ -247,12 +248,25 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .insert(entity, event)
                 .expect("We know entity exists since we got its inventory.");
         },
-        comp::InventoryManip::Collect(pos) => {
-            let block = state.terrain().get(pos).ok().copied();
+        comp::InventoryManip::Collect {
+            sprite_pos,
+            required_item,
+        } => {
+            let block = state.terrain().get(sprite_pos).ok().copied();
             let mut drop_item = None;
 
             if let Some(block) = block {
-                if block.is_collectible() && state.can_set_block(pos) {
+                if block.is_collectible() && state.can_set_block(sprite_pos) {
+                    // If an item was required to collect the sprite, consume it now
+                    if let Some((inv_slot, true)) = required_item {
+                        inventory.take(
+                            inv_slot,
+                            &state.ecs().read_resource::<AbilityMap>(),
+                            &state.ecs().read_resource::<MaterialStatManifest>(),
+                        );
+                    }
+
+                    // If there's an item to be reclaimed from the block, add it to the inventory
                     if let Some(item) = comp::Item::try_reclaim_from_block(block) {
                         // NOTE: We dup the item for message purposes.
                         let item_msg = item.duplicate(
@@ -283,7 +297,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 drop_item = Some(item_msg);
                                 comp::InventoryUpdate::new(
                                     InventoryUpdateEvent::BlockCollectFailed {
-                                        pos,
+                                        pos: sprite_pos,
                                         reason: CollectFailedReason::InventoryFull,
                                     },
                                 )
@@ -294,20 +308,56 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             .write_storage()
                             .insert(entity, event)
                             .expect("We know entity exists since we got its inventory.");
-                        // we made sure earlier the block was not already modified this tick
-                        state.set_block(pos, block.into_vacant());
-                    } else {
-                        debug!(
-                            "Failed to reclaim item from block at pos={} or entity had no \
-                             inventory",
-                            pos
-                        )
+                    }
+
+                    // We made sure earlier the block was not already modified this tick
+                    state.set_block(sprite_pos, block.into_vacant());
+
+                    // If the block was a keyhole, remove nearby door blocks
+                    // TODO: Abstract this code into a generalised way to do block updates?
+                    if matches!(block.get_sprite(), Some(SpriteKind::Keyhole)) {
+                        let dirs = [
+                            Vec3::unit_x(),
+                            -Vec3::unit_x(),
+                            Vec3::unit_y(),
+                            -Vec3::unit_y(),
+                            Vec3::unit_z(),
+                            -Vec3::unit_z(),
+                        ];
+
+                        let mut destroyed = HashSet::<Vec3<i32>>::default();
+                        let mut pending = dirs
+                            .into_iter()
+                            .map(|dir| sprite_pos + dir)
+                            .collect::<HashSet<_>>();
+
+                        // Limit the number of blocks we destroy
+                        for _ in 0..250 {
+                            // TODO: Replace with `entry` eventually
+                            let next_pending = pending.iter().next().copied();
+                            if let Some(pos) = next_pending {
+                                pending.remove(&pos);
+                                if !destroyed.contains(&pos)
+                                    && matches!(
+                                        state.terrain().get(pos).ok().and_then(|b| b.get_sprite()),
+                                        Some(SpriteKind::KeyDoor)
+                                    )
+                                {
+                                    state.set_block(pos, Block::empty());
+                                    destroyed.insert(pos);
+
+                                    pending.extend(dirs.into_iter().map(|dir| pos + dir));
+                                }
+                            } else {
+                                break;
+                            }
+                        }
                     }
                 } else {
                     debug!(
                         "Can't reclaim item from block at pos={}: block is not collectable or was \
                          already set this tick.",
-                        pos
+                        sprite_pos
                     );
                 }
             }
@@ -316,7 +366,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 state
                     .create_item_drop(Default::default(), item)
                     .with(comp::Pos(
-                        Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32) + Vec3::unit_z(),
+                        Vec3::new(
+                            sprite_pos.x as f32,
+                            sprite_pos.y as f32,
+                            sprite_pos.z as f32,
+                        ) + Vec3::unit_z(),
                     ))
                     .with(comp::Vel(Vec3::zero()))
                     .build();

@@ -368,7 +368,7 @@ fn mesh_worker(
                                         light,
                                         glow,
                                         page,
-                                        matches!(sprite, SpriteKind::Door),
+                                        matches!(sprite, SpriteKind::Door | SpriteKind::DoorDark),
                                     );
                                     if (wpos.z as f32) < deep_alt {
                                         deep_level.push(instance);

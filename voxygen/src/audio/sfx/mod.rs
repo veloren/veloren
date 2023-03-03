@@ -537,6 +537,26 @@ impl SfxMgr {
                 | beam::FrontendSpecifier::Frost
                 | beam::FrontendSpecifier::WebStrand => {},
             },
+            Outcome::SpriteUnlocked { pos } => {
+                // TODO: Dedicated sound effect!
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GliderOpen);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos.map(|e| e as f32 + 0.5),
+                    Some(2.0),
+                    underwater,
+                );
+            },
+            Outcome::FailedSpriteUnlock { pos } => {
+                // TODO: Dedicated sound effect!
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::BreakBlock);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos.map(|e| e as f32 + 0.5),
+                    Some(2.0),
+                    underwater,
+                );
+            },
             Outcome::BreakBlock { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::BreakBlock);
                 audio.emit_sfx(

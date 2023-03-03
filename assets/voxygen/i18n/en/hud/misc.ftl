@@ -20,15 +20,15 @@ hud-tutorial_elements = Crafting
 hud-temp_quest_headline = Greetings Traveller!
 hud-temp_quest_text =
     To begin your journey you could start looking through this village and gather some supplies.
-    
+
     You are welcome to take whatever you need on your journey!
-    
+
     Look at the bottom right of the screen to find various things like your bag, the crafting menu and the map.
-    
+
     The crafting stations allow you to create armor, weapons, food and much more!
-    
+
     The wild animals all around town are a great source of Animal Hide to create some protection against the dangers of the world.
-    
+
     Whenever you feel ready, try to get even better equipment from the many challenges marked on your map!
 hud-spell = Spells
 hud-diary = Diary
@@ -39,6 +39,8 @@ hud-collect = Collect
 hud-pick_up = Pick up
 hud-open = Open
 hud-use = Use
+hud-unlock-requires = Open with { $item }
+hud-unlock-consumes = Use { $item } to open
 hud-mine = Mine
 hud-talk = Talk
 hud-trade = Trade

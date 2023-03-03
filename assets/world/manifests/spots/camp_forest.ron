@@ -1,0 +1,20 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.spots.camp",
+        center: (3, 3, 1),
+        custom_indices: {            
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            9: RotatedSprite(Bedroll, 0),
+            10: Grass,
+            11: Sprite(CookingPot),
+            12: Sprite(Chest),
+            13: RotatedSprite(Tent, 0),
+            14: RotatedSprite(Tent, 4),
+            15: RotatedSprite(Tent, 6),
+            16: RotatedSprite(Tent, 2),
+            251: Sprite(SmokeDummy),         
+         },
+    ),
+]

@@ -1,0 +1,19 @@
+#![enable(implicit_some)]
+(
+    head: Choice([
+        (2, None),
+        (1, Item("common.items.armor.misc.head.hood")),
+        (1, Item("common.items.armor.misc.head.hood_dark")),
+    ]),
+    shoulders: Item("common.items.armor.velorite_mage.shoulder"),
+    back: Item("common.items.armor.velorite_mage.back"),
+    chest: Item("common.items.armor.velorite_mage.chest"),
+    gloves: Item("common.items.armor.velorite_mage.hand"),
+    belt: Item("common.items.armor.velorite_mage.belt"),
+    legs: Item("common.items.armor.velorite_mage.pants"),
+    feet: Item("common.items.armor.velorite_mage.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.geode_purp")),
+        (2, None),
+    ]),
+)

@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        self, character_state::OutputEvents, item::MaterialStatManifest, ActiveAbilities, Beam,
+        self, character_state::OutputEvents, item::{tool::AbilityMap, MaterialStatManifest}, ActiveAbilities, Beam,
         Body, CharacterState, Combo, ControlAction, Controller, ControllerInputs, Density, Energy,
         Health, InputAttr, InputKind, Inventory, InventoryAction, Mass, Melee, Ori, PhysicsState,
         Pos, SkillSet, StateUpdate, Stats, Vel,
@@ -135,6 +135,7 @@ pub struct JoinData<'a> {
     pub stats: &'a Stats,
     pub skill_set: &'a SkillSet,
     pub active_abilities: Option<&'a ActiveAbilities>,
+    pub ability_map: &'a AbilityMap,
     pub msm: &'a MaterialStatManifest,
     pub combo: Option<&'a Combo>,
     pub alignment: Option<&'a comp::Alignment>,
@@ -174,6 +175,7 @@ impl<'a> JoinData<'a> {
         updater: &'a LazyUpdate,
         dt: &'a DeltaTime,
         msm: &'a MaterialStatManifest,
+        ability_map: &'a AbilityMap,
     ) -> Self {
         Self {
             entity: j.entity,
@@ -197,6 +199,7 @@ impl<'a> JoinData<'a> {
             updater,
             dt,
             msm,
+            ability_map,
             combo: j.combo,
             alignment: j.alignment,
             terrain: j.terrain,

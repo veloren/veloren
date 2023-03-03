@@ -843,20 +843,21 @@ impl PlayState for SessionState {
                             },
                             GameInput::Interact => {
                                 if state {
-                                    if let Some(interactable) = self.interactable {
+                                    if let Some(interactable) = &self.interactable {
                                         let mut client = self.client.borrow_mut();
                                         match interactable {
                                             Interactable::Block(block, pos, interaction) => {
                                                 match interaction {
-                                                    Interaction::Collect => {
+                                                    Interaction::Collect
+                                                    | Interaction::Unlock(_) => {
                                                         if block.is_collectible() {
-                                                            client.collect_block(pos);
+                                                            client.collect_block(*pos);
                                                         }
                                                     },
                                                     Interaction::Craft(tab) => {
                                                         self.hud.show.open_crafting_tab(
-                                                            tab,
-                                                            block.get_sprite().map(|s| (pos, s)),
+                                                            *tab,
+                                                            block.get_sprite().map(|s| (*pos, s)),
                                                         )
                                                     },
                                                     Interaction::Mine => {},
@@ -867,21 +868,21 @@ impl PlayState for SessionState {
                                                     .state()
                                                     .ecs()
                                                     .read_storage::<comp::Item>()
-                                                    .get(entity)
+                                                    .get(*entity)
                                                     .is_some()
                                                 {
-                                                    client.pick_up(entity);
+                                                    client.pick_up(*entity);
                                                 } else if client
                                                     .state()
                                                     .ecs()
                                                     .read_storage::<comp::Body>()
-                                                    .get(entity)
+                                                    .get(*entity)
                                                     .map_or(false, |b| b.is_campfire())
                                                 {
                                                     // TODO: maybe start crafting instead?
                                                     client.toggle_sit();
                                                 } else {
-                                                    client.npc_interact(entity);
+                                                    client.npc_interact(*entity);
                                                 }
                                             },
                                         }
@@ -890,13 +891,13 @@ impl PlayState for SessionState {
                             },
                             GameInput::Trade => {
                                 if state {
-                                    if let Some(interactable) = self.interactable {
+                                    if let Some(interactable) = &self.interactable {
                                         let mut client = self.client.borrow_mut();
                                         match interactable {
                                             Interactable::Block(_, _, _) => {},
                                             Interactable::Entity(entity) => {
                                                 if let Some(uid) =
-                                                    client.state().ecs().uid_from_entity(entity)
+                                                    client.state().ecs().uid_from_entity(*entity)
                                                 {
                                                     let name = client
                                                         .player_list()
@@ -906,7 +907,7 @@ impl PlayState for SessionState {
                                                             let stats = client
                                                                 .state()
                                                                 .read_storage::<Stats>();
-                                                            stats.get(entity).map_or(
+                                                            stats.get(*entity).map_or(
                                                                 format!("<entity {:?}>", uid),
                                                                 |e| e.name.to_owned(),
                                                             )
@@ -995,12 +996,12 @@ impl PlayState for SessionState {
                                 if self.viewpoint_entity.is_some() {
                                     self.viewpoint_entity = None;
                                     self.scene.camera_mut().set_mode(CameraMode::Freefly);
-                                } else if let Some(interactable) = self.interactable {
+                                } else if let Some(interactable) = &self.interactable {
                                     if self.scene.camera().get_mode() == CameraMode::Freefly {
                                         match interactable {
                                             Interactable::Block(_, _, _) => {},
                                             Interactable::Entity(entity) => {
-                                                self.viewpoint_entity = Some(entity);
+                                                self.viewpoint_entity = Some(*entity);
                                                 self.scene
                                                     .camera_mut()
                                                     .set_mode(CameraMode::FirstPerson);
@@ -1278,7 +1279,7 @@ impl PlayState for SessionState {
                     selected_entity: self.selected_entity,
                     persistence_load_error: self.metadata.skill_set_persistence_load_error,
                 },
-                self.interactable,
+                self.interactable.as_ref(),
             );
 
             // Maintain egui (debug interface)
@@ -1718,7 +1719,7 @@ impl PlayState for SessionState {
                     viewpoint_entity,
                     mutable_viewpoint: mutable_viewpoint || self.free_look,
                     // Only highlight if interactable
-                    target_entity: self.interactable.and_then(Interactable::entity),
+                    target_entity: self.interactable.as_ref().and_then(Interactable::entity),
                     loaded_distance: client.loaded_distance(),
                     terrain_view_distance: client.view_distance().unwrap_or(1),
                     entity_view_distance: client
@@ -1809,7 +1810,7 @@ impl PlayState for SessionState {
             viewpoint_entity,
             mutable_viewpoint,
             // Only highlight if interactable
-            target_entity: self.interactable.and_then(Interactable::entity),
+            target_entity: self.interactable.as_ref().and_then(Interactable::entity),
             loaded_distance: client.loaded_distance(),
             terrain_view_distance: client.view_distance().unwrap_or(1),
             entity_view_distance: client

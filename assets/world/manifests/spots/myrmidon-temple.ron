@@ -2,7 +2,7 @@
 
 [
     (
-        specifier: "world.structure.natural.myrmidon-temple",
+        specifier: "world.structure.spots.myrmidon-temple",
         center: (13, 23, 5),
     ),
 ]

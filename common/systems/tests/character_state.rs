@@ -2,8 +2,8 @@
 mod tests {
     use common::{
         comp::{
-            item::MaterialStatManifest, skills::GeneralSkill, CharacterState, Controller, Energy,
-            Ori, PhysicsState, Poise, Pos, Skill, Stats, Vel,
+            item::MaterialStatManifest, skills::GeneralSkill, tool::AbilityMap, CharacterState,
+            Controller, Energy, Ori, PhysicsState, Poise, Pos, Skill, Stats, Vel,
         },
         resources::{DeltaTime, GameMode, Time},
         terrain::{MapSizeLg, TerrainChunk},
@@ -36,6 +36,7 @@ mod tests {
         );
         let msm = MaterialStatManifest::load().cloned();
         state.ecs_mut().insert(msm);
+        state.ecs_mut().insert(AbilityMap::load().cloned());
         state.ecs_mut().read_resource::<Time>();
         state.ecs_mut().read_resource::<DeltaTime>();
         state

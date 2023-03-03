@@ -110,6 +110,12 @@ pub enum Outcome {
         pos: Vec3<f32>,
         sprite: SpriteKind,
     },
+    SpriteUnlocked {
+        pos: Vec3<i32>,
+    },
+    FailedSpriteUnlock {
+        pos: Vec3<i32>,
+    },
 }
 
 impl Outcome {
@@ -133,7 +139,9 @@ impl Outcome {
             | Outcome::Utterance { pos, .. }
             | Outcome::SpriteDelete { pos, .. }
             | Outcome::Glider { pos, .. } => Some(*pos),
-            Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
+            Outcome::BreakBlock { pos, .. }
+            | Outcome::SpriteUnlocked { pos }
+            | Outcome::FailedSpriteUnlock { pos } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }
             | Outcome::Lightning { .. }

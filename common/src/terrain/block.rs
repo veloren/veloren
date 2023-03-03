@@ -2,6 +2,7 @@ use super::SpriteKind;
 use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
+    lottery::LootSpec,
     make_case_elim,
 };
 use num_derive::FromPrimitive;
@@ -281,6 +282,8 @@ impl Block {
             BlockKind::Lava => None,
             _ => self.get_sprite().and_then(|sprite| match sprite {
                 sprite if sprite.is_container() => None,
+                SpriteKind::Keyhole
+                | SpriteKind::KeyDoor => None,
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron
                 | SpriteKind::CookingPot
@@ -313,10 +316,15 @@ impl Block {
     }
 
     #[inline]
-    pub fn is_collectible(&self) -> bool {
+    pub fn collectible_id(&self) -> Option<Option<LootSpec<&'static str>>> {
         self.get_sprite()
-            .map(|s| s.is_collectible())
-            .unwrap_or(false)
+            .map(|s| s.collectible_id())
+            .unwrap_or(None)
+    }
+
+    #[inline]
+    pub fn is_collectible(&self) -> bool {
+        self.collectible_id().is_some() && self.mine_tool().is_none()
     }
 
     #[inline]

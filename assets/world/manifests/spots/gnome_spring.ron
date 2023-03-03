@@ -2,7 +2,7 @@
 
 [
     (
-        specifier: "world.structure.natural.gnome_spring",
+        specifier: "world.structure.spots.gnome_spring",
         center: (10, 10, 4),
         custom_indices: {
             136: Filled(GlowingRock, (r: 0, g: 255, b: 255)),       

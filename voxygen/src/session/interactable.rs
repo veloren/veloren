@@ -22,16 +22,16 @@ use crate::scene::{terrain::Interaction, Scene};
 
 // TODO: extract mining blocks (the None case in the Block variant) from this
 // enum since they don't use the interaction key
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum Interactable {
     Block(Block, Vec3<i32>, Interaction),
     Entity(specs::Entity),
 }
 
 impl Interactable {
-    pub fn entity(self) -> Option<specs::Entity> {
+    pub fn entity(&self) -> Option<specs::Entity> {
         match self {
-            Self::Entity(e) => Some(e),
+            Self::Entity(e) => Some(*e),
             Self::Block(_, _, _) => None,
         }
     }
@@ -203,7 +203,7 @@ pub(super) fn select_interactable(
                     .get(block_pos)
                     .ok()
                     .copied()
-                    .map(|b| Interactable::Block(b, block_pos, *interaction))
+                    .map(|b| Interactable::Block(b, block_pos, interaction.clone()))
             })
             .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
     }
