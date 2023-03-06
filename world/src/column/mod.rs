@@ -9,7 +9,7 @@ use common::{
     calendar::{Calendar, CalendarEvent},
     terrain::{
         quadratic_nearest_point, river_spline_coeffs, uniform_idx_as_vec2, vec2_as_uniform_idx,
-        TerrainChunkSize,
+        CoordinateConversions, TerrainChunkSize,
     },
     vol::RectVolSize,
 };
@@ -68,7 +68,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
     fn get(&self, (wpos, index, calendar): Self::Index) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
-        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+        let chunk_pos = wpos.wpos_to_cpos();
 
         let sim = &self.sim;
 
@@ -247,8 +247,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         }
                         let neighbor_pass_wpos =
                             neighbor_pass_pos.map(|e| e as f64) + neighbor_coef * 0.5;
-                        let neighbor_pass_pos = neighbor_pass_pos
-                            .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+                        let neighbor_pass_pos = neighbor_pass_pos.wpos_to_cpos();
                         let coeffs = river_spline_coeffs(
                             neighbor_wpos,
                             spline_derivative,

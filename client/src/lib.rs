@@ -42,8 +42,9 @@ use common::{
     resources::{GameMode, PlayerEntity, TimeOfDay},
     spiral::Spiral2d,
     terrain::{
-        block::Block, map::MapConfig, neighbors, site::DungeonKindMeta, BiomeKind, SiteKindMeta,
-        SpriteKind, TerrainChunk, TerrainChunkSize, TerrainGrid,
+        block::Block, map::MapConfig, neighbors, site::DungeonKindMeta, BiomeKind,
+        CoordinateConversions, SiteKindMeta, SpriteKind, TerrainChunk, TerrainChunkSize,
+        TerrainGrid,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
@@ -569,7 +570,7 @@ impl Client {
                     )
                 },
                 |wpos| {
-                    let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                    let pos = wpos.wpos_to_cpos();
                     rescale_height(if bounds_check(pos) {
                         scale_height_big(alt[pos])
                     } else {
@@ -597,7 +598,7 @@ impl Client {
                     )
                 },
                 |wpos| {
-                    let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                    let pos = wpos.wpos_to_cpos();
                     rescale_height(if bounds_check(pos) {
                         scale_height_big(alt[pos])
                     } else {

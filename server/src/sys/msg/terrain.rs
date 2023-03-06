@@ -6,7 +6,7 @@ use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
     spiral::Spiral2d,
-    terrain::{TerrainChunkSize, TerrainGrid},
+    terrain::{CoordinateConversions, TerrainChunkSize, TerrainGrid},
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
@@ -128,7 +128,8 @@ impl<'a> System<'a> for Sys {
                         let player_chunk = pos
                             .0
                             .xy()
-                            .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+                            .as_::<i32>()
+                            .wpos_to_cpos();
                         for rpos in Spiral2d::new().take((crate::MIN_VD as usize + 1).pow(2)) {
                             let key = player_chunk + rpos;
                             if terrain.get_key(key).is_none() {

@@ -15,7 +15,9 @@ use common::{
     comp::group::Role,
     grid::Grid,
     slowjob::SlowJobPool,
-    terrain::{Block, BlockKind, TerrainChunk, TerrainChunkSize, TerrainGrid},
+    terrain::{
+        Block, BlockKind, CoordinateConversions, TerrainChunk, TerrainChunkSize, TerrainGrid,
+    },
     vol::{ReadVol, RectVolSize},
 };
 use common_net::msg::world_msg::SiteKind;
@@ -660,7 +662,7 @@ impl<'a> Widget for MiniMap<'a> {
                 // Site pos in world coordinates relative to the player
                 let rwpos = wpos - player_pos;
                 // Convert to chunk coordinates
-                let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32);
+                let rcpos = rwpos.wpos_to_cpos();
                 // Convert to fractional coordinates relative to the worldsize
                 let rfpos = rcpos / max_zoom as f32;
                 // Convert to unrotated pixel coordinates from the player location on the map

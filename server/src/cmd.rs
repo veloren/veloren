@@ -43,9 +43,9 @@ use common::{
     outcome::Outcome,
     parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
-    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
+    terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
-    vol::{ReadVol, RectVolSize},
+    vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use common_net::{
@@ -2793,7 +2793,7 @@ fn handle_debug_column(
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
-        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+        let chunk_pos = wpos.wpos_to_cpos();
         let chunk = sim.get(chunk_pos)?;
         let col = sampler.get((wpos, server.index.as_index_ref(), Some(calendar)))?;
         let gradient = sim.get_gradient_approx(chunk_pos)?;
@@ -2873,7 +2873,7 @@ fn handle_debug_ways(
         pos.0.xy().map(|x| x as i32)
     };
     let msg_generator = || {
-        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+        let chunk_pos = wpos.wpos_to_cpos();
         let mut ret = String::new();
         for delta in LOCALITY {
             let pos = chunk_pos + delta;
@@ -3316,9 +3316,7 @@ fn handle_battlemode(
             // get chunk position
             let pos = position(server, target, "target")?;
             let wpos = pos.0.xy().map(|x| x as i32);
-            let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |wpos, size: u32| {
-                wpos / size as i32
-            });
+            let chunk_pos = wpos.wpos_to_cpos();
             server.world.civs().sites().any(|site| {
                 // empirical
                 const RADIUS: f32 = 9.0;

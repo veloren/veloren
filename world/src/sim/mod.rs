@@ -46,8 +46,8 @@ use common::{
     spiral::Spiral2d,
     store::Id,
     terrain::{
-        map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, MapSizeLg,
-        TerrainChunk, TerrainChunkSize,
+        map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, CoordinateConversions,
+        MapSizeLg, TerrainChunk, TerrainChunkSize,
     },
     vol::RectVolSize,
 };
@@ -1907,8 +1907,7 @@ impl WorldSim {
     pub fn get_gradient_approx(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
         let a = self.get(chunk_pos)?;
         if let Some(downhill) = a.downhill {
-            let b =
-                self.get(downhill.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)))?;
+            let b = self.get(downhill.wpos_to_cpos())?;
             Some((a.alt - b.alt).abs() / TerrainChunkSize::RECT_SIZE.x as f32)
         } else {
             Some(0.0)
@@ -1968,9 +1967,7 @@ impl WorldSim {
         T: Copy + Default + Add<Output = T> + Mul<f32, Output = T>,
         F: FnMut(&SimChunk) -> T,
     {
-        let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-            e as f64 / sz as f64
-        });
+        let pos = pos.as_::<f64>().wpos_to_cpos();
 
         let cubic = |a: T, b: T, c: T, d: T, x: f32| -> T {
             let x2 = x * x;
@@ -2016,9 +2013,7 @@ impl WorldSim {
         //
         // Note that these are only guaranteed monotone in one dimension; fortunately,
         // that is sufficient for our purposes.
-        let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-            e as f64 / sz as f64
-        });
+        let pos = pos.as_::<f64>().wpos_to_cpos();
 
         let secant = |b: T, c: T| c - b;
 
@@ -2088,9 +2083,7 @@ impl WorldSim {
         //
         // Note that these are only guaranteed monotone in one dimension; fortunately,
         // that is sufficient for our purposes.
-        let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-            e as f64 / sz as f64
-        });
+        let pos = pos.as_::<f64>().wpos_to_cpos();
 
         // Orient the chunk in the direction of the most downhill point of the four.  If
         // there is no "most downhill" point, then we don't care.

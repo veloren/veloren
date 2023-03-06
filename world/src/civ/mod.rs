@@ -16,7 +16,8 @@ use common::{
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{
-        uniform_idx_as_vec2, BiomeKind, MapSizeLg, TerrainChunkSize, TERRAIN_CHUNK_BLOCKS_LG,
+        uniform_idx_as_vec2, BiomeKind, CoordinateConversions, MapSizeLg, TerrainChunkSize,
+        TERRAIN_CHUNK_BLOCKS_LG,
     },
     vol::RectVolSize,
 };
@@ -1389,8 +1390,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
     fn check_chunk_occupation(sim: &WorldSim, loc: Vec2<i32>, radius: i32) -> bool {
         for x in (-radius)..radius {
             for y in (-radius)..radius {
-                let check_loc =
-                    loc + Vec2::new(x, y).map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32);
+                let check_loc = loc + Vec2::new(x, y).cpos_to_wpos();
                 if sim.get(check_loc).map_or(false, |c| !c.sites.is_empty()) {
                     return false;
                 }
@@ -1424,10 +1424,9 @@ fn find_site_loc(
             }
 
             loc = ctx.sim.get(test_loc).and_then(|c| {
-                site_kind.is_suitable_loc(test_loc, ctx.sim).then_some(
-                    c.downhill?
-                        .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)),
-                )
+                site_kind
+                    .is_suitable_loc(test_loc, ctx.sim)
+                    .then_some(c.downhill?.wpos_to_cpos())
             });
         }
     }
@@ -1530,9 +1529,7 @@ impl SiteKind {
                 let mut land_chunks = 0;
                 for x in (-RESOURCE_RADIUS)..RESOURCE_RADIUS {
                     for y in (-RESOURCE_RADIUS)..RESOURCE_RADIUS {
-                        let check_loc = loc
-                            + Vec2::new(x, y)
-                                .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32);
+                        let check_loc = loc + Vec2::new(x, y).cpos_to_wpos();
                         sim.get(check_loc).map(|c| {
                             if num::abs(chunk.alt - c.alt) < 200.0 {
                                 if c.river.is_river() {
