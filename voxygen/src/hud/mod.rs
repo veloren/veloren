@@ -2,6 +2,7 @@ mod animation;
 mod bag;
 mod buffs;
 mod buttons;
+mod change_notification;
 mod chat;
 mod crafting;
 mod diary;
@@ -33,6 +34,7 @@ pub use settings_window::ScaleChange;
 use bag::Bag;
 use buffs::BuffsBar;
 use buttons::Buttons;
+use change_notification::{ChangeNotification, NotificationReason};
 use chat::Chat;
 use chrono::NaiveTime;
 use crafting::Crafting;
@@ -328,6 +330,10 @@ widget_ids! {
         // Auto walk indicator
         auto_walk_txt,
         auto_walk_bg,
+
+        // Temporal (fading) camera zoom lock indicator
+        zoom_lock_txt,
+        zoom_lock_bg,
 
         // Camera clamp indicator
         camera_clamp_txt,
@@ -797,6 +803,16 @@ pub enum PressBehavior {
     #[serde(other)]
     Toggle = 0,
 }
+/// Similar to [PressBehavior], with different semantics for settings that
+/// change state automatically. There is no [PressBehavior::update][update]
+/// implementation because it doesn't apply to the use case; this is just a
+/// sentinel.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum AutoPressBehavior {
+    Auto = 1,
+    #[serde(other)]
+    Toggle = 0,
+}
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ChatTab {
     pub label: String,
@@ -889,6 +905,7 @@ pub struct Show {
     stats: bool,
     free_look: bool,
     auto_walk: bool,
+    zoom_lock: ChangeNotification,
     camera_clamp: bool,
     prompt_dialog: Option<PromptDialogSettings>,
     location_markers: MapMarkers,
@@ -1367,6 +1384,7 @@ impl Hud {
                 stats: false,
                 free_look: false,
                 auto_walk: false,
+                zoom_lock: ChangeNotification::default(),
                 camera_clamp: false,
                 prompt_dialog: None,
                 location_markers: MapMarkers::default(),
@@ -3522,6 +3540,31 @@ impl Hud {
                 .set(self.ids.auto_walk_txt, ui_widgets);
         }
 
+        // Camera zoom lock
+        self.show.zoom_lock.update(dt);
+
+        if let Some(zoom_lock) = self.show.zoom_lock.reason {
+            let zoom_lock_message = match zoom_lock {
+                NotificationReason::Remind => "hud-zoom_lock_indicator-remind",
+                NotificationReason::Enable => "hud-zoom_lock_indicator-enable",
+                NotificationReason::Disable => "hud-zoom_lock_indicator-disable",
+            };
+
+            Text::new(&i18n.get_msg(zoom_lock_message))
+                .color(TEXT_BG.alpha(self.show.zoom_lock.alpha))
+                .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.zoom_lock_bg, ui_widgets);
+            indicator_offset += 30.0;
+            Text::new(&i18n.get_msg(zoom_lock_message))
+                .color(TEXT_COLOR.alpha(self.show.zoom_lock.alpha))
+                .top_left_with_margins_on(self.ids.zoom_lock_bg, -1.0, -1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.zoom_lock_txt, ui_widgets);
+        }
+
         // Camera clamp indicator
         if let Some(cameraclamp_key) = global_state
             .settings
@@ -4561,6 +4604,20 @@ impl Hud {
     pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
 
     pub fn camera_clamp(&mut self, camera_clamp: bool) { self.show.camera_clamp = camera_clamp; }
+
+    /// Remind the player camera zoom is currently locked, for example if they
+    /// are trying to zoom.
+    pub fn zoom_lock_reminder(&mut self) {
+        if self.show.zoom_lock.reason.is_none() {
+            self.show.zoom_lock = ChangeNotification::from_reason(NotificationReason::Remind);
+        }
+    }
+
+    /// Start showing a temporary notification ([ChangeNotification]) that zoom
+    /// lock was toggled on/off.
+    pub fn zoom_lock_toggle(&mut self, state: bool) {
+        self.show.zoom_lock = ChangeNotification::from_state(state);
+    }
 
     pub fn handle_outcome(
         &mut self,

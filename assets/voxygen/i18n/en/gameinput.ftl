@@ -49,6 +49,7 @@ gameinput-togglewield = Toggle Wield
 gameinput-interact = Interact
 gameinput-freelook = Free Look
 gameinput-autowalk = Auto Walk/Swim
+gameinput-zoomlock = Camera zoom lock
 gameinput-cameraclamp = Camera Clamp
 gameinput-dance = Dance
 gameinput-select = Select Entity

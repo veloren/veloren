@@ -43,8 +43,8 @@ use crate::{
     error::Error,
     game_input::GameInput,
     hud::{
-        DebugInfo, Event as HudEvent, Hud, HudCollectFailedReason, HudInfo, LootMessage,
-        PromptDialogSettings,
+        AutoPressBehavior, DebugInfo, Event as HudEvent, Hud, HudCollectFailedReason, HudInfo,
+        LootMessage, PromptDialogSettings,
     },
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
@@ -60,6 +60,25 @@ use settings_change::Language::ChangeLanguage;
 use target::targets_under_cursor;
 #[cfg(feature = "egui-ui")]
 use voxygen_egui::EguiDebugInfo;
+
+/** The zoom scroll delta that is considered an "intent"
+    to zoom, rather than the accidental zooming that Zoom Lock
+    is supposed to help.
+    This is used for both [AutoPressBehaviors::Toggle] and [AutoPressBehaviors::Auto].
+
+    This value should likely differ between trackpad scrolling
+    and various mouse wheels, but we just choose a reasonable
+    default.
+
+    All the mice I have can only scroll at |delta|=15 no matter
+    how fast, I guess the default should be less than that so
+    it gets seen. This could possibly be a user setting changed
+    only in a config file; it's too minor to put in the GUI.
+    If a player reports that their scroll wheel is apparently not
+    working, this value may be to blame (i.e. their intent to scroll
+    is not being detected at a low enough scroll speed).
+*/
+const ZOOM_LOCK_SCROLL_DELTA_INTENT: f32 = 14.0;
 
 /// The action to perform after a tick
 enum TickAction {
@@ -83,6 +102,7 @@ pub struct SessionState {
     free_look: bool,
     auto_walk: bool,
     camera_clamp: bool,
+    zoom_lock: bool,
     is_aiming: bool,
     target_entity: Option<specs::Entity>,
     selected_entity: Option<(specs::Entity, std::time::Instant)>,
@@ -152,6 +172,7 @@ impl SessionState {
             free_look: false,
             auto_walk: false,
             camera_clamp: false,
+            zoom_lock: false,
             is_aiming: false,
             target_entity: None,
             selected_entity: None,
@@ -169,6 +190,24 @@ impl SessionState {
         self.auto_walk = false;
         self.hud.auto_walk(false);
         self.key_state.auto_walk = false;
+    }
+
+    /// Possibly lock the camera zoom depending on the current behaviour, and
+    /// the current inputs if in the Auto state.
+    fn maybe_auto_zoom_lock(
+        &mut self,
+        zoom_lock_enabled: bool,
+        zoom_lock_behavior: AutoPressBehavior,
+    ) {
+        if let AutoPressBehavior::Auto = zoom_lock_behavior {
+            // to add Analog detection, update the condition rhs with a check for
+            // MovementX/Y event from the last tick
+            self.zoom_lock = zoom_lock_enabled && self.should_auto_zoom_lock();
+        } else {
+            // it's intentional that the HUD notification is not shown in this case:
+            // refresh session from Settings HUD checkbox change
+            self.zoom_lock = zoom_lock_enabled;
+        }
     }
 
     /// Gets the entity that is the current viewpoint, and a bool if the client
@@ -406,6 +445,45 @@ impl SessionState {
 
     /// Clean up the session (and the client attached to it) after a tick.
     pub fn cleanup(&mut self) { self.client.borrow_mut().cleanup(); }
+
+    fn should_auto_zoom_lock(&self) -> bool {
+        let inputs_state = &self.inputs_state;
+        for input in inputs_state {
+            match input {
+                GameInput::Primary
+                | GameInput::Secondary
+                | GameInput::Block
+                | GameInput::MoveForward
+                | GameInput::MoveLeft
+                | GameInput::MoveRight
+                | GameInput::MoveBack
+                | GameInput::Jump
+                | GameInput::Roll
+                | GameInput::Sneak
+                | GameInput::AutoWalk
+                | GameInput::Climb
+                | GameInput::ClimbDown
+                | GameInput::SwimUp
+                | GameInput::SwimDown
+                | GameInput::SwapLoadout
+                | GameInput::ToggleWield
+                | GameInput::Slot1
+                | GameInput::Slot2
+                | GameInput::Slot3
+                | GameInput::Slot4
+                | GameInput::Slot5
+                | GameInput::Slot6
+                | GameInput::Slot7
+                | GameInput::Slot8
+                | GameInput::Slot9
+                | GameInput::Slot10
+                | GameInput::SpectateViewpoint
+                | GameInput::SpectateSpeedBoost => return true,
+                _ => (),
+            }
+        }
+        false
+    }
 }
 
 impl PlayState for SessionState {
@@ -547,6 +625,11 @@ impl PlayState for SessionState {
 
             drop(client);
 
+            self.maybe_auto_zoom_lock(
+                global_state.settings.gameplay.zoom_lock,
+                global_state.settings.gameplay.zoom_lock_behavior,
+            );
+
             if presence == PresenceKind::Spectator {
                 let mut client = self.client.borrow_mut();
                 if client.spectate_position(cam_pos) {
@@ -609,7 +692,6 @@ impl PlayState for SessionState {
                         continue;
                     }
                 }
-
                 match event {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
@@ -950,6 +1032,14 @@ impl PlayState for SessionState {
                                 self.key_state.auto_walk =
                                     self.auto_walk && !self.client.borrow().is_gliding();
                             },
+                            GameInput::ZoomLock => {
+                                if state {
+                                    global_state.settings.gameplay.zoom_lock ^= true;
+
+                                    self.hud
+                                        .zoom_lock_toggle(global_state.settings.gameplay.zoom_lock);
+                                }
+                            },
                             GameInput::CameraClamp => {
                                 let hud = &mut self.hud;
                                 global_state.settings.gameplay.camera_clamp_behavior.update(
@@ -1031,6 +1121,13 @@ impl PlayState for SessionState {
                         chat_type: ChatType::CommandInfo,
                         message: screenshot_message,
                     }),
+
+                    Event::Zoom(delta) if self.zoom_lock => {
+                        // only fire this Hud event when player has "intent" to zoom
+                        if delta.abs() > ZOOM_LOCK_SCROLL_DELTA_INTENT {
+                            self.hud.zoom_lock_reminder();
+                        }
+                    },
 
                     // Pass all other events to the scene
                     event => {
