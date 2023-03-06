@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{Ori, Pos, Vel},
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
-    terrain::TerrainChunkSize,
+    terrain::{CoordinateConversions, TerrainChunkSize},
     uid::Uid,
     vol::RectVolSize,
 };
@@ -81,8 +81,7 @@ impl<'a> System<'a> for Sys {
         {
             let vd = presence.entity_view_distance.current();
             // Calculate current chunk
-            let chunk = (Vec2::<f32>::from(pos.0))
-                .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+            let chunk = (Vec2::<f32>::from(pos.0)).as_::<i32>().wpos_to_cpos();
             // Only update regions when moving to a new chunk or if view distance has
             // changed.
             //
@@ -104,8 +103,7 @@ impl<'a> System<'a> for Sys {
                 // Update the view distance
                 subscription.last_entity_view_distance = vd;
                 // Update current chunk
-                subscription.fuzzy_chunk = Vec2::<f32>::from(pos.0)
-                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+                subscription.fuzzy_chunk = Vec2::<f32>::from(pos.0).as_::<i32>().wpos_to_cpos();
                 // Use the largest side length as our chunk size
                 let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
                 // Iterate through currently subscribed regions
@@ -218,7 +216,8 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         world.write_storage::<Client>().get(entity),
     ) {
         let fuzzy_chunk = (Vec2::<f32>::from(client_pos.0))
-            .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+            .as_::<i32>()
+            .wpos_to_cpos();
         let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
         let regions = regions_in_vd(
             client_pos.0,

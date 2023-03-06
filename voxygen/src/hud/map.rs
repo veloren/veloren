@@ -11,7 +11,13 @@ use crate::{
     GlobalState,
 };
 use client::{self, Client, SiteInfoRich};
-use common::{comp, comp::group::Role, terrain::TerrainChunkSize, trade::Good, vol::RectVolSize};
+use common::{
+    comp,
+    comp::group::Role,
+    terrain::{CoordinateConversions, TerrainChunkSize},
+    trade::Good,
+    vol::RectVolSize,
+};
 use common_net::msg::world_msg::{PoiKind, SiteId, SiteKind};
 use conrod_core::{
     color,
@@ -383,9 +389,7 @@ impl<'a> Widget for Map<'a> {
                         },
                         MarkerChange::ClickPos => {
                             let tmp: Vec2<f64> = Vec2::<f64>::from(click.xy) / zoom - drag;
-                            let wpos = tmp
-                                .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as f32 * sz as f32)
-                                + player_pos;
+                            let wpos = tmp.as_::<f32>().cpos_to_wpos() + player_pos;
                             events.push(Event::SetLocationMarker(wpos.as_()));
                         },
                         MarkerChange::Remove => events.push(Event::RemoveMarker),
@@ -873,7 +877,7 @@ impl<'a> Widget for Map<'a> {
                 // Site pos in world coordinates relative to the player
                 let rwpos = wpos - player_pos;
                 // Convert to chunk coordinates
-                let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
+                let rcpos = rwpos.wpos_to_cpos()
                 // Add map dragging
                 + drag.map(|e| e as f32);
                 // Convert to relative pixel coordinates from the center of the map

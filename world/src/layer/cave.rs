@@ -7,10 +7,9 @@ use crate::{
 use common::{
     generation::EntityInfo,
     terrain::{
-        quadratic_nearest_point, river_spline_coeffs, Block, BlockKind, SpriteKind,
-        TerrainChunkSize,
+        quadratic_nearest_point, river_spline_coeffs, Block, BlockKind, CoordinateConversions,
+        SpriteKind,
     },
-    vol::RectVolSize,
 };
 use noise::NoiseFn;
 use rand::prelude::*;
@@ -70,11 +69,7 @@ fn node_at(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Node> {
 }
 
 pub fn surface_entrances<'a>(land: &'a Land) -> impl Iterator<Item = Vec2<i32>> + 'a {
-    let sz_cells = to_cell(
-        land.size()
-            .map2(TerrainChunkSize::RECT_SIZE, |e, sz| (e * sz) as i32),
-        0,
-    );
+    let sz_cells = to_cell(land.size().as_::<i32>().cpos_to_wpos(), 0);
     (0..sz_cells.x + 1)
         .flat_map(move |x| (0..sz_cells.y + 1).map(move |y| Vec2::new(x, y)))
         .filter_map(|cell| Some(tunnel_below_from_cell(cell, 0, land)?.a.wpos))

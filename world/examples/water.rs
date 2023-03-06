@@ -2,7 +2,7 @@
 use common::{
     terrain::{
         map::{MapConfig, MapDebug, MapSample},
-        uniform_idx_as_vec2, vec2_as_uniform_idx, TerrainChunkSize,
+        uniform_idx_as_vec2, vec2_as_uniform_idx, CoordinateConversions, TerrainChunkSize,
     },
     vol::RectVolSize,
 };
@@ -286,7 +286,7 @@ fn main() {
                 let chunk_pos = (Vec2::<f64>::from(focus)
                     + (Vec2::new(mx as f64, my as f64) * scale))
                     .map(|e| e as i32);
-                let block_pos = chunk_pos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e * f as i32);
+                let block_pos = chunk_pos.cpos_to_wpos();
                 println!(
                     "Block: ({}, {}), Chunk: ({}, {})",
                     block_pos.x, block_pos.y, chunk_pos.x, chunk_pos.y

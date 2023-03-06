@@ -7,7 +7,7 @@ use crate::{
 use common::{
     terrain::{
         map::{Connection, ConnectionKind, MapConfig, MapSample},
-        vec2_as_uniform_idx, TerrainChunkSize, NEIGHBOR_DELTA,
+        vec2_as_uniform_idx, CoordinateConversions, TerrainChunkSize, NEIGHBOR_DELTA,
     },
     vol::RectVolSize,
 };
@@ -218,7 +218,7 @@ pub fn sample_pos(
         RiverKind::Lake { .. } | RiverKind::Ocean => TerrainChunkSize::RECT_SIZE.x as f32,
     });
     if let (Some(river_width), true) = (river_width, is_water) {
-        let downhill_pos = downhill_wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+        let downhill_pos = downhill_wpos.wpos_to_cpos();
         NEIGHBOR_DELTA
             .iter()
             .zip(connections.iter_mut())
