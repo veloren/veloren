@@ -4588,9 +4588,9 @@ dependencies = [
 
 [[package]]
 name = "profiling"
-version = "1.0.6"
+version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f61dcf0b917cd75d4521d7343d1ffff3d1583054133c9b5cbea3375c703c40d"
+checksum = "332cd62e95873ea4f41f3dfd6bbbfc5b52aec892d7e8d534197c4720a0bbbab2"
 dependencies = [
  "profiling-procmacros",
  "tracy-client",
@@ -4598,9 +4598,9 @@ dependencies = [
 
 [[package]]
 name = "profiling-procmacros"
-version = "1.0.6"
+version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98eee3c112f2a6f784b6713fe1d7fb7d6506e066121c0a49371fdb976f72bae5"
+checksum = "a10adb8d151bb1280afb8bed41ae5db26be1b056964947133c7525b0bf39c0b0"
 dependencies = [
  "quote 1.0.21",
  "syn 1.0.100",
@@ -6377,9 +6377,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-tracy"
-version = "0.9.0"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23a42311a35ed976d72f359de43e9fe028ec9d9f1051c4c52bd05a4f66ff3cbf"
+checksum = "55c48ef3e655220d4e43a6be44aa84f078c3004357251cab45f9cc15551a593e"
 dependencies = [
  "tracing-core",
  "tracing-subscriber",
@@ -6388,9 +6388,9 @@ dependencies = [
 
 [[package]]
 name = "tracy-client"
-version = "0.13.2"
+version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42ebfe7a24c18b5ba86d8920c124b41b942352f863fbe0c84d3d63428fa1860f"
+checksum = "434ecabbda9f67eeea1eab44d52f4a20538afa3e2c2770f2efc161142b25b608"
 dependencies = [
  "loom",
  "once_cell",
@@ -6399,9 +6399,9 @@ dependencies = [
 
 [[package]]
 name = "tracy-client-sys"
-version = "0.17.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "178d021455e83078bb38c00b70046b95117ef0a0312cbef925f426d833d11c79"
+checksum = "0d99f5fc382239d08b6bf05bb6206a585bfdb988c878f2499081d0f285ef7819"
 dependencies = [
  "cc",
 ]
@@ -6765,8 +6765,8 @@ name = "veloren-common-base"
 version = "0.10.0"
 dependencies = [
  "directories-next",
+ "profiling",
  "tracing",
- "tracy-client",
 ]
 
 [[package]]
@@ -6878,7 +6878,7 @@ dependencies = [
  "crossbeam-channel",
  "futures-core",
  "futures-util",
- "hashbrown 0.11.2",
+ "hashbrown 0.12.3",
  "lazy_static",
  "lz-fear",
  "prometheus",
@@ -7110,7 +7110,6 @@ dependencies = [
  "num 0.4.0",
  "num_cpus",
  "ordered-float 3.1.0",
- "profiling",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",

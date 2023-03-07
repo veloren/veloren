@@ -23,7 +23,8 @@ macro_rules! dev_panic {
     };
 }
 
-#[cfg(feature = "tracy")] pub use tracy_client;
+#[cfg(feature = "tracy")]
+pub use profiling::tracy_client;
 
 /// Allows downstream crates to conditionally do things based on whether tracy
 /// is enabled without having to expose a cargo feature themselves.
@@ -156,7 +157,7 @@ macro_rules! prof_span_alloc {
             $crate::tracy_client::Client::running()
                 .expect("prof_span_alloc! without a running tracy_client::Client")
                 // No callstack since this has significant overhead
-                .span_alloc($name, function_name, file!(), line!(), 0)
+                .span_alloc(Some($name), function_name, file!(), line!(), 0)
         });
     };
     // Shorthand for when you want the guard to just be dropped at the end of the scope instead

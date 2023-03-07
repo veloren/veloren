@@ -6,11 +6,14 @@ description = "minimal dependency for crates to now depend on whole common"
 version = "0.10.0"
 
 [features]
-tracy = ["tracy-client"]
+tracy = ["profiling", "profiling/profile-with-tracy"]
 
 [dependencies]
 tracing = { version = "0.1", default-features = false }
 directories-next = "2.0"
 
-# Tracy
-tracy-client = { version = "0.13.1", optional = true }
+# Profiling / Tracy
+# NOTE: This must be kept in sync with the `tracy-client` version used by the
+# `tracing-tracy` version in `common/frontend`.
+# Using `=` here keeps `cargo update` from breaking this.
+profiling = { version = "=1.0.8", default-features = false, optional = true }
