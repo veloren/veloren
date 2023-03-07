@@ -6,8 +6,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{DisconnectReason, ServerGeneral};
 use network::ParticipantEvent;
-use rayon::prelude::ParallelIterator;
-use specs::{Entities, ParJoin, Read, ReadExpect, ReadStorage, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
 
 /// This system consumes events from the `Participant::try_fetch_event`. These
 /// currently indicate channels being created and destroyed which potentially
@@ -40,69 +39,67 @@ impl<'a> System<'a> for Sys {
         (entities, players, mut clients, client_disconnect_event_bus, editable_settings): Self::SystemData,
     ) {
         let now = chrono::Utc::now();
+        let mut client_disconnect_emitter = client_disconnect_event_bus.emitter();
 
-        (&entities, &mut clients).par_join().for_each_init(
-            || client_disconnect_event_bus.emitter(),
-            |disconnect_emitter, (entity, client)| {
-                while let Some(Ok(Some(event))) = client
-                    .participant
-                    .as_mut()
-                    .map(|participant| participant.try_fetch_event())
-                {
-                    match event {
-                        ParticipantEvent::ChannelCreated(connect_addr) => {
-                            // Ignore mpsc connections
-                            if let Some(addr) = connect_addr.socket_addr() {
-                                client.current_ip_addrs.push(addr);
+        for (entity, client) in (&entities, &mut clients).join() {
+            while let Some(Ok(Some(event))) = client
+                .participant
+                .as_mut()
+                .map(|participant| participant.try_fetch_event())
+            {
+                match event {
+                    ParticipantEvent::ChannelCreated(connect_addr) => {
+                        // Ignore mpsc connections
+                        if let Some(addr) = connect_addr.socket_addr() {
+                            client.current_ip_addrs.push(addr);
 
-                                let banned = editable_settings
-                                    .banlist
-                                    .ip_bans()
-                                    .get(&addr.ip())
-                                    .and_then(|ban_entry| ban_entry.current.action.ban())
-                                    .map_or(false, |ban| {
-                                        // Hardcoded admins can always log in.
-                                        let admin = players.get(entity).and_then(|player| {
-                                            editable_settings.admins.get(&player.uuid())
-                                        });
-                                        crate::login_provider::ban_applies(ban, admin, now)
+                            let banned = editable_settings
+                                .banlist
+                                .ip_bans()
+                                .get(&addr.ip())
+                                .and_then(|ban_entry| ban_entry.current.action.ban())
+                                .map_or(false, |ban| {
+                                    // Hardcoded admins can always log in.
+                                    let admin = players.get(entity).and_then(|player| {
+                                        editable_settings.admins.get(&player.uuid())
                                     });
+                                    crate::login_provider::ban_applies(ban, admin, now)
+                                });
 
-                                if banned {
-                                    // Kick client
-                                    disconnect_emitter.emit(ClientDisconnectEvent(
-                                        entity,
-                                        common::comp::DisconnectReason::Kicked,
-                                    ));
-                                    let _ = client.send(ServerGeneral::Disconnect(
-                                        DisconnectReason::Kicked(String::from(
-                                            "Your IP address is banned.",
-                                        )),
-                                    ));
-                                }
+                            if banned {
+                                // Kick client
+                                client_disconnect_emitter.emit(ClientDisconnectEvent(
+                                    entity,
+                                    common::comp::DisconnectReason::Kicked,
+                                ));
+                                let _ = client.send(ServerGeneral::Disconnect(
+                                    DisconnectReason::Kicked(String::from(
+                                        "Your IP address is banned.",
+                                    )),
+                                ));
                             }
-                        },
-                        ParticipantEvent::ChannelDeleted(connect_addr) => {
-                            // Ignore mpsc connections
-                            if let Some(addr) = connect_addr.socket_addr() {
-                                if let Some(i) = client
-                                    .current_ip_addrs
-                                    .iter()
-                                    .rev()
-                                    .position(|a| *a == addr)
-                                {
-                                    client.current_ip_addrs.remove(i);
-                                } else {
-                                    tracing::error!(
-                                        "Channel deleted but its address isn't present in \
-                                         client.current_ip_addrs!"
-                                    );
-                                }
+                        }
+                    },
+                    ParticipantEvent::ChannelDeleted(connect_addr) => {
+                        // Ignore mpsc connections
+                        if let Some(addr) = connect_addr.socket_addr() {
+                            if let Some(i) = client
+                                .current_ip_addrs
+                                .iter()
+                                .rev()
+                                .position(|a| *a == addr)
+                            {
+                                client.current_ip_addrs.remove(i);
+                            } else {
+                                tracing::error!(
+                                    "Channel deleted but its address isn't present in \
+                                     client.current_ip_addrs!"
+                                );
                             }
-                        },
-                    }
+                        }
+                    },
                 }
-            },
-        );
+            }
+        }
     }
 }
