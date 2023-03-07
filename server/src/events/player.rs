@@ -176,8 +176,9 @@ pub fn handle_client_disconnect(
     span!(_guard, "handle_client_disconnect");
     let mut emit_logoff_event = true;
 
-    // Entity deleted below and persist_entity doesn't require a `Client` component, so we can just
-    // remove the Client component to get ownership of the participant.
+    // Entity deleted below and persist_entity doesn't require a `Client` component,
+    // so we can just remove the Client component to get ownership of the
+    // participant.
     if let Some(client) = server
         .state()
         .ecs()
