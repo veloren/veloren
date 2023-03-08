@@ -38,7 +38,7 @@ use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
     Join, WorldExt,
 };
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use tracing::{trace, warn};
 use vek::*;
 
@@ -222,6 +222,7 @@ impl StateExt for State {
                 }
             },
             Effect::Buff(buff) => {
+                let time = self.ecs().read_resource::<Time>();
                 self.ecs()
                     .write_storage::<comp::Buffs>()
                     .get_mut(entity)
@@ -231,6 +232,7 @@ impl StateExt for State {
                             buff.data,
                             buff.cat_ids,
                             comp::BuffSource::Item,
+                            *time,
                         ))
                     });
             },
@@ -431,7 +433,7 @@ impl StateExt for State {
             .with(Auras::new(vec![Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Invulnerability,
-                    data: BuffData::new(1.0, Some(Duration::from_secs(1)), None),
+                    data: BuffData::new(1.0, Some(1.0), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },

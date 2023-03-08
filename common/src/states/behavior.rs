@@ -9,7 +9,7 @@ use crate::{
     },
     link::Is,
     mounting::Rider,
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     terrain::TerrainGrid,
     uid::Uid,
 };
@@ -125,6 +125,7 @@ pub struct JoinData<'a> {
     pub mass: &'a Mass,
     pub density: &'a Density,
     pub dt: &'a DeltaTime,
+    pub time: &'a Time,
     pub controller: &'a Controller,
     pub inputs: &'a ControllerInputs,
     pub health: Option<&'a Health>,
@@ -176,6 +177,7 @@ impl<'a> JoinData<'a> {
         j: &'a JoinStruct<'a>,
         updater: &'a LazyUpdate,
         dt: &'a DeltaTime,
+        time: &'a Time,
         msm: &'a MaterialStatManifest,
         ability_map: &'a AbilityMap,
     ) -> Self {
@@ -200,6 +202,7 @@ impl<'a> JoinData<'a> {
             skill_set: j.skill_set,
             updater,
             dt,
+            time,
             msm,
             ability_map,
             combo: j.combo,

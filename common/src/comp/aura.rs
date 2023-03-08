@@ -142,7 +142,7 @@ impl Auras {
 pub struct AuraBuffConstructor {
     pub kind: BuffKind,
     pub strength: f32,
-    pub duration: Option<f32>,
+    pub duration: Option<f64>,
     pub category: BuffCategory,
 }
 
@@ -158,7 +158,7 @@ impl AuraBuffConstructor {
             kind: self.kind,
             data: BuffData {
                 strength: self.strength,
-                duration: self.duration.map(Duration::from_secs_f32),
+                duration: self.duration,
                 delay: None,
             },
             category: self.category,

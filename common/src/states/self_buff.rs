@@ -27,7 +27,7 @@ pub struct StaticData {
     /// Strength of the created buff
     pub buff_strength: f32,
     /// How long buff lasts
-    pub buff_duration: Option<Duration>,
+    pub buff_duration: Option<f64>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -69,6 +69,7 @@ impl CharacterBehavior for Data {
                         },
                         Vec::new(),
                         BuffSource::Character { by: *data.uid },
+                        *data.time,
                     );
                     output_events.emit_server(ServerEvent::Buff {
                         entity: data.entity,

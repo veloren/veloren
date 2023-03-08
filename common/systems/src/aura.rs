@@ -7,7 +7,7 @@ use common::{
         Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos,
     },
     event::{Emitter, EventBus, ServerEvent},
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     uid::{Uid, UidAllocator},
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -22,6 +22,7 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
+    time: Read<'a, Time>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     uid_allocator: Read<'a, UidAllocator>,
     cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
@@ -240,8 +241,9 @@ fn activate_aura(
                     .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(_)))
                     && buff.kind == kind
                     && buff.data.strength >= data.strength
-                    && buff.time.map_or(true, |dur| {
-                        data.duration.map_or(false, |dur_2| dur >= dur_2)
+                    && buff.end_time.map_or(true, |end| {
+                        data.duration
+                            .map_or(false, |dur| end.0 >= read_data.time.0 + dur)
                     })
             });
             if emit_buff {
@@ -252,6 +254,7 @@ fn activate_aura(
                         data,
                         vec![category, BuffCategory::FromAura(true)],
                         source,
+                        *read_data.time,
                     )),
                 });
             }

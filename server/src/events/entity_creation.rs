@@ -21,7 +21,6 @@ use common::{
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
-use std::time::Duration;
 use vek::{Rgb, Vec3};
 
 use super::group_manip::update_map_markers;
@@ -285,7 +284,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::CampfireHeal,
-                    data: BuffData::new(0.02, Some(Duration::from_secs(1)), None),
+                    data: BuffData::new(0.02, Some(1.0), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
@@ -296,7 +295,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Burning,
-                    data: BuffData::new(2.0, Some(Duration::from_secs(10)), None),
+                    data: BuffData::new(2.0, Some(10.0), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },

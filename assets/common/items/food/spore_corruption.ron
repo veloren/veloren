@@ -8,10 +8,7 @@ ItemDef(
                 kind: Frenzied,
                 data: (
                     strength: 0.4,
-                    duration: Some((
-                            secs: 60,
-                            nanos: 0,
-                        )),
+                    duration: Some(60),
                     ),
                 cat_ids: [Natural],
             )),
@@ -19,10 +16,7 @@ ItemDef(
                 kind: Cursed,
                 data: (
                     strength: 0.35,
-                    duration: Some((
-                            secs: 60,
-                            nanos: 0,
-                        )),
+                    duration: Some(60),
                     ),
                 cat_ids: [Natural],
             )),

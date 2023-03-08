@@ -16,7 +16,7 @@ use common::{
     },
     figure::Segment,
     outcome::Outcome,
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     spiral::Spiral2d,
     states::{self, utils::StageSection},
     terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
@@ -1301,7 +1301,7 @@ impl ParticleMgr {
                             .iter()
                             .filter_map(|id| buffs.buffs.get(id))
                             .any(|buff| {
-                                matches!(buff.elapsed(), Some(dur) if Duration::from_secs(1) <= dur && dur <= Duration::from_secs_f32(1.5))
+                                matches!(buff.elapsed(Time(time)), dur if (1.0..=1.5).contains(&dur))
                             })
                         {
                             multiplicity = 1;

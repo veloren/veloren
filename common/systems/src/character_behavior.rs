@@ -207,6 +207,7 @@ impl<'a> System<'a> for Sys {
                     &join_struct,
                     &read_data.lazy_update,
                     &read_data.dt,
+                    &read_data.time,
                     &read_data.msm,
                     &read_data.ability_map,
                 );
@@ -226,6 +227,7 @@ impl<'a> System<'a> for Sys {
                 &join_struct,
                 &read_data.lazy_update,
                 &read_data.dt,
+                &read_data.time,
                 &read_data.msm,
                 &read_data.ability_map,
             );

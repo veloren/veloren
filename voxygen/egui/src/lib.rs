@@ -645,8 +645,8 @@ fn selected_entity_window(
                                 buffs.buffs.iter().for_each(|(_, v)| {
                                     ui.label(format!("{:?}", v.kind));
                                     ui.label(
-                                        v.time.map_or("-".to_string(), |time| {
-                                            format!("{:?}", time)
+                                        v.end_time.map_or("-".to_string(), |end| {
+                                            format!("{:?}", end.0 - v.start_time.0)
                                         }),
                                     );
                                     ui.label(format!("{:?}", v.source));

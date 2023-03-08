@@ -27,7 +27,7 @@ use crate::{comp::Group, resources::Time};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::{saveload::MarkerAllocator, Entity as EcsEntity, ReadStorage};
 #[cfg(not(target_arch = "wasm32"))]
-use std::{ops::MulAssign, time::Duration};
+use std::ops::MulAssign;
 #[cfg(not(target_arch = "wasm32"))] use vek::*;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -363,6 +363,7 @@ impl Attack {
                                 emit(ServerEvent::Buff {
                                     entity: target.entity,
                                     buff_change: BuffChange::Add(b.to_buff(
+                                        time,
                                         attacker.map(|a| a.uid),
                                         applied_damage,
                                         strength_modifier,
@@ -529,6 +530,7 @@ impl Attack {
                             emit(ServerEvent::Buff {
                                 entity: target.entity,
                                 buff_change: BuffChange::Add(b.to_buff(
+                                    time,
                                     attacker.map(|a| a.uid),
                                     accumulated_damage,
                                     strength_modifier,
@@ -1027,7 +1029,7 @@ impl MulAssign<f32> for CombatBuffStrength {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl CombatBuff {
-    fn to_buff(self, uid: Option<Uid>, damage: f32, strength_modifier: f32) -> Buff {
+    fn to_buff(self, time: Time, uid: Option<Uid>, damage: f32, strength_modifier: f32) -> Buff {
         // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
         let source = if let Some(uid) = uid {
             BuffSource::Character { by: uid }
@@ -1038,11 +1040,12 @@ impl CombatBuff {
             self.kind,
             BuffData::new(
                 self.strength.to_strength(damage, strength_modifier),
-                Some(Duration::from_secs_f32(self.dur_secs)),
+                Some(self.dur_secs as f64),
                 None,
             ),
             Vec::new(),
             source,
+            time,
         )
     }
 }

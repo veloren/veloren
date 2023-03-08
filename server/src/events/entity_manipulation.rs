@@ -1310,17 +1310,19 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 .map_or(0.5, |dur| dur.as_secs_f32())
                 .max(0.5)
                 .mul(2.0);
-            let data = buff::BuffData::new(1.0, Some(Duration::from_secs_f32(duration)), None);
+            let data = buff::BuffData::new(1.0, Some(duration as f64), None);
             let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
                 BuffSource::Character { by: *uid }
             } else {
                 BuffSource::World
             };
+            let time = ecs.read_resource::<Time>();
             let buff = buff::Buff::new(
                 BuffKind::Parried,
                 data,
                 vec![buff::BuffCategory::Physical],
                 source,
+                *time,
             );
             server_eventbus.emit_now(ServerEvent::Buff {
                 entity: attacker,

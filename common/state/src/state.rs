@@ -252,9 +252,9 @@ impl State {
         ecs.insert(TimeOfDay(0.0));
         ecs.insert(Calendar::default());
         ecs.insert(WeatherGrid::new(Vec2::zero()));
+        ecs.insert(Time(0.0));
 
         // Register unsynced resources used by the ECS.
-        ecs.insert(Time(0.0));
         ecs.insert(DeltaTime(0.0));
         ecs.insert(PlayerEntity(None));
         ecs.insert(TerrainGrid::new(map_size_lg, default_chunk).unwrap());
@@ -591,7 +591,12 @@ impl State {
         span!(_guard, "tick", "State::tick");
         // Change the time accordingly.
         self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
-        self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
+        // TODO: This feels really hacky, no idea best way to handle this. Incrementing
+        // time by dt on client causes crashes sometimes, and this bool is supposedly
+        // only true on client
+        if !update_terrain_and_regions {
+            self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
+        }
 
         // Update delta time.
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping

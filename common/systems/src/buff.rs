@@ -19,13 +19,11 @@ use common::{
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use hashbrown::HashMap;
 use rayon::iter::ParallelIterator;
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Entity, Join, ParJoin, Read,
     ReadExpect, ReadStorage, SystemData, World, WriteStorage,
 };
-use std::time::Duration;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -146,9 +144,10 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
-                            BuffData::new(1.0, Some(Duration::from_secs_f32(1.0)), None),
+                            BuffData::new(1.0, Some(1.0), None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
                         )),
                     });
                 }
@@ -161,9 +160,10 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(1.0, Some(Duration::from_secs_f32(6.0)), None),
+                            BuffData::new(1.0, Some(6.0), None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
                         )),
                     });
                 }
@@ -176,9 +176,10 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(15.0, Some(Duration::from_secs_f32(0.1)), None),
+                            BuffData::new(15.0, Some(0.1), None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
                         )),
                     });
                     // When standing on IceSpike also apply Frozen
@@ -186,9 +187,10 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Frozen,
-                            BuffData::new(0.2, Some(Duration::from_secs_f32(1.0)), None),
+                            BuffData::new(0.2, Some(1.0), None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
                         )),
                     });
                 }
@@ -207,6 +209,7 @@ impl<'a> System<'a> for Sys {
                             BuffData::new(20.0, None, None),
                             vec![BuffCategory::Natural],
                             BuffSource::World,
+                            *read_data.time,
                         )),
                     });
                 } else if matches!(
@@ -225,31 +228,12 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            let (buff_comp_kinds, buff_comp_buffs): (
-                &HashMap<BuffKind, Vec<BuffId>>,
-                &mut HashMap<BuffId, Buff>,
-            ) = buff_comp.parts();
             let mut expired_buffs = Vec::<BuffId>::new();
-
-            // For each buff kind present on entity, if the buff kind queues, only ticks
-            // duration of strongest buff of that kind, else it ticks durations of all buffs
-            // of that kind. Any buffs whose durations expire are marked expired.
-            for (kind, ids) in buff_comp_kinds.iter() {
-                if kind.queues() {
-                    if let Some((Some(buff), id)) =
-                        ids.first().map(|id| (buff_comp_buffs.get_mut(id), id))
-                    {
-                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
-                    }
-                } else {
-                    for (id, buff) in buff_comp_buffs
-                        .iter_mut()
-                        .filter(|(i, _)| ids.iter().any(|id| id == *i))
-                    {
-                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
-                    }
+            buff_comp.buffs.iter().for_each(|(id, buff)| {
+                if buff.end_time.map_or(false, |end| end.0 < read_data.time.0) {
+                    expired_buffs.push(*id)
                 }
-            }
+            });
 
             let damage_reduction = Damage::compute_damage_reduction(
                 None,
@@ -288,7 +272,7 @@ impl<'a> System<'a> for Sys {
                 for buff_id in active_buff_ids.into_iter() {
                     if let Some(buff) = buff_comp.buffs.get_mut(&buff_id) {
                         // Skip the effect of buffs whose start delay hasn't expired.
-                        if buff.delay.is_some() {
+                        if buff.start_time.0 > read_data.time.0 {
                             continue;
                         }
                         // Get buff owner?
@@ -303,7 +287,7 @@ impl<'a> System<'a> for Sys {
                             execute_effect(
                                 effect,
                                 buff.kind,
-                                buff.time,
+                                buff.end_time,
                                 &read_data,
                                 &mut stat,
                                 health,
@@ -312,6 +296,7 @@ impl<'a> System<'a> for Sys {
                                 buff_owner,
                                 &mut server_emitter,
                                 dt,
+                                *read_data.time,
                             );
                         }
                     }
@@ -347,7 +332,7 @@ impl<'a> System<'a> for Sys {
 fn execute_effect(
     effect: &mut BuffEffect,
     buff_kind: BuffKind,
-    buff_time: Option<std::time::Duration>,
+    buff_end_time: Option<Time>,
     read_data: &ReadData,
     stat: &mut Stats,
     health: &Health,
@@ -356,6 +341,7 @@ fn execute_effect(
     buff_owner: Option<Uid>,
     server_emitter: &mut Emitter<ServerEvent>,
     dt: f32,
+    time: Time,
 ) {
     match effect {
         BuffEffect::HealthChangeOverTime {
@@ -368,7 +354,7 @@ fn execute_effect(
             // Apply health change only once per second, per health, or
             // when a buff is removed
             if accumulated.abs() > rate.abs().min(1.0)
-                || buff_time.map_or(false, |dur| dur == Duration::default())
+                || buff_end_time.map_or(false, |end| end.0 < time.0)
             {
                 let (cause, by) = if *accumulated != 0.0 {
                     (Some(DamageSource::Buff(buff_kind)), buff_owner)
@@ -413,7 +399,7 @@ fn execute_effect(
             // Apply energy change only once per second, per energy, or
             // when a buff is removed
             if accumulated.abs() > rate.abs().min(10.0)
-                || buff_time.map_or(false, |dur| dur == Duration::default())
+                || buff_end_time.map_or(false, |end| end.0 < time.0)
             {
                 let amount = match *kind {
                     ModifierKind::Additive => *accumulated,
@@ -522,31 +508,4 @@ fn execute_effect(
             stat.heal_multiplier *= 1.0 - *rate;
         },
     };
-}
-
-fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)) {
-    // If a buff is recently applied from an aura, do not tick duration
-    if buff
-        .cat_ids
-        .iter()
-        .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(true)))
-    {
-        return;
-    }
-    if let Some(remaining_delay) = buff.delay {
-        buff.delay = remaining_delay.checked_sub(Duration::from_secs_f32(dt));
-    }
-    if let Some(remaining_time) = &mut buff.time {
-        if let Some(new_duration) = remaining_time.checked_sub(Duration::from_secs_f32(dt)) {
-            // The buff still continues.
-            *remaining_time = new_duration;
-        } else {
-            // checked_sub returns None when remaining time
-            // went below 0, so set to 0
-            *remaining_time = Duration::default();
-            // The buff has expired.
-            // Remove it.
-            expire_buff(id);
-        }
-    }
 }

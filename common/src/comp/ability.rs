@@ -728,7 +728,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         buff_kind: buff::BuffKind,
         buff_strength: f32,
-        buff_duration: Option<f32>,
+        buff_duration: Option<f64>,
         energy_cost: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -2051,7 +2051,7 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Sceptre(HDuration)) {
                     auras.iter_mut().for_each(|ref mut aura| {
                         if let Some(ref mut duration) = aura.duration {
-                            *duration *= modifiers.duration.powi(level.into());
+                            *duration *= modifiers.duration.powi(level.into()) as f64;
                         }
                     });
                 }
@@ -2078,7 +2078,7 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Sceptre(ADuration)) {
                     auras.iter_mut().for_each(|ref mut aura| {
                         if let Some(ref mut duration) = aura.duration {
-                            *duration *= modifiers.duration.powi(level.into());
+                            *duration *= modifiers.duration.powi(level.into()) as f64;
                         }
                     });
                 }
@@ -2667,7 +2667,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     buff_kind: *buff_kind,
                     buff_strength: *buff_strength,
-                    buff_duration: buff_duration.map(Duration::from_secs_f32),
+                    buff_duration: *buff_duration,
                     ability_info,
                 },
                 timer: Duration::default(),
