@@ -1273,9 +1273,7 @@ fn handle_rtsim_chunk(
     use crate::rtsim2::{ChunkStates, RtSim};
     let pos = position(server, target, "target")?;
 
-    let chunk_key = pos.0.xy().map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-        e as i32 / sz as i32
-    });
+    let chunk_key = pos.0.xy().as_::<i32>().wpos_to_cpos();
 
     let rtsim = server.state.ecs().read_resource::<RtSim>();
     let data = rtsim.state().data();

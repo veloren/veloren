@@ -10,7 +10,7 @@ use common::{
     rtsim::{RtSimController, RtSimEntity, RtSimVehicle},
     slowjob::SlowJobPool,
     trade::{Good, SiteInformation},
-    LoadoutBuilder, SkillSetBuilder,
+    LoadoutBuilder, SkillSetBuilder, terrain::CoordinateConversions,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim2::data::{
@@ -216,9 +216,7 @@ impl<'a> System<'a> for Sys {
         let data = &mut *rtsim.state.data_mut();
 
         for (vehicle_id, vehicle) in data.npcs.vehicles.iter_mut() {
-            let chunk = vehicle.wpos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
-                (e as i32).div_euclid(sz as i32)
-            });
+            let chunk = vehicle.wpos.xy().as_::<i32>().wpos_to_cpos();
 
             if matches!(vehicle.mode, SimulationMode::Simulated)
                 && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
@@ -277,9 +275,7 @@ impl<'a> System<'a> for Sys {
         }
 
         for (npc_id, npc) in data.npcs.npcs.iter_mut() {
-            let chunk = npc.wpos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
-                (e as i32).div_euclid(sz as i32)
-            });
+            let chunk = npc.wpos.xy().as_::<i32>().wpos_to_cpos();
 
             // Load the NPC into the world if it's in a loaded chunk and is not already
             // loaded
