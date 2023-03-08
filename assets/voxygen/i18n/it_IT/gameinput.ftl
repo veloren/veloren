@@ -49,6 +49,7 @@ gameinput-togglewield = Impugna/rinfodera
 gameinput-interact = Interagisci
 gameinput-freelook = Visuale libera
 gameinput-autowalk = Camminata/nuoto automatico
+gameinput-zoomlock = Blocco zoom
 gameinput-cameraclamp = Morsetto della camera
 gameinput-dance = Ballo
 gameinput-select = Seleziona Entità
