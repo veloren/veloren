@@ -9,7 +9,7 @@ ItemDef(
                 data: (
                     strength: 100.0,
                     duration: Some(1),
-                    ),
+                ),
                 cat_ids: [Natural],
             )),
             Buff((
@@ -17,7 +17,6 @@ ItemDef(
                 data: (
                     strength: 0.33,
                     duration: Some(45),
-                    delay: Some(1)
                 ),
                 cat_ids: [Natural],
             )),

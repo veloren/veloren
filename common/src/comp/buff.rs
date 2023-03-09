@@ -1,5 +1,5 @@
 #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
-use crate::{resources::Time, uid::Uid};
+use crate::{comp::Stats, resources::Time, uid::Uid};
 use core::cmp::Ordering;
 #[cfg(not(target_arch = "wasm32"))]
 use hashbrown::HashMap;
@@ -183,16 +183,11 @@ pub enum BuffEffect {
     /// Periodically damages or heals entity
     HealthChangeOverTime {
         rate: f32,
-        accumulated: f32,
         kind: ModifierKind,
         instance: u64,
     },
     /// Periodically consume entity energy
-    EnergyChangeOverTime {
-        rate: f32,
-        accumulated: f32,
-        kind: ModifierKind,
-    },
+    EnergyChangeOverTime { rate: f32, kind: ModifierKind },
     /// Changes maximum health by a certain amount
     MaxHealthModifier { value: f32, kind: ModifierKind },
     /// Changes maximum energy by a certain amount
@@ -204,7 +199,6 @@ pub enum BuffEffect {
         rate: f32,
         kind: ModifierKind,
         target_fraction: f32,
-        achieved_fraction: Option<f32>,
     },
     /// Modifies move speed of target
     MovementSpeed(f32),
@@ -215,7 +209,7 @@ pub enum BuffEffect {
     /// Reduces poise damage taken after armor is accounted for by this fraction
     PoiseReduction(f32),
     /// Reduces amount healed by consumables
-    HealReduction { rate: f32 },
+    HealReduction(f32),
 }
 
 /// Actual de/buff.
@@ -271,6 +265,7 @@ impl Buff {
         cat_ids: Vec<BuffCategory>,
         source: BuffSource,
         time: Time,
+        stats: Option<&Stats>,
     ) -> Self {
         // Normalized nonlinear scaling
         let nn_scaling = |a| a / (a + 0.5);
@@ -278,21 +273,25 @@ impl Buff {
         let effects = match kind {
             BuffKind::Bleeding => vec![BuffEffect::HealthChangeOverTime {
                 rate: -data.strength,
-                accumulated: 0.0,
                 kind: ModifierKind::Additive,
                 instance,
             }],
-            BuffKind::Regeneration | BuffKind::Saturation | BuffKind::Potion => {
+            BuffKind::Regeneration | BuffKind::Saturation => {
                 vec![BuffEffect::HealthChangeOverTime {
                     rate: data.strength,
-                    accumulated: 0.0,
+                    kind: ModifierKind::Additive,
+                    instance,
+                }]
+            },
+            BuffKind::Potion => {
+                vec![BuffEffect::HealthChangeOverTime {
+                    rate: data.strength * dbg!(stats.map_or(1.0, |s| s.heal_multiplier)),
                     kind: ModifierKind::Additive,
                     instance,
                 }]
             },
             BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
                 rate: data.strength,
-                accumulated: 0.0,
                 kind: ModifierKind::Fractional,
                 instance,
             }],
@@ -301,18 +300,15 @@ impl Buff {
                     rate: -1.0,
                     kind: ModifierKind::Additive,
                     target_fraction: 1.0 - data.strength,
-                    achieved_fraction: None,
                 },
                 BuffEffect::HealthChangeOverTime {
                     rate: -1.0,
-                    accumulated: 0.0,
                     kind: ModifierKind::Additive,
                     instance,
                 },
             ],
             BuffKind::EnergyRegen => vec![BuffEffect::EnergyChangeOverTime {
                 rate: data.strength,
-                accumulated: 0.0,
                 kind: ModifierKind::Additive,
             }],
             BuffKind::IncreaseMaxEnergy => vec![BuffEffect::MaxEnergyModifier {
@@ -332,20 +328,17 @@ impl Buff {
             )],
             BuffKind::Burning => vec![BuffEffect::HealthChangeOverTime {
                 rate: -data.strength,
-                accumulated: 0.0,
                 kind: ModifierKind::Additive,
                 instance,
             }],
             BuffKind::Poisoned => vec![BuffEffect::EnergyChangeOverTime {
                 rate: -data.strength,
-                accumulated: 0.0,
                 kind: ModifierKind::Additive,
             }],
             BuffKind::Crippled => vec![
                 BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
                 BuffEffect::HealthChangeOverTime {
                     rate: -data.strength * 4.0,
-                    accumulated: 0.0,
                     kind: ModifierKind::Additive,
                     instance,
                 },
@@ -354,7 +347,6 @@ impl Buff {
                 BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::HealthChangeOverTime {
                     rate: data.strength * 10.0,
-                    accumulated: 0.0,
                     kind: ModifierKind::Additive,
                     instance,
                 },
@@ -371,9 +363,7 @@ impl Buff {
             ],
             BuffKind::Fortitude => vec![BuffEffect::PoiseReduction(data.strength)],
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
-            BuffKind::PotionSickness => vec![BuffEffect::HealReduction {
-                rate: data.strength,
-            }],
+            BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
         };
         let start_time = Time(time.0 + data.delay.unwrap_or(0.0));
         Buff {
@@ -495,7 +485,9 @@ impl Buffs {
         self.kinds.entry(kind).or_default().push(id);
         self.buffs.insert(id, buff);
         self.sort_kind(kind);
-        self.delay_queueable_buffs(kind, current_time);
+        if kind.queues() {
+            self.delay_queueable_buffs(kind, current_time);
+        }
         id
     }
 
@@ -548,6 +540,7 @@ impl Buffs {
 
     fn delay_queueable_buffs(&mut self, kind: BuffKind, current_time: Time) {
         let mut next_start_time: Option<Time> = None;
+        debug_assert!(kind.queues());
         if let Some(buffs) = self.kinds.get(&kind) {
             buffs.iter().for_each(|id| {
                 if let Some(buff) = self.buffs.get_mut(id) {

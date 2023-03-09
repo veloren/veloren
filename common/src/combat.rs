@@ -365,6 +365,7 @@ impl Attack {
                                     buff_change: BuffChange::Add(b.to_buff(
                                         time,
                                         attacker.map(|a| a.uid),
+                                        target.stats,
                                         applied_damage,
                                         strength_modifier,
                                     )),
@@ -532,6 +533,7 @@ impl Attack {
                                 buff_change: BuffChange::Add(b.to_buff(
                                     time,
                                     attacker.map(|a| a.uid),
+                                    target.stats,
                                     accumulated_damage,
                                     strength_modifier,
                                 )),
@@ -1029,7 +1031,14 @@ impl MulAssign<f32> for CombatBuffStrength {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl CombatBuff {
-    fn to_buff(self, time: Time, uid: Option<Uid>, damage: f32, strength_modifier: f32) -> Buff {
+    fn to_buff(
+        self,
+        time: Time,
+        uid: Option<Uid>,
+        stats: Option<&Stats>,
+        damage: f32,
+        strength_modifier: f32,
+    ) -> Buff {
         // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
         let source = if let Some(uid) = uid {
             BuffSource::Character { by: uid }
@@ -1046,6 +1055,7 @@ impl CombatBuff {
             Vec::new(),
             source,
             time,
+            stats,
         )
     }
 }

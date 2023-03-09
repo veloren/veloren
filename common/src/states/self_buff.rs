@@ -70,6 +70,7 @@ impl CharacterBehavior for Data {
                         Vec::new(),
                         BuffSource::Character { by: *data.uid },
                         *data.time,
+                        Some(data.stats),
                     );
                     output_events.emit_server(ServerEvent::Buff {
                         entity: data.entity,

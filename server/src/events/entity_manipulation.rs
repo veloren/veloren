@@ -1318,12 +1318,14 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 BuffSource::World
             };
             let time = ecs.read_resource::<Time>();
+            let stats = ecs.read_storage::<comp::Stats>();
             let buff = buff::Buff::new(
                 BuffKind::Parried,
                 data,
                 vec![buff::BuffCategory::Physical],
                 source,
                 *time,
+                stats.get(attacker),
             );
             server_eventbus.emit_now(ServerEvent::Buff {
                 entity: attacker,

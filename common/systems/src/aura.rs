@@ -4,7 +4,7 @@ use common::{
         aura::{AuraChange, AuraKey, AuraKind, AuraTarget},
         buff::{Buff, BuffCategory, BuffChange, BuffSource},
         group::Group,
-        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos,
+        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos, Stats,
     },
     event::{Emitter, EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -32,6 +32,7 @@ pub struct ReadData<'a> {
     healths: ReadStorage<'a, Health>,
     groups: ReadStorage<'a, Group>,
     uids: ReadStorage<'a, Uid>,
+    stats: ReadStorage<'a, Stats>,
 }
 
 #[derive(Default)]
@@ -97,10 +98,16 @@ impl<'a> System<'a> for Sys {
                             .and_then(|l| read_data.healths.get(target).map(|r| (l, r)))
                             .and_then(|l| read_data.uids.get(target).map(|r| (l, r)))
                             .map(|((target_pos, health), target_uid)| {
-                                (target, target_pos, health, target_uid)
+                                (
+                                    target,
+                                    target_pos,
+                                    health,
+                                    target_uid,
+                                    read_data.stats.get(target),
+                                )
                             })
                     });
-                target_iter.for_each(|(target, target_pos, health, target_uid)| {
+                target_iter.for_each(|(target, target_pos, health, target_uid, stats)| {
                     let mut target_buffs = match buffs.get_mut(target) {
                         Some(buff) => buff,
                         None => return,
@@ -132,6 +139,7 @@ impl<'a> System<'a> for Sys {
                                 target,
                                 health,
                                 &mut target_buffs,
+                                stats,
                                 &read_data,
                                 &mut server_emitter,
                             );
@@ -158,6 +166,7 @@ fn activate_aura(
     target: EcsEntity,
     health: &Health,
     target_buffs: &mut Buffs,
+    stats: Option<&Stats>,
     read_data: &ReadData,
     server_emitter: &mut Emitter<ServerEvent>,
 ) {
@@ -255,6 +264,7 @@ fn activate_aura(
                         vec![category, BuffCategory::FromAura(true)],
                         source,
                         *read_data.time,
+                        stats,
                     )),
                 });
             }
