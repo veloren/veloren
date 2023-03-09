@@ -52,6 +52,15 @@ pub type ReadError = rmp_serde::decode::Error;
 pub type WriteError = rmp_serde::encode::Error;
 
 impl Data {
+    pub fn spawn_npc(&mut self, npc: Npc) -> NpcId {
+        let home = npc.home;
+        let id = self.npcs.create_npc(npc);
+        if let Some(home) = home.and_then(|home| self.sites.get_mut(home)) {
+            home.population.insert(id);
+        }
+        id
+    }
+
     pub fn from_reader<R: Read>(reader: R) -> Result<Self, ReadError> {
         rmp_serde::decode::from_read(reader)
     }

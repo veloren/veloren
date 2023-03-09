@@ -1,11 +1,17 @@
 use crate::{
-    data::npc::SimulationMode,
-    event::{OnSetup, OnTick},
+    data::{npc::SimulationMode, Npc},
+    event::{OnDeath, OnSetup, OnTick},
     RtState, Rule, RuleError,
 };
-use common::{grid::Grid, terrain::TerrainChunkSize, vol::RectVolSize};
-use tracing::info;
-use vek::*;
+use common::{
+    comp::{self, Body},
+    grid::Grid,
+    terrain::TerrainChunkSize,
+    vol::RectVolSize,
+};
+use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
+use tracing::warn;
+use world::site::SiteKind;
 
 pub struct SimulateNpcs;
 
@@ -27,8 +33,98 @@ impl Rule for SimulateNpcs {
                         }
                     }
                 }
+
+                if let Some(home) = npc.home.and_then(|home| data.sites.get_mut(home)) {
+                    home.population.insert(npc_id);
+                }
             }
         });
+
+        rtstate.bind::<Self, OnDeath>(|ctx| {
+            let data = &mut *ctx.state.data_mut();
+            let npc_id = ctx.event.npc_id;
+            let Some(npc) = data.npcs.get(npc_id) else {
+                return;
+            };
+            if let Some(home) = npc.home.and_then(|home| data.sites.get_mut(home)) {
+                home.population.remove(&npc_id);
+            }
+            let mut rng = rand::thread_rng();
+            match npc.body {
+                Body::Humanoid(_) => {
+                    if let Some((site_id, site)) = data
+                        .sites
+                        .iter()
+                        .filter(|(id, site)| {
+                            Some(*id) != npc.home
+                                && site.faction == npc.faction
+                                && site.world_site.map_or(false, |s| {
+                                    matches!(ctx.index.sites.get(s).kind, SiteKind::Refactor(_))
+                                })
+                        })
+                        .min_by_key(|(_, site)| site.population.len())
+                    {
+                        let rand_wpos = |rng: &mut ThreadRng| {
+                            let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
+                            wpos2d
+                                .map(|e| e as f32 + 0.5)
+                                .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+                        };
+                        let random_humanoid = |rng: &mut ThreadRng| {
+                            let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
+                            Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
+                        };
+                        data.spawn_npc(
+                            Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
+                                .with_home(site_id)
+                                .with_faction(npc.faction)
+                                .with_profession(npc.profession.clone()),
+                        );
+                    } else {
+                        warn!("No site found for respawning humaniod");
+                    }
+                },
+                Body::BirdLarge(_) => {
+                    if let Some((site_id, site)) = data
+                        .sites
+                        .iter()
+                        .filter(|(id, site)| {
+                            Some(*id) != npc.home
+                                && site.world_site.map_or(false, |s| {
+                                    matches!(ctx.index.sites.get(s).kind, SiteKind::Dungeon(_))
+                                })
+                        })
+                        .min_by_key(|(_, site)| site.population.len())
+                    {
+                        let rand_wpos = |rng: &mut ThreadRng| {
+                            let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
+                            wpos2d
+                                .map(|e| e as f32 + 0.5)
+                                .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+                        };
+                        let species = [
+                            comp::body::bird_large::Species::Phoenix,
+                            comp::body::bird_large::Species::Cockatrice,
+                            comp::body::bird_large::Species::Roc,
+                        ]
+                        .choose(&mut rng)
+                        .unwrap();
+                        data.npcs.create_npc(
+                            Npc::new(
+                                rng.gen(),
+                                rand_wpos(&mut rng),
+                                Body::BirdLarge(comp::body::bird_large::Body::random_with(&mut rng, species)),
+                            )
+                            .with_home(site_id),
+                        );
+                    } else {
+                        warn!("No site found for respawning bird");
+                    }
+                },
+                _ => unimplemented!(),
+            }
+        });
+
         rtstate.bind::<Self, OnTick>(|ctx| {
             let data = &mut *ctx.state.data_mut();
             for (vehicle_id, vehicle) in data.npcs.vehicles.iter_mut() {

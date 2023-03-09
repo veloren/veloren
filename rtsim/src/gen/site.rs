@@ -1,5 +1,6 @@
 use crate::data::{FactionId, Factions, Site};
 use common::store::Id;
+use hashbrown::HashSet;
 use vek::*;
 use world::{
     site::{Site as WorldSite, SiteKind},
@@ -48,6 +49,7 @@ impl Site {
                     .min_by_key(|(faction_wpos, _)| faction_wpos.distance_squared(wpos))
                     .map(|(_, faction)| *faction)
             }),
+            population: HashSet::new(),
         }
     }
 }

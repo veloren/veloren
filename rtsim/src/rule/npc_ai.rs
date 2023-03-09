@@ -329,12 +329,16 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
         }
 
         // Get the next waypoint on the route toward the goal
-        let waypoint =
-            waypoint.get_or_insert_with(|| {
-                let wpos = ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST);
+        let waypoint = waypoint.get_or_insert_with(|| {
+            let wpos = ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST);
 
-                wpos.with_z(ctx.world.sim().get_surface_alt_approx(wpos.xy().as_()).unwrap_or(wpos.z))
-            });
+            wpos.with_z(
+                ctx.world
+                    .sim()
+                    .get_surface_alt_approx(wpos.xy().as_())
+                    .unwrap_or(wpos.z),
+            )
+        });
 
         *ctx.controller = Controller::goto(*waypoint, speed_factor);
     })

@@ -76,7 +76,6 @@ impl Data {
             "Registering {} rtsim sites from world sites.",
             this.sites.len()
         );
-        /*
         // Spawn some test entities at the sites
         for (site_id, site) in this.sites.iter()
         // TODO: Stupid
@@ -97,10 +96,7 @@ impl Data {
             };
             let random_humanoid = |rng: &mut SmallRng| {
                 let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
-                Body::Humanoid(comp::humanoid::Body::random_with(
-                    rng,
-                    species,
-                ))
+                Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
             };
             if good_or_evil {
                 for _ in 0..32 {
@@ -152,7 +148,7 @@ impl Data {
                 );
             }
         }
-        */
+
         for (site_id, site) in this.sites.iter()
         // TODO: Stupid
         .filter(|(_, site)| site.world_site.map_or(false, |ws|

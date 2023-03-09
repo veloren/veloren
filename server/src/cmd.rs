@@ -1997,7 +1997,26 @@ fn handle_kill_npcs(
                         true
                     };
 
-                should_kill.then_some(entity)
+                if should_kill {
+                    if let Some(rtsim_entity) = ecs
+                        .read_storage::<common::rtsim::RtSimEntity>()
+                        .get(entity)
+                        .copied()
+                    {
+                        ecs
+                            .write_resource::<crate::rtsim2::RtSim>()
+                            .hook_rtsim_entity_delete(
+                                &ecs.read_resource::<Arc<world::World>>(),
+                                ecs
+                                    .read_resource::<world::IndexOwned>()
+                                    .as_index_ref(),
+                                rtsim_entity,
+                            );
+                    }
+                    Some(entity)
+                } else {
+                    None
+                }
             })
             .collect::<Vec<_>>()
     };

@@ -1,6 +1,10 @@
 pub use common::rtsim::SiteId;
-use common::{rtsim::FactionId, store::Id, uid::Uid};
-use hashbrown::HashMap;
+use common::{
+    rtsim::{FactionId, NpcId},
+    store::Id,
+    uid::Uid,
+};
+use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::ops::{Deref, DerefMut};
@@ -27,6 +31,9 @@ pub struct Site {
     /// being too).
     #[serde(skip_serializing, skip_deserializing)]
     pub world_site: Option<Id<WorldSite>>,
+
+    #[serde(skip_serializing, skip_deserializing)]
+    pub population: HashSet<NpcId>,
 }
 
 impl Site {
