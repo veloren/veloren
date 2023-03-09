@@ -3,7 +3,7 @@ use crate::{
     event::{OnSetup, OnTick},
     RtState, Rule, RuleError,
 };
-use common::{terrain::TerrainChunkSize, vol::RectVolSize, grid::Grid};
+use common::{grid::Grid, terrain::TerrainChunkSize, vol::RectVolSize};
 use tracing::info;
 use vek::*;
 
@@ -77,8 +77,6 @@ impl Rule for SimulateNpcs {
 
                 // Simulate the NPC's movement and interactions
                 if matches!(npc.mode, SimulationMode::Simulated) {
-                    let body = npc.get_body();
-
                     if let Some(riding) = &npc.riding {
                         if let Some(vehicle) = data.npcs.vehicles.get_mut(riding.vehicle) {
                             if let Some(action) = npc.action && riding.steering {
@@ -94,28 +92,30 @@ impl Rule for SimulateNpcs {
                                                 .min(1.0))
                                             .with_z(0.0);
 
-                                            let is_valid = match vehicle.kind {
-                                                crate::data::npc::VehicleKind::Airship => true,
-                                                crate::data::npc::VehicleKind::Boat => {
+                                            let is_valid = match vehicle.body {
+                                                common::comp::ship::Body::DefaultAirship | common::comp::ship::Body::AirBalloon => true,
+                                                common::comp::ship::Body::SailBoat | common::comp::ship::Body::Galleon => {
                                                     let chunk_pos = wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
                                                     ctx.world.sim().get(chunk_pos).map_or(true, |f| f.river.river_kind.is_some())
                                                 },
+                                                _ => false,
                                             };
 
                                             if is_valid {
-                                                match vehicle.kind {
-                                                    crate::data::npc::VehicleKind::Airship => {
+                                                match vehicle.body {
+                                                    common::comp::ship::Body::DefaultAirship | common::comp::ship::Body::AirBalloon => {
                                                         if let Some(alt) = ctx.world.sim().get_alt_approx(wpos.xy().as_()).filter(|alt| wpos.z < *alt) {
                                                             wpos.z = alt;
                                                         }
                                                     },
-                                                    crate::data::npc::VehicleKind::Boat => {
+                                                    common::comp::ship::Body::SailBoat | common::comp::ship::Body::Galleon => {
                                                         wpos.z = ctx
                                                             .world
                                                             .sim()
                                                             .get_interpolated(wpos.xy().map(|e| e as i32), |chunk| chunk.water_alt)
                                                             .unwrap_or(0.0);
                                                     },
+                                                    _ => {},
                                                 }
                                                 vehicle.wpos = wpos;
                                             }
@@ -138,7 +138,7 @@ impl Rule for SimulateNpcs {
 
                                 if dist2 > 0.5f32.powi(2) {
                                     npc.wpos += (diff
-                                        * (body.max_speed_approx() * speed_factor * ctx.event.dt
+                                        * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
                                             / dist2.sqrt())
                                         .min(1.0))
                                     .with_z(0.0);
@@ -150,8 +150,8 @@ impl Rule for SimulateNpcs {
                         npc.wpos.z = ctx
                             .world
                             .sim()
-                            .get_alt_approx(npc.wpos.xy().map(|e| e as i32))
-                            .unwrap_or(0.0);
+                            .get_surface_alt_approx(npc.wpos.xy().map(|e| e as i32))
+                            .unwrap_or(0.0) + npc.body.flying_height();
                     }
 
                 }

@@ -4,7 +4,7 @@ pub mod tick;
 
 use common::{
     grid::Grid,
-    rtsim::{ChunkResource, RtSimEntity, WorldSettings, RtSimVehicle},
+    rtsim::{ChunkResource, RtSimEntity, RtSimVehicle, WorldSettings},
     slowjob::SlowJobPool,
     terrain::{Block, TerrainChunk},
     vol::RectRasterableVol,

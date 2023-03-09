@@ -446,6 +446,12 @@ impl EntityInfo {
         self.no_flee = true;
         self
     }
+
+    #[must_use]
+    pub fn with_loadout(mut self, loadout: LoadoutBuilder) -> Self {
+        self.loadout = loadout;
+        self
+    }
 }
 
 #[derive(Default)]

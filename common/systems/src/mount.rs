@@ -1,5 +1,5 @@
 use common::{
-    comp::{Body, Controller, InputKind, Ori, Pos, Scale, Vel, ControlAction},
+    comp::{Body, ControlAction, Controller, InputKind, Ori, Pos, Scale, Vel},
     link::Is,
     mounting::Mount,
     uid::UidAllocator,

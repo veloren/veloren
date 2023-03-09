@@ -188,15 +188,8 @@ impl Server {
                 ServerEvent::ExitIngame { entity } => {
                     handle_exit_ingame(self, entity, false);
                 },
-                ServerEvent::CreateNpc {
-                    pos,
-                    npc,
-                } => {
-                    handle_create_npc(
-                        self,
-                        pos,
-                        npc,
-                    );
+                ServerEvent::CreateNpc { pos, npc } => {
+                    handle_create_npc(self, pos, npc);
                 },
                 ServerEvent::CreateShip {
                     pos,

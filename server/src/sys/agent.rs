@@ -19,7 +19,7 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::thread_rng;
 use rayon::iter::ParallelIterator;
-use specs::{Join, ParJoin, Read, WriteExpect, WriteStorage, saveload::MarkerAllocator};
+use specs::{saveload::MarkerAllocator, Join, ParJoin, Read, WriteExpect, WriteStorage};
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -101,7 +101,13 @@ impl<'a> System<'a> for Sys {
                     let mut rng = thread_rng();
 
                     // The entity that is moving, if riding it's the mount, otherwise it's itself
-                    let moving_entity = is_rider.and_then(|is_rider| read_data.uid_allocator.retrieve_entity_internal(is_rider.mount.into())).unwrap_or(entity);
+                    let moving_entity = is_rider
+                        .and_then(|is_rider| {
+                            read_data
+                                .uid_allocator
+                                .retrieve_entity_internal(is_rider.mount.into())
+                        })
+                        .unwrap_or(entity);
 
                     let moving_body = read_data.bodies.get(moving_entity);
 
@@ -147,8 +153,13 @@ impl<'a> System<'a> for Sys {
                         Some(CharacterState::GlideWield(_) | CharacterState::Glide(_))
                     ) && physics_state.on_ground.is_none();
 
-                    if let Some((kp, ki, kd)) =  moving_body.and_then(comp::agent::pid_coefficients) {
-                        if agent.position_pid_controller.as_ref().map_or(false, |pid| (pid.kp, pid.ki, pid.kd) != (kp, ki, kd)) {
+                    if let Some((kp, ki, kd)) = moving_body.and_then(comp::agent::pid_coefficients)
+                    {
+                        if agent
+                            .position_pid_controller
+                            .as_ref()
+                            .map_or(false, |pid| (pid.kp, pid.ki, pid.kd) != (kp, ki, kd))
+                        {
                             agent.position_pid_controller = None;
                         }
                         let pid = agent.position_pid_controller.get_or_insert_with(|| {

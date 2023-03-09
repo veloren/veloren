@@ -3,19 +3,20 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp::{self, inventory::loadout::Loadout, skillset::skills, Body, Agent},
-    event::{EventBus, ServerEvent, NpcBuilder},
+    comp::{self, inventory::loadout::Loadout, skillset::skills, Agent, Body},
+    event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{RtSimController, RtSimEntity, RtSimVehicle},
     slowjob::SlowJobPool,
+    terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
-    LoadoutBuilder, SkillSetBuilder, terrain::CoordinateConversions,
+    LoadoutBuilder, SkillSetBuilder, lottery::LootSpec,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim2::data::{
-    npc::{SimulationMode, Profession},
-    Npc, Sites, Actor,
+    npc::{Profession, SimulationMode},
+    Actor, Npc, Sites,
 };
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
@@ -126,9 +127,9 @@ fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent:
 }
 
 fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo {
-    let body = npc.get_body();
     let pos = comp::Pos(npc.wpos);
 
+    let mut rng = npc.rng(3);
     if let Some(ref profession) = npc.profession {
         let economy = npc.home.and_then(|home| {
             let site = sites.get(home)?.world_site?;
@@ -137,9 +138,8 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
 
         let config_asset = humanoid_config(profession);
 
-        let entity_config =
-            EntityConfig::from_asset_expect_owned(config_asset).with_body(BodyBuilder::Exact(body));
-        let mut rng = npc.rng(3);
+        let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
+            .with_body(BodyBuilder::Exact(npc.body));
         EntityInfo::at(pos.0)
             .with_entity_config(entity_config, Some(config_asset), &mut rng)
             .with_alignment(if matches!(profession, Profession::Cultist) {
@@ -151,10 +151,23 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
             .with_lazy_loadout(profession_extra_loadout(npc.profession.as_ref()))
             .with_agent_mark(profession_agent_mark(npc.profession.as_ref()))
     } else {
+        let config_asset = match npc.body {
+            Body::BirdLarge(body) => match body.species {
+                comp::bird_large::Species::Phoenix => "common.entity.wild.peaceful.phoenix",
+                comp::bird_large::Species::Cockatrice => "common.entity.wild.aggressive.cockatrice",
+                comp::bird_large::Species::Roc => "common.entity.wild.aggressive.roc",
+                // Wildcard match used here as there is an array above
+                // which limits what species are used
+                _ => unimplemented!(),
+            },
+            _ => unimplemented!(),
+        };
+        let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
+            .with_body(BodyBuilder::Exact(npc.body));
+
         EntityInfo::at(pos.0)
-            .with_body(body)
+            .with_entity_config(entity_config, Some(config_asset), &mut rng)
             .with_alignment(comp::Alignment::Wild)
-            .with_name("Rtsim NPC")
     }
 }
 
@@ -228,7 +241,8 @@ impl<'a> System<'a> for Sys {
                     let npc = data.npcs.npcs.get_mut(npc_id)?;
                     if matches!(npc.mode, SimulationMode::Simulated) {
                         npc.mode = SimulationMode::Loaded;
-                        let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
+                        let entity_info =
+                            get_npc_entity_info(npc, &data.sites, index.as_index_ref());
 
                         Some(match NpcData::from_entity_info(entity_info) {
                             NpcData::Data {
@@ -244,14 +258,14 @@ impl<'a> System<'a> for Sys {
                                 scale,
                                 loot,
                             } => NpcBuilder::new(stats, body, alignment)
-                                        .with_skill_set(skill_set)
-                                        .with_health(health)
-                                        .with_poise(poise)
-                                        .with_inventory(inventory)
-                                        .with_agent(agent)
-                                        .with_scale(scale)
-                                        .with_loot(loot)
-                                        .with_rtsim(RtSimEntity(npc_id)),
+                                .with_skill_set(skill_set)
+                                .with_health(health)
+                                .with_poise(poise)
+                                .with_inventory(inventory)
+                                .with_agent(agent)
+                                .with_scale(scale)
+                                .with_loot(loot)
+                                .with_rtsim(RtSimEntity(npc_id)),
                             // EntityConfig can't represent Waypoints at all
                             // as of now, and if someone will try to spawn
                             // rtsim waypoint it is definitely error.
@@ -265,11 +279,17 @@ impl<'a> System<'a> for Sys {
 
                 emitter.emit(ServerEvent::CreateShip {
                     pos: comp::Pos(vehicle.wpos),
-                    ship: vehicle.get_ship(),
+                    ship: vehicle.body,
                     // agent: None,//Some(Agent::from_body(&Body::Ship(ship))),
                     rtsim_entity: Some(RtSimVehicle(vehicle_id)),
                     driver: vehicle.driver.and_then(&mut actor_info),
-                    passangers: vehicle.riders.iter().copied().filter(|actor| vehicle.driver != Some(*actor)).filter_map(actor_info).collect(),
+                    passangers: vehicle
+                        .riders
+                        .iter()
+                        .copied()
+                        .filter(|actor| vehicle.driver != Some(*actor))
+                        .filter_map(actor_info)
+                        .collect(),
                 });
             }
         }
@@ -301,14 +321,14 @@ impl<'a> System<'a> for Sys {
                     } => ServerEvent::CreateNpc {
                         pos,
                         npc: NpcBuilder::new(stats, body, alignment)
-                                .with_skill_set(skill_set)
-                                .with_health(health)
-                                .with_poise(poise)
-                                .with_inventory(inventory)
-                                .with_agent(agent)
-                                .with_scale(scale)
-                                .with_loot(loot)
-                                .with_rtsim(RtSimEntity(npc_id)),
+                            .with_skill_set(skill_set)
+                            .with_health(health)
+                            .with_poise(poise)
+                            .with_inventory(inventory)
+                            .with_agent(agent)
+                            .with_scale(scale)
+                            .with_loot(loot)
+                            .with_rtsim(RtSimEntity(npc_id)),
                     },
                     // EntityConfig can't represent Waypoints at all
                     // as of now, and if someone will try to spawn
@@ -319,10 +339,9 @@ impl<'a> System<'a> for Sys {
         }
 
         // Synchronise rtsim NPC with entity data
-        for (pos, rtsim_vehicle) in
-            (&positions, &rtsim_vehicles).join()
-        {
-            data.npcs.vehicles
+        for (pos, rtsim_vehicle) in (&positions, &rtsim_vehicles).join() {
+            data.npcs
+                .vehicles
                 .get_mut(rtsim_vehicle.0)
                 .filter(|npc| matches!(npc.mode, SimulationMode::Loaded))
                 .map(|vehicle| {

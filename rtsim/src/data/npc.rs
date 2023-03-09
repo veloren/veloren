@@ -5,7 +5,8 @@ use common::{
     grid::Grid,
     rtsim::{FactionId, RtSimController, SiteId, VehicleId},
     store::Id,
-    uid::Uid, vol::RectVolSize,
+    uid::Uid,
+    vol::RectVolSize,
 };
 use hashbrown::HashMap;
 use rand::prelude::*;
@@ -21,7 +22,11 @@ use std::{
     },
 };
 use vek::*;
-use world::{civ::Track, site::Site as WorldSite, util::{RandomPerm, LOCALITY}};
+use world::{
+    civ::Track,
+    site::Site as WorldSite,
+    util::{RandomPerm, LOCALITY},
+};
 
 use super::Actor;
 
@@ -78,6 +83,7 @@ pub struct Npc {
     pub seed: u32,
     pub wpos: Vec3<f32>,
 
+    pub body: comp::Body,
     pub profession: Option<Profession>,
     pub home: Option<SiteId>,
     pub faction: Option<FactionId>,
@@ -113,6 +119,7 @@ impl Clone for Npc {
             home: self.home,
             faction: self.faction,
             riding: self.riding.clone(),
+            body: self.body,
             // Not persisted
             chunk_pos: None,
             current_site: Default::default(),
@@ -124,13 +131,11 @@ impl Clone for Npc {
 }
 
 impl Npc {
-    const PERM_BODY: u32 = 1;
-    const PERM_SPECIES: u32 = 0;
-
-    pub fn new(seed: u32, wpos: Vec3<f32>) -> Self {
+    pub fn new(seed: u32, wpos: Vec3<f32>, body: comp::Body) -> Self {
         Self {
             seed,
             wpos,
+            body,
             profession: None,
             home: None,
             faction: None,
@@ -154,21 +159,17 @@ impl Npc {
     }
 
     pub fn steering(mut self, vehicle: impl Into<Option<VehicleId>>) -> Self {
-        self.riding = vehicle.into().map(|vehicle| {
-            Riding {
-                vehicle,
-                steering: true,
-            }
+        self.riding = vehicle.into().map(|vehicle| Riding {
+            vehicle,
+            steering: true,
         });
         self
     }
 
     pub fn riding(mut self, vehicle: impl Into<Option<VehicleId>>) -> Self {
-        self.riding = vehicle.into().map(|vehicle| {
-            Riding {
-                vehicle,
-                steering: false,
-            }
+        self.riding = vehicle.into().map(|vehicle| Riding {
+            vehicle,
+            steering: false,
         });
         self
     }
@@ -179,13 +180,6 @@ impl Npc {
     }
 
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed.wrapping_add(perm)) }
-
-    pub fn get_body(&self) -> comp::Body {
-        let species = *(&comp::humanoid::ALL_SPECIES)
-            .choose(&mut self.rng(Self::PERM_SPECIES))
-            .unwrap();
-        comp::humanoid::Body::random_with(&mut self.rng(Self::PERM_BODY), &species).into()
-    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -204,7 +198,7 @@ pub enum VehicleKind {
 pub struct Vehicle {
     pub wpos: Vec3<f32>,
 
-    pub kind: VehicleKind,
+    pub body: comp::ship::Body,
 
     #[serde(skip_serializing, skip_deserializing)]
     pub chunk_pos: Option<Vec2<i32>>,
@@ -216,41 +210,36 @@ pub struct Vehicle {
     // TODO: Find a way to detect riders when the vehicle is loaded
     pub riders: Vec<Actor>,
 
-    /// Whether the Vehicle is in simulated or loaded mode (when rtsim is run on the
-    /// server, loaded corresponds to being within a loaded chunk). When in
-    /// loaded mode, the interactions of the Vehicle should not be simulated but
-    /// should instead be derived from the game.
+    /// Whether the Vehicle is in simulated or loaded mode (when rtsim is run on
+    /// the server, loaded corresponds to being within a loaded chunk). When
+    /// in loaded mode, the interactions of the Vehicle should not be
+    /// simulated but should instead be derived from the game.
     #[serde(skip_serializing, skip_deserializing)]
     pub mode: SimulationMode,
 }
 
 impl Vehicle {
-    pub fn new(wpos: Vec3<f32>, kind: VehicleKind) -> Self {
+    pub fn new(wpos: Vec3<f32>, body: comp::ship::Body) -> Self {
         Self {
             wpos,
-            kind,
+            body,
             chunk_pos: None,
             driver: None,
             riders: Vec::new(),
             mode: SimulationMode::Simulated,
         }
     }
-    pub fn get_ship(&self) -> comp::ship::Body {
-        match self.kind {
-            VehicleKind::Airship => comp::ship::Body::DefaultAirship,
-            VehicleKind::Boat => comp::ship::Body::Galleon,
-        }
-    }
 
-    pub fn get_body(&self) -> comp::Body {
-        comp::Body::Ship(self.get_ship())
-    }
+    pub fn get_body(&self) -> comp::Body { comp::Body::Ship(self.body) }
 
     /// Max speed in block/s
     pub fn get_speed(&self) -> f32 {
-        match self.kind {
-            VehicleKind::Airship => 15.0,
-            VehicleKind::Boat => 13.0,
+        match self.body {
+            comp::ship::Body::DefaultAirship => 15.0,
+            comp::ship::Body::AirBalloon => 16.0,
+            comp::ship::Body::SailBoat => 12.0,
+            comp::ship::Body::Galleon => 13.0,
+            _ => 10.0,
         }
     }
 }
@@ -274,27 +263,29 @@ fn construct_npc_grid() -> Grid<GridCell> { Grid::new(Vec2::zero(), Default::def
 impl Npcs {
     pub fn create_npc(&mut self, npc: Npc) -> NpcId { self.npcs.insert(npc) }
 
-    pub fn create_vehicle(&mut self, vehicle: Vehicle) -> VehicleId { self.vehicles.insert(vehicle) }
+    pub fn create_vehicle(&mut self, vehicle: Vehicle) -> VehicleId {
+        self.vehicles.insert(vehicle)
+    }
 
     /// Queries nearby npcs, not garantueed to work if radius > 32.0
     pub fn nearby(&self, wpos: Vec2<f32>, radius: f32) -> impl Iterator<Item = NpcId> + '_ {
-        let chunk_pos = wpos.as_::<i32>() / common::terrain::TerrainChunkSize::RECT_SIZE.as_::<i32>();
+        let chunk_pos =
+            wpos.as_::<i32>() / common::terrain::TerrainChunkSize::RECT_SIZE.as_::<i32>();
         let r_sqr = radius * radius;
         LOCALITY
             .into_iter()
             .filter_map(move |neighbor| {
-                self
-                    .npc_grid
-                    .get(chunk_pos + neighbor)
-                    .map(|cell| {
-                        cell.npcs.iter()
-                            .copied()
-                            .filter(|npc| {
-                                self.npcs.get(*npc)
-                                    .map_or(false, |npc| npc.wpos.xy().distance_squared(wpos) < r_sqr)
-                            })
-                            .collect::<Vec<_>>()
-                    })
+                self.npc_grid.get(chunk_pos + neighbor).map(|cell| {
+                    cell.npcs
+                        .iter()
+                        .copied()
+                        .filter(|npc| {
+                            self.npcs
+                                .get(*npc)
+                                .map_or(false, |npc| npc.wpos.xy().distance_squared(wpos) < r_sqr)
+                        })
+                        .collect::<Vec<_>>()
+                })
             })
             .flatten()
     }

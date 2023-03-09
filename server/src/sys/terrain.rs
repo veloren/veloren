@@ -19,7 +19,7 @@ use common::{
     comp::{
         self, agent, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate, Pos, Waypoint,
     },
-    event::{EventBus, ServerEvent, NpcBuilder},
+    event::{EventBus, NpcBuilder, ServerEvent},
     generation::EntityInfo,
     lottery::LootSpec,
     resources::{Time, TimeOfDay},
@@ -225,7 +225,7 @@ impl<'a> System<'a> for Sys {
                                 .with_agent(agent)
                                 .with_scale(scale)
                                 .with_anchor(comp::Anchor::Chunk(key))
-                                .with_loot(loot)
+                                .with_loot(loot),
                         });
                     },
                 }

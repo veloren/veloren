@@ -1486,7 +1486,8 @@ fn handle_spawn_airship(
             animated: true,
         });
     if let Some(pos) = destination {
-        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
+        let (kp, ki, kd) =
+            comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
@@ -1534,7 +1535,8 @@ fn handle_spawn_ship(
             animated: true,
         });
     if let Some(pos) = destination {
-        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
+        let (kp, ki, kd) =
+            comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
@@ -1575,11 +1577,9 @@ fn handle_make_volume(
     };
     server
         .state
-        .create_ship(
-            comp::Pos(pos.0 + Vec3::unit_z() * 50.0),
-            ship,
-            move |_| collider,
-        )
+        .create_ship(comp::Pos(pos.0 + Vec3::unit_z() * 50.0), ship, move |_| {
+            collider
+        })
         .build();
 
     server.notify_client(

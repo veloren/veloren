@@ -14,14 +14,15 @@ use common::{
         LightEmitter, Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats,
         TradingBehavior, Vel, WaypointArea,
     },
-    event::{EventBus, UpdateCharacterMetadata, NpcBuilder},
+    event::{EventBus, NpcBuilder, UpdateCharacterMetadata},
     lottery::LootSpec,
+    mounting::Mounting,
     outcome::Outcome,
     resources::{Secs, Time},
     rtsim::{RtSimEntity, RtSimVehicle},
     uid::Uid,
     util::Dir,
-    ViewDistances, mounting::Mounting,
+    ViewDistances,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
@@ -91,14 +92,18 @@ pub fn handle_loaded_character_data(
     server.notify_client(entity, ServerGeneral::CharacterDataLoadResult(Ok(metadata)));
 }
 
-pub fn handle_create_npc(
-    server: &mut Server,
-    pos: Pos,
-    mut npc: NpcBuilder,
-) -> EcsEntity {
+pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> EcsEntity {
     let entity = server
         .state
-        .create_npc(pos, npc.stats, npc.skill_set, npc.health, npc.poise, npc.inventory, npc.body)
+        .create_npc(
+            pos,
+            npc.stats,
+            npc.skill_set,
+            npc.health,
+            npc.poise,
+            npc.inventory,
+            npc.body,
+        )
         .with(npc.scale);
 
     if let Some(agent) = &mut npc.agent {
@@ -194,7 +199,6 @@ pub fn handle_create_ship(
     rtsim_vehicle: Option<RtSimVehicle>,
     driver: Option<NpcBuilder>,
     passangers: Vec<NpcBuilder>,
-
 ) {
     let mut entity = server
         .state
@@ -213,19 +217,21 @@ pub fn handle_create_ship(
     }
     let entity = entity.build();
 
-
     if let Some(driver) = driver {
         let npc_entity = handle_create_npc(server, pos, driver);
 
         let uids = server.state.ecs().read_storage::<Uid>();
         if let (Some(rider_uid), Some(mount_uid)) =
-                (uids.get(npc_entity).copied(), uids.get(entity).copied())
+            (uids.get(npc_entity).copied(), uids.get(entity).copied())
         {
             drop(uids);
-            server.state.link(Mounting {
-                mount: mount_uid,
-                rider: rider_uid,
-            }).expect("Failed to link driver to ship");
+            server
+                .state
+                .link(Mounting {
+                    mount: mount_uid,
+                    rider: rider_uid,
+                })
+                .expect("Failed to link driver to ship");
         } else {
             panic!("Couldn't get Uid from newly created ship and npc");
         }

@@ -8,7 +8,11 @@ use crate::data::{
     Data, Nature,
 };
 use common::{
-    grid::Grid, resources::TimeOfDay, rtsim::WorldSettings, terrain::TerrainChunkSize,
+    comp::{self, Body},
+    grid::Grid,
+    resources::TimeOfDay,
+    rtsim::WorldSettings,
+    terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
 use hashbrown::HashMap;
@@ -72,12 +76,12 @@ impl Data {
             "Registering {} rtsim sites from world sites.",
             this.sites.len()
         );
-
+        /*
         // Spawn some test entities at the sites
         for (site_id, site) in this.sites.iter()
         // TODO: Stupid
         .filter(|(_, site)| site.world_site.map_or(false, |ws|
-        matches!(&index.sites.get(ws).kind, SiteKind::Refactor(_)))) .skip(1)
+        matches!(&index.sites.get(ws).kind, SiteKind::Refactor(_))))
         {
             let Some(good_or_evil) = site
                 .faction
@@ -91,10 +95,17 @@ impl Data {
                     .map(|e| e as f32 + 0.5)
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
+            let random_humanoid = |rng: &mut SmallRng| {
+                let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
+                Body::Humanoid(comp::humanoid::Body::random_with(
+                    rng,
+                    species,
+                ))
+            };
             if good_or_evil {
                 for _ in 0..32 {
                     this.npcs.create_npc(
-                        Npc::new(rng.gen(), rand_wpos(&mut rng))
+                        Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
                             .with_faction(site.faction)
                             .with_home(site_id)
                             .with_profession(match rng.gen_range(0..20) {
@@ -112,7 +123,7 @@ impl Data {
             } else {
                 for _ in 0..15 {
                     this.npcs.create_npc(
-                        Npc::new(rng.gen(), rand_wpos(&mut rng))
+                        Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
                             .with_faction(site.faction)
                             .with_home(site_id)
                             .with_profession(match rng.gen_range(0..20) {
@@ -122,17 +133,54 @@ impl Data {
                 }
             }
             this.npcs.create_npc(
-                Npc::new(rng.gen(), rand_wpos(&mut rng))
+                Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
                     .with_home(site_id)
                     .with_profession(Profession::Merchant),
             );
 
-            let wpos = rand_wpos(&mut rng) + Vec3::unit_z() * 50.0;
-            let vehicle_id = this.npcs.create_vehicle(Vehicle::new(wpos, VehicleKind::Airship));
-            
-            this.npcs.create_npc(Npc::new(rng.gen(), wpos).with_home(site_id).with_profession(Profession::Captain).steering(vehicle_id));
-        }
+            if rng.gen_bool(0.4) {
+                let wpos = rand_wpos(&mut rng) + Vec3::unit_z() * 50.0;
+                let vehicle_id = this
+                    .npcs
+                    .create_vehicle(Vehicle::new(wpos, comp::body::ship::Body::DefaultAirship));
 
+                this.npcs.create_npc(
+                    Npc::new(rng.gen(), wpos, random_humanoid(&mut rng))
+                        .with_home(site_id)
+                        .with_profession(Profession::Captain)
+                        .steering(vehicle_id),
+                );
+            }
+        }
+        */
+        for (site_id, site) in this.sites.iter()
+        // TODO: Stupid
+        .filter(|(_, site)| site.world_site.map_or(false, |ws|
+        matches!(&index.sites.get(ws).kind, SiteKind::Dungeon(_))))
+        {
+            let rand_wpos = |rng: &mut SmallRng| {
+                let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
+                wpos2d
+                    .map(|e| e as f32 + 0.5)
+                    .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+            };
+
+            let species = [
+                comp::body::bird_large::Species::Phoenix,
+                comp::body::bird_large::Species::Cockatrice,
+                comp::body::bird_large::Species::Roc,
+            ]
+            .choose(&mut rng)
+            .unwrap();
+            this.npcs.create_npc(
+                Npc::new(
+                    rng.gen(),
+                    rand_wpos(&mut rng),
+                    Body::BirdLarge(comp::body::bird_large::Body::random_with(&mut rng, species)),
+                )
+                .with_home(site_id),
+            );
+        }
         info!("Generated {} rtsim NPCs.", this.npcs.len());
 
         this

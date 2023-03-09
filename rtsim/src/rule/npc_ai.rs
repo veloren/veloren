@@ -14,7 +14,7 @@ use common::{
     path::Path,
     rtsim::{Profession, SiteId},
     store::Id,
-    terrain::{TerrainChunkSize, SiteKindMeta},
+    terrain::{SiteKindMeta, TerrainChunkSize},
     time::DayPeriod,
     vol::RectVolSize,
 };
@@ -32,7 +32,8 @@ use world::{
     civ::{self, Track},
     site::{Site as WorldSite, SiteKind},
     site2::{self, PlotKind, TileKind},
-    IndexRef, World, util::NEIGHBORS,
+    util::NEIGHBORS,
+    IndexRef, World,
 };
 
 pub struct NpcAi;
@@ -329,7 +330,11 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
 
         // Get the next waypoint on the route toward the goal
         let waypoint =
-            waypoint.get_or_insert_with(|| ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST));
+            waypoint.get_or_insert_with(|| {
+                let wpos = ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST);
+
+                wpos.with_z(ctx.world.sim().get_surface_alt_approx(wpos.xy().as_()).unwrap_or(wpos.z))
+            });
 
         *ctx.controller = Controller::goto(*waypoint, speed_factor);
     })
@@ -635,7 +640,11 @@ fn follow(npc: NpcId, distance: f32) -> impl Action {
     .map(|_| {})
 }
 
-fn chunk_path(from: Vec2<i32>, to: Vec2<i32>, chunk_height: impl Fn(Vec2<i32>) -> Option<i32>) -> Box<dyn Action> {
+fn chunk_path(
+    from: Vec2<i32>,
+    to: Vec2<i32>,
+    chunk_height: impl Fn(Vec2<i32>) -> Option<i32>,
+) -> Box<dyn Action> {
     let heuristics = |(p, _): &(Vec2<i32>, i32)| p.distance_squared(to) as f32;
     let start = (from, chunk_height(from).unwrap());
     let mut astar = Astar::new(
@@ -648,35 +657,45 @@ fn chunk_path(from: Vec2<i32>, to: Vec2<i32>, chunk_height: impl Fn(Vec2<i32>) -
     let path = astar.poll(
         1000,
         heuristics,
-        |&(p, _)| NEIGHBORS.into_iter().map(move |n| p + n).filter_map(|p| Some((p, chunk_height(p)?))),
+        |&(p, _)| {
+            NEIGHBORS
+                .into_iter()
+                .map(move |n| p + n)
+                .filter_map(|p| Some((p, chunk_height(p)?)))
+        },
         |(p0, h0), (p1, h1)| {
-            let diff = ((p0 - p1).as_() * TerrainChunkSize::RECT_SIZE.as_()).with_z((h0 - h1) as f32);
+            let diff =
+                ((p0 - p1).as_() * TerrainChunkSize::RECT_SIZE.as_()).with_z((h0 - h1) as f32);
 
             diff.magnitude_squared()
         },
-        |(e, _)| *e == to
+        |(e, _)| *e == to,
     );
     let path = match path {
         PathResult::Exhausted(p) | PathResult::Path(p) => p,
         _ => return finish().boxed(),
     };
     let len = path.len();
-    seq(
-        path
-            .into_iter()
-            .enumerate()
-            .map(move |(i, (chunk_pos, height))| {
-                let wpos = TerrainChunkSize::center_wpos(chunk_pos).with_z(height).as_();
-                goto(wpos, 1.0, 5.0).debug(move || format!("chunk path {i}/{len} chunk: {chunk_pos}, height: {height}"))
-            })
-    ).boxed()
+    seq(path
+        .into_iter()
+        .enumerate()
+        .map(move |(i, (chunk_pos, height))| {
+            let wpos = TerrainChunkSize::center_wpos(chunk_pos)
+                .with_z(height)
+                .as_();
+            goto(wpos, 1.0, 5.0)
+                .debug(move || format!("chunk path {i}/{len} chunk: {chunk_pos}, height: {height}"))
+        }))
+    .boxed()
 }
 
 fn pilot() -> impl Action {
     // Travel between different towns in a straight line
     now(|ctx| {
         let data = &*ctx.state.data();
-        let site = data.sites.iter()
+        let site = data
+            .sites
+            .iter()
             .filter(|(id, _)| Some(*id) != ctx.npc.current_site)
             .filter(|(_, site)| {
                 site.world_site
@@ -685,12 +704,14 @@ fn pilot() -> impl Action {
             })
             .choose(&mut thread_rng());
         if let Some((_id, site)) = site {
-            let start_chunk = ctx.npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
+            let start_chunk =
+                ctx.npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
             let end_chunk = site.wpos / TerrainChunkSize::RECT_SIZE.as_::<i32>();
-            chunk_path(start_chunk,  end_chunk, |chunk| {
-                ctx.world.sim().get_alt_approx(TerrainChunkSize::center_wpos(chunk)).map(|f| {
-                    (f + 150.0) as i32
-                })
+            chunk_path(start_chunk, end_chunk, |chunk| {
+                ctx.world
+                    .sim()
+                    .get_alt_approx(TerrainChunkSize::center_wpos(chunk))
+                    .map(|f| (f + 150.0) as i32)
             })
         } else {
             finish().boxed()
@@ -707,27 +728,42 @@ fn captain() -> impl Action {
         if let Some(chunk) = NEIGHBORS
             .into_iter()
             .map(|neighbor| chunk + neighbor)
-            .filter(|neighbor| ctx.world.sim().get(*neighbor).map_or(false, |c| c.river.river_kind.is_some()))
+            .filter(|neighbor| {
+                ctx.world
+                    .sim()
+                    .get(*neighbor)
+                    .map_or(false, |c| c.river.river_kind.is_some())
+            })
             .choose(&mut thread_rng())
         {
             let wpos = TerrainChunkSize::center_wpos(chunk);
-            let wpos = wpos.as_().with_z(ctx.world.sim().get_interpolated(wpos, |chunk| chunk.water_alt).unwrap_or(0.0));
+            let wpos = wpos.as_().with_z(
+                ctx.world
+                    .sim()
+                    .get_interpolated(wpos, |chunk| chunk.water_alt)
+                    .unwrap_or(0.0),
+            );
             goto(wpos, 0.7, 5.0).boxed()
         } else {
             idle().boxed()
         }
     })
-    .repeat().map(|_| ())
+    .repeat()
+    .map(|_| ())
 }
 
-fn think() -> impl Action {
+fn humanoid() -> impl Action {
     choose(|ctx| {
         if let Some(riding) = &ctx.npc.riding {
             if riding.steering {
                 if let Some(vehicle) = ctx.state.data().npcs.vehicles.get(riding.vehicle) {
-                    match vehicle.kind {
-                        VehicleKind::Airship => important(pilot()),
-                        VehicleKind::Boat => important(captain()),
+                    match vehicle.body {
+                        common::comp::ship::Body::DefaultAirship
+                        | common::comp::ship::Body::AirBalloon => important(pilot()),
+                        common::comp::ship::Body::SailBoat | common::comp::ship::Body::Galleon => {
+                            important(captain())
+                        },
+                        _ => casual(idle()),
                     }
                 } else {
                     casual(finish())
@@ -745,6 +781,66 @@ fn think() -> impl Action {
         } else {
             casual(finish()) // Homeless
         }
+    })
+}
+
+fn bird_large() -> impl Action {
+    choose(|ctx| {
+        let data = ctx.state.data();
+        if let Some(home) = ctx.npc.home {
+            let is_home = ctx.npc.current_site.map_or(false, |site| home == site);
+            if is_home {
+                if let Some((id, site)) = data
+                    .sites
+                    .iter()
+                    .filter(|(id, site)| {
+                        *id != home
+                            && site.world_site.map_or(false, |site| {
+                                matches!(ctx.index.sites.get(site).kind, SiteKind::Dungeon(_))
+                            })
+                    })
+                    .choose(&mut thread_rng())
+                {
+                    casual(goto(
+                        site.wpos.as_::<f32>().with_z(
+                            ctx.world
+                                .sim()
+                                .get_surface_alt_approx(site.wpos)
+                                .unwrap_or(0.0)
+                                + ctx.npc.body.flying_height(),
+                        ),
+                        1.0,
+                        20.0,
+                    ))
+                } else {
+                    casual(idle())
+                }
+            } else if let Some(site) = data.sites.get(home) {
+                casual(goto(
+                    site.wpos.as_::<f32>().with_z(
+                        ctx.world
+                            .sim()
+                            .get_surface_alt_approx(site.wpos)
+                            .unwrap_or(0.0)
+                            + ctx.npc.body.flying_height(),
+                    ),
+                    1.0,
+                    20.0,
+                ))
+            } else {
+                casual(idle())
+            }
+        } else {
+            casual(idle())
+        }
+    })
+}
+
+fn think() -> impl Action {
+    choose(|ctx| match ctx.npc.body {
+        common::comp::Body::Humanoid(_) => casual(humanoid()),
+        common::comp::Body::BirdLarge(_) => casual(bird_large()),
+        _ => casual(idle()),
     })
 }
 

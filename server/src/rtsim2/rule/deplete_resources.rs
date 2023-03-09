@@ -1,5 +1,8 @@
 use crate::rtsim2::{event::OnBlockChange, ChunkStates};
-use common::{terrain::{TerrainChunk, CoordinateConversions}, vol::RectRasterableVol};
+use common::{
+    terrain::{CoordinateConversions, TerrainChunk},
+    vol::RectRasterableVol,
+};
 use rtsim2::{RtState, Rule, RuleError};
 
 pub struct DepleteResources;
@@ -7,10 +10,7 @@ pub struct DepleteResources;
 impl Rule for DepleteResources {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind::<Self, OnBlockChange>(|ctx| {
-            let key = ctx
-                .event
-                .wpos
-                .xy().wpos_to_cpos();
+            let key = ctx.event.wpos.xy().wpos_to_cpos();
             if let Some(Some(chunk_state)) = ctx.state.resource_mut::<ChunkStates>().0.get(key) {
                 let mut chunk_res = ctx.state.data().nature.get_chunk_resources(key);
                 // Remove resources
