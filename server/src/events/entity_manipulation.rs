@@ -1091,6 +1091,7 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
     let bodies = ecs.read_storage::<Body>();
+    let time = ecs.read_resource::<Time>();
     if let Some(mut buffs) = buffs_all.get_mut(entity) {
         use buff::BuffChange;
         match buff_change {
@@ -1103,7 +1104,7 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                         .get(entity)
                         .map_or(true, |h| !h.is_dead)
                 {
-                    buffs.insert(new_buff);
+                    buffs.insert(new_buff, *time);
                 }
             },
             BuffChange::RemoveById(ids) => {

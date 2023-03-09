@@ -3539,13 +3539,10 @@ fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity)
         let mut buffs_all = ecs.write_storage::<comp::Buffs>();
         let time = ecs.read_resource::<Time>();
         if let Some(mut buffs) = buffs_all.get_mut(target) {
-            buffs.insert(Buff::new(
-                buffkind,
-                data,
-                vec![],
-                BuffSource::Command,
+            buffs.insert(
+                Buff::new(buffkind, data, vec![], BuffSource::Command, *time),
                 *time,
-            ));
+            );
         }
         Ok(())
     } else {

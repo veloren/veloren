@@ -400,6 +400,10 @@ impl PartialOrd for Buff {
             Some(Ordering::Greater)
         } else if self.data.strength < other.data.strength {
             Some(Ordering::Less)
+        } else if self.data.delay.is_none() && other.data.delay.is_some() {
+            Some(Ordering::Greater)
+        } else if self.data.delay.is_some() && other.data.delay.is_none() {
+            Some(Ordering::Less)
         } else if compare_end_time(self.end_time, other.end_time) {
             Some(Ordering::Greater)
         } else if compare_end_time(other.end_time, self.end_time) {
@@ -486,18 +490,18 @@ impl Buffs {
         }
     }
 
-    fn force_insert(&mut self, id: BuffId, buff: Buff) -> BuffId {
+    fn force_insert(&mut self, id: BuffId, buff: Buff, current_time: Time) -> BuffId {
         let kind = buff.kind;
         self.kinds.entry(kind).or_default().push(id);
         self.buffs.insert(id, buff);
         self.sort_kind(kind);
-        self.delay_queueable_buffs(kind);
+        self.delay_queueable_buffs(kind, current_time);
         id
     }
 
-    pub fn insert(&mut self, buff: Buff) -> BuffId {
+    pub fn insert(&mut self, buff: Buff, current_time: Time) -> BuffId {
         self.id_counter += 1;
-        self.force_insert(self.id_counter, buff)
+        self.force_insert(self.id_counter, buff, current_time)
     }
 
     pub fn contains(&self, kind: BuffKind) -> bool { self.kinds.contains_key(&kind) }
@@ -542,22 +546,28 @@ impl Buffs {
         (&self.kinds, &mut self.buffs)
     }
 
-    pub fn delay_queueable_buffs(&mut self, kind: BuffKind) {
+    fn delay_queueable_buffs(&mut self, kind: BuffKind, current_time: Time) {
         let mut next_start_time: Option<Time> = None;
         if let Some(buffs) = self.kinds.get(&kind) {
             buffs.iter().for_each(|id| {
                 if let Some(buff) = self.buffs.get_mut(id) {
+                    // End time only being updated when there is some next_start_time will
+                    // technically cause buffs to "end early" if they have a weaker strength than a
+                    // buff with an infinite duration, but this is fine since those buffs wouldn't
+                    // matter anyways
                     if let Some(next_start_time) = next_start_time {
-                        // Delays buff to have a start time after the previous buff of this kind has
-                        // ended.
-                        // End time offset by the difference in time between old and new start time.
-                        // Will technically cause buffs to "end early" if they have a weaker
-                        // strength than a buff with an infinite duration, but this is fine since
-                        // those buffs wouldn't matter anyways
-                        buff.end_time = buff
-                            .end_time
-                            .map(|end| Time(end.0 + next_start_time.0 - buff.start_time.0));
-                        buff.start_time = next_start_time;
+                        // Delays buff so that it has the same progress it has now at the time the
+                        // previous buff would end.
+                        //
+                        // Shift should be relative to current time, unless the buff is delayed and
+                        // hasn't started yet
+                        let reference_time = current_time.0.max(buff.start_time.0);
+                        // If buff has a delay, ensure that queueables shuffling queue does not
+                        // potentially allow skipping delay
+                        buff.start_time = Time(next_start_time.0.max(buff.start_time.0));
+                        buff.end_time = buff.end_time.map(|end| {
+                            Time(end.0 + next_start_time.0.max(reference_time) - reference_time)
+                        });
                     }
                     next_start_time = buff.end_time;
                 }
@@ -571,4 +581,129 @@ pub type BuffId = u64;
 #[cfg(not(target_arch = "wasm32"))]
 impl Component for Buffs {
     type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
+}
+
+#[cfg(test)]
+pub mod tests {
+    use crate::comp::buff::*;
+
+    #[cfg(test)]
+    fn create_test_queueable_buff(buff_data: BuffData, time: Time) -> Buff {
+        // Change to another buff that queues if we ever add one and remove saturation,
+        // otherwise maybe add a test buff kind?
+        debug_assert!(BuffKind::Saturation.queues());
+        Buff::new(
+            BuffKind::Saturation,
+            buff_data,
+            Vec::new(),
+            BuffSource::Unknown,
+            time,
+        )
+    }
+
+    #[test]
+    /// Tests a number of buffs with various progresses that queue to ensure
+    /// queue has correct total duration
+    fn test_queueable_buffs_three() {
+        let mut buff_comp: Buffs = Default::default();
+        let buff_data = BuffData::new(1.0, Some(10.0), None);
+        let time_a = Time(0.0);
+        buff_comp.insert(create_test_queueable_buff(buff_data, time_a), time_a);
+        let time_b = Time(6.0);
+        buff_comp.insert(create_test_queueable_buff(buff_data, time_b), time_b);
+        let time_c = Time(11.0);
+        buff_comp.insert(create_test_queueable_buff(buff_data, time_c), time_c);
+        // Check that all buffs have an end_time less than or equal to 30, and that at
+        // least one has an end_time greater than or equal to 30.
+        //
+        // This should be true because 3 buffs that each lasted for 10 seconds were
+        // inserted at various times, so the total duration should be 30 seconds.
+        assert!(
+            buff_comp
+                .buffs
+                .values()
+                .all(|b| b.end_time.unwrap().0 < 30.01)
+        );
+        assert!(
+            buff_comp
+                .buffs
+                .values()
+                .any(|b| b.end_time.unwrap().0 > 29.99)
+        );
+    }
+
+    #[test]
+    /// Tests that if a buff had a delay but will start soon, and an immediate
+    /// queueable buff is added, delayed buff has correct start time
+    fn test_queueable_buff_delay_start() {
+        let mut buff_comp: Buffs = Default::default();
+        let queued_buff_data = BuffData::new(1.0, Some(10.0), Some(10.0));
+        let buff_data = BuffData::new(1.0, Some(10.0), None);
+        let time_a = Time(0.0);
+        buff_comp.insert(create_test_queueable_buff(queued_buff_data, time_a), time_a);
+        let time_b = Time(6.0);
+        buff_comp.insert(create_test_queueable_buff(buff_data, time_b), time_b);
+        // Check that all buffs have an end_time less than or equal to 26, and that at
+        // least one has an end_time greater than or equal to 26.
+        //
+        // This should be true because the first buff added had a delay of 10 seconds
+        // and a duration of 10 seconds, the second buff added at 6 seconds had no
+        // delay, and a duration of 10 seconds. When it finishes at 16 seconds the first
+        // buff is past the delay time so should finish at 26 seconds.
+        assert!(
+            buff_comp
+                .buffs
+                .values()
+                .all(|b| b.end_time.unwrap().0 < 26.01)
+        );
+        assert!(
+            buff_comp
+                .buffs
+                .values()
+                .any(|b| b.end_time.unwrap().0 > 25.99)
+        );
+    }
+
+    #[test]
+    /// Tests that if a buff had a long delay, a short immediate queueable buff
+    /// does not move delayed buff start or end times
+    fn test_queueable_buff_long_delay() {
+        let mut buff_comp: Buffs = Default::default();
+        let queued_buff_data = BuffData::new(1.0, Some(10.0), Some(50.0));
+        let buff_data = BuffData::new(1.0, Some(10.0), None);
+        let time_a = Time(0.0);
+        buff_comp.insert(create_test_queueable_buff(queued_buff_data, time_a), time_a);
+        let time_b = Time(10.0);
+        buff_comp.insert(create_test_queueable_buff(buff_data, time_b), time_b);
+        // Check that all buffs have either an end time less than or equal to 20 seconds
+        // XOR a start time greater than or equal to 50 seconds, that all buffs have a
+        // start time less than or equal to 50 seconds, that all buffs have an end time
+        // less than or equal to 60 seconds, and that at least one buff has an end time
+        // greater than or equal to 60 seconds
+        //
+        // This should be true because the first buff has a delay of 50 seconds, the
+        // second buff added has no delay at 10 seconds and lasts 10 seconds, so should
+        // end at 20 seconds and not affect the start time of the delayed buff, and
+        // since the delayed buff was not affected the end time should be 10 seconds
+        // after the start time: 60 seconds != used here to emulate xor
+        assert!(
+            buff_comp
+                .buffs
+                .values()
+                .all(|b| (b.end_time.unwrap().0 < 20.01) != (b.start_time.0 > 49.99))
+        );
+        assert!(buff_comp.buffs.values().all(|b| b.start_time.0 < 50.01));
+        assert!(
+            buff_comp
+                .buffs
+                .values()
+                .all(|b| b.end_time.unwrap().0 < 60.01)
+        );
+        assert!(
+            buff_comp
+                .buffs
+                .values()
+                .any(|b| b.end_time.unwrap().0 > 59.99)
+        );
+    }
 }

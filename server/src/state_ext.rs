@@ -227,13 +227,16 @@ impl StateExt for State {
                     .write_storage::<comp::Buffs>()
                     .get_mut(entity)
                     .map(|mut buffs| {
-                        buffs.insert(comp::Buff::new(
-                            buff.kind,
-                            buff.data,
-                            buff.cat_ids,
-                            comp::BuffSource::Item,
+                        buffs.insert(
+                            comp::Buff::new(
+                                buff.kind,
+                                buff.data,
+                                buff.cat_ids,
+                                comp::BuffSource::Item,
+                                *time,
+                            ),
                             *time,
-                        ))
+                        )
                     });
             },
         }
