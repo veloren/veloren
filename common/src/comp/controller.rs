@@ -45,6 +45,7 @@ pub enum InventoryManip {
     Pickup(Uid),
     Collect {
         sprite_pos: Vec3<i32>,
+        /// If second field is `true`, item will be consumed on collection.
         required_item: Option<(InvSlotId, bool)>,
     },
     Use(Slot),
