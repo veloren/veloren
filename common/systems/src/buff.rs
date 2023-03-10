@@ -1,6 +1,7 @@
 use common::{
     combat::DamageContributor,
     comp::{
+        aura::Auras,
         body::{object, Body},
         buff::{
             Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource,
@@ -9,7 +10,7 @@ use common::{
         fluid_dynamics::{Fluid, LiquidKind},
         item::MaterialStatManifest,
         Energy, Group, Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState,
-        Stats,
+        Pos, Stats,
     },
     event::{Emitter, EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -39,6 +40,8 @@ pub struct ReadData<'a> {
     time: Read<'a, Time>,
     msm: ReadExpect<'a, MaterialStatManifest>,
     buffs: ReadStorage<'a, Buffs>,
+    auras: ReadStorage<'a, Auras>,
+    positions: ReadStorage<'a, Pos>,
 }
 
 #[derive(Default)]
@@ -233,6 +236,71 @@ impl<'a> System<'a> for Sys {
             }
 
             let mut expired_buffs = Vec::<BuffId>::new();
+
+            // Replace buffs from an active aura with a normal buff when out of range of the
+            // aura
+            buff_comp
+                .buffs
+                .iter()
+                .filter_map(|(id, buff)| {
+                    if let Some((uid, aura_key)) = buff.cat_ids.iter().find_map(|cat_id| {
+                        if let BuffCategory::FromActiveAura(uid, aura_key) = cat_id {
+                            Some((uid, aura_key))
+                        } else {
+                            None
+                        }
+                    }) {
+                        Some((id, buff, uid, aura_key))
+                    } else {
+                        None
+                    }
+                })
+                .for_each(|(buff_id, buff, uid, aura_key)| {
+                    let replace = if let Some(aura_entity) = read_data
+                        .uid_allocator
+                        .retrieve_entity_internal((*uid).into())
+                    {
+                        if let Some(aura) = read_data
+                            .auras
+                            .get(aura_entity)
+                            .and_then(|auras| auras.auras.get(*aura_key))
+                        {
+                            if let (Some(pos), Some(aura_pos)) = (
+                                read_data.positions.get(entity),
+                                read_data.positions.get(aura_entity),
+                            ) {
+                                pos.0.distance_squared(aura_pos.0) > aura.radius.powi(2)
+                            } else {
+                                true
+                            }
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    };
+                    if replace {
+                        expired_buffs.push(*buff_id);
+                        server_emitter.emit(ServerEvent::Buff {
+                            entity,
+                            buff_change: BuffChange::Add(Buff::new(
+                                buff.kind,
+                                buff.data,
+                                buff.cat_ids
+                                    .iter()
+                                    .copied()
+                                    .filter(|cat_id| {
+                                        !matches!(cat_id, BuffCategory::FromActiveAura(..))
+                                    })
+                                    .collect::<Vec<_>>(),
+                                buff.source,
+                                *read_data.time,
+                                Some(&stat),
+                            )),
+                        });
+                    }
+                });
+
             buff_comp.buffs.iter().for_each(|(id, buff)| {
                 if buff.end_time.map_or(false, |end| end.0 < read_data.time.0) {
                     expired_buffs.push(*id)

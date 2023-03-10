@@ -1,5 +1,9 @@
 #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
-use crate::{comp::Stats, resources::Time, uid::Uid};
+use crate::{
+    comp::{aura::AuraKey, Stats},
+    resources::Time,
+    uid::Uid,
+};
 use core::cmp::Ordering;
 #[cfg(not(target_arch = "wasm32"))]
 use hashbrown::HashMap;
@@ -168,7 +172,7 @@ pub enum BuffCategory {
     Magical,
     Divine,
     PersistOnDeath,
-    FromAura(bool), // bool used to check if buff recently set by aura
+    FromActiveAura(Uid, AuraKey),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -285,7 +289,7 @@ impl Buff {
             },
             BuffKind::Potion => {
                 vec![BuffEffect::HealthChangeOverTime {
-                    rate: data.strength * dbg!(stats.map_or(1.0, |s| s.heal_multiplier)),
+                    rate: data.strength * stats.map_or(1.0, |s| s.heal_multiplier),
                     kind: ModifierKind::Additive,
                     instance,
                 }]
@@ -366,12 +370,20 @@ impl Buff {
             BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
         };
         let start_time = Time(time.0 + data.delay.unwrap_or(0.0));
+        let end_time = if cat_ids
+            .iter()
+            .any(|cat_id| matches!(cat_id, BuffCategory::FromActiveAura(..)))
+        {
+            None
+        } else {
+            data.duration.map(|dur| Time(start_time.0 + dur))
+        };
         Buff {
             kind,
             data,
             cat_ids,
             start_time,
-            end_time: data.duration.map(|dur| Time(start_time.0 + dur)),
+            end_time,
             effects,
             source,
         }
