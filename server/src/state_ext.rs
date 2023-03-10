@@ -432,6 +432,7 @@ impl StateExt for State {
             aura::{Aura, AuraKind, AuraTarget, Auras},
             buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         };
+        let time = self.get_time();
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -445,6 +446,7 @@ impl StateExt for State {
                 range.unwrap_or(100.0),
                 None,
                 AuraTarget::All,
+                Time(time),
             )]))
     }
 

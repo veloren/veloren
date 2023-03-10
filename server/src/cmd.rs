@@ -1464,6 +1464,7 @@ fn handle_spawn_campfire(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
+    let time = server.state.get_time();
     server
         .state
         .create_object(pos, comp::object::Body::CampfireLit)
@@ -1485,6 +1486,7 @@ fn handle_spawn_campfire(
                 5.0,
                 None,
                 AuraTarget::All,
+                Time(time),
             ),
             Aura::new(
                 AuraKind::Buff {
@@ -1496,6 +1498,7 @@ fn handle_spawn_campfire(
                 0.7,
                 None,
                 AuraTarget::All,
+                Time(time),
             ),
         ]))
         .build();

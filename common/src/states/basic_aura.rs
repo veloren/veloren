@@ -28,7 +28,7 @@ pub struct StaticData {
     /// Has information used to construct the auras
     pub auras: Vec<AuraBuffConstructor>,
     /// How long aura lasts
-    pub aura_duration: Duration,
+    pub aura_duration: f64,
     /// Radius of aura
     pub range: f32,
     /// What key is used to press ability
@@ -79,6 +79,7 @@ impl CharacterBehavior for Data {
                             self.static_data.range,
                             Some(self.static_data.aura_duration),
                             targets,
+                            *data.time,
                         );
                         if self.static_data.scales_with_combo {
                             match aura.aura_kind {

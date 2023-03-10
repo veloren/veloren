@@ -14,6 +14,7 @@ use common::{
     event::{EventBus, UpdateCharacterMetadata},
     lottery::LootSpec,
     outcome::Outcome,
+    resources::Time,
     rtsim::RtSimEntity,
     uid::Uid,
     util::Dir,
@@ -269,6 +270,7 @@ pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, 
 }
 
 pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
+    let time = server.state.get_time();
     server
         .state
         .create_object(Pos(pos), comp::object::Body::CampfireLit)
@@ -291,6 +293,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
                 5.0,
                 None,
                 AuraTarget::All,
+                Time(time),
             ),
             Aura::new(
                 AuraKind::Buff {
@@ -302,6 +305,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
                 0.7,
                 None,
                 AuraTarget::All,
+                Time(time),
             ),
         ]))
         .build();

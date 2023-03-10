@@ -7,21 +7,19 @@ use common::{
         Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos, Stats,
     },
     event::{Emitter, EventBus, ServerEvent},
-    resources::{DeltaTime, Time},
+    resources::Time,
     uid::{Uid, UidAllocator},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
-    ReadStorage, SystemData, World, WriteStorage,
+    ReadStorage, SystemData, World,
 };
-use std::time::Duration;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
-    dt: Read<'a, DeltaTime>,
     time: Read<'a, Time>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     uid_allocator: Read<'a, UidAllocator>,
@@ -34,43 +32,36 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     stats: ReadStorage<'a, Stats>,
     buffs: ReadStorage<'a, Buffs>,
+    auras: ReadStorage<'a, Auras>,
 }
 
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    type SystemData = (ReadData<'a>, WriteStorage<'a, Auras>);
+    type SystemData = ReadData<'a>;
 
     const NAME: &'static str = "aura";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut Job<Self>, (read_data, mut auras): Self::SystemData) {
+    fn run(_job: &mut Job<Self>, read_data: Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
-        let dt = read_data.dt.0;
-
-        auras.set_event_emission(false);
 
         // Iterate through all entities with an aura
-        for (entity, pos, mut auras_comp, uid) in (
+        for (entity, pos, auras_comp, uid) in (
             &read_data.entities,
             &read_data.positions,
-            &mut auras,
+            &read_data.auras,
             &read_data.uids,
         )
             .join()
         {
             let mut expired_auras = Vec::<AuraKey>::new();
             // Iterate through the auras attached to this entity
-            for (key, aura) in auras_comp.auras.iter_mut() {
+            for (key, aura) in auras_comp.auras.iter() {
                 // Tick the aura and subtract dt from it
-                if let Some(remaining_time) = &mut aura.duration {
-                    if let Some(new_duration) =
-                        remaining_time.checked_sub(Duration::from_secs_f32(dt))
-                    {
-                        *remaining_time = new_duration;
-                    } else {
-                        *remaining_time = Duration::default();
+                if let Some(end_time) = aura.end_time {
+                    if read_data.time.0 > end_time.0 {
                         expired_auras.push(key);
                     }
                 }
@@ -143,7 +134,6 @@ impl<'a> System<'a> for Sys {
                 });
             }
         }
-        auras.set_event_emission(true);
     }
 }
 
