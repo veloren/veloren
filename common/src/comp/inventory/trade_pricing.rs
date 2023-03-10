@@ -456,6 +456,7 @@ struct EqualitySet {
 
 impl EqualitySet {
     fn canonical<'a>(&'a self, item_name: &'a ItemDefinitionIdOwned) -> &'a ItemDefinitionIdOwned {
+        // TODO: use hashbrown Equivalent trait to avoid needing owned item def here
         let canonical_itemname = self
             .equivalence_class
             .get(item_name)
@@ -996,7 +997,7 @@ impl TradePricing {
         result
     }
 
-    fn get_materials_impl(&self, item: &ItemDefinitionId) -> Option<MaterialUse> {
+    fn get_materials_impl(&self, item: &ItemDefinitionId<'_>) -> Option<MaterialUse> {
         self.price_lookup(&item.to_owned()).cloned()
     }
 
@@ -1012,7 +1013,7 @@ impl TradePricing {
     }
 
     #[must_use]
-    pub fn get_materials(item: &ItemDefinitionId) -> Option<MaterialUse> {
+    pub fn get_materials(item: &ItemDefinitionId<'_>) -> Option<MaterialUse> {
         TRADE_PRICING.get_materials_impl(item)
     }
 

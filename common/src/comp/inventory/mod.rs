@@ -408,6 +408,21 @@ impl Inventory {
             .map(|(slot, _)| slot)
     }
 
+    pub fn get_slot_of_item_by_def_id(
+        &self,
+        item_def_id: &item::ItemDefinitionIdOwned,
+    ) -> Option<InvSlotId> {
+        self.slots_with_id()
+            .find(|&(_, it)| {
+                if let Some(it) = it {
+                    it.item_definition_id() == *item_def_id
+                } else {
+                    false
+                }
+            })
+            .map(|(slot, _)| slot)
+    }
+
     /// Get content of a slot
     pub fn get(&self, inv_slot_id: InvSlotId) -> Option<&Item> {
         self.slot(inv_slot_id).and_then(Option::as_ref)

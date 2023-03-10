@@ -7,7 +7,7 @@ use crate::{
         character_state::OutputEvents,
         controller::InventoryManip,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
-        item::{armor::Friction, tool::AbilityContext, Hands, Item, ItemKind, ToolKind},
+        item::{armor::Friction, tool::AbilityContext, Hands, ItemKind, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -918,24 +918,28 @@ pub fn handle_manipulate_loadout(
                             UnlockKind::Requires(item) => Some((item, false)),
                             UnlockKind::Consumes(item) => Some((item, true)),
                         });
-                    let has_required_items = required_item
-                        .as_ref()
-                        .and_then(|(i, _consume)| {
-                            Item::new_from_item_definition_id(
-                                i.as_ref(),
-                                data.ability_map,
-                                data.msm,
-                            )
-                            .ok()
-                        })
-                        .map_or(true, |i| {
-                            data.inventory.map_or(false, |inv| inv.contains(&i))
-                        });
+
+                    // None: An required items exist but no available
+                    // Some(None): No required items
+                    // Some(Some(_)): Required items satisfied, contains info about them
+                    let has_required_items = match required_item {
+                        Some((item_id, consume)) => {
+                            if let Some(slot) = data
+                                .inventory
+                                .and_then(|inv| inv.get_slot_of_item_by_def_id(&item_id))
+                            {
+                                Some(Some((item_id, slot, consume)))
+                            } else {
+                                None
+                            }
+                        },
+                        None => Some(None),
+                    };
 
                     // If path can be found between entity interacting with sprite and entity, start
                     // interaction with sprite
                     if not_blocked_by_terrain {
-                        if has_required_items {
+                        if let Some(required_item) = has_required_items {
                             // If the sprite is collectible, enter the sprite interaction character
                             // state TODO: Handle cases for sprite being
                             // interactible, but not collectible (none currently

@@ -1,8 +1,7 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents,
-        item::{Item, ItemDefinitionIdOwned},
+        character_state::OutputEvents, inventory::slot::InvSlotId, item::ItemDefinitionIdOwned,
         CharacterState, InventoryManip, StateUpdate,
     },
     event::{LocalEvent, ServerEvent},
@@ -33,8 +32,13 @@ pub struct StaticData {
     /// Was sneaking
     pub was_sneak: bool,
     /// The item required to interact with the sprite, if one was required
-    // If second field is true, item should be consumed on collection
-    pub required_item: Option<(ItemDefinitionIdOwned, bool)>,
+    ///
+    /// The second field is the slot that the required item was in when this
+    /// state was created. If it isn't in this slot anymore the interaction will
+    /// fail.
+    ///
+    /// If third field is true, item should be consumed on collection
+    pub required_item: Option<(ItemDefinitionIdOwned, InvSlotId, bool)>,
     /// Miscellaneous information about the ability
     pub ability_info: AbilityInfo,
 }
@@ -97,32 +101,20 @@ impl CharacterBehavior for Data {
                     }
                 } else {
                     // Create inventory manipulation event
-                    let required_item =
-                        self.static_data
-                            .required_item
-                            .as_ref()
-                            .and_then(|(i, consume)| {
-                                Some((
-                                    Item::new_from_item_definition_id(
-                                        i.as_ref(),
-                                        data.ability_map,
-                                        data.msm,
-                                    )
-                                    .ok()?,
-                                    *consume,
-                                ))
-                            });
-                    let has_required_item =
-                        required_item.as_ref().map_or(true, |(item, _consume)| {
-                            data.inventory.map_or(false, |inv| inv.contains(item))
+                    let (has_required_item, inv_slot) = self
+                        .static_data
+                        .required_item
+                        .as_ref()
+                        .map_or((true, None), |&(ref item_def_id, slot, consume)| {
+                            // Check that required item is still in expected slot
+                            let has_item = data
+                                .inventory
+                                .and_then(|inv| inv.get(slot))
+                                .map_or(false, |item| item.item_definition_id() == *item_def_id);
+
+                            (has_item, has_item.then_some((slot, consume)))
                         });
                     if has_required_item {
-                        let inv_slot = required_item.and_then(|(item, consume)| {
-                            Some((
-                                data.inventory.and_then(|inv| inv.get_slot_of_item(&item))?,
-                                consume,
-                            ))
-                        });
                         let inv_manip = InventoryManip::Collect {
                             sprite_pos: self.static_data.sprite_pos,
                             required_item: inv_slot,
