@@ -1039,13 +1039,13 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
         use common::terrain::SpriteKind;
         let pos = pos.map(|e| e.floor() as i32);
         if let Some(block) = terrain.get(pos).ok().copied().filter(|b| b.is_bonkable()) {
-            if let Some(item) = comp::Item::try_reclaim_from_block(block) {
-                if block_change
-                    .try_set(pos, block.with_sprite(SpriteKind::Empty))
-                    .is_some()
-                {
-                    drop(terrain);
-                    drop(block_change);
+            if block_change
+                .try_set(pos, block.with_sprite(SpriteKind::Empty))
+                .is_some()
+            {
+                drop(terrain);
+                drop(block_change);
+                if let Some(item) = comp::Item::try_reclaim_from_block(block) {
                     server
                         .state
                         .create_object(Default::default(), match block.get_sprite() {
@@ -1064,7 +1064,7 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
                         })
                         .build();
                 }
-            };
+            }
         }
     }
 }
