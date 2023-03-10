@@ -18,6 +18,7 @@ mod overhead;
 mod overitem;
 mod popup;
 mod prompt_dialog;
+mod quest;
 mod settings_window;
 mod skillbar;
 mod slots;
@@ -48,6 +49,7 @@ use map::Map;
 use minimap::{MiniMap, VoxelMinimap};
 use popup::Popup;
 use prompt_dialog::PromptDialog;
+use quest::Quest;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
@@ -318,6 +320,7 @@ widget_ids! {
         esc_menu,
         small_window,
         social_window,
+        quest_window,
         crafting_window,
         settings_window,
         group_window,
@@ -891,6 +894,7 @@ pub struct Show {
     social: bool,
     diary: bool,
     group: bool,
+    quest: bool,
     group_menu: bool,
     esc_menu: bool,
     open_windows: Windows,
@@ -941,6 +945,7 @@ impl Show {
             self.crafting = false;
             self.crafting_fields.salvage = false;
             self.social = false;
+            self.quest = false;
             self.diary = false;
             self.want_grab = !self.any_window_requires_cursor();
         }
@@ -954,6 +959,15 @@ impl Show {
             }
             self.social = open;
             self.diary = false;
+            self.want_grab = !self.any_window_requires_cursor();
+        }
+    }
+
+    fn quest(&mut self, open: bool) {
+        if !self.esc_menu {
+            self.quest = open;
+            self.diary = false;
+            self.map = false;
             self.want_grab = !self.any_window_requires_cursor();
         }
     }
@@ -990,6 +1004,7 @@ impl Show {
     fn diary(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = false;
+            self.quest = false;
             self.crafting = false;
             self.crafting_fields.salvage = false;
             self.bag = false;
@@ -1009,6 +1024,7 @@ impl Show {
             };
             self.bag = false;
             self.social = false;
+            self.quest = false;
             self.crafting = false;
             self.crafting_fields.salvage = false;
             self.diary = false;
@@ -1060,6 +1076,7 @@ impl Show {
             || self.diary
             || self.help
             || self.intro
+            || self.quest
             || !matches!(self.open_windows, Windows::None)
     }
 
@@ -1072,6 +1089,7 @@ impl Show {
             self.intro = false;
             self.map = false;
             self.social = false;
+            self.quest = false;
             self.diary = false;
             self.crafting = false;
             self.open_windows = Windows::None;
@@ -1125,6 +1143,7 @@ impl Show {
             && !self.esc_menu
             && !self.map
             && !self.social
+            && !self.quest
             && !self.crafting
             && !self.diary
             && !self.help
@@ -1373,6 +1392,8 @@ impl Hud {
                 social: false,
                 diary: false,
                 group: false,
+                // Change this before implementation!
+                quest: false,
                 group_menu: false,
                 chat_tab_settings_index: None,
                 settings_tab: SettingsTab::Interface,
@@ -3313,6 +3334,37 @@ impl Hud {
                 }
             }
         }
+        // Quest Window
+        let stats = client.state().ecs().read_storage::<comp::Stats>();
+        if self.show.quest {
+            if let Some(stats) = stats.get(entity) {
+                match Quest::new(
+                    &self.show,
+                    client,
+                    &self.imgs,
+                    &self.fonts,
+                    i18n,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                    stats,
+                    &self.item_imgs,
+                    self.pulse,
+                )
+                .set(self.ids.quest_window, ui_widgets)
+                {
+                    Some(quest::Event::Close) => {
+                        self.show.quest(false);
+                        if !self.show.bag {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
+                    },
+                    None => {},
+                }
+            }
+        }
 
         // Social Window
         if self.show.social {
@@ -4063,7 +4115,7 @@ impl Hud {
                         self.show.want_grab = false;
                         let quest_headline = i18n.get_msg("hud-temp_quest_headline");
                         let quest_text = i18n.get_msg("hud-temp_quest_text");
-                        Image::new(self.imgs.quest_bg)
+                        Image::new(self.imgs.quest_bg0)
                             .w_h(404.0, 858.0)
                             .middle_of(ui_widgets.window)
                             .set(self.ids.quest_bg, ui_widgets);
