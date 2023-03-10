@@ -129,11 +129,13 @@ impl CharacterBehavior for Data {
                         };
                         output_events
                             .emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
-                        output_events.emit_local(LocalEvent::CreateOutcome(
-                            Outcome::SpriteUnlocked {
-                                pos: self.static_data.sprite_pos,
-                            },
-                        ));
+                        if matches!(self.static_data.sprite_kind, SpriteInteractKind::Unlock) {
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::SpriteUnlocked {
+                                    pos: self.static_data.sprite_pos,
+                                },
+                            ));
+                        }
                     }
                     // Done
                     end_ability(data, &mut update);
