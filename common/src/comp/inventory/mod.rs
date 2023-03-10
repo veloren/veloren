@@ -400,11 +400,6 @@ impl Inventory {
         self.slots_with_id()
             .find(|&(_, it)| {
                 if let Some(it) = it {
-                    if it.components().len() == item.components().len() {
-                        // TODO: add a ComponentKey struct to compare components, see issue #1226
-                        debug_assert!(it.components().is_empty());
-                        debug_assert!(item.components().is_empty());
-                    }
                     it.item_definition_id() == item.item_definition_id()
                 } else {
                     false
