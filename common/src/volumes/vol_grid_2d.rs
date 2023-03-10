@@ -221,12 +221,19 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 
     pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> { self.chunks.remove(&key) }
 
+    /// Converts a chunk key (i.e. coordinates in terms of chunks) into a
+    /// position in the world (aka "wpos").
+    ///
+    /// The returned position will be in the corner of the chunk.
     #[inline(always)]
     pub fn key_pos(&self, key: Vec2<i32>) -> Vec2<i32> { Self::key_chunk(key) }
 
+    /// Converts a position in the world into a chunk key (i.e. coordinates in
+    /// terms of chunks).
     #[inline(always)]
     pub fn pos_key(&self, pos: Vec3<i32>) -> Vec2<i32> { Self::chunk_key(pos) }
 
+    /// Gets the chunk that contains the provided world position.
     #[inline(always)]
     pub fn pos_chunk(&self, pos: Vec3<i32>) -> Option<&V> { self.get_key(self.pos_key(pos)) }
 
