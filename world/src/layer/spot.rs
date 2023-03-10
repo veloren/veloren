@@ -436,7 +436,7 @@ impl Spot {
         Self::generate_spots(
             Spot::ForestCamp,
             world,
-            8.0,
+            4.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -450,7 +450,7 @@ impl Spot {
         Self::generate_spots(
             Spot::SnowCamp,
             world,
-            6.0,
+            1.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -480,7 +480,7 @@ impl Spot {
         Self::generate_spots(
             Spot::GraveSmall,
             world,
-            50.0,
+            2.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()

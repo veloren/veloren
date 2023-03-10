@@ -103,6 +103,12 @@ image_ids! {
         wpn_icon_border_press: "voxygen.element.ui.generic.buttons.border_press",
         wpn_icon_border_pressed: "voxygen.element.ui.generic.buttons.border_pressed",
 
+        // Quest Window
+        quest_bg: "voxygen.element.ui.quests.quest_bg",
+        quest_frame: "voxygen.element.ui.quests.quest_frame",
+        quest_ico: "voxygen.element.ui.quests.quest_icon",
+
+
         // Social Window
         social_frame_on: "voxygen.element.ui.social.social_frame",
         social_bg_on: "voxygen.element.ui.social.social_bg",
@@ -155,7 +161,7 @@ image_ids! {
         chat_tab_settings_bg: "voxygen.element.ui.settings.chat_tab_settings_bg",
         chat_tab_settings_frame: "voxygen.element.ui.settings.chat_tab_settings_frame",
 
-        quest_bg: "voxygen.element.ui.quests.temp_quest_bg",
+        quest_bg0: "voxygen.element.ui.quests.temp_quest_bg",
 
         // Slider
         slider: "voxygen.element.ui.generic.slider.track",
@@ -616,9 +622,7 @@ image_ids! {
         health_bar_group_bg: "voxygen.element.ui.generic.frames.enemybar_bg_1",
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.ui.skillbar.enemy_bar_content",
-
         map_icon: "voxygen.element.ui.generic.buttons.map",
-
         grid_button: "voxygen.element.ui.generic.buttons.border",
         grid_button_hover: "voxygen.element.ui.generic.buttons.border_mo",
         grid_button_press: "voxygen.element.ui.generic.buttons.border_press",

@@ -517,7 +517,7 @@ impl SpriteKind {
             .and_then(|cfg| cfg.unlock)
             .unwrap_or_else(|| match self {
                 // Example, do not let this merge with twigs requiring cheese to pick up
-                SpriteKind::CommonLockedChest => UnlockKind::Requires(ItemDefinitionId::Simple("common.items.utility.lockpick_0").to_owned()),
+                SpriteKind::CommonLockedChest => UnlockKind::Consumes(ItemDefinitionId::Simple("common.items.utility.lockpick_0").to_owned()),
                 _ => UnlockKind::Free,
             })
     }
