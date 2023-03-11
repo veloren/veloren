@@ -49,6 +49,7 @@ gameinput-togglewield = Byt draget vapen
 gameinput-interact = Interagera
 gameinput-freelook = Frigör kamera
 gameinput-autowalk = Gå eller simma automatiskt
+gameinput-zoomlock = Lås kamerazoom
 gameinput-cameraclamp = Lås kamera
 gameinput-dance = Dansa
 gameinput-select = Välj entitet
