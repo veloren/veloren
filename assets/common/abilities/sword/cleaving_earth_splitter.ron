@@ -1,13 +1,14 @@
 DiveMelee(
     energy_cost: 15,
     vertical_speed: 5,
+    buildup_duration: Some(0.1),
     movement_duration: 5,
     swing_duration: 0.1,
     recover_duration: 0.3,
     melee_constructor: (
         kind: Slash(
-            damage: 0,
-            poise: 0,
+            damage: 5,
+            poise: 5,
             knockback: 0,
             energy_regen: 0,
         ),
