@@ -923,16 +923,11 @@ pub fn handle_manipulate_loadout(
                     // Some(None): No required items
                     // Some(Some(_)): Required items satisfied, contains info about them
                     let has_required_items = match required_item {
-                        Some((item_id, consume)) => {
-                            if let Some(slot) = data
-                                .inventory
-                                .and_then(|inv| inv.get_slot_of_item_by_def_id(&item_id))
-                            {
-                                Some(Some((item_id, slot, consume)))
-                            } else {
-                                None
-                            }
-                        },
+                        // Produces `None` if we can't find the item or `Some(Some(_))` if we can
+                        Some((item_id, consume)) => data
+                            .inventory
+                            .and_then(|inv| inv.get_slot_of_item_by_def_id(&item_id))
+                            .map(|slot| Some((item_id, slot, consume))),
                         None => Some(None),
                     };
 

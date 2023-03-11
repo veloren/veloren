@@ -287,7 +287,7 @@ pub fn apply_trees_to(
                                 },
                                 (_, _, _, true) => &StructureBlock::None,
                                 (true, _, _, _) => &t.config.trunk_block,
-                                (_, true, _, _) => &leaf_block,
+                                (_, true, _, _) => leaf_block,
                                 _ => &StructureBlock::None,
                             },
                         ),
