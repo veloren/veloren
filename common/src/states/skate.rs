@@ -57,8 +57,7 @@ impl CharacterBehavior for Data {
                         data.sidewalk = 0.0;
                     }
                     // forward, max at 8u/s
-                    (data.dt.0 * 3.0)
-                        .clamp(0.0, 8.0 - current_planar_velocity)
+                    (data.dt.0 * 3.0).clamp(0.0, 8.0 - current_planar_velocity)
                 } else {
                     if let CharacterState::Skate(data) = &mut update.character {
                         data.accelerate = -1.0;

@@ -1,9 +1,7 @@
 use super::utils::*;
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, StateUpdate},
-    states::{
-        behavior::{CharacterBehavior, JoinData},
-    },
+    states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -76,7 +74,11 @@ impl CharacterBehavior for Data {
             },
             StageSection::Action => {
                 if self.static_data.can_hold
-                    && self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
+                    && self
+                        .static_data
+                        .ability_info
+                        .input
+                        .map_or(false, |input| input_is_pressed(data, input))
                 {
                     // Block
                     update.character = CharacterState::BasicBlock(Data {

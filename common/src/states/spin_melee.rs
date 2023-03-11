@@ -121,7 +121,11 @@ impl CharacterBehavior for Data {
                 } else if update.energy.current() >= self.static_data.energy_cost
                     && (self.consecutive_spins < self.static_data.num_spins
                         || (self.static_data.is_infinite
-                            && self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))))
+                            && self
+                                .static_data
+                                .ability_info
+                                .input
+                                .map_or(false, |input| input_is_pressed(data, input))))
                 {
                     update.character = CharacterState::SpinMelee(Data {
                         timer: Duration::default(),

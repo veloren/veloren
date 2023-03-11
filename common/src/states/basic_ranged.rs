@@ -1,9 +1,9 @@
 use crate::{
+    combat::CombatEffect,
     comp::{
         character_state::OutputEvents, Body, CharacterState, LightEmitter, Pos,
         ProjectileConstructor, StateUpdate,
     },
-    combat::CombatEffect,
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -127,7 +127,12 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
+                    if self
+                        .static_data
+                        .ability_info
+                        .input
+                        .map_or(false, |input| input_is_pressed(data, input))
+                    {
                         reset_state(self, data, output_events, &mut update);
                     } else {
                         end_ability(data, &mut update);
@@ -154,11 +159,6 @@ fn reset_state(
     update: &mut StateUpdate,
 ) {
     if let Some(input) = data.static_data.ability_info.input {
-        handle_input(
-            join,
-            output_events,
-            update,
-            input,
-        );
+        handle_input(join, output_events, update, input);
     }
 }

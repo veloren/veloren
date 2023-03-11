@@ -88,9 +88,9 @@ impl CharacterBehavior for Data {
                                 self.static_data.combo_on_use as f32
                                     / self.static_data.minimum_combo as f32
                             },
-                            ScalingKind::Sqrt => {
-                                (self.static_data.combo_on_use as f32 / self.static_data.minimum_combo as f32).sqrt()
-                            },
+                            ScalingKind::Sqrt => (self.static_data.combo_on_use as f32
+                                / self.static_data.minimum_combo as f32)
+                                .sqrt(),
                         };
                         match scaling.target {
                             ScalingTarget::Attack => {

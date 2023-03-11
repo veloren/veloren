@@ -3,7 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget, Knockback,
     },
-    comp::{character_state::OutputEvents, CharacterState, shockwave, StateUpdate},
+    comp::{character_state::OutputEvents, shockwave, CharacterState, StateUpdate},
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{
@@ -88,7 +88,6 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else {
-
                     // Transitions to leap portion of state after buildup delay
                     update.character = CharacterState::LeapShockwave(Data {
                         timer: Duration::default(),
@@ -102,7 +101,7 @@ impl CharacterBehavior for Data {
                     // Apply jumping force
                     let progress = 1.0
                         - self.timer.as_secs_f32()
-                        / self.static_data.movement_duration.as_secs_f32();
+                            / self.static_data.movement_duration.as_secs_f32();
                     handle_forced_movement(data, &mut update, ForcedMovement::Leap {
                         vertical: self.static_data.vertical_leap_strength,
                         forward: self.static_data.forward_leap_strength,
@@ -142,12 +141,12 @@ impl CharacterBehavior for Data {
                         Some(GroupTarget::OutOfGroup),
                         CombatEffect::Poise(self.static_data.poise_damage),
                     )
-                        .with_requirement(CombatRequirement::AnyDamage);
+                    .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = AttackEffect::new(
                         Some(GroupTarget::OutOfGroup),
                         CombatEffect::Knockback(self.static_data.knockback),
                     )
-                        .with_requirement(CombatRequirement::AnyDamage);
+                    .with_requirement(CombatRequirement::AnyDamage);
                     let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Shockwave,
@@ -185,9 +184,7 @@ impl CharacterBehavior for Data {
                     });
                     // Send local event used for frontend shenanigans
                     output_events.emit_local(LocalEvent::CreateOutcome(Outcome::IceSpikes {
-                        pos: data.pos.0
-                            + *data.ori.look_dir()
-                            * (data.body.max_radius()),
+                        pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
                     }));
                 } else {
                     // Transitions to recover

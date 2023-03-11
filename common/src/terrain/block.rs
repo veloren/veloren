@@ -282,8 +282,7 @@ impl Block {
             BlockKind::Lava => None,
             _ => self.get_sprite().and_then(|sprite| match sprite {
                 sprite if sprite.is_container() => None,
-                SpriteKind::Keyhole
-                | SpriteKind::KeyDoor => None,
+                SpriteKind::Keyhole | SpriteKind::KeyDoor => None,
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron
                 | SpriteKind::CookingPot
@@ -307,9 +306,10 @@ impl Block {
                 | SpriteKind::SeaDecorWindowVer
                 | SpriteKind::Rope
                 | SpriteKind::GlassBarrier => None,
-                SpriteKind::EnsnaringVines | SpriteKind::EnsnaringWeb | SpriteKind::SeaUrchin | SpriteKind::IceSpike => {
-                    Some(0.1)
-                },
+                SpriteKind::EnsnaringVines
+                | SpriteKind::EnsnaringWeb
+                | SpriteKind::SeaUrchin
+                | SpriteKind::IceSpike => Some(0.1),
                 _ => Some(0.25),
             }),
         }

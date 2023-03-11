@@ -1,28 +1,22 @@
 use crate::{
-    comp::{item::{ItemDefinitionId, ItemDefinitionIdOwned}, tool::ToolKind},
+    comp::{
+        item::{ItemDefinitionId, ItemDefinitionIdOwned},
+        tool::ToolKind,
+    },
     lottery::LootSpec,
     make_case_elim,
 };
-use strum::EnumIter;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt};
+use strum::EnumIter;
 
 make_case_elim!(
     sprite_kind,
     #[derive(
-        Copy,
-        Clone,
-        Debug,
-        Hash,
-        Eq,
-        PartialEq,
-        Serialize,
-        Deserialize,
-        EnumIter,
-        FromPrimitive,
+        Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize, EnumIter, FromPrimitive,
     )]
     #[repr(u8)]
     pub enum SpriteKind {
@@ -230,9 +224,9 @@ make_case_elim!(
         SeaDecorPillar = 0xC7,
         SeashellLantern = 0xC8,
         Rope = 0xC9,
-        IceSpike = 0xCA,        
-        Bedroll = 0xCB,        
-        BedrollSnow = 0xCC,        
+        IceSpike = 0xCA,
+        Bedroll = 0xCB,
+        BedrollSnow = 0xCC,
         BedrollPirate = 0xCD,
         Tent = 0xCE,
         Grave = 0xCF,
@@ -242,10 +236,10 @@ make_case_elim!(
         MagicalBarrier = 0xD3,
         MagicalSeal = 0xD4,
         WallLampWizard = 0xD5,
-        Candle = 0xD6,  
+        Candle = 0xD6,
         Keyhole = 0xD7,
-        KeyDoor = 0xD8,     
-        CommonLockedChest = 0xD9, 
+        KeyDoor = 0xD8,
+        CommonLockedChest = 0xD9,
     }
 );
 
@@ -511,13 +505,17 @@ impl SpriteKind {
     }
 
     /// Requires this item in the inventory to harvest, uses item_definition_id
-    // TODO: Do we want to consolidate this with mine_tool at all? Main differences are that mine tool requires item to be an equippable tool, be equipped, and does not consume item while required_item requires that the item be in the inventory and will consume the item on collecting the sprite.
+    // TODO: Do we want to consolidate this with mine_tool at all? Main differences
+    // are that mine tool requires item to be an equippable tool, be equipped, and
+    // does not consume item while required_item requires that the item be in the
+    // inventory and will consume the item on collecting the sprite.
     pub fn unlock_condition(&self, cfg: Option<SpriteCfg>) -> UnlockKind {
-        cfg
-            .and_then(|cfg| cfg.unlock)
+        cfg.and_then(|cfg| cfg.unlock)
             .unwrap_or_else(|| match self {
                 // Example, do not let this merge with twigs requiring cheese to pick up
-                SpriteKind::CommonLockedChest => UnlockKind::Consumes(ItemDefinitionId::Simple("common.items.utility.lockpick_0").to_owned()),
+                SpriteKind::CommonLockedChest => UnlockKind::Consumes(
+                    ItemDefinitionId::Simple("common.items.utility.lockpick_0").to_owned(),
+                ),
                 _ => UnlockKind::Free,
             })
     }
@@ -613,9 +611,8 @@ impl fmt::Display for SpriteKind {
 use strum::IntoEnumIterator;
 
 lazy_static! {
-    pub static ref SPRITE_KINDS: HashMap<String, SpriteKind> = SpriteKind::iter()
-        .map(|sk| (sk.to_string(), sk))
-        .collect();
+    pub static ref SPRITE_KINDS: HashMap<String, SpriteKind> =
+        SpriteKind::iter().map(|sk| (sk.to_string(), sk)).collect();
 }
 
 impl<'a> TryFrom<&'a str> for SpriteKind {
@@ -629,9 +626,11 @@ impl<'a> TryFrom<&'a str> for SpriteKind {
 pub enum UnlockKind {
     /// The sprite can be freely unlocked without any conditions
     Free,
-    /// The sprite requires that the opening character has a given item in their inventory
+    /// The sprite requires that the opening character has a given item in their
+    /// inventory
     Requires(ItemDefinitionIdOwned),
-    /// The sprite will consume the given item from the opening character's inventory
+    /// The sprite will consume the given item from the opening character's
+    /// inventory
     Consumes(ItemDefinitionIdOwned),
 }
 

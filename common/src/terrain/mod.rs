@@ -12,12 +12,12 @@ pub use self::{
     block::{Block, BlockKind},
     map::MapSizeLg,
     site::SiteKindMeta,
-    sprite::{SpriteKind, SpriteCfg, UnlockKind},
+    sprite::{SpriteCfg, SpriteKind, UnlockKind},
     structure::{Structure, StructuresGroup},
 };
+use hashbrown::HashMap;
 use roots::find_roots_cubic;
 use serde::{Deserialize, Serialize};
-use hashbrown::HashMap;
 
 use crate::{
     vol::{ReadVol, RectVolSize},
@@ -100,9 +100,10 @@ impl CoordinateConversions for Vec2<f32> {
 
 impl CoordinateConversions for Vec2<f64> {
     #[inline]
-    fn wpos_to_cpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f64)}
+    fn wpos_to_cpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f64) }
+
     #[inline]
-    fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as f64)}
+    fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as f64) }
 }
 
 // TerrainChunkMeta
@@ -205,9 +206,7 @@ impl TerrainChunkMeta {
 
     pub fn debug_lines(&self) -> &[LineSegment3<f32>] { &self.debug_lines }
 
-    pub fn add_debug_line(&mut self, line: LineSegment3<f32>) {
-        self.debug_lines.push(line);
-    }
+    pub fn add_debug_line(&mut self, line: LineSegment3<f32>) { self.debug_lines.push(line); }
 
     pub fn sprite_cfg_at(&self, rpos: Vec3<i32>) -> Option<&SpriteCfg> {
         self.sprite_cfgs.get(&rpos)

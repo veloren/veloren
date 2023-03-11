@@ -1,8 +1,8 @@
 use crate::{
     terrain::MapSizeLg,
+    util::GridHasher,
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, WriteVol},
     volumes::dyna::DynaError,
-    util::GridHasher,
 };
 use hashbrown::{hash_map, HashMap};
 use std::{fmt::Debug, ops::Deref, sync::Arc};
@@ -42,7 +42,8 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 
     #[inline(always)]
     pub fn par_keys(&self) -> hashbrown::hash_map::rayon::ParKeys<Vec2<i32>, Arc<V>>
-        where V: Send + Sync,
+    where
+        V: Send + Sync,
     {
         self.chunks.par_keys()
     }
@@ -185,7 +186,8 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 
     #[inline(always)]
     pub fn get_key_real(&self, key: Vec2<i32>) -> Option<&V> {
-        self.get_key_arc_real(key).map(|arc_chunk| arc_chunk.as_ref())
+        self.get_key_arc_real(key)
+            .map(|arc_chunk| arc_chunk.as_ref())
     }
 
     #[inline(always)]
@@ -197,20 +199,21 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     }
 
     #[inline(always)]
-    pub fn contains_key_real(&self, key: Vec2<i32>) -> bool {
-        self.chunks.contains_key(&key)
-    }
+    pub fn contains_key_real(&self, key: Vec2<i32>) -> bool { self.chunks.contains_key(&key) }
 
     #[inline(always)]
     pub fn get_key_arc(&self, key: Vec2<i32>) -> Option<&Arc<V>> {
-        self.get_key_arc_real(key)
-            .or_else(|| if !self.map_size_lg.contains_chunk(key) { Some(&self.default) } else { None })
+        self.get_key_arc_real(key).or_else(|| {
+            if !self.map_size_lg.contains_chunk(key) {
+                Some(&self.default)
+            } else {
+                None
+            }
+        })
     }
 
     #[inline(always)]
-    pub fn get_key_arc_real(&self, key: Vec2<i32>) -> Option<&Arc<V>> {
-        self.chunks.get(&key)
-    }
+    pub fn get_key_arc_real(&self, key: Vec2<i32>) -> Option<&Arc<V>> { self.chunks.get(&key) }
 
     pub fn clear(&mut self) { self.chunks.clear(); }
 
@@ -225,9 +228,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     pub fn pos_key(&self, pos: Vec3<i32>) -> Vec2<i32> { Self::chunk_key(pos) }
 
     #[inline(always)]
-    pub fn pos_chunk(&self, pos: Vec3<i32>) -> Option<&V> {
-        self.get_key(self.pos_key(pos))
-    }
+    pub fn pos_chunk(&self, pos: Vec3<i32>) -> Option<&V> { self.get_key(self.pos_key(pos)) }
 
     pub fn iter(&self) -> ChunkIter<V> {
         ChunkIter {

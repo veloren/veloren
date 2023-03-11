@@ -10,7 +10,6 @@ use serde::Deserialize;
 use std::{num::NonZeroU8, sync::Arc};
 use vek::*;
 
-
 make_case_elim!(
     structure_block,
     #[derive(Clone, PartialEq, Debug, Deserialize)]

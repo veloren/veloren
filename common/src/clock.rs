@@ -80,7 +80,13 @@ impl Clock {
         if self.last_dts.len() >= NUMBER_OF_DELTAS_COMPARED {
             // Take the median of the last few tick times
             let mut dts = [0.0; NUMBER_OF_DELTAS_COMPARED];
-            for (i, dt) in self.last_dts.iter().rev().take(NUMBER_OF_DELTAS_COMPARED).enumerate() {
+            for (i, dt) in self
+                .last_dts
+                .iter()
+                .rev()
+                .take(NUMBER_OF_DELTAS_COMPARED)
+                .enumerate()
+            {
                 dts[i] = **dt;
             }
             dts.sort_by_key(|x| ordered_float::OrderedFloat(*x));

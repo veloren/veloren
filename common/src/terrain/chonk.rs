@@ -198,8 +198,7 @@ impl<V, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
             let rpos = pos
                 - Vec3::unit_z()
                     * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
-            self.sub_chunks[sub_chunk_idx as usize]
-                .get_unchecked(rpos)
+            self.sub_chunks[sub_chunk_idx as usize].get_unchecked(rpos)
         }
     }
 
@@ -208,12 +207,16 @@ impl<V, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
         Self::Vox: Copy,
     {
         let idx = self.sub_chunk_idx(aabb.min.z);
-        // Special-case for the AABB being entirely within a single sub-chunk as this is very common.
+        // Special-case for the AABB being entirely within a single sub-chunk as this is
+        // very common.
         if idx == self.sub_chunk_idx(aabb.max.z) && idx >= 0 && idx < self.sub_chunks.len() as i32 {
             let sub_chunk = &self.sub_chunks[idx as usize];
             let z_off = self.z_offset + idx * SubChunkSize::<S>::SIZE.z as i32;
             sub_chunk.for_each_in(
-                Aabb { min: aabb.min.with_z(aabb.min.z - z_off), max: aabb.max.with_z(aabb.max.z - z_off) },
+                Aabb {
+                    min: aabb.min.with_z(aabb.min.z - z_off),
+                    max: aabb.max.with_z(aabb.max.z - z_off),
+                },
                 |pos, vox| f(pos.with_z(pos.z + z_off), vox),
             );
         } else {

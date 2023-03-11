@@ -1,9 +1,9 @@
 use crate::{
+    combat::CombatEffect,
     comp::{
         character_state::OutputEvents, Body, CharacterState, LightEmitter, Pos,
         ProjectileConstructor, StateUpdate,
     },
-    combat::CombatEffect,
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -87,7 +87,11 @@ impl CharacterBehavior for Data {
                             .unwrap_or_default(),
                         ..*self
                     });
-                } else if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
+                } else if self
+                    .static_data
+                    .ability_info
+                    .input
+                    .map_or(false, |input| input_is_pressed(data, input))
                     && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Fire if input is pressed still

@@ -1,11 +1,15 @@
 use crate::{
     comp::{
-        character_state::OutputEvents, tool::Stats, CharacterState, InputKind,
-        MeleeConstructor, StateUpdate, InputAttr, InventoryAction, slot::{Slot, EquipSlot},
+        character_state::OutputEvents,
+        slot::{EquipSlot, Slot},
+        tool::Stats,
+        CharacterState, InputAttr, InputKind, InventoryAction, MeleeConstructor, StateUpdate,
     },
     states::{
         behavior::{CharacterBehavior, JoinData},
-        utils::*, idle, wielding,
+        idle,
+        utils::*,
+        wielding,
     },
     uid::Uid,
 };
@@ -117,7 +121,10 @@ impl CharacterBehavior for Data {
         let ability_input = if self.static_data.is_stance {
             InputKind::Primary
         } else {
-            self.static_data.ability_info.input.unwrap_or(InputKind::Primary)
+            self.static_data
+                .ability_info
+                .input
+                .unwrap_or(InputKind::Primary)
         };
 
         handle_orientation(data, &mut update, 1.0, None);
@@ -133,7 +140,8 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             Some(StageSection::Ready) => {
-                // Adds a small duration to entering a stance to discourage spam swapping stances for ability activation benefits of matching stance
+                // Adds a small duration to entering a stance to discourage spam swapping
+                // stances for ability activation benefits of matching stance
                 if self.timer < STANCE_ENTER_TIME {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
@@ -166,8 +174,10 @@ impl CharacterBehavior for Data {
                 }
                 if input_is_pressed(data, ability_input) {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
-                        // Only have the next strike skip the recover period of this strike if not every strike in the combo is complete yet
-                        c.start_next_strike = (c.completed_strikes + 1) < c.static_data.strikes.len();
+                        // Only have the next strike skip the recover period of this strike if not
+                        // every strike in the combo is complete yet
+                        c.start_next_strike =
+                            (c.completed_strikes + 1) < c.static_data.strikes.len();
                     }
                 }
                 if self.timer.as_secs_f32()
@@ -248,7 +258,13 @@ impl CharacterBehavior for Data {
 
                 if input_is_pressed(data, ability_input) {
                     next_strike(&mut update)
-                } else if !self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) && !interrupted {
+                } else if !self
+                    .static_data
+                    .ability_info
+                    .input
+                    .map_or(false, |input| input_is_pressed(data, input))
+                    && !interrupted
+                {
                     attempt_input(data, output_events, &mut update);
                 }
             },
@@ -266,7 +282,8 @@ impl CharacterBehavior for Data {
     ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        if matches!(data.character, CharacterState::ComboMelee2(data) if data.static_data.ability_info.input == Some(input) && input != InputKind::Primary && data.stage_section.is_none()) {
+        if matches!(data.character, CharacterState::ComboMelee2(data) if data.static_data.ability_info.input == Some(input) && input != InputKind::Primary && data.stage_section.is_none())
+        {
             end_melee_ability(data, &mut update);
         } else {
             update.queued_inputs.insert(input, InputAttr {
@@ -281,8 +298,9 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
         if let CharacterState::ComboMelee2(c) = data.character {
             if c.stage_section.is_none() {
-                update.character =
-                    CharacterState::Wielding(wielding::Data { is_sneaking: data.character.is_stealthy() });
+                update.character = CharacterState::Wielding(wielding::Data {
+                    is_sneaking: data.character.is_stealthy(),
+                });
                 attempt_swap_equipped_weapons(data, &mut update);
             }
         }
@@ -314,7 +332,11 @@ impl CharacterBehavior for Data {
                 let reset_to_idle = match inv_action {
                     InventoryAction::Drop(slot)
                     | InventoryAction::Swap(slot, _)
-                    | InventoryAction::Swap(_, Slot::Equip(slot)) if matches!(slot, EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand) => true,
+                    | InventoryAction::Swap(_, Slot::Equip(slot))
+                        if matches!(slot, EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand) =>
+                    {
+                        true
+                    },
                     InventoryAction::Use(_) => true,
                     _ => false,
                 };
@@ -363,7 +385,10 @@ impl CharacterBehavior for Data {
     fn sneak(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         if let CharacterState::ComboMelee2(c) = data.character {
-            if c.stage_section.is_none() && data.physics.on_ground.is_some() && data.body.is_humanoid() {
+            if c.stage_section.is_none()
+                && data.physics.on_ground.is_some()
+                && data.body.is_humanoid()
+            {
                 update.character = CharacterState::Wielding(wielding::Data { is_sneaking: true });
             }
         }

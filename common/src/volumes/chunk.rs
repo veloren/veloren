@@ -309,9 +309,7 @@ impl<V, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     }
 
     #[inline(always)]
-    fn get_unchecked(&self, pos: Vec3<i32>) -> &Self::Vox {
-        self.get_unchecked(pos)
-    }
+    fn get_unchecked(&self, pos: Vec3<i32>) -> &Self::Vox { self.get_unchecked(pos) }
 
     fn for_each_in(&self, mut aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, Self::Vox))
     where

@@ -1,13 +1,13 @@
 mod color;
 pub mod dir;
 pub mod find_dist;
+mod grid_hasher;
 mod option;
 pub mod plane;
 pub mod projection;
 /// Contains [`SpatialGrid`] which is useful for accelerating queries of nearby
 /// entities
 mod spatial_grid;
-mod grid_hasher;
 
 pub const GIT_VERSION_BUILD: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 pub const GIT_TAG_BUILD: &str = include_str!(concat!(env!("OUT_DIR"), "/gittag"));
@@ -36,8 +36,8 @@ lazy_static::lazy_static! {
 
 pub use color::*;
 pub use dir::*;
+pub use grid_hasher::GridHasher;
 pub use option::either_with;
 pub use plane::Plane;
 pub use projection::Projection;
 pub use spatial_grid::SpatialGrid;
-pub use grid_hasher::GridHasher;

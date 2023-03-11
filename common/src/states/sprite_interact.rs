@@ -1,11 +1,13 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, InventoryManip, StateUpdate, item::{Item, ItemDefinitionIdOwned}},
-    event::{ServerEvent, LocalEvent},
-    outcome::Outcome,
-    states::{
-        behavior::{CharacterBehavior, JoinData},
+    comp::{
+        character_state::OutputEvents,
+        item::{Item, ItemDefinitionIdOwned},
+        CharacterState, InventoryManip, StateUpdate,
     },
+    event::{LocalEvent, ServerEvent},
+    outcome::Outcome,
+    states::behavior::{CharacterBehavior, JoinData},
     terrain::SpriteKind,
     util::Dir,
 };
@@ -95,20 +97,43 @@ impl CharacterBehavior for Data {
                     }
                 } else {
                     // Create inventory manipulation event
-                    let required_item = self.static_data.required_item
-                        .as_ref()
-                        .and_then(|(i, consume)| Some((
-                            Item::new_from_item_definition_id(i.as_ref(), data.ability_map, data.msm).ok()?,
-                            *consume,
-                        )));
-                    let has_required_item = required_item.as_ref().map_or(true, |(item, _consume)| data.inventory.map_or(false, |inv| inv.contains(item)));
+                    let required_item =
+                        self.static_data
+                            .required_item
+                            .as_ref()
+                            .and_then(|(i, consume)| {
+                                Some((
+                                    Item::new_from_item_definition_id(
+                                        i.as_ref(),
+                                        data.ability_map,
+                                        data.msm,
+                                    )
+                                    .ok()?,
+                                    *consume,
+                                ))
+                            });
+                    let has_required_item =
+                        required_item.as_ref().map_or(true, |(item, _consume)| {
+                            data.inventory.map_or(false, |inv| inv.contains(item))
+                        });
                     if has_required_item {
-                        let inv_slot = required_item.and_then(|(item, consume)| Some((data.inventory.and_then(|inv| inv.get_slot_of_item(&item))?, consume)));
-                        let inv_manip = InventoryManip::Collect { sprite_pos: self.static_data.sprite_pos, required_item: inv_slot };
-                        output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
-                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::SpriteUnlocked {
-                            pos: self.static_data.sprite_pos,
-                        }));
+                        let inv_slot = required_item.and_then(|(item, consume)| {
+                            Some((
+                                data.inventory.and_then(|inv| inv.get_slot_of_item(&item))?,
+                                consume,
+                            ))
+                        });
+                        let inv_manip = InventoryManip::Collect {
+                            sprite_pos: self.static_data.sprite_pos,
+                            required_item: inv_slot,
+                        };
+                        output_events
+                            .emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+                        output_events.emit_local(LocalEvent::CreateOutcome(
+                            Outcome::SpriteUnlocked {
+                                pos: self.static_data.sprite_pos,
+                            },
+                        ));
                     }
                     // Done
                     end_ability(data, &mut update);

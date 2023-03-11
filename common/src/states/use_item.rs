@@ -10,9 +10,7 @@ use crate::{
         CharacterState, InventoryManip, StateUpdate,
     },
     event::ServerEvent,
-    states::{
-        behavior::{CharacterBehavior, JoinData},
-    },
+    states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

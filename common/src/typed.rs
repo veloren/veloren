@@ -119,7 +119,7 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 /// # #[allow(non_snake_case)]
 /// # #[allow(dead_code)]
 /// mod my_type_module {
-///     use ::serde::{Deserialize, Serialize};
+///     use serde::{Deserialize, Serialize};
 ///
 ///     /// The number of variants in this enum.
 ///     pub const NUM_VARIANTS: usize = 2;

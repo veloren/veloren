@@ -7,7 +7,7 @@ use crate::{
         character_state::OutputEvents,
         controller::InventoryManip,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
-        item::{armor::Friction, tool::AbilityContext, Hands, ItemKind, ToolKind, Item},
+        item::{armor::Friction, tool::AbilityContext, Hands, Item, ItemKind, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -17,9 +17,9 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
+    terrain::{TerrainChunkSize, UnlockKind},
     util::Dir,
     vol::{ReadVol, RectVolSize},
-    terrain::{TerrainChunkSize, UnlockKind},
 };
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
@@ -826,8 +826,7 @@ pub fn handle_manipulate_loadout(
             } else {
                 // Else emit inventory action instantaneously
                 let inv_manip = InventoryManip::Use(slot);
-                output_events
-                    .emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+                output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
             }
         },
         InventoryAction::Collect(sprite_pos) => {
@@ -913,15 +912,25 @@ pub fn handle_manipulate_loadout(
                         .into_path()
                         .is_some();
 
-                    let required_item = sprite_at_pos.and_then(|s| match s.unlock_condition(sprite_cfg.cloned()) {
-                        UnlockKind::Free => None,
-                        UnlockKind::Requires(item) => Some((item, false)),
-                        UnlockKind::Consumes(item) => Some((item, true)),
-                    });
+                    let required_item =
+                        sprite_at_pos.and_then(|s| match s.unlock_condition(sprite_cfg.cloned()) {
+                            UnlockKind::Free => None,
+                            UnlockKind::Requires(item) => Some((item, false)),
+                            UnlockKind::Consumes(item) => Some((item, true)),
+                        });
                     let has_required_items = required_item
                         .as_ref()
-                        .and_then(|(i, _consume)| Item::new_from_item_definition_id(i.as_ref(), data.ability_map, data.msm).ok())
-                        .map_or(true, |i| data.inventory.map_or(false, |inv| inv.contains(&i)));
+                        .and_then(|(i, _consume)| {
+                            Item::new_from_item_definition_id(
+                                i.as_ref(),
+                                data.ability_map,
+                                data.msm,
+                            )
+                            .ok()
+                        })
+                        .map_or(true, |i| {
+                            data.inventory.map_or(false, |inv| inv.contains(&i))
+                        });
 
                     // If path can be found between entity interacting with sprite and entity, start
                     // interaction with sprite
@@ -934,25 +943,28 @@ pub fn handle_manipulate_loadout(
                             let (buildup_duration, use_duration, recover_duration) =
                                 sprite_interact.durations();
 
-                            update.character = CharacterState::SpriteInteract(sprite_interact::Data {
-                                static_data: sprite_interact::StaticData {
-                                    buildup_duration,
-                                    use_duration,
-                                    recover_duration,
-                                    sprite_pos,
-                                    sprite_kind: sprite_interact,
-                                    was_wielded: data.character.is_wield(),
-                                    was_sneak: data.character.is_stealthy(),
-                                    required_item,
-                                    ability_info: AbilityInfo::from_forced_state_change(data.character),
-                                },
-                                timer: Duration::default(),
-                                stage_section: StageSection::Buildup,
-                            })
+                            update.character =
+                                CharacterState::SpriteInteract(sprite_interact::Data {
+                                    static_data: sprite_interact::StaticData {
+                                        buildup_duration,
+                                        use_duration,
+                                        recover_duration,
+                                        sprite_pos,
+                                        sprite_kind: sprite_interact,
+                                        was_wielded: data.character.is_wield(),
+                                        was_sneak: data.character.is_stealthy(),
+                                        required_item,
+                                        ability_info: AbilityInfo::from_forced_state_change(
+                                            data.character,
+                                        ),
+                                    },
+                                    timer: Duration::default(),
+                                    stage_section: StageSection::Buildup,
+                                })
                         } else {
-                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::FailedSpriteUnlock {
-                                pos: sprite_pos,
-                            }));
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::FailedSpriteUnlock { pos: sprite_pos },
+                            ));
                         }
                     }
                 }
@@ -968,7 +980,10 @@ pub fn handle_manipulate_loadout(
             output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
         },
         InventoryAction::Sort => {
-            output_events.emit_server(ServerEvent::InventoryManip(data.entity, InventoryManip::Sort));
+            output_events.emit_server(ServerEvent::InventoryManip(
+                data.entity,
+                InventoryManip::Sort,
+            ));
         },
         InventoryAction::Use(slot @ Slot::Equip(_)) => {
             let inv_manip = InventoryManip::Use(slot);
