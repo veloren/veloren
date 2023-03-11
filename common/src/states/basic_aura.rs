@@ -6,6 +6,7 @@ use crate::{
         CharacterState, StateUpdate,
     },
     event::ServerEvent,
+    resources::Secs,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -28,7 +29,7 @@ pub struct StaticData {
     /// Has information used to construct the auras
     pub auras: Vec<AuraBuffConstructor>,
     /// How long aura lasts
-    pub aura_duration: f64,
+    pub aura_duration: Secs,
     /// Radius of aura
     pub range: f32,
     /// What key is used to press ability

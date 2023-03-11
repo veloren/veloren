@@ -23,7 +23,7 @@ use common::{
     effect::Effect,
     link::{Link, LinkHandle},
     mounting::Mounting,
-    resources::{Time, TimeOfDay},
+    resources::{Secs, Time, TimeOfDay},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
     LoadoutBuilder, ViewDistances,
@@ -439,7 +439,7 @@ impl StateExt for State {
             .with(Auras::new(vec![Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Invulnerability,
-                    data: BuffData::new(1.0, Some(1.0), None),
+                    data: BuffData::new(1.0, Some(Secs(1.0)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },

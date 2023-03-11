@@ -20,6 +20,7 @@ use crate::{
         },
         Body, CharacterState, LightEmitter, StateUpdate,
     },
+    resources::Secs,
     states::{
         behavior::JoinData,
         utils::{AbilityInfo, StageSection},
@@ -696,7 +697,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         targets: combat::GroupTarget,
         auras: Vec<aura::AuraBuffConstructor>,
-        aura_duration: f64,
+        aura_duration: Secs,
         range: f32,
         energy_cost: f32,
         scales_with_combo: bool,
@@ -728,7 +729,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         buff_kind: buff::BuffKind,
         buff_strength: f32,
-        buff_duration: Option<f64>,
+        buff_duration: Option<Secs>,
         energy_cost: f32,
         #[serde(default)]
         meta: AbilityMeta,

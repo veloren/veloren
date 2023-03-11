@@ -14,7 +14,7 @@ use common::{
     event::{EventBus, UpdateCharacterMetadata},
     lottery::LootSpec,
     outcome::Outcome,
-    resources::Time,
+    resources::{Secs, Time},
     rtsim::RtSimEntity,
     uid::Uid,
     util::Dir,
@@ -286,7 +286,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::CampfireHeal,
-                    data: BuffData::new(0.02, Some(1.0), None),
+                    data: BuffData::new(0.02, Some(Secs(1.0)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
@@ -298,7 +298,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Burning,
-                    data: BuffData::new(2.0, Some(10.0), None),
+                    data: BuffData::new(2.0, Some(Secs(10.0)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },

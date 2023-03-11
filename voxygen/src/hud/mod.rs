@@ -104,7 +104,7 @@ use common::{
     link::Is,
     mounting::Mount,
     outcome::Outcome,
-    resources::Time,
+    resources::{Secs, Time},
     slowjob::SlowJobPool,
     terrain::{SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
@@ -482,7 +482,7 @@ impl<'a> BuffIconKind<'a> {
         }
     }
 
-    pub fn max_duration(&self) -> Option<f64> {
+    pub fn max_duration(&self) -> Option<Secs> {
         match self {
             Self::Buff { data, .. } => data.duration,
             Self::Ability { .. } => None,

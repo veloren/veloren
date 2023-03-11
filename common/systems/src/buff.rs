@@ -13,7 +13,7 @@ use common::{
         Pos, Stats,
     },
     event::{Emitter, EventBus, ServerEvent},
-    resources::{DeltaTime, Time},
+    resources::{DeltaTime, Secs, Time},
     terrain::SpriteKind,
     uid::{Uid, UidAllocator},
     Damage, DamageSource,
@@ -146,7 +146,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
-                            BuffData::new(1.0, Some(1.0), None),
+                            BuffData::new(1.0, Some(Secs(1.0)), None),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -163,7 +163,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(1.0, Some(6.0), None),
+                            BuffData::new(1.0, Some(Secs(6.0)), None),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(15.0, Some(0.1), None),
+                            BuffData::new(15.0, Some(Secs(0.1)), None),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -192,7 +192,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Frozen,
-                            BuffData::new(0.2, Some(1.0), None),
+                            BuffData::new(0.2, Some(Secs(1.0)), None),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,

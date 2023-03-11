@@ -25,7 +25,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     outcome::{HealthChangeInfo, Outcome},
-    resources::Time,
+    resources::{Secs, Time},
     rtsim::RtSimEntity,
     states::utils::{AbilityInfo, StageSection},
     terrain::{Block, BlockKind, TerrainGrid},
@@ -1311,7 +1311,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 .map_or(0.5, |dur| dur.as_secs_f32())
                 .max(0.5)
                 .mul(2.0);
-            let data = buff::BuffData::new(1.0, Some(duration as f64), None);
+            let data = buff::BuffData::new(1.0, Some(Secs(duration as f64)), None);
             let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
                 BuffSource::Character { by: *uid }
             } else {

@@ -13,6 +13,7 @@ use crate::{
     },
     event::ServerEvent,
     outcome::Outcome,
+    resources::Secs,
     states::utils::StageSection,
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -1049,7 +1050,7 @@ impl CombatBuff {
             self.kind,
             BuffData::new(
                 self.strength.to_strength(damage, strength_modifier),
-                Some(self.dur_secs as f64),
+                Some(Secs(self.dur_secs as f64)),
                 None,
             ),
             Vec::new(),

@@ -538,7 +538,7 @@ impl<'a> Widget for Group<'a> {
                                 let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
                                 let current_duration = buff.end_time.map(|end| end - self.time.0);
                                 let duration_percentage = current_duration.map_or(1000.0, |cur| {
-                                    max_duration.map_or(1000.0, |max| cur / max * 1000.0)
+                                    max_duration.map_or(1000.0, |max| cur / max.0 * 1000.0)
                                 }) as u32; // Percentage to determine which frame of the timer overlay is displayed
                                 let buff_img = buff.kind.image(self.imgs);
                                 let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);

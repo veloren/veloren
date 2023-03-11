@@ -558,7 +558,7 @@ impl<'a> AgentData<'a> {
                             Effect::Buff(BuffEffect { kind, data, .. })
                                 if matches!(kind, Regeneration | Saturation | Potion) =>
                             {
-                                value += data.strength * data.duration.map_or(0.0, |d| d as f32);
+                                value += data.strength * data.duration.map_or(0.0, |d| d.0 as f32);
                             },
                             Effect::Buff(BuffEffect { kind, .. })
                                 if matches!(kind, PotionSickness) =>

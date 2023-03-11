@@ -1,7 +1,7 @@
 use crate::{
     combat::GroupTarget,
     comp::buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-    resources::Time,
+    resources::{Secs, Time},
     uid::Uid,
 };
 use serde::{Deserialize, Serialize};
@@ -92,12 +92,12 @@ impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AuraData {
-    pub duration: Option<f64>,
+    pub duration: Option<Secs>,
 }
 
 impl AuraData {
     #[must_use]
-    fn new(duration: Option<f64>) -> Self { Self { duration } }
+    fn new(duration: Option<Secs>) -> Self { Self { duration } }
 }
 
 impl Aura {
@@ -105,14 +105,14 @@ impl Aura {
     pub fn new(
         aura_kind: AuraKind,
         radius: f32,
-        duration: Option<f64>,
+        duration: Option<Secs>,
         target: AuraTarget,
         time: Time,
     ) -> Self {
         Self {
             aura_kind,
             radius,
-            end_time: duration.map(|dur| Time(time.0 + dur)),
+            end_time: duration.map(|dur| Time(time.0 + dur.0)),
             target,
             data: AuraData::new(duration),
         }
@@ -143,7 +143,7 @@ impl Auras {
 pub struct AuraBuffConstructor {
     pub kind: BuffKind,
     pub strength: f32,
-    pub duration: Option<f64>,
+    pub duration: Option<Secs>,
     pub category: BuffCategory,
 }
 
@@ -152,7 +152,7 @@ impl AuraBuffConstructor {
         self,
         uid: &Uid,
         radius: f32,
-        duration: Option<f64>,
+        duration: Option<Secs>,
         target: AuraTarget,
         time: Time,
     ) -> Aura {

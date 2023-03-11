@@ -5,6 +5,7 @@ use crate::{
         CharacterState, StateUpdate,
     },
     event::ServerEvent,
+    resources::Secs,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -27,7 +28,7 @@ pub struct StaticData {
     /// Strength of the created buff
     pub buff_strength: f32,
     /// How long buff lasts
-    pub buff_duration: Option<f64>,
+    pub buff_duration: Option<Secs>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }

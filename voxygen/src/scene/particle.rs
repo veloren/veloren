@@ -1226,7 +1226,7 @@ impl ParticleMgr {
                     } => {
                         let is_new_aura = aura.data.duration.map_or(true, |max_dur| {
                             let rem_dur = aura.end_time.map_or(time, |e| e.0) - time;
-                            rem_dur > max_dur * 0.9
+                            rem_dur > max_dur.0 * 0.9
                         });
                         if is_new_aura {
                             let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
@@ -1316,7 +1316,7 @@ impl ParticleMgr {
                             .iter()
                             .filter_map(|id| buffs.buffs.get(id))
                             .any(|buff| {
-                                matches!(buff.elapsed(Time(time)), dur if (1.0..=1.5).contains(&dur))
+                                matches!(buff.elapsed(Time(time)), dur if (1.0..=1.5).contains(&dur.0))
                             })
                         {
                             multiplicity = 1;

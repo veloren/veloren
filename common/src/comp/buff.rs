@@ -1,7 +1,7 @@
 #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::{
     comp::{aura::AuraKey, Stats},
-    resources::Time,
+    resources::{Secs, Time},
     uid::Uid,
 };
 use core::cmp::Ordering;
@@ -147,13 +147,13 @@ impl BuffKind {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BuffData {
     pub strength: f32,
-    pub duration: Option<f64>,
-    pub delay: Option<f64>,
+    pub duration: Option<Secs>,
+    pub delay: Option<Secs>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl BuffData {
-    pub fn new(strength: f32, duration: Option<f64>, delay: Option<f64>) -> Self {
+    pub fn new(strength: f32, duration: Option<Secs>, delay: Option<Secs>) -> Self {
         Self {
             strength,
             duration,
@@ -369,14 +369,14 @@ impl Buff {
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
             BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
         };
-        let start_time = Time(time.0 + data.delay.unwrap_or(0.0));
+        let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids
             .iter()
             .any(|cat_id| matches!(cat_id, BuffCategory::FromActiveAura(..)))
         {
             None
         } else {
-            data.duration.map(|dur| Time(start_time.0 + dur))
+            data.duration.map(|dur| Time(start_time.0 + dur.0))
         };
         Buff {
             kind,
@@ -390,7 +390,7 @@ impl Buff {
     }
 
     /// Calculate how much time has elapsed since the buff was applied
-    pub fn elapsed(&self, time: Time) -> f64 { time.0 - self.start_time.0 }
+    pub fn elapsed(&self, time: Time) -> Secs { Secs(time.0 - self.start_time.0) }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -603,6 +603,7 @@ pub mod tests {
             Vec::new(),
             BuffSource::Unknown,
             time,
+            None,
         )
     }
 
@@ -611,7 +612,7 @@ pub mod tests {
     /// queue has correct total duration
     fn test_queueable_buffs_three() {
         let mut buff_comp: Buffs = Default::default();
-        let buff_data = BuffData::new(1.0, Some(10.0), None);
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(buff_data, time_a), time_a);
         let time_b = Time(6.0);
@@ -642,8 +643,8 @@ pub mod tests {
     /// queueable buff is added, delayed buff has correct start time
     fn test_queueable_buff_delay_start() {
         let mut buff_comp: Buffs = Default::default();
-        let queued_buff_data = BuffData::new(1.0, Some(10.0), Some(10.0));
-        let buff_data = BuffData::new(1.0, Some(10.0), None);
+        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0)), Some(Secs(10.0)));
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(queued_buff_data, time_a), time_a);
         let time_b = Time(6.0);
@@ -674,8 +675,8 @@ pub mod tests {
     /// does not move delayed buff start or end times
     fn test_queueable_buff_long_delay() {
         let mut buff_comp: Buffs = Default::default();
-        let queued_buff_data = BuffData::new(1.0, Some(10.0), Some(50.0));
-        let buff_data = BuffData::new(1.0, Some(10.0), None);
+        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0)), Some(Secs(50.0)));
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(queued_buff_data, time_a), time_a);
         let time_b = Time(10.0);
