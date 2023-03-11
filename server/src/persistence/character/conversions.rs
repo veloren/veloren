@@ -182,7 +182,7 @@ pub fn convert_items_to_database_items(
                         1
                     },
                     properties: serde_json::to_string(&item_properties)
-                        .expect("We probably want to crash if this gets triggered?"),
+                        .expect("Failed to convert item properties to a json string."),
                 },
                 // Continue to remember the atomic, in case we detect an error later and want
                 // to roll back to preserve liveness.
@@ -367,8 +367,7 @@ pub fn convert_inventory_from_database_items(
 
         let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
         let item_properties =
-            serde_json::de::from_str::<DatabaseItemProperties>(&db_item.properties)
-                .expect("We probably want to crash if this gets triggered?");
+            serde_json::de::from_str::<DatabaseItemProperties>(&db_item.properties)?;
         json_models::apply_db_item_properties(&mut item, &item_properties);
 
         // NOTE: Since this is freshly loaded, the atomic is *unique.*
@@ -472,8 +471,7 @@ pub fn convert_loadout_from_database_items(
 
         let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
         let item_properties =
-            serde_json::de::from_str::<DatabaseItemProperties>(&db_item.properties)
-                .expect("We probably want to crash if this gets triggered?");
+            serde_json::de::from_str::<DatabaseItemProperties>(&db_item.properties)?;
         json_models::apply_db_item_properties(&mut item, &item_properties);
 
         // NOTE: item id is currently *unique*, so we can store the ID safely.
