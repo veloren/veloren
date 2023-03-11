@@ -68,6 +68,10 @@ impl BlockChange {
         }
     }
 
+    /// Check if the block at given position `pos` has already been modified
+    /// this tick.
+    pub fn can_set_block(&self, pos: Vec3<i32>) -> bool { !self.blocks.contains_key(&pos) }
+
     pub fn clear(&mut self) { self.blocks.clear(); }
 }
 
@@ -461,11 +465,7 @@ impl State {
     /// Check if the block at given position `pos` has already been modified
     /// this tick.
     pub fn can_set_block(&self, pos: Vec3<i32>) -> bool {
-        !self
-            .ecs
-            .read_resource::<BlockChange>()
-            .blocks
-            .contains_key(&pos)
+        self.ecs.read_resource::<BlockChange>().can_set_block(pos)
     }
 
     /// Removes every chunk of the terrain.
