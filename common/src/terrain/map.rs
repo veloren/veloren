@@ -202,9 +202,10 @@ impl MapSizeLg {
     /// Determine whether a chunk position is in bounds.
     pub const fn contains_chunk(&self, chunk_key: Vec2<i32>) -> bool {
         let map_size = self.chunks();
-        chunk_key.x >= 0 && chunk_key.y >= 0 &&
-        chunk_key.x == chunk_key.x & ((map_size.x as i32) - 1) &&
-        chunk_key.y == chunk_key.y & ((map_size.y as i32) - 1)
+        chunk_key.x >= 0
+            && chunk_key.y >= 0
+            && chunk_key.x == chunk_key.x & ((map_size.x as i32) - 1)
+            && chunk_key.y == chunk_key.y & ((map_size.y as i32) - 1)
     }
 }
 

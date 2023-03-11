@@ -1,6 +1,6 @@
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
     combat::CombatEffect,
+    comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},

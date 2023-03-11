@@ -1,6 +1,6 @@
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
     combat::CombatEffect,
+    comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
     event::LocalEvent,
     outcome::Outcome,
     states::{
@@ -61,7 +61,11 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Charge => {
-                if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
+                if self
+                    .static_data
+                    .ability_info
+                    .input
+                    .map_or(false, |input| input_is_pressed(data, input))
                     && update.energy.current() >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
                 {
@@ -80,7 +84,11 @@ impl CharacterBehavior for Data {
                     update
                         .energy
                         .change_by(-self.static_data.energy_drain * data.dt.0);
-                } else if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input))
+                } else if self
+                    .static_data
+                    .ability_info
+                    .input
+                    .map_or(false, |input| input_is_pressed(data, input))
                     && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Maintains charge

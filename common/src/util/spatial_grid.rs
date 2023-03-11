@@ -1,5 +1,5 @@
-use vek::*;
 use super::GridHasher;
+use vek::*;
 
 #[derive(Debug)]
 pub struct SpatialGrid {

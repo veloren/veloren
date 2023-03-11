@@ -56,7 +56,12 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
+                    if self
+                        .static_data
+                        .ability_info
+                        .input
+                        .map_or(false, |input| input_is_pressed(data, input))
+                    {
                         reset_state(self, data, output_events, &mut update);
                     } else {
                         end_ability(data, &mut update);
@@ -70,7 +75,12 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
+        if !self
+            .static_data
+            .ability_info
+            .input
+            .map_or(false, |input| input_is_pressed(data, input))
+        {
             handle_dodge_input(data, &mut update);
         }
 
@@ -85,11 +95,6 @@ fn reset_state(
     update: &mut StateUpdate,
 ) {
     if let Some(input) = data.static_data.ability_info.input {
-        handle_input(
-            join,
-            output_events,
-            update,
-            input,
-        );
+        handle_input(join, output_events, update, input);
     }
 }

@@ -47,9 +47,7 @@ impl Weather {
     }
 
     // Get the wind velocity for this weather
-    pub fn wind_vel(&self) -> Vec2<f32> {
-        self.wind
-    }
+    pub fn wind_vel(&self) -> Vec2<f32> { self.wind }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

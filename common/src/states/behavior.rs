@@ -1,9 +1,11 @@
 use crate::{
     comp::{
-        self, character_state::OutputEvents, item::{tool::AbilityMap, MaterialStatManifest}, ActiveAbilities, Beam,
-        Body, CharacterState, Combo, ControlAction, Controller, ControllerInputs, Density, Energy,
-        Health, InputAttr, InputKind, Inventory, InventoryAction, Mass, Melee, Ori, PhysicsState,
-        Pos, SkillSet, StateUpdate, Stats, Vel,
+        self,
+        character_state::OutputEvents,
+        item::{tool::AbilityMap, MaterialStatManifest},
+        ActiveAbilities, Beam, Body, CharacterState, Combo, ControlAction, Controller,
+        ControllerInputs, Density, Energy, Health, InputAttr, InputKind, Inventory,
+        InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, SkillSet, StateUpdate, Stats, Vel,
     },
     link::Is,
     mounting::Rider,
@@ -56,8 +58,8 @@ pub trait CharacterBehavior {
     fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
-    // start_input has custom implementation in the following character states that may also need to be modified when changes are made here:
-    // ComboMelee2
+    // start_input has custom implementation in the following character states that
+    // may also need to be modified when changes are made here: ComboMelee2
     fn start_input(
         &self,
         data: &JoinData,

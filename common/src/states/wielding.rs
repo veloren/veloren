@@ -52,7 +52,11 @@ impl CharacterBehavior for Data {
         let reset_to_idle = match inv_action {
             InventoryAction::Drop(slot)
             | InventoryAction::Swap(slot, _)
-            | InventoryAction::Swap(_, Slot::Equip(slot)) if matches!(slot, EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand) => true,
+            | InventoryAction::Swap(_, Slot::Equip(slot))
+                if matches!(slot, EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand) =>
+            {
+                true
+            },
             InventoryAction::Use(_) => true,
             _ => false,
         };

@@ -77,7 +77,6 @@ where
         let max = (self.to - self.from).magnitude();
 
         for _ in 0..self.max_iter {
-
             // Allow one iteration above max.
             if dist > max {
                 break;

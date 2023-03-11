@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
-        character_state::{OutputEvents, AttackImmunities},
+        character_state::{AttackImmunities, OutputEvents},
         CharacterState, InputKind, StateUpdate,
     },
     event::ServerEvent,

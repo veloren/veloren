@@ -2,7 +2,8 @@ use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
     comp::{
         character_state::OutputEvents,
-        tool::{Stats, ToolKind}, melee::MultiTarget,
+        melee::MultiTarget,
+        tool::{Stats, ToolKind},
         CharacterState, Melee, StateUpdate,
     },
     states::{
@@ -341,7 +342,12 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self.static_data.ability_info.input.map_or(false, |input| input_is_pressed(data, input)) {
+                    if self
+                        .static_data
+                        .ability_info
+                        .input
+                        .map_or(false, |input| input_is_pressed(data, input))
+                    {
                         reset_state(self, data, output_events, &mut update);
                     } else {
                         end_melee_ability(data, &mut update);
@@ -362,12 +368,11 @@ impl CharacterBehavior for Data {
 }
 
 impl Data {
-    /// Index should be `self.stage - 1`, however in cases of client-server desync
-    /// this can cause panics. This ensures that `self.stage - 1` is valid, and if it
-    /// isn't, index of 0 is used, which is always safe.
+    /// Index should be `self.stage - 1`, however in cases of client-server
+    /// desync this can cause panics. This ensures that `self.stage - 1` is
+    /// valid, and if it isn't, index of 0 is used, which is always safe.
     pub fn stage_index(&self) -> usize {
-        self
-            .static_data
+        self.static_data
             .stage_data
             .get(self.stage as usize - 1)
             .map_or(0, |_| self.stage as usize - 1)
@@ -381,12 +386,7 @@ fn reset_state(
     update: &mut StateUpdate,
 ) {
     if let Some(input) = data.static_data.ability_info.input {
-        handle_input(
-            join,
-            output_events,
-            update,
-            input,
-        );
+        handle_input(join, output_events, update, input);
 
         if let CharacterState::ComboMelee(c) = &mut update.character {
             c.stage = (data.stage % data.static_data.num_stages) + 1;
