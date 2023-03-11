@@ -15,20 +15,15 @@
 )]
 #![feature(hash_drain_filter)]
 
-macro_rules! cfg_not_wasm {
-    ($($item:item)*) => {
-        $(
-            #[cfg(not(target_arch = "wasm32"))]
-            $item
-        )*
-    }
-}
+// Rustfmt can't expand macros to see module declarations inside them but it is
+// hardcoded to parse `cfg_if`. https://github.com/rust-lang/rustfmt/issues/3253
+use cfg_if::cfg_if;
 
 // Re-exported crates
-cfg_not_wasm! {
+cfg_if! { if #[cfg(not(target_arch = "wasm32"))] {
     pub use common_assets as assets;
     pub use uuid;
-}
+} }
 
 // Modules
 
@@ -39,7 +34,7 @@ pub mod resources;
 pub mod uid;
 
 // NOTE: Comment out macro to get rustfmt to re-order these as needed.
-cfg_not_wasm! {
+cfg_if! { if #[cfg(not(target_arch = "wasm32"))] {
     pub mod astar;
     pub mod calendar;
     pub mod character;
@@ -78,7 +73,7 @@ cfg_not_wasm! {
 
     mod cached_spatial_grid;
     mod view_distances;
-}
+} }
 
 // We declare a macro in this module so there are issues referring to it by path
 // within this crate if typed module is declared in macro expansion.
@@ -86,11 +81,11 @@ cfg_not_wasm! {
 
 pub use combat::{DamageKind, DamageSource};
 
-cfg_not_wasm! {
+cfg_if! { if #[cfg(not(target_arch = "wasm32"))] {
     pub use cached_spatial_grid::CachedSpatialGrid;
     pub use combat::{Damage, GroupTarget, Knockback, KnockbackDir};
     pub use comp::inventory::loadout_builder::LoadoutBuilder;
     pub use explosion::{Explosion, RadiusEffect};
     pub use skillset_builder::SkillSetBuilder;
     pub use view_distances::ViewDistances;
-}
+} }

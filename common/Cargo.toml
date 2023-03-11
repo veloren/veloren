@@ -27,6 +27,7 @@ serde = { version = "1.0.110", features = ["derive", "rc"] }
 
 # Util
 vek = { version = "0.15.8", features = ["serde"] }
+cfg-if = "1.0.0"
 chrono = "0.4.22"
 chrono-tz = "0.6"
 itertools = "0.10"
