@@ -35,7 +35,7 @@ use specs::{
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 use timer_queue::TimerQueue;
 use vek::*;
 
@@ -587,8 +587,19 @@ impl State {
         dt: Duration,
         add_systems: impl Fn(&mut DispatcherBuilder),
         update_terrain_and_regions: bool,
+        mut metrics: Option<&mut StateTickMetrics>,
     ) {
         span!(_guard, "tick", "State::tick");
+
+        // Timing code for server metrics
+        macro_rules! section_span {
+            ($guard:ident, $label:literal) => {
+                span!(span_guard, $label);
+                let metrics_guard = metrics.as_mut().map(|m| MetricsGuard::new($label, m));
+                let $guard = (span_guard, metrics_guard);
+            };
+        }
+
         // Change the time accordingly.
         self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
         self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
@@ -602,7 +613,7 @@ impl State {
             self.update_region_map();
         }
 
-        span!(guard, "create dispatcher");
+        section_span!(guard, "create dispatcher");
         // Run systems to update the world.
         // Create and run a dispatcher for ecs systems.
         let mut dispatch_builder =
@@ -613,11 +624,11 @@ impl State {
         let mut dispatcher = dispatch_builder.build();
         drop(guard);
 
-        span!(guard, "run systems");
+        section_span!(guard, "run systems");
         dispatcher.dispatch(&self.ecs);
         drop(guard);
 
-        span!(guard, "maintain ecs");
+        section_span!(guard, "maintain ecs");
         self.ecs.maintain();
         drop(guard);
 
@@ -626,7 +637,7 @@ impl State {
         }
 
         // Process local events
-        span!(guard, "process local events");
+        section_span!(guard, "process local events");
 
         let outcomes = self.ecs.read_resource::<EventBus<Outcome>>();
         let mut outcomes_emitter = outcomes.emitter();
@@ -668,4 +679,41 @@ impl State {
         // Clean up data structures from the last tick.
         self.ecs.write_resource::<TerrainChanges>().clear();
     }
+}
+
+// Timing code for server metrics
+#[derive(Default)]
+pub struct StateTickMetrics {
+    pub timings: Vec<(&'static str, Duration)>,
+}
+
+impl StateTickMetrics {
+    fn add(&mut self, label: &'static str, dur: Duration) {
+        // Check for duplicates!
+        debug_assert!(
+            self.timings.iter().all(|(l, _)| *l != label),
+            "Duplicate label in state tick metrics {label}"
+        );
+        self.timings.push((label, dur));
+    }
+}
+
+struct MetricsGuard<'a> {
+    start: Instant,
+    label: &'static str,
+    metrics: &'a mut StateTickMetrics,
+}
+
+impl<'a> MetricsGuard<'a> {
+    fn new(label: &'static str, metrics: &'a mut StateTickMetrics) -> Self {
+        Self {
+            start: Instant::now(),
+            label,
+            metrics,
+        }
+    }
+}
+
+impl Drop for MetricsGuard<'_> {
+    fn drop(&mut self) { self.metrics.add(self.label, self.start.elapsed()); }
 }

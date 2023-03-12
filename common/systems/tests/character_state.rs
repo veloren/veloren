@@ -80,6 +80,7 @@ mod tests {
                 dispatch::<character_behavior::Sys>(dispatch_builder, &[]);
             },
             false,
+            None,
         );
     }
 

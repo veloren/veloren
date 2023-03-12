@@ -684,6 +684,7 @@ impl Server {
         // 4) Tick the server's LocalState.
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // in sys/terrain.rs
+        let mut state_tick_metrics = Default::default();
         self.state.tick(
             dt,
             |dispatcher_builder| {
@@ -697,6 +698,7 @@ impl Server {
                 }
             },
             false,
+            Some(&mut state_tick_metrics),
         );
 
         let before_handle_events = Instant::now();
@@ -1002,6 +1004,12 @@ impl Server {
                 .set((before_persistence_updates - before_entity_cleanup).as_nanos() as i64);
             tt.with_label_values(&["persistence_updates"])
                 .set((end_of_server_tick - before_persistence_updates).as_nanos() as i64);
+            for (label, duration) in state_tick_metrics.timings {
+                tick_metrics
+                    .state_tick_time
+                    .with_label_values(&[label])
+                    .set(duration.as_nanos() as i64);
+            }
             tick_metrics.tick_time_hist.observe(
                 end_of_server_tick
                     .duration_since(before_state_tick)

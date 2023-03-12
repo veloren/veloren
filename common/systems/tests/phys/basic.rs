@@ -17,6 +17,7 @@ fn simple_run() {
             add_local_systems(dispatcher_builder);
         },
         false,
+        None,
     );
 }
 
