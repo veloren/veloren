@@ -905,6 +905,6 @@ impl Asset for RonSpots {
 lazy_static! {
     static ref RON_PROPERTIES: RonSpots = {
         let spots: AssetHandle<RonSpots> = AssetExt::load_expect("world.manifests.spots");
-        RonSpots(spots.read().0.iter().cloned().collect())
+        RonSpots(spots.read().0.to_vec())
     };
 }
