@@ -1312,7 +1312,7 @@ impl ParticleMgr {
                         let mut multiplicity = 0;
                         // Only show particles for potion sickness at the beginning, after the
                         // drinking animation finishes
-                        if buff_ids
+                        if buff_ids.0
                             .iter()
                             .filter_map(|id| buffs.buffs.get(id))
                             .any(|buff| {

@@ -1308,10 +1308,10 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
             let duration = char_state
                 .durations()
                 .and_then(|durs| durs.recover)
-                .map_or(0.5, |dur| dur.as_secs_f32())
+                .map_or(0.5, |dur| dur.as_secs_f64())
                 .max(0.5)
                 .mul(2.0);
-            let data = buff::BuffData::new(1.0, Some(Secs(duration as f64)), None);
+            let data = buff::BuffData::new(1.0, Some(Secs(duration)), None);
             let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
                 BuffSource::Character { by: *uid }
             } else {

@@ -424,7 +424,9 @@ fn compare_end_time(a: Option<Time>, b: Option<Time>) -> bool {
 #[cfg(not(target_arch = "wasm32"))]
 impl PartialEq for Buff {
     fn eq(&self, other: &Self) -> bool {
-        self.data.strength == other.data.strength && self.end_time == other.end_time
+        self.data.strength == other.data.strength
+            && self.end_time == other.end_time
+            && self.start_time == other.start_time
     }
 }
 
@@ -461,8 +463,10 @@ pub enum BuffSource {
 pub struct Buffs {
     /// Uid used for synchronization
     id_counter: u64,
-    /// Maps Kinds of buff to Id's of currently applied buffs of that kind
-    pub kinds: HashMap<BuffKind, Vec<BuffId>>,
+    /// Maps Kinds of buff to Id's of currently applied buffs of that kind and
+    /// the time that the first buff was added (time gets reset if entity no
+    /// longer has buffs of that kind)
+    pub kinds: HashMap<BuffKind, (Vec<BuffId>, Time)>,
     // All currently applied buffs stored by Id
     pub buffs: HashMap<BuffId, Buff>,
 }
@@ -471,13 +475,14 @@ pub struct Buffs {
 impl Buffs {
     fn sort_kind(&mut self, kind: BuffKind) {
         if let Some(buff_order) = self.kinds.get_mut(&kind) {
-            if buff_order.is_empty() {
+            if buff_order.0.is_empty() {
                 self.kinds.remove(&kind);
             } else {
                 let buffs = &self.buffs;
                 // Intentionally sorted in reverse so that the strongest buffs are earlier in
                 // the vector
                 buff_order
+                    .0
                     .sort_by(|a, b| buffs[b].partial_cmp(&buffs[a]).unwrap_or(Ordering::Equal));
             }
         }
@@ -485,7 +490,7 @@ impl Buffs {
 
     pub fn remove_kind(&mut self, kind: BuffKind) {
         if let Some(buff_ids) = self.kinds.get_mut(&kind) {
-            for id in buff_ids {
+            for id in &buff_ids.0 {
                 self.buffs.remove(id);
             }
             self.kinds.remove(&kind);
@@ -494,7 +499,11 @@ impl Buffs {
 
     fn force_insert(&mut self, id: BuffId, buff: Buff, current_time: Time) -> BuffId {
         let kind = buff.kind;
-        self.kinds.entry(kind).or_default().push(id);
+        self.kinds
+            .entry(kind)
+            .or_insert((Vec::new(), current_time))
+            .0
+            .push(id);
         self.buffs.insert(id, buff);
         self.sort_kind(kind);
         if kind.queues() {
@@ -514,7 +523,7 @@ impl Buffs {
     pub fn iter_kind(&self, kind: BuffKind) -> impl Iterator<Item = (BuffId, &Buff)> + '_ {
         self.kinds
             .get(&kind)
-            .map(|ids| ids.iter())
+            .map(|ids| ids.0.iter())
             .unwrap_or_else(|| [].iter())
             .map(move |id| (*id, &self.buffs[id]))
     }
@@ -526,9 +535,9 @@ impl Buffs {
             if kind.stacks() {
                 // Iterate stackable buffs in reverse order to show the timer of the soonest one
                 // to expire
-                Either::Left(ids.iter().filter_map(|id| self.buffs.get(id)).rev())
+                Either::Left(ids.0.iter().filter_map(|id| self.buffs.get(id)).rev())
             } else {
-                Either::Right(self.buffs.get(&ids[0]).into_iter())
+                Either::Right(self.buffs.get(&ids.0[0]).into_iter())
             }
         })
     }
@@ -539,22 +548,16 @@ impl Buffs {
             let kind = kind.kind;
             self.kinds
                 .get_mut(&kind)
-                .map(|ids| ids.retain(|id| *id != buff_id));
+                .map(|ids| ids.0.retain(|id| *id != buff_id));
             self.sort_kind(kind);
         }
-    }
-
-    /// Returns an immutable reference to the buff kinds on an entity, and a
-    /// mutable reference to the buffs
-    pub fn parts(&mut self) -> (&HashMap<BuffKind, Vec<BuffId>>, &mut HashMap<BuffId, Buff>) {
-        (&self.kinds, &mut self.buffs)
     }
 
     fn delay_queueable_buffs(&mut self, kind: BuffKind, current_time: Time) {
         let mut next_start_time: Option<Time> = None;
         debug_assert!(kind.queues());
         if let Some(buffs) = self.kinds.get(&kind) {
-            buffs.iter().for_each(|id| {
+            buffs.0.iter().for_each(|id| {
                 if let Some(buff) = self.buffs.get_mut(id) {
                     // End time only being updated when there is some next_start_time will
                     // technically cause buffs to "end early" if they have a weaker strength than a

@@ -329,9 +329,9 @@ impl<'a> System<'a> for Sys {
                 .kinds
                 .iter()
                 .map(|(kind, ids)| (*kind, ids.clone()))
-                .collect::<Vec<(BuffKind, Vec<BuffId>)>>();
+                .collect::<Vec<(BuffKind, (Vec<BuffId>, Time))>>();
             buff_kinds.sort_by_key(|(kind, _)| !kind.affects_subsequent_buffs());
-            for (buff_kind, buff_ids) in buff_kinds.into_iter() {
+            for (buff_kind, (buff_ids, kind_start_time)) in buff_kinds.into_iter() {
                 let mut active_buff_ids = Vec::new();
                 if buff_kind.stacks() {
                     // Process all the buffs of this kind
@@ -359,6 +359,7 @@ impl<'a> System<'a> for Sys {
                                 effect,
                                 buff.kind,
                                 buff.start_time,
+                                kind_start_time,
                                 &read_data,
                                 &mut stat,
                                 health,
@@ -404,6 +405,7 @@ fn execute_effect(
     effect: &BuffEffect,
     buff_kind: BuffKind,
     buff_start_time: Time,
+    buff_kind_start_time: Time,
     read_data: &ReadData,
     stat: &mut Stats,
     health: &Health,
@@ -515,7 +517,7 @@ fn execute_effect(
             kind,
             target_fraction,
         } => {
-            let potential_amount = (time.0 - buff_start_time.0) as f32 * rate;
+            let potential_amount = (time.0 - buff_kind_start_time.0) as f32 * rate;
 
             // Percentage change that should be applied to max_health
             let potential_fraction = 1.0
