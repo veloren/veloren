@@ -1,6 +1,5 @@
 char_selection-loading_characters = Se încarcă Personajele...
 char_selection-delete_permanently = Vrei să ștergi acest Personaj pentru totdeauna?
-char_selection-deleting_character = Se șterge Personajul...
 char_selection-change_server = Schimbă Serverul
 char_selection-enter_world = Intră în lume
 char_selection-logout = Ieși din cont

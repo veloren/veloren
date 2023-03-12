@@ -31,32 +31,37 @@ enum CharacterLoaderRequestKind {
     },
 }
 
-/// Wrapper for results for character actions. Can be a list of
-/// characters, or component data belonging to an individual character
 #[derive(Debug)]
-pub enum CharacterLoaderResponseKind {
+pub enum CharacterUpdaterMessage {
+    CharacterScreenResponse(CharacterScreenResponse),
+    DatabaseBatchCompletion(u64),
+}
+
+/// An event emitted from CharacterUpdater in response to a request made from
+/// the character selection/editing screen
+#[derive(Debug)]
+pub struct CharacterScreenResponse {
+    pub target_entity: specs::Entity,
+    pub response_kind: CharacterScreenResponseKind,
+}
+
+impl CharacterScreenResponse {
+    pub fn is_err(&self) -> bool {
+        matches!(
+            &self.response_kind,
+            CharacterScreenResponseKind::CharacterData(box Err(_))
+                | CharacterScreenResponseKind::CharacterList(Err(_))
+                | CharacterScreenResponseKind::CharacterCreation(Err(_))
+        )
+    }
+}
+
+#[derive(Debug)]
+pub enum CharacterScreenResponseKind {
     CharacterList(CharacterListResult),
     CharacterData(Box<CharacterDataResult>),
     CharacterCreation(CharacterCreationResult),
     CharacterEdit(CharacterEditResult),
-}
-
-/// Common message format dispatched in response to an update request
-#[derive(Debug)]
-pub struct CharacterLoaderResponse {
-    pub entity: specs::Entity,
-    pub result: CharacterLoaderResponseKind,
-}
-
-impl CharacterLoaderResponse {
-    pub fn is_err(&self) -> bool {
-        matches!(
-            &self.result,
-            CharacterLoaderResponseKind::CharacterData(box Err(_))
-                | CharacterLoaderResponseKind::CharacterList(Err(_))
-                | CharacterLoaderResponseKind::CharacterCreation(Err(_))
-        )
-    }
 }
 
 /// A bi-directional messaging resource for making requests to modify or load
@@ -72,14 +77,14 @@ impl CharacterLoaderResponse {
 /// Responses are polled on each server tick in the format
 /// [`CharacterLoaderResponse`]
 pub struct CharacterLoader {
-    update_rx: crossbeam_channel::Receiver<CharacterLoaderResponse>,
+    update_rx: crossbeam_channel::Receiver<CharacterUpdaterMessage>,
     update_tx: crossbeam_channel::Sender<CharacterLoaderRequest>,
 }
 
 impl CharacterLoader {
     pub fn new(settings: Arc<RwLock<DatabaseSettings>>) -> Result<Self, PersistenceError> {
         let (update_tx, internal_rx) = crossbeam_channel::unbounded::<CharacterLoaderRequest>();
-        let (internal_tx, update_rx) = crossbeam_channel::unbounded::<CharacterLoaderResponse>();
+        let (internal_tx, update_rx) = crossbeam_channel::unbounded::<CharacterUpdaterMessage>();
 
         let builder = std::thread::Builder::new().name("persistence_loader".into());
         builder
@@ -115,13 +120,13 @@ impl CharacterLoader {
     fn process_request(
         request: CharacterLoaderRequest,
         connection: &Connection,
-    ) -> CharacterLoaderResponse {
+    ) -> CharacterUpdaterMessage {
         let (entity, kind) = request;
-        CharacterLoaderResponse {
-            entity,
-            result: match kind {
+        CharacterUpdaterMessage::CharacterScreenResponse(CharacterScreenResponse {
+            target_entity: entity,
+            response_kind: match kind {
                 CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
-                    CharacterLoaderResponseKind::CharacterList(load_character_list(
+                    CharacterScreenResponseKind::CharacterList(load_character_list(
                         &player_uuid,
                         connection,
                     ))
@@ -137,10 +142,10 @@ impl CharacterLoader {
                             "Error loading character data for character_id: {}", character_id
                         );
                     }
-                    CharacterLoaderResponseKind::CharacterData(Box::new(result))
+                    CharacterScreenResponseKind::CharacterData(Box::new(result))
                 },
             },
-        }
+        })
     }
 
     /// Loads a list of characters belonging to the player identified by
@@ -175,5 +180,5 @@ impl CharacterLoader {
     }
 
     /// Returns a non-blocking iterator over CharacterLoaderResponse messages
-    pub fn messages(&self) -> TryIter<CharacterLoaderResponse> { self.update_rx.try_iter() }
+    pub fn messages(&self) -> TryIter<CharacterUpdaterMessage> { self.update_rx.try_iter() }
 }

@@ -1,6 +1,5 @@
 char_selection-loading_characters = Загрузка персонажей...
 char_selection-delete_permanently = Навсегда удалить этого персонажа?
-char_selection-deleting_character = Удаление Персонажа...
 char_selection-change_server = Сменить сервер
 char_selection-enter_world = Войти в мир
 char_selection-spectate = Режим наблюдателя

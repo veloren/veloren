@@ -1,6 +1,5 @@
 char_selection-loading_characters = Karakters Worden Geladen...
 char_selection-delete_permanently = Karakter Permanent Verwijderen?
-char_selection-deleting_character = Karakter Wordt Verwijderen...
 char_selection-change_server = Server Wisselen
 char_selection-enter_world = Wereld Betreden
 char_selection-logout = Uitloggen

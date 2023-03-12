@@ -4,6 +4,7 @@ use crate::{
     presence::Presence, state_ext::StateExt, BattleModeBuffer, Server,
 };
 use common::{
+    character::CharacterId,
     comp,
     comp::{group, pet::is_tameable},
     uid::{Uid, UidAllocator},
@@ -14,13 +15,45 @@ use common_state::State;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, Join, WorldExt};
 use tracing::{debug, error, trace, warn, Instrument};
 
-pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
+pub fn handle_character_delete(
+    server: &mut Server,
+    entity: EcsEntity,
+    requesting_player_uuid: String,
+    character_id: CharacterId,
+) {
+    // Can't process a character delete for a player that has an in-game presence,
+    // so kick them out before processing the delete.
+    // NOTE: This relies on StateExt::handle_initialize_character adding the
+    // Presence component when a character is initialized to detect whether a client
+    // is in-game.
+    let has_presence = {
+        let presences = server.state.ecs().read_storage::<Presence>();
+        presences.get(entity).is_some()
+    };
+    if has_presence {
+        warn!(
+            ?requesting_player_uuid,
+            ?character_id,
+            "Character delete received while in-game, disconnecting client."
+        );
+        handle_exit_ingame(server, entity, true);
+    }
+
+    let mut updater = server.state.ecs().fetch_mut::<CharacterUpdater>();
+    updater.queue_character_deletion(requesting_player_uuid, character_id);
+}
+
+pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persistence: bool) {
     span!(_guard, "handle_exit_ingame");
     let state = server.state_mut();
 
     // Sync the player's character data to the database. This must be done before
     // removing any components from the entity
-    let entity = persist_entity(state, entity);
+    let entity = if !skip_persistence {
+        persist_entity(state, entity)
+    } else {
+        entity
+    };
 
     // Create new entity with just `Client`, `Uid`, `Player`, and `...Stream`
     // components.
@@ -264,17 +297,15 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
                     })
                     .collect();
 
-                character_updater.add_pending_logout_update(
+                character_updater.add_pending_logout_update((
                     char_id,
-                    (
-                        skill_set.clone(),
-                        inventory.clone(),
-                        pets,
-                        waypoint,
-                        active_abilities.clone(),
-                        map_marker,
-                    ),
-                );
+                    skill_set.clone(),
+                    inventory.clone(),
+                    pets,
+                    waypoint,
+                    active_abilities.clone(),
+                    map_marker,
+                ));
             },
             PresenceKind::Spectator => { /* Do nothing, spectators do not need persisting */ },
             PresenceKind::Possessor => { /* Do nothing, possessor's are not persisted */ },

@@ -78,9 +78,7 @@ impl Sys {
                 if let Some(player) = players.get(entity) {
                     if presences.contains(entity) {
                         debug!("player already ingame, aborting");
-                    } else if character_updater
-                        .characters_pending_logout()
-                        .any(|x| x == character_id)
+                    } else if character_updater.has_pending_database_action(character_id)
                     {
                         debug!("player recently logged out pending persistence, aborting");
                         client.send(ServerGeneral::CharacterDataLoadResult(Err(
@@ -192,11 +190,11 @@ impl Sys {
             },
             ClientGeneral::DeleteCharacter(character_id) => {
                 if let Some(player) = players.get(entity) {
-                    character_updater.delete_character(
+                    server_emitter.emit(ServerEvent::DeleteCharacter {
                         entity,
-                        player.uuid().to_string(),
+                        requesting_player_uuid: player.uuid().to_string(),
                         character_id,
-                    );
+                    });
                 }
             },
             _ => {

@@ -9,6 +9,7 @@
     option_zip,
     unwrap_infallible
 )]
+#![feature(hash_drain_filter)]
 
 pub mod automod;
 mod character_creator;
@@ -92,7 +93,7 @@ use common_systems::add_local_systems;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
 use persistence::{
-    character_loader::{CharacterLoader, CharacterLoaderResponseKind},
+    character_loader::{CharacterLoader, CharacterUpdaterMessage},
     character_updater::CharacterUpdater,
 };
 use prometheus::Registry;
@@ -125,6 +126,7 @@ use {
     common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
 };
 
+use crate::persistence::character_loader::CharacterScreenResponseKind;
 use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
 use world::{
@@ -834,104 +836,115 @@ impl Server {
 
         let character_loader = self.state.ecs().read_resource::<CharacterLoader>();
 
-        let character_updater = self.state.ecs().read_resource::<CharacterUpdater>();
+        let mut character_updater = self.state.ecs().write_resource::<CharacterUpdater>();
+        let updater_messages: Vec<CharacterUpdaterMessage> = character_updater.messages().collect();
 
         // Get character-related database responses and notify the requesting client
         character_loader
             .messages()
-            .chain(character_updater.messages())
-            .for_each(|query_result| match query_result.result {
-                CharacterLoaderResponseKind::CharacterList(result) => match result {
-                    Ok(character_list_data) => self.notify_client(
-                        query_result.entity,
-                        ServerGeneral::CharacterListUpdate(character_list_data),
-                    ),
-                    Err(error) => self.notify_client(
-                        query_result.entity,
-                        ServerGeneral::CharacterActionError(error.to_string()),
-                    ),
+            .chain(updater_messages)
+            .for_each(|message| match message {
+                CharacterUpdaterMessage::DatabaseBatchCompletion(batch_id) => {
+                    character_updater.process_batch_completion(batch_id);
                 },
-                CharacterLoaderResponseKind::CharacterCreation(result) => match result {
-                    Ok((character_id, list)) => {
-                        self.notify_client(
-                            query_result.entity,
-                            ServerGeneral::CharacterListUpdate(list),
-                        );
-                        self.notify_client(
-                            query_result.entity,
-                            ServerGeneral::CharacterCreated(character_id),
-                        );
-                    },
-                    Err(error) => self.notify_client(
-                        query_result.entity,
-                        ServerGeneral::CharacterActionError(error.to_string()),
-                    ),
-                },
-                CharacterLoaderResponseKind::CharacterEdit(result) => match result {
-                    Ok((character_id, list)) => {
-                        self.notify_client(
-                            query_result.entity,
-                            ServerGeneral::CharacterListUpdate(list),
-                        );
-                        self.notify_client(
-                            query_result.entity,
-                            ServerGeneral::CharacterEdited(character_id),
-                        );
-                    },
-                    Err(error) => self.notify_client(
-                        query_result.entity,
-                        ServerGeneral::CharacterActionError(error.to_string()),
-                    ),
-                },
-                CharacterLoaderResponseKind::CharacterData(result) => {
-                    let message = match *result {
-                        Ok((character_data, skill_set_persistence_load_error)) => {
-                            let PersistedComponents {
-                                body,
-                                stats,
-                                skill_set,
-                                inventory,
-                                waypoint,
-                                pets,
-                                active_abilities,
-                                map_marker,
-                            } = character_data;
-                            let character_data = (
-                                body,
-                                stats,
-                                skill_set,
-                                inventory,
-                                waypoint,
-                                pets,
-                                active_abilities,
-                                map_marker,
-                            );
-                            ServerEvent::UpdateCharacterData {
-                                entity: query_result.entity,
-                                components: character_data,
-                                metadata: skill_set_persistence_load_error,
-                            }
+                CharacterUpdaterMessage::CharacterScreenResponse(response) => {
+                    match response.response_kind {
+                        CharacterScreenResponseKind::CharacterList(result) => match result {
+                            Ok(character_list_data) => self.notify_client(
+                                response.target_entity,
+                                ServerGeneral::CharacterListUpdate(character_list_data),
+                            ),
+                            Err(error) => self.notify_client(
+                                response.target_entity,
+                                ServerGeneral::CharacterActionError(error.to_string()),
+                            ),
                         },
-                        Err(error) => {
-                            // We failed to load data for the character from the DB. Notify the
-                            // client to push the state back to character selection, with the error
-                            // to display
-                            self.notify_client(
-                                query_result.entity,
-                                ServerGeneral::CharacterDataLoadResult(Err(error.to_string())),
-                            );
-
-                            // Clean up the entity data on the server
-                            ServerEvent::ExitIngame {
-                                entity: query_result.entity,
-                            }
+                        CharacterScreenResponseKind::CharacterCreation(result) => match result {
+                            Ok((character_id, list)) => {
+                                self.notify_client(
+                                    response.target_entity,
+                                    ServerGeneral::CharacterListUpdate(list),
+                                );
+                                self.notify_client(
+                                    response.target_entity,
+                                    ServerGeneral::CharacterCreated(character_id),
+                                );
+                            },
+                            Err(error) => self.notify_client(
+                                response.target_entity,
+                                ServerGeneral::CharacterActionError(error.to_string()),
+                            ),
                         },
-                    };
+                        CharacterScreenResponseKind::CharacterEdit(result) => match result {
+                            Ok((character_id, list)) => {
+                                self.notify_client(
+                                    response.target_entity,
+                                    ServerGeneral::CharacterListUpdate(list),
+                                );
+                                self.notify_client(
+                                    response.target_entity,
+                                    ServerGeneral::CharacterEdited(character_id),
+                                );
+                            },
+                            Err(error) => self.notify_client(
+                                response.target_entity,
+                                ServerGeneral::CharacterActionError(error.to_string()),
+                            ),
+                        },
+                        CharacterScreenResponseKind::CharacterData(result) => {
+                            let message = match *result {
+                                Ok((character_data, skill_set_persistence_load_error)) => {
+                                    let PersistedComponents {
+                                        body,
+                                        stats,
+                                        skill_set,
+                                        inventory,
+                                        waypoint,
+                                        pets,
+                                        active_abilities,
+                                        map_marker,
+                                    } = character_data;
+                                    let character_data = (
+                                        body,
+                                        stats,
+                                        skill_set,
+                                        inventory,
+                                        waypoint,
+                                        pets,
+                                        active_abilities,
+                                        map_marker,
+                                    );
+                                    ServerEvent::UpdateCharacterData {
+                                        entity: response.target_entity,
+                                        components: character_data,
+                                        metadata: skill_set_persistence_load_error,
+                                    }
+                                },
+                                Err(error) => {
+                                    // We failed to load data for the character from the DB. Notify
+                                    // the client to push the
+                                    // state back to character selection, with the error
+                                    // to display
+                                    self.notify_client(
+                                        response.target_entity,
+                                        ServerGeneral::CharacterDataLoadResult(Err(
+                                            error.to_string()
+                                        )),
+                                    );
 
-                    self.state
-                        .ecs()
-                        .read_resource::<EventBus<ServerEvent>>()
-                        .emit_now(message);
+                                    // Clean up the entity data on the server
+                                    ServerEvent::ExitIngame {
+                                        entity: response.target_entity,
+                                    }
+                                },
+                            };
+
+                            self.state
+                                .ecs()
+                                .read_resource::<EventBus<ServerEvent>>()
+                                .emit_now(message);
+                        },
+                    }
                 },
             });
 

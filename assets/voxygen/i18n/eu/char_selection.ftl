@@ -1,6 +1,5 @@
 char_selection-loading_characters = Pertsonaiak kargatzen...
 char_selection-delete_permanently = Pertsonaia hau betiko ezabatu nahi duzu?
-char_selection-deleting_character = Pertsonaia ezabatzen...
 char_selection-change_server = Aldatu zerbitzaria
 char_selection-enter_world = Sartu munduan
 char_selection-spectate = Ikuskatu mundua

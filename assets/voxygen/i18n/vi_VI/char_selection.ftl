@@ -1,6 +1,5 @@
 char_selection-loading_characters = Đang tải nhân vật...
 char_selection-delete_permanently = Xóa vĩnh viễn Nhân vật này?
-char_selection-deleting_character = Đang Xóa Nhân Vật...
 char_selection-change_server = Đổi Máy Chủ
 char_selection-enter_world = Vào Trò Chơi
 char_selection-logout = Đăng xuất

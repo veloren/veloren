@@ -1,6 +1,5 @@
 char_selection-loading_characters = Loading characters...
 char_selection-delete_permanently = Permanently delete this Character?
-char_selection-deleting_character = Deleting Character...
 char_selection-change_server = Change Server
 char_selection-enter_world = Enter World
 char_selection-spectate = Spectate World

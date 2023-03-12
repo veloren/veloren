@@ -1,6 +1,5 @@
 char_selection-loading_characters = Lade Charaktere...
 char_selection-delete_permanently = Den Charakter unwiderruflich löschen?
-char_selection-deleting_character = Lösche Charakter...
 char_selection-change_server = Wechsle Server
 char_selection-enter_world = Welt betreten
 char_selection-spectate = Welt betrachten

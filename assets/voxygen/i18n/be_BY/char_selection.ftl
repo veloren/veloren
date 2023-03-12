@@ -1,6 +1,5 @@
 char_selection-loading_characters = Загрузка персанажаў...
 char_selection-delete_permanently = Назаўжды выдаліць гэтага персанажа?
-char_selection-deleting_character = Выдаленне персанажа...
 char_selection-change_server = Змяніць сервер
 char_selection-enter_world = Увайсці ў свет
 char_selection-logout = Выхад

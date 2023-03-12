@@ -1,6 +1,5 @@
 char_selection-loading_characters = Laddar rollpersoner...
 char_selection-delete_permanently = Vill du radera rollpersonen permanent?
-char_selection-deleting_character = Raderar rollperson...
 char_selection-change_server = Byt server
 char_selection-enter_world = Öppna värld
 char_selection-spectate = Övervaka värld

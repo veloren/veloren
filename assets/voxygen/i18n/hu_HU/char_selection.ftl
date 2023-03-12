@@ -1,6 +1,5 @@
 char_selection-loading_characters = Karakterek betöltése...
 char_selection-delete_permanently = Végérvényesen törlöd ezt a karaktert?
-char_selection-deleting_character = Karakter törlése...
 char_selection-change_server = Váltás másik szerverre
 char_selection-enter_world = Világ betöltése
 char_selection-logout = Kijelentkezés

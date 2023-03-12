@@ -1,6 +1,5 @@
 char_selection-loading_characters = Учитавање ликова...
 char_selection-delete_permanently = Заувек обриши Лик?
-char_selection-deleting_character = Обриши Лик...
 char_selection-change_server = Промени Сервер
 char_selection-enter_world = Уђи у Свет
 char_selection-logout = Одјави се

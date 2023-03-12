@@ -1,6 +1,5 @@
 char_selection-loading_characters = Chargement des personnages...
 char_selection-delete_permanently = Supprimer définitivement ce personnage ?
-char_selection-deleting_character = Suppression du personnage...
 char_selection-change_server = Changer de serveur
 char_selection-enter_world = Rejoindre
 char_selection-spectate = Spectateur

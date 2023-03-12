@@ -1,6 +1,5 @@
 char_selection-loading_characters = 加载人物中...
 char_selection-delete_permanently = 确定永久删除此角色?
-char_selection-deleting_character = 删除角色中...
 char_selection-change_server = 切换服务器
 char_selection-enter_world = 进入世界
 char_selection-spectate = 观察世界

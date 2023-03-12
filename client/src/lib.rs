@@ -962,7 +962,17 @@ impl Client {
 
     /// Character deletion
     pub fn delete_character(&mut self, character_id: CharacterId) {
-        self.character_list.loading = true;
+        // Pre-emptively remove the character to be deleted from the character list as
+        // character deletes are processed asynchronously by the server so we can't rely
+        // on a timely response to update the character list
+        if let Some(pos) = self
+            .character_list
+            .characters
+            .iter()
+            .position(|x| x.character.id == Some(character_id))
+        {
+            self.character_list.characters.remove(pos);
+        }
         self.send_msg(ClientGeneral::DeleteCharacter(character_id));
     }
 

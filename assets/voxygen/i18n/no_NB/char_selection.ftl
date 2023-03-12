@@ -1,6 +1,5 @@
 char_selection-loading_characters = Laster inn karakterer...
 char_selection-delete_permanently = Slett denne karakteren permanent?
-char_selection-deleting_character = Sletter karakter...
 char_selection-change_server = Bytt server
 char_selection-enter_world = Gå inn i verden
 char_selection-logout = Logg ut

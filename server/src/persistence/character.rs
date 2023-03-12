@@ -588,12 +588,14 @@ pub fn edit_character(
     char_list.map(|list| (character_id, list))
 }
 
-/// Delete a character. Returns the updated character list.
+/// Permanently deletes a character
 pub fn delete_character(
     requesting_player_uuid: &str,
     char_id: CharacterId,
     transaction: &mut Transaction,
-) -> CharacterListResult {
+) -> Result<(), PersistenceError> {
+    debug!(?requesting_player_uuid, ?char_id, "Deleting character");
+
     let mut stmt = transaction.prepare_cached(
         "
         SELECT  COUNT(1)
@@ -609,9 +611,9 @@ pub fn delete_character(
     drop(stmt);
 
     if result != 1 {
-        return Err(PersistenceError::OtherError(
-            "Requested character to delete does not belong to the requesting player".to_string(),
-        ));
+        // The character does not exist, or does not belong to the requesting player so
+        // silently drop the request.
+        return Ok(());
     }
 
     // Delete skill groups
@@ -698,7 +700,7 @@ pub fn delete_character(
         )));
     }
 
-    load_character_list(requesting_player_uuid, transaction)
+    Ok(())
 }
 
 /// Before creating a character, we ensure that the limit on the number of
