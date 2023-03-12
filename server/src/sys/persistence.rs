@@ -92,12 +92,12 @@ impl<'a> System<'a> for Sys {
 
                                 Some((
                                     id,
-                                    skill_set,
-                                    inventory,
+                                    skill_set.clone(),
+                                    inventory.clone(),
                                     pets,
-                                    waypoint,
-                                    active_abilities,
-                                    map_marker,
+                                    waypoint.cloned(),
+                                    active_abilities.clone(),
+                                    map_marker.cloned(),
                                 ))
                             },
                             PresenceKind::Spectator | PresenceKind::Possessor => None,

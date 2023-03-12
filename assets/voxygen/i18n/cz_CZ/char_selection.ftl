@@ -1,6 +1,5 @@
 char_selection-loading_characters = Načítání postavy...
 char_selection-delete_permanently = Chcete smazat tuto postavu?
-char_selection-deleting_character = Probíhá mazání postavy...
 char_selection-change_server = Změnit server
 char_selection-enter_world = Vstup do světa
 char_selection-logout = Odhlásit

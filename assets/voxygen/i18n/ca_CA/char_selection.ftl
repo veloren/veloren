@@ -1,6 +1,5 @@
 char_selection-loading_characters = Carregant personatges...
 char_selection-delete_permanently = Esborrar permanentment aquest Personatge?
-char_selection-deleting_character = Esborrant Personatge...
 char_selection-change_server = Canviar Servidor
 char_selection-enter_world = Entrar al Món
 char_selection-logout = Tancar Sessió

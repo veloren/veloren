@@ -28,6 +28,7 @@ use player::{handle_client_disconnect, handle_exit_ingame, handle_possess};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use trade::handle_process_trade_action;
 
+use crate::events::player::handle_character_delete;
 pub use group_manip::update_map_markers;
 pub(crate) use trade::cancel_trades_for;
 
@@ -151,6 +152,11 @@ impl Server {
                 ServerEvent::InitSpectator(entity, requested_view_distances) => {
                     handle_initialize_spectator(self, entity, requested_view_distances)
                 },
+                ServerEvent::DeleteCharacter {
+                    entity,
+                    requesting_player_uuid,
+                    character_id,
+                } => handle_character_delete(self, entity, requesting_player_uuid, character_id),
                 ServerEvent::UpdateCharacterData {
                     entity,
                     components,
@@ -179,7 +185,7 @@ impl Server {
                     handle_loaded_character_data(self, entity, components, metadata);
                 },
                 ServerEvent::ExitIngame { entity } => {
-                    handle_exit_ingame(self, entity);
+                    handle_exit_ingame(self, entity, false);
                 },
                 ServerEvent::CreateNpc {
                     pos,

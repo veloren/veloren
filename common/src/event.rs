@@ -233,6 +233,11 @@ pub enum ServerEvent {
         admin: comp::Admin,
         uuid: Uuid,
     },
+    DeleteCharacter {
+        entity: EcsEntity,
+        requesting_player_uuid: String,
+        character_id: CharacterId,
+    },
 }
 
 pub struct EventBus<E> {

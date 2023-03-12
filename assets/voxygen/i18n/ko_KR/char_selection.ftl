@@ -1,6 +1,5 @@
 char_selection-loading_characters = 캐릭터를 불러오는 중...
 char_selection-delete_permanently = 이 캐릭터를 영구히 삭제하시겠습니까?
-char_selection-deleting_character = 캐릭터 삭제중...
 char_selection-change_server = 서버 바꾸기
 char_selection-enter_world = 세계 들어가기
 char_selection-spectate = 세계 관전하기

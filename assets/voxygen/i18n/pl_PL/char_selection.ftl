@@ -1,6 +1,5 @@
 char_selection-loading_characters = Ładowanie Postaci...
 char_selection-delete_permanently = Czy na pewno chcesz usunąć tę Postać na zawsze?
-char_selection-deleting_character = Usuwanie Postaci...
 char_selection-change_server = Zmień Serwer
 char_selection-enter_world = Dołącz do Świata
 char_selection-spectate = Oglądnij świat

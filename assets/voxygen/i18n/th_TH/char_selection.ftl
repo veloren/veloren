@@ -1,6 +1,5 @@
 char_selection-loading_characters = อยู่ระหว่างการโหลดตัวละคร ...
 char_selection-delete_permanently = ลบตัวละครทิ้งหรือไม่?
-char_selection-deleting_character = อยู่ระหว่างการลบตัวละคร ...
 char_selection-change_server = เปลี่ยนเซิร์ฟเวอร์
 char_selection-enter_world = เข้าสู่โลก
 char_selection-spectate = ชมโลก

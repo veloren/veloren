@@ -1,6 +1,5 @@
 char_selection-loading_characters = キャラクターをロード中...
 char_selection-delete_permanently = このキャラクターを永久に削除しますか？
-char_selection-deleting_character = キャラクターを削除中...
 char_selection-change_server = サーバーを変更
 char_selection-enter_world = 世界に入る
 char_selection-logout = ログアウト
