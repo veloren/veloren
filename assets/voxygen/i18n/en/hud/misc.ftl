@@ -45,6 +45,7 @@ hud-use = Use
 hud-unlock-requires = Open with { $item }
 hud-unlock-consumes = Use { $item } to open
 hud-mine = Mine
+hud-needs_pickaxe = Needs Pickaxe
 hud-talk = Talk
 hud-trade = Trade
 hud-mount = Mount

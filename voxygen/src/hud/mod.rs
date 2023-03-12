@@ -65,12 +65,9 @@ use crate::{
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     render::UiDrawer,
-    scene::{
-        camera::{self, Camera},
-        terrain::Interaction,
-    },
+    scene::camera::{self, Camera},
     session::{
-        interactable::Interactable,
+        interactable::{BlockInteraction, Interactable},
         settings_change::{
             Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
         },
@@ -673,6 +670,7 @@ pub struct DebugInfo {
 
 pub struct HudInfo {
     pub is_aiming: bool,
+    pub is_mining: bool,
     pub is_first_person: bool,
     pub viewpoint_entity: specs::Entity,
     pub mutable_viewpoint: bool,
@@ -2019,7 +2017,10 @@ impl Hud {
                         pickup_failed_pulse: self.failed_entity_pickups.get(&entity).cloned(),
                     },
                     &self.fonts,
-                    vec![(GameInput::Interact, i18n.get_msg("hud-pick_up").to_string())],
+                    vec![(
+                        Some(GameInput::Interact),
+                        i18n.get_msg("hud-pick_up").to_string(),
+                    )],
                 )
                 .set(overitem_id, ui_widgets);
             }
@@ -2039,31 +2040,46 @@ impl Hud {
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
                 let interaction_text = || match interaction {
-                    Interaction::Collect => {
-                        vec![(GameInput::Interact, i18n.get_msg("hud-collect").to_string())]
+                    BlockInteraction::Collect => {
+                        vec![(
+                            Some(GameInput::Interact),
+                            i18n.get_msg("hud-collect").to_string(),
+                        )]
                     },
-                    Interaction::Craft(_) => {
-                        vec![(GameInput::Interact, i18n.get_msg("hud-use").to_string())]
+                    BlockInteraction::Craft(_) => {
+                        vec![(
+                            Some(GameInput::Interact),
+                            i18n.get_msg("hud-use").to_string(),
+                        )]
                     },
-                    Interaction::Unlock(kind) => vec![(GameInput::Interact, match kind {
-                        UnlockKind::Free => i18n.get_msg("hud-open").to_string(),
-                        UnlockKind::Requires(item) => i18n
-                            .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
-                                "item" => item.as_ref().itemdef_id()
-                                    .map(|id| Item::new_from_asset_expect(id).describe())
-                                    .unwrap_or_else(|| "modular item".to_string()),
-                            })
-                            .to_string(),
-                        UnlockKind::Consumes(item) => i18n
-                            .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
-                                "item" => item.as_ref().itemdef_id()
-                                    .map(|id| Item::new_from_asset_expect(id).describe())
-                                    .unwrap_or_else(|| "modular item".to_string()),
-                            })
-                            .to_string(),
-                    })],
-                    Interaction::Mine => {
-                        vec![(GameInput::Primary, i18n.get_msg("hud-mine").to_string())]
+                    BlockInteraction::Unlock(kind) => {
+                        vec![(Some(GameInput::Interact), match kind {
+                            UnlockKind::Free => i18n.get_msg("hud-open").to_string(),
+                            UnlockKind::Requires(item) => i18n
+                                .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
+                                    "item" => item.as_ref().itemdef_id()
+                                        .map(|id| Item::new_from_asset_expect(id).describe())
+                                        .unwrap_or_else(|| "modular item".to_string()),
+                                })
+                                .to_string(),
+                            UnlockKind::Consumes(item) => i18n
+                                .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
+                                    "item" => item.as_ref().itemdef_id()
+                                        .map(|id| Item::new_from_asset_expect(id).describe())
+                                        .unwrap_or_else(|| "modular item".to_string()),
+                                })
+                                .to_string(),
+                        })]
+                    },
+                    BlockInteraction::Mine => {
+                        if info.is_mining {
+                            vec![(
+                                Some(GameInput::Primary),
+                                i18n.get_msg("hud-mine").to_string(),
+                            )]
+                        } else {
+                            vec![(None, i18n.get_msg("hud-needs_pickaxe").to_string())]
+                        }
                     },
                 };
 
@@ -2083,7 +2099,10 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        vec![(GameInput::Interact, i18n.get_msg("hud-open").to_string())],
+                        vec![(
+                            Some(GameInput::Interact),
+                            i18n.get_msg("hud-open").to_string(),
+                        )],
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -2152,7 +2171,10 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        vec![(GameInput::Interact, i18n.get_msg("hud-sit").to_string())],
+                        vec![(
+                            Some(GameInput::Interact),
+                            i18n.get_msg("hud-sit").to_string(),
+                        )],
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)

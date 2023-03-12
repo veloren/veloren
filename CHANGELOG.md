@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lamps, embers and campfires use glowing indices
 - Non-potion drinks no longer heal as much as potions.
 - Added SFX to the new sword abilities
+- Fixed various issues with showing the correct text hint for interactable blocks.
+- Intert entities like arrows no longer obstruct interacting with nearby entities/blocks.
 
 ## [0.14.0] - 2023-01-07
 

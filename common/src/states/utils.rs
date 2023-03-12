@@ -17,9 +17,9 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
-    terrain::{TerrainChunkSize, UnlockKind},
+    terrain::{TerrainGrid, UnlockKind},
     util::Dir,
-    vol::{ReadVol, RectVolSize},
+    vol::ReadVol,
 };
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
@@ -844,10 +844,7 @@ pub fn handle_manipulate_loadout(
             if close_to_sprite {
                 // First, get sprite data for position, if there is a sprite
                 use sprite_interact::SpriteInteractKind;
-                let sprite_chunk_pos = sprite_pos
-                    .xy()
-                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e.rem_euclid(sz as i32))
-                    .with_z(sprite_pos.z);
+                let sprite_chunk_pos = TerrainGrid::chunk_offs(sprite_pos);
                 let sprite_cfg = data
                     .terrain
                     .pos_chunk(sprite_pos)

@@ -46,7 +46,8 @@ pub struct Overitem<'a> {
     properties: OveritemProperties,
     pulse: f32,
     key_layout: &'a Option<KeyLayout>,
-    interaction_options: Vec<(GameInput, String)>,
+    // GameInput optional so we can just show stuff like "needs pickaxe"
+    interaction_options: Vec<(Option<GameInput>, String)>,
 }
 
 impl<'a> Overitem<'a> {
@@ -60,7 +61,7 @@ impl<'a> Overitem<'a> {
         properties: OveritemProperties,
         pulse: f32,
         key_layout: &'a Option<KeyLayout>,
-        interaction_options: Vec<(GameInput, String)>,
+        interaction_options: Vec<(Option<GameInput>, String)>,
     ) -> Self {
         Self {
             name,
@@ -177,19 +178,20 @@ impl<'a> Widget for Overitem<'a> {
                 .interaction_options
                 .iter()
                 .filter_map(|(input, action)| {
-                    Some((
-                        self.controls
-                            .get_binding(*input)
-                            .filter(|_| self.properties.active)?,
-                        action,
-                    ))
+                    let binding = if let Some(input) = input {
+                        Some(self.controls.get_binding(*input)?)
+                    } else {
+                        None
+                    };
+                    Some((binding, action))
                 })
                 .map(|(input, action)| {
-                    format!(
-                        "{}  {}",
-                        input.display_string(self.key_layout).as_str(),
-                        action
-                    )
+                    if let Some(input) = input {
+                        let input = input.display_string(self.key_layout);
+                        format!("{}  {action}", input.as_str())
+                    } else {
+                        action.to_string()
+                    }
                 })
                 .collect::<Vec<_>>()
                 .join("\n");

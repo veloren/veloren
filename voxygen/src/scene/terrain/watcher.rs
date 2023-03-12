@@ -1,16 +1,16 @@
 use crate::hud::CraftingTab;
-use common::terrain::{BlockKind, SpriteKind, TerrainChunk, UnlockKind};
+use common::terrain::{BlockKind, SpriteKind, TerrainChunk};
 use common_base::span;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use vek::*;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Interaction {
+    /// This covers mining, unlocking, and regular collectable things (e.g.
+    /// twigs).
     Collect,
-    Unlock(UnlockKind),
     Craft(CraftingTab),
-    Mine,
 }
 
 pub enum FireplaceType {
@@ -169,17 +169,7 @@ impl BlocksOfInterest {
                 },
             }
             if block.collectible_id().is_some() {
-                interactables.push((
-                    pos,
-                    block
-                        .get_sprite()
-                        .map(|s| {
-                            Interaction::Unlock(
-                                s.unlock_condition(chunk.meta().sprite_cfg_at(pos).cloned()),
-                            )
-                        })
-                        .unwrap_or(Interaction::Collect),
-                ));
+                interactables.push((pos, Interaction::Collect));
             }
             if let Some(glow) = block.get_glow() {
                 // Currently, we count filled blocks as 'minor' lights, and sprites as
