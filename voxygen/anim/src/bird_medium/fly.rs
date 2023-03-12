@@ -59,8 +59,8 @@ impl Animation for FlyAnimation {
         } * 1.3;
 
         next.head.scale = Vec3::one() * 0.99;
-        next.leg_l.scale = Vec3::one();
-        next.leg_r.scale = Vec3::one();
+        next.leg_l.scale = Vec3::one() * s_a.scaler * 0.99;
+        next.leg_r.scale = Vec3::one() * s_a.scaler * 0.99;
         next.chest.scale = Vec3::one() * s_a.scaler * 0.99;
         next.tail.scale = Vec3::one() * 1.01;
 
@@ -129,10 +129,10 @@ impl Animation for FlyAnimation {
             next.tail.orientation =
                 Quaternion::rotation_x(0.04 - slow * 0.04) * Quaternion::rotation_z(tilt * 1.0);
 
-            next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2 + slow * 0.05);
+            next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2 + 1.0 + slow * 0.05);
             next.leg_l.orientation = Quaternion::rotation_x(-1.2 + slow * -0.05)
                 * Quaternion::rotation_y(tilt * 1.6 + fast * 0.01);
-            next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2 + slow * 0.05);
+            next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2 + 1.0 + slow * 0.05);
             next.leg_r.orientation = Quaternion::rotation_x(-1.2 + slow * -0.05)
                 * Quaternion::rotation_y(tilt * 1.6 + fast * 0.01);
         }

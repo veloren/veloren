@@ -37,8 +37,8 @@ impl Animation for IdleAnimation {
         let wave_slow_cos = (anim_time * 4.5).cos();
 
         next.head.scale = Vec3::one() * 0.99;
-        next.leg_l.scale = Vec3::one();
-        next.leg_r.scale = Vec3::one();
+        next.leg_l.scale = Vec3::one() * s_a.scaler * 0.99;
+        next.leg_r.scale = Vec3::one() * s_a.scaler * 0.99;
         next.chest.scale = Vec3::one() * s_a.scaler * 0.99;
         next.tail.scale = Vec3::one() * 1.01;
 
