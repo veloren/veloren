@@ -49,6 +49,7 @@ gameinput-togglewield = Alternar Empunhadura
 gameinput-interact = Interagir
 gameinput-freelook = Câmera Livre
 gameinput-autowalk = Caminhar/Nadar Automáticamente
+gameinput-zoomlock = Trava de zoom da câmera
 gameinput-cameraclamp = Trava de câmera vertical
 gameinput-dance = Dançar
 gameinput-select = Escolher
