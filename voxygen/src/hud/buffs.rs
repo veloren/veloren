@@ -9,7 +9,10 @@ use crate::{
 };
 use i18n::Localization;
 
-use common::comp::{BuffKind, Buffs, CharacterState, Energy, Health};
+use common::{
+    comp::{BuffKind, Buffs, CharacterState, Energy, Health},
+    resources::Time,
+};
 use conrod_core::{
     color,
     image::Id,
@@ -49,6 +52,7 @@ pub struct BuffsBar<'a> {
     global_state: &'a GlobalState,
     health: &'a Health,
     energy: &'a Energy,
+    time: &'a Time,
 }
 
 impl<'a> BuffsBar<'a> {
@@ -64,6 +68,7 @@ impl<'a> BuffsBar<'a> {
         global_state: &'a GlobalState,
         health: &'a Health,
         energy: &'a Energy,
+        time: &'a Time,
     ) -> Self {
         Self {
             imgs,
@@ -78,6 +83,7 @@ impl<'a> BuffsBar<'a> {
             global_state,
             health,
             energy,
+            time,
         }
     }
 }
@@ -219,10 +225,9 @@ impl<'a> Widget for BuffsBar<'a> {
                 .enumerate()
                 .for_each(|(i, (((id, timer_id), mult_id), buff))| {
                     let max_duration = buff.kind.max_duration();
-                    let current_duration = buff.dur;
+                    let current_duration = buff.end_time.map(|end| end - self.time.0);
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
-                        max_duration
-                            .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
+                        max_duration.map_or(1000.0, |max| cur / max.0 * 1000.0)
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
                     let buff_img = buff.kind.image(self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
@@ -236,13 +241,11 @@ impl<'a> Widget for BuffsBar<'a> {
                     );
 
                     buff_widget
-                        .color(
-                            if current_duration.map_or(false, |cur| cur.as_secs_f32() < 10.0) {
-                                Some(pulsating_col)
-                            } else {
-                                Some(norm_col)
-                            },
-                        )
+                        .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                            Some(pulsating_col)
+                        } else {
+                            Some(norm_col)
+                        })
                         .set(*id, ui);
                     if buff.multiplicity() > 1 {
                         Rectangle::fill_with([0.0, 0.0], MULTIPLICITY_COLOR.plain_contrast())
@@ -260,7 +263,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     }
                     // Create Buff tooltip
                     let (title, desc_txt) = buff.kind.title_description(localized_strings);
-                    let remaining_time = buff.get_buff_time();
+                    let remaining_time = buff.get_buff_time(*self.time);
                     let click_to_remove =
                         format!("<{}>", &localized_strings.get_msg("buff-remove"));
                     let desc = format!("{}\n\n{}\n\n{}", desc_txt, remaining_time, click_to_remove);
@@ -304,10 +307,9 @@ impl<'a> Widget for BuffsBar<'a> {
                 .enumerate()
                 .for_each(|(i, (((id, timer_id), mult_id), debuff))| {
                     let max_duration = debuff.kind.max_duration();
-                    let current_duration = debuff.dur;
+                    let current_duration = debuff.end_time.map(|end| end - self.time.0);
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
-                        max_duration
-                            .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
+                        max_duration.map_or(1000.0, |max| cur / max.0 * 1000.0)
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
                     let debuff_img = debuff.kind.image(self.imgs);
                     let debuff_widget = Image::new(debuff_img).w_h(40.0, 40.0);
@@ -321,13 +323,11 @@ impl<'a> Widget for BuffsBar<'a> {
                     );
 
                     debuff_widget
-                        .color(
-                            if current_duration.map_or(false, |cur| cur.as_secs_f32() < 10.0) {
-                                Some(pulsating_col)
-                            } else {
-                                Some(norm_col)
-                            },
-                        )
+                        .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                            Some(pulsating_col)
+                        } else {
+                            Some(norm_col)
+                        })
                         .set(*id, ui);
                     if debuff.multiplicity() > 1 {
                         Rectangle::fill_with([0.0, 0.0], MULTIPLICITY_COLOR.plain_contrast())
@@ -345,7 +345,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     }
                     // Create Debuff tooltip
                     let (title, desc_txt) = debuff.kind.title_description(localized_strings);
-                    let remaining_time = debuff.get_buff_time();
+                    let remaining_time = debuff.get_buff_time(*self.time);
                     let desc = format!("{}\n\n{}", desc_txt, remaining_time);
                     Image::new(self.get_duration_image(duration_percentage))
                         .w_h(40.0, 40.0)
@@ -405,11 +405,10 @@ impl<'a> Widget for BuffsBar<'a> {
             buff_vec.iter().enumerate().for_each(
                 |(i, ((((id, timer_id), txt_id), mult_id), buff))| {
                     let max_duration = buff.kind.max_duration();
-                    let current_duration = buff.dur;
+                    let current_duration = buff.end_time.map(|end| end - self.time.0);
                     // Percentage to determine which frame of the timer overlay is displayed
                     let duration_percentage = current_duration.map_or(1000.0, |cur| {
-                        max_duration
-                            .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
+                        max_duration.map_or(1000.0, |max| cur / max.0 * 1000.0)
                     }) as u32;
                     let buff_img = buff.kind.image(self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
@@ -422,13 +421,11 @@ impl<'a> Widget for BuffsBar<'a> {
                         0.0 + x as f64 * (42.0),
                     );
                     buff_widget
-                        .color(
-                            if current_duration.map_or(false, |cur| cur.as_secs_f32() < 10.0) {
-                                Some(pulsating_col)
-                            } else {
-                                Some(norm_col)
-                            },
-                        )
+                        .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                            Some(pulsating_col)
+                        } else {
+                            Some(norm_col)
+                        })
                         .set(*id, ui);
                     if buff.multiplicity() > 1 {
                         Rectangle::fill_with([0.0, 0.0], MULTIPLICITY_COLOR.plain_contrast())
@@ -446,7 +443,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     }
                     // Create Buff tooltip
                     let (title, desc_txt) = buff.kind.title_description(localized_strings);
-                    let remaining_time = buff.get_buff_time();
+                    let remaining_time = buff.get_buff_time(*self.time);
                     let click_to_remove =
                         format!("<{}>", &localized_strings.get_msg("buff-remove"));
                     let desc = if buff.is_buff {

@@ -14,6 +14,7 @@ use common::{
     event::{EventBus, UpdateCharacterMetadata},
     lottery::LootSpec,
     outcome::Outcome,
+    resources::{Secs, Time},
     rtsim::RtSimEntity,
     uid::Uid,
     util::Dir,
@@ -21,7 +22,6 @@ use common::{
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
-use std::time::Duration;
 use vek::{Rgb, Vec3};
 
 use super::group_manip::update_map_markers;
@@ -270,6 +270,7 @@ pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, 
 }
 
 pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
+    let time = server.state.get_time();
     server
         .state
         .create_object(Pos(pos), comp::object::Body::CampfireLit)
@@ -285,24 +286,26 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::CampfireHeal,
-                    data: BuffData::new(0.02, Some(Duration::from_secs(1)), None),
+                    data: BuffData::new(0.02, Some(Secs(1.0)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
                 5.0,
                 None,
                 AuraTarget::All,
+                Time(time),
             ),
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Burning,
-                    data: BuffData::new(2.0, Some(Duration::from_secs(10)), None),
+                    data: BuffData::new(2.0, Some(Secs(10.0)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
                 0.7,
                 None,
                 AuraTarget::All,
+                Time(time),
             ),
         ]))
         .build();

@@ -42,7 +42,7 @@ use common::{
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
-    resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
+    resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
     vol::ReadVol,
@@ -53,7 +53,7 @@ use common_net::{
     sync::WorldSyncExt,
 };
 use common_state::{BuildAreaError, BuildAreas};
-use core::{cmp::Ordering, convert::TryFrom, time::Duration};
+use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::{thread_rng, Rng};
@@ -1045,6 +1045,7 @@ fn handle_time(
     };
 
     server.state.mut_resource::<TimeOfDay>().0 = new_time;
+    let time = server.state.ecs().read_resource::<Time>();
 
     // Update all clients with the new TimeOfDay (without this they would have to
     // wait for the next 100th tick to receive the update).
@@ -1056,6 +1057,7 @@ fn handle_time(
             client.prepare(ServerGeneral::TimeOfDay(
                 TimeOfDay(new_time),
                 (*calendar).clone(),
+                *time,
             ))
         });
         let _ = client.send_prepared(&msg);
@@ -1462,6 +1464,7 @@ fn handle_spawn_campfire(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
+    let time = server.state.get_time();
     server
         .state
         .create_object(pos, comp::object::Body::CampfireLit)
@@ -1476,24 +1479,26 @@ fn handle_spawn_campfire(
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::CampfireHeal,
-                    data: BuffData::new(0.02, Some(Duration::from_secs(1)), None),
+                    data: BuffData::new(0.02, Some(Secs(1.0)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
                 5.0,
                 None,
                 AuraTarget::All,
+                Time(time),
             ),
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Burning,
-                    data: BuffData::new(2.0, Some(Duration::from_secs(10)), None),
+                    data: BuffData::new(2.0, Some(Secs(10.0)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
                 0.7,
                 None,
                 AuraTarget::All,
+                Time(time),
             ),
         ]))
         .build();
@@ -3516,8 +3521,8 @@ fn handle_buff(
 ) -> CmdResult<()> {
     if let (Some(buff), strength, duration) = parse_cmd_args!(args, String, f32, f64) {
         let strength = strength.unwrap_or(0.01);
-        let duration = Duration::from_secs_f64(duration.unwrap_or(1.0));
-        let buffdata = BuffData::new(strength, Some(duration), None);
+        let duration = duration.unwrap_or(1.0);
+        let buffdata = BuffData::new(strength, Some(Secs(duration)), None);
         if buff != "all" {
             cast_buff(&buff, buffdata, server, target)
         } else {
@@ -3535,8 +3540,20 @@ fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity)
     if let Some(buffkind) = parse_buffkind(kind) {
         let ecs = &server.state.ecs();
         let mut buffs_all = ecs.write_storage::<comp::Buffs>();
+        let stats = ecs.read_storage::<comp::Stats>();
+        let time = ecs.read_resource::<Time>();
         if let Some(mut buffs) = buffs_all.get_mut(target) {
-            buffs.insert(Buff::new(buffkind, data, vec![], BuffSource::Command));
+            buffs.insert(
+                Buff::new(
+                    buffkind,
+                    data,
+                    vec![],
+                    BuffSource::Command,
+                    *time,
+                    stats.get(target),
+                ),
+                *time,
+            );
         }
         Ok(())
     } else {

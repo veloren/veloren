@@ -146,7 +146,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
         let mut description = String::new();
         if let Effect::Buff(buff) = effect {
             let strength = buff.data.strength;
-            let dur_secs = buff.data.duration.map(|d| d.as_secs_f32());
+            let dur_secs = buff.data.duration.map(|d| d.0 as f32);
             let str_total = dur_secs.map_or(strength, |secs| strength * secs);
 
             let format_float =

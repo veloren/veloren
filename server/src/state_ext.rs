@@ -23,7 +23,7 @@ use common::{
     effect::Effect,
     link::{Link, LinkHandle},
     mounting::Mounting,
-    resources::{Time, TimeOfDay},
+    resources::{Secs, Time, TimeOfDay},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
     LoadoutBuilder, ViewDistances,
@@ -38,7 +38,7 @@ use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
     Join, WorldExt,
 };
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use tracing::{trace, warn};
 use vek::*;
 
@@ -222,16 +222,23 @@ impl StateExt for State {
                 }
             },
             Effect::Buff(buff) => {
+                let time = self.ecs().read_resource::<Time>();
+                let stats = self.ecs().read_storage::<comp::Stats>();
                 self.ecs()
                     .write_storage::<comp::Buffs>()
                     .get_mut(entity)
                     .map(|mut buffs| {
-                        buffs.insert(comp::Buff::new(
-                            buff.kind,
-                            buff.data,
-                            buff.cat_ids,
-                            comp::BuffSource::Item,
-                        ))
+                        buffs.insert(
+                            comp::Buff::new(
+                                buff.kind,
+                                buff.data,
+                                buff.cat_ids,
+                                comp::BuffSource::Item,
+                                *time,
+                                stats.get(entity),
+                            ),
+                            *time,
+                        )
                     });
             },
         }
@@ -425,19 +432,21 @@ impl StateExt for State {
             aura::{Aura, AuraKind, AuraTarget, Auras},
             buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         };
+        let time = self.get_time();
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(Auras::new(vec![Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Invulnerability,
-                    data: BuffData::new(1.0, Some(Duration::from_secs(1)), None),
+                    data: BuffData::new(1.0, Some(Secs(1.0)), None),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
                 range.unwrap_or(100.0),
                 None,
                 AuraTarget::All,
+                Time(time),
             )]))
     }
 

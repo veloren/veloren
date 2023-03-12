@@ -20,6 +20,7 @@ use crate::{
         },
         Body, CharacterState, LightEmitter, StateUpdate,
     },
+    resources::Secs,
     states::{
         behavior::JoinData,
         utils::{AbilityInfo, StageSection},
@@ -696,7 +697,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         targets: combat::GroupTarget,
         auras: Vec<aura::AuraBuffConstructor>,
-        aura_duration: f32,
+        aura_duration: Secs,
         range: f32,
         energy_cost: f32,
         scales_with_combo: bool,
@@ -728,7 +729,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         buff_kind: buff::BuffKind,
         buff_strength: f32,
-        buff_duration: Option<f32>,
+        buff_duration: Option<Secs>,
         energy_cost: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -2051,7 +2052,7 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Sceptre(HDuration)) {
                     auras.iter_mut().for_each(|ref mut aura| {
                         if let Some(ref mut duration) = aura.duration {
-                            *duration *= modifiers.duration.powi(level.into());
+                            *duration *= modifiers.duration.powi(level.into()) as f64;
                         }
                     });
                 }
@@ -2078,7 +2079,7 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Sceptre(ADuration)) {
                     auras.iter_mut().for_each(|ref mut aura| {
                         if let Some(ref mut duration) = aura.duration {
-                            *duration *= modifiers.duration.powi(level.into());
+                            *duration *= modifiers.duration.powi(level.into()) as f64;
                         }
                     });
                 }
@@ -2602,7 +2603,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     targets: *targets,
                     auras: auras.clone(),
-                    aura_duration: Duration::from_secs_f32(*aura_duration),
+                    aura_duration: *aura_duration,
                     range: *range,
                     ability_info,
                     scales_with_combo: *scales_with_combo,
@@ -2667,7 +2668,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     buff_kind: *buff_kind,
                     buff_strength: *buff_strength,
-                    buff_duration: buff_duration.map(Duration::from_secs_f32),
+                    buff_duration: *buff_duration,
                     ability_info,
                 },
                 timer: Duration::default(),

@@ -4,24 +4,23 @@ use common::{
         aura::{AuraChange, AuraKey, AuraKind, AuraTarget},
         buff::{Buff, BuffCategory, BuffChange, BuffSource},
         group::Group,
-        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos,
+        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos, Stats,
     },
     event::{Emitter, EventBus, ServerEvent},
-    resources::DeltaTime,
+    resources::Time,
     uid::{Uid, UidAllocator},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
-    ReadStorage, SystemData, World, WriteStorage,
+    ReadStorage, SystemData, World,
 };
-use std::time::Duration;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
-    dt: Read<'a, DeltaTime>,
+    time: Read<'a, Time>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     uid_allocator: Read<'a, UidAllocator>,
     cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
@@ -31,57 +30,38 @@ pub struct ReadData<'a> {
     healths: ReadStorage<'a, Health>,
     groups: ReadStorage<'a, Group>,
     uids: ReadStorage<'a, Uid>,
+    stats: ReadStorage<'a, Stats>,
+    buffs: ReadStorage<'a, Buffs>,
+    auras: ReadStorage<'a, Auras>,
 }
 
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    type SystemData = (
-        ReadData<'a>,
-        WriteStorage<'a, Auras>,
-        WriteStorage<'a, Buffs>,
-    );
+    type SystemData = ReadData<'a>;
 
     const NAME: &'static str = "aura";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut Job<Self>, (read_data, mut auras, mut buffs): Self::SystemData) {
+    fn run(_job: &mut Job<Self>, read_data: Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
-        let dt = read_data.dt.0;
-
-        auras.set_event_emission(false);
-        buffs.set_event_emission(false);
-
-        // Iterate through all buffs, on any buffs that are from an aura, sets the check
-        // for whether the buff recently set by aura to false
-        for (_, mut buffs_comp) in (&read_data.entities, &mut buffs).join() {
-            for (_, buff) in buffs_comp.buffs.iter_mut() {
-                if let Some(cat_id) = buff
-                    .cat_ids
-                    .iter_mut()
-                    .find(|cat_id| matches!(cat_id, BuffCategory::FromAura(true)))
-                {
-                    *cat_id = BuffCategory::FromAura(false);
-                }
-            }
-        }
 
         // Iterate through all entities with an aura
-        for (entity, pos, mut auras_comp) in
-            (&read_data.entities, &read_data.positions, &mut auras).join()
+        for (entity, pos, auras_comp, uid) in (
+            &read_data.entities,
+            &read_data.positions,
+            &read_data.auras,
+            &read_data.uids,
+        )
+            .join()
         {
             let mut expired_auras = Vec::<AuraKey>::new();
             // Iterate through the auras attached to this entity
-            for (key, aura) in auras_comp.auras.iter_mut() {
+            for (key, aura) in auras_comp.auras.iter() {
                 // Tick the aura and subtract dt from it
-                if let Some(remaining_time) = &mut aura.duration {
-                    if let Some(new_duration) =
-                        remaining_time.checked_sub(Duration::from_secs_f32(dt))
-                    {
-                        *remaining_time = new_duration;
-                    } else {
-                        *remaining_time = Duration::default();
+                if let Some(end_time) = aura.end_time {
+                    if read_data.time.0 > end_time.0 {
                         expired_auras.push(key);
                     }
                 }
@@ -96,11 +76,17 @@ impl<'a> System<'a> for Sys {
                             .and_then(|l| read_data.healths.get(target).map(|r| (l, r)))
                             .and_then(|l| read_data.uids.get(target).map(|r| (l, r)))
                             .map(|((target_pos, health), target_uid)| {
-                                (target, target_pos, health, target_uid)
+                                (
+                                    target,
+                                    target_pos,
+                                    health,
+                                    target_uid,
+                                    read_data.stats.get(target),
+                                )
                             })
                     });
-                target_iter.for_each(|(target, target_pos, health, target_uid)| {
-                    let mut target_buffs = match buffs.get_mut(target) {
+                target_iter.for_each(|(target, target_pos, health, target_uid, stats)| {
+                    let target_buffs = match read_data.buffs.get(target) {
                         Some(buff) => buff,
                         None => return,
                     };
@@ -127,10 +113,13 @@ impl<'a> System<'a> for Sys {
 
                         if is_target {
                             activate_aura(
+                                key,
                                 aura,
+                                *uid,
                                 target,
                                 health,
-                                &mut target_buffs,
+                                target_buffs,
+                                stats,
                                 &read_data,
                                 &mut server_emitter,
                             );
@@ -145,18 +134,19 @@ impl<'a> System<'a> for Sys {
                 });
             }
         }
-        auras.set_event_emission(true);
-        buffs.set_event_emission(true);
     }
 }
 
 #[warn(clippy::pedantic)]
 //#[warn(clippy::nursery)]
 fn activate_aura(
+    key: AuraKey,
     aura: &Aura,
+    applier: Uid,
     target: EcsEntity,
     health: &Health,
-    target_buffs: &mut Buffs,
+    target_buffs: &Buffs,
+    stats: Option<&Stats>,
     read_data: &ReadData,
     server_emitter: &mut Emitter<ServerEvent>,
 ) {
@@ -237,12 +227,9 @@ fn activate_aura(
             let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
                 buff.cat_ids
                     .iter()
-                    .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(_)))
+                    .any(|cat_id| matches!(cat_id, BuffCategory::FromActiveAura(uid, aura_key) if *aura_key == key && *uid == applier))
                     && buff.kind == kind
                     && buff.data.strength >= data.strength
-                    && buff.time.map_or(true, |dur| {
-                        data.duration.map_or(false, |dur_2| dur >= dur_2)
-                    })
             });
             if emit_buff {
                 server_emitter.emit(ServerEvent::Buff {
@@ -250,28 +237,12 @@ fn activate_aura(
                     buff_change: BuffChange::Add(Buff::new(
                         kind,
                         data,
-                        vec![category, BuffCategory::FromAura(true)],
+                        vec![category, BuffCategory::FromActiveAura(applier, key)],
                         source,
+                        *read_data.time,
+                        stats,
                     )),
                 });
-            }
-            // Finds all buffs on target that are from an aura, are of
-            // the same buff kind, and are of at most the same strength.
-            // For any such buffs, marks it as recently applied.
-            for (_, buff) in target_buffs.buffs.iter_mut().filter(|(_, buff)| {
-                buff.cat_ids
-                    .iter()
-                    .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(_)))
-                    && buff.kind == kind
-                    && buff.data.strength <= data.strength
-            }) {
-                if let Some(cat_id) = buff
-                    .cat_ids
-                    .iter_mut()
-                    .find(|cat_id| matches!(cat_id, BuffCategory::FromAura(false)))
-                {
-                    *cat_id = BuffCategory::FromAura(true);
-                }
             }
         },
     }

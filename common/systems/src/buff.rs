@@ -1,6 +1,7 @@
 use common::{
     combat::DamageContributor,
     comp::{
+        aura::Auras,
         body::{object, Body},
         buff::{
             Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource,
@@ -9,23 +10,21 @@ use common::{
         fluid_dynamics::{Fluid, LiquidKind},
         item::MaterialStatManifest,
         Energy, Group, Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState,
-        Stats,
+        Pos, Stats,
     },
     event::{Emitter, EventBus, ServerEvent},
-    resources::{DeltaTime, Time},
+    resources::{DeltaTime, Secs, Time},
     terrain::SpriteKind,
     uid::{Uid, UidAllocator},
     Damage, DamageSource,
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use hashbrown::HashMap;
 use rayon::iter::ParallelIterator;
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Entity, Join, ParJoin, Read,
     ReadExpect, ReadStorage, SystemData, World, WriteStorage,
 };
-use std::time::Duration;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -40,6 +39,9 @@ pub struct ReadData<'a> {
     uid_allocator: Read<'a, UidAllocator>,
     time: Read<'a, Time>,
     msm: ReadExpect<'a, MaterialStatManifest>,
+    buffs: ReadStorage<'a, Buffs>,
+    auras: ReadStorage<'a, Auras>,
+    positions: ReadStorage<'a, Pos>,
 }
 
 #[derive(Default)]
@@ -47,7 +49,6 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
-        WriteStorage<'a, Buffs>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Body>,
         WriteStorage<'a, LightEmitter>,
@@ -59,12 +60,11 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         job: &mut Job<Self>,
-        (read_data, mut buffs, mut stats, mut bodies, mut light_emitters): Self::SystemData,
+        (read_data, mut stats, mut bodies, mut light_emitters): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
         // Set to false to avoid spamming server
-        buffs.set_event_emission(false);
         stats.set_event_emission(false);
 
         // Put out underwater campfires. Logically belongs here since this system also
@@ -125,9 +125,9 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        for (entity, mut buff_comp, mut stat, health, energy, physics_state) in (
+        for (entity, buff_comp, mut stat, health, energy, physics_state) in (
             &read_data.entities,
-            &mut buffs,
+            &read_data.buffs,
             &mut stats,
             &read_data.healths,
             &read_data.energies,
@@ -146,9 +146,11 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
-                            BuffData::new(1.0, Some(Duration::from_secs_f32(1.0)), None),
+                            BuffData::new(1.0, Some(Secs(1.0)), None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
                         )),
                     });
                 }
@@ -161,9 +163,11 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(1.0, Some(Duration::from_secs_f32(6.0)), None),
+                            BuffData::new(1.0, Some(Secs(6.0)), None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
                         )),
                     });
                 }
@@ -176,9 +180,11 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(15.0, Some(Duration::from_secs_f32(0.1)), None),
+                            BuffData::new(15.0, Some(Secs(0.1)), None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
                         )),
                     });
                     // When standing on IceSpike also apply Frozen
@@ -186,9 +192,11 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Frozen,
-                            BuffData::new(0.2, Some(Duration::from_secs_f32(1.0)), None),
+                            BuffData::new(0.2, Some(Secs(1.0)), None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
                         )),
                     });
                 }
@@ -207,6 +215,8 @@ impl<'a> System<'a> for Sys {
                             BuffData::new(20.0, None, None),
                             vec![BuffCategory::Natural],
                             BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
                         )),
                     });
                 } else if matches!(
@@ -225,31 +235,77 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            let (buff_comp_kinds, buff_comp_buffs): (
-                &HashMap<BuffKind, Vec<BuffId>>,
-                &mut HashMap<BuffId, Buff>,
-            ) = buff_comp.parts();
             let mut expired_buffs = Vec::<BuffId>::new();
 
-            // For each buff kind present on entity, if the buff kind queues, only ticks
-            // duration of strongest buff of that kind, else it ticks durations of all buffs
-            // of that kind. Any buffs whose durations expire are marked expired.
-            for (kind, ids) in buff_comp_kinds.iter() {
-                if kind.queues() {
-                    if let Some((Some(buff), id)) =
-                        ids.first().map(|id| (buff_comp_buffs.get_mut(id), id))
-                    {
-                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
+            // Replace buffs from an active aura with a normal buff when out of range of the
+            // aura
+            buff_comp
+                .buffs
+                .iter()
+                .filter_map(|(id, buff)| {
+                    if let Some((uid, aura_key)) = buff.cat_ids.iter().find_map(|cat_id| {
+                        if let BuffCategory::FromActiveAura(uid, aura_key) = cat_id {
+                            Some((uid, aura_key))
+                        } else {
+                            None
+                        }
+                    }) {
+                        Some((id, buff, uid, aura_key))
+                    } else {
+                        None
                     }
-                } else {
-                    for (id, buff) in buff_comp_buffs
-                        .iter_mut()
-                        .filter(|(i, _)| ids.iter().any(|id| id == *i))
+                })
+                .for_each(|(buff_id, buff, uid, aura_key)| {
+                    let replace = if let Some(aura_entity) = read_data
+                        .uid_allocator
+                        .retrieve_entity_internal((*uid).into())
                     {
-                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
+                        if let Some(aura) = read_data
+                            .auras
+                            .get(aura_entity)
+                            .and_then(|auras| auras.auras.get(*aura_key))
+                        {
+                            if let (Some(pos), Some(aura_pos)) = (
+                                read_data.positions.get(entity),
+                                read_data.positions.get(aura_entity),
+                            ) {
+                                pos.0.distance_squared(aura_pos.0) > aura.radius.powi(2)
+                            } else {
+                                true
+                            }
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    };
+                    if replace {
+                        expired_buffs.push(*buff_id);
+                        server_emitter.emit(ServerEvent::Buff {
+                            entity,
+                            buff_change: BuffChange::Add(Buff::new(
+                                buff.kind,
+                                buff.data,
+                                buff.cat_ids
+                                    .iter()
+                                    .copied()
+                                    .filter(|cat_id| {
+                                        !matches!(cat_id, BuffCategory::FromActiveAura(..))
+                                    })
+                                    .collect::<Vec<_>>(),
+                                buff.source,
+                                *read_data.time,
+                                Some(&stat),
+                            )),
+                        });
                     }
+                });
+
+            buff_comp.buffs.iter().for_each(|(id, buff)| {
+                if buff.end_time.map_or(false, |end| end.0 < read_data.time.0) {
+                    expired_buffs.push(*id)
                 }
-            }
+            });
 
             let damage_reduction = Damage::compute_damage_reduction(
                 None,
@@ -269,14 +325,13 @@ impl<'a> System<'a> for Sys {
             stat.reset_temp_modifiers();
 
             // Iterator over the lists of buffs by kind
-            let buff_comp = &mut *buff_comp;
             let mut buff_kinds = buff_comp
                 .kinds
                 .iter()
                 .map(|(kind, ids)| (*kind, ids.clone()))
-                .collect::<Vec<(BuffKind, Vec<BuffId>)>>();
+                .collect::<Vec<(BuffKind, (Vec<BuffId>, Time))>>();
             buff_kinds.sort_by_key(|(kind, _)| !kind.affects_subsequent_buffs());
-            for (buff_kind, buff_ids) in buff_kinds.into_iter() {
+            for (buff_kind, (buff_ids, kind_start_time)) in buff_kinds.into_iter() {
                 let mut active_buff_ids = Vec::new();
                 if buff_kind.stacks() {
                     // Process all the buffs of this kind
@@ -286,9 +341,9 @@ impl<'a> System<'a> for Sys {
                     active_buff_ids.push(buff_ids[0]);
                 }
                 for buff_id in active_buff_ids.into_iter() {
-                    if let Some(buff) = buff_comp.buffs.get_mut(&buff_id) {
+                    if let Some(buff) = buff_comp.buffs.get(&buff_id) {
                         // Skip the effect of buffs whose start delay hasn't expired.
-                        if buff.delay.is_some() {
+                        if buff.start_time.0 > read_data.time.0 {
                             continue;
                         }
                         // Get buff owner?
@@ -299,11 +354,12 @@ impl<'a> System<'a> for Sys {
                         };
 
                         // Now, execute the buff, based on it's delta
-                        for effect in &mut buff.effects {
+                        for effect in &buff.effects {
                             execute_effect(
                                 effect,
                                 buff.kind,
-                                buff.time,
+                                buff.start_time,
+                                kind_start_time,
                                 &read_data,
                                 &mut stat,
                                 health,
@@ -312,6 +368,8 @@ impl<'a> System<'a> for Sys {
                                 buff_owner,
                                 &mut server_emitter,
                                 dt,
+                                *read_data.time,
+                                expired_buffs.contains(&buff_id),
                             );
                         }
                     }
@@ -339,15 +397,15 @@ impl<'a> System<'a> for Sys {
             }
         }
         // Turned back to true
-        buffs.set_event_emission(true);
         stats.set_event_emission(true);
     }
 }
 
 fn execute_effect(
-    effect: &mut BuffEffect,
+    effect: &BuffEffect,
     buff_kind: BuffKind,
-    buff_time: Option<std::time::Duration>,
+    buff_start_time: Time,
+    buff_kind_start_time: Time,
     read_data: &ReadData,
     stat: &mut Stats,
     health: &Health,
@@ -356,28 +414,37 @@ fn execute_effect(
     buff_owner: Option<Uid>,
     server_emitter: &mut Emitter<ServerEvent>,
     dt: f32,
+    time: Time,
+    buff_will_expire: bool,
 ) {
     match effect {
         BuffEffect::HealthChangeOverTime {
             rate,
-            accumulated,
             kind,
             instance,
         } => {
-            *accumulated += *rate * dt;
-            // Apply health change only once per second, per health, or
-            // when a buff is removed
-            if accumulated.abs() > rate.abs().min(1.0)
-                || buff_time.map_or(false, |dur| dur == Duration::default())
-            {
-                let (cause, by) = if *accumulated != 0.0 {
+            // Apply health change if buff wasn't just added, only once per second or when
+            // buff is about to be removed
+            let time_passed = (time.0 - buff_start_time.0) as f32;
+            let one_second = (time_passed % 1.0) < dt;
+            if time_passed > dt && (one_second || buff_will_expire) {
+                let amount = if one_second {
+                    // If buff not expiring this tick, then 1 second has passed
+                    *rate
+                } else {
+                    // If buff expiring this tick, only a fraction of the second has passed since
+                    // last tick
+                    ((time.0 - buff_start_time.0) % 1.0) as f32 * rate
+                };
+
+                let (cause, by) = if amount != 0.0 {
                     (Some(DamageSource::Buff(buff_kind)), buff_owner)
                 } else {
                     (None, None)
                 };
-                let mut amount = match *kind {
-                    ModifierKind::Additive => *accumulated,
-                    ModifierKind::Fractional => health.maximum() * *accumulated,
+                let amount = match *kind {
+                    ModifierKind::Additive => amount,
+                    ModifierKind::Fractional => health.maximum() * amount,
                 };
                 let damage_contributor = by.and_then(|uid| {
                     read_data
@@ -387,9 +454,6 @@ fn execute_effect(
                             DamageContributor::new(uid, read_data.groups.get(entity).cloned())
                         })
                 });
-                if amount > 0.0 && matches!(buff_kind, BuffKind::Potion) {
-                    amount *= stat.heal_multiplier;
-                }
                 server_emitter.emit(ServerEvent::HealthChange {
                     entity,
                     change: HealthChange {
@@ -401,29 +465,31 @@ fn execute_effect(
                         instance: *instance,
                     },
                 });
-                *accumulated = 0.0;
             };
         },
-        BuffEffect::EnergyChangeOverTime {
-            rate,
-            accumulated,
-            kind,
-        } => {
-            *accumulated += *rate * dt;
-            // Apply energy change only once per second, per energy, or
-            // when a buff is removed
-            if accumulated.abs() > rate.abs().min(10.0)
-                || buff_time.map_or(false, |dur| dur == Duration::default())
-            {
+        BuffEffect::EnergyChangeOverTime { rate, kind } => {
+            // Apply energy change if buff wasn't just added, only once per second or when
+            // buff is about to be removed
+            let time_passed = (time.0 - buff_start_time.0) as f32;
+            let one_second = (time_passed % 1.0) < dt;
+            if time_passed > dt && (one_second || buff_will_expire) {
+                let amount = if one_second {
+                    // If buff not expiring this tick, then 1 second has passed
+                    *rate
+                } else {
+                    // If buff expiring this tick, only a fraction of the second has passed since
+                    // last tick
+                    ((time.0 - buff_start_time.0) % 1.0) as f32 * rate
+                };
+
                 let amount = match *kind {
-                    ModifierKind::Additive => *accumulated,
-                    ModifierKind::Fractional => energy.maximum() * *accumulated,
+                    ModifierKind::Additive => amount,
+                    ModifierKind::Fractional => energy.maximum() * amount,
                 };
                 server_emitter.emit(ServerEvent::EnergyChange {
                     entity,
                     change: amount,
                 });
-                *accumulated = 0.0;
             };
         },
         BuffEffect::MaxHealthModifier { value, kind } => match kind {
@@ -450,60 +516,46 @@ fn execute_effect(
             rate,
             kind,
             target_fraction,
-            achieved_fraction,
         } => {
-            // Current fraction uses information from last tick, which is
-            // necessary as buffs from this tick are not guaranteed to have
-            // finished applying
-            let current_fraction = health.maximum() / health.base_max();
+            let potential_amount = (time.0 - buff_kind_start_time.0) as f32 * rate;
 
-            // If achieved_fraction not initialized, initialize it to health
-            // fraction
-            if achieved_fraction.is_none() {
-                *achieved_fraction = Some(current_fraction)
-            }
-
-            if let Some(achieved_fraction) = achieved_fraction {
-                // Percentage change that should be applied to max_health
-                let health_tick = match kind {
+            // Percentage change that should be applied to max_health
+            let potential_fraction = 1.0
+                + match kind {
                     ModifierKind::Additive => {
                         // `rate * dt` is amount of health, dividing by base max
                         // creates fraction
-                        *rate * dt / health.base_max()
+                        potential_amount / health.base_max()
                     },
                     ModifierKind::Fractional => {
                         // `rate * dt` is the fraction
-                        *rate * dt
+                        potential_amount
                     },
                 };
 
-                let potential_fraction = *achieved_fraction + health_tick;
+            // Potential progress towards target fraction, if
+            // target_fraction ~ 1.0 then set progress to 1.0 to avoid
+            // divide by zero
+            let progress = if (1.0 - *target_fraction).abs() > f32::EPSILON {
+                (1.0 - potential_fraction) / (1.0 - *target_fraction)
+            } else {
+                1.0
+            };
 
-                // Potential progress towards target fraction, if
-                // target_fraction ~ 1.0 then set progress to 1.0 to avoid
-                // divide by zero
-                let progress = if (1.0 - *target_fraction).abs() > f32::EPSILON {
-                    (1.0 - potential_fraction) / (1.0 - *target_fraction)
-                } else {
-                    1.0
-                };
+            // Change achieved_fraction depending on what other buffs have
+            // occurred
+            let achieved_fraction = if progress > 1.0 {
+                // If potential fraction already beyond target fraction,
+                // simply multiply max_health_modifier by the target
+                // fraction, and set achieved fraction to target_fraction
+                *target_fraction
+            } else {
+                // Else have not achieved target yet, use potential_fraction
+                potential_fraction
+            };
 
-                // Change achieved_fraction depending on what other buffs have
-                // occurred
-                if progress > 1.0 {
-                    // If potential fraction already beyond target fraction,
-                    // simply multiply max_health_modifier by the target
-                    // fraction, and set achieved fraction to target_fraction
-                    *achieved_fraction = *target_fraction;
-                } else {
-                    // Else have not achieved target yet, update
-                    // achieved_fraction
-                    *achieved_fraction = potential_fraction;
-                }
-
-                // Apply achieved_fraction to max_health_modifier
-                stat.max_health_modifiers.mult_mod *= *achieved_fraction;
-            }
+            // Apply achieved_fraction to max_health_modifier
+            stat.max_health_modifiers.mult_mod *= achieved_fraction;
         },
         BuffEffect::MovementSpeed(speed) => {
             stat.move_speed_modifier *= *speed;
@@ -518,35 +570,8 @@ fn execute_effect(
         BuffEffect::PoiseReduction(pr) => {
             stat.poise_reduction = stat.poise_reduction.max(*pr).min(1.0);
         },
-        BuffEffect::HealReduction { rate } => {
-            stat.heal_multiplier *= 1.0 - *rate;
+        BuffEffect::HealReduction(red) => {
+            stat.heal_multiplier *= 1.0 - *red;
         },
     };
-}
-
-fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)) {
-    // If a buff is recently applied from an aura, do not tick duration
-    if buff
-        .cat_ids
-        .iter()
-        .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(true)))
-    {
-        return;
-    }
-    if let Some(remaining_delay) = buff.delay {
-        buff.delay = remaining_delay.checked_sub(Duration::from_secs_f32(dt));
-    }
-    if let Some(remaining_time) = &mut buff.time {
-        if let Some(new_duration) = remaining_time.checked_sub(Duration::from_secs_f32(dt)) {
-            // The buff still continues.
-            *remaining_time = new_duration;
-        } else {
-            // checked_sub returns None when remaining time
-            // went below 0, so set to 0
-            *remaining_time = Duration::default();
-            // The buff has expired.
-            // Remove it.
-            expire_buff(id);
-        }
-    }
 }

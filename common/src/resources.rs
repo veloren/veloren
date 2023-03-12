@@ -3,6 +3,7 @@ use crate::comp::Pos;
 use serde::{Deserialize, Serialize};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::Entity;
+use std::ops::{Mul, MulAssign};
 
 /// A resource that stores the time of day.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Default)]
@@ -15,6 +16,20 @@ pub struct Time(pub f64);
 /// A resource that stores the time since the previous tick.
 #[derive(Default)]
 pub struct DeltaTime(pub f32);
+
+/// A resource used to indicate a duration of time, in seconds
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+#[serde(transparent)]
+pub struct Secs(pub f64);
+
+impl Mul<f64> for Secs {
+    type Output = Self;
+
+    fn mul(self, mult: f64) -> Self { Self(self.0 * mult) }
+}
+impl MulAssign<f64> for Secs {
+    fn mul_assign(&mut self, mult: f64) { *self = *self * mult; }
+}
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Default)]

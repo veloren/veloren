@@ -8,10 +8,7 @@ ItemDef(
                 kind: Saturation,
                 data: (
                     strength: 5.5,
-                    duration: Some((
-                            secs: 15,
-                            nanos: 0,
-                        )),
+                    duration: Some(15),
                     ),
                 cat_ids: [Natural],
             )),

@@ -13,6 +13,7 @@ use common::{
     cmd::ServerChatCommand,
     comp,
     comp::{inventory::item::armor::Friction, Poise, PoiseState},
+    resources::Time,
 };
 use core::mem;
 use egui::{
@@ -535,6 +536,7 @@ fn selected_entity_window(
         .join()
         .filter(|(e, _, _, _, _, _, _, _, _, _, _, _, _, _, (_, _, _))| e.id() == entity_id)
     {
+        let time = ecs.read_resource::<Time>();
         if let Some(pos) = pos {
             if let Some(shape_id) = selected_entity_info.debug_shape_id {
                 egui_actions.actions.push(EguiAction::DebugShape(
@@ -645,8 +647,8 @@ fn selected_entity_window(
                                 buffs.buffs.iter().for_each(|(_, v)| {
                                     ui.label(format!("{:?}", v.kind));
                                     ui.label(
-                                        v.time.map_or("-".to_string(), |time| {
-                                            format!("{:?}", time)
+                                        v.end_time.map_or("-".to_string(), |end| {
+                                            format!("{:?}", end.0 - time.0)
                                         }),
                                     );
                                     ui.label(format!("{:?}", v.source));
@@ -672,7 +674,7 @@ fn selected_entity_window(
                                         Buff { kind, .. } =>  format!("Buff - {:?}", kind)
                                     });
                                     ui.label(format!("{:1}", v.radius));
-                                    ui.label(v.duration.map_or("-".to_owned(), |x| format!("{:1}s", x.as_secs())));
+                                    ui.label(v.end_time.map_or("-".to_owned(), |x| format!("{:1}s", x.0 - time.0)));
                                     ui.label(format!("{:?}", v.target));
                                     ui.end_row();
                                 });

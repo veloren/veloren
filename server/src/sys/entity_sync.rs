@@ -10,7 +10,7 @@ use common::{
     event::EventBus,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
-    resources::{PlayerPhysicsSettings, TimeOfDay},
+    resources::{PlayerPhysicsSettings, Time, TimeOfDay},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
@@ -33,6 +33,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, PlayerPhysicsSettings>,
         TrackedStorages<'a>,
         ReadExpect<'a, TimeOfDay>,
+        ReadExpect<'a, Time>,
         ReadExpect<'a, Calendar>,
         ReadExpect<'a, RegionMap>,
         ReadExpect<'a, UpdateTrackers>,
@@ -64,6 +65,7 @@ impl<'a> System<'a> for Sys {
             player_physics_settings,
             tracked_storages,
             time_of_day,
+            time,
             calendar,
             region_map,
             trackers,
@@ -416,7 +418,11 @@ impl<'a> System<'a> for Sys {
             let mut tod_lazymsg = None;
             for client in (&clients).join() {
                 let msg = tod_lazymsg.unwrap_or_else(|| {
-                    client.prepare(ServerGeneral::TimeOfDay(*time_of_day, (*calendar).clone()))
+                    client.prepare(ServerGeneral::TimeOfDay(
+                        *time_of_day,
+                        (*calendar).clone(),
+                        *time,
+                    ))
                 });
                 // We don't care much about stream errors here since they could just represent
                 // network disconnection, which is handled elsewhere.

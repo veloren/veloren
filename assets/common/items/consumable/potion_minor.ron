@@ -8,19 +8,15 @@ ItemDef(
                 kind: Potion,
                 data: (
                     strength: 50.0,
-                    duration: Some((
-                            secs: 1,
-                            nanos: 0,
-                        )),
-                    ),
+                    duration: Some(1),
+                ),
                 cat_ids: [Natural],
             )),
             Buff((
                 kind: PotionSickness,
                 data: (
                     strength: 0.33,
-                    duration: Some(( secs: 45, nanos: 0, )),
-                    delay: Some(( secs: 1, nanos: 0, ))
+                    duration: Some(45),
                 ),
                 cat_ids: [Natural],
             )),

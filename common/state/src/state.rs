@@ -75,6 +75,7 @@ impl BlockChange {
 pub struct ScheduledBlockChange {
     changes: TimerQueue<HashMap<Vec3<i32>, Block>>,
     outcomes: TimerQueue<HashMap<Vec3<i32>, Block>>,
+    last_poll_time: u64,
 }
 impl ScheduledBlockChange {
     pub fn set(&mut self, pos: Vec3<i32>, block: Block, replace_time: f64) {
@@ -252,9 +253,9 @@ impl State {
         ecs.insert(TimeOfDay(0.0));
         ecs.insert(Calendar::default());
         ecs.insert(WeatherGrid::new(Vec2::zero()));
+        ecs.insert(Time(0.0));
 
         // Register unsynced resources used by the ECS.
-        ecs.insert(Time(0.0));
         ecs.insert(DeltaTime(0.0));
         ecs.insert(PlayerEntity(None));
         ecs.insert(TerrainGrid::new(map_size_lg, default_chunk).unwrap());
@@ -546,22 +547,30 @@ impl State {
 
         let mut scheduled_changes = self.ecs.write_resource::<ScheduledBlockChange>();
         let current_time: f64 = self.ecs.read_resource::<Time>().0 * SECONDS_TO_MILLISECONDS;
-        while let Some(changes) = scheduled_changes.changes.poll(current_time as u64) {
-            modified_blocks.extend(changes.iter());
-        }
-        let outcome = self.ecs.read_resource::<EventBus<Outcome>>();
-        while let Some(outcomes) = scheduled_changes.outcomes.poll(current_time as u64) {
-            for (pos, block) in outcomes.iter() {
-                let offset_dir = Vec3::<i32>::zero() - pos;
-                let offset = offset_dir
-                    / Vec3::new(offset_dir.x.abs(), offset_dir.y.abs(), offset_dir.z.abs());
-                let outcome_pos = Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32)
-                    - (Vec3::new(offset.x as f32, offset.y as f32, offset.z as f32) / 2.0);
-                if let Some(sprite) = block.get_sprite() {
-                    outcome.emit_now(Outcome::SpriteDelete {
-                        pos: outcome_pos,
-                        sprite,
-                    });
+        let current_time = current_time as u64;
+        // This is important as the poll function has a debug assert that the new poll
+        // is at a more recent time than the old poll. As Time is synced between server
+        // and client, there is a chance that client dt can get slightly ahead of a
+        // server update, so we do not want to panic in that scenario.
+        if scheduled_changes.last_poll_time < current_time {
+            scheduled_changes.last_poll_time = current_time;
+            while let Some(changes) = scheduled_changes.changes.poll(current_time) {
+                modified_blocks.extend(changes.iter());
+            }
+            let outcome = self.ecs.read_resource::<EventBus<Outcome>>();
+            while let Some(outcomes) = scheduled_changes.outcomes.poll(current_time) {
+                for (pos, block) in outcomes.iter() {
+                    let offset_dir = Vec3::<i32>::zero() - pos;
+                    let offset = offset_dir
+                        / Vec3::new(offset_dir.x.abs(), offset_dir.y.abs(), offset_dir.z.abs());
+                    let outcome_pos = Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32)
+                        - (Vec3::new(offset.x as f32, offset.y as f32, offset.z as f32) / 2.0);
+                    if let Some(sprite) = block.get_sprite() {
+                        outcome.emit_now(Outcome::SpriteDelete {
+                            pos: outcome_pos,
+                            sprite,
+                        });
+                    }
                 }
             }
         }

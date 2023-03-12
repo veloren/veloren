@@ -1,12 +1,12 @@
 use crate::{
     combat::GroupTarget,
     comp::buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+    resources::{Secs, Time},
     uid::Uid,
 };
 use serde::{Deserialize, Serialize};
 use slotmap::{new_key_type, SlotMap};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
-use std::time::Duration;
 
 new_key_type! { pub struct AuraKey; }
 
@@ -36,8 +36,8 @@ pub struct Aura {
     pub aura_kind: AuraKind,
     /// The radius of the aura
     pub radius: f32,
-    /// How long the aura lasts. None corresponds to an indefinite length
-    pub duration: Option<Duration>,
+    // None corresponds to an indefinite aura
+    pub end_time: Option<Time>,
     /* TODO: Add functionality for fading or a gradient */
     /// Used to filter which entities this aura will apply to. For example,
     /// globally neutral auras which affect all entities will have the type
@@ -92,12 +92,12 @@ impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AuraData {
-    pub duration: Option<Duration>,
+    pub duration: Option<Secs>,
 }
 
 impl AuraData {
     #[must_use]
-    fn new(duration: Option<Duration>) -> Self { Self { duration } }
+    fn new(duration: Option<Secs>) -> Self { Self { duration } }
 }
 
 impl Aura {
@@ -105,13 +105,14 @@ impl Aura {
     pub fn new(
         aura_kind: AuraKind,
         radius: f32,
-        duration: Option<Duration>,
+        duration: Option<Secs>,
         target: AuraTarget,
+        time: Time,
     ) -> Self {
         Self {
             aura_kind,
             radius,
-            duration,
+            end_time: duration.map(|dur| Time(time.0 + dur.0)),
             target,
             data: AuraData::new(duration),
         }
@@ -142,7 +143,7 @@ impl Auras {
 pub struct AuraBuffConstructor {
     pub kind: BuffKind,
     pub strength: f32,
-    pub duration: Option<f32>,
+    pub duration: Option<Secs>,
     pub category: BuffCategory,
 }
 
@@ -151,20 +152,21 @@ impl AuraBuffConstructor {
         self,
         uid: &Uid,
         radius: f32,
-        duration: Option<Duration>,
+        duration: Option<Secs>,
         target: AuraTarget,
+        time: Time,
     ) -> Aura {
         let aura_kind = AuraKind::Buff {
             kind: self.kind,
             data: BuffData {
                 strength: self.strength,
-                duration: self.duration.map(Duration::from_secs_f32),
+                duration: self.duration,
                 delay: None,
             },
             category: self.category,
             source: BuffSource::Character { by: *uid },
         };
-        Aura::new(aura_kind, radius, duration, target)
+        Aura::new(aura_kind, radius, duration, target, time)
     }
 }
 

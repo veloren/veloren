@@ -104,6 +104,7 @@ use common::{
     link::Is,
     mounting::Mount,
     outcome::Outcome,
+    resources::{Secs, Time},
     slowjob::SlowJobPool,
     terrain::{SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
@@ -481,7 +482,7 @@ impl<'a> BuffIconKind<'a> {
         }
     }
 
-    pub fn max_duration(&self) -> Option<Duration> {
+    pub fn max_duration(&self) -> Option<Secs> {
         match self {
             Self::Buff { data, .. } => data.duration,
             Self::Ability { .. } => None,
@@ -563,7 +564,7 @@ impl<'a> Eq for BuffIconKind<'a> {}
 pub struct BuffIcon<'a> {
     kind: BuffIconKind<'a>,
     is_buff: bool,
-    dur: Option<Duration>,
+    end_time: Option<f64>,
 }
 
 impl<'a> BuffIcon<'a> {
@@ -574,9 +575,9 @@ impl<'a> BuffIcon<'a> {
         }
     }
 
-    pub fn get_buff_time(&self) -> String {
-        if let Some(dur) = self.dur {
-            format!("{:.0}s", dur.as_secs_f32())
+    pub fn get_buff_time(&self, time: Time) -> String {
+        if let Some(end) = self.end_time {
+            format!("{:.0}s", end - time.0)
         } else {
             "".to_string()
         }
@@ -600,7 +601,7 @@ impl<'a> BuffIcon<'a> {
             Some(BuffIcon {
                 kind: BuffIconKind::Ability { ability_id: id },
                 is_buff: true,
-                dur: None,
+                end_time: None,
             })
         } else {
             None
@@ -619,7 +620,7 @@ impl<'a> BuffIcon<'a> {
                 multiplicity: count,
             },
             is_buff: buff.kind.is_buff(),
-            dur: buff.time,
+            end_time: buff.end_time.map(|end| end.0),
         })
     }
 }
@@ -1491,6 +1492,7 @@ impl Hud {
             let alignments = ecs.read_storage::<comp::Alignment>();
             let is_mount = ecs.read_storage::<Is<Mount>>();
             let char_states = ecs.read_storage::<comp::CharacterState>();
+            let time = ecs.read_resource::<Time>();
 
             // Check if there was a persistence load error of the skillset, and if so
             // display a dialog prompt
@@ -2335,6 +2337,7 @@ impl Hud {
                         },
                         _ => Vec::new(),
                     },
+                    &time,
                 )
                 .x_y(0.0, 100.0)
                 .position_ingame(ingame_pos)
@@ -2814,6 +2817,7 @@ impl Hud {
         let buffs = ecs.read_storage::<comp::Buffs>();
         let char_states = ecs.read_storage::<comp::CharacterState>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
+        let time = ecs.read_resource::<Time>();
 
         match Buttons::new(
             &self.imgs,
@@ -2845,6 +2849,7 @@ impl Hud {
             global_state,
             tooltip_manager,
             &msm,
+            &time,
         )
         .set(self.ids.group_window, ui_widgets)
         {
@@ -2928,6 +2933,7 @@ impl Hud {
         let bodies = ecs.read_storage::<comp::Body>();
         let poises = ecs.read_storage::<comp::Poise>();
         let combos = ecs.read_storage::<comp::Combo>();
+        let time = ecs.read_resource::<Time>();
         // Combo floater stuffs
         self.floaters.combo_floater = self.floaters.combo_floater.map(|mut f| {
             f.timer -= dt.as_secs_f64();
@@ -3116,6 +3122,7 @@ impl Hud {
                 global_state,
                 health,
                 energy,
+                &time,
             )
             .set(self.ids.buffs, ui_widgets)
             {

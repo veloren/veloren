@@ -9,7 +9,10 @@ use crate::{
     settings::{ControlSettings, InterfaceSettings},
     ui::{fonts::Fonts, Ingameable},
 };
-use common::comp::{Buffs, CharacterState, Energy, Health, SpeechBubble, SpeechBubbleType};
+use common::{
+    comp::{Buffs, CharacterState, Energy, Health, SpeechBubble, SpeechBubbleType},
+    resources::Time,
+};
 use conrod_core::{
     color,
     position::Align,
@@ -96,6 +99,7 @@ pub struct Overhead<'a> {
     fonts: &'a Fonts,
     key_layout: &'a Option<KeyLayout>,
     interaction_options: Vec<(GameInput, String)>,
+    time: &'a Time,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -115,6 +119,7 @@ impl<'a> Overhead<'a> {
         fonts: &'a Fonts,
         key_layout: &'a Option<KeyLayout>,
         interaction_options: Vec<(GameInput, String)>,
+        time: &'a Time,
     ) -> Self {
         Self {
             info,
@@ -128,6 +133,7 @@ impl<'a> Overhead<'a> {
             fonts,
             key_layout,
             interaction_options,
+            time,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -264,11 +270,9 @@ impl<'a> Widget for Overhead<'a> {
                     .for_each(|(i, ((id, timer_id), buff))| {
                         // Limit displayed buffs
                         let max_duration = buff.kind.max_duration();
-                        let current_duration = buff.dur;
+                        let current_duration = buff.end_time.map(|end| end - self.time.0);
                         let duration_percentage = current_duration.map_or(1000.0, |cur| {
-                            max_duration.map_or(1000.0, |max| {
-                                cur.as_secs_f32() / max.as_secs_f32() * 1000.0
-                            })
+                            max_duration.map_or(1000.0, |max| cur / max.0 * 1000.0)
                         }) as u32; // Percentage to determine which frame of the timer overlay is displayed
                         let buff_img = buff.kind.image(self.imgs);
                         let buff_widget = Image::new(buff_img).w_h(20.0, 20.0);
@@ -281,13 +285,11 @@ impl<'a> Widget for Overhead<'a> {
                             0.0 + x as f64 * (21.0),
                         );
                         buff_widget
-                            .color(
-                                if current_duration.map_or(false, |cur| cur.as_secs_f32() < 10.0) {
-                                    Some(pulsating_col)
-                                } else {
-                                    Some(norm_col)
-                                },
-                            )
+                            .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                                Some(pulsating_col)
+                            } else {
+                                Some(norm_col)
+                            })
                             .set(id, ui);
 
                         Image::new(match duration_percentage as u64 {

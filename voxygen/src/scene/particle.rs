@@ -16,7 +16,7 @@ use common::{
     },
     figure::Segment,
     outcome::Outcome,
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     spiral::Spiral2d,
     states::{self, utils::StageSection},
     terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
@@ -1113,9 +1113,13 @@ impl ParticleMgr {
                             || {
                                 let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
                                 let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
-                                let max_dur = Duration::from_secs(1);
+                                let duration = Duration::from_secs_f64(
+                                    aura.end_time
+                                        .map_or(1.0, |end| end.0 - time)
+                                        .clamp(0.0, 1.0),
+                                );
                                 Particle::new_directed(
-                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    duration,
                                     time,
                                     ParticleMode::EnergyNature,
                                     pos,
@@ -1145,9 +1149,13 @@ impl ParticleMgr {
                             || {
                                 let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
                                 let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
-                                let max_dur = Duration::from_secs(1);
+                                let duration = Duration::from_secs_f64(
+                                    aura.end_time
+                                        .map_or(1.0, |end| end.0 - time)
+                                        .clamp(0.0, 1.0),
+                                );
                                 Particle::new_directed(
-                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    duration,
                                     time,
                                     ParticleMode::EnergyHealing,
                                     pos,
@@ -1172,9 +1180,13 @@ impl ParticleMgr {
                                     let y = radius * theta.cos();
                                     Vec2::new(x, y) + pos.xy()
                                 };
-                                let max_dur = Duration::from_secs(1);
+                                let duration = Duration::from_secs_f64(
+                                    aura.end_time
+                                        .map_or(1.0, |end| end.0 - time)
+                                        .clamp(0.0, 1.0),
+                                );
                                 Particle::new_directed(
-                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    duration,
                                     time,
                                     ParticleMode::FlameThrower,
                                     rand_pos.with_z(pos.z),
@@ -1193,9 +1205,13 @@ impl ParticleMgr {
                             || {
                                 let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
                                 let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
-                                let max_dur = Duration::from_secs(1);
+                                let duration = Duration::from_secs_f64(
+                                    aura.end_time
+                                        .map_or(1.0, |end| end.0 - time)
+                                        .clamp(0.0, 1.0),
+                                );
                                 Particle::new_directed(
-                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    duration,
                                     time,
                                     ParticleMode::EnergyBuffing,
                                     pos,
@@ -1209,9 +1225,8 @@ impl ParticleMgr {
                         ..
                     } => {
                         let is_new_aura = aura.data.duration.map_or(true, |max_dur| {
-                            aura.duration.map_or(true, |rem_dur| {
-                                rem_dur.as_secs_f32() > max_dur.as_secs_f32() * 0.9
-                            })
+                            let rem_dur = aura.end_time.map_or(time, |e| e.0) - time;
+                            rem_dur > max_dur.0 * 0.9
                         });
                         if is_new_aura {
                             let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
@@ -1297,11 +1312,11 @@ impl ParticleMgr {
                         let mut multiplicity = 0;
                         // Only show particles for potion sickness at the beginning, after the
                         // drinking animation finishes
-                        if buff_ids
+                        if buff_ids.0
                             .iter()
                             .filter_map(|id| buffs.buffs.get(id))
                             .any(|buff| {
-                                matches!(buff.elapsed(), Some(dur) if Duration::from_secs(1) <= dur && dur <= Duration::from_secs_f32(1.5))
+                                matches!(buff.elapsed(Time(time)), dur if (1.0..=1.5).contains(&dur.0))
                             })
                         {
                             multiplicity = 1;

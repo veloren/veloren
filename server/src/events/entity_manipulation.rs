@@ -25,7 +25,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     outcome::{HealthChangeInfo, Outcome},
-    resources::Time,
+    resources::{Secs, Time},
     rtsim::RtSimEntity,
     states::utils::{AbilityInfo, StageSection},
     terrain::{Block, BlockKind, TerrainGrid},
@@ -1091,6 +1091,7 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
     let bodies = ecs.read_storage::<Body>();
+    let time = ecs.read_resource::<Time>();
     if let Some(mut buffs) = buffs_all.get_mut(entity) {
         use buff::BuffChange;
         match buff_change {
@@ -1103,7 +1104,7 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                         .get(entity)
                         .map_or(true, |h| !h.is_dead)
                 {
-                    buffs.insert(new_buff);
+                    buffs.insert(new_buff, *time);
                 }
             },
             BuffChange::RemoveById(ids) => {
@@ -1307,20 +1308,24 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
             let duration = char_state
                 .durations()
                 .and_then(|durs| durs.recover)
-                .map_or(0.5, |dur| dur.as_secs_f32())
+                .map_or(0.5, |dur| dur.as_secs_f64())
                 .max(0.5)
                 .mul(2.0);
-            let data = buff::BuffData::new(1.0, Some(Duration::from_secs_f32(duration)), None);
+            let data = buff::BuffData::new(1.0, Some(Secs(duration)), None);
             let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
                 BuffSource::Character { by: *uid }
             } else {
                 BuffSource::World
             };
+            let time = ecs.read_resource::<Time>();
+            let stats = ecs.read_storage::<comp::Stats>();
             let buff = buff::Buff::new(
                 BuffKind::Parried,
                 data,
                 vec![buff::BuffCategory::Physical],
                 source,
+                *time,
+                stats.get(attacker),
             );
             server_eventbus.emit_now(ServerEvent::Buff {
                 entity: attacker,

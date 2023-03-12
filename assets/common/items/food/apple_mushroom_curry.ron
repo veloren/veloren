@@ -8,10 +8,7 @@ ItemDef(
                 kind: Saturation,
                 data: (
                     strength: 10.0,
-                    duration: Some((
-                            secs: 5,
-                            nanos: 0,
-                        )),
+                    duration: Some(5),
                     ),
                 cat_ids: [Natural],
             )),
@@ -19,10 +16,7 @@ ItemDef(
                 kind: Regeneration,
                 data: (
                     strength: 1.0,
-                    duration: Some((
-                            secs: 70,
-                            nanos: 0,
-                        )),
+                    duration: Some(70),
                     ),
                 cat_ids: [Natural],
             )),
