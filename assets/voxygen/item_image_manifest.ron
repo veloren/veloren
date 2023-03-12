@@ -4822,12 +4822,12 @@
     ),
     // Keys
     Simple("common.items.keys.rusty_tower_key"): VoxTrans(
-        "element.items.key_rusty-0",
+        "voxel.object.key_rusty-0",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
     // Lockpicks
     Simple("common.items.utility.lockpick_0"): VoxTrans(
-        "element.items.lockpick",
+        "voxel.object.lockpick",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
 })
