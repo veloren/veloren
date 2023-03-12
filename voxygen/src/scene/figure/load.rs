@@ -34,6 +34,8 @@ use vek::*;
 
 pub type BoneMeshes = (Segment, Vec3<f32>);
 
+const DEFAULT_INDEX: u32 = 0;
+
 fn load_segment(mesh_name: &str) -> Segment {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
     Segment::from(&DotVoxAsset::load_expect(&full_specifier).read().0)
@@ -51,20 +53,31 @@ fn graceful_load_vox_fullspec(full_specifier: &str) -> AssetHandle<DotVoxAsset> 
         },
     }
 }
-fn graceful_load_segment(mesh_name: &str) -> Segment {
-    Segment::from(&graceful_load_vox(mesh_name).read().0)
+fn graceful_load_segment(mesh_name: &str, model_index: u32) -> Segment {
+    Segment::from((&graceful_load_vox(mesh_name).read().0, model_index as usize))
 }
-fn graceful_load_segment_fullspec(full_specifier: &str) -> Segment {
-    Segment::from(&graceful_load_vox_fullspec(full_specifier).read().0)
+fn graceful_load_segment_fullspec(full_specifier: &str, model_index: u32) -> Segment {
+    Segment::from((
+        &graceful_load_vox_fullspec(full_specifier).read().0,
+        model_index as usize,
+    ))
 }
-fn graceful_load_segment_flipped(mesh_name: &str, flipped: bool) -> Segment {
-    Segment::from_vox(&graceful_load_vox(mesh_name).read().0, flipped)
+fn graceful_load_segment_flipped(mesh_name: &str, flipped: bool, model_index: u32) -> Segment {
+    Segment::from_vox(
+        &graceful_load_vox(mesh_name).read().0,
+        flipped,
+        model_index as usize,
+    )
 }
-fn graceful_load_mat_segment(mesh_name: &str) -> MatSegment {
-    MatSegment::from(&graceful_load_vox(mesh_name).read().0)
+fn graceful_load_mat_segment(mesh_name: &str, model_index: u32) -> MatSegment {
+    MatSegment::from((&graceful_load_vox(mesh_name).read().0, model_index as usize))
 }
-fn graceful_load_mat_segment_flipped(mesh_name: &str) -> MatSegment {
-    MatSegment::from_vox(&graceful_load_vox(mesh_name).read().0, true)
+fn graceful_load_mat_segment_flipped(mesh_name: &str, model_index: u32) -> MatSegment {
+    MatSegment::from_vox(
+        &graceful_load_vox(mesh_name).read().0,
+        true,
+        model_index as usize,
+    )
 }
 
 pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> BoneMeshes {
@@ -273,12 +286,13 @@ impl HumHeadSpec {
         let eye_rgb = body.species.eye_color(body.eye_color);
 
         // Load segment pieces
-        let bare_head = graceful_load_mat_segment(&spec.head.0);
+        let bare_head = graceful_load_mat_segment(&spec.head.0, DEFAULT_INDEX);
 
         let eyes = match spec.eyes.get(body.eyes as usize) {
             Some(Some(spec)) => Some((
                 color_spec.color_segment(
-                    graceful_load_mat_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
+                    graceful_load_mat_segment(&spec.0, DEFAULT_INDEX)
+                        .map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                     skin_rgb,
                     hair_color,
                     eye_rgb,
@@ -293,7 +307,8 @@ impl HumHeadSpec {
         };
         let hair = match spec.hair.get(body.hair_style as usize) {
             Some(Some(spec)) => Some((
-                graceful_load_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
+                graceful_load_segment(&spec.0, DEFAULT_INDEX)
+                    .map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
@@ -304,7 +319,8 @@ impl HumHeadSpec {
         };
         let beard = match spec.beard.get(body.beard as usize) {
             Some(Some(spec)) => Some((
-                graceful_load_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
+                graceful_load_segment(&spec.0, DEFAULT_INDEX)
+                    .map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
@@ -314,7 +330,10 @@ impl HumHeadSpec {
             },
         };
         let accessory = match spec.accessory.get(body.accessory as usize) {
-            Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
+            Some(Some(spec)) => Some((
+                graceful_load_segment(&spec.0, DEFAULT_INDEX),
+                Vec3::from(spec.1),
+            )),
             Some(None) => None,
             None => {
                 warn!("No specification for this accessory: {:?}", body.accessory);
@@ -542,9 +561,9 @@ impl HumArmorShoulderSpec {
 
         let mut shoulder_segment = color_spec.color_segment(
             if flipped {
-                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0)
+                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0, DEFAULT_INDEX)
             } else {
-                graceful_load_mat_segment(&spec.right.vox_spec.0)
+                graceful_load_mat_segment(&spec.right.vox_spec.0, DEFAULT_INDEX)
             },
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
@@ -622,9 +641,9 @@ impl HumArmorChestSpec {
             )
         };
 
-        let bare_chest = graceful_load_mat_segment("armor.empty");
+        let bare_chest = graceful_load_mat_segment("armor.empty", DEFAULT_INDEX);
 
-        let mut chest_armor = graceful_load_mat_segment(&spec.vox_spec.0);
+        let mut chest_armor = graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX);
 
         if let Some(color) = spec.color {
             let chest_color = Vec3::from(color);
@@ -663,9 +682,9 @@ impl HumArmorHandSpec {
 
         let mut hand_segment = color_spec.color_segment(
             if flipped {
-                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0)
+                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0, DEFAULT_INDEX)
             } else {
-                graceful_load_mat_segment(&spec.right.vox_spec.0)
+                graceful_load_mat_segment(&spec.right.vox_spec.0, DEFAULT_INDEX)
             },
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
@@ -724,7 +743,7 @@ impl HumArmorBeltSpec {
         };
 
         let mut belt_segment = color_spec.color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0),
+            graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX),
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
@@ -754,7 +773,7 @@ impl HumArmorBackSpec {
         };
 
         let mut back_segment = color_spec.color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0),
+            graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX),
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
@@ -796,9 +815,9 @@ impl HumArmorPantsSpec {
             )
         };
 
-        let bare_pants = graceful_load_mat_segment("armor.empty");
+        let bare_pants = graceful_load_mat_segment("armor.empty", DEFAULT_INDEX);
 
-        let mut pants_armor = graceful_load_mat_segment(&spec.vox_spec.0);
+        let mut pants_armor = graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX);
 
         if let Some(color) = spec.color {
             let pants_color = Vec3::from(color);
@@ -837,9 +856,9 @@ impl HumArmorFootSpec {
 
         let mut foot_segment = color_spec.color_segment(
             if flipped {
-                graceful_load_mat_segment_flipped(&spec.vox_spec.0)
+                graceful_load_mat_segment_flipped(&spec.vox_spec.0, DEFAULT_INDEX)
             } else {
-                graceful_load_mat_segment(&spec.vox_spec.0)
+                graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX)
             },
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
@@ -885,7 +904,8 @@ impl HumMainWeaponSpec {
             None => return not_found(tool),
         };
 
-        let tool_kind_segment = graceful_load_segment_flipped(&spec.vox_spec.0, flipped);
+        let tool_kind_segment =
+            graceful_load_segment_flipped(&spec.vox_spec.0, flipped, DEFAULT_INDEX);
         let mut offset = Vec3::from(spec.vox_spec.1);
 
         if flipped {
@@ -917,7 +937,7 @@ impl HumArmorLanternSpec {
         };
 
         let mut lantern_segment = color_spec.color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0),
+            graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX),
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
@@ -939,7 +959,7 @@ impl HumArmorHeadSpec {
             .get(&(body.species, body.body_type, head?.to_string()))
         {
             Some(spec) => Some((
-                graceful_load_segment(&spec.vox_spec.0),
+                graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX),
                 Vec3::<f32>::from(spec.vox_spec.1).as_(),
             )),
             None => {
@@ -980,9 +1000,9 @@ impl HumArmorTabardSpec {
             )
         };
 
-        let bare_tabard = graceful_load_mat_segment("armor.empty");
+        let bare_tabard = graceful_load_mat_segment("armor.empty", DEFAULT_INDEX);
 
-        let mut tabard_armor = graceful_load_mat_segment(&spec.vox_spec.0);
+        let mut tabard_armor = graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX);
 
         if let Some(color) = spec.color {
             let tabard_color = Vec3::from(color);
@@ -1018,7 +1038,7 @@ impl HumArmorGliderSpec {
         };
 
         let mut glider_segment = color_spec.color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0),
+            graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX),
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
@@ -1054,6 +1074,8 @@ struct SidedQSCentralVoxSpec {
 struct QuadrupedSmallCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 #[derive(Deserialize)]
@@ -1070,6 +1092,8 @@ struct SidedQSLateralVoxSpec {
 struct QuadrupedSmallLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -1137,7 +1161,7 @@ impl QuadrupedSmallCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -1153,7 +1177,7 @@ impl QuadrupedSmallCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest.central.0);
+        let central = graceful_load_segment(&spec.chest.central.0, spec.chest.model_index);
 
         (central, Vec3::from(spec.chest.offset))
     }
@@ -1169,7 +1193,7 @@ impl QuadrupedSmallCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail.central.0);
+        let central = graceful_load_segment(&spec.tail.central.0, spec.tail.model_index);
 
         (central, Vec3::from(spec.tail.offset))
     }
@@ -1187,7 +1211,11 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.left_front.lateral.0, true);
+        let lateral = graceful_load_segment_flipped(
+            &spec.left_front.lateral.0,
+            true,
+            spec.left_front.model_index,
+        );
 
         (lateral, Vec3::from(spec.left_front.offset))
     }
@@ -1203,7 +1231,8 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.right_front.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.right_front.lateral.0, spec.right_front.model_index);
 
         (lateral, Vec3::from(spec.right_front.offset))
     }
@@ -1219,7 +1248,11 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.left_back.lateral.0, true);
+        let lateral = graceful_load_segment_flipped(
+            &spec.left_back.lateral.0,
+            true,
+            spec.left_back.model_index,
+        );
 
         (lateral, Vec3::from(spec.left_back.offset))
     }
@@ -1235,7 +1268,8 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.right_back.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.right_back.lateral.0, spec.right_back.model_index);
 
         (lateral, Vec3::from(spec.right_back.offset))
     }
@@ -1259,6 +1293,8 @@ struct SidedQMCentralVoxSpec {
 struct QuadrupedMediumCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 #[derive(Deserialize)]
@@ -1278,6 +1314,8 @@ struct SidedQMLateralVoxSpec {
 struct QuadrupedMediumLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -1375,7 +1413,7 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -1391,7 +1429,7 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.neck.central.0);
+        let central = graceful_load_segment(&spec.neck.central.0, spec.neck.model_index);
 
         (central, Vec3::from(spec.neck.offset))
     }
@@ -1407,7 +1445,7 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.jaw.central.0);
+        let central = graceful_load_segment(&spec.jaw.central.0, spec.jaw.model_index);
 
         (central, Vec3::from(spec.jaw.offset))
     }
@@ -1423,7 +1461,7 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.ears.central.0);
+        let central = graceful_load_segment(&spec.ears.central.0, spec.ears.model_index);
 
         (central, Vec3::from(spec.ears.offset))
     }
@@ -1439,7 +1477,8 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.torso_front.central.0);
+        let central =
+            graceful_load_segment(&spec.torso_front.central.0, spec.torso_front.model_index);
 
         (central, Vec3::from(spec.torso_front.offset))
     }
@@ -1455,7 +1494,8 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.torso_back.central.0);
+        let central =
+            graceful_load_segment(&spec.torso_back.central.0, spec.torso_back.model_index);
 
         (central, Vec3::from(spec.torso_back.offset))
     }
@@ -1471,7 +1511,7 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail.central.0);
+        let central = graceful_load_segment(&spec.tail.central.0, spec.tail.model_index);
 
         (central, Vec3::from(spec.tail.offset))
     }
@@ -1489,7 +1529,8 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_fl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_fl.lateral.0, true, spec.leg_fl.model_index);
 
         (lateral, Vec3::from(spec.leg_fl.offset))
     }
@@ -1505,7 +1546,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_fr.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_fr.lateral.0, spec.leg_fr.model_index);
 
         (lateral, Vec3::from(spec.leg_fr.offset))
     }
@@ -1521,7 +1562,8 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_bl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_bl.lateral.0, true, spec.leg_bl.model_index);
 
         (lateral, Vec3::from(spec.leg_bl.offset))
     }
@@ -1537,7 +1579,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_br.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_br.lateral.0, spec.leg_br.model_index);
 
         (lateral, Vec3::from(spec.leg_br.offset))
     }
@@ -1553,7 +1595,8 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.foot_fl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.foot_fl.lateral.0, true, spec.foot_fl.model_index);
 
         (lateral, Vec3::from(spec.foot_fl.offset))
     }
@@ -1569,7 +1612,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_fr.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_fr.lateral.0, spec.foot_fr.model_index);
 
         (lateral, Vec3::from(spec.foot_fr.offset))
     }
@@ -1585,7 +1628,8 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.foot_bl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.foot_bl.lateral.0, true, spec.foot_bl.model_index);
 
         (lateral, Vec3::from(spec.foot_bl.offset))
     }
@@ -1601,7 +1645,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_br.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_br.lateral.0, spec.foot_br.model_index);
 
         (lateral, Vec3::from(spec.foot_br.offset))
     }
@@ -1621,6 +1665,8 @@ struct SidedBMCentralVoxSpec {
 struct BirdMediumCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 #[derive(Deserialize)]
@@ -1639,6 +1685,8 @@ struct SidedBMLateralVoxSpec {
 struct BirdMediumLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -1712,7 +1760,7 @@ impl BirdMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -1728,7 +1776,7 @@ impl BirdMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest.central.0);
+        let central = graceful_load_segment(&spec.chest.central.0, spec.chest.model_index);
 
         (central, Vec3::from(spec.chest.offset))
     }
@@ -1744,7 +1792,7 @@ impl BirdMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail.central.0);
+        let central = graceful_load_segment(&spec.tail.central.0, spec.tail.model_index);
 
         (central, Vec3::from(spec.tail.offset))
     }
@@ -1761,7 +1809,11 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.wing_in_l.lateral.0, true);
+        let lateral = graceful_load_segment_flipped(
+            &spec.wing_in_l.lateral.0,
+            true,
+            spec.wing_in_l.model_index,
+        );
 
         (lateral, Vec3::from(spec.wing_in_l.offset))
     }
@@ -1777,7 +1829,7 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0, spec.wing_in_r.model_index);
 
         (lateral, Vec3::from(spec.wing_in_r.offset))
     }
@@ -1793,7 +1845,11 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.wing_out_l.lateral.0, true);
+        let lateral = graceful_load_segment_flipped(
+            &spec.wing_out_l.lateral.0,
+            true,
+            spec.wing_out_l.model_index,
+        );
 
         (lateral, Vec3::from(spec.wing_out_l.offset))
     }
@@ -1809,7 +1865,8 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_out_r.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.wing_out_r.lateral.0, spec.wing_out_r.model_index);
 
         (lateral, Vec3::from(spec.wing_out_r.offset))
     }
@@ -1825,7 +1882,8 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_l.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_l.lateral.0, true, spec.leg_l.model_index);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -1841,7 +1899,7 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_r.lateral.0, spec.leg_r.model_index);
 
         (lateral, Vec3::from(spec.leg_r.offset))
     }
@@ -1865,6 +1923,8 @@ struct SidedTCentralVoxSpec {
 struct TheropodCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 #[derive(Deserialize)]
 struct TheropodLateralSpec(HashMap<(TSpecies, TBodyType), SidedTLateralVoxSpec>);
@@ -1882,6 +1942,8 @@ struct SidedTLateralVoxSpec {
 struct TheropodLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 make_vox_spec!(
     theropod::Body,
@@ -1968,7 +2030,7 @@ impl TheropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -1984,7 +2046,7 @@ impl TheropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.jaw.central.0);
+        let central = graceful_load_segment(&spec.jaw.central.0, spec.jaw.model_index);
 
         (central, Vec3::from(spec.jaw.offset))
     }
@@ -2000,7 +2062,7 @@ impl TheropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.neck.central.0);
+        let central = graceful_load_segment(&spec.neck.central.0, spec.neck.model_index);
 
         (central, Vec3::from(spec.neck.offset))
     }
@@ -2016,7 +2078,8 @@ impl TheropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest_front.central.0);
+        let central =
+            graceful_load_segment(&spec.chest_front.central.0, spec.chest_front.model_index);
 
         (central, Vec3::from(spec.chest_front.offset))
     }
@@ -2032,7 +2095,8 @@ impl TheropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest_back.central.0);
+        let central =
+            graceful_load_segment(&spec.chest_back.central.0, spec.chest_back.model_index);
 
         (central, Vec3::from(spec.chest_back.offset))
     }
@@ -2048,7 +2112,8 @@ impl TheropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail_front.central.0);
+        let central =
+            graceful_load_segment(&spec.tail_front.central.0, spec.tail_front.model_index);
 
         (central, Vec3::from(spec.tail_front.offset))
     }
@@ -2064,7 +2129,7 @@ impl TheropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail_back.central.0);
+        let central = graceful_load_segment(&spec.tail_back.central.0, spec.tail_back.model_index);
 
         (central, Vec3::from(spec.tail_back.offset))
     }
@@ -2081,7 +2146,8 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.hand_l.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.hand_l.lateral.0, true, spec.hand_l.model_index);
 
         (lateral, Vec3::from(spec.hand_l.offset))
     }
@@ -2097,7 +2163,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.hand_r.lateral.0, spec.hand_r.model_index);
 
         (lateral, Vec3::from(spec.hand_r.offset))
     }
@@ -2113,7 +2179,8 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_l.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_l.lateral.0, true, spec.leg_l.model_index);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -2129,7 +2196,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_r.lateral.0, spec.leg_r.model_index);
 
         (lateral, Vec3::from(spec.leg_r.offset))
     }
@@ -2145,7 +2212,8 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.foot_l.lateral.0, true, spec.foot_l.model_index);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -2161,7 +2229,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0, spec.foot_r.model_index);
 
         (lateral, Vec3::from(spec.foot_r.offset))
     }
@@ -2180,6 +2248,8 @@ struct SidedACentralVoxSpec {
 struct ArthropodCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 #[derive(Deserialize)]
 struct ArthropodLateralSpec(HashMap<(ASpecies, ABodyType), SidedALateralVoxSpec>);
@@ -2205,6 +2275,8 @@ struct SidedALateralVoxSpec {
 struct ArthropodLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 make_vox_spec!(
     arthropod::Body,
@@ -2302,7 +2374,7 @@ impl ArthropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -2318,7 +2390,7 @@ impl ArthropodCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest.central.0);
+        let central = graceful_load_segment(&spec.chest.central.0, spec.chest.model_index);
 
         (central, Vec3::from(spec.chest.offset))
     }
@@ -2335,7 +2407,11 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.mandible_l.lateral.0, true);
+        let lateral = graceful_load_segment_flipped(
+            &spec.mandible_l.lateral.0,
+            true,
+            spec.mandible_l.model_index,
+        );
 
         (lateral, Vec3::from(spec.mandible_l.offset))
     }
@@ -2351,7 +2427,8 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.mandible_r.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.mandible_r.lateral.0, spec.mandible_r.model_index);
 
         (lateral, Vec3::from(spec.mandible_r.offset))
     }
@@ -2367,7 +2444,8 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.wing_fl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.wing_fl.lateral.0, true, spec.wing_fl.model_index);
 
         (lateral, Vec3::from(spec.wing_fl.offset))
     }
@@ -2383,7 +2461,7 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_fr.lateral.0);
+        let lateral = graceful_load_segment(&spec.wing_fr.lateral.0, spec.wing_fr.model_index);
 
         (lateral, Vec3::from(spec.wing_fr.offset))
     }
@@ -2399,7 +2477,8 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.wing_bl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.wing_bl.lateral.0, true, spec.wing_bl.model_index);
 
         (lateral, Vec3::from(spec.wing_bl.offset))
     }
@@ -2415,7 +2494,7 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_br.lateral.0);
+        let lateral = graceful_load_segment(&spec.wing_br.lateral.0, spec.wing_br.model_index);
 
         (lateral, Vec3::from(spec.wing_br.offset))
     }
@@ -2431,7 +2510,8 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_fl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_fl.lateral.0, true, spec.leg_fl.model_index);
 
         (lateral, Vec3::from(spec.leg_fl.offset))
     }
@@ -2447,7 +2527,7 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_fr.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_fr.lateral.0, spec.leg_fr.model_index);
 
         (lateral, Vec3::from(spec.leg_fr.offset))
     }
@@ -2464,7 +2544,8 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_fcl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_fcl.lateral.0, true, spec.leg_fcl.model_index);
 
         (lateral, Vec3::from(spec.leg_fcl.offset))
     }
@@ -2481,7 +2562,7 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_fcr.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_fcr.lateral.0, spec.leg_fcr.model_index);
 
         (lateral, Vec3::from(spec.leg_fcr.offset))
     }
@@ -2498,7 +2579,8 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_bcl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_bcl.lateral.0, true, spec.leg_bcl.model_index);
 
         (lateral, Vec3::from(spec.leg_bcl.offset))
     }
@@ -2515,7 +2597,7 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_bcr.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_bcr.lateral.0, spec.leg_bcr.model_index);
 
         (lateral, Vec3::from(spec.leg_bcr.offset))
     }
@@ -2531,7 +2613,8 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_bl.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_bl.lateral.0, true, spec.leg_bl.model_index);
 
         (lateral, Vec3::from(spec.leg_bl.offset))
     }
@@ -2547,7 +2630,7 @@ impl ArthropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_br.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_br.lateral.0, spec.leg_br.model_index);
 
         (lateral, Vec3::from(spec.leg_br.offset))
     }
@@ -2568,6 +2651,8 @@ struct SidedFMCentralVoxSpec {
 struct FishMediumCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 #[derive(Deserialize)]
 struct FishMediumLateralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMLateralVoxSpec>);
@@ -2580,6 +2665,8 @@ struct SidedFMLateralVoxSpec {
 struct FishMediumLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -2647,7 +2734,7 @@ impl FishMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -2663,7 +2750,7 @@ impl FishMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.jaw.central.0);
+        let central = graceful_load_segment(&spec.jaw.central.0, spec.jaw.model_index);
 
         (central, Vec3::from(spec.jaw.offset))
     }
@@ -2679,7 +2766,8 @@ impl FishMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest_front.central.0);
+        let central =
+            graceful_load_segment(&spec.chest_front.central.0, spec.chest_front.model_index);
 
         (central, Vec3::from(spec.chest_front.offset))
     }
@@ -2695,7 +2783,8 @@ impl FishMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest_back.central.0);
+        let central =
+            graceful_load_segment(&spec.chest_back.central.0, spec.chest_back.model_index);
 
         (central, Vec3::from(spec.chest_back.offset))
     }
@@ -2711,7 +2800,7 @@ impl FishMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail.central.0);
+        let central = graceful_load_segment(&spec.tail.central.0, spec.tail.model_index);
 
         (central, Vec3::from(spec.tail.offset))
     }
@@ -2729,7 +2818,8 @@ impl FishMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.fin_l.lateral.0, true, spec.fin_l.model_index);
 
         (lateral, Vec3::from(spec.fin_l.offset))
     }
@@ -2745,7 +2835,7 @@ impl FishMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.fin_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.fin_r.lateral.0, spec.fin_r.model_index);
 
         (lateral, Vec3::from(spec.fin_r.offset))
     }
@@ -2764,6 +2854,8 @@ struct SidedFSCentralVoxSpec {
 struct FishSmallCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 #[derive(Deserialize)]
 struct FishSmallLateralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSLateralVoxSpec>);
@@ -2776,6 +2868,8 @@ struct SidedFSLateralVoxSpec {
 struct FishSmallLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -2834,7 +2928,7 @@ impl FishSmallCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest.central.0);
+        let central = graceful_load_segment(&spec.chest.central.0, spec.chest.model_index);
 
         (central, Vec3::from(spec.chest.offset))
     }
@@ -2850,7 +2944,7 @@ impl FishSmallCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail.central.0);
+        let central = graceful_load_segment(&spec.tail.central.0, spec.tail.model_index);
 
         (central, Vec3::from(spec.tail.offset))
     }
@@ -2868,7 +2962,8 @@ impl FishSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.fin_l.lateral.0, true, spec.fin_l.model_index);
 
         (lateral, Vec3::from(spec.fin_l.offset))
     }
@@ -2884,7 +2979,7 @@ impl FishSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.fin_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.fin_r.lateral.0, spec.fin_r.model_index);
 
         (lateral, Vec3::from(spec.fin_r.offset))
     }
@@ -3001,7 +3096,7 @@ impl BipedSmallArmorHeadSpec {
             &self.0.default
         };
 
-        let head_segment = graceful_load_segment(&spec.vox_spec.0);
+        let head_segment = graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX);
 
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
@@ -3022,7 +3117,7 @@ impl BipedSmallArmorChestSpec {
             &self.0.default
         };
 
-        let chest_segment = graceful_load_segment(&spec.vox_spec.0);
+        let chest_segment = graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX);
 
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
@@ -3043,7 +3138,7 @@ impl BipedSmallArmorTailSpec {
             &self.0.default
         };
 
-        let tail_segment = graceful_load_segment(&spec.vox_spec.0);
+        let tail_segment = graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX);
 
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
@@ -3064,7 +3159,7 @@ impl BipedSmallArmorPantsSpec {
             &self.0.default
         };
 
-        let pants_segment = graceful_load_segment(&spec.vox_spec.0);
+        let pants_segment = graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX);
 
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
@@ -3086,9 +3181,9 @@ impl BipedSmallArmorHandSpec {
         };
 
         let hand_segment = if flipped {
-            graceful_load_segment_flipped(&spec.left.vox_spec.0, true)
+            graceful_load_segment_flipped(&spec.left.vox_spec.0, true, DEFAULT_INDEX)
         } else {
-            graceful_load_segment(&spec.right.vox_spec.0)
+            graceful_load_segment(&spec.right.vox_spec.0, DEFAULT_INDEX)
         };
         let offset = if flipped {
             spec.left.vox_spec.1
@@ -3118,9 +3213,9 @@ impl BipedSmallArmorFootSpec {
         };
 
         let foot_segment = if flipped {
-            graceful_load_segment_flipped(&spec.left.vox_spec.0, true)
+            graceful_load_segment_flipped(&spec.left.vox_spec.0, true, DEFAULT_INDEX)
         } else {
-            graceful_load_segment(&spec.right.vox_spec.0)
+            graceful_load_segment(&spec.right.vox_spec.0, DEFAULT_INDEX)
         };
         let offset = if flipped {
             spec.left.vox_spec.1
@@ -3147,9 +3242,9 @@ impl BipedSmallWeaponSpec {
         };
 
         let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0, true)
+            graceful_load_segment_flipped(&spec.vox_spec.0, true, DEFAULT_INDEX)
         } else {
-            graceful_load_segment(&spec.vox_spec.0)
+            graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX)
         };
 
         let offset = Vec3::new(
@@ -3184,6 +3279,8 @@ struct SidedDCentralVoxSpec {
 struct DragonCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 #[derive(Deserialize)]
@@ -3204,6 +3301,8 @@ struct SidedDLateralVoxSpec {
 struct DragonLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -3297,7 +3396,7 @@ impl DragonCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.upper.central.0);
+        let central = graceful_load_segment(&spec.upper.central.0, spec.upper.model_index);
 
         (central, Vec3::from(spec.upper.offset))
     }
@@ -3313,7 +3412,7 @@ impl DragonCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.lower.central.0);
+        let central = graceful_load_segment(&spec.lower.central.0, spec.lower.model_index);
 
         (central, Vec3::from(spec.lower.offset))
     }
@@ -3329,7 +3428,7 @@ impl DragonCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.jaw.central.0);
+        let central = graceful_load_segment(&spec.jaw.central.0, spec.jaw.model_index);
 
         (central, Vec3::from(spec.jaw.offset))
     }
@@ -3345,7 +3444,8 @@ impl DragonCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest_front.central.0);
+        let central =
+            graceful_load_segment(&spec.chest_front.central.0, spec.chest_front.model_index);
 
         (central, Vec3::from(spec.chest_front.offset))
     }
@@ -3361,7 +3461,8 @@ impl DragonCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest_rear.central.0);
+        let central =
+            graceful_load_segment(&spec.chest_rear.central.0, spec.chest_rear.model_index);
 
         (central, Vec3::from(spec.chest_rear.offset))
     }
@@ -3377,7 +3478,8 @@ impl DragonCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail_front.central.0);
+        let central =
+            graceful_load_segment(&spec.tail_front.central.0, spec.tail_front.model_index);
 
         (central, Vec3::from(spec.tail_front.offset))
     }
@@ -3393,7 +3495,7 @@ impl DragonCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail_rear.central.0);
+        let central = graceful_load_segment(&spec.tail_rear.central.0, spec.tail_rear.model_index);
 
         (central, Vec3::from(spec.tail_rear.offset))
     }
@@ -3410,7 +3512,7 @@ impl DragonLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_in_l.lateral.0);
+        let lateral = graceful_load_segment(&spec.wing_in_l.lateral.0, spec.wing_in_l.model_index);
 
         (lateral, Vec3::from(spec.wing_in_l.offset))
     }
@@ -3426,7 +3528,7 @@ impl DragonLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0, spec.wing_in_r.model_index);
 
         (lateral, Vec3::from(spec.wing_in_r.offset))
     }
@@ -3442,7 +3544,8 @@ impl DragonLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_out_l.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.wing_out_l.lateral.0, spec.wing_out_l.model_index);
 
         (lateral, Vec3::from(spec.wing_out_l.offset))
     }
@@ -3458,7 +3561,8 @@ impl DragonLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_out_r.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.wing_out_r.lateral.0, spec.wing_out_r.model_index);
 
         (lateral, Vec3::from(spec.wing_out_r.offset))
     }
@@ -3474,7 +3578,7 @@ impl DragonLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_fl.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_fl.lateral.0, spec.foot_fl.model_index);
 
         (lateral, Vec3::from(spec.foot_fl.offset))
     }
@@ -3490,7 +3594,7 @@ impl DragonLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_fr.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_fr.lateral.0, spec.foot_fr.model_index);
 
         (lateral, Vec3::from(spec.foot_fr.offset))
     }
@@ -3506,7 +3610,7 @@ impl DragonLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_bl.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_bl.lateral.0, spec.foot_bl.model_index);
 
         (lateral, Vec3::from(spec.foot_bl.offset))
     }
@@ -3522,7 +3626,7 @@ impl DragonLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_br.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_br.lateral.0, spec.foot_br.model_index);
 
         (lateral, Vec3::from(spec.foot_br.offset))
     }
@@ -3545,6 +3649,8 @@ struct SidedBLACentralVoxSpec {
 struct BirdLargeCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 #[derive(Deserialize)]
@@ -3567,6 +3673,8 @@ struct SidedBLALateralVoxSpec {
 struct BirdLargeLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -3663,7 +3771,7 @@ impl BirdLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -3679,7 +3787,7 @@ impl BirdLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.beak.central.0);
+        let central = graceful_load_segment(&spec.beak.central.0, spec.beak.model_index);
 
         (central, Vec3::from(spec.beak.offset))
     }
@@ -3695,7 +3803,7 @@ impl BirdLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.neck.central.0);
+        let central = graceful_load_segment(&spec.neck.central.0, spec.neck.model_index);
 
         (central, Vec3::from(spec.neck.offset))
     }
@@ -3711,7 +3819,7 @@ impl BirdLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest.central.0);
+        let central = graceful_load_segment(&spec.chest.central.0, spec.chest.model_index);
 
         (central, Vec3::from(spec.chest.offset))
     }
@@ -3727,7 +3835,8 @@ impl BirdLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail_front.central.0);
+        let central =
+            graceful_load_segment(&spec.tail_front.central.0, spec.tail_front.model_index);
 
         (central, Vec3::from(spec.tail_front.offset))
     }
@@ -3743,7 +3852,7 @@ impl BirdLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail_rear.central.0);
+        let central = graceful_load_segment(&spec.tail_rear.central.0, spec.tail_rear.model_index);
 
         (central, Vec3::from(spec.tail_rear.offset))
     }
@@ -3760,7 +3869,11 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.wing_in_l.lateral.0, true);
+        let lateral = graceful_load_segment_flipped(
+            &spec.wing_in_l.lateral.0,
+            true,
+            spec.wing_in_l.model_index,
+        );
 
         (lateral, Vec3::from(spec.wing_in_l.offset))
     }
@@ -3776,7 +3889,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0, spec.wing_in_r.model_index);
 
         (lateral, Vec3::from(spec.wing_in_r.offset))
     }
@@ -3792,7 +3905,11 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.wing_mid_l.lateral.0, true);
+        let lateral = graceful_load_segment_flipped(
+            &spec.wing_mid_l.lateral.0,
+            true,
+            spec.wing_mid_l.model_index,
+        );
 
         (lateral, Vec3::from(spec.wing_mid_l.offset))
     }
@@ -3808,7 +3925,8 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_mid_r.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.wing_mid_r.lateral.0, spec.wing_mid_r.model_index);
 
         (lateral, Vec3::from(spec.wing_mid_r.offset))
     }
@@ -3824,7 +3942,11 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.wing_out_l.lateral.0, true);
+        let lateral = graceful_load_segment_flipped(
+            &spec.wing_out_l.lateral.0,
+            true,
+            spec.wing_out_l.model_index,
+        );
 
         (lateral, Vec3::from(spec.wing_out_l.offset))
     }
@@ -3840,7 +3962,8 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_out_r.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.wing_out_r.lateral.0, spec.wing_out_r.model_index);
 
         (lateral, Vec3::from(spec.wing_out_r.offset))
     }
@@ -3856,7 +3979,8 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_l.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_l.lateral.0, true, spec.leg_l.model_index);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -3872,7 +3996,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_r.lateral.0, spec.leg_r.model_index);
 
         (lateral, Vec3::from(spec.leg_r.offset))
     }
@@ -3888,7 +4012,8 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0, true);
+        let lateral =
+            graceful_load_segment_flipped(&spec.foot_l.lateral.0, true, spec.foot_l.model_index);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -3904,7 +4029,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0, spec.foot_r.model_index);
 
         (lateral, Vec3::from(spec.foot_r.offset))
     }
@@ -3926,6 +4051,8 @@ struct SidedBLCentralVoxSpec {
 struct BipedLargeCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 #[derive(Deserialize)]
@@ -3946,6 +4073,8 @@ struct SidedBLLateralVoxSpec {
 struct BipedLargeLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 #[derive(Deserialize)]
 struct BipedLargeMainSpec(HashMap<ToolKey, ArmorVoxSpec>);
@@ -4064,7 +4193,7 @@ impl BipedLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -4080,7 +4209,7 @@ impl BipedLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.jaw.central.0);
+        let central = graceful_load_segment(&spec.jaw.central.0, spec.jaw.model_index);
 
         (central, Vec3::from(spec.jaw.offset))
     }
@@ -4096,7 +4225,8 @@ impl BipedLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.torso_upper.central.0);
+        let central =
+            graceful_load_segment(&spec.torso_upper.central.0, spec.torso_upper.model_index);
 
         (central, Vec3::from(spec.torso_upper.offset))
     }
@@ -4112,7 +4242,8 @@ impl BipedLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.torso_lower.central.0);
+        let central =
+            graceful_load_segment(&spec.torso_lower.central.0, spec.torso_lower.model_index);
 
         (central, Vec3::from(spec.torso_lower.offset))
     }
@@ -4128,7 +4259,7 @@ impl BipedLargeCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail.central.0);
+        let central = graceful_load_segment(&spec.tail.central.0, spec.tail.model_index);
 
         (central, Vec3::from(spec.tail.offset))
     }
@@ -4145,7 +4276,8 @@ impl BipedLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.shoulder_l.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.shoulder_l.lateral.0, spec.shoulder_l.model_index);
 
         (lateral, Vec3::from(spec.shoulder_l.offset))
     }
@@ -4161,7 +4293,8 @@ impl BipedLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.shoulder_r.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.shoulder_r.lateral.0, spec.shoulder_r.model_index);
 
         (lateral, Vec3::from(spec.shoulder_r.offset))
     }
@@ -4177,7 +4310,7 @@ impl BipedLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
+        let lateral = graceful_load_segment(&spec.hand_l.lateral.0, spec.hand_l.model_index);
 
         (lateral, Vec3::from(spec.hand_l.offset))
     }
@@ -4193,7 +4326,7 @@ impl BipedLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.hand_r.lateral.0, spec.hand_r.model_index);
 
         (lateral, Vec3::from(spec.hand_r.offset))
     }
@@ -4209,7 +4342,7 @@ impl BipedLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_l.lateral.0, spec.leg_l.model_index);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -4225,7 +4358,7 @@ impl BipedLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_r.lateral.0, spec.leg_r.model_index);
 
         (lateral, Vec3::from(spec.leg_r.offset))
     }
@@ -4241,7 +4374,7 @@ impl BipedLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_l.lateral.0, spec.foot_l.model_index);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -4257,7 +4390,7 @@ impl BipedLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0, spec.foot_r.model_index);
 
         (lateral, Vec3::from(spec.foot_r.offset))
     }
@@ -4273,9 +4406,9 @@ impl BipedLargeMainSpec {
         };
 
         let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0, true)
+            graceful_load_segment_flipped(&spec.vox_spec.0, true, DEFAULT_INDEX)
         } else {
-            graceful_load_segment(&spec.vox_spec.0)
+            graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX)
         };
 
         let offset = Vec3::new(
@@ -4302,9 +4435,9 @@ impl BipedLargeSecondSpec {
         };
 
         let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0, true)
+            graceful_load_segment_flipped(&spec.vox_spec.0, true, DEFAULT_INDEX)
         } else {
-            graceful_load_segment(&spec.vox_spec.0)
+            graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX)
         };
 
         let offset = Vec3::new(
@@ -4335,6 +4468,8 @@ struct SidedGCentralVoxSpec {
 struct GolemCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 #[derive(Deserialize)]
@@ -4355,6 +4490,8 @@ struct SidedGLateralVoxSpec {
 struct GolemLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -4439,7 +4576,7 @@ impl GolemCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.head.central.0);
+        let central = graceful_load_segment(&spec.head.central.0, spec.head.model_index);
 
         (central, Vec3::from(spec.head.offset))
     }
@@ -4455,7 +4592,7 @@ impl GolemCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.jaw.central.0);
+        let central = graceful_load_segment(&spec.jaw.central.0, spec.jaw.model_index);
 
         (central, Vec3::from(spec.jaw.offset))
     }
@@ -4471,7 +4608,8 @@ impl GolemCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.torso_upper.central.0);
+        let central =
+            graceful_load_segment(&spec.torso_upper.central.0, spec.torso_upper.model_index);
 
         (central, Vec3::from(spec.torso_upper.offset))
     }
@@ -4487,7 +4625,8 @@ impl GolemCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.torso_lower.central.0);
+        let central =
+            graceful_load_segment(&spec.torso_lower.central.0, spec.torso_lower.model_index);
 
         (central, Vec3::from(spec.torso_lower.offset))
     }
@@ -4504,7 +4643,8 @@ impl GolemLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.shoulder_l.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.shoulder_l.lateral.0, spec.shoulder_l.model_index);
 
         (lateral, Vec3::from(spec.shoulder_l.offset))
     }
@@ -4520,7 +4660,8 @@ impl GolemLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.shoulder_r.lateral.0);
+        let lateral =
+            graceful_load_segment(&spec.shoulder_r.lateral.0, spec.shoulder_r.model_index);
 
         (lateral, Vec3::from(spec.shoulder_r.offset))
     }
@@ -4536,7 +4677,7 @@ impl GolemLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
+        let lateral = graceful_load_segment(&spec.hand_l.lateral.0, spec.hand_l.model_index);
 
         (lateral, Vec3::from(spec.hand_l.offset))
     }
@@ -4552,7 +4693,7 @@ impl GolemLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.hand_r.lateral.0, spec.hand_r.model_index);
 
         (lateral, Vec3::from(spec.hand_r.offset))
     }
@@ -4568,7 +4709,7 @@ impl GolemLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_l.lateral.0, spec.leg_l.model_index);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -4584,7 +4725,7 @@ impl GolemLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_r.lateral.0, spec.leg_r.model_index);
 
         (lateral, Vec3::from(spec.leg_r.offset))
     }
@@ -4600,7 +4741,7 @@ impl GolemLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_l.lateral.0, spec.foot_l.model_index);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -4616,7 +4757,7 @@ impl GolemLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0, spec.foot_r.model_index);
 
         (lateral, Vec3::from(spec.foot_r.offset))
     }
@@ -4640,6 +4781,8 @@ struct SidedQLCentralVoxSpec {
 struct QuadrupedLowCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 #[derive(Deserialize)]
@@ -4655,6 +4798,8 @@ struct SidedQLLateralVoxSpec {
 struct QuadrupedLowLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxMirror,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -4735,7 +4880,7 @@ impl QuadrupedLowCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.upper.central.0);
+        let central = graceful_load_segment(&spec.upper.central.0, spec.upper.model_index);
 
         (central, Vec3::from(spec.upper.offset))
     }
@@ -4751,7 +4896,7 @@ impl QuadrupedLowCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.lower.central.0);
+        let central = graceful_load_segment(&spec.lower.central.0, spec.lower.model_index);
 
         (central, Vec3::from(spec.lower.offset))
     }
@@ -4767,7 +4912,7 @@ impl QuadrupedLowCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.jaw.central.0);
+        let central = graceful_load_segment(&spec.jaw.central.0, spec.jaw.model_index);
 
         (central, Vec3::from(spec.jaw.offset))
     }
@@ -4783,7 +4928,7 @@ impl QuadrupedLowCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.chest.central.0);
+        let central = graceful_load_segment(&spec.chest.central.0, spec.chest.model_index);
 
         (central, Vec3::from(spec.chest.offset))
     }
@@ -4799,7 +4944,7 @@ impl QuadrupedLowCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail_rear.central.0);
+        let central = graceful_load_segment(&spec.tail_rear.central.0, spec.tail_rear.model_index);
 
         (central, Vec3::from(spec.tail_rear.offset))
     }
@@ -4815,7 +4960,8 @@ impl QuadrupedLowCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.tail_front.central.0);
+        let central =
+            graceful_load_segment(&spec.tail_front.central.0, spec.tail_front.model_index);
 
         (central, Vec3::from(spec.tail_front.offset))
     }
@@ -4834,7 +4980,8 @@ impl QuadrupedLowLateralSpec {
             },
         };
         let latspec = &spec.front_left.lateral;
-        let lateral = graceful_load_segment_flipped(&latspec.0, !latspec.1);
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, !latspec.1, spec.front_left.model_index);
 
         (lateral, Vec3::from(spec.front_left.offset))
     }
@@ -4851,7 +4998,8 @@ impl QuadrupedLowLateralSpec {
             },
         };
         let latspec = &spec.front_right.lateral;
-        let lateral = graceful_load_segment_flipped(&latspec.0, latspec.1);
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, latspec.1, spec.front_right.model_index);
 
         (lateral, Vec3::from(spec.front_right.offset))
     }
@@ -4868,7 +5016,8 @@ impl QuadrupedLowLateralSpec {
             },
         };
         let latspec = &spec.back_left.lateral;
-        let lateral = graceful_load_segment_flipped(&latspec.0, !latspec.1);
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, !latspec.1, spec.back_left.model_index);
 
         (lateral, Vec3::from(spec.back_left.offset))
     }
@@ -4885,7 +5034,8 @@ impl QuadrupedLowLateralSpec {
             },
         };
         let latspec = &spec.back_right.lateral;
-        let lateral = graceful_load_segment_flipped(&latspec.0, latspec.1);
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, latspec.1, spec.back_right.model_index);
 
         (lateral, Vec3::from(spec.back_right.offset))
     }
@@ -4905,6 +5055,8 @@ struct SidedObjectCentralVoxSpec {
 struct ObjectCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
 }
 
 make_vox_spec!(
@@ -4947,7 +5099,7 @@ impl ObjectCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.bone0.central.0);
+        let central = graceful_load_segment(&spec.bone0.central.0, spec.bone0.model_index);
 
         (central, Vec3::from(spec.bone0.offset))
     }
@@ -4960,7 +5112,7 @@ impl ObjectCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.bone1.central.0);
+        let central = graceful_load_segment(&spec.bone1.central.0, spec.bone1.model_index);
 
         (central, Vec3::from(spec.bone1.offset))
     }
@@ -5015,7 +5167,7 @@ impl ItemDropCentralSpec {
                         })
                         .to_segment(|_| Default::default())
                 },
-                _ => graceful_load_segment_fullspec(&full_spec),
+                _ => graceful_load_segment_fullspec(&full_spec, DEFAULT_INDEX),
             };
             let offset = segment_center(&segment).unwrap_or_default();
             (segment, match item_drop {
@@ -5086,7 +5238,10 @@ fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec
         },
     };
     let bone = f(spec);
-    let central = graceful_load_segment_fullspec(&["common.voxel.", &bone.central.0].concat());
+    let central = graceful_load_segment_fullspec(
+        &["common.voxel.", &bone.central.0].concat(),
+        bone.model_index.into(),
+    );
 
     (central, Vec3::from(bone.offset))
 }

@@ -21,7 +21,11 @@ use vek::*;
 pub type Segment = Dyna<Cell, ()>;
 
 impl From<&DotVoxData> for Segment {
-    fn from(dot_vox_data: &DotVoxData) -> Self { Segment::from_vox(dot_vox_data, false) }
+    fn from(dot_vox_data: &DotVoxData) -> Self { Segment::from_vox(dot_vox_data, false, 0) }
+}
+
+impl From<(&DotVoxData, usize)> for Segment {
+    fn from(spec: (&DotVoxData, usize)) -> Self { Segment::from_vox(spec.0, false, spec.1) }
 }
 
 impl Segment {
@@ -30,13 +34,13 @@ impl Segment {
     pub fn from_voxes(data: &[(&DotVoxData, Vec3<i32>, bool)]) -> (Self, Vec3<i32>) {
         let mut union = DynaUnionizer::new();
         for (datum, offset, xmirror) in data.iter() {
-            union = union.add(Segment::from_vox(datum, *xmirror), *offset);
+            union = union.add(Segment::from_vox(datum, *xmirror, 0), *offset);
         }
         union.unify()
     }
 
-    pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
-        if let Some(model) = dot_vox_data.models.get(0) {
+    pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool, model_index: usize) -> Self {
+        if let Some(model) = dot_vox_data.models.get(model_index) {
             let palette = dot_vox_data
                 .palette
                 .iter()
@@ -202,8 +206,8 @@ impl MatSegment {
         })
     }
 
-    pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
-        if let Some(model) = dot_vox_data.models.get(0) {
+    pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool, model_index: usize) -> Self {
+        if let Some(model) = dot_vox_data.models.get(model_index) {
             let palette = dot_vox_data
                 .palette
                 .iter()
@@ -264,5 +268,9 @@ impl MatSegment {
 }
 
 impl From<&DotVoxData> for MatSegment {
-    fn from(dot_vox_data: &DotVoxData) -> Self { Self::from_vox(dot_vox_data, false) }
+    fn from(dot_vox_data: &DotVoxData) -> Self { Self::from_vox(dot_vox_data, false, 0) }
+}
+
+impl From<(&DotVoxData, usize)> for MatSegment {
+    fn from(spec: (&DotVoxData, usize)) -> Self { Self::from_vox(spec.0, false, spec.1) }
 }
