@@ -4,10 +4,12 @@ use crate::{
     Canvas,
 };
 use common::{
+    assets::{Asset, AssetExt, AssetHandle, RonLoader},
     generation::EntityInfo,
     terrain::{BiomeKind, Structure, TerrainChunkSize},
     vol::RectVolSize,
 };
+use lazy_static::lazy_static;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use std::ops::Range;
@@ -68,6 +70,7 @@ pub enum Spot {
     SaurokTotem,
     JungleOutpost,
     MageTower,
+    RonFile(&'static SpotProperties),
 }
 
 impl Spot {
@@ -75,6 +78,15 @@ impl Spot {
         use BiomeKind::*;
         // Trees/spawn: false => *No* trees around the spot
         // Themed Spots -> Act as an introduction to themes of sites
+        for s in RON_PROPERTIES.0.iter() {
+            Self::generate_spots(
+                Spot::RonFile(s),
+                world,
+                s.freq,
+                |g, c| s.condition.is_valid(g, c),
+                s.spawn,
+            );
+        }
         Self::generate_spots(
             Spot::WitchHouse,
             world,
@@ -773,6 +785,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 entity_radius: 2.0,
                 entities: &[],
             },
+            Spot::RonFile(properties) => SpotConfig {
+                base_structures: Some(&properties.base_structures),
+                entity_radius: 1.0,
+                entities: &[],
+            },
         };
         // Blit base structure
         if let Some(base_structures) = spot_config.base_structures {
@@ -817,4 +834,77 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             }
         }
     }
+}
+
+#[derive(serde::Deserialize, Clone, Debug)]
+enum SpotCondition {
+    MaxGradient(f32),
+    Biome(Vec<BiomeKind>),
+    NearCliffs,
+    NearRiver,
+    IsWay,
+    IsUnderwater,
+
+    /// no cliffs, no river, no way
+    Typical,
+    /// implies IsUnderwater
+    MinWaterDepth(f32),
+
+    Not(Box<SpotCondition>),
+    And(Box<(SpotCondition, SpotCondition)>),
+    And3(Box<(SpotCondition, SpotCondition, SpotCondition)>),
+}
+
+impl SpotCondition {
+    fn is_valid(&self, g: f32, c: &SimChunk) -> bool {
+        c.sites.is_empty()
+            && match self {
+                SpotCondition::MaxGradient(value) => g < *value,
+                SpotCondition::Biome(biomes) => biomes.contains(&c.get_biome()),
+                SpotCondition::NearCliffs => c.near_cliffs(),
+                SpotCondition::NearRiver => c.river.near_water(),
+                SpotCondition::IsWay => c.path.0.is_way(),
+                SpotCondition::IsUnderwater => c.is_underwater(),
+                SpotCondition::Typical => {
+                    !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way()
+                },
+                SpotCondition::MinWaterDepth(depth) => {
+                    SpotCondition::IsUnderwater.is_valid(g, c) && c.water_alt > c.alt + depth
+                },
+                SpotCondition::Not(condition) => !condition.is_valid(g, c),
+                SpotCondition::And(conditions) => {
+                    conditions.0.is_valid(g, c) && conditions.1.is_valid(g, c)
+                },
+                SpotCondition::And3(conditions) => {
+                    conditions.0.is_valid(g, c)
+                        && conditions.1.is_valid(g, c)
+                        && conditions.2.is_valid(g, c)
+                },
+            }
+    }
+}
+
+#[derive(serde::Deserialize, Clone, Debug)]
+pub struct SpotProperties {
+    base_structures: String,
+    freq: f32,
+    condition: SpotCondition,
+    spawn: bool,
+}
+
+#[derive(serde::Deserialize, Clone, Debug)]
+#[serde(transparent)]
+struct RonSpots(Vec<SpotProperties>);
+
+impl Asset for RonSpots {
+    type Loader = RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+lazy_static! {
+    static ref RON_PROPERTIES: RonSpots = {
+        let spots: AssetHandle<RonSpots> = AssetExt::load_expect("world.manifests.spots");
+        RonSpots(spots.read().0.iter().cloned().collect())
+    };
 }

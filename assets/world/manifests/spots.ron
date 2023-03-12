@@ -1,0 +1,8 @@
+[
+//    (
+//        base_structures: "spots_general.mage_tower",
+//        freq: 100.0,
+//        condition: And3((Typical, MaxGradient(0.2), Biome([Forest, Taiga]))),
+//        spawn: false,
+//    ),
+]
