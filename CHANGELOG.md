@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Camera zoom can now be locked, to prevent accidental zooming while rolling in combat. It comes
   with a keybind to enable/disable the setting, and an Auto/Toggle behavior setting. Auto behavior
   will only lock the camera zoom while movement and combat inputs are also being pressed.
+- Custom spots can be added without recompilation (only ron and vox files)
 
 ### Changed
 - Bats move slower and use a simple proportional controller to maintain altitude

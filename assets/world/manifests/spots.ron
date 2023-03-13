@@ -1,8 +1,13 @@
 [
-//    (
-//        base_structures: "spots_general.mage_tower",
-//        freq: 100.0,
-//        condition: And3((Typical, MaxGradient(0.2), Biome([Forest, Taiga]))),
-//        spawn: false,
-//    ),
+    // example entry, increase freq to activate
+    (
+        // ron file pointing to voxel model and defining special colors
+        base_structures: "spots_general.mage_tower",
+        // maximum occurance per each 1000km^2 world area
+        freq: 0.0,
+        // placement requirements
+        condition: All([Typical, MaxGradient(0.2), Biome([Forest, Taiga])]),
+        // whether to prevent trees etc. around this spot
+        spawn: false,
+    ),
 ]

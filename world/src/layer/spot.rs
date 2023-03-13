@@ -851,8 +851,8 @@ enum SpotCondition {
     MinWaterDepth(f32),
 
     Not(Box<SpotCondition>),
-    And(Box<(SpotCondition, SpotCondition)>),
-    And3(Box<(SpotCondition, SpotCondition, SpotCondition)>),
+    All(Vec<SpotCondition>),
+    Any(Vec<SpotCondition>),
 }
 
 impl SpotCondition {
@@ -872,13 +872,21 @@ impl SpotCondition {
                     SpotCondition::IsUnderwater.is_valid(g, c) && c.water_alt > c.alt + depth
                 },
                 SpotCondition::Not(condition) => !condition.is_valid(g, c),
-                SpotCondition::And(conditions) => {
-                    conditions.0.is_valid(g, c) && conditions.1.is_valid(g, c)
+                SpotCondition::All(conditions) => 'outer: {
+                    for cond in conditions.iter() {
+                        if !cond.is_valid(g, c) {
+                            break 'outer false;
+                        }
+                    }
+                    true
                 },
-                SpotCondition::And3(conditions) => {
-                    conditions.0.is_valid(g, c)
-                        && conditions.1.is_valid(g, c)
-                        && conditions.2.is_valid(g, c)
+                SpotCondition::Any(conditions) => 'outer: {
+                    for cond in conditions.iter() {
+                        if cond.is_valid(g, c) {
+                            break 'outer true;
+                        }
+                    }
+                    false
                 },
             }
     }
