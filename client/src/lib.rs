@@ -1797,6 +1797,7 @@ impl Client {
                 add_foreign_systems(dispatch_builder);
             },
             true,
+            None,
         );
         // TODO: avoid emitting these in the first place
         let _ = self

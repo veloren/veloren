@@ -57,6 +57,8 @@ pub struct TickMetrics {
     pub chunk_groups_count: IntGauge,
     pub entity_count: IntGauge,
     pub tick_time: IntGaugeVec,
+    /// Timing of some subsections of `State::tick`.
+    pub state_tick_time: IntGaugeVec,
     pub tick_time_hist: Histogram,
     pub build_info: IntGauge,
     pub start_time: IntGauge,
@@ -349,6 +351,13 @@ impl TickMetrics {
             Opts::new("tick_time", "time in ns required for a tick of the server"),
             &["period"],
         )?;
+        let state_tick_time = IntGaugeVec::new(
+            Opts::new(
+                "state_tick_time",
+                "time in ns for some subsections of State::tick",
+            ),
+            &["period"],
+        )?;
         // 33.33ms is the ideal tick time. So we have hight detail around it.
         // 300/700 are to detect high I/O blocks
         let bucket = vec![
@@ -386,6 +395,7 @@ impl TickMetrics {
         registry.register(Box::new(time_of_day.clone()))?;
         registry.register(Box::new(light_count.clone()))?;
         registry.register(Box::new(tick_time.clone()))?;
+        registry.register(Box::new(state_tick_time.clone()))?;
         registry.register(Box::new(tick_time_hist.clone()))?;
 
         Ok(Self {
@@ -394,6 +404,7 @@ impl TickMetrics {
             chunk_groups_count,
             entity_count,
             tick_time,
+            state_tick_time,
             tick_time_hist,
             build_info,
             start_time,

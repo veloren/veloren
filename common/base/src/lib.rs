@@ -1,5 +1,3 @@
-#![feature(fundamental)]
-
 pub mod userdata_dir;
 
 pub use userdata_dir::userdata_dir;
