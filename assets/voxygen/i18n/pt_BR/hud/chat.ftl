@@ -33,7 +33,10 @@ hud-chat-default_death_msg = [{ $name }] morreu
 hud-chat-all = Todos
 hud-chat-you = Você
 hud-chat-chat_tab_hover_tooltip = Clique direito para configurar
-hud-loot-pickup-msg = {$actor} pegou { $amount ->
+hud-loot-pickup-msg = { $actor -> 
+      [You] Você pegou
+      *[other] { $actor } pegou
+} { $amount ->
    [one] { $item }
    *[other] {$amount}x {$item}
 }
