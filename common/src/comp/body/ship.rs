@@ -222,7 +222,11 @@ pub mod figuredata {
                     // need to load them in the server and sync them as an ECS resource.
                     let vox =
                         cache.load::<DotVoxAsset>(&["common.voxel.", &bone.central.0].concat())?;
-                    let dyna = Dyna::<Cell, (), ColumnAccess>::from_vox(&vox.read().0, false, bone.model_index as usize);
+                    let dyna = Dyna::<Cell, (), ColumnAccess>::from_vox(
+                        &vox.read().0,
+                        false,
+                        bone.model_index as usize,
+                    );
                     let dyna = dyna.map_into(|cell| {
                         if let Some(rgb) = cell.get_color() {
                             Block::new(BlockKind::Misc, rgb)
