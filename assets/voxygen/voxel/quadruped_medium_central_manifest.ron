@@ -1922,61 +1922,73 @@
     (Llama, Male): (
         head: (
             offset: (-3.0, -2.0, -3.5),
-            central: ("npc.llama.male.head"),
+            central: ("npc.llama.male.llama"),
         ),
         neck: (
             offset: (-3.0, -4.5, -9.5),
-            central: ("npc.llama.male.neck"),
+            central: ("npc.llama.male.llama"),
+            model_index: 1,
         ),
         jaw: (
             offset: (-2.0, 0.0, -2.0),
-            central: ("npc.llama.male.jaw"),
+            central: ("npc.llama.male.llama"),
+            model_index: 2,
         ),
         torso_front: (
             offset: (-6.0, -9.0, -6.0),
-            central: ("npc.llama.male.torso_front"),
+            central: ("npc.llama.male.llama"),
+            model_index: 3,
         ),
         torso_back: (
             offset: (-5.0, -12.0, -5.0),
-            central: ("npc.llama.male.torso_back"),
+            central: ("npc.llama.male.llama"),
+            model_index: 4,
         ),
         ears: (
             offset: (-4.0, -1.0, 0.0),
-            central: ("npc.llama.male.ears"),
+            central: ("npc.llama.male.llama"),
+            model_index: 5,
         ),
         tail: (
             offset: (-2.0, -5.0, -7.0),
-            central: ("npc.llama.male.tail"),
+            central: ("npc.llama.male.llama"),
+            model_index: 6,
         ),
     ),
     (Llama, Female): (
         head: (
             offset: (-3.0, -2.0, -3.5),
-            central: ("npc.llama.male.head"),
+            central: ("npc.llama.male.llama"),
         ),
         neck: (
             offset: (-3.0, -4.5, -9.5),
-            central: ("npc.llama.male.neck"),
+            central: ("npc.llama.male.llama"),
+            model_index: 1,
         ),
         jaw: (
             offset: (-2.0, 0.0, -2.0),
-            central: ("npc.llama.male.jaw"),
+            central: ("npc.llama.male.llama"),
+            model_index: 2,
         ),
         torso_front: (
             offset: (-6.0, -9.0, -6.0),
-            central: ("npc.llama.male.torso_front"),
+            central: ("npc.llama.male.llama"),
+            model_index: 3,
         ),
         torso_back: (
             offset: (-5.0, -12.0, -5.0),
-            central: ("npc.llama.male.torso_back"),
+            central: ("npc.llama.male.llama"),
+            model_index: 4,
         ),
         ears: (
             offset: (-4.0, -1.0, 0.0),
-            central: ("npc.llama.male.ears"),
+            central: ("npc.llama.male.llama"),
+            model_index: 5,
         ),
         tail: (
             offset: (-2.0, -5.0, -7.0),
-            central: ("npc.llama.male.tail"),
+            central: ("npc.llama.male.llama"),
+            model_index: 6,
         ),
     ),
     (Alpaca, Male): (
