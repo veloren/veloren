@@ -872,22 +872,8 @@ impl SpotCondition {
                     SpotCondition::IsUnderwater.is_valid(g, c) && c.water_alt > c.alt + depth
                 },
                 SpotCondition::Not(condition) => !condition.is_valid(g, c),
-                SpotCondition::All(conditions) => 'outer: {
-                    for cond in conditions.iter() {
-                        if !cond.is_valid(g, c) {
-                            break 'outer false;
-                        }
-                    }
-                    true
-                },
-                SpotCondition::Any(conditions) => 'outer: {
-                    for cond in conditions.iter() {
-                        if cond.is_valid(g, c) {
-                            break 'outer true;
-                        }
-                    }
-                    false
-                },
+                SpotCondition::All(conditions) => conditions.iter().all(|cond| cond.is_valid(g, c)),
+                SpotCondition::Any(conditions) => conditions.iter().any(|cond| cond.is_valid(g, c)),
             }
     }
 }
