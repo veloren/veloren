@@ -39,7 +39,7 @@ use common::{
     mounting::Rider,
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBook},
-    resources::{GameMode, PlayerEntity, TimeOfDay},
+    resources::{GameMode, PlayerEntity, Time, TimeOfDay},
     spiral::Spiral2d,
     terrain::{
         block::Block, map::MapConfig, neighbors, site::DungeonKindMeta, BiomeKind,
@@ -2153,10 +2153,14 @@ impl Client {
                     return Err(Error::Other("Failed to find entity from uid.".into()));
                 }
             },
-            ServerGeneral::TimeOfDay(time_of_day, calendar, time) => {
+            ServerGeneral::TimeOfDay(time_of_day, calendar, new_time) => {
                 self.target_time_of_day = Some(time_of_day);
                 *self.state.ecs_mut().write_resource() = calendar;
-                *self.state.ecs_mut().write_resource() = time;
+                let mut time = self.state.ecs_mut().write_resource::<Time>();
+                // Avoid side-eye from Einstein
+                if new_time.0 > time.0 {
+                    *time = new_time;
+                }
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
                 self.state
