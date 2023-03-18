@@ -2071,14 +2071,26 @@ impl Hud {
                                 .to_string(),
                         })]
                     },
-                    BlockInteraction::Mine => {
+                    BlockInteraction::Mine(mine_tool) => {
                         if info.is_mining {
                             vec![(
                                 Some(GameInput::Primary),
                                 i18n.get_msg("hud-mine").to_string(),
                             )]
                         } else {
-                            vec![(None, i18n.get_msg("hud-needs_pickaxe").to_string())]
+                            match mine_tool {
+                                ToolKind::Pick => {
+                                    vec![(None, i18n.get_msg("hud-mine-needs_pickaxe").to_string())]
+                                },
+                                // TODO: The required tool for mining something may not always be a
+                                // pickaxe!
+                                _ => {
+                                    vec![(
+                                        None,
+                                        i18n.get_msg("hud-mine-needs_unhandled_case").to_string(),
+                                    )]
+                                },
+                            }
                         }
                     },
                 };

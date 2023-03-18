@@ -9,6 +9,7 @@ use super::{
 use client::Client;
 use common::{
     comp,
+    comp::tool::ToolKind,
     consts::MAX_PICKUP_RANGE,
     link::Is,
     mounting::Mount,
@@ -30,7 +31,7 @@ pub enum BlockInteraction {
     Craft(CraftingTab),
     // TODO: mining blocks don't use the interaction key, so it might not be the best abstraction
     // to have them here, will see how things turn out
-    Mine,
+    Mine(ToolKind),
 }
 
 #[derive(Clone, Debug)]
@@ -74,8 +75,8 @@ impl Interactable {
 
                 if let Some(unlock) = unlock {
                     BlockInteraction::Unlock(unlock)
-                } else if block.mine_tool().is_some() {
-                    BlockInteraction::Mine
+                } else if let Some(mine_tool) = block.mine_tool() {
+                    BlockInteraction::Mine(mine_tool)
                 } else {
                     BlockInteraction::Collect
                 }
@@ -113,10 +114,6 @@ pub(super) fn select_interactable(
 
     let terrain = client.state().terrain();
 
-    fn get_block<T>(terrain: &common::terrain::TerrainGrid, target: Target<T>) -> Option<Block> {
-        terrain.get(target.position_int()).ok().copied()
-    }
-
     if let Some(interactable) = entity_target
         .and_then(|t| {
             if t.distance < MAX_TARGET_RANGE && Some(t.distance) == nearest_dist {
@@ -129,7 +126,7 @@ pub(super) fn select_interactable(
         .or_else(|| {
             collect_target.and_then(|t| {
                 if Some(t.distance) == nearest_dist {
-                    get_block(&terrain, t).map(|b| {
+                    terrain.get(t.position_int()).ok().map(|&b| {
                         Interactable::Block(b, t.position_int(), BlockInteraction::Collect)
                     })
                 } else {
@@ -140,17 +137,17 @@ pub(super) fn select_interactable(
         .or_else(|| {
             mine_target.and_then(|t| {
                 if Some(t.distance) == nearest_dist {
-                    get_block(&terrain, t).and_then(|b| {
+                    terrain.get(t.position_int()).ok().and_then(|&b| {
                         // Handling edge detection. sometimes the casting (in Target mod) returns a
                         // position which is actually empty, which we do not want labeled as an
                         // interactable. We are only returning the mineable air
                         // elements (e.g. minerals). The mineable weakrock are used
                         // in the terrain selected_pos, but is not an interactable.
-                        if b.mine_tool().is_some() && b.is_air() {
+                        if let Some(mine_tool) = b.mine_tool() && b.is_air() {
                             Some(Interactable::Block(
                                 b,
                                 t.position_int(),
-                                BlockInteraction::Mine,
+                                BlockInteraction::Mine(mine_tool),
                             ))
                         } else {
                             None
@@ -197,6 +194,7 @@ pub(super) fn select_interactable(
             (stats.mask() | items.mask()).maybe(),
         )
             .join()
+            .filter(|&(e, _, _, _, _, _, _, _)| e != player_entity) // skip the player's entity 
             .filter_map(|(e, p, b, s, c, cs, _, has_stats_or_item)| {
                 // Note, if this becomes expensive to compute do it after the distance check!
                 //
@@ -209,8 +207,7 @@ pub(super) fn select_interactable(
                 //   interacting with actual interactable entities that are closer by)
                 // * Dropped items that can be picked up (Item component)
                 let is_interactable = b.is_campfire() || has_stats_or_item.is_some();
-
-                if e == player_entity || !is_interactable {
+                if !is_interactable {
                     return None;
                 };
 

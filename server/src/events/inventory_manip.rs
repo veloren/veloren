@@ -373,7 +373,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             sprite_pos.x as f32,
                             sprite_pos.y as f32,
                             sprite_pos.z as f32,
-                        ) + Vec3::one() * 0.5,
+                        ) + Vec3::one().with_z(0.0) * 0.5,
                     ))
                     .with(comp::Vel(Vec3::zero()))
                     .build();

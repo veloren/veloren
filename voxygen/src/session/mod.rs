@@ -942,7 +942,7 @@ impl PlayState for SessionState {
                                                             block.get_sprite().map(|s| (*pos, s)),
                                                         )
                                                     },
-                                                    BlockInteraction::Mine => {},
+                                                    BlockInteraction::Mine(_) => {},
                                                 }
                                             },
                                             Interactable::Entity(entity) => {
