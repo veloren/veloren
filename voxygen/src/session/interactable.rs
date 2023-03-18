@@ -9,22 +9,34 @@ use super::{
 use client::Client;
 use common::{
     comp,
+    comp::tool::ToolKind,
     consts::MAX_PICKUP_RANGE,
     link::Is,
     mounting::Mount,
-    terrain::Block,
+    terrain::{Block, TerrainGrid, UnlockKind},
     util::find_dist::{Cube, Cylinder, FindDist},
     vol::ReadVol,
 };
 use common_base::span;
 
-use crate::scene::{terrain::Interaction, Scene};
+use crate::{
+    hud::CraftingTab,
+    scene::{terrain::Interaction, Scene},
+};
 
-// TODO: extract mining blocks (the None case in the Block variant) from this
-// enum since they don't use the interaction key
+#[derive(Clone, Debug)]
+pub enum BlockInteraction {
+    Collect,
+    Unlock(UnlockKind),
+    Craft(CraftingTab),
+    // TODO: mining blocks don't use the interaction key, so it might not be the best abstraction
+    // to have them here, will see how things turn out
+    Mine(ToolKind),
+}
+
 #[derive(Clone, Debug)]
 pub enum Interactable {
-    Block(Block, Vec3<i32>, Interaction),
+    Block(Block, Vec3<i32>, BlockInteraction),
     Entity(specs::Entity),
 }
 
@@ -34,6 +46,44 @@ impl Interactable {
             Self::Entity(e) => Some(*e),
             Self::Block(_, _, _) => None,
         }
+    }
+
+    fn from_block_pos(
+        terrain: &TerrainGrid,
+        pos: Vec3<i32>,
+        interaction: Interaction,
+    ) -> Option<Self> {
+        let Ok(&block) = terrain.get(pos) else { return None };
+        let block_interaction = match interaction {
+            Interaction::Collect => {
+                // Check if this is an unlockable sprite
+                let unlock = block.get_sprite().and_then(|sprite| {
+                    let Some(chunk) = terrain.pos_chunk(pos) else { return None };
+                    let sprite_chunk_pos = TerrainGrid::chunk_offs(pos);
+                    let sprite_cfg = chunk.meta().sprite_cfg_at(sprite_chunk_pos);
+                    let unlock_condition = sprite.unlock_condition(sprite_cfg.cloned());
+                    // HACK: No other way to distinguish between things that should be unlockable
+                    // and regular sprites with the current unlock_condition method so we hack
+                    // around that by saying that it is a regular collectible sprite if
+                    // `unlock_condition` returns UnlockKind::Free and the cfg was `None`.
+                    if sprite_cfg.is_some() || !matches!(&unlock_condition, UnlockKind::Free) {
+                        Some(unlock_condition)
+                    } else {
+                        None
+                    }
+                });
+
+                if let Some(unlock) = unlock {
+                    BlockInteraction::Unlock(unlock)
+                } else if let Some(mine_tool) = block.mine_tool() {
+                    BlockInteraction::Mine(mine_tool)
+                } else {
+                    BlockInteraction::Collect
+                }
+            },
+            Interaction::Craft(tab) => BlockInteraction::Craft(tab),
+        };
+        Some(Self::Block(block, pos, block_interaction))
     }
 }
 
@@ -62,14 +112,7 @@ pub(super) fn select_interactable(
         collect_target.map(|t| t.distance),
     ]);
 
-    fn get_block<T>(client: &Client, target: Target<T>) -> Option<Block> {
-        client
-            .state()
-            .terrain()
-            .get(target.position_int())
-            .ok()
-            .copied()
-    }
+    let terrain = client.state().terrain();
 
     if let Some(interactable) = entity_target
         .and_then(|t| {
@@ -83,8 +126,9 @@ pub(super) fn select_interactable(
         .or_else(|| {
             collect_target.and_then(|t| {
                 if Some(t.distance) == nearest_dist {
-                    get_block(client, t)
-                        .map(|b| Interactable::Block(b, t.position_int(), Interaction::Collect))
+                    terrain.get(t.position_int()).ok().map(|&b| {
+                        Interactable::Block(b, t.position_int(), BlockInteraction::Collect)
+                    })
                 } else {
                     None
                 }
@@ -93,14 +137,18 @@ pub(super) fn select_interactable(
         .or_else(|| {
             mine_target.and_then(|t| {
                 if Some(t.distance) == nearest_dist {
-                    get_block(client, t).and_then(|b| {
+                    terrain.get(t.position_int()).ok().and_then(|&b| {
                         // Handling edge detection. sometimes the casting (in Target mod) returns a
                         // position which is actually empty, which we do not want labeled as an
                         // interactable. We are only returning the mineable air
                         // elements (e.g. minerals). The mineable weakrock are used
                         // in the terrain selected_pos, but is not an interactable.
-                        if b.mine_tool().is_some() && b.is_air() {
-                            Some(Interactable::Block(b, t.position_int(), Interaction::Mine))
+                        if let Some(mine_tool) = b.mine_tool() && b.is_air() {
+                            Some(Interactable::Block(
+                                b,
+                                t.position_int(),
+                                BlockInteraction::Mine(mine_tool),
+                            ))
                         } else {
                             None
                         }
@@ -124,6 +172,9 @@ pub(super) fn select_interactable(
         let colliders = ecs.read_storage::<comp::Collider>();
         let char_states = ecs.read_storage::<comp::CharacterState>();
         let is_mount = ecs.read_storage::<Is<Mount>>();
+        let bodies = ecs.read_storage::<comp::Body>();
+        let items = ecs.read_storage::<comp::Item>();
+        let stats = ecs.read_storage::<comp::Stats>();
 
         let player_cylinder = Cylinder::from_components(
             player_pos,
@@ -135,20 +186,39 @@ pub(super) fn select_interactable(
         let closest_interactable_entity = (
             &ecs.entities(),
             &positions,
+            &bodies,
             scales.maybe(),
             colliders.maybe(),
             char_states.maybe(),
             !&is_mount,
+            (stats.mask() | items.mask()).maybe(),
         )
             .join()
-            .filter(|(e, _, _, _, _, _)| *e != player_entity)
-            .map(|(e, p, s, c, cs, _)| {
+            .filter(|&(e, _, _, _, _, _, _, _)| e != player_entity) // skip the player's entity 
+            .filter_map(|(e, p, b, s, c, cs, _, has_stats_or_item)| {
+                // Note, if this becomes expensive to compute do it after the distance check!
+                //
+                // The entities that can be interacted with:
+                // * Sitting at campfires (Body::is_campfire)
+                // * Talking/trading with npcs (note hud code uses Alignment but I can't bring
+                //   myself to write more code on that depends on having this on the client so
+                //   we just check for presence of Stats component for now, it is okay to have
+                //   some false positives here as long as it doesn't frequently prevent us from
+                //   interacting with actual interactable entities that are closer by)
+                // * Dropped items that can be picked up (Item component)
+                let is_interactable = b.is_campfire() || has_stats_or_item.is_some();
+                if !is_interactable {
+                    return None;
+                };
+
                 let cylinder = Cylinder::from_components(p.0, s.copied(), c, cs);
-                (e, cylinder)
+                // Roughly filter out entities farther than interaction distance
+                if player_cylinder.approx_in_range(cylinder, MAX_PICKUP_RANGE) {
+                    Some((e, player_cylinder.min_distance(cylinder)))
+                } else {
+                    None
+                }
             })
-            // Roughly filter out entities farther than interaction distance
-            .filter(|(_, cylinder)| player_cylinder.approx_in_range(*cylinder, MAX_PICKUP_RANGE))
-            .map(|(e, cylinder)| (e, player_cylinder.min_distance(cylinder)))
             .min_by_key(|(_, dist)| OrderedFloat(*dist));
 
         // Only search as far as closest interactable entity
@@ -156,7 +226,7 @@ pub(super) fn select_interactable(
         let player_chunk = player_pos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
             (e.floor() as i32).div_euclid(sz as i32)
         });
-        let terrain = scene.terrain();
+        let scene_terrain = scene.terrain();
 
         // Find closest interactable block
         // TODO: consider doing this one first?
@@ -168,7 +238,7 @@ pub(super) fn select_interactable(
                 let chunk_pos = player_chunk + offset;
                 let chunk_voxel_pos =
                         Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
-                terrain.get(chunk_pos).map(|data| (data, chunk_voxel_pos))
+                scene_terrain.get(chunk_pos).map(|data| (data, chunk_voxel_pos))
             })
             // TODO: maybe we could make this more efficient by putting the
             // interactables is some sort of spatial structure
@@ -180,10 +250,10 @@ pub(super) fn select_interactable(
                     .map(move |(block_offset, interaction)| (chunk_pos + block_offset, interaction))
             })
             .map(|(block_pos, interaction)| (
-                    block_pos,
-                    block_pos.map(|e| e as f32 + 0.5)
-                        .distance_squared(player_pos),
-                    interaction,
+                block_pos,
+                block_pos.map(|e| e as f32 + 0.5)
+                    .distance_squared(player_pos),
+                interaction,
             ))
             .min_by_key(|(_, dist_sqr, _)| OrderedFloat(*dist_sqr))
             .map(|(block_pos, _, interaction)| (block_pos, interaction));
@@ -197,13 +267,7 @@ pub(super) fn select_interactable(
                 }) < search_dist
             })
             .and_then(|(block_pos, interaction)| {
-                client
-                    .state()
-                    .terrain()
-                    .get(block_pos)
-                    .ok()
-                    .copied()
-                    .map(|b| Interactable::Block(b, block_pos, interaction.clone()))
+                Interactable::from_block_pos(&terrain, block_pos, *interaction)
             })
             .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
     }

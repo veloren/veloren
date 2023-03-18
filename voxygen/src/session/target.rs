@@ -100,8 +100,7 @@ pub(super) fn targets_under_cursor(
         }
     };
 
-    let (collect_pos, _, collect_cam_ray) =
-        find_pos(|b: Block| matches!(b.collectible_id(), Some(Some(_))));
+    let (collect_pos, _, collect_cam_ray) = find_pos(|b: Block| b.is_collectible());
     let (mine_pos, _, mine_cam_ray) = is_mining
         .then(|| find_pos(|b: Block| b.mine_tool().is_some()))
         .unwrap_or((None, None, None));

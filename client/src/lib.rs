@@ -1805,6 +1805,13 @@ impl Client {
             .ecs()
             .fetch::<EventBus<common::event::ServerEvent>>()
             .recv_all();
+        // TODO: avoid emitting these in the first place OR actually use outcomes
+        // generated locally on the client (if they can be deduplicated from
+        // ones that the server generates or if the client can reliably generate
+        // them (e.g. syncing skipping character states past certain
+        // stages might skip points where outcomes are generated, however we might not
+        // care about this?) and the server doesn't need to send them)
+        let _ = self.state.ecs().fetch::<EventBus<Outcome>>().recv_all();
 
         // 5) Terrain
         self.tick_terrain()?;

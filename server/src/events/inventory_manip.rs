@@ -252,17 +252,21 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             sprite_pos,
             required_item,
         } => {
-            let block = state.terrain().get(sprite_pos).ok().copied();
+            let ecs = state.ecs();
+            let terrain = ecs.read_resource::<common::terrain::TerrainGrid>();
+            let mut block_change = ecs.write_resource::<common_state::BlockChange>();
+
+            let block = terrain.get(sprite_pos).ok().copied();
             let mut drop_item = None;
 
             if let Some(block) = block {
-                if block.is_collectible() && state.can_set_block(sprite_pos) {
+                if block.is_collectible() && block_change.can_set_block(sprite_pos) {
                     // If an item was required to collect the sprite, consume it now
                     if let Some((inv_slot, true)) = required_item {
                         inventory.take(
                             inv_slot,
-                            &state.ecs().read_resource::<AbilityMap>(),
-                            &state.ecs().read_resource::<MaterialStatManifest>(),
+                            &ecs.read_resource::<AbilityMap>(),
+                            &ecs.read_resource::<MaterialStatManifest>(),
                         );
                     }
 
@@ -270,20 +274,19 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     if let Some(item) = comp::Item::try_reclaim_from_block(block) {
                         // NOTE: We dup the item for message purposes.
                         let item_msg = item.duplicate(
-                            &state.ecs().read_resource::<AbilityMap>(),
-                            &state.ecs().read_resource::<MaterialStatManifest>(),
+                            &ecs.read_resource::<AbilityMap>(),
+                            &ecs.read_resource::<MaterialStatManifest>(),
                         );
                         let event = match inventory.push(item) {
                             Ok(_) => {
-                                let ecs = state.ecs();
                                 if let Some(group_id) = ecs.read_storage::<Group>().get(entity) {
                                     announce_loot_to_group(
                                         group_id,
                                         ecs,
                                         entity,
                                         item_msg.duplicate(
-                                            &state.ecs().read_resource::<AbilityMap>(),
-                                            &state.ecs().read_resource::<MaterialStatManifest>(),
+                                            &ecs.read_resource::<AbilityMap>(),
+                                            &ecs.read_resource::<MaterialStatManifest>(),
                                         ),
                                     );
                                 }
@@ -303,15 +306,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 )
                             },
                         };
-                        state
-                            .ecs()
-                            .write_storage()
+                        ecs.write_storage()
                             .insert(entity, event)
                             .expect("We know entity exists since we got its inventory.");
                     }
 
                     // We made sure earlier the block was not already modified this tick
-                    state.set_block(sprite_pos, block.into_vacant());
+                    block_change.set(sprite_pos, block.into_vacant());
 
                     // If the block was a keyhole, remove nearby door blocks
                     // TODO: Abstract this code into a generalised way to do block updates?
@@ -339,11 +340,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 pending.remove(&pos);
                                 if !destroyed.contains(&pos)
                                     && matches!(
-                                        state.terrain().get(pos).ok().and_then(|b| b.get_sprite()),
+                                        terrain.get(pos).ok().and_then(|b| b.get_sprite()),
                                         Some(SpriteKind::KeyDoor)
                                     )
                                 {
-                                    state.set_block(pos, Block::empty());
+                                    block_change.try_set(pos, Block::empty());
                                     destroyed.insert(pos);
 
                                     pending.extend(dirs.into_iter().map(|dir| pos + dir));
@@ -362,6 +363,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 }
             }
             drop(inventories);
+            drop(terrain);
+            drop(block_change);
             if let Some(item) = drop_item {
                 state
                     .create_item_drop(Default::default(), item)
@@ -370,7 +373,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             sprite_pos.x as f32,
                             sprite_pos.y as f32,
                             sprite_pos.z as f32,
-                        ) + Vec3::unit_z(),
+                        ) + Vec3::one().with_z(0.0) * 0.5,
                     ))
                     .with(comp::Vel(Vec3::zero()))
                     .build();

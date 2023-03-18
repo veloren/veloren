@@ -7,7 +7,7 @@ use crate::{
         character_state::OutputEvents,
         controller::InventoryManip,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
-        item::{armor::Friction, tool::AbilityContext, Hands, Item, ItemKind, ToolKind},
+        item::{armor::Friction, tool::AbilityContext, Hands, ItemKind, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -17,9 +17,9 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
-    terrain::{TerrainChunkSize, UnlockKind},
+    terrain::{TerrainGrid, UnlockKind},
     util::Dir,
-    vol::{ReadVol, RectVolSize},
+    vol::ReadVol,
 };
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
@@ -844,10 +844,7 @@ pub fn handle_manipulate_loadout(
             if close_to_sprite {
                 // First, get sprite data for position, if there is a sprite
                 use sprite_interact::SpriteInteractKind;
-                let sprite_chunk_pos = sprite_pos
-                    .xy()
-                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e.rem_euclid(sz as i32))
-                    .with_z(sprite_pos.z);
+                let sprite_chunk_pos = TerrainGrid::chunk_offs(sprite_pos);
                 let sprite_cfg = data
                     .terrain
                     .pos_chunk(sprite_pos)
@@ -918,24 +915,23 @@ pub fn handle_manipulate_loadout(
                             UnlockKind::Requires(item) => Some((item, false)),
                             UnlockKind::Consumes(item) => Some((item, true)),
                         });
-                    let has_required_items = required_item
-                        .as_ref()
-                        .and_then(|(i, _consume)| {
-                            Item::new_from_item_definition_id(
-                                i.as_ref(),
-                                data.ability_map,
-                                data.msm,
-                            )
-                            .ok()
-                        })
-                        .map_or(true, |i| {
-                            data.inventory.map_or(false, |inv| inv.contains(&i))
-                        });
+
+                    // None: An required items exist but no available
+                    // Some(None): No required items
+                    // Some(Some(_)): Required items satisfied, contains info about them
+                    let has_required_items = match required_item {
+                        // Produces `None` if we can't find the item or `Some(Some(_))` if we can
+                        Some((item_id, consume)) => data
+                            .inventory
+                            .and_then(|inv| inv.get_slot_of_item_by_def_id(&item_id))
+                            .map(|slot| Some((item_id, slot, consume))),
+                        None => Some(None),
+                    };
 
                     // If path can be found between entity interacting with sprite and entity, start
                     // interaction with sprite
                     if not_blocked_by_terrain {
-                        if has_required_items {
+                        if let Some(required_item) = has_required_items {
                             // If the sprite is collectible, enter the sprite interaction character
                             // state TODO: Handle cases for sprite being
                             // interactible, but not collectible (none currently

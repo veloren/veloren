@@ -271,19 +271,24 @@ pub fn apply_trees_to(
                         })
                         .sum(),
                 ) + Vec3::unit_z() * (wpos.z - tree.pos.z);
+                let sblock;
                 block_from_structure(
                     info.index(),
-                    &if let Some(block) = match &tree.model {
-                        TreeModel::Structure(s) => s.get(model_pos).ok().cloned(),
+                    if let Some(block) = match &tree.model {
+                        TreeModel::Structure(s) => s.get(model_pos).ok(),
                         TreeModel::Procedural(t, leaf_block) => Some(
                             match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
                                 (_, _, true, _) => {
-                                    StructureBlock::Filled(BlockKind::Wood, Rgb::new(150, 98, 41))
+                                    sblock = StructureBlock::Filled(
+                                        BlockKind::Wood,
+                                        Rgb::new(150, 98, 41),
+                                    );
+                                    &sblock
                                 },
-                                (_, _, _, true) => StructureBlock::None,
-                                (true, _, _, _) => t.config.trunk_block.clone(),
-                                (_, true, _, _) => leaf_block.clone(),
-                                _ => StructureBlock::None,
+                                (_, _, _, true) => &StructureBlock::None,
+                                (true, _, _, _) => &t.config.trunk_block,
+                                (_, true, _, _) => leaf_block,
+                                _ => &StructureBlock::None,
                             },
                         ),
                     } {

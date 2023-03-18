@@ -462,7 +462,10 @@ impl ItemBase {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
+// TODO: could this theorectically hold a ref to the actual components and
+// lazily get their IDs for hash/partialeq/debug/to_owned/etc? (i.e. eliminating
+// `Vec`s)
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ItemDefinitionId<'a> {
     Simple(&'a str),
     Modular {
@@ -1289,6 +1292,38 @@ pub fn all_item_defs_expect() -> Vec<String> {
 pub fn try_all_item_defs() -> Result<Vec<String>, Error> {
     let defs = assets::load_dir::<RawItemDef>("common.items", true)?;
     Ok(defs.ids().map(|id| id.to_string()).collect())
+}
+
+impl PartialEq<ItemDefinitionId<'_>> for ItemDefinitionIdOwned {
+    fn eq(&self, other: &ItemDefinitionId<'_>) -> bool {
+        use ItemDefinitionId as DefId;
+        match self {
+            Self::Simple(simple) => {
+                matches!(other, DefId::Simple(other_simple) if simple == other_simple)
+            },
+            Self::Modular {
+                pseudo_base,
+                components,
+            } => matches!(
+                other,
+                DefId::Modular { pseudo_base: other_base, components: other_comps }
+                if pseudo_base == other_base && components == other_comps
+            ),
+            Self::Compound {
+                simple_base,
+                components,
+            } => matches!(
+                other,
+                DefId::Compound { simple_base: other_base, components: other_comps }
+                if simple_base == other_base && components == other_comps
+            ),
+        }
+    }
+}
+
+impl PartialEq<ItemDefinitionIdOwned> for ItemDefinitionId<'_> {
+    #[inline]
+    fn eq(&self, other: &ItemDefinitionIdOwned) -> bool { other == self }
 }
 
 #[cfg(test)]

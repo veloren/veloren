@@ -49,13 +49,13 @@ use crate::{
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::{Drawer, GlobalsBindGroup},
-    scene::{camera, terrain::Interaction, CameraMode, DebugShapeId, Scene, SceneData},
+    scene::{camera, CameraMode, DebugShapeId, Scene, SceneData},
     settings::Settings,
     window::{AnalogGameInput, Event},
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use hashbrown::HashMap;
-use interactable::{select_interactable, Interactable};
+use interactable::{select_interactable, BlockInteraction, Interactable};
 use settings_change::Language::ChangeLanguage;
 use target::targets_under_cursor;
 #[cfg(feature = "egui-ui")]
@@ -930,19 +930,19 @@ impl PlayState for SessionState {
                                         match interactable {
                                             Interactable::Block(block, pos, interaction) => {
                                                 match interaction {
-                                                    Interaction::Collect
-                                                    | Interaction::Unlock(_) => {
+                                                    BlockInteraction::Collect
+                                                    | BlockInteraction::Unlock(_) => {
                                                         if block.is_collectible() {
                                                             client.collect_block(*pos);
                                                         }
                                                     },
-                                                    Interaction::Craft(tab) => {
+                                                    BlockInteraction::Craft(tab) => {
                                                         self.hud.show.open_crafting_tab(
                                                             *tab,
                                                             block.get_sprite().map(|s| (*pos, s)),
                                                         )
                                                     },
-                                                    Interaction::Mine => {},
+                                                    BlockInteraction::Mine(_) => {},
                                                 }
                                             },
                                             Interactable::Entity(entity) => {
@@ -1366,6 +1366,7 @@ impl PlayState for SessionState {
                 global_state.clock.get_stable_dt(),
                 HudInfo {
                     is_aiming,
+                    is_mining,
                     is_first_person: matches!(
                         self.scene.camera().get_mode(),
                         camera::CameraMode::FirstPerson
