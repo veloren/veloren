@@ -4935,7 +4935,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Hastened => imgs.buff_haste_0,
         BuffKind::Fortitude => imgs.buff_fortitude_0,
         // TODO: Get unique icon
-        BuffKind::Reckless => imgs.buff_plus_0,
+        BuffKind::Reckless => imgs.buff_reckless,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,

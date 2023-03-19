@@ -741,6 +741,7 @@ image_ids! {
         buff_frenzy_0: "voxygen.element.de_buffs.buff_frenzy_0",
         buff_haste_0: "voxygen.element.de_buffs.buff_haste_0",
         buff_fortitude_0: "voxygen.element.de_buffs.buff_fortitude_0",
+        buff_reckless: "voxygen.element.de_buffs.buff_reckless",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",
