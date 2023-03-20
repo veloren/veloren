@@ -280,11 +280,11 @@ impl Ability {
                 .map(|i| &i.item_config_expect().abilities)
         };
 
-        let contextual_id = |auxiliary_kind: Option<&'a AbilityKind<_>>| -> Option<&'a str> {
+        let contextual_id = |kind: Option<&'a AbilityKind<_>>| -> Option<&'a str> {
             if let Some(AbilityKind::Contextualized {
                 pseudo_id,
                 abilities: _,
-            }) = auxiliary_kind
+            }) = kind
             {
                 Some(pseudo_id.as_str())
             } else {
@@ -2320,9 +2320,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 exhausted: false,
                 start_next_strike: false,
                 timer: Duration::default(),
-                // If ability is a stance, if starting from wielding, get ready to enter stance,
-                // otherwise enter stance immediately, otherwise if not a stance immediately begin
-                // the strike
                 stage_section: StageSection::Buildup,
                 completed_strikes: 0,
             }),
@@ -2795,7 +2792,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                 },
                 timer: Duration::default(),
-                stage_section: if data.vel.0.z < 0.0 || buildup_duration.is_none() {
+                stage_section: if data.vel.0.z < -*vertical_speed || buildup_duration.is_none() {
                     StageSection::Movement
                 } else {
                     StageSection::Buildup
@@ -2861,6 +2858,7 @@ pub struct AbilityMeta {
     #[serde(default)]
     pub capabilities: Capability,
     #[serde(default)]
+    /// This is an event that gets emitted when the ability is first activated
     pub init_event: Option<AbilityInitEvent>,
     #[serde(default)]
     pub requirements: AbilityRequirements,
@@ -2894,8 +2892,8 @@ bitflags::bitflags! {
     #[derive(Default, Serialize, Deserialize)]
     // If more are ever needed, first check if any not used anymore, as some were only used in intermediary stages so may be free
     pub struct Capability: u8 {
-        // Allows rolls to interrupt the ability at any point for free, not just during buildup
-        const ROLL_INTERRUPTS_FREE = 0b00000001;
+        // There used to be a capability here, to keep ordering the same below this is now a placeholder
+        const PLACEHOLDER         = 0b00000001;
         // Allows blocking to interrupt the ability at any point
         const BLOCK_INTERRUPT     = 0b00000010;
         // When the ability is in the buildup section, it counts as a block with 50% DR

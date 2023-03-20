@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
-use core::f32::consts::PI;
+use core::f32::consts::{PI, TAU};
 
 pub struct DiveMeleeAnimation;
 impl Animation for DiveMeleeAnimation {
@@ -70,7 +70,7 @@ impl Animation for DiveMeleeAnimation {
                 next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);
                 next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                 next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
-                next.torso.orientation.rotate_x(move1alt * -6.28);
+                next.torso.orientation.rotate_x(move1alt * -TAU);
 
                 next.torso.orientation.rotate_x(move1 * -0.8);
                 next.control.orientation.rotate_x(move1 * 1.5);

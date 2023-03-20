@@ -341,14 +341,19 @@ impl<T> AbilityKind<T> {
             AbilityKind::Contextualized {
                 pseudo_id: _,
                 abilities,
-            } => abilities
-                .get(&context)
-                .and_then(|(s, a)| unlocked(*s, a))
-                .or_else(|| {
-                    abilities
-                        .get(&AbilityContext::None)
-                        .and_then(|(s, a)| unlocked(*s, a))
-                }),
+            } => {
+                // In the event that the ability from the current context is not unlocked with
+                // the required skill, try falling back to the ability from this input that does
+                // not require a context
+                abilities
+                    .get(&context)
+                    .and_then(|(s, a)| unlocked(*s, a))
+                    .or_else(|| {
+                        abilities
+                            .get(&AbilityContext::None)
+                            .and_then(|(s, a)| unlocked(*s, a))
+                    })
+            },
         }
     }
 }
