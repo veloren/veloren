@@ -1869,7 +1869,7 @@
             central: ("npc.ngoubou.male.neck"),
         ),
         jaw: (
-            offset: (-2.5, -7.0, -3.0),
+            offset: (-2.5, 0.0, -3.0),
             central: ("npc.ngoubou.male.jaw"),
         ),
         torso_front: (
