@@ -314,7 +314,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, Female) => (6.0, -2.5),
                 (Snowleopard, _) => (3.0, -3.0),
                 (Mammoth, _) => (9.5, -3.0),
-                (Ngoubou, _) => (8.5, -4.0),
+                (Ngoubou, _) => (1.5, -4.0),
                 (Llama, _) => (4.0, -1.0),
                 (Alpaca, _) => (3.0, -2.5),
                 (Akhlut, _) => (0.0, -4.5),
