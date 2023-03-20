@@ -424,19 +424,16 @@ impl Loadout {
     }
 
     /// Increments durability by 1 of all valid items
-    pub(super) fn apply_durability(
+    pub(super) fn damage_items(
         &mut self,
         ability_map: &item::tool::AbilityMap,
         msm: &item::MaterialStatManifest,
     ) {
         self.slots
             .iter_mut()
-            .filter(|slot| slot.slot.as_ref().map_or(false, |i| i.has_durability()))
-            .for_each(|slot| {
-                if let Some(item) = &mut slot.slot {
-                    item.apply_durability(ability_map, msm);
-                }
-            })
+            .filter_map(|slot| slot.slot.as_mut())
+            .filter(|item| item.has_durability())
+            .for_each(|item| item.increment_damage(ability_map, msm));
     }
 
     /// Resets durability of item in specified slot

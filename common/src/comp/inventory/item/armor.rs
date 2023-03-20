@@ -27,20 +27,19 @@ pub enum ArmorKind {
 
 impl ArmorKind {
     pub fn has_durability(self) -> bool {
-        use ArmorKind::*;
         match self {
-            Shoulder => true,
-            Chest => true,
-            Belt => true,
-            Hand => true,
-            Pants => true,
-            Foot => true,
-            Back => true,
-            Ring => false,
-            Neck => false,
-            Head => true,
-            Tabard => false,
-            Bag => false,
+            ArmorKind::Shoulder => true,
+            ArmorKind::Chest => true,
+            ArmorKind::Belt => true,
+            ArmorKind::Hand => true,
+            ArmorKind::Pants => true,
+            ArmorKind::Foot => true,
+            ArmorKind::Back => true,
+            ArmorKind::Ring => false,
+            ArmorKind::Neck => false,
+            ArmorKind::Head => true,
+            ArmorKind::Tabard => false,
+            ArmorKind::Bag => false,
         }
     }
 }
@@ -262,8 +261,7 @@ impl Armor {
                 set_stats * multiplier
             },
         };
-        let DurabilityMultiplier(mult) = durability_multiplier;
-        base_stats * mult
+        base_stats * durability_multiplier.0
     }
 
     #[cfg(test)]

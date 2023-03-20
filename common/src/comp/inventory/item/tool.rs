@@ -146,6 +146,20 @@ impl Stats {
         let diminished = (self.buff_strength - base + 1.0).log(5.0);
         base + diminished
     }
+
+    pub fn with_durability_mult(&self, dur_mult: DurabilityMultiplier) -> Self {
+        let less_scaled = dur_mult.0 * 0.5 + 0.5;
+        Self {
+            equip_time_secs: self.equip_time_secs / less_scaled.max(0.01),
+            power: self.power * dur_mult.0,
+            effect_power: self.effect_power * dur_mult.0,
+            speed: self.speed * less_scaled,
+            crit_chance: self.crit_chance * dur_mult.0,
+            range: self.range * dur_mult.0,
+            energy_efficiency: self.energy_efficiency * dur_mult.0,
+            buff_strength: self.buff_strength * dur_mult.0,
+        }
+    }
 }
 
 impl Asset for Stats {
@@ -213,25 +227,6 @@ impl MulAssign<Stats> for Stats {
     fn mul_assign(&mut self, other: Stats) { *self = *self * other; }
 }
 
-impl Mul<DurabilityMultiplier> for Stats {
-    type Output = Self;
-
-    fn mul(self, value: DurabilityMultiplier) -> Self {
-        let DurabilityMultiplier(value) = value;
-        let less_scaled = value * 0.5 + 0.5;
-        Self {
-            equip_time_secs: self.equip_time_secs / less_scaled.max(0.01),
-            power: self.power * value,
-            effect_power: self.effect_power * value,
-            speed: self.speed * less_scaled,
-            crit_chance: self.crit_chance * value,
-            range: self.range * value,
-            energy_efficiency: self.energy_efficiency * value,
-            buff_strength: self.buff_strength * value,
-        }
-    }
-}
-
 impl Div<f32> for Stats {
     type Output = Self;
 
@@ -247,6 +242,12 @@ impl Div<f32> for Stats {
             buff_strength: self.buff_strength / scalar,
         }
     }
+}
+
+impl Mul<DurabilityMultiplier> for Stats {
+    type Output = Self;
+
+    fn mul(self, value: DurabilityMultiplier) -> Self { self.with_durability_mult(value) }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

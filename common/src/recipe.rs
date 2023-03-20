@@ -14,7 +14,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, ops::Mul, sync::Arc};
+use std::{borrow::Cow, sync::Arc};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum RecipeInput {
@@ -517,13 +517,11 @@ impl assets::Compound for RecipeBook {
         cache: assets::AnyCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
-        #[inline]
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;
             Ok((def, spec.1))
         }
 
-        #[inline]
         fn load_recipe_input(
             (input, amount, is_mod_comp): &(RawRecipeInput, u32, bool),
         ) -> Result<(RecipeInput, u32, bool), assets::Error> {
@@ -835,7 +833,6 @@ impl assets::Compound for ComponentRecipeBook {
         cache: assets::AnyCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
-        #[inline]
         fn create_recipe_key(raw_recipe: &RawComponentRecipe) -> ComponentKey {
             match &raw_recipe.output {
                 RawComponentOutput::ToolPrimaryComponent { toolkind, item: _ } => {
@@ -853,7 +850,6 @@ impl assets::Compound for ComponentRecipeBook {
             }
         }
 
-        #[inline]
         fn load_recipe(raw_recipe: &RawComponentRecipe) -> Result<ComponentRecipe, assets::Error> {
             let output = match &raw_recipe.output {
                 RawComponentOutput::ToolPrimaryComponent { toolkind: _, item } => {
@@ -979,18 +975,20 @@ impl RepairRecipe {
         inventory_contains_ingredients(self.inputs(item), inv, 1)
     }
 
-    pub fn inputs(&self, item: &Item) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
+    pub fn inputs(&self, item: &Item) -> impl Iterator<Item = (&RecipeInput, u32)> {
         let item_durability = item.durability().unwrap_or(0);
-        // TODO: Figure out how to avoid vec collection to maintain exact size iterator
-        self.inputs.iter().filter_map(move |(input, original_amount)| {
-            let amount = original_amount.mul(item_durability).div_floor(Item::MAX_DURABILITY);
-            // If original repair recipe consumed ingredients, but item not damaged enough to actually need to consume item, remove item as requirement.
-            if *original_amount > 0 && amount == 0 {
-                None
-            } else {
-                Some((input, amount))
-            }
-        }).collect::<Vec<_>>().into_iter()
+        self.inputs
+            .iter()
+            .filter_map(move |(input, original_amount)| {
+                let amount = (original_amount * item_durability) / Item::MAX_DURABILITY;
+                // If original repair recipe consumed ingredients, but item not damaged enough
+                // to actually need to consume item, remove item as requirement.
+                if *original_amount > 0 && amount == 0 {
+                    None
+                } else {
+                    Some((input, amount))
+                }
+            })
     }
 }
 
@@ -1068,7 +1066,6 @@ impl assets::Compound for RepairRecipeBook {
         cache: assets::AnyCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
-        #[inline]
         fn load_recipe_input(
             (input, amount): &(RawRecipeInput, u32),
         ) -> Result<(RecipeInput, u32), assets::Error> {

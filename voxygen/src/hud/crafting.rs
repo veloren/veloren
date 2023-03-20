@@ -1747,7 +1747,7 @@ impl<'a> Widget for Crafting<'a> {
                         None => None,
                     } {
                         if let Some(recipe) = self.client.repair_recipe_book().repair_recipe(item) {
-                            iter_d = recipe.inputs(item);
+                            iter_d = recipe.inputs(item).collect::<Vec<_>>().into_iter();
                             &mut iter_d as &mut dyn ExactSizeIterator<Item = _>
                         } else {
                             iter_b = core::iter::empty();

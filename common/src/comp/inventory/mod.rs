@@ -884,12 +884,12 @@ impl Inventory {
     }
 
     /// Increments durability of all valid items equipped in loaodut by 1
-    pub fn apply_durability(
+    pub fn damage_items(
         &mut self,
         ability_map: &item::tool::AbilityMap,
         msm: &item::MaterialStatManifest,
     ) {
-        self.loadout.apply_durability(ability_map, msm)
+        self.loadout.damage_items(ability_map, msm)
     }
 
     /// Resets durability of item in specified slot
@@ -901,7 +901,7 @@ impl Inventory {
     ) {
         match slot {
             Slot::Inventory(invslot) => {
-                if let Some(Some(item)) = self.slot_mut(invslot).map(Option::as_mut) {
+                if let Some(Some(item)) = self.slot_mut(invslot) {
                     item.reset_durability(ability_map, msm);
                 }
             },

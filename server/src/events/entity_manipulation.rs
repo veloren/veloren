@@ -515,7 +515,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
     if let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity) {
         let ability_map = state.ecs().read_resource::<AbilityMap>();
         let msm = state.ecs().read_resource::<MaterialStatManifest>();
-        inventory.apply_durability(&ability_map, &msm);
+        inventory.damage_items(&ability_map, &msm);
     }
 
     if should_delete {

@@ -399,7 +399,7 @@ pub struct Item {
     /// Tracks how many deaths occurred while item was equipped, which is
     /// converted into the items durability. Only tracked for tools and armor
     /// currently.
-    durability: Option<u32>,
+    durability_lost: Option<u32>,
 }
 
 use std::hash::{Hash, Hasher};
@@ -793,9 +793,9 @@ impl Item {
             // These fields are updated immediately below
             item_config: None,
             hash: 0,
-            durability: None,
+            durability_lost: None,
         };
-        item.durability = item.has_durability().then_some(0);
+        item.durability_lost = item.has_durability().then_some(0);
         item.update_item_state(ability_map, msm);
         item
     }
@@ -1198,16 +1198,17 @@ impl Item {
         }
     }
 
-    pub fn durability(&self) -> Option<u32> { self.durability.map(|x| x.min(Self::MAX_DURABILITY)) }
+    pub fn durability(&self) -> Option<u32> {
+        self.durability_lost.map(|x| x.min(Self::MAX_DURABILITY))
+    }
 
     pub fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
-        let durability = self
-            .durability
-            .map_or(0, |x| x.clamp(0, Self::MAX_DURABILITY));
+        let durability_lost = self.durability_lost.unwrap_or(0);
+        debug_assert!(durability_lost <= Self::MAX_DURABILITY);
         const DURABILITY_THRESHOLD: u32 = 4;
         const MIN_FRAC: f32 = 0.2;
         let mult = (1.0
-            - durability.saturating_sub(DURABILITY_THRESHOLD) as f32
+            - durability_lost.saturating_sub(DURABILITY_THRESHOLD) as f32
                 / (Self::MAX_DURABILITY - DURABILITY_THRESHOLD) as f32)
             * (1.0 - MIN_FRAC)
             + MIN_FRAC;
@@ -1218,13 +1219,22 @@ impl Item {
         match &*self.kind() {
             ItemKind::Tool(_) => true,
             ItemKind::Armor(armor) => armor.kind.has_durability(),
-            _ => false,
+            ItemKind::ModularComponent(_)
+            | ItemKind::Lantern(_)
+            | ItemKind::Glider
+            | ItemKind::Consumable { .. }
+            | ItemKind::Throwable { .. }
+            | ItemKind::Utility { .. }
+            | ItemKind::Ingredient { .. }
+            | ItemKind::TagExamples { .. } => false,
         }
     }
 
-    pub fn apply_durability(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
-        if let Some(durability) = &mut self.durability {
-            *durability += 1;
+    pub fn increment_damage(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
+        if let Some(durability_lost) = &mut self.durability_lost {
+            if *durability_lost < Self::MAX_DURABILITY {
+                *durability_lost += 1;
+            }
         }
         // Update item state after applying durability because stats have potential to
         // change from different durability
@@ -1232,23 +1242,23 @@ impl Item {
     }
 
     pub fn persistence_durability(&self) -> Option<NonZeroU32> {
-        self.durability.and_then(NonZeroU32::new)
+        self.durability_lost.and_then(NonZeroU32::new)
     }
 
     pub fn persistence_set_durability(&mut self, value: Option<NonZeroU32>) {
         // If changes have been made so that item no longer needs to track durability,
         // set to None
         if !self.has_durability() {
-            self.durability = None;
+            self.durability_lost = None;
         } else {
             // Set durability to persisted value, and if item previously had no durability,
             // set to Some(0) so that durability will be tracked
-            self.durability = Some(value.map_or(0, NonZeroU32::get));
+            self.durability_lost = Some(value.map_or(0, NonZeroU32::get));
         }
     }
 
     pub fn reset_durability(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
-        self.durability = self.durability.map(|_| 0);
+        self.durability_lost = self.has_durability().then_some(0);
         // Update item state after applying durability because stats have potential to
         // change from different durability
         self.update_item_state(ability_map, msm);
