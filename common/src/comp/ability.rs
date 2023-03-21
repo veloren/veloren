@@ -478,6 +478,8 @@ impl From<&CharacterState> for CharacterAbilityType {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+/// For documentation on individual fields, see the corresponding character
+/// state file in 'common/src/states/'
 pub enum CharacterAbility {
     BasicMelee {
         energy_cost: f32,
