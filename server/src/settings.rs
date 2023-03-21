@@ -22,6 +22,7 @@ use core::time::Duration;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
 use std::{
+    fmt::Display,
     fs,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     path::{Path, PathBuf},
@@ -166,6 +167,8 @@ pub struct Settings {
     pub world_seed: u32,
     pub server_name: String,
     pub start_time: f64,
+    /// Length of a day in minutes. (Currently does nothing; TODO.)
+    pub day_length: f64,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
@@ -203,6 +206,7 @@ impl Default for Settings {
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Server".into(),
             max_players: 100,
+            day_length: 30.0,
             start_time: 9.0 * 3600.0,
             map_file: None,
             max_view_distance: Some(65),
@@ -223,7 +227,7 @@ impl Settings {
     pub fn load(path: &Path) -> Self {
         let path = Self::get_settings_path(path);
 
-        if let Ok(file) = fs::File::open(&path) {
+        let settings = if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader(file) {
                 Ok(x) => x,
                 Err(e) => {
@@ -249,6 +253,13 @@ impl Settings {
                 error!(?e, "Failed to create default settings file!");
             }
             default_settings
+        };
+
+        if let Err(e) = settings.validate() {
+            // TODO: Handle in a better way (like have load return result)
+            panic!("{e}");
+        } else {
+            settings
         }
     }
 
@@ -301,6 +312,27 @@ impl Settings {
         let mut path = with_config_dir(path);
         path.push(SETTINGS_FILENAME);
         path
+    }
+
+    fn validate(&self) -> Result<(), InvalidSettingsError> {
+        if self.day_length <= 0.0 {
+            return Err(InvalidSettingsError::InvalidDayDuration);
+        }
+
+        Ok(())
+    }
+}
+
+pub enum InvalidSettingsError {
+    InvalidDayDuration,
+}
+impl Display for InvalidSettingsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InvalidSettingsError::InvalidDayDuration => {
+                f.write_str("Invalid settings error: Day length was invalid (zero or negative).")
+            },
+        }
     }
 }
 
