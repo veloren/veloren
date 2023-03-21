@@ -31,6 +31,9 @@ use vek::*;
 /// 3. Add a new arm to the `match` expression in [`Spot::apply_spots_to`] that
 /// tells the generator how to generate a spot, including the base structure
 /// that composes the spot and the entities that should be spawned there.
+///
+/// Only add spots with randomly spawned NPCs here. Spots that only use
+/// EntitySpawner blocks can be added in assets/world/manifests/spots.ron
 #[derive(Copy, Clone, Debug)]
 pub enum Spot {
     DwarvenGrave,
@@ -69,7 +72,6 @@ pub enum Spot {
     JungleTemple,
     SaurokTotem,
     JungleOutpost,
-    MageTower,
     RonFile(&'static SpotProperties),
 }
 
@@ -101,20 +103,6 @@ impl Spot {
                         c.get_biome(),
                         Grassland | Forest | Taiga | Snowland | Jungle
                     )
-            },
-            false,
-        );
-        Self::generate_spots(
-            Spot::MageTower,
-            world,
-            1.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Grassland | Forest | Taiga | Snowland)
             },
             false,
         );
@@ -577,11 +565,6 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
 
         let spot_config = match spot {
             // Themed Spots
-            Spot::MageTower => SpotConfig {
-                base_structures: Some("spots_general.mage_tower"),
-                entity_radius: 1.0,
-                entities: &[],
-            },
             Spot::DwarvenGrave => SpotConfig {
                 base_structures: Some("spots_grasslands.dwarven_grave"),
                 entity_radius: 60.0,

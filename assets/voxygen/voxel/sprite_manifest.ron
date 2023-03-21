@@ -4244,6 +4244,26 @@ Gravestone: Some((
             offset: (1.0, -6.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_3",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_4",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_5",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_6",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
     ],
     wind_sway: 0.0,
 )),

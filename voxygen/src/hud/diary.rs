@@ -193,6 +193,7 @@ widget_ids! {
         skill_general_climb_2,
         skill_general_swim_0,
         skill_general_swim_1,
+        sword_path_overlay,
         // Ability selection
         spellbook_art,
         sb_page_left_align,
@@ -1577,15 +1578,12 @@ impl<'a> Diary<'a> {
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
-        // Title text
-        let tree_title = &self.localized_strings.get_msg("common-weapons-sword");
-
-        Text::new(tree_title)
-            .mid_top_with_margin_on(state.ids.content_align, 2.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(TEXT_COLOR)
-            .set(state.ids.tree_title_txt, ui);
+        Image::new(self.imgs.sword_tree_paths)
+            .wh([1042.0, 636.0])
+            .mid_top_with_margin_on(state.ids.content_align, 55.0)
+            .graphics_for(state.ids.content_align)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .set(state.ids.sword_path_overlay, ui);
 
         // Sword
         Image::new(self.imgs.sword_bg)
