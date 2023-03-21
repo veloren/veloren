@@ -125,6 +125,9 @@ pub enum ProjectileConstructor {
         knockback: f32,
         min_falloff: f32,
     },
+    Trap {
+        damage: f32,
+    },
 }
 
 impl ProjectileConstructor {
@@ -790,6 +793,29 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
+            Trap { damage } => {
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Piercing,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult);
+                Projectile {
+                    hit_solid: vec![],
+                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
+                    time_left: Duration::from_secs(300),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: false,
+                }
+            },
         }
     }
 
@@ -913,6 +939,9 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *radius *= range;
             },
+            Trap { ref mut damage } => {
+                *damage *= power;
+            },
         }
         self
     }
@@ -935,6 +964,7 @@ impl ProjectileConstructor {
             WindBomb { .. } => true,
             IceBomb { .. } => true,
             LaserBeam { .. } => true,
+            Trap { .. } => false,
         }
     }
 }

@@ -27,7 +27,10 @@ impl Site {
             | SiteKind::DesertCity(_)
             | SiteKind::SavannahPit(_) => Some(true),
             // Evil
-            SiteKind::Dungeon(_) | SiteKind::ChapelSite(_) | SiteKind::Gnarling(_) => Some(false),
+            SiteKind::Dungeon(_)
+            | SiteKind::ChapelSite(_)
+            | SiteKind::Gnarling(_)
+            | SiteKind::Adlet(_) => Some(false),
             // Neutral
             SiteKind::Settlement(_)
             | SiteKind::Castle(_)

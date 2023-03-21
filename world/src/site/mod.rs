@@ -336,6 +336,7 @@ impl Site {
             SiteKind::GiantTree(site2) => Some(site2),
             SiteKind::Gnarling(site2) => Some(site2),
             SiteKind::Bridge(site2) => Some(site2),
+            SiteKind::Adlet(site2) => Some(site2),
         }
     }
 }

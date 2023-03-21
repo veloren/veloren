@@ -745,4 +745,26 @@
         secondary: Simple(None, "common.abilities.empty.basic"),
         abilities: [],
     ),
+    // Adlets
+    // TODO: Do we want to eventually convert these to simple variants of weapons?
+    Custom("Adlet Hunter"): (
+        primary: "common.abilities.adlet.hunter.stab",
+        secondary: "common.abilities.adlet.hunter.throw",
+        abilities: [],
+    ),
+    Custom("Adlet Icepicker"): (
+        primary: "common.abilities.adlet.icepicker.spike",
+        secondary: "common.abilities.adlet.icepicker.leap",
+        abilities: [],
+    ),
+    Custom("Adlet Tracker"): (
+        primary: "common.abilities.adlet.tracker.arrow",
+        secondary: "common.abilities.adlet.tracker.trap",
+        abilities: [],
+    ),
+    // Custom("Adlet Alpha"): (
+    //     primary: "common.abilities.adlet.alpha",
+    //     secondary: "common.abilities.adlet.alpha",
+    //     abilities: [],
+    // ),
 })

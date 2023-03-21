@@ -212,6 +212,9 @@ impl<'a> System<'a> for Sys {
                             BuffData::new(20.0, None, None),
                             Vec::new(),
                             BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
+                            Some(health),
                         )),
                     });
                 }

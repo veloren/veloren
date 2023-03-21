@@ -1,0 +1,15 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.8,
+    recover_duration: 0.8,
+    projectile: Arrow(
+        damage: 16,
+        knockback: 0,
+        energy_regen: 0,
+    ),
+    projectile_body: Object(AdletSpear),
+    projectile_light: None,
+    projectile_speed: 40.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+)

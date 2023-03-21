@@ -1,0 +1,19 @@
+LeapMelee(
+    energy_cost: 0.0,
+    buildup_duration: 0.6,
+    movement_duration: 0.2,
+    swing_duration: 0.1,
+    recover_duration: 0.3,
+    melee_constructor: (
+        kind: Stab(
+            damage: 20,
+            poise: 20,
+            knockback: 0,
+            energy_regen: 0,
+        ),
+        range: 4,
+        angle: 30,
+    ),
+    forward_leap_strength: 18,
+    vertical_leap_strength: 8,
+)

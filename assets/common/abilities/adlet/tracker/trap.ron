@@ -1,0 +1,12 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.75,
+    recover_duration: 0.75,
+    projectile: Trap(
+        damage: 25,
+    ),
+    projectile_body: Object(Snowball),
+    projectile_speed: 10.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+)
