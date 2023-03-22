@@ -611,6 +611,7 @@ impl State {
         // Change the time accordingly.
         self.ecs.write_resource::<TimeOfDay>().0 +=
             dt.as_secs_f64() * server_constants.day_cycle_coefficient;
+        self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
 
         // Update delta time.
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping
