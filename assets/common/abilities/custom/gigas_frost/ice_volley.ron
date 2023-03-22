@@ -12,4 +12,5 @@ BasicRanged(
     projectile_speed: 25.0,
     num_projectiles: 5,
     projectile_spread: 0.07,
+    move_efficiency: 0.3,
 )

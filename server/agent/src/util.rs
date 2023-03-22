@@ -1,8 +1,11 @@
-use crate::data::{ActionMode, AgentData, AttackData, Path, ReadData, TargetData};
+use crate::data::{AbilityData, ActionMode, AgentData, AttackData, Path, ReadData, TargetData};
 use common::{
     comp::{
-        agent::Psyche, buff::BuffKind, inventory::item::ItemTag, item::ItemDesc, Agent, Alignment,
-        Body, Controller, InputKind, Pos, Scale,
+        ability::AbilityInput,
+        agent::Psyche,
+        buff::BuffKind,
+        item::{tool::AbilityContext, ItemDesc, ItemTag},
+        Agent, Alignment, Body, Controller, InputKind, Pos, Scale,
     },
     consts::GRAVITY,
     terrain::Block,
@@ -204,6 +207,24 @@ impl<'a> AgentData<'a> {
             .buffs
             .get(*self.entity)
             .map_or(false, |b| b.kinds.contains_key(&buff))
+    }
+
+    pub fn extract_ability(&self, input: AbilityInput) -> Option<AbilityData> {
+        let context = AbilityContext::from(self.stance, Some(self.inventory));
+        AbilityData::from_ability(
+            &self
+                .active_abilities
+                .activate_ability(
+                    input,
+                    Some(self.inventory),
+                    self.skill_set,
+                    self.body,
+                    Some(self.char_state),
+                    &context,
+                )
+                .unwrap_or_default()
+                .0,
+        )
     }
 }
 

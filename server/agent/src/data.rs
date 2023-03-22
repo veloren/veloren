@@ -1,3 +1,4 @@
+use crate::util::*;
 use common::{
     comp::{
         ability::CharacterAbility,
@@ -9,6 +10,7 @@ use common::{
         LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, PresenceKind, Scale,
         SkillSet, Stance, Stats, Vel,
     },
+    consts::GRAVITY,
     link::Is,
     mounting::{Mount, Rider, VolumeRider},
     path::TraversalConfig,
@@ -171,6 +173,11 @@ pub enum Tactic {
     BorealHammer,
     Dullahan,
     Cyclops,
+
+    // Adlets
+    AdletHunter,
+    AdletIcepicker,
+    AdletTracker,
 }
 
 #[derive(Copy, Clone)]
@@ -331,6 +338,15 @@ pub enum AbilityData {
         blocked_attacks: AttackFilters,
         angle: f32,
     },
+    BasicRanged {
+        energy: f32,
+        projectile_speed: f32,
+    },
+    BasicMelee {
+        energy: f32,
+        range: f32,
+        angle: f32,
+    },
 }
 
 impl AbilityData {
@@ -453,6 +469,23 @@ impl AbilityData {
                 angle: *max_angle,
                 blocked_attacks: *blocked_attacks,
             },
+            BasicRanged {
+                energy_cost,
+                projectile_speed,
+                ..
+            } => Self::BasicRanged {
+                energy: *energy_cost,
+                projectile_speed: *projectile_speed,
+            },
+            BasicMelee {
+                energy_cost,
+                melee_constructor,
+                ..
+            } => Self::BasicMelee {
+                energy: *energy_cost,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+            },
             _ => return None,
         };
         Some(inner)
@@ -463,6 +496,7 @@ impl AbilityData {
         attack_data: &AttackData,
         agent_data: &AgentData,
         tgt_data: &TargetData,
+        read_data: &ReadData,
         desired_energy: f32,
     ) -> bool {
         let melee_check = |range: f32, angle, forced_movement: Option<ForcedMovement>| {
@@ -486,6 +520,22 @@ impl AbilityData {
                 .char_state
                 .and_then(|cs| cs.attack_kind())
                 .map_or(false, |ak| attacks.applies(ak))
+        };
+        let ranged_check = |proj_speed| {
+            let max_horiz_dist: f32 = {
+                let flight_time = proj_speed * 2_f32.sqrt() / GRAVITY;
+                proj_speed * 2_f32.sqrt() / 2.0 * flight_time
+            };
+            attack_data.dist_sqrd < max_horiz_dist.powi(2)
+                && entities_have_line_of_sight(
+                    agent_data.pos,
+                    agent_data.body,
+                    agent_data.scale,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    tgt_data.scale,
+                    read_data,
+                )
         };
         use AbilityData::*;
         match self {
@@ -587,6 +637,15 @@ impl AbilityData {
                         .and_then(|cs| cs.stage_section())
                         .map_or(false, |ss| !matches!(ss, StageSection::Recover))
             },
+            BasicRanged {
+                energy,
+                projectile_speed,
+            } => ranged_check(*projectile_speed) && energy_check(*energy),
+            BasicMelee {
+                energy,
+                range,
+                angle,
+            } => melee_check(*range, *angle, None) && energy_check(*energy),
         }
     }
 }

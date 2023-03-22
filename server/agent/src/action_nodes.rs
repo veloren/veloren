@@ -1014,6 +1014,9 @@ impl<'a> AgentData<'a> {
                             "Gnarling Chieftain" => Tactic::GnarlingChieftain,
                             "Frost Gigas" => Tactic::FrostGigas,
                             "Boreal Hammer" => Tactic::BorealHammer,
+                            "Adlet Hunter" => Tactic::AdletHunter,
+                            "Adlet Icepicker" => Tactic::AdletIcepicker,
+                            "Adlet Tracker" => Tactic::AdletTracker,
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1457,6 +1460,20 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::AdletHunter => {
+                self.handle_adlet_hunter(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
+            Tactic::AdletIcepicker => self.handle_adlet_icepicker(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::AdletTracker => {
+                self.handle_adlet_tracker(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
         }
     }
 

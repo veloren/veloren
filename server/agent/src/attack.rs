@@ -757,41 +757,24 @@ impl<'a> AgentData<'a> {
         );
 
         let attack_failed = if attempt_attack {
-            let contexts = AbilityContext::from(self.stance, Some(self.inventory));
-            let extract_ability = |input: AbilityInput| {
-                AbilityData::from_ability(
-                    &self
-                        .active_abilities
-                        .activate_ability(
-                            input,
-                            Some(self.inventory),
-                            self.skill_set,
-                            self.body,
-                            Some(self.char_state),
-                            &contexts,
-                        )
-                        .unwrap_or_default()
-                        .0,
-                )
-            };
-            let primary = extract_ability(AbilityInput::Primary);
-            let secondary = extract_ability(AbilityInput::Secondary);
+            let primary = self.extract_ability(AbilityInput::Primary);
+            let secondary = self.extract_ability(AbilityInput::Secondary);
             let abilities = [
-                extract_ability(AbilityInput::Auxiliary(0)),
-                extract_ability(AbilityInput::Auxiliary(1)),
-                extract_ability(AbilityInput::Auxiliary(2)),
-                extract_ability(AbilityInput::Auxiliary(3)),
-                extract_ability(AbilityInput::Auxiliary(4)),
+                self.extract_ability(AbilityInput::Auxiliary(0)),
+                self.extract_ability(AbilityInput::Auxiliary(1)),
+                self.extract_ability(AbilityInput::Auxiliary(2)),
+                self.extract_ability(AbilityInput::Auxiliary(3)),
+                self.extract_ability(AbilityInput::Auxiliary(4)),
             ];
             let could_use_input = |input, desired_energy| match input {
                 InputKind::Primary => primary.as_ref().map_or(false, |p| {
-                    p.could_use(attack_data, self, tgt_data, desired_energy)
+                    p.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
                 InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
-                    s.could_use(attack_data, self, tgt_data, desired_energy)
+                    s.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
                 InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
-                    a.could_use(attack_data, self, tgt_data, desired_energy)
+                    a.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
                 _ => false,
             };
@@ -4584,5 +4567,69 @@ impl<'a> AgentData<'a> {
                 None,
             );
         }
+    }
+
+    pub fn handle_adlet_hunter(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+        let move_forwards = if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else if could_use_input(InputKind::Secondary) && attack_data.dist_sqrd > 8_f32.powi(2) {
+            controller.push_basic_input(InputKind::Secondary);
+            true
+        } else {
+            true
+        };
+
+        if move_forwards && attack_data.dist_sqrd > 3_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_adlet_icepicker(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+    }
+
+    pub fn handle_adlet_tracker(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
     }
 }

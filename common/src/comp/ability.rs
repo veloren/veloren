@@ -502,6 +502,7 @@ pub enum CharacterAbility {
         num_projectiles: u32,
         projectile_spread: f32,
         damage_effect: Option<CombatEffect>,
+        move_efficiency: f32,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1019,6 +1020,7 @@ impl CharacterAbility {
                 num_projectiles: _,
                 projectile_spread: _,
                 damage_effect: _,
+                move_efficiency: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2169,6 +2171,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 num_projectiles,
                 projectile_spread,
                 damage_effect,
+                move_efficiency,
                 meta: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 static_data: basic_ranged::StaticData {
@@ -2182,6 +2185,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     projectile_spread: *projectile_spread,
                     ability_info,
                     damage_effect: *damage_effect,
+                    move_efficiency: *move_efficiency,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

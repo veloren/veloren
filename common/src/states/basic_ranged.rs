@@ -34,8 +34,8 @@ pub struct StaticData {
     pub num_projectiles: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    ///
     pub damage_effect: Option<CombatEffect>,
+    pub move_efficiency: f32,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -56,7 +56,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 0.3);
+        handle_move(data, &mut update, self.static_data.move_efficiency);
         handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {

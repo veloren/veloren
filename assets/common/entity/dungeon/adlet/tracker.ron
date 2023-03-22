@@ -11,6 +11,6 @@
         )),
     ),
     meta: [
-        SkillSetAsset("common.skillset.preset.rank1.fullskill"),
+        SkillSetAsset("common.skillset.preset.rank1.general"),
     ],
 )
