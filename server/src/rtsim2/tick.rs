@@ -364,6 +364,7 @@ impl<'a> System<'a> for Sys {
 
                     // Update entity state
                     if let Some(agent) = agent {
+                        agent.rtsim_controller.personality = npc.personality;
                         if let Some(action) = npc.action {
                             match action {
                                 rtsim2::data::npc::NpcAction::Goto(wpos, sf) => {

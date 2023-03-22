@@ -2,14 +2,14 @@ use common::{
     comp::{
         agent::{AgentEvent, Target, TimerAction},
         compass::{Direction, Distance},
-        dialogue::{MoodContext, MoodState, Subject},
+        dialogue::Subject,
         inventory::item::{ItemTag, MaterialStatManifest},
         invite::{InviteKind, InviteResponse},
         tool::AbilityMap,
         BehaviorState, ControlAction, Item, TradingBehavior, UnresolvedChatMsg, UtteranceKind,
     },
     event::ServerEvent,
-    rtsim::{Memory, MemoryItem, RtSimEvent},
+    rtsim::{Memory, MemoryItem, RtSimEvent, PersonalityTrait},
     trade::{TradeAction, TradePhase, TradeResult},
 };
 use rand::{thread_rng, Rng};
@@ -105,172 +105,142 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
 
                     match subject {
                         Subject::Regular => {
-                            if let Some(destination_name) = &agent.rtsim_controller.heading_to {
-                                let msg = format!(
-                                    "I'm heading to {}! Want to come along?",
-                                    destination_name
-                                );
-                                agent_data.chat_npc(msg, event_emitter);
-                            }
-                            /*if let (
-                                Some((_travel_to, destination_name)),
-                                Some(rtsim_entity),
-                            ) = (&agent.rtsim_controller.travel_to, &agent_data.rtsim_entity)
-                            {
-                                let personality = &rtsim_entity.brain.personality;
-                                let standard_response_msg = || -> String {
-                                    if personality.will_ambush {
-                                        format!(
-                                            "I'm heading to {}! Want to come along? We'll make \
-                                             great travel buddies, hehe.",
-                                            destination_name
-                                        )
-                                    } else if personality
-                                        .personality_traits
-                                        .contains(PersonalityTrait::Extroverted)
-                                    {
-                                        format!(
-                                            "I'm heading to {}! Want to come along?",
-                                            destination_name
-                                        )
-                                    } else if personality
-                                        .personality_traits
-                                        .contains(PersonalityTrait::Disagreeable)
-                                    {
-                                        "Hrm.".to_string()
-                                    } else {
-                                        "Hello!".to_string()
-                                    }
-                                };
-                                let msg = if let Some(tgt_stats) = read_data.stats.get(target) {
-                                    agent.rtsim_controller.events.push(RtSimEvent::AddMemory(
-                                        Memory {
-                                            item: MemoryItem::CharacterInteraction {
-                                                name: tgt_stats.name.clone(),
-                                            },
-                                            time_to_forget: read_data.time.0 + 600.0,
+                            if let Some(tgt_stats) = read_data.stats.get(target) {
+                                agent.rtsim_controller.events.push(RtSimEvent::AddMemory(
+                                    Memory {
+                                        item: MemoryItem::CharacterInteraction {
+                                            name: tgt_stats.name.clone(),
                                         },
-                                    ));
-                                    if rtsim_entity.brain.remembers_character(&tgt_stats.name) {
-                                        if personality.will_ambush {
-                                            "Just follow me a bit more, hehe.".to_string()
-                                        } else if personality
-                                            .personality_traits
-                                            .contains(PersonalityTrait::Extroverted)
+                                        time_to_forget: read_data.time.0 + 600.0,
+                                    },
+                                ));
+                                if let Some(destination_name) = &agent.rtsim_controller.heading_to {
+                                    let personality = &agent.rtsim_controller.personality;
+                                    let standard_response_msg = || -> String {
+                                        if personality.will_ambush() {
+                                            format!(
+                                                "I'm heading to {}! Want to come along? We'll make \
+                                                great travel buddies, hehe.",
+                                                destination_name
+                                            )
+                                        } else if personality.is(PersonalityTrait::Extroverted)
                                         {
-                                            if personality
-                                                .personality_traits
-                                                .contains(PersonalityTrait::Extroverted)
+                                            format!(
+                                                "I'm heading to {}! Want to come along?",
+                                                destination_name
+                                            )
+                                        } else if personality.is(PersonalityTrait::Disagreeable)
+                                        {
+                                            "Hrm.".to_string()
+                                        } else {
+                                            "Hello!".to_string()
+                                        }
+                                    };
+                                    let msg = if false /* TODO: Remembers character */ {
+                                            if personality.will_ambush() {
+                                                "Just follow me a bit more, hehe.".to_string()
+                                            } else if personality.is(PersonalityTrait::Extroverted)
                                             {
-                                                format!(
-                                                    "Greetings fair {}! It has been far \
-                                                        too long since last I saw you. I'm \
-                                                        going to {} right now.",
-                                                    &tgt_stats.name, destination_name
-                                                )
-                                            } else if personality
-                                                .personality_traits
-                                                .contains(PersonalityTrait::Disagreeable)
-                                            {
-                                                "Oh. It's you again.".to_string()
+                                                if personality.is(PersonalityTrait::Extroverted)
+                                                {
+                                                    format!(
+                                                        "Greetings fair {}! It has been far \
+                                                            too long since last I saw you. I'm \
+                                                            going to {} right now.",
+                                                        &tgt_stats.name, destination_name
+                                                    )
+                                                } else if personality.is(PersonalityTrait::Disagreeable)
+                                                {
+                                                    "Oh. It's you again.".to_string()
+                                                } else {
+                                                    format!(
+                                                        "Hi again {}! Unfortunately I'm in a \
+                                                            hurry right now. See you!",
+                                                        &tgt_stats.name
+                                                    )
+                                                }
                                             } else {
-                                                format!(
-                                                    "Hi again {}! Unfortunately I'm in a \
-                                                        hurry right now. See you!",
-                                                    &tgt_stats.name
-                                                )
+                                                standard_response_msg()
                                             }
                                         } else {
                                             standard_response_msg()
-                                        }
+                                        };
+                                    agent_data.chat_npc(msg, event_emitter);
+                                }
+                                /*else if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
+                                    if !agent.behavior.is(BehaviorState::TRADING) {
+                                        controller.push_initiate_invite(by, InviteKind::Trade);
+                                        agent_data.chat_npc(
+                                            "npc-speech-merchant_advertisement",
+                                            event_emitter,
+                                        );
                                     } else {
-                                        standard_response_msg()
-                                    };
-                                agent_data.chat_npc(msg, event_emitter);
-                            } else*/
-                            else if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
-                                if !agent.behavior.is(BehaviorState::TRADING) {
-                                    controller.push_initiate_invite(by, InviteKind::Trade);
-                                    agent_data.chat_npc(
-                                        "npc-speech-merchant_advertisement",
-                                        event_emitter,
-                                    );
-                                } else {
-                                    let default_msg = "npc-speech-merchant_busy";
-                                    let msg = default_msg/*agent_data.rtsim_entity.map_or(default_msg, |e| {
-                                        if e.brain
-                                            .personality
-                                            .personality_traits
-                                            .contains(PersonalityTrait::Disagreeable)
-                                        {
+                                        let default_msg = "npc-speech-merchant_busy";
+                                        let msg = if agent.rtsim_controller.personality.is(PersonalityTrait::Disagreeable) {
                                             "npc-speech-merchant_busy_rude"
                                         } else {
                                             default_msg
-                                        }
-                                    })*/;
-                                    agent_data.chat_npc(msg, event_emitter);
-                                }
-                            } else {
-                                let mut rng = thread_rng();
-                                /*if let Some(extreme_trait) =
-                                    agent_data.rtsim_entity.and_then(|e| {
-                                        e.brain.personality.random_chat_trait(&mut rng)
-                                    })
-                                {
-                                    let msg = match extreme_trait {
-                                        PersonalityTrait::Open => {
-                                            "npc-speech-villager_open"
-                                        },
-                                        PersonalityTrait::Adventurous => {
-                                            "npc-speech-villager_adventurous"
-                                        },
-                                        PersonalityTrait::Closed => {
-                                            "npc-speech-villager_closed"
-                                        },
-                                        PersonalityTrait::Conscientious => {
-                                            "npc-speech-villager_conscientious"
-                                        },
-                                        PersonalityTrait::Busybody => {
-                                            "npc-speech-villager_busybody"
-                                        },
-                                        PersonalityTrait::Unconscientious => {
-                                            "npc-speech-villager_unconscientious"
-                                        },
-                                        PersonalityTrait::Extroverted => {
-                                            "npc-speech-villager_extroverted"
-                                        },
-                                        PersonalityTrait::Introverted => {
-                                            "npc-speech-villager_introverted"
-                                        },
-                                        PersonalityTrait::Agreeable => {
-                                            "npc-speech-villager_agreeable"
-                                        },
-                                        PersonalityTrait::Sociable => {
-                                            "npc-speech-villager_sociable"
-                                        },
-                                        PersonalityTrait::Disagreeable => {
-                                            "npc-speech-villager_disagreeable"
-                                        },
-                                        PersonalityTrait::Neurotic => {
-                                            "npc-speech-villager_neurotic"
-                                        },
-                                        PersonalityTrait::Seeker => {
-                                            "npc-speech-villager_seeker"
-                                        },
-                                        PersonalityTrait::SadLoner => {
-                                            "npc-speech-villager_sad_loner"
-                                        },
-                                        PersonalityTrait::Worried => {
-                                            "npc-speech-villager_worried"
-                                        },
-                                        PersonalityTrait::Stable => {
-                                            "npc-speech-villager_stable"
-                                        },
-                                    };
-                                    agent_data.chat_npc(msg, event_emitter);
-                                } else*/
-                                {
-                                    agent_data.chat_npc("npc-speech-villager", event_emitter);
+                                        };
+                                        agent_data.chat_npc(msg, event_emitter);
+                                    }
+                                }*/ else {
+                                    let mut rng = thread_rng();
+                                    if let Some(extreme_trait) = agent.rtsim_controller.personality.chat_trait(&mut rng)
+                                    {
+                                        let msg = match extreme_trait {
+                                            PersonalityTrait::Open => {
+                                                "npc-speech-villager_open"
+                                            },
+                                            PersonalityTrait::Adventurous => {
+                                                "npc-speech-villager_adventurous"
+                                            },
+                                            PersonalityTrait::Closed => {
+                                                "npc-speech-villager_closed"
+                                            },
+                                            PersonalityTrait::Conscientious => {
+                                                "npc-speech-villager_conscientious"
+                                            },
+                                            PersonalityTrait::Busybody => {
+                                                "npc-speech-villager_busybody"
+                                            },
+                                            PersonalityTrait::Unconscientious => {
+                                                "npc-speech-villager_unconscientious"
+                                            },
+                                            PersonalityTrait::Extroverted => {
+                                                "npc-speech-villager_extroverted"
+                                            },
+                                            PersonalityTrait::Introverted => {
+                                                "npc-speech-villager_introverted"
+                                            },
+                                            PersonalityTrait::Agreeable => {
+                                                "npc-speech-villager_agreeable"
+                                            },
+                                            PersonalityTrait::Sociable => {
+                                                "npc-speech-villager_sociable"
+                                            },
+                                            PersonalityTrait::Disagreeable => {
+                                                "npc-speech-villager_disagreeable"
+                                            },
+                                            PersonalityTrait::Neurotic => {
+                                                "npc-speech-villager_neurotic"
+                                            },
+                                            PersonalityTrait::Seeker => {
+                                                "npc-speech-villager_seeker"
+                                            },
+                                            PersonalityTrait::SadLoner => {
+                                                "npc-speech-villager_sad_loner"
+                                            },
+                                            PersonalityTrait::Worried => {
+                                                "npc-speech-villager_worried"
+                                            },
+                                            PersonalityTrait::Stable => {
+                                                "npc-speech-villager_stable"
+                                            },
+                                        };
+                                        agent_data.chat_npc(msg, event_emitter);
+                                    } else {
+                                        agent_data.chat_npc("npc-speech-villager", event_emitter);
+                                    }
                                 }
                             }
                         },

@@ -9,10 +9,11 @@ use-dyn-lib = ["common-dynlib"]
 be-dyn-lib = []
 
 [dependencies]
-common = {package = "veloren-common", path = "../../common"}
+common = { package = "veloren-common", path = "../../common"}
 common-base = { package = "veloren-common-base", path = "../../common/base" }
 common-ecs = { package = "veloren-common-ecs", path = "../../common/ecs" }
-common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
+common-dynlib = { package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
+rtsim = { package = "veloren-rtsim", path = "../../rtsim" }
 
 specs = { version = "0.18", features = ["shred-derive"] }
 vek = { version = "0.15.8", features = ["serde"] }

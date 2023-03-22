@@ -650,7 +650,6 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         read_data: &ReadData,
         event_emitter: &mut Emitter<ServerEvent>,
-        will_ambush: bool,
     ) {
         enum ActionStateTimers {
             TimerChooseTarget = 0,
@@ -673,7 +672,7 @@ impl<'a> AgentData<'a> {
                     .get(entity)
                     .map_or(false, |eu| eu != self.uid)
             };
-            if will_ambush
+            if agent.rtsim_controller.personality.will_ambush()
                 && self_different_from_entity()
                 && !self.passive_towards(entity, read_data)
             {

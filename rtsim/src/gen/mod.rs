@@ -11,7 +11,7 @@ use common::{
     comp::{self, Body},
     grid::Grid,
     resources::TimeOfDay,
-    rtsim::WorldSettings,
+    rtsim::{WorldSettings, Personality},
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
@@ -103,6 +103,7 @@ impl Data {
                         Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
                             .with_faction(site.faction)
                             .with_home(site_id)
+                            .with_personality(Personality::random(&mut rng))
                             .with_profession(match rng.gen_range(0..20) {
                                 0 => Profession::Hunter,
                                 1 => Profession::Blacksmith,
@@ -119,6 +120,7 @@ impl Data {
                 for _ in 0..15 {
                     this.npcs.create_npc(
                         Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
+                            .with_personality(Personality::random_evil(&mut rng))
                             .with_faction(site.faction)
                             .with_home(site_id)
                             .with_profession(match rng.gen_range(0..20) {
@@ -130,6 +132,7 @@ impl Data {
             this.npcs.create_npc(
                 Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
                     .with_home(site_id)
+                    .with_personality(Personality::random_good(&mut rng))
                     .with_profession(Profession::Merchant),
             );
 
@@ -143,6 +146,7 @@ impl Data {
                     Npc::new(rng.gen(), wpos, random_humanoid(&mut rng))
                         .with_home(site_id)
                         .with_profession(Profession::Captain)
+                        .with_personality(Personality::random_good(&mut rng))
                         .steering(vehicle_id),
                 );
             }

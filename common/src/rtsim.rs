@@ -3,8 +3,10 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
+use rand::{Rng, seq::IteratorRandom};
 use serde::{Deserialize, Serialize};
 use specs::Component;
+use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
 use crate::comp::dialogue::MoodState;
@@ -54,6 +56,121 @@ pub enum MemoryItem {
     Mood { state: MoodState },
 }
 
+
+#[derive(EnumIter, Clone, Copy)]
+pub enum PersonalityTrait {
+    Open,
+    Adventurous,
+    Closed,
+    Conscientious,
+    Busybody,
+    Unconscientious,
+    Extroverted,
+    Introverted,
+    Agreeable,
+    Sociable,
+    Disagreeable,
+    Neurotic,
+    Seeker,
+    Worried,
+    SadLoner,
+    Stable,
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub struct Personality {
+    openness: u8,
+    conscientiousness: u8,
+    extraversion: u8,
+    agreeableness: u8,
+    neuroticism: u8,
+}
+
+fn distributed(min: u8, max: u8, rng: &mut impl Rng) -> u8 {
+    let l = max - min;
+    min + rng.gen_range(0..=l / 3) + rng.gen_range(0..=l / 3 + l % 3 % 2) + rng.gen_range(0..=l / 3 + l % 3 / 2)
+}
+
+impl Personality {
+    pub const HIGH_THRESHOLD: u8 = Self::MAX - Self::LOW_THRESHOLD;
+    pub const LITTLE_HIGH: u8 = Self::MID + (Self::MAX - Self::MIN) / 20;
+    pub const LITTLE_LOW: u8 = Self::MID - (Self::MAX - Self::MIN) / 20;
+    pub const LOW_THRESHOLD: u8 = (Self::MAX - Self::MIN) / 5 * 2 + Self::MIN;
+    const MIN: u8 = 0;
+    pub const MID: u8 = (Self::MAX - Self::MIN) / 2;
+    const MAX: u8 = 255;
+
+    fn distributed_value(rng: &mut impl Rng) -> u8 {
+        distributed(Self::MIN, Self::MAX, rng)
+    }
+
+    pub fn random(rng: &mut impl Rng) -> Self {
+        Self {
+            openness: Self::distributed_value(rng),
+            conscientiousness: Self::distributed_value(rng),
+            extraversion: Self::distributed_value(rng),
+            agreeableness: Self::distributed_value(rng),
+            neuroticism: Self::distributed_value(rng),
+        }
+    }
+
+    pub fn random_evil(rng: &mut impl Rng) -> Self {
+        Self {
+            openness: Self::distributed_value(rng),
+            extraversion: Self::distributed_value(rng),
+            neuroticism: Self::distributed_value(rng),
+            agreeableness: distributed(0, Self::LOW_THRESHOLD - 1, rng),
+            conscientiousness: distributed(0, Self::LOW_THRESHOLD - 1, rng),
+        }
+    }
+
+    pub fn random_good(rng: &mut impl Rng) -> Self {
+        Self {
+            openness: Self::distributed_value(rng),
+            extraversion: Self::distributed_value(rng),
+            neuroticism: Self::distributed_value(rng),
+            agreeableness: Self::distributed_value(rng),
+            conscientiousness: distributed(Self::LOW_THRESHOLD,  Self::MAX, rng),
+        }
+    }
+
+    pub fn is(&self, trait_: PersonalityTrait) -> bool {
+        match trait_ {
+            PersonalityTrait::Open => self.openness > Personality::HIGH_THRESHOLD,
+            PersonalityTrait::Adventurous => self.openness > Personality::HIGH_THRESHOLD && self.neuroticism < Personality::MID,
+            PersonalityTrait::Closed => self.openness < Personality::LOW_THRESHOLD,
+            PersonalityTrait::Conscientious => self.conscientiousness > Personality::HIGH_THRESHOLD,
+            PersonalityTrait::Busybody => self.agreeableness < Personality::LOW_THRESHOLD,
+            PersonalityTrait::Unconscientious => self.conscientiousness < Personality::LOW_THRESHOLD,
+            PersonalityTrait::Extroverted => self.extraversion > Personality::HIGH_THRESHOLD,
+            PersonalityTrait::Introverted => self.extraversion < Personality::LOW_THRESHOLD,
+            PersonalityTrait::Agreeable => self.agreeableness > Personality::HIGH_THRESHOLD,
+            PersonalityTrait::Sociable => self.agreeableness > Personality::HIGH_THRESHOLD && self.extraversion > Personality::MID,
+            PersonalityTrait::Disagreeable => self.agreeableness < Personality::LOW_THRESHOLD,
+            PersonalityTrait::Neurotic => self.neuroticism > Personality::HIGH_THRESHOLD,
+            PersonalityTrait::Seeker => self.neuroticism > Personality::HIGH_THRESHOLD && self.openness > Personality::LITTLE_HIGH,
+            PersonalityTrait::Worried => self.neuroticism > Personality::HIGH_THRESHOLD && self.agreeableness > Personality::LITTLE_HIGH,
+            PersonalityTrait::SadLoner => self.neuroticism > Personality::HIGH_THRESHOLD && self.extraversion < Personality::LITTLE_LOW,
+            PersonalityTrait::Stable => self.neuroticism < Personality::LOW_THRESHOLD,
+        }
+    }
+
+    pub fn chat_trait(&self, rng: &mut impl Rng) -> Option<PersonalityTrait> {
+        PersonalityTrait::iter().filter(|t| self.is(*t)).choose(rng)
+    }
+
+    pub fn will_ambush(&self) -> bool {
+        self.agreeableness < Self::LOW_THRESHOLD
+            && self.conscientiousness < Self::LOW_THRESHOLD
+    }
+}
+
+impl Default for Personality {
+    fn default() -> Self {
+        Self { openness: Personality::MID, conscientiousness: Personality::MID, extraversion: Personality::MID, agreeableness: Personality::MID, neuroticism: Personality::MID }
+    }
+}
+
 /// This type is the map route through which the rtsim (real-time simulation)
 /// aspect of the game communicates with the rest of the game. It is analagous
 /// to `comp::Controller` in that it provides a consistent interface for
@@ -69,6 +186,7 @@ pub struct RtSimController {
     /// toward the given location, accounting for obstacles and other
     /// high-priority situations like being attacked.
     pub travel_to: Option<Vec3<f32>>,
+    pub personality: Personality,
     pub heading_to: Option<String>,
     /// Proportion of full speed to move
     pub speed_factor: f32,
@@ -80,6 +198,7 @@ impl Default for RtSimController {
     fn default() -> Self {
         Self {
             travel_to: None,
+            personality:Personality::default(),
             heading_to: None,
             speed_factor: 1.0,
             events: Vec::new(),
@@ -91,6 +210,7 @@ impl RtSimController {
     pub fn with_destination(pos: Vec3<f32>) -> Self {
         Self {
             travel_to: Some(pos),
+            personality:Personality::default(),
             heading_to: None,
             speed_factor: 0.5,
             events: Vec::new(),

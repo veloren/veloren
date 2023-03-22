@@ -3,7 +3,7 @@ pub use common::rtsim::{NpcId, Profession};
 use common::{
     comp,
     grid::Grid,
-    rtsim::{FactionId, SiteId, VehicleId},
+    rtsim::{FactionId, SiteId, VehicleId, Personality},
     store::Id,
     vol::RectVolSize,
 };
@@ -80,8 +80,9 @@ pub struct Npc {
     pub profession: Option<Profession>,
     pub home: Option<SiteId>,
     pub faction: Option<FactionId>,
-
     pub riding: Option<Riding>,
+
+    pub personality: Personality,
 
     // Unpersisted state
     #[serde(skip_serializing, skip_deserializing)]
@@ -113,6 +114,7 @@ impl Clone for Npc {
             faction: self.faction,
             riding: self.riding.clone(),
             body: self.body,
+            personality: self.personality,
             // Not persisted
             chunk_pos: None,
             current_site: Default::default(),
@@ -129,6 +131,7 @@ impl Npc {
             seed,
             wpos,
             body,
+            personality: Personality::default(),
             profession: None,
             home: None,
             faction: None,
@@ -139,6 +142,11 @@ impl Npc {
             mode: SimulationMode::Simulated,
             brain: None,
         }
+    }
+
+    pub fn with_personality(mut self, personality: Personality) -> Self {
+        self.personality = personality;
+        self
     }
 
     pub fn with_profession(mut self, profession: impl Into<Option<Profession>>) -> Self {

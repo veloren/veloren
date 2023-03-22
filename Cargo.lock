@@ -7032,6 +7032,7 @@ dependencies = [
  "veloren-common-base",
  "veloren-common-dynlib",
  "veloren-common-ecs",
+ "veloren-rtsim",
 ]
 
 [[package]]

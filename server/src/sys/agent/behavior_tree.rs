@@ -498,7 +498,6 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
                     bdata.controller,
                     bdata.read_data,
                     bdata.event_emitter,
-                    will_ambush(/* bdata.rtsim_entity */ None, &bdata.agent_data),
                 );
             } else {
                 bdata.agent_data.handle_sounds_heard(
@@ -747,7 +746,6 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         controller,
                         read_data,
                         event_emitter,
-                        will_ambush(agent_data.rtsim_entity, agent_data),
                     );
                 }
 
@@ -772,15 +770,6 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
             }
         }
     }
-    false
-}
-
-fn will_ambush(rtsim_entity: Option<&RtSimEntity>, agent_data: &AgentData) -> bool {
-    // TODO: implement for rtsim2
-    // agent_data
-    //     .health
-    //     .map_or(false, |h| h.current() / h.maximum() > 0.7)
-    //     && rtsim_entity.map_or(false, |re| re.brain.personality.will_ambush)
     false
 }
 
