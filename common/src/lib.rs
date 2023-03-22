@@ -32,6 +32,7 @@ pub mod comp;
 pub mod consts;
 pub mod resources;
 pub mod uid;
+pub mod shared_server_config;
 
 // NOTE: Comment out macro to get rustfmt to re-order these as needed.
 cfg_if! { if #[cfg(not(target_arch = "wasm32"))] {
