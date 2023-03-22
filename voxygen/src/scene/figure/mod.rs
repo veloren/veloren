@@ -5586,6 +5586,7 @@ impl FigureMgr {
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
+                                    ability_id,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,

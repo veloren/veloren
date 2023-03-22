@@ -301,9 +301,11 @@
         abilities: [],
     ),
     Custom("Tursus Claws"): (
-        primary: Simple(None, "common.abilities.custom.tursus_claws.basic"),
-        secondary: Simple(None, "common.abilities.custom.tursus_claws.basic"),
-        abilities: [],
+        primary: Simple(None, "common.abilities.custom.tursus.tursus_claws"),
+        secondary: Simple(None, "common.abilities.custom.tursus.tusk_bash_leap"),
+        abilities: [
+            Simple(None, "common.abilities.custom.tursus.tusk_stab"),
+        ],
     ),
     Custom("Wendigo Magic"): (
         primary: Simple(None, "common.abilities.custom.wendigomagic.frostbomb"),
