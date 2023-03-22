@@ -151,7 +151,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(&health),
+                            Some(health),
                         )),
                     });
                 }
@@ -169,7 +169,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(&health),
+                            Some(health),
                         )),
                     });
                 }
@@ -187,7 +187,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(&health),
+                            Some(health),
                         )),
                     });
                     // When standing on IceSpike also apply Frozen
@@ -200,7 +200,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(&health),
+                            Some(health),
                         )),
                     });
                 }
@@ -221,7 +221,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(&health),
+                            Some(health),
                         )),
                     });
                 } else if matches!(
@@ -301,7 +301,7 @@ impl<'a> System<'a> for Sys {
                                 buff.source,
                                 *read_data.time,
                                 Some(&stat),
-                                Some(&health),
+                                Some(health),
                             )),
                         });
                     }
