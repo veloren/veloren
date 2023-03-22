@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bats now have less health
 - Climbing no longer requires having 10 energy
 - Castles will now be placed close to towns
+- Sword
 
 ### Removed
 
