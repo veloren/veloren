@@ -17,6 +17,7 @@ use common::{
     uid::Uid,
     uuid::Uuid,
     weather::WeatherGrid,
+    shared_server_config::ServerConstants,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -66,6 +67,7 @@ pub enum ServerInit {
         component_recipe_book: ComponentRecipeBook,
         material_stats: MaterialStatManifest,
         ability_map: comp::item::tool::AbilityMap,
+        server_constants: ServerConstants
     },
 }
 
