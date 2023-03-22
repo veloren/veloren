@@ -2003,13 +2003,10 @@ fn handle_kill_npcs(
                         .get(entity)
                         .copied()
                     {
-                        ecs
-                            .write_resource::<crate::rtsim2::RtSim>()
+                        ecs.write_resource::<crate::rtsim2::RtSim>()
                             .hook_rtsim_entity_delete(
                                 &ecs.read_resource::<Arc<world::World>>(),
-                                ecs
-                                    .read_resource::<world::IndexOwned>()
-                                    .as_index_ref(),
+                                ecs.read_resource::<world::IndexOwned>().as_index_ref(),
                                 rtsim_entity,
                             );
                     }

@@ -1,7 +1,5 @@
 use super::Actor;
 pub use common::rtsim::FactionId;
-use common::{store::Id, uid::Uid};
-use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::ops::{Deref, DerefMut};

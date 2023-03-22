@@ -6,7 +6,7 @@ use crate::{
         skillset::skills,
         Behavior, BehaviorCapability, CharacterState, Projectile, StateUpdate,
     },
-    event::{LocalEvent, ServerEvent, NpcBuilder},
+    event::{LocalEvent, NpcBuilder, ServerEvent},
     outcome::Outcome,
     skillset_builder::{self, SkillSetBuilder},
     states::{
@@ -181,15 +181,15 @@ impl CharacterBehavior for Data {
                                 .with_agent(
                                     comp::Agent::from_body(&body)
                                         .with_behavior(Behavior::from(BehaviorCapability::SPEAK))
-                                        .with_no_flee_if(true)
+                                        .with_no_flee_if(true),
                                 )
                                 .with_scale(
-                                    self
-                                    .static_data
-                                    .summon_info
-                                    .scale
-                                    .unwrap_or(comp::Scale(1.0))
-                                ).with_projectile(projectile)
+                                    self.static_data
+                                        .summon_info
+                                        .scale
+                                        .unwrap_or(comp::Scale(1.0)),
+                                )
+                                .with_projectile(projectile),
                         });
 
                         // Send local event used for frontend shenanigans

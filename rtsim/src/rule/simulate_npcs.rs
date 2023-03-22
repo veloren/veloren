@@ -113,7 +113,9 @@ impl Rule for SimulateNpcs {
                             Npc::new(
                                 rng.gen(),
                                 rand_wpos(&mut rng),
-                                Body::BirdLarge(comp::body::bird_large::Body::random_with(&mut rng, species)),
+                                Body::BirdLarge(comp::body::bird_large::Body::random_with(
+                                    &mut rng, species,
+                                )),
                             )
                             .with_home(site_id),
                         );

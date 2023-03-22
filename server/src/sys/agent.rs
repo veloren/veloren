@@ -13,13 +13,12 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     path::TraversalConfig,
-    rtsim::RtSimEvent,
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::thread_rng;
 use rayon::iter::ParallelIterator;
-use specs::{saveload::MarkerAllocator, Join, ParJoin, Read, WriteExpect, WriteStorage};
+use specs::{saveload::MarkerAllocator, Join, ParJoin, Read, WriteStorage};
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]

@@ -1,13 +1,13 @@
-use std::{collections::VecDeque, hash::BuildHasherDefault};
+use std::hash::BuildHasherDefault;
 
 use crate::{
-    ai::{casual, choose, finish, important, just, now, seq, until, urgent, watch, Action, NpcCtx},
+    ai::{casual, choose, finish, important, just, now, seq, until, urgent, Action, NpcCtx},
     data::{
-        npc::{Brain, Controller, Npc, NpcId, PathData, PathingMemory, VehicleKind},
+        npc::{Brain, Controller, PathData},
         Sites,
     },
     event::OnTick,
-    EventCtx, RtState, Rule, RuleError,
+    RtState, Rule, RuleError,
 };
 use common::{
     astar::{Astar, PathResult},
@@ -22,11 +22,6 @@ use fxhash::FxHasher64;
 use itertools::Itertools;
 use rand::prelude::*;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use std::{
-    any::{Any, TypeId},
-    marker::PhantomData,
-    ops::ControlFlow,
-};
 use vek::*;
 use world::{
     civ::{self, Track},
@@ -212,11 +207,9 @@ fn path_towns(
     }
 }
 
-const MAX_STEP: f32 = 32.0;
-
 impl Rule for NpcAi {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
-        rtstate.bind::<Self, OnTick>(|mut ctx| {
+        rtstate.bind::<Self, OnTick>(|ctx| {
             let mut npc_data = {
                 let mut data = ctx.state.data_mut();
                 data.npcs
@@ -351,8 +344,6 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
 /// Try to walk toward a 2D position on the terrain without caring for
 /// obstacles.
 fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
-    const MIN_DIST: f32 = 2.0;
-
     now(move |ctx| {
         let wpos = wpos2d.with_z(ctx.world.sim().get_alt_approx(wpos2d.as_()).unwrap_or(0.0));
         goto(wpos, speed_factor, goal_dist)
@@ -421,7 +412,6 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
         if let Some(current_site) = ctx.npc.current_site
             && let Some(tracks) = path_towns(current_site, tgt_site, sites, ctx.world)
         {
-            let track_count = tracks.path.len();
 
             let mut nodes = tracks.path
                 .into_iter()
@@ -625,6 +615,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
     .debug(move || format!("villager at site {:?}", visiting_site))
 }
 
+/*
 fn follow(npc: NpcId, distance: f32) -> impl Action {
     const STEP_DIST: f32 = 1.0;
     now(move |ctx| {
@@ -643,6 +634,7 @@ fn follow(npc: NpcId, distance: f32) -> impl Action {
     .debug(move || format!("Following npc({npc:?})"))
     .map(|_| {})
 }
+*/
 
 fn chunk_path(
     from: Vec2<i32>,
@@ -794,7 +786,7 @@ fn bird_large() -> impl Action {
         if let Some(home) = ctx.npc.home {
             let is_home = ctx.npc.current_site.map_or(false, |site| home == site);
             if is_home {
-                if let Some((id, site)) = data
+                if let Some((_, site)) = data
                     .sites
                     .iter()
                     .filter(|(id, site)| {

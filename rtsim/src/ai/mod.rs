@@ -240,7 +240,7 @@ impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> A + Send + Sync + 'stati
     Action<R> for Now<F, A>
 {
     // TODO: This doesn't compare?!
-    fn is_same(&self, other: &Self) -> bool { true }
+    fn is_same(&self, _other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
 
@@ -293,7 +293,7 @@ impl<
 > Action<()> for Until<F, A, R>
 {
     // TODO: This doesn't compare?!
-    fn is_same(&self, other: &Self) -> bool { true }
+    fn is_same(&self, _other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<()>) -> bool { self.dyn_is_same_sized(other) }
 
@@ -345,11 +345,11 @@ pub struct Just<F, R = ()>(F, PhantomData<R>);
 impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> R + Send + Sync + 'static> Action<R>
     for Just<F, R>
 {
-    fn is_same(&self, other: &Self) -> bool { true }
+    fn is_same(&self, _other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
 
-    fn backtrace(&self, bt: &mut Vec<String>) {}
+    fn backtrace(&self, _bt: &mut Vec<String>) {}
 
     // TODO: Reset closure?
     fn reset(&mut self) {}
@@ -369,7 +369,7 @@ impl<R: Send + Sync + 'static, F: FnMut(&mut NpcCtx) -> R + Send + Sync + 'stati
 /// // Make the current NPC say 'Hello, world!' exactly once
 /// just(|ctx| ctx.controller.say("Hello, world!"))
 /// ```
-pub fn just<F, R: Send + Sync + 'static>(mut f: F) -> Just<F, R>
+pub fn just<F, R: Send + Sync + 'static>(f: F) -> Just<F, R>
 where
     F: FnMut(&mut NpcCtx) -> R + Send + Sync + 'static,
 {
@@ -383,15 +383,15 @@ where
 pub struct Finish;
 
 impl Action<()> for Finish {
-    fn is_same(&self, other: &Self) -> bool { true }
+    fn is_same(&self, _other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<()>) -> bool { self.dyn_is_same_sized(other) }
 
-    fn backtrace(&self, bt: &mut Vec<String>) {}
+    fn backtrace(&self, _bt: &mut Vec<String>) {}
 
     fn reset(&mut self) {}
 
-    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<()> { ControlFlow::Break(()) }
+    fn tick(&mut self, _ctx: &mut NpcCtx) -> ControlFlow<()> { ControlFlow::Break(()) }
 }
 
 /// An action that immediately finishes without doing anything.
@@ -443,7 +443,7 @@ pub struct Tree<F, R> {
 impl<F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static, R: 'static> Action<R>
     for Tree<F, R>
 {
-    fn is_same(&self, other: &Self) -> bool { true }
+    fn is_same(&self, _other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<R>) -> bool { self.dyn_is_same_sized(other) }
 
@@ -626,7 +626,7 @@ pub struct Sequence<I, A, R = ()>(I, I, Option<A>, PhantomData<R>);
 impl<R: Send + Sync + 'static, I: Iterator<Item = A> + Clone + Send + Sync + 'static, A: Action<R>>
     Action<()> for Sequence<I, A, R>
 {
-    fn is_same(&self, other: &Self) -> bool { true }
+    fn is_same(&self, _other: &Self) -> bool { true }
 
     fn dyn_is_same(&self, other: &dyn Action<()>) -> bool { self.dyn_is_same_sized(other) }
 

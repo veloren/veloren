@@ -1,5 +1,4 @@
 #![feature(
-    generic_associated_types,
     never_type,
     try_blocks,
     generator_trait,
@@ -91,7 +90,7 @@ impl RtState {
 
     pub fn bind<R: Rule, E: Event>(
         &mut self,
-        mut f: impl FnMut(EventCtx<R, E>) + Send + Sync + 'static,
+        f: impl FnMut(EventCtx<R, E>) + Send + Sync + 'static,
     ) {
         let f = AtomicRefCell::new(f);
         self.event_handlers

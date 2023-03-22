@@ -3,7 +3,7 @@ pub mod site;
 
 use crate::data::{
     faction::{Faction, Factions},
-    npc::{Npc, Npcs, Profession, Vehicle, VehicleKind},
+    npc::{Npc, Npcs, Profession, Vehicle},
     site::{Site, Sites},
     Data, Nature,
 };
@@ -15,7 +15,6 @@ use common::{
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
-use hashbrown::HashMap;
 use rand::prelude::*;
 use tracing::info;
 use vek::*;

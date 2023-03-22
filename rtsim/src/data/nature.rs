@@ -18,7 +18,7 @@ pub struct Nature {
 impl Nature {
     pub fn generate(world: &World) -> Self {
         Self {
-            chunks: Grid::populate_from(world.sim().get_size().map(|e| e as i32), |pos| Chunk {
+            chunks: Grid::populate_from(world.sim().get_size().map(|e| e as i32), |_| Chunk {
                 res: EnumMap::<_, f32>::default().map(|_, _| 1.0),
             }),
         }

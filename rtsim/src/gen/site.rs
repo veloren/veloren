@@ -10,7 +10,7 @@ use world::{
 impl Site {
     pub fn generate(
         world_site_id: Id<WorldSite>,
-        world: &World,
+        _world: &World,
         index: IndexRef,
         nearby_factions: &[(Vec2<i32>, FactionId)],
         factions: &Factions,

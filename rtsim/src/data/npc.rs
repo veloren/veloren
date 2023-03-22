@@ -1,25 +1,18 @@
-use crate::ai::{Action, NpcCtx};
+use crate::ai::Action;
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     comp,
     grid::Grid,
-    rtsim::{FactionId, RtSimController, SiteId, VehicleId},
+    rtsim::{FactionId, SiteId, VehicleId},
     store::Id,
-    uid::Uid,
     vol::RectVolSize,
 };
-use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::{
     collections::VecDeque,
-    ops::{Deref, DerefMut, Generator, GeneratorState},
-    pin::Pin,
-    sync::{
-        atomic::{AtomicPtr, Ordering},
-        Arc,
-    },
+    ops::{Deref, DerefMut},
 };
 use vek::*;
 use world::{

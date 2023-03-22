@@ -2,7 +2,6 @@ pub use common::rtsim::SiteId;
 use common::{
     rtsim::{FactionId, NpcId},
     store::Id,
-    uid::Uid,
 };
 use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};

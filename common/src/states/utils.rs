@@ -388,7 +388,8 @@ fn basic_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
         data.body.base_accel()
             * data.scale.map_or(1.0, |s| s.0.sqrt())
             * block.get_traction()
-            * block.get_friction() / FRIC_GROUND
+            * block.get_friction()
+            / FRIC_GROUND
     } else {
         data.body.air_accel()
     } * efficiency;
@@ -437,8 +438,11 @@ pub fn handle_forced_movement(
                 // FRIC_GROUND temporarily used to normalize things around expected values
                 data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
             }) {
-                update.vel.0 +=
-                    Vec2::broadcast(data.dt.0) * accel * data.scale.map_or(1.0, |s| s.0.sqrt()) * Vec2::from(*data.ori) * strength;
+                update.vel.0 += Vec2::broadcast(data.dt.0)
+                    * accel
+                    * data.scale.map_or(1.0, |s| s.0.sqrt())
+                    * Vec2::from(*data.ori)
+                    * strength;
             }
         },
         ForcedMovement::Reverse(strength) => {
@@ -447,8 +451,11 @@ pub fn handle_forced_movement(
                 // FRIC_GROUND temporarily used to normalize things around expected values
                 data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
             }) {
-                update.vel.0 +=
-                    Vec2::broadcast(data.dt.0) * accel * data.scale.map_or(1.0, |s| s.0.sqrt()) * -Vec2::from(*data.ori) * strength;
+                update.vel.0 += Vec2::broadcast(data.dt.0)
+                    * accel
+                    * data.scale.map_or(1.0, |s| s.0.sqrt())
+                    * -Vec2::from(*data.ori)
+                    * strength;
             }
         },
         ForcedMovement::Sideways(strength) => {
@@ -470,7 +477,11 @@ pub fn handle_forced_movement(
                     }
                 };
 
-                update.vel.0 += Vec2::broadcast(data.dt.0) * accel * data.scale.map_or(1.0, |s| s.0.sqrt()) * direction * strength;
+                update.vel.0 += Vec2::broadcast(data.dt.0)
+                    * accel
+                    * data.scale.map_or(1.0, |s| s.0.sqrt())
+                    * direction
+                    * strength;
             }
         },
         ForcedMovement::DirectedReverse(strength) => {
@@ -532,9 +543,10 @@ pub fn handle_forced_movement(
                 * (1.0 - data.inputs.look_dir.z.abs());
         },
         ForcedMovement::Hover { move_input } => {
-            update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0) + move_input
-                * data.scale.map_or(1.0, |s| s.0.sqrt())
-                * data.inputs.move_dir.try_normalized().unwrap_or_default();
+            update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0)
+                + move_input
+                    * data.scale.map_or(1.0, |s| s.0.sqrt())
+                    * data.inputs.move_dir.try_normalized().unwrap_or_default();
         },
     }
 }
@@ -574,8 +586,7 @@ pub fn handle_orientation(
             .map_or_else(|| to_horizontal_fast(data.ori), |dir| dir.into())
     };
     // unit is multiples of 180°
-    let half_turns_per_tick = data.body.base_ori_rate()
-        / data.scale.map_or(1.0, |s| s.0.sqrt())
+    let half_turns_per_tick = data.body.base_ori_rate() / data.scale.map_or(1.0, |s| s.0.sqrt())
         * efficiency
         * if data.physics.on_ground.is_some() {
             1.0

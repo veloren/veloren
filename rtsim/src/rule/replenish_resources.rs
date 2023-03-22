@@ -1,8 +1,5 @@
 use crate::{event::OnTick, RtState, Rule, RuleError};
-use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use rand::prelude::*;
-use tracing::info;
-use vek::*;
 
 pub struct ReplenishResources;
 

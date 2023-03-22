@@ -3,8 +3,8 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
+use serde::{Deserialize, Serialize};
 use specs::Component;
-use serde::{Serialize, Deserialize};
 use vek::*;
 
 use crate::comp::dialogue::MoodState;

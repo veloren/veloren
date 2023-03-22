@@ -7,8 +7,8 @@ use crate::{
     },
     lottery::LootSpec,
     npc::{self, NPC_NAMES},
-    trade::SiteInformation,
     rtsim,
+    trade::SiteInformation,
 };
 use enum_map::EnumMap;
 use serde::Deserialize;

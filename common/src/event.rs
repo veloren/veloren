@@ -81,38 +81,47 @@ impl NpcBuilder {
         self.health = health.into();
         self
     }
+
     pub fn with_poise(mut self, poise: comp::Poise) -> Self {
         self.poise = poise;
         self
     }
+
     pub fn with_agent(mut self, agent: impl Into<Option<comp::Agent>>) -> Self {
         self.agent = agent.into();
         self
     }
+
     pub fn with_anchor(mut self, anchor: comp::Anchor) -> Self {
         self.anchor = Some(anchor);
         self
     }
+
     pub fn with_rtsim(mut self, rtsim: RtSimEntity) -> Self {
         self.rtsim_entity = Some(rtsim);
         self
     }
+
     pub fn with_projectile(mut self, projectile: impl Into<Option<comp::Projectile>>) -> Self {
         self.projectile = projectile.into();
         self
     }
+
     pub fn with_scale(mut self, scale: comp::Scale) -> Self {
         self.scale = scale;
         self
     }
+
     pub fn with_inventory(mut self, inventory: comp::Inventory) -> Self {
         self.inventory = inventory;
         self
     }
+
     pub fn with_skill_set(mut self, skill_set: comp::SkillSet) -> Self {
         self.skill_set = skill_set;
         self
     }
+
     pub fn with_loot(mut self, loot: LootSpec<String>) -> Self {
         self.loot = loot;
         self

@@ -3,8 +3,7 @@ use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
     lottery::LootSpec,
-    make_case_elim,
-    rtsim,
+    make_case_elim, rtsim,
 };
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
@@ -196,7 +195,9 @@ impl Block {
         }
     }
 
-    /// Returns the rtsim resource, if any, that this block corresponds to. If you want the scarcity of a block to change with rtsim's resource depletion tracking, you can do so by editing this function.
+    /// Returns the rtsim resource, if any, that this block corresponds to. If
+    /// you want the scarcity of a block to change with rtsim's resource
+    /// depletion tracking, you can do so by editing this function.
     #[inline]
     pub fn get_rtsim_resource(&self) -> Option<rtsim::ChunkResource> {
         match self.get_sprite()? {

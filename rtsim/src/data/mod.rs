@@ -12,10 +12,7 @@ pub use self::{
 
 use common::resources::TimeOfDay;
 use enum_map::{enum_map, EnumArray, EnumMap};
-use serde::{
-    de::{self, Error as _},
-    ser, Deserialize, Serialize,
-};
+use serde::{de, ser, Deserialize, Serialize};
 use std::{
     cmp::PartialEq,
     fmt,
@@ -81,7 +78,7 @@ fn rugged_ser_enum_map<
 ) -> Result<S::Ok, S::Error> {
     ser.collect_map(
         map.iter()
-            .filter(|(k, v)| v != &&V::from(DEFAULT))
+            .filter(|(_, v)| v != &&V::from(DEFAULT))
             .map(|(k, v)| (k, v)),
     )
 }
@@ -93,7 +90,7 @@ fn rugged_de_enum_map<
     D: de::Deserializer<'a>,
     const DEFAULT: i16,
 >(
-    mut de: D,
+    de: D,
 ) -> Result<EnumMap<K, V>, D::Error> {
     struct Visitor<K, V, const DEFAULT: i16>(PhantomData<(K, V)>);
 
