@@ -167,7 +167,7 @@ pub struct Settings {
     pub world_seed: u32,
     pub server_name: String,
     pub start_time: f64,
-    /// Length of a day in minutes. (Currently does nothing; TODO.)
+    /// Length of a day in minutes.
     pub day_length: f64,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
