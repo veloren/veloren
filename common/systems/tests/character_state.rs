@@ -9,7 +9,7 @@ mod tests {
         terrain::{MapSizeLg, TerrainChunk},
         uid::Uid,
         util::Dir,
-        SkillSetBuilder,
+        SkillSetBuilder, shared_server_config::ServerConstants,
     };
     use common_ecs::dispatch;
     use common_state::State;
@@ -81,6 +81,8 @@ mod tests {
             },
             false,
             None,
+            // Dummy ServerConstants
+            &ServerConstants::default(),
         );
     }
 

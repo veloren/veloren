@@ -11,6 +11,7 @@ use common::{
     terrain::{
         Block, BlockKind, MapSizeLg, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainGrid,
     },
+    shared_server_config::ServerConstants,
 };
 use common_ecs::{dispatch, System};
 use common_net::sync::WorldSyncExt;
@@ -64,6 +65,7 @@ pub fn tick(state: &mut State, dt: Duration) {
         },
         false,
         None,
+        &ServerConstants::default(),
     );
 }
 

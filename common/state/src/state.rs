@@ -22,6 +22,7 @@ use common::{
     trade::Trades,
     vol::{ReadVol, WriteVol},
     weather::{Weather, WeatherGrid},
+    shared_server_config::ServerConstants,
 };
 use common_base::span;
 use common_ecs::{PhysicsMetrics, SysMetrics};
@@ -39,9 +40,6 @@ use std::{sync::Arc, time::Instant};
 use timer_queue::TimerQueue;
 use vek::*;
 
-/// How much faster should an in-game day be compared to a real day?
-// TODO: Don't hard-code this.
-const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
 /// At what point should we stop speeding up physics to compensate for lag? If
 /// we speed physics up too fast, we'd skip important physics events like
 /// collisions. This constant determines the upper limit. If delta time exceeds
@@ -597,6 +595,7 @@ impl State {
         add_systems: impl Fn(&mut DispatcherBuilder),
         update_terrain_and_regions: bool,
         mut metrics: Option<&mut StateTickMetrics>,
+        server_constants: &ServerConstants
     ) {
         span!(_guard, "tick", "State::tick");
 
@@ -610,8 +609,7 @@ impl State {
         }
 
         // Change the time accordingly.
-        self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
-        self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
+        self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * server_constants.day_cycle_coefficient;
 
         // Update delta time.
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping

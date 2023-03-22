@@ -1,6 +1,10 @@
 use crate::utils;
 use approx::assert_relative_eq;
-use common::{comp::Controller, resources::Time};
+use common::{
+    comp::Controller,
+    resources::Time,
+    shared_server_config::ServerConstants,
+};
 use specs::WorldExt;
 use std::error::Error;
 use utils::{DT, DT_F64, EPSILON};
@@ -18,6 +22,7 @@ fn simple_run() {
         },
         false,
         None,
+        &ServerConstants::default(),
     );
 }
 

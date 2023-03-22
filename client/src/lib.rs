@@ -1804,6 +1804,7 @@ impl Client {
             },
             true,
             None,
+            &self.connected_server_constants
         );
         // TODO: avoid emitting these in the first place
         let _ = self

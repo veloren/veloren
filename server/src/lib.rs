@@ -710,6 +710,7 @@ impl Server {
             },
             false,
             Some(&mut state_tick_metrics),
+            &self.server_constants
         );
 
         let before_handle_events = Instant::now();
