@@ -1,9 +1,11 @@
 use crate::{
+    combat::AttackSource,
     comp::{
         ability::Capability, inventory::item::armor::Friction, item::ConsumableKind, ControlAction,
         Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
     },
     event::{LocalEvent, ServerEvent},
+    resources::Time,
     states::{
         self,
         behavior::{CharacterBehavior, JoinData},
@@ -198,7 +200,8 @@ impl CharacterState {
             self,
             CharacterState::Idle(idle::Data {
                 is_sneaking: true,
-                footwear: _
+                footwear: _,
+                time_entered: _,
             }) | CharacterState::Wielding(wielding::Data {
                 is_sneaking: true,
                 ..
@@ -277,28 +280,52 @@ impl CharacterState {
         )
     }
 
-    pub fn block_strength(&self) -> Option<f32> {
-        let strength = match self {
-            CharacterState::BasicBlock(c) => c.static_data.block_strength,
-            _ => return None,
-        };
-        Some(strength)
-    }
-
-    pub fn is_parry(&self) -> bool {
-        let from_capability = if let Some(capabilities) = self
-            .ability_info()
-            .and_then(|a| a.ability_meta)
-            .map(|m| m.capabilities)
-        {
-            capabilities.contains(Capability::BUILDUP_PARRIES)
-                && matches!(self.stage_section(), Some(StageSection::Buildup))
+    pub fn block_strength(&self, attack_source: AttackSource) -> Option<f32> {
+        let from_capability = if let AttackSource::Melee = attack_source {
+            if let Some(capabilities) = self
+                .ability_info()
+                .map(|a| a.ability_meta)
+                .map(|m| m.capabilities)
+            {
+                (capabilities.contains(Capability::BUILDUP_BLOCKS)
+                    && matches!(self.stage_section(), Some(StageSection::Buildup)))
+                .then_some(0.5)
+            } else {
+                None
+            }
         } else {
-            false
+            None
         };
         let from_state = match self {
-            CharacterState::BasicBlock(c) => c.is_parry(),
-            CharacterState::RiposteMelee(c) => matches!(c.stage_section, StageSection::Buildup),
+            CharacterState::BasicBlock(c) => c
+                .static_data
+                .blocked_attacks
+                .applies(attack_source)
+                .then_some(c.static_data.block_strength),
+            _ => None,
+        };
+        match (from_capability, from_state) {
+            (Some(a), Some(b)) => Some(a.max(b)),
+            (Some(a), None) | (None, Some(a)) => Some(a),
+            (None, None) => None,
+        }
+    }
+
+    pub fn is_parry(&self, attack_source: AttackSource) -> bool {
+        let melee = matches!(attack_source, AttackSource::Melee);
+        let from_capability = melee
+            && self
+                .ability_info()
+                .map(|a| a.ability_meta.capabilities)
+                .map_or(false, |c| {
+                    c.contains(Capability::BUILDUP_PARRIES)
+                        && matches!(self.stage_section(), Some(StageSection::Buildup))
+                });
+        let from_state = match self {
+            CharacterState::BasicBlock(c) => c.is_parry(attack_source),
+            CharacterState::RiposteMelee(c) => {
+                melee && matches!(c.stage_section, StageSection::Buildup)
+            },
             _ => false,
         };
         from_capability || from_state
@@ -328,7 +355,7 @@ impl CharacterState {
 
     pub fn is_music(&self) -> bool { matches!(self, CharacterState::Music(_)) }
 
-    pub fn attack_immunities(&self) -> Option<AttackImmunities> {
+    pub fn attack_immunities(&self) -> Option<AttackFilters> {
         if let CharacterState::Roll(c) = self {
             Some(c.static_data.attack_immunities)
         } else {
@@ -341,7 +368,7 @@ impl CharacterState {
     pub fn is_forced_movement(&self) -> bool {
         matches!(self,
             CharacterState::ComboMelee(s) if s.stage_section == StageSection::Action)
-            || matches!(self, CharacterState::ComboMelee2(s) if s.stage_section == Some(StageSection::Action))
+            || matches!(self, CharacterState::ComboMelee2(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::DashMelee(s) if s.stage_section == StageSection::Charge)
             || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
             || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Action)
@@ -349,20 +376,7 @@ impl CharacterState {
     }
 
     pub fn is_melee_attack(&self) -> bool {
-        matches!(
-            self,
-            CharacterState::BasicMelee(_)
-                | CharacterState::DashMelee(_)
-                | CharacterState::ComboMelee(_)
-                | CharacterState::ComboMelee2(_)
-                | CharacterState::LeapMelee(_)
-                | CharacterState::SpinMelee(_)
-                | CharacterState::ChargedMelee(_)
-                | CharacterState::FinisherMelee(_)
-                | CharacterState::DiveMelee(_)
-                | CharacterState::RiposteMelee(_)
-                | CharacterState::RapidMelee(_)
-        )
+        matches!(self.attack_kind(), Some(AttackSource::Melee))
     }
 
     pub fn can_perform_mounted(&self) -> bool {
@@ -534,7 +548,7 @@ impl CharacterState {
             CharacterState::Skate(_) => None,
             CharacterState::Glide(_) => None,
             CharacterState::GlideWield(_) => None,
-            CharacterState::Stunned(data) => Some(data.static_data.ability_info),
+            CharacterState::Stunned(_) => None,
             CharacterState::Sit => None,
             CharacterState::Dance => None,
             CharacterState::BasicBlock(data) => Some(data.static_data.ability_info),
@@ -560,8 +574,8 @@ impl CharacterState {
             CharacterState::BasicSummon(data) => Some(data.static_data.ability_info),
             CharacterState::SelfBuff(data) => Some(data.static_data.ability_info),
             CharacterState::SpriteSummon(data) => Some(data.static_data.ability_info),
-            CharacterState::UseItem(data) => Some(data.static_data.ability_info),
-            CharacterState::SpriteInteract(data) => Some(data.static_data.ability_info),
+            CharacterState::UseItem(_) => None,
+            CharacterState::SpriteInteract(_) => None,
             CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Music(data) => Some(data.static_data.ability_info),
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
@@ -584,10 +598,10 @@ impl CharacterState {
             CharacterState::Dance => None,
             CharacterState::BasicBlock(data) => Some(data.stage_section),
             CharacterState::Roll(data) => Some(data.stage_section),
+            CharacterState::Equipping(_) => Some(StageSection::Buildup),
             CharacterState::Wielding(_) => None,
-            CharacterState::Equipping(_) => None,
             CharacterState::ComboMelee(data) => Some(data.stage_section),
-            CharacterState::ComboMelee2(data) => data.stage_section,
+            CharacterState::ComboMelee2(data) => Some(data.stage_section),
             CharacterState::BasicMelee(data) => Some(data.stage_section),
             CharacterState::BasicRanged(data) => Some(data.stage_section),
             CharacterState::Boost(_) => None,
@@ -643,7 +657,10 @@ impl CharacterState {
                 ..Default::default()
             }),
             CharacterState::Wielding(_) => None,
-            CharacterState::Equipping(_) => None,
+            CharacterState::Equipping(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                ..Default::default()
+            }),
             CharacterState::ComboMelee(data) => {
                 let stage_index = data.stage_index();
                 let stage = data.static_data.stage_data[stage_index];
@@ -660,10 +677,6 @@ impl CharacterState {
                     buildup: Some(strike.buildup_duration),
                     action: Some(strike.swing_duration),
                     recover: Some(strike.recover_duration),
-                    ready: data
-                        .static_data
-                        .is_stance
-                        .then_some(combo_melee2::STANCE_ENTER_TIME),
                     ..Default::default()
                 })
             },
@@ -855,12 +868,69 @@ impl CharacterState {
         }
     }
 
-    // Determines if a character state should be returned to when using another
-    // ability from that character state
-    pub fn should_be_returned_to(&self) -> bool {
+    pub fn attack_kind(&self) -> Option<AttackSource> {
         match self {
-            CharacterState::ComboMelee2(data) => data.static_data.is_stance,
-            _ => false,
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Skate(_) => None,
+            CharacterState::Glide(_) => None,
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(_) => None,
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(_) => None,
+            CharacterState::Roll(_) => None,
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(_) => None,
+            CharacterState::ComboMelee(_) => Some(AttackSource::Melee),
+            CharacterState::ComboMelee2(_) => Some(AttackSource::Melee),
+            CharacterState::BasicMelee(_) => Some(AttackSource::Melee),
+            CharacterState::BasicRanged(data) => {
+                Some(if data.static_data.projectile.is_explosive() {
+                    AttackSource::Explosion
+                } else {
+                    AttackSource::Projectile
+                })
+            },
+            CharacterState::Boost(_) => None,
+            CharacterState::DashMelee(_) => Some(AttackSource::Melee),
+            CharacterState::LeapMelee(_) => Some(AttackSource::Melee),
+            CharacterState::SpinMelee(_) => Some(AttackSource::Melee),
+            CharacterState::ChargedMelee(_) => Some(AttackSource::Melee),
+            // TODO: When charged ranged not only arrow make this check projectile type
+            CharacterState::ChargedRanged(_) => Some(AttackSource::Projectile),
+            CharacterState::RepeaterRanged(data) => {
+                Some(if data.static_data.projectile.is_explosive() {
+                    AttackSource::Explosion
+                } else {
+                    AttackSource::Projectile
+                })
+            },
+            CharacterState::Shockwave(data) => Some(if data.static_data.requires_ground {
+                AttackSource::GroundShockwave
+            } else {
+                AttackSource::AirShockwave
+            }),
+            CharacterState::LeapShockwave(data) => Some(if data.static_data.requires_ground {
+                AttackSource::GroundShockwave
+            } else {
+                AttackSource::AirShockwave
+            }),
+            CharacterState::BasicBeam(_) => Some(AttackSource::Beam),
+            CharacterState::BasicAura(_) => None,
+            CharacterState::Blink(_) => None,
+            CharacterState::BasicSummon(_) => None,
+            CharacterState::SelfBuff(_) => None,
+            CharacterState::SpriteSummon(_) => None,
+            CharacterState::UseItem(_) => None,
+            CharacterState::SpriteInteract(_) => None,
+            CharacterState::FinisherMelee(_) => Some(AttackSource::Melee),
+            CharacterState::Music(_) => None,
+            CharacterState::DiveMelee(_) => Some(AttackSource::Melee),
+            CharacterState::RiposteMelee(_) => Some(AttackSource::Melee),
+            CharacterState::RapidMelee(_) => Some(AttackSource::Melee),
         }
     }
 }
@@ -872,11 +942,10 @@ pub struct DurationsInfo {
     pub recover: Option<Duration>,
     pub movement: Option<Duration>,
     pub charge: Option<Duration>,
-    pub ready: Option<Duration>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
-pub struct AttackImmunities {
+pub struct AttackFilters {
     pub melee: bool,
     pub projectiles: bool,
     pub beams: bool,
@@ -885,11 +954,25 @@ pub struct AttackImmunities {
     pub explosions: bool,
 }
 
+impl AttackFilters {
+    pub fn applies(&self, attack: AttackSource) -> bool {
+        match attack {
+            AttackSource::Melee => self.melee,
+            AttackSource::Projectile => self.projectiles,
+            AttackSource::Beam => self.beams,
+            AttackSource::GroundShockwave => self.ground_shockwaves,
+            AttackSource::AirShockwave => self.air_shockwaves,
+            AttackSource::Explosion => self.explosions,
+        }
+    }
+}
+
 impl Default for CharacterState {
     fn default() -> Self {
         Self::Idle(idle::Data {
             is_sneaking: false,
             footwear: None,
+            time_entered: Time(0.0),
         })
     }
 }

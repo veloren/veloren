@@ -3,8 +3,8 @@ use common::{
     comp::{
         agent::{Sound, SoundKind},
         melee::MultiTarget,
-        Alignment, Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori,
-        Player, Pos, Scale, Stats,
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Melee,
+        Ori, Player, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -44,6 +44,7 @@ pub struct ReadData<'a> {
     server_bus: Read<'a, EventBus<ServerEvent>>,
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
+    buffs: ReadStorage<'a, Buffs>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -190,6 +191,7 @@ impl<'a> System<'a> for Sys {
                         energy: read_data.energies.get(attacker),
                         combo: read_data.combos.get(attacker),
                         inventory: read_data.inventories.get(attacker),
+                        stats: read_data.stats.get(attacker),
                     });
 
                     let target_info = TargetInfo {
@@ -202,6 +204,7 @@ impl<'a> System<'a> for Sys {
                         ori: read_data.orientations.get(target),
                         char_state: read_data.char_states.get(target),
                         energy: read_data.energies.get(target),
+                        buffs: read_data.buffs.get(target),
                     };
 
                     // PvP check

@@ -1,6 +1,6 @@
 #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::{
-    comp::{aura::AuraKey, Stats},
+    comp::{aura::AuraKey, Health, Stats},
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -52,15 +52,23 @@ pub enum BuffKind {
     /// Strength scales the movement speed linearly. 0.5 is 150% speed, 1.0 is
     /// 200% speed. Provides regeneration at 10x the value of the strength
     Frenzied,
-    /// Increases movement and attack speed.
-    /// Strength scales strength of both effects linearly. 0.5 is a 50%
-    /// increase, 1.0 is a 100% increase.
+    /// Increases movement and attack speed, but removes chance to get critical
+    /// hits. Strength scales strength of both effects linearly. 0.5 is a
+    /// 50% increase, 1.0 is a 100% increase.
     Hastened,
-    // TODO: Consider non linear scaling?
-    /// Increases resistance to incoming poise over time
-    /// Strength scales the resistance linearly, values over 1 will usually do
-    /// nothing. 0.5 is 50%, 1.0 is 100%.
+    /// Increases resistance to incoming poise, and poise damage dealt as health
+    /// is lost from the time the buff activated
+    /// Strength scales the resistance non-linearly. 0.5 provides 50%, 1.0
+    /// provides 67%
+    /// Strength scales the poise damage increase linearly, a strength of 1.0
+    /// and n health less from activation will cause poise damage to increase by
+    /// n%
     Fortitude,
+    /// Increases both attack damage and vulnerability to damage
+    /// Damage increases linearly with strength, 1.0 is a 100% increase
+    /// Damage reduction decreases linearly with strength, 1.0 is a 100%
+    /// decrease
+    Reckless,
     // Debuffs
     /// Does damage to a creature over time
     /// Strength should be the DPS of the debuff
@@ -117,7 +125,8 @@ impl BuffKind {
             | BuffKind::Invulnerability
             | BuffKind::ProtectingWard
             | BuffKind::Hastened
-            | BuffKind::Fortitude => true,
+            | BuffKind::Fortitude
+            | BuffKind::Reckless => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -214,6 +223,12 @@ pub enum BuffEffect {
     PoiseReduction(f32),
     /// Reduces amount healed by consumables
     HealReduction(f32),
+    /// Increases poise damage dealt when health is lost
+    PoiseDamageFromLostHealth { initial_health: f32, strength: f32 },
+    /// Modifier to the amount of damage dealt with attacks
+    AttackDamage(f32),
+    /// Multiplies crit chance of attacks
+    CriticalChance(f32),
 }
 
 /// Actual de/buff.
@@ -258,6 +273,8 @@ pub enum BuffChange {
         any_required: Vec<BuffCategory>,
         none_required: Vec<BuffCategory>,
     },
+    // Refreshes durations of all buffs with this kind
+    Refresh(BuffKind),
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -270,6 +287,7 @@ impl Buff {
         source: BuffSource,
         time: Time,
         stats: Option<&Stats>,
+        health: Option<&Health>,
     ) -> Self {
         // Normalized nonlinear scaling
         let nn_scaling = |a| a / (a + 0.5);
@@ -364,10 +382,21 @@ impl Buff {
             BuffKind::Hastened => vec![
                 BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::AttackSpeed(1.0 + data.strength),
+                BuffEffect::CriticalChance(0.0),
             ],
-            BuffKind::Fortitude => vec![BuffEffect::PoiseReduction(data.strength)],
+            BuffKind::Fortitude => vec![
+                BuffEffect::PoiseReduction(nn_scaling(data.strength)),
+                BuffEffect::PoiseDamageFromLostHealth {
+                    initial_health: health.map_or(0.0, |h| h.current()),
+                    strength: data.strength,
+                },
+            ],
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
             BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
+            BuffKind::Reckless => vec![
+                BuffEffect::DamageReduction(-data.strength),
+                BuffEffect::AttackDamage(1.0 + data.strength),
+            ],
         };
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids
@@ -606,6 +635,7 @@ pub mod tests {
             Vec::new(),
             BuffSource::Unknown,
             time,
+            None,
             None,
         )
     }

@@ -72,6 +72,7 @@ impl CharacterBehavior for Data {
                         BuffSource::Character { by: *data.uid },
                         *data.time,
                         Some(data.stats),
+                        data.health,
                     );
                     output_events.emit_server(ServerEvent::Buff {
                         entity: data.entity,
@@ -118,7 +119,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         update
     }

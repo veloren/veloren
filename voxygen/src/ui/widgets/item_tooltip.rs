@@ -620,12 +620,10 @@ impl<'a> Widget for ItemTooltip<'a> {
                 );
 
                 // Effect Power
-                // TODO: Allow effect power to have different terminology based on what it is
-                // affecting.
                 stat_text(
                     format!(
                         "{} : {:+.0}%",
-                        i18n.get_msg("common-stats-poise"),
+                        i18n.get_msg("common-stats-effect-power"),
                         (stats.effect_power - 1.0) * 100.0
                     ),
                     2,
@@ -1053,13 +1051,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                     let effect_power_text = if is_primary {
                         format!(
                             "{} : {:+.0}%",
-                            i18n.get_msg("common-stats-poise"),
+                            i18n.get_msg("common-stats-effect-power"),
                             (stats.effect_power - 1.0) * 100.0
                         )
                     } else {
                         format!(
                             "{} : x{:.2}",
-                            i18n.get_msg("common-stats-poise"),
+                            i18n.get_msg("common-stats-effect-power"),
                             stats.effect_power
                         )
                     };

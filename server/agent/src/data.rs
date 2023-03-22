@@ -1,16 +1,20 @@
 use common::{
     comp::{
+        ability::CharacterAbility,
         buff::{BuffKind, Buffs},
+        character_state::AttackFilters,
         group,
         item::MaterialStatManifest,
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
-        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Scale, SkillSet, Stats, Vel,
+        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Scale, SkillSet, Stance, Stats,
+        Vel,
     },
     link::Is,
     mounting::Mount,
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::RtSimEntity,
+    states::utils::{ForcedMovement, StageSection},
     terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
 };
@@ -47,6 +51,7 @@ pub struct AgentData<'a> {
     pub buffs: Option<&'a Buffs>,
     pub stats: Option<&'a Stats>,
     pub poise: Option<&'a Poise>,
+    pub stance: Option<&'a Stance>,
     pub cached_spatial_grid: &'a common::CachedSpatialGrid,
     pub msm: &'a MaterialStatManifest,
 }
@@ -82,6 +87,23 @@ pub struct AttackData {
 
 impl AttackData {
     pub fn in_min_range(&self) -> bool { self.dist_sqrd < self.min_attack_dist.powi(2) }
+}
+
+pub enum ActionMode {
+    Reckless = 0,
+    Guarded = 1,
+    Fleeing = 2,
+}
+
+impl ActionMode {
+    pub fn from_u8(x: u8) -> Self {
+        match x {
+            0 => ActionMode::Reckless,
+            1 => ActionMode::Guarded,
+            2 => ActionMode::Fleeing,
+            _ => ActionMode::Guarded,
+        }
+    }
 }
 
 #[derive(Eq, PartialEq)]
@@ -146,6 +168,43 @@ pub enum Tactic {
     BorealHammer,
 }
 
+#[derive(Copy, Clone)]
+pub enum SwordTactics {
+    Unskilled = 0,
+    Basic = 1,
+    HeavySimple = 2,
+    AgileSimple = 3,
+    DefensiveSimple = 4,
+    CripplingSimple = 5,
+    CleavingSimple = 6,
+    HeavyAdvanced = 7,
+    AgileAdvanced = 8,
+    DefensiveAdvanced = 9,
+    CripplingAdvanced = 10,
+    CleavingAdvanced = 11,
+}
+
+impl SwordTactics {
+    pub fn from_u8(x: u8) -> Self {
+        use SwordTactics::*;
+        match x {
+            0 => Unskilled,
+            1 => Basic,
+            2 => HeavySimple,
+            3 => AgileSimple,
+            4 => DefensiveSimple,
+            5 => CripplingSimple,
+            6 => CleavingSimple,
+            7 => HeavyAdvanced,
+            8 => AgileAdvanced,
+            9 => DefensiveAdvanced,
+            10 => CripplingAdvanced,
+            11 => CleavingAdvanced,
+            _ => Unskilled,
+        }
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     pub entities: Entities<'a>,
@@ -182,6 +241,7 @@ pub struct ReadData<'a> {
     pub loot_owners: ReadStorage<'a, LootOwner>,
     pub msm: ReadExpect<'a, MaterialStatManifest>,
     pub poises: ReadStorage<'a, Poise>,
+    pub stances: ReadStorage<'a, Stance>,
 }
 
 pub enum Path {
@@ -190,156 +250,317 @@ pub enum Path {
     Partial,
 }
 
-pub struct ComboMeleeData {
-    pub min_range: f32,
-    pub max_range: f32,
-    pub angle: f32,
-    pub energy: f32,
+#[derive(Copy, Clone, Debug)]
+pub enum AbilityData {
+    ComboMelee {
+        range: f32,
+        angle: f32,
+        energy_per_strike: f32,
+        forced_movement: Option<ForcedMovement>,
+    },
+    FinisherMelee {
+        range: f32,
+        angle: f32,
+        energy: f32,
+        combo: u32,
+    },
+    SelfBuff {
+        buff: BuffKind,
+        energy: f32,
+    },
+    DiveMelee {
+        range: f32,
+        angle: f32,
+        energy: f32,
+    },
+    DashMelee {
+        range: f32,
+        angle: f32,
+        initial_energy: f32,
+        energy_drain: f32,
+        speed: f32,
+        charge_dur: f32,
+    },
+    RapidMelee {
+        range: f32,
+        angle: f32,
+        energy_per_strike: f32,
+        strikes: u32,
+        combo: u32,
+    },
+    ChargedMelee {
+        range: f32,
+        angle: f32,
+        initial_energy: f32,
+        energy_drain: f32,
+        charge_dur: f32,
+    },
+    RiposteMelee {
+        range: f32,
+        angle: f32,
+        energy: f32,
+    },
+    BasicBlock {
+        energy: f32,
+        blocked_attacks: AttackFilters,
+        angle: f32,
+    },
 }
 
-impl ComboMeleeData {
-    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        attack_data.dist_sqrd
-            < (self.max_range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
-            && attack_data.dist_sqrd
-                > (self.min_range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
-            && attack_data.angle < self.angle
-            && agent_data.energy.current() >= self.energy
+impl AbilityData {
+    pub fn from_ability(ability: &CharacterAbility) -> Option<Self> {
+        use CharacterAbility::*;
+        let inner = match ability {
+            ComboMelee2 {
+                strikes,
+                energy_cost_per_strike,
+                ..
+            } => {
+                let (range, angle, forced_movement) = strikes
+                    .iter()
+                    .map(|s| {
+                        (
+                            s.melee_constructor.range,
+                            s.melee_constructor.angle,
+                            s.movement.buildup.map(|m| m * s.buildup_duration),
+                        )
+                    })
+                    .fold(
+                        (100.0, 360.0, None),
+                        |(r1, a1, m1): (f32, f32, Option<ForcedMovement>),
+                         (r2, a2, m2): (f32, f32, Option<ForcedMovement>)| {
+                            (r1.min(r2), a1.min(a2), m1.or(m2))
+                        },
+                    );
+                Self::ComboMelee {
+                    range,
+                    angle,
+                    energy_per_strike: *energy_cost_per_strike,
+                    forced_movement,
+                }
+            },
+            FinisherMelee {
+                energy_cost,
+                melee_constructor,
+                minimum_combo,
+                ..
+            } => Self::FinisherMelee {
+                energy: *energy_cost,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+                combo: *minimum_combo,
+            },
+            SelfBuff {
+                buff_kind,
+                energy_cost,
+                ..
+            } => Self::SelfBuff {
+                buff: *buff_kind,
+                energy: *energy_cost,
+            },
+            DiveMelee {
+                energy_cost,
+                melee_constructor,
+                ..
+            } => Self::DiveMelee {
+                energy: *energy_cost,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+            },
+            DashMelee {
+                energy_cost,
+                energy_drain,
+                forward_speed,
+                melee_constructor,
+                charge_duration,
+                ..
+            } => Self::DashMelee {
+                initial_energy: *energy_cost,
+                energy_drain: *energy_drain,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+                charge_dur: *charge_duration,
+                speed: *forward_speed,
+            },
+            RapidMelee {
+                energy_cost,
+                max_strikes,
+                minimum_combo,
+                melee_constructor,
+                ..
+            } => Self::RapidMelee {
+                energy_per_strike: *energy_cost,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+                strikes: max_strikes.unwrap_or(100),
+                combo: *minimum_combo,
+            },
+            ChargedMelee {
+                energy_cost,
+                energy_drain,
+                charge_duration,
+                melee_constructor,
+                ..
+            } => Self::ChargedMelee {
+                initial_energy: *energy_cost,
+                energy_drain: *energy_drain,
+                charge_dur: *charge_duration,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+            },
+            RiposteMelee {
+                energy_cost,
+                melee_constructor,
+                ..
+            } => Self::RiposteMelee {
+                energy: *energy_cost,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+            },
+            BasicBlock {
+                max_angle,
+                energy_cost,
+                blocked_attacks,
+                ..
+            } => Self::BasicBlock {
+                energy: *energy_cost,
+                angle: *max_angle,
+                blocked_attacks: *blocked_attacks,
+            },
+            _ => return None,
+        };
+        Some(inner)
     }
-}
 
-pub struct FinisherMeleeData {
-    pub range: f32,
-    pub angle: f32,
-    pub energy: f32,
-    pub combo: u32,
-}
-
-impl FinisherMeleeData {
-    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        attack_data.dist_sqrd
-            < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
-            && attack_data.angle < self.angle
-            && agent_data.energy.current() >= self.energy
-            && agent_data
-                .combo
-                .map_or(false, |c| c.counter() >= self.combo)
-    }
-
-    pub fn use_desirable(&self, tgt_data: &TargetData, agent_data: &AgentData) -> bool {
-        let combo_factor =
-            agent_data.combo.map_or(0, |c| c.counter()) as f32 / self.combo as f32 * 2.0;
-        let tgt_health_factor = tgt_data.health.map_or(0.0, |h| h.current()) / 50.0;
-        let self_health_factor = agent_data.health.map_or(0.0, |h| h.current()) / 50.0;
-        // Use becomes more desirable if either self or target is close to death
-        combo_factor > tgt_health_factor.min(self_health_factor)
-    }
-}
-
-pub struct SelfBuffData {
-    pub buff: BuffKind,
-    pub energy: f32,
-}
-
-impl SelfBuffData {
-    pub fn could_use(&self, agent_data: &AgentData) -> bool {
-        agent_data.energy.current() >= self.energy
-    }
-
-    pub fn use_desirable(&self, agent_data: &AgentData) -> bool {
-        agent_data
-            .buffs
-            .map_or(false, |buffs| !buffs.contains(self.buff))
-    }
-}
-
-pub struct DiveMeleeData {
-    pub range: f32,
-    pub angle: f32,
-    pub energy: f32,
-}
-
-impl DiveMeleeData {
-    // Hack here refers to agents using the mildly unintended method of roll jumping
-    // to achieve the required downwards vertical speed to enter dive melee when on
-    // flat ground.
-    pub fn npc_should_use_hack(&self, agent_data: &AgentData, tgt_data: &TargetData) -> bool {
-        let dist_sqrd_2d = agent_data.pos.0.xy().distance_squared(tgt_data.pos.0.xy());
-        agent_data.energy.current() > self.energy
-            && agent_data.physics_state.on_ground.is_some()
-            && agent_data.pos.0.z >= tgt_data.pos.0.z
-            && dist_sqrd_2d
-                > ((self.range + agent_data.body.map_or(0.0, |b| b.max_radius())) / 2.0).powi(2)
-            && dist_sqrd_2d
-                < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius()) + 5.0).powi(2)
-    }
-}
-
-pub struct BlockData {
-    pub angle: f32,
-    // Should probably just always use 5 or so unless riposte melee
-    pub range: f32,
-    pub energy: f32,
-}
-
-impl BlockData {
-    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        attack_data.dist_sqrd
-            < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
-            && attack_data.angle < self.angle
-            && agent_data.energy.current() >= self.energy
-    }
-}
-
-pub struct DashMeleeData {
-    pub range: f32,
-    pub angle: f32,
-    pub initial_energy: f32,
-    pub energy_drain: f32,
-    pub speed: f32,
-    pub charge_dur: f32,
-}
-
-impl DashMeleeData {
-    // TODO: Maybe figure out better way of pulling in base accel from body and
-    // accounting for friction?
-    const BASE_SPEED: f32 = 3.0;
-    const ORI_RATE: f32 = 30.0;
-
-    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        let charge_dur = self.charge_dur(agent_data);
-        let charge_dist = charge_dur * self.speed * Self::BASE_SPEED;
-        let attack_dist =
-            charge_dist + self.range + agent_data.body.map_or(0.0, |b| b.max_radius());
-        let ori_gap = Self::ORI_RATE * charge_dur;
-        attack_data.dist_sqrd < attack_dist.powi(2)
-            && attack_data.angle < self.angle + ori_gap
-            && agent_data.energy.current() > self.initial_energy
-    }
-
-    pub fn use_desirable(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        let charge_dist = self.charge_dur(agent_data) * self.speed * Self::BASE_SPEED;
-        attack_data.dist_sqrd / charge_dist.powi(2) > 0.75_f32.powi(2)
-    }
-
-    fn charge_dur(&self, agent_data: &AgentData) -> f32 {
-        ((agent_data.energy.current() - self.initial_energy) / self.energy_drain)
-            .clamp(0.0, self.charge_dur)
-    }
-}
-
-pub struct RapidMeleeData {
-    pub range: f32,
-    pub angle: f32,
-    pub energy: f32,
-    pub strikes: u32,
-}
-
-impl RapidMeleeData {
-    pub fn could_use(&self, attack_data: &AttackData, agent_data: &AgentData) -> bool {
-        attack_data.dist_sqrd
-            < (self.range + agent_data.body.map_or(0.0, |b| b.max_radius())).powi(2)
-            && attack_data.angle < self.angle
-            && agent_data.energy.current() > self.energy * self.strikes as f32
+    pub fn could_use(
+        &self,
+        attack_data: &AttackData,
+        agent_data: &AgentData,
+        tgt_data: &TargetData,
+        desired_energy: f32,
+    ) -> bool {
+        let melee_check = |range: f32, angle, forced_movement: Option<ForcedMovement>| {
+            let range_inc = forced_movement.map_or(0.0, |fm| match fm {
+                ForcedMovement::Forward(speed) => speed * 15.0,
+                ForcedMovement::Reverse(speed) => -speed,
+                _ => 0.0,
+            });
+            let body_rad = agent_data.body.map_or(0.0, |b| b.max_radius());
+            attack_data.dist_sqrd < (range + range_inc + body_rad).powi(2)
+                && attack_data.angle < angle
+                && attack_data.dist_sqrd > range_inc.powi(2)
+        };
+        let energy_check = |energy: f32| {
+            agent_data.energy.current() >= energy
+                && (energy < f32::EPSILON || agent_data.energy.current() >= desired_energy)
+        };
+        let combo_check = |combo| agent_data.combo.map_or(false, |c| c.counter() >= combo);
+        let attack_kind_check = |attacks: AttackFilters| {
+            tgt_data
+                .char_state
+                .and_then(|cs| cs.attack_kind())
+                .map_or(false, |ak| attacks.applies(ak))
+        };
+        use AbilityData::*;
+        match self {
+            ComboMelee {
+                range,
+                angle,
+                energy_per_strike,
+                forced_movement,
+            } => melee_check(*range, *angle, *forced_movement) && energy_check(*energy_per_strike),
+            FinisherMelee {
+                range,
+                angle,
+                energy,
+                combo,
+            } => melee_check(*range, *angle, None) && energy_check(*energy) && combo_check(*combo),
+            SelfBuff { buff, energy } => {
+                energy_check(*energy)
+                    && agent_data
+                        .buffs
+                        .map_or(false, |buffs| !buffs.contains(*buff))
+            },
+            DiveMelee {
+                range,
+                angle,
+                energy,
+            } => melee_check(*range, *angle, None) && energy_check(*energy),
+            DashMelee {
+                range,
+                angle,
+                initial_energy,
+                energy_drain,
+                speed,
+                charge_dur,
+            } => {
+                // TODO: Maybe figure out better way of pulling in base accel from body and
+                // accounting for friction?
+                const BASE_SPEED: f32 = 3.0;
+                const ORI_RATE: f32 = 30.0;
+                let charge_dur = ((agent_data.energy.current() - initial_energy) / energy_drain)
+                    .clamp(0.0, *charge_dur);
+                let charge_dist = charge_dur * speed * BASE_SPEED;
+                let attack_dist = charge_dist + range;
+                let ori_gap = ORI_RATE * charge_dur;
+                // TODO: Replace None with actual forced movement later
+                melee_check(attack_dist, angle + ori_gap, None)
+                    && energy_check(*initial_energy)
+                    && attack_data.dist_sqrd / charge_dist.powi(2) > 0.75_f32.powi(2)
+            },
+            RapidMelee {
+                range,
+                angle,
+                energy_per_strike,
+                strikes,
+                combo,
+            } => {
+                melee_check(*range, *angle, None)
+                    && energy_check(*energy_per_strike * *strikes as f32)
+                    && combo_check(*combo)
+            },
+            ChargedMelee {
+                range,
+                angle,
+                initial_energy,
+                energy_drain,
+                charge_dur,
+            } => {
+                melee_check(*range, *angle, None)
+                    && energy_check(*initial_energy + *energy_drain * *charge_dur)
+            },
+            RiposteMelee {
+                energy,
+                range,
+                angle,
+            } => {
+                melee_check(*range, *angle, None)
+                    && energy_check(*energy)
+                    && tgt_data.char_state.map_or(false, |cs| {
+                        cs.is_melee_attack()
+                            && matches!(
+                                cs.stage_section(),
+                                Some(
+                                    StageSection::Buildup
+                                        | StageSection::Charge
+                                        | StageSection::Movement
+                                )
+                            )
+                    })
+            },
+            BasicBlock {
+                energy,
+                angle,
+                blocked_attacks,
+            } => {
+                melee_check(25.0, *angle, None)
+                    && energy_check(*energy)
+                    && attack_kind_check(*blocked_attacks)
+                    && tgt_data
+                        .char_state
+                        .and_then(|cs| cs.stage_section())
+                        .map_or(false, |ss| !matches!(ss, StageSection::Recover))
+            },
+        }
     }
 }

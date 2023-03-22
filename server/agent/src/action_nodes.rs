@@ -795,7 +795,6 @@ impl<'a> AgentData<'a> {
                     e
                 )
             });
-
             attack_fn(self, agent, controller, tgt_data, read_data);
         }
     }

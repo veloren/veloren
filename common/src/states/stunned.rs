@@ -15,10 +15,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Fraction of normal movement speed allowed during the state
     pub movement_speed: f32,
-    /// Poise state (used for determining animation in the client)
     pub poise_state: PoiseState,
-    /// Miscellaneous information about the ability
-    pub ability_info: AbilityInfo,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -35,8 +32,15 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        if matches!(
+            self.static_data.poise_state,
+            PoiseState::Stunned | PoiseState::Dazed | PoiseState::KnockedDown
+        ) {
+            leave_stance(data, output_events);
+        }
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, self.static_data.movement_speed);

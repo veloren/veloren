@@ -99,13 +99,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Charge => {
-                if !self
-                    .static_data
-                    .ability_info
-                    .input
-                    .map_or(false, |input| input_is_pressed(data, input))
-                    && !self.exhausted
-                {
+                if !input_is_pressed(data, self.static_data.ability_info.input) && !self.exhausted {
                     let charge_frac = self.charge_frac();
                     let arrow = ProjectileConstructor::Arrow {
                         damage: self.static_data.initial_damage
@@ -118,7 +112,7 @@ impl CharacterBehavior for Data {
                     // Fire
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     // Gets offsets
                     let body_offsets = data.body.projectile_offsets(update.ori.look_vec());
                     let pos = Pos(data.pos.0 + body_offsets);
@@ -126,7 +120,7 @@ impl CharacterBehavior for Data {
                         Some(*data.uid),
                         crit_chance,
                         crit_mult,
-                        buff_strength,
+                        tool_stats,
                         self.static_data.damage_effect,
                     );
                     output_events.emit_server(ServerEvent::Shoot {
@@ -148,11 +142,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if self.timer < self.static_data.charge_duration
-                    && self
-                        .static_data
-                        .ability_info
-                        .input
-                        .map_or(false, |input| input_is_pressed(data, input))
+                    && input_is_pressed(data, self.static_data.ability_info.input)
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
@@ -164,12 +154,7 @@ impl CharacterBehavior for Data {
                     update
                         .energy
                         .change_by(-self.static_data.energy_drain * data.dt.0);
-                } else if self
-                    .static_data
-                    .ability_info
-                    .input
-                    .map_or(false, |input| input_is_pressed(data, input))
-                {
+                } else if input_is_pressed(data, self.static_data.ability_info.input) {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: tick_attack_or_default(data, self.timer, None),
@@ -201,7 +186,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         update
     }

@@ -17,6 +17,9 @@
                 (1, Item("common.items.weapons.sceptre.sceptre_velorite_0")),
             ]), None)),
         )),
+        items: [
+            (5, "common.items.consumable.potion_big"),
+        ],
     ),
     meta: [
         SkillSetAsset("common.skillset.preset.rank5.fullskill"),

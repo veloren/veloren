@@ -48,7 +48,7 @@ impl Asset for SkillLevelMap {
 /// cyclic dependencies, so if you modify the prerequisite map ensure that there
 /// are no cycles of prerequisites.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillPrerequisitesMap(HashMap<Skill, HashMap<Skill, u16>>);
+pub struct SkillPrerequisitesMap(HashMap<Skill, SkillPrerequisite>);
 
 impl Asset for SkillPrerequisitesMap {
     type Loader = assets::RonLoader;
@@ -104,7 +104,7 @@ lazy_static! {
         ).0
     };
     // Loads the prerequisite skills for a particular skill
-    pub static ref SKILL_PREREQUISITES: HashMap<Skill, HashMap<Skill, u16>> = {
+    pub static ref SKILL_PREREQUISITES: HashMap<Skill, SkillPrerequisite> = {
         SkillPrerequisitesMap::load_expect_cloned(
             "common.skill_trees.skill_prerequisites",
         ).0
@@ -366,8 +366,6 @@ impl SkillSet {
         if !self.skill_groups.contains_key(&skill_group_kind) {
             self.skill_groups
                 .insert(skill_group_kind, SkillGroup::new(skill_group_kind));
-        } else {
-            warn!("Tried to unlock already known skill group");
         }
     }
 
@@ -447,9 +445,15 @@ impl SkillSet {
     /// Checks that the skill set contains all prerequisite skills of the
     /// required level for a particular skill
     pub fn prerequisites_met(&self, skill: Skill) -> bool {
-        skill
-            .prerequisite_skills()
-            .all(|(s, l)| self.skill_level(s).map_or(false, |l_b| l_b >= l))
+        match skill.prerequisite_skills() {
+            Some(SkillPrerequisite::All(skills)) => skills
+                .iter()
+                .all(|(s, l)| self.skill_level(*s).map_or(false, |l_b| l_b >= *l)),
+            Some(SkillPrerequisite::Any(skills)) => skills
+                .iter()
+                .any(|(s, l)| self.skill_level(*s).map_or(false, |l_b| l_b >= *l)),
+            None => true,
+        }
     }
 
     /// Gets skill point cost to purchase skill of next level
@@ -625,4 +629,10 @@ pub enum SkillsPersistenceError {
     DeserializationFailure,
     SpentExpMismatch,
     SkillsUnlockFailed,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum SkillPrerequisite {
+    All(HashMap<Skill, u16>),
+    Any(HashMap<Skill, u16>),
 }

@@ -1,0 +1,23 @@
+BasicBlock(
+    buildup_duration: 0.25,
+    recover_duration: 0.15,
+    max_angle: 45.0,
+    block_strength: 0.75,
+    parry_window: (
+        buildup: true,
+        recover: true,
+    ),
+    energy_cost: 10,
+    can_hold: false,
+    blocked_attacks: (
+        melee: true,
+        projectiles: true,
+        beams: false,
+        ground_shockwaves: false,
+        air_shockwaves: false,
+        explosions: false,
+    ),
+    meta: (
+        requirements: (stance: Some(Sword(Defensive))),
+    ),
+)

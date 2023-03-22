@@ -224,6 +224,7 @@ impl StateExt for State {
             Effect::Buff(buff) => {
                 let time = self.ecs().read_resource::<Time>();
                 let stats = self.ecs().read_storage::<comp::Stats>();
+                let healths = self.ecs().read_storage::<comp::Health>();
                 self.ecs()
                     .write_storage::<comp::Buffs>()
                     .get_mut(entity)
@@ -236,6 +237,7 @@ impl StateExt for State {
                                 comp::BuffSource::Item,
                                 *time,
                                 stats.get(entity),
+                                healths.get(entity),
                             ),
                             *time,
                         )
@@ -288,6 +290,7 @@ impl StateExt for State {
             .with(comp::Buffs::default())
             .with(comp::Combo::default())
             .with(comp::Auras::default())
+            .with(comp::Stance::default())
     }
 
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder {
@@ -560,6 +563,7 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Buffs::default());
             self.write_component_ignore_entity_dead(entity, comp::Auras::default());
             self.write_component_ignore_entity_dead(entity, comp::Combo::default());
+            self.write_component_ignore_entity_dead(entity, comp::Stance::default());
 
             // Make sure physics components are updated
             self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());

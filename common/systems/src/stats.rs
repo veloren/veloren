@@ -9,7 +9,6 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, EntitiesDiedLastTick, Time},
-    states,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
@@ -163,11 +162,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::GlideWield(_)
                 | CharacterState::Wielding(_)
                 | CharacterState::Equipping(_)
-                | CharacterState::Boost(_)
-                | CharacterState::ComboMelee2(states::combo_melee2::Data {
-                    stage_section: None,
-                    ..
-                }) => {
+                | CharacterState::Boost(_) => {
                     if energy.needs_regen() {
                         energy.regen(ENERGY_REGEN_ACCEL, dt);
                     }

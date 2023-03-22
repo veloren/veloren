@@ -1,5 +1,5 @@
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
+    comp::{character_state::OutputEvents, controller::InputKind, CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -36,6 +36,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        leave_stance(data, output_events);
         handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
         handle_move(data, &mut update, 0.7);
         handle_jump(data, output_events, &mut update, 1.0);
@@ -56,12 +57,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self
-                        .static_data
-                        .ability_info
-                        .input
-                        .map_or(false, |input| input_is_pressed(data, input))
-                    {
+                    if input_is_pressed(data, self.static_data.ability_info.input) {
                         reset_state(self, data, output_events, &mut update);
                     } else {
                         end_ability(data, &mut update);
@@ -75,13 +71,10 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !self
-            .static_data
-            .ability_info
-            .input
-            .map_or(false, |input| input_is_pressed(data, input))
+        if !input_is_pressed(data, self.static_data.ability_info.input)
+            && input_is_pressed(data, InputKind::Roll)
         {
-            handle_dodge_input(data, &mut update);
+            handle_input(data, output_events, &mut update, InputKind::Roll);
         }
 
         update
@@ -94,7 +87,10 @@ fn reset_state(
     output_events: &mut OutputEvents,
     update: &mut StateUpdate,
 ) {
-    if let Some(input) = data.static_data.ability_info.input {
-        handle_input(join, output_events, update, input);
-    }
+    handle_input(
+        join,
+        output_events,
+        update,
+        data.static_data.ability_info.input,
+    );
 }

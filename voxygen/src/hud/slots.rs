@@ -10,7 +10,8 @@ use common::{
         ability::{Ability, AbilityInput, AuxiliaryAbility},
         item::tool::{AbilityContext, ToolKind},
         slot::InvSlotId,
-        ActiveAbilities, Body, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
+        ActiveAbilities, Body, CharacterState, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
+        Stance,
     },
     recipe::ComponentRecipeBook,
 };
@@ -128,8 +129,10 @@ type HotbarSource<'a> = (
     &'a SkillSet,
     Option<&'a ActiveAbilities>,
     &'a Body,
-    Option<AbilityContext>,
+    AbilityContext,
     Option<&'a Combo>,
+    Option<&'a CharacterState>,
+    Option<&'a Stance>,
 );
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
 
@@ -138,7 +141,18 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, energy, skillset, active_abilities, body, context, combo): &HotbarSource<'a>,
+        (
+            hotbar,
+            inventory,
+            energy,
+            skillset,
+            active_abilities,
+            body,
+            context,
+            combo,
+            char_state,
+            stance,
+        ): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         const GREYED_OUT: Color = Color::Rgba(0.3, 0.3, 0.3, 0.8);
         hotbar.get(*self).and_then(|contents| match contents {
@@ -153,7 +167,9 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 let ability_id = active_abilities.and_then(|a| {
                     a.auxiliary_set(Some(inventory), Some(skillset))
                         .get(i)
-                        .and_then(|a| Ability::from(*a).ability_id(Some(inventory), *context))
+                        .and_then(|a| {
+                            Ability::from(*a).ability_id(Some(inventory), Some(skillset), *context)
+                        })
                 });
 
                 ability_id
@@ -166,6 +182,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                     Some(inventory),
                                     skillset,
                                     Some(body),
+                                    *char_state,
                                     *context,
                                 )
                             })
@@ -175,6 +192,10 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                     if energy.current() >= ability.energy_cost()
                                         && combo
                                             .map_or(false, |c| c.counter() >= ability.combo_cost())
+                                        && ability
+                                            .ability_meta()
+                                            .requirements
+                                            .requirements_met(*stance)
                                     {
                                         Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                     } else {
@@ -219,7 +240,7 @@ type AbilitiesSource<'a> = (
     &'a ActiveAbilities,
     &'a Inventory,
     &'a SkillSet,
-    Option<AbilityContext>,
+    AbilityContext,
 );
 
 impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
@@ -236,8 +257,10 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
                     Some(inventory),
                     Some(skillset),
                 )
-                .ability_id(Some(inventory), *context),
-            Self::Ability(ability) => Ability::from(*ability).ability_id(Some(inventory), *context),
+                .ability_id(Some(inventory), Some(skillset), *context),
+            Self::Ability(ability) => {
+                Ability::from(*ability).ability_id(Some(inventory), Some(skillset), *context)
+            },
         };
 
         ability_id.map(|id| (String::from(id), None))

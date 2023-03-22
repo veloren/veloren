@@ -1,0 +1,12 @@
+SelfBuff(
+    buildup_duration: 0.4,
+    cast_duration: 0.3,
+    recover_duration: 0.3,
+    buff_kind: Reckless,
+    buff_strength: 0.25,
+    buff_duration: Some(30.0),
+    energy_cost: 30,
+    meta: (
+        requirements: (stance: Some(Sword(Cleaving))),
+    ),
+)

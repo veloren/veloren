@@ -1,5 +1,6 @@
 use common::{
     comp::{
+        ability::Stance,
         agent::{Sound, SoundKind},
         Body, BuffChange, ControlEvent, Controller, Pos,
     },
@@ -113,6 +114,12 @@ impl<'a> System<'a> for Sys {
                             slot,
                             auxiliary_key,
                             new_ability,
+                        });
+                    },
+                    ControlEvent::LeaveStance => {
+                        server_emitter.emit(ServerEvent::ChangeStance {
+                            entity,
+                            stance: Stance::None,
                         });
                     },
                 }

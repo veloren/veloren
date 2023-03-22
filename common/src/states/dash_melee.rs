@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        character_state::OutputEvents, CharacterState, Melee, MeleeConstructor,
+        character_state::OutputEvents, item::tool, CharacterState, Melee, MeleeConstructor,
         MeleeConstructorKind, StateUpdate,
     },
     states::{
@@ -55,18 +55,18 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, 0.1);
 
         let create_melee = |charge_frac: f32| {
             let crit_data = get_crit_data(data, self.static_data.ability_info);
-            let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+            let tool_stats = get_tool_stats(data, self.static_data.ability_info);
             self.static_data
                 .melee_constructor
                 .handle_scaling(charge_frac)
-                .create_melee(crit_data, buff_strength)
+                .create_melee(crit_data, tool_stats)
         };
 
         match self.stage_section {
@@ -81,11 +81,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        auto_charge: !self
-                            .static_data
-                            .ability_info
-                            .input
-                            .map_or(false, |input| input_is_pressed(data, input)),
+                        auto_charge: !input_is_pressed(data, self.static_data.ability_info.input),
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self
@@ -94,11 +90,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Charge => {
                 if self.timer < self.charge_end_timer
-                    && (self
-                        .static_data
-                        .ability_info
-                        .input
-                        .map_or(false, |input| input_is_pressed(data, input))
+                    && (input_is_pressed(data, self.static_data.ability_info.input)
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0.0
                 {
@@ -216,14 +208,14 @@ impl CharacterBehavior for Data {
                     .min(1.0);
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
                             .handle_scaling(charge_frac)
-                            .create_melee(crit_data, buff_strength),
+                            .create_melee(crit_data, tool_stats),
                     );
 
                     update.character = CharacterState::DashMelee(Data {
@@ -265,7 +257,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         update
     }
@@ -285,5 +277,5 @@ fn create_test_melee(static_data: StaticData) -> Melee {
         multi_target: None,
         damage_effect: None,
     };
-    melee.create_melee((0.0, 0.0), 0.0)
+    melee.create_melee((0.0, 0.0), tool::Stats::one())
 }

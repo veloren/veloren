@@ -3,8 +3,8 @@ use crate::audio::sfx::SfxEvent;
 use common::{
     combat::DamageKind,
     comp::{
-        inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, melee,
-        CharacterAbilityType, CharacterState, Item,
+        controller::InputKind, inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind,
+        melee, CharacterAbilityType, CharacterState, Item,
     },
     states,
 };
@@ -238,10 +238,9 @@ fn empty_ability_info() -> states::utils::AbilityInfo {
     states::utils::AbilityInfo {
         tool: None,
         hand: None,
-        input: None,
+        input: InputKind::Primary,
         input_attr: None,
         ability_meta: Default::default(),
         ability: None,
-        return_ability: None,
     }
 }

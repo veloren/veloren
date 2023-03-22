@@ -142,6 +142,7 @@ pub enum ControlEvent {
     InventoryEvent(InventoryEvent),
     GroupManip(GroupManip),
     RemoveBuff(BuffKind),
+    LeaveStance,
     Respawn,
     Utterance(UtteranceKind),
     ChangeAbility {

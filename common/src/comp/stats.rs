@@ -56,6 +56,9 @@ pub struct Stats {
     pub attack_speed_modifier: f32,
     pub friction_modifier: f32,
     pub max_energy_modifiers: StatsModifier,
+    pub poise_damage_modifier: f32,
+    pub attack_damage_modifier: f32,
+    pub crit_chance_modifier: f32,
 }
 
 impl Stats {
@@ -70,6 +73,9 @@ impl Stats {
             attack_speed_modifier: 1.0,
             friction_modifier: 1.0,
             max_energy_modifiers: StatsModifier::default(),
+            poise_damage_modifier: 1.0,
+            attack_damage_modifier: 1.0,
+            crit_chance_modifier: 1.0,
         }
     }
 
@@ -79,14 +85,8 @@ impl Stats {
 
     /// Resets temporary modifiers to default values
     pub fn reset_temp_modifiers(&mut self) {
-        self.damage_reduction = 0.0;
-        self.poise_reduction = 0.0;
-        self.heal_multiplier = 1.0;
-        self.max_health_modifiers = StatsModifier::default();
-        self.move_speed_modifier = 1.0;
-        self.attack_speed_modifier = 1.0;
-        self.friction_modifier = 1.0;
-        self.max_energy_modifiers = StatsModifier::default();
+        // TODO: Figure out how to avoid clone
+        *self = Self::new(self.name.clone());
     }
 }
 

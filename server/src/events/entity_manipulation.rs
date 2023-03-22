@@ -27,7 +27,7 @@ use common::{
     outcome::{HealthChangeInfo, Outcome},
     resources::{Secs, Time},
     rtsim::RtSimEntity,
-    states::utils::{AbilityInfo, StageSection},
+    states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -864,18 +864,19 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let alignments = &ecs.read_storage::<Alignment>();
                 let uid_allocator = &ecs.read_resource::<UidAllocator>();
                 let players = &ecs.read_storage::<Player>();
+                let buffs = &ecs.read_storage::<comp::Buffs>();
+                let stats = &ecs.read_storage::<comp::Stats>();
                 for (
                     entity_b,
                     pos_b,
                     health_b,
-                    (body_b_maybe, stats_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
+                    (body_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
                 ) in (
                     &ecs.entities(),
                     &ecs.read_storage::<Pos>(),
                     &ecs.read_storage::<Health>(),
                     (
                         ecs.read_storage::<Body>().maybe(),
-                        ecs.read_storage::<Stats>().maybe(),
                         ecs.read_storage::<comp::Ori>().maybe(),
                         ecs.read_storage::<CharacterState>().maybe(),
                         &ecs.read_storage::<Uid>(),
@@ -926,18 +927,20 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                     energy: energies.get(entity),
                                     combo: combos.get(entity),
                                     inventory: inventories.get(entity),
+                                    stats: stats.get(entity),
                                 });
 
                         let target_info = combat::TargetInfo {
                             entity: entity_b,
                             uid: *uid_b,
                             inventory: inventories.get(entity_b),
-                            stats: stats_b_maybe,
+                            stats: stats.get(entity_b),
                             health: Some(health_b),
                             pos: pos_b.0,
                             ori: ori_b_maybe,
                             char_state: char_state_b_maybe,
                             energy: energies.get(entity_b),
+                            buffs: buffs.get(entity_b),
                         };
 
                         let target_dodging = char_state_b_maybe
@@ -1156,6 +1159,18 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                     buffs.remove(id);
                 }
             },
+            BuffChange::Refresh(kind) => {
+                buffs
+                    .buffs
+                    .values_mut()
+                    .filter(|b| b.kind == kind)
+                    .for_each(|buff| {
+                        // Resets buff so that its remaining duration is equal to its original
+                        // duration
+                        buff.start_time = *time;
+                        buff.end_time = buff.data.duration.map(|dur| Time(time.0 + dur.0));
+                    })
+            },
         }
     }
 }
@@ -1245,25 +1260,10 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
         .write_storage::<comp::CharacterState>()
         .get_mut(defender)
     {
-        let should_return = char_state
-            .ability_info()
-            .and_then(|info| info.return_ability)
-            .is_some();
-
         let return_to_wield = match &mut *char_state {
             CharacterState::RiposteMelee(c) => {
                 c.stage_section = StageSection::Action;
                 c.timer = Duration::default();
-                false
-            },
-            CharacterState::BasicBlock(c) if should_return => {
-                c.timer = c.static_data.recover_duration;
-                c.stage_section = StageSection::Recover;
-                // Refund half the energy of entering the block for a successful parry
-                server_eventbus.emit_now(ServerEvent::EnergyChange {
-                    entity: defender,
-                    change: c.static_data.energy_cost / 2.0,
-                });
                 false
             },
             CharacterState::BasicBlock(c) => {
@@ -1274,25 +1274,11 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 });
                 true
             },
-            char_state => {
-                // If the character state is not one of the ones above, if it parried because it
-                // had the capability to parry in its buildup, subtract 5 energy from the
-                // defender
-                if char_state
-                    .ability_info()
-                    .and_then(|info| info.ability_meta)
-                    .map_or(false, |meta| {
-                        meta.capabilities
-                            .contains(comp::ability::Capability::BUILDUP_PARRIES)
-                    })
-                {
-                    server_eventbus.emit_now(ServerEvent::EnergyChange {
-                        entity: defender,
-                        change: -5.0,
-                    });
-                }
-                false
-            },
+            char_state => char_state.ability_info().map_or(false, |info| {
+                info.ability_meta
+                    .capabilities
+                    .contains(comp::ability::Capability::BUILDUP_PARRIES)
+            }),
         };
         if return_to_wield {
             *char_state =
@@ -1319,6 +1305,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
             };
             let time = ecs.read_resource::<Time>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let healths = ecs.read_storage::<comp::Health>();
             let buff = buff::Buff::new(
                 BuffKind::Parried,
                 data,
@@ -1326,6 +1313,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 source,
                 *time,
                 stats.get(attacker),
+                healths.get(attacker),
             );
             server_eventbus.emit_now(ServerEvent::Buff {
                 entity: attacker,
@@ -1374,9 +1362,8 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
         ) {
             let poise_state = comp::poise::PoiseState::Interrupted;
             let was_wielded = char_state.is_wield();
-            let ability_info = AbilityInfo::from_forced_state_change(&char_state);
             if let (Some((stunned_state, stunned_duration)), impulse_strength) =
-                poise_state.poise_effect(was_wielded, ability_info)
+                poise_state.poise_effect(was_wielded)
             {
                 // Reset poise if there is some stunned state to apply
                 poise.reset(*time, stunned_duration);
@@ -1478,5 +1465,16 @@ pub fn handle_make_admin(server: &mut Server, entity: EcsEntity, admin: comp::Ad
         server
             .state
             .write_component_ignore_entity_dead(entity, admin);
+    }
+}
+
+pub fn handle_stance_change(server: &mut Server, entity: EcsEntity, new_stance: comp::Stance) {
+    if let Some(mut stance) = server
+        .state
+        .ecs_mut()
+        .write_storage::<comp::Stance>()
+        .get_mut(entity)
+    {
+        *stance = new_stance;
     }
 }

@@ -11,6 +11,8 @@ use std::time::Duration;
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
+    /// If Some(_), the state can be activated on the ground
+    pub buildup_duration: Option<Duration>,
     /// How long the state is moving
     pub movement_duration: Duration,
     /// How long the weapon swings
@@ -21,6 +23,8 @@ pub struct StaticData {
     pub vertical_speed: f32,
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
+    /// Caps the amount of scaling the attack will receive from vertical speed
+    pub max_scaling: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -49,6 +53,24 @@ impl CharacterBehavior for Data {
         }
 
         match self.stage_section {
+            StageSection::Buildup => {
+                handle_orientation(data, &mut update, 0.5, None);
+                handle_move(data, &mut update, 0.3);
+
+                if let Some(buildup_duration) = self.static_data.buildup_duration {
+                    if self.timer < buildup_duration {
+                        if let CharacterState::DiveMelee(c) = &mut update.character {
+                            c.timer = tick_attack_or_default(data, self.timer, None);
+                        }
+                    } else if let CharacterState::DiveMelee(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
+                } else if let CharacterState::DiveMelee(c) = &mut update.character {
+                    c.timer = Duration::default();
+                    c.stage_section = StageSection::Action;
+                }
+            },
             StageSection::Movement => {
                 handle_move(data, &mut update, 1.0);
                 if data.physics.on_ground.is_some() {
@@ -73,17 +95,16 @@ impl CharacterBehavior for Data {
                 if !self.exhausted {
                     // Attack
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     let scaling = self.max_vertical_speed / self.static_data.vertical_speed;
-                    // TODO: Remove when server authoritative physics
-                    let scaling = scaling.max(2.0);
+                    let scaling = scaling.min(self.static_data.max_scaling);
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
                             .handle_scaling(scaling)
-                            .create_melee(crit_data, buff_strength),
+                            .create_melee(crit_data, tool_stats),
                     );
 
                     if let CharacterState::DiveMelee(c) = &mut update.character {

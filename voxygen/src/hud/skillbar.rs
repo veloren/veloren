@@ -24,7 +24,7 @@ use std::borrow::Cow;
 use client::{self, Client};
 use common::comp::{
     self,
-    ability::AbilityInput,
+    ability::{AbilityInput, Stance},
     item::{
         tool::{AbilityContext, ToolKind},
         ItemDesc, MaterialStatManifest,
@@ -311,9 +311,10 @@ pub struct Skillbar<'a> {
     common: widget::CommonBuilder,
     msm: &'a MaterialStatManifest,
     combo_floater: Option<ComboFloater>,
-    context: Option<AbilityContext>,
+    context: AbilityContext,
     combo: Option<&'a Combo>,
     char_state: Option<&'a CharacterState>,
+    stance: Option<&'a Stance>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -343,9 +344,10 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         msm: &'a MaterialStatManifest,
         combo_floater: Option<ComboFloater>,
-        context: Option<AbilityContext>,
+        context: AbilityContext,
         combo: Option<&'a Combo>,
         char_state: Option<&'a CharacterState>,
+        stance: Option<&'a Stance>,
     ) -> Self {
         Self {
             client,
@@ -376,6 +378,7 @@ impl<'a> Skillbar<'a> {
             context,
             combo,
             char_state,
+            stance,
         }
     }
 
@@ -925,6 +928,8 @@ impl<'a> Skillbar<'a> {
             self.body,
             self.context,
             self.combo,
+            self.char_state,
+            self.stance,
         );
 
         let image_source = (self.item_imgs, self.imgs);
@@ -936,7 +941,7 @@ impl<'a> Skillbar<'a> {
             background_color: None,
             content_size: ContentSize {
                 width_height_ratio: 1.0,
-                max_fraction: 0.8, /* Changes the item image size by setting a maximum fraction
+                max_fraction: 0.9, /* Changes the item image size by setting a maximum fraction
                                     * of either the width or height */
             },
             selected_content_scale: 1.0,
@@ -1006,7 +1011,8 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _) = content_source;
+            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _, _, _) =
+                content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
                     .get_by_hash(i)
@@ -1015,7 +1021,13 @@ impl<'a> Skillbar<'a> {
                     .and_then(|a| {
                         a.auxiliary_set(Some(inventory), Some(skill_set))
                             .get(i)
-                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory), context))
+                            .and_then(|a| {
+                                Ability::from(*a).ability_id(
+                                    Some(inventory),
+                                    Some(skill_set),
+                                    context,
+                                )
+                            })
                     })
                     .map(|id| util::ability_description(id, self.localized_strings)),
             })
@@ -1084,21 +1096,13 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.slot5, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
 
-        let primary_ability_id = self
-            .active_abilities
-            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory), self.context));
-
-        let primary_ability_id = if let Some(override_id) = self
-            .char_state
-            .and_then(|cs| cs.ability_info())
-            .and_then(|info| info.ability_meta)
-            .and_then(|meta| meta.kind)
-            .map(util::representative_ability_id)
-        {
-            Some(override_id)
-        } else {
-            primary_ability_id
-        };
+        let primary_ability_id = self.active_abilities.and_then(|a| {
+            Ability::from(a.primary).ability_id(
+                Some(self.inventory),
+                Some(self.skillset),
+                self.context,
+            )
+        });
 
         let (primary_ability_title, primary_ability_desc) =
             util::ability_description(primary_ability_id.unwrap_or(""), self.localized_strings);
@@ -1123,7 +1127,11 @@ impl<'a> Skillbar<'a> {
             .set(state.ids.m2_slot_bg, ui);
 
         let secondary_ability_id = self.active_abilities.and_then(|a| {
-            Ability::from(a.secondary).ability_id(Some(self.inventory), self.context)
+            Ability::from(a.secondary).ability_id(
+                Some(self.inventory),
+                Some(self.skillset),
+                self.context,
+            )
         });
 
         let (secondary_ability_title, secondary_ability_desc) =
@@ -1143,12 +1151,14 @@ impl<'a> Skillbar<'a> {
                         Some(self.inventory),
                         self.skillset,
                         Some(self.body),
+                        self.char_state,
                         self.context,
                     )
                 })
                 .map_or(false, |(a, _)| {
                     self.energy.current() >= a.energy_cost()
                         && self.combo.map_or(false, |c| c.counter() >= a.combo_cost())
+                        && a.ability_meta().requirements.requirements_met(self.stance)
                 })
             {
                 Color::Rgba(1.0, 1.0, 1.0, 1.0)

@@ -2,7 +2,7 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        Alignment, Body, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
         PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
@@ -42,6 +42,7 @@ pub struct ReadData<'a> {
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
     character_states: ReadStorage<'a, CharacterState>,
+    buffs: ReadStorage<'a, Buffs>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -197,6 +198,7 @@ impl<'a> System<'a> for Sys {
                                 energy: read_data.energies.get(entity),
                                 combo: read_data.combos.get(entity),
                                 inventory: read_data.inventories.get(entity),
+                                stats: read_data.stats.get(entity),
                             });
 
                     let target_info = TargetInfo {
@@ -209,6 +211,7 @@ impl<'a> System<'a> for Sys {
                         ori: read_data.orientations.get(target),
                         char_state: read_data.character_states.get(target),
                         energy: read_data.energies.get(target),
+                        buffs: read_data.buffs.get(target),
                     };
 
                     let target_dodging = read_data
@@ -242,7 +245,11 @@ impl<'a> System<'a> for Sys {
                         dir,
                         attack_options,
                         1.0,
-                        AttackSource::Shockwave,
+                        if shockwave.requires_ground {
+                            AttackSource::GroundShockwave
+                        } else {
+                            AttackSource::AirShockwave
+                        },
                         *read_data.time,
                         |e| server_emitter.emit(e),
                         |o| outcomes_emitter.emit(o),

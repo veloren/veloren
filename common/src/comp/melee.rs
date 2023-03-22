@@ -62,7 +62,7 @@ pub struct MeleeConstructor {
 }
 
 impl MeleeConstructor {
-    pub fn create_melee(self, (crit_chance, crit_mult): (f32, f32), buff_strength: f32) -> Melee {
+    pub fn create_melee(self, (crit_chance, crit_mult): (f32, f32), tool_stats: Stats) -> Melee {
         use MeleeConstructorKind::*;
         if self.scaled.is_some() {
             dev_panic!(
@@ -83,9 +83,10 @@ impl MeleeConstructor {
                 let buff = CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Bleeding,
                     dur_secs: 10.0,
-                    strength: CombatBuffStrength::DamageFraction(0.1 * buff_strength),
+                    strength: CombatBuffStrength::DamageFraction(0.1),
                     chance: 0.1,
-                });
+                })
+                .adjusted_by_stats(tool_stats);
                 let mut damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Melee,
@@ -109,7 +110,8 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -132,9 +134,10 @@ impl MeleeConstructor {
                 let buff = CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Bleeding,
                     dur_secs: 5.0,
-                    strength: CombatBuffStrength::DamageFraction(0.05 * buff_strength),
+                    strength: CombatBuffStrength::DamageFraction(0.05),
                     chance: 0.1,
-                });
+                })
+                .adjusted_by_stats(tool_stats);
                 let mut damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Melee,
@@ -158,7 +161,8 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -200,7 +204,8 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -239,7 +244,8 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: pull,
                         direction: KnockbackDir::Towards,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -276,7 +282,8 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    }),
+                    })
+                    .adjusted_by_stats(tool_stats),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -419,9 +426,7 @@ impl MeleeConstructor {
         if let Some(ref mut scaled) = &mut self.scaled {
             *scaled = scaled.adjusted_by_stats(stats);
         }
-        if let Some(CombatEffect::Buff(CombatBuff { strength, .. })) = &mut self.damage_effect {
-            *strength *= stats.buff_strength;
-        }
+        self.damage_effect = self.damage_effect.map(|de| de.adjusted_by_stats(stats));
         self
     }
 }

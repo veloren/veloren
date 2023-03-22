@@ -4,12 +4,16 @@ use crate::{
     comp::{
         ability::Capability,
         inventory::{
-            item::{armor::Protection, tool::ToolKind, ItemDesc, ItemKind, MaterialStatManifest},
+            item::{
+                armor::Protection,
+                tool::{self, ToolKind},
+                ItemDesc, ItemKind, MaterialStatManifest,
+            },
             slot::EquipSlot,
         },
         skillset::SkillGroupKind,
-        Alignment, Body, CharacterState, Combo, Energy, Health, HealthChange, Inventory, Ori,
-        Player, Poise, PoiseChange, SkillSet, Stats,
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Health, HealthChange, Inventory,
+        Ori, Player, Poise, PoiseChange, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -28,7 +32,7 @@ use crate::{comp::Group, resources::Time};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::{saveload::MarkerAllocator, Entity as EcsEntity, ReadStorage};
 #[cfg(not(target_arch = "wasm32"))]
-use std::ops::MulAssign;
+use std::ops::{Mul, MulAssign};
 #[cfg(not(target_arch = "wasm32"))] use vek::*;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -43,7 +47,8 @@ pub enum AttackSource {
     Melee,
     Projectile,
     Beam,
-    Shockwave,
+    GroundShockwave,
+    AirShockwave,
     Explosion,
 }
 
@@ -56,6 +61,7 @@ pub struct AttackerInfo<'a> {
     pub energy: Option<&'a Energy>,
     pub combo: Option<&'a Combo>,
     pub inventory: Option<&'a Inventory>,
+    pub stats: Option<&'a Stats>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -69,6 +75,7 @@ pub struct TargetInfo<'a> {
     pub ori: Option<&'a Ori>,
     pub char_state: Option<&'a CharacterState>,
     pub energy: Option<&'a Energy>,
+    pub buffs: Option<&'a Buffs>,
 }
 
 #[derive(Clone, Copy)]
@@ -143,40 +150,36 @@ impl Attack {
         if damage.value > 0.0 {
             let damage_reduction =
                 Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats, msm);
-            let block_reduction = match source {
-                AttackSource::Melee => {
-                    if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
-                        if ori.look_vec().angle_between(-*dir) < char_state.block_angle() {
-                            if char_state.is_parry() {
-                                emit_outcome(Outcome::Block {
-                                    parry: true,
-                                    pos: target.pos,
-                                    uid: target.uid,
-                                });
-                                emit(ServerEvent::ParryHook {
-                                    defender: target.entity,
-                                    attacker: attacker.map(|a| a.entity),
-                                });
-                                1.0
-                            } else if let Some(block_strength) = char_state.block_strength() {
-                                emit_outcome(Outcome::Block {
-                                    parry: false,
-                                    pos: target.pos,
-                                    uid: target.uid,
-                                });
-                                block_strength
-                            } else {
-                                0.0
-                            }
+            let block_reduction =
+                if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
+                    if ori.look_vec().angle_between(-*dir) < char_state.block_angle() {
+                        if char_state.is_parry(source) {
+                            emit_outcome(Outcome::Block {
+                                parry: true,
+                                pos: target.pos,
+                                uid: target.uid,
+                            });
+                            emit(ServerEvent::ParryHook {
+                                defender: target.entity,
+                                attacker: attacker.map(|a| a.entity),
+                            });
+                            1.0
+                        } else if let Some(block_strength) = char_state.block_strength(source) {
+                            emit_outcome(Outcome::Block {
+                                parry: false,
+                                pos: target.pos,
+                                uid: target.uid,
+                            });
+                            block_strength
                         } else {
                             0.0
                         }
                     } else {
                         0.0
                     }
-                },
-                _ => 0.0,
-            };
+                } else {
+                    0.0
+                };
             1.0 - (1.0 - damage_reduction) * (1.0 - block_reduction)
         } else {
             0.0
@@ -199,6 +202,7 @@ impl Attack {
     ) -> bool {
         // TODO: Maybe move this higher and pass it as argument into this function?
         let msm = &MaterialStatManifest::load().read();
+        let mut rng = thread_rng();
 
         let AttackOptions {
             target_dodging,
@@ -219,9 +223,16 @@ impl Attack {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
                 && (target_dodging || !may_harm)
         };
-        let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
+        let is_crit = rng.gen::<f32>()
+            < self.crit_chance
+                * attacker
+                    .and_then(|a| a.stats)
+                    .map_or(1.0, |s| s.crit_chance_modifier);
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
+        let damage_modifier = attacker
+            .and_then(|a| a.stats)
+            .map_or(1.0, |s| s.attack_damage_modifier);
         for damage in self
             .damages
             .iter()
@@ -244,7 +255,7 @@ impl Attack {
                 attacker.map(|x| x.into()),
                 is_crit,
                 self.crit_multiplier,
-                strength_modifier,
+                strength_modifier * damage_modifier,
                 time,
                 damage.instance,
             );
@@ -292,7 +303,11 @@ impl Attack {
                         // that health change amount is greater than 0 would fail.
                         let reduced_damage =
                             applied_damage * damage_reduction / (1.0 - damage_reduction);
-                        let poise = reduced_damage * CRUSHING_POISE_FRACTION;
+                        let poise = reduced_damage
+                            * CRUSHING_POISE_FRACTION
+                            * attacker
+                                .and_then(|a| a.stats)
+                                .map_or(1.0, |s| s.poise_damage_modifier);
                         let change = -Poise::apply_poise_reduction(
                             poise,
                             target.inventory,
@@ -360,13 +375,14 @@ impl Attack {
                             }
                         },
                         CombatEffect::Buff(b) => {
-                            if thread_rng().gen::<f32>() < b.chance {
+                            if rng.gen::<f32>() < b.chance {
                                 emit(ServerEvent::Buff {
                                     entity: target.entity,
                                     buff_change: BuffChange::Add(b.to_buff(
                                         time,
                                         attacker.map(|a| a.uid),
                                         target.stats,
+                                        target.health,
                                         applied_damage,
                                         strength_modifier,
                                     )),
@@ -399,7 +415,10 @@ impl Attack {
                                 msm,
                                 target.char_state,
                                 target.stats,
-                            ) * strength_modifier;
+                            ) * strength_modifier
+                                * attacker
+                                    .and_then(|a| a.stats)
+                                    .map_or(1.0, |s| s.poise_damage_modifier);
                             if change.abs() > Poise::POISE_EPSILON {
                                 let poise_change = PoiseChange {
                                     amount: change,
@@ -439,13 +458,50 @@ impl Attack {
                                 });
                             }
                         },
-                        CombatEffect::BuildupsVulnerable => {
-                            if target.char_state.map_or(false, |cs| {
-                                matches!(
-                                    cs.stage_section(),
-                                    Some(StageSection::Buildup | StageSection::Charge)
-                                )
-                            }) {
+                        CombatEffect::StageVulnerable(damage, section) => {
+                            if target
+                                .char_state
+                                .map_or(false, |cs| cs.stage_section() == Some(*section))
+                            {
+                                let change = {
+                                    let mut change = change;
+                                    change.amount *= damage;
+                                    change
+                                };
+                                emit(ServerEvent::HealthChange {
+                                    entity: target.entity,
+                                    change,
+                                });
+                            }
+                        },
+                        CombatEffect::RefreshBuff(chance, b) => {
+                            if rng.gen::<f32>() < *chance {
+                                emit(ServerEvent::Buff {
+                                    entity: target.entity,
+                                    buff_change: BuffChange::Refresh(*b),
+                                });
+                            }
+                        },
+                        CombatEffect::BuffsVulnerable(damage, buff) => {
+                            if target.buffs.map_or(false, |b| b.contains(*buff)) {
+                                let change = {
+                                    let mut change = change;
+                                    change.amount *= damage;
+                                    change
+                                };
+                                emit(ServerEvent::HealthChange {
+                                    entity: target.entity,
+                                    change,
+                                });
+                            }
+                        },
+                        CombatEffect::StunnedVulnerable(damage) => {
+                            if target.char_state.map_or(false, |cs| cs.is_stunned()) {
+                                let change = {
+                                    let mut change = change;
+                                    change.amount *= damage;
+                                    change
+                                };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
                                     change,
@@ -528,13 +584,14 @@ impl Attack {
                         }
                     },
                     CombatEffect::Buff(b) => {
-                        if thread_rng().gen::<f32>() < b.chance {
+                        if rng.gen::<f32>() < b.chance {
                             emit(ServerEvent::Buff {
                                 entity: target.entity,
                                 buff_change: BuffChange::Add(b.to_buff(
                                     time,
                                     attacker.map(|a| a.uid),
                                     target.stats,
+                                    target.health,
                                     accumulated_damage,
                                     strength_modifier,
                                 )),
@@ -567,7 +624,10 @@ impl Attack {
                             msm,
                             target.char_state,
                             target.stats,
-                        ) * strength_modifier;
+                        ) * strength_modifier
+                            * attacker
+                                .and_then(|a| a.stats)
+                                .map_or(1.0, |s| s.poise_damage_modifier);
                         if change.abs() > Poise::POISE_EPSILON {
                             let poise_change = PoiseChange {
                                 amount: change,
@@ -608,7 +668,18 @@ impl Attack {
                         }
                     },
                     // Only has an effect when attached to a damage
-                    CombatEffect::BuildupsVulnerable => {},
+                    CombatEffect::StageVulnerable(_, _) => {},
+                    CombatEffect::RefreshBuff(chance, b) => {
+                        if rng.gen::<f32>() < chance {
+                            emit(ServerEvent::Buff {
+                                entity: target.entity,
+                                buff_change: BuffChange::Refresh(b),
+                            });
+                        }
+                    },
+                    // Only has an effect when attached to a damage
+                    CombatEffect::BuffsVulnerable(_, _) => {},
+                    CombatEffect::StunnedVulnerable(_) => {},
                 }
             }
         }
@@ -740,11 +811,69 @@ pub enum CombatEffect {
     Lifesteal(f32),
     Poise(f32),
     Combo(i32),
-    // If the attack hits the target while they are in the buildup portion of a character state,
-    // deal double damage Only has an effect when attached to a damage, otherwise does nothing
-    // if only attached to the attack TODO: Maybe try to make it do something if tied to
+    /// If the attack hits the target while they are in the buildup portion of a
+    /// character state, deal increased damage
+    /// Only has an effect when attached to a damage, otherwise does nothing if
+    /// only attached to the attack
+    // TODO: Maybe try to make it do something if tied to
     // attack, not sure if it should double count in that instance?
-    BuildupsVulnerable,
+    StageVulnerable(f32, StageSection),
+    /// Resets duration of all buffs of this buffkind, with some probability
+    RefreshBuff(f32, BuffKind),
+    /// If the target hit by an attack has this buff, they will take increased
+    /// damage.
+    /// Only has an effect when attached to a damage, otherwise does nothing if
+    /// only attached to the attack
+    // TODO: Maybe try to make it do something if tied to attack, not sure if it should double
+    // count in that instance?
+    BuffsVulnerable(f32, BuffKind),
+    /// If the target hit by an attack is in a stunned state, they will take
+    /// increased damage.
+    /// Only has an effect when attached to a damage, otherwise does nothing if
+    /// only attached to the attack
+    // TODO: Maybe try to make it do something if tied to attack, not sure if it should double
+    // count in that instance?
+    StunnedVulnerable(f32),
+}
+
+impl CombatEffect {
+    pub fn adjusted_by_stats(self, stats: tool::Stats) -> Self {
+        match self {
+            CombatEffect::Heal(h) => CombatEffect::Heal(h * stats.effect_power),
+            CombatEffect::Buff(CombatBuff {
+                kind,
+                dur_secs,
+                strength,
+                chance,
+            }) => CombatEffect::Buff(CombatBuff {
+                kind,
+                dur_secs,
+                strength: strength * stats.buff_strength,
+                chance,
+            }),
+            CombatEffect::Knockback(Knockback {
+                direction,
+                strength,
+            }) => CombatEffect::Knockback(Knockback {
+                direction,
+                strength: strength * stats.buff_strength,
+            }),
+            CombatEffect::EnergyReward(e) => CombatEffect::EnergyReward(e),
+            CombatEffect::Lifesteal(l) => CombatEffect::Lifesteal(l * stats.effect_power),
+            CombatEffect::Poise(p) => CombatEffect::Poise(p * stats.effect_power),
+            CombatEffect::Combo(c) => CombatEffect::Combo(c),
+            CombatEffect::StageVulnerable(v, s) => {
+                CombatEffect::StageVulnerable(v * stats.effect_power, s)
+            },
+            CombatEffect::RefreshBuff(c, b) => CombatEffect::RefreshBuff(c, b),
+            CombatEffect::BuffsVulnerable(v, b) => {
+                CombatEffect::BuffsVulnerable(v * stats.effect_power, b)
+            },
+            CombatEffect::StunnedVulnerable(v) => {
+                CombatEffect::StunnedVulnerable(v * stats.effect_power)
+            },
+        }
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -808,7 +937,7 @@ impl From<AttackSource> for DamageSource {
             AttackSource::Melee => DamageSource::Melee,
             AttackSource::Projectile => DamageSource::Projectile,
             AttackSource::Explosion => DamageSource::Explosion,
-            AttackSource::Shockwave => DamageSource::Shockwave,
+            AttackSource::AirShockwave | AttackSource::GroundShockwave => DamageSource::Shockwave,
             AttackSource::Beam => DamageSource::Energy,
         }
     }
@@ -968,7 +1097,7 @@ impl Knockback {
         let from_char = {
             let resistant = char_state
                 .and_then(|cs| cs.ability_info())
-                .and_then(|a| a.ability_meta)
+                .map(|a| a.ability_meta)
                 .map_or(false, |a| {
                     a.capabilities.contains(Capability::KNOCKBACK_RESISTANT)
                 });
@@ -1021,11 +1150,16 @@ impl CombatBuffStrength {
 }
 
 impl MulAssign<f32> for CombatBuffStrength {
-    fn mul_assign(&mut self, mul: f32) {
+    fn mul_assign(&mut self, mul: f32) { *self = *self * mul; }
+}
+
+impl Mul<f32> for CombatBuffStrength {
+    type Output = Self;
+
+    fn mul(self, mult: f32) -> Self {
         match self {
-            Self::DamageFraction(ref mut val) | Self::Value(ref mut val) => {
-                *val *= mul;
-            },
+            Self::DamageFraction(val) => Self::DamageFraction(val * mult),
+            Self::Value(val) => Self::Value(val * mult),
         }
     }
 }
@@ -1036,7 +1170,8 @@ impl CombatBuff {
         self,
         time: Time,
         uid: Option<Uid>,
-        stats: Option<&Stats>,
+        tgt_stats: Option<&Stats>,
+        tgt_health: Option<&Health>,
         damage: f32,
         strength_modifier: f32,
     ) -> Buff {
@@ -1056,7 +1191,8 @@ impl CombatBuff {
             Vec::new(),
             source,
             time,
-            stats,
+            tgt_stats,
+            tgt_health,
         )
     }
 }

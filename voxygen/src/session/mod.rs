@@ -1446,6 +1446,7 @@ impl PlayState for SessionState {
                     HudEvent::RemoveBuff(buff_id) => {
                         self.client.borrow_mut().remove_buff(buff_id);
                     },
+                    HudEvent::LeaveStance => self.client.borrow_mut().leave_stance(),
                     HudEvent::UnlockSkill(skill) => {
                         self.client.borrow_mut().unlock_skill(skill);
                     },

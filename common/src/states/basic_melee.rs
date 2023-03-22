@@ -75,13 +75,13 @@ impl CharacterBehavior for Data {
                     });
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
-                            .create_melee(crit_data, buff_strength)
+                            .create_melee(crit_data, tool_stats)
                             .with_block_breaking(
                                 data.inputs
                                     .break_block_pos
@@ -118,12 +118,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self
-                        .static_data
-                        .ability_info
-                        .input
-                        .map_or(false, |input| input_is_pressed(data, input))
-                    {
+                    if input_is_pressed(data, self.static_data.ability_info.input) {
                         reset_state(self, data, output_events, &mut update);
                     } else {
                         end_melee_ability(data, &mut update);
@@ -137,7 +132,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         update
     }
@@ -149,7 +144,10 @@ fn reset_state(
     output_events: &mut OutputEvents,
     update: &mut StateUpdate,
 ) {
-    if let Some(input) = data.static_data.ability_info.input {
-        handle_input(join, output_events, update, input);
-    }
+    handle_input(
+        join,
+        output_events,
+        update,
+        data.static_data.ability_info.input,
+    );
 }

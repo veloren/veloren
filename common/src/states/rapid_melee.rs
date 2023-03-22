@@ -1,5 +1,6 @@
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
+    event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -21,8 +22,11 @@ pub struct StaticData {
     pub melee_constructor: MeleeConstructor,
     /// Energy cost per attack
     pub energy_cost: f32,
-    /// Maximum number of consecutive strikes
-    pub max_strikes: u32,
+    /// Maximum number of consecutive strikes, if there is a max
+    pub max_strikes: Option<u32>,
+    pub move_modifier: f32,
+    pub ori_modifier: f32,
+    pub minimum_combo: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -43,12 +47,12 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 0.7);
-        handle_interrupts(data, &mut update);
+        handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
+        handle_move(data, &mut update, self.static_data.move_modifier);
+        handle_interrupts(data, &mut update, output_events);
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -63,6 +67,14 @@ impl CharacterBehavior for Data {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Action;
                     }
+
+                    // Consume combo if any was required
+                    if self.static_data.minimum_combo > 0 {
+                        output_events.emit_server(ServerEvent::ComboChange {
+                            entity: data.entity,
+                            change: -data.combo.map_or(0, |c| c.counter() as i32),
+                        });
+                    }
                 }
             },
             StageSection::Action => {
@@ -73,24 +85,26 @@ impl CharacterBehavior for Data {
                     }
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
-                            .create_melee(crit_data, buff_strength),
+                            .create_melee(crit_data, tool_stats),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
                     if let CharacterState::RapidMelee(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
-                } else if self.current_strike < self.static_data.max_strikes
-                    && update
-                        .energy
-                        .try_change_by(-self.static_data.energy_cost)
-                        .is_ok()
+                } else if match self.static_data.max_strikes {
+                    Some(max) => self.current_strike < max,
+                    None => input_is_pressed(data, self.static_data.ability_info.input),
+                } && update
+                    .energy
+                    .try_change_by(-self.static_data.energy_cost)
+                    .is_ok()
                 {
                     if let CharacterState::RapidMelee(c) = &mut update.character {
                         c.timer = Duration::default();

@@ -9,7 +9,7 @@ use common::{
         character_state::OutputEvents,
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterState, Combo, Controller, Density, Energy, Health,
-        Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos, SkillSet,
+        Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos, SkillSet, Stance,
         StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -19,7 +19,7 @@ use common::{
     resources::{DeltaTime, Time},
     states::{
         behavior::{JoinData, JoinStruct},
-        idle, utils,
+        idle,
     },
     terrain::TerrainGrid,
     uid::Uid,
@@ -51,6 +51,7 @@ pub struct ReadData<'a> {
     alignments: ReadStorage<'a, comp::Alignment>,
     terrain: ReadExpect<'a, TerrainGrid>,
     inventories: ReadStorage<'a, Inventory>,
+    stances: ReadStorage<'a, Stance>,
 }
 
 /// ## Character Behavior System
@@ -151,11 +152,10 @@ impl<'a> System<'a> for Sys {
             // Enter stunned state if poise damage is enough
             if let Some(mut poise) = poises.get_mut(entity) {
                 let was_wielded = char_state.is_wield();
-                let ability_info = utils::AbilityInfo::from_forced_state_change(&char_state);
                 let poise_state = poise.poise_state();
                 let pos = pos.0;
                 if let (Some((stunned_state, stunned_duration)), impulse_strength) =
-                    poise_state.poise_effect(was_wielded, ability_info)
+                    poise_state.poise_effect(was_wielded)
                 {
                     // Reset poise if there is some stunned state to apply
                     poise.reset(*read_data.time, stunned_duration);
@@ -200,6 +200,7 @@ impl<'a> System<'a> for Sys {
                 alignment: read_data.alignments.get(entity),
                 terrain: &read_data.terrain,
                 mount_data: read_data.is_riders.get(entity),
+                stance: read_data.stances.get(entity),
             };
 
             for action in actions {
@@ -244,7 +245,7 @@ impl<'a> System<'a> for Sys {
 impl Sys {
     fn publish_state_update(
         join: &mut JoinStruct,
-        mut state_update: StateUpdate,
+        state_update: StateUpdate,
         output_events: &mut OutputEvents,
     ) {
         // Here we check for equality with the previous value of these components before
@@ -269,9 +270,9 @@ impl Sys {
         *join.vel = state_update.vel;
         *join.ori = state_update.ori;
 
-        join.controller
-            .queued_inputs
-            .append(&mut state_update.queued_inputs);
+        for (input, attr) in state_update.queued_inputs {
+            join.controller.queued_inputs.insert(input, attr);
+        }
         for input in state_update.removed_inputs {
             join.controller.queued_inputs.remove(&input);
         }

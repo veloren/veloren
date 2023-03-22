@@ -259,11 +259,15 @@ impl Animation for BlockAnimation {
                     next.second = next.main;
                 }
             },
-            Some("common.abilities.sword.parrying_parry") => {
-                let (move1, move2) = match stage_section {
-                    Some(StageSection::Buildup) => (anim_time.powi(2), 0.0),
-                    Some(StageSection::Recover) => (1.0, anim_time.powf(0.5)),
-                    _ => (0.0, 0.0),
+            Some(
+                "common.abilities.sword.defensive_parry"
+                | "common.abilities.sword.defensive_deflect",
+            ) => {
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time.powi(2), 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, (anim_time * 20.0).sin(), 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(0.5)),
+                    _ => (0.0, 0.0, 0.0),
                 };
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
@@ -281,16 +285,18 @@ impl Animation for BlockAnimation {
                 next.belt.orientation = Quaternion::rotation_z(move1 * -0.1);
                 next.shorts.orientation = Quaternion::rotation_z(move1 * 0.1);
                 next.control.orientation.rotate_y(move1 * -1.7);
-                next.control.orientation.rotate_z(move1 * 1.2);
-                next.control.position += Vec3::new(move1 * 5.0, move1 * 4.0, 0.0);
+                next.control.orientation.rotate_z(move1 * 0.6);
+                next.control.position += Vec3::new(move1 * 11.0, move1 * 2.0, move1 * 5.0);
 
-                next.chest.orientation.rotate_z(move2 * -0.6);
-                next.head.orientation.rotate_z(move2 * 0.4);
-                next.belt.orientation.rotate_z(move2 * 0.2);
-                next.shorts.orientation.rotate_z(move2 * 0.6);
-                next.control.position += Vec3::new(move2 * 6.0, 0.0, move2 * 9.0);
-                next.control.orientation.rotate_z(move2 * -0.5);
-                next.control.orientation.rotate_y(move2 * 0.6);
+                next.control.orientation.rotate_y(move2 / 50.0);
+
+                next.chest.orientation.rotate_z(move3 * -0.6);
+                next.head.orientation.rotate_z(move3 * 0.4);
+                next.belt.orientation.rotate_z(move3 * 0.2);
+                next.shorts.orientation.rotate_z(move3 * 0.6);
+                next.control.position += Vec3::new(move3 * 6.0, 0.0, move3 * 9.0);
+                next.control.orientation.rotate_z(move3 * -0.5);
+                next.control.orientation.rotate_y(move3 * 0.6);
             },
             _ => {},
         }

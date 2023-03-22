@@ -203,6 +203,7 @@ impl<'a> System<'a> for Sys {
                         cached_spatial_grid: &read_data.cached_spatial_grid,
                         msm: &read_data.msm,
                         poise: read_data.poises.get(entity),
+                        stance: read_data.stances.get(entity),
                     };
 
                     ///////////////////////////////////////////////////////////

@@ -3,10 +3,6 @@
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
 
-#[cfg(all(target_os = "windows", feature = "be-dyn-lib"))]
-#[global_allocator]
-static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
-
 macro_rules! skeleton_impls {
     { struct $Skeleton:ident { $( $(+)? $bone:ident ),* $(,)? $(:: $($field:ident : $field_ty:ty),* $(,)? )? } } => {
         #[derive(Clone, Default)]
@@ -250,7 +246,7 @@ pub trait Animation {
             let update_fn: common_dynlib::Symbol<
                 fn(
                     &Self::Skeleton,
-                    Self::Dependency<'a>,
+                    Self::Dependency<'_>,
                     f32,
                     &mut f32,
                     &<Self::Skeleton as Skeleton>::Attr,

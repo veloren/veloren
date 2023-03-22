@@ -1,7 +1,11 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
 
-#[cfg(target_os = "windows")]
+#[cfg(all(
+    target_os = "windows",
+    not(feature = "hot-agent"),
+    not(feature = "hot-site"),
+))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 

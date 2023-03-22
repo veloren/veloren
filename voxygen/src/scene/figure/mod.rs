@@ -34,7 +34,8 @@ use common::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
         Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
-        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
+        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, SkillSet, Stance,
+        Vel,
     },
     link::Is,
     mounting::Rider,
@@ -747,7 +748,7 @@ impl FigureMgr {
                 item,
                 light_emitter,
                 is_rider,
-                collider,
+                (collider, stance, skillset),
             ),
         ) in (
             &ecs.entities(),
@@ -765,7 +766,11 @@ impl FigureMgr {
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
             ecs.read_storage::<Is<Rider>>().maybe(),
-            ecs.read_storage::<Collider>().maybe(),
+            (
+                ecs.read_storage::<Collider>().maybe(),
+                ecs.read_storage::<Stance>().maybe(),
+                ecs.read_storage::<SkillSet>().maybe(),
+            ),
         )
             .join()
             .enumerate()
@@ -917,12 +922,12 @@ impl FigureMgr {
             let second_tool_spec = second_tool_spec.as_deref();
             let hands = (active_tool_hand, second_tool_hand);
 
-            let context = AbilityContext::try_from(character);
+            let context = AbilityContext::from(stance);
 
             let ability_id = character.and_then(|c| {
                 c.ability_info()
                     .and_then(|a| a.ability)
-                    .and_then(|a| a.ability_id(inventory, context))
+                    .and_then(|a| a.ability_id(inventory, skillset, context))
             });
 
             let move_dir = {
@@ -1329,6 +1334,13 @@ impl FigureMgr {
                             let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    if let Some((dur, _)) = s.static_data.buildup_strike {
+                                        stage_time / dur.as_secs_f32()
+                                    } else {
+                                        stage_time
+                                    }
+                                },
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
@@ -1756,96 +1768,35 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::ComboMelee2(s) => {
-                            if matches!(
-                                s.stage_section,
-                                Some(
-                                    StageSection::Buildup
-                                        | StageSection::Action
-                                        | StageSection::Recover
-                                )
-                            ) {
-                                let timer = s.timer.as_secs_f32();
-                                let current_strike =
-                                    s.completed_strikes % s.static_data.strikes.len();
-                                let strike_data = s.static_data.strikes[current_strike];
-                                let progress = match s.stage_section {
-                                    Some(StageSection::Buildup) => {
-                                        timer / strike_data.buildup_duration.as_secs_f32()
-                                    },
-                                    Some(StageSection::Action) => {
-                                        timer / strike_data.swing_duration.as_secs_f32()
-                                    },
-                                    Some(StageSection::Recover) => {
-                                        timer / strike_data.recover_duration.as_secs_f32()
-                                    },
-                                    _ => 0.0,
-                                };
+                            let timer = s.timer.as_secs_f32();
+                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                            let strike_data = s.static_data.strikes[current_strike];
+                            let progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    timer / strike_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Action => {
+                                    timer / strike_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    timer / strike_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
 
-                                anim::character::ComboAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        ability_id,
-                                        s.stage_section,
-                                        Some(s.static_data.ability_info),
-                                        current_strike,
-                                        move_dir,
-                                    ),
-                                    progress,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else if physics.in_liquid().is_some() {
-                                anim::character::SwimWieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        active_tool_kind,
-                                        second_tool_kind,
-                                        hands,
-                                        rel_vel.magnitude(),
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else if false {
-                                // Check for sneaking here if we want combo melee 2 to be able to
-                                // sneak when not actively swinging
-                                anim::character::SneakWieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        (active_tool_kind, active_tool_spec),
-                                        second_tool_kind,
-                                        hands,
-                                        rel_vel,
-                                        // TODO: Update to use the quaternion.
-                                        ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else {
-                                anim::character::WieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        (active_tool_kind, active_tool_spec),
-                                        second_tool_kind,
-                                        hands,
-                                        // TODO: Update to use the quaternion.
-                                        ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        look_dir,
-                                        rel_vel,
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
+                            anim::character::ComboAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    ability_id,
+                                    Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
+                                    current_strike,
+                                    move_dir,
+                                ),
+                                progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::BasicBlock(s) => {
                             let stage_time = s.timer.as_secs_f32();
@@ -2819,6 +2770,13 @@ impl FigureMgr {
                             let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    if let Some((dur, _)) = s.static_data.buildup_strike {
+                                        stage_time / dur.as_secs_f32()
+                                    } else {
+                                        stage_time
+                                    }
+                                },
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
@@ -5050,6 +5008,13 @@ impl FigureMgr {
                             let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    if let Some((dur, _)) = s.static_data.buildup_strike {
+                                        stage_time / dur.as_secs_f32()
+                                    } else {
+                                        stage_time
+                                    }
+                                },
                                 StageSection::Charge => {
                                     stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },

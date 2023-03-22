@@ -1,0 +1,27 @@
+// TODO: When melee system supports it, make this attack hit front, above head, and back
+ComboMelee2(
+    strikes: [
+        (
+            melee_constructor: (
+                kind: Slash(
+                    damage: 30,
+                    poise: 20,
+                    knockback: 10,
+                    energy_regen: 0,
+                ),
+                range: 4.0,
+                angle: 15.0,
+                multi_target: Some(Normal),
+            ),
+            buildup_duration: 0.2,
+            swing_duration: 0.1,
+            hit_timing: 0.5,
+            recover_duration: 0.5,
+            ori_modifier: 0.6,
+        ),
+    ],
+    energy_cost_per_strike: 40,
+    meta: (
+        requirements: (stance: Some(Sword(Cleaving))),
+    ),
+)

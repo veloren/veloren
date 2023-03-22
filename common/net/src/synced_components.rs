@@ -43,6 +43,7 @@ macro_rules! synced_components {
             shockwave: Shockwave,
             beam_segment: BeamSegment,
             alignment: Alignment,
+            stance: Stance,
             // TODO: change this to `SyncFrom::ClientEntity` and sync the bare minimum
             // from other entities (e.g. just keys needed to show appearance
             // based on their loadout). Also, it looks like this actually has
@@ -217,6 +218,10 @@ impl NetSync for Inventory {
 }
 
 impl NetSync for SkillSet {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for Stance {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

@@ -53,7 +53,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         match self.static_data.movement_behavior {
@@ -93,13 +93,13 @@ impl CharacterBehavior for Data {
                     });
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
-                            .create_melee(crit_data, buff_strength),
+                            .create_melee(crit_data, tool_stats),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     if matches!(
@@ -121,11 +121,7 @@ impl CharacterBehavior for Data {
                 } else if update.energy.current() >= self.static_data.energy_cost
                     && (self.consecutive_spins < self.static_data.num_spins
                         || (self.static_data.is_infinite
-                            && self
-                                .static_data
-                                .ability_info
-                                .input
-                                .map_or(false, |input| input_is_pressed(data, input))))
+                            && input_is_pressed(data, self.static_data.ability_info.input)))
                 {
                     update.character = CharacterState::SpinMelee(Data {
                         timer: Duration::default(),
@@ -165,7 +161,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         update
     }

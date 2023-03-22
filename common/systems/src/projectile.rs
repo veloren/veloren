@@ -2,8 +2,8 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        projectile, Alignment, Body, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
-        PhysicsState, Player, Pos, Projectile, Stats, Vel,
+        projectile, Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health,
+        Inventory, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
     },
     event::{Emitter, EventBus, ServerEvent},
     outcome::Outcome,
@@ -47,6 +47,7 @@ pub struct ReadData<'a> {
     bodies: ReadStorage<'a, Body>,
     character_states: ReadStorage<'a, CharacterState>,
     terrain: ReadExpect<'a, TerrainGrid>,
+    buffs: ReadStorage<'a, Buffs>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -297,6 +298,7 @@ fn dispatch_hit(
                         energy: read_data.energies.get(entity),
                         combo: read_data.combos.get(entity),
                         inventory: read_data.inventories.get(entity),
+                        stats: read_data.stats.get(entity),
                     });
 
             let target_info = TargetInfo {
@@ -309,6 +311,7 @@ fn dispatch_hit(
                 ori: projectile_target_info.ori,
                 char_state: read_data.character_states.get(target),
                 energy: read_data.energies.get(target),
+                buffs: read_data.buffs.get(target),
             };
 
             // TODO: Is it possible to have projectile without body??

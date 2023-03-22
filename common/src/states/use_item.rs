@@ -3,6 +3,7 @@ use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
         character_state::OutputEvents,
+        controller::InputKind,
         inventory::{
             item::{ConsumableKind, ItemKind},
             slot::{InvSlotId, Slot},
@@ -16,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StaticData {
     /// Buildup to item use
     pub buildup_duration: Duration,
@@ -34,11 +35,9 @@ pub struct StaticData {
     pub was_wielded: bool,
     /// Was sneaking
     pub was_sneak: bool,
-    /// Miscellaneous information about the ability
-    pub ability_info: AbilityInfo,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -52,6 +51,8 @@ pub struct Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        leave_stance(data, output_events);
 
         match self.static_data.item_kind {
             ItemUseKind::Consumable(ConsumableKind::Drink) => {
@@ -134,7 +135,9 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_dodge_input(data, &mut update);
+        if input_is_pressed(data, InputKind::Roll) {
+            handle_input(data, output_events, &mut update, InputKind::Roll);
+        }
 
         if matches!(update.character, CharacterState::Roll(_)) {
             // Remove potion/saturation effect if left the use item state early by rolling

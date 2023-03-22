@@ -1,8 +1,8 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents, inventory::slot::InvSlotId, item::ItemDefinitionIdOwned,
-        CharacterState, InventoryManip, StateUpdate,
+        character_state::OutputEvents, controller::InputKind, item::ItemDefinitionIdOwned,
+        slot::InvSlotId, CharacterState, InventoryManip, StateUpdate,
     },
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
@@ -39,8 +39,6 @@ pub struct StaticData {
     ///
     /// If third field is true, item should be consumed on collection
     pub required_item: Option<(ItemDefinitionIdOwned, InvSlotId, bool)>,
-    /// Miscellaneous information about the ability
-    pub ability_info: AbilityInfo,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -57,6 +55,8 @@ pub struct Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        leave_stance(data, output_events);
 
         let ori_dir = Dir::from_unnormalized(Vec3::from(
             (self.static_data.sprite_pos.map(|x| x as f32 + 0.5) - data.pos.0).xy(),
@@ -143,7 +143,9 @@ impl CharacterBehavior for Data {
         handle_wield(data, &mut update);
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_dodge_input(data, &mut update);
+        if input_is_pressed(data, InputKind::Roll) {
+            handle_input(data, output_events, &mut update, InputKind::Roll);
+        }
 
         update
     }

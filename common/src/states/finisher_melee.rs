@@ -51,7 +51,7 @@ impl CharacterBehavior for Data {
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
         handle_jump(data, output_events, &mut update, 1.0);
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -107,11 +107,11 @@ impl CharacterBehavior for Data {
                     }
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
-                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
-                        melee_constructor.create_melee(crit_data, buff_strength),
+                        melee_constructor.create_melee(crit_data, tool_stats),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

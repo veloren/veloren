@@ -151,6 +151,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
+                            Some(health),
                         )),
                     });
                 }
@@ -168,6 +169,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
+                            Some(health),
                         )),
                     });
                 }
@@ -185,6 +187,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
+                            Some(health),
                         )),
                     });
                     // When standing on IceSpike also apply Frozen
@@ -197,6 +200,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
+                            Some(health),
                         )),
                     });
                 }
@@ -217,6 +221,7 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
+                            Some(health),
                         )),
                     });
                 } else if matches!(
@@ -296,6 +301,7 @@ impl<'a> System<'a> for Sys {
                                 buff.source,
                                 *read_data.time,
                                 Some(&stat),
+                                Some(health),
                             )),
                         });
                     }
@@ -572,6 +578,19 @@ fn execute_effect(
         },
         BuffEffect::HealReduction(red) => {
             stat.heal_multiplier *= 1.0 - *red;
+        },
+        BuffEffect::PoiseDamageFromLostHealth {
+            initial_health,
+            strength,
+        } => {
+            let lost_health = (*initial_health - health.current()).max(0.0);
+            stat.poise_damage_modifier *= lost_health / 100.0 * *strength;
+        },
+        BuffEffect::AttackDamage(dam) => {
+            stat.attack_damage_modifier *= *dam;
+        },
+        BuffEffect::CriticalChance(cc) => {
+            stat.crit_chance_modifier *= *cc;
         },
     };
 }

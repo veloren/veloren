@@ -85,7 +85,7 @@ use common::{
     combat,
     comp::{
         self,
-        ability::AuxiliaryAbility,
+        ability::{AuxiliaryAbility, Stance},
         fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
         item::{
@@ -460,29 +460,27 @@ impl<W: Positionable> Position for W {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum BuffIconKind<'a> {
+pub enum BuffIconKind {
     Buff {
         kind: BuffKind,
         data: BuffData,
         multiplicity: usize,
     },
-    Ability {
-        ability_id: &'a str,
-    },
+    Stance(Stance),
 }
 
-impl<'a> BuffIconKind<'a> {
+impl BuffIconKind {
     pub fn image(&self, imgs: &Imgs) -> conrod_core::image::Id {
         match self {
             Self::Buff { kind, .. } => get_buff_image(*kind, imgs),
-            Self::Ability { ability_id, .. } => util::ability_image(imgs, ability_id),
+            Self::Stance(stance) => util::ability_image(imgs, stance.pseudo_ability_id()),
         }
     }
 
     pub fn max_duration(&self) -> Option<Secs> {
         match self {
             Self::Buff { data, .. } => data.duration,
-            Self::Ability { .. } => None,
+            Self::Stance(_) => None,
         }
     }
 
@@ -499,14 +497,14 @@ impl<'a> BuffIconKind<'a> {
                 get_buff_title(*kind, localized_strings),
                 get_buff_desc(*kind, *data, localized_strings),
             ),
-            Self::Ability { ability_id } => {
-                util::ability_description(ability_id, localized_strings)
+            Self::Stance(stance) => {
+                util::ability_description(stance.pseudo_ability_id(), localized_strings)
             },
         }
     }
 }
 
-impl<'a> PartialOrd for BuffIconKind<'a> {
+impl PartialOrd for BuffIconKind {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
             (
@@ -515,19 +513,16 @@ impl<'a> PartialOrd for BuffIconKind<'a> {
                     kind: other_kind, ..
                 },
             ) => Some(kind.cmp(other_kind)),
-            (BuffIconKind::Buff { .. }, BuffIconKind::Ability { .. }) => Some(Ordering::Greater),
-            (BuffIconKind::Ability { .. }, BuffIconKind::Buff { .. }) => Some(Ordering::Less),
-            (
-                BuffIconKind::Ability { ability_id },
-                BuffIconKind::Ability {
-                    ability_id: other_id,
-                },
-            ) => Some(ability_id.cmp(other_id)),
+            (BuffIconKind::Buff { .. }, BuffIconKind::Stance(_)) => Some(Ordering::Greater),
+            (BuffIconKind::Stance(_), BuffIconKind::Buff { .. }) => Some(Ordering::Less),
+            (BuffIconKind::Stance(stance), BuffIconKind::Stance(stance_other)) => {
+                Some(stance.cmp(stance_other))
+            },
         }
     }
 }
 
-impl<'a> Ord for BuffIconKind<'a> {
+impl Ord for BuffIconKind {
     fn cmp(&self, other: &Self) -> Ordering {
         // We know this is safe since we can look at the partialord implementation and
         // see that every variant is wrapped in Some
@@ -535,7 +530,7 @@ impl<'a> Ord for BuffIconKind<'a> {
     }
 }
 
-impl<'a> PartialEq for BuffIconKind<'a> {
+impl PartialEq for BuffIconKind {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (
@@ -544,31 +539,28 @@ impl<'a> PartialEq for BuffIconKind<'a> {
                     kind: other_kind, ..
                 },
             ) => kind == other_kind,
-            (
-                BuffIconKind::Ability { ability_id },
-                BuffIconKind::Ability {
-                    ability_id: other_id,
-                },
-            ) => ability_id == other_id,
+            (BuffIconKind::Stance(stance), BuffIconKind::Stance(stance_other)) => {
+                stance == stance_other
+            },
             _ => false,
         }
     }
 }
 
-impl<'a> Eq for BuffIconKind<'a> {}
+impl Eq for BuffIconKind {}
 
 #[derive(Clone, Copy, Debug)]
-pub struct BuffIcon<'a> {
-    kind: BuffIconKind<'a>,
+pub struct BuffIcon {
+    kind: BuffIconKind,
     is_buff: bool,
     end_time: Option<f64>,
 }
 
-impl<'a> BuffIcon<'a> {
+impl BuffIcon {
     pub fn multiplicity(&self) -> usize {
         match self.kind {
             BuffIconKind::Buff { multiplicity, .. } => multiplicity,
-            BuffIconKind::Ability { .. } => 1,
+            BuffIconKind::Stance(_) => 1,
         }
     }
 
@@ -580,29 +572,25 @@ impl<'a> BuffIcon<'a> {
         }
     }
 
-    pub fn icons_vec(buffs: &comp::Buffs, char_state: &comp::CharacterState) -> Vec<Self> {
+    pub fn icons_vec(buffs: &comp::Buffs, stance: Option<&comp::Stance>) -> Vec<Self> {
         buffs
             .iter_active()
             .filter_map(BuffIcon::from_buffs)
-            .chain(BuffIcon::from_char_state(char_state).into_iter())
+            .chain(stance.and_then(BuffIcon::from_stance).into_iter())
             .collect::<Vec<_>>()
     }
 
-    fn from_char_state(char_state: &comp::CharacterState) -> Option<Self> {
-        if let Some(ability_kind) = char_state
-            .ability_info()
-            .and_then(|info| info.ability_meta)
-            .and_then(|meta| meta.kind)
-        {
-            let id = util::representative_ability_id(ability_kind);
-            Some(BuffIcon {
-                kind: BuffIconKind::Ability { ability_id: id },
-                is_buff: true,
-                end_time: None,
-            })
+    fn from_stance(stance: &comp::Stance) -> Option<Self> {
+        let stance = if let Stance::None = stance {
+            return None;
         } else {
-            None
-        }
+            stance
+        };
+        Some(BuffIcon {
+            kind: BuffIconKind::Stance(*stance),
+            is_buff: true,
+            end_time: None,
+        })
     }
 
     fn from_buffs<'b, I: Iterator<Item = &'b comp::Buff>>(buffs: I) -> Option<Self> {
@@ -737,6 +725,7 @@ pub enum Event {
     LeaveGroup,
     AssignLeader(Uid),
     RemoveBuff(BuffKind),
+    LeaveStance,
     UnlockSkill(Skill),
     SelectExpBar(Option<SkillGroupKind>),
 
@@ -1489,7 +1478,7 @@ impl Hud {
             let poises = ecs.read_storage::<comp::Poise>();
             let alignments = ecs.read_storage::<comp::Alignment>();
             let is_mount = ecs.read_storage::<Is<Mount>>();
-            let char_states = ecs.read_storage::<comp::CharacterState>();
+            let stances = ecs.read_storage::<comp::Stance>();
             let time = ecs.read_resource::<Time>();
 
             // Check if there was a persistence load error of the skillset, and if so
@@ -2230,7 +2219,7 @@ impl Hud {
                 &uids,
                 &inventories,
                 poises.maybe(),
-                (alignments.maybe(), is_mount.maybe(), &char_states),
+                (alignments.maybe(), is_mount.maybe(), stances.maybe()),
             )
                 .join()
                 .filter(|t| {
@@ -2253,7 +2242,7 @@ impl Hud {
                         uid,
                         inventory,
                         poise,
-                        (alignment, is_mount, char_state),
+                        (alignment, is_mount, stance),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2304,7 +2293,7 @@ impl Hud {
                             } else {
                                 0.0
                             },
-                            char_state,
+                            stance,
                         });
                         // Only render bubble if nearby or if its me and setting is on
                         let bubble = if (dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) && !is_me)
@@ -2849,7 +2838,6 @@ impl Hud {
         let stats = ecs.read_storage::<comp::Stats>();
         let skill_sets = ecs.read_storage::<comp::SkillSet>();
         let buffs = ecs.read_storage::<comp::Buffs>();
-        let char_states = ecs.read_storage::<comp::CharacterState>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
         let time = ecs.read_resource::<Time>();
 
@@ -2968,6 +2956,8 @@ impl Hud {
         let poises = ecs.read_storage::<comp::Poise>();
         let combos = ecs.read_storage::<comp::Combo>();
         let time = ecs.read_resource::<Time>();
+        let stances = ecs.read_storage::<comp::Stance>();
+        let char_states = ecs.read_storage::<comp::CharacterState>();
         // Combo floater stuffs
         self.floaters.combo_floater = self.floaters.combo_floater.map(|mut f| {
             f.timer -= dt.as_secs_f64();
@@ -2990,7 +2980,7 @@ impl Hud {
             skillsets.get(entity),
             bodies.get(entity),
         ) {
-            let context = AbilityContext::try_from(char_states.get(entity));
+            let context = AbilityContext::from(stances.get(entity));
             match Skillbar::new(
                 client,
                 &info,
@@ -3019,6 +3009,7 @@ impl Hud {
                 context,
                 combos.get(entity),
                 char_states.get(entity),
+                stances.get(entity),
             )
             .set(self.ids.skillbar, ui_widgets)
             {
@@ -3138,11 +3129,10 @@ impl Hud {
         }
 
         // Buffs
-        if let (Some(player_buffs), Some(health), Some(energy), Some(char_state)) = (
+        if let (Some(player_buffs), Some(health), Some(energy)) = (
             buffs.get(info.viewpoint_entity),
             healths.get(entity),
             energies.get(entity),
-            char_states.get(entity),
         ) {
             for event in BuffsBar::new(
                 &self.imgs,
@@ -3151,7 +3141,7 @@ impl Hud {
                 tooltip_manager,
                 i18n,
                 player_buffs,
-                char_state,
+                stances.get(entity),
                 self.pulse,
                 global_state,
                 health,
@@ -3162,6 +3152,7 @@ impl Hud {
             {
                 match event {
                     buffs::Event::RemoveBuff(buff_id) => events.push(Event::RemoveBuff(buff_id)),
+                    buffs::Event::LeaveStance => events.push(Event::LeaveStance),
                 }
             }
         }
@@ -3463,7 +3454,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
-                let context = AbilityContext::try_from(char_states.get(entity));
+                let context = AbilityContext::from(stances.get(entity));
                 for event in Diary::new(
                     &self.show,
                     client,
@@ -4943,6 +4934,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Frenzied => imgs.buff_frenzy_0,
         BuffKind::Hastened => imgs.buff_haste_0,
         BuffKind::Fortitude => imgs.buff_fortitude_0,
+        // TODO: Get unique icon
+        BuffKind::Reckless => imgs.buff_reckless,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,
@@ -4976,6 +4969,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Frenzied => localized_strings.get_msg("buff-title-frenzied"),
         BuffKind::Hastened => localized_strings.get_msg("buff-title-hastened"),
         BuffKind::Fortitude => localized_strings.get_msg("buff-title-fortitude"),
+        BuffKind::Reckless => localized_strings.get_msg("buff-title-reckless"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-title-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-title-cursed"),
@@ -5013,6 +5007,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Frenzied => localized_strings.get_msg("buff-desc-frenzied"),
         BuffKind::Hastened => localized_strings.get_msg("buff-desc-hastened"),
         BuffKind::Fortitude => localized_strings.get_msg("buff-desc-fortitude"),
+        BuffKind::Reckless => localized_strings.get_msg("buff-desc-reckless"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-desc-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-desc-cursed"),

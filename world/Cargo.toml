@@ -78,6 +78,3 @@ required-features = ["bin_compression"]
 [[example]]
 name = "heightmap_visualization"
 required-features = ["bin_compression"]
-
-[target.'cfg(windows)'.dependencies]
-mimalloc = "0.1.29"

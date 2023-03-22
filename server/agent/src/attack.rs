@@ -1,7 +1,11 @@
-use crate::{consts::MAX_PATH_DIST, data::*, util::entities_have_line_of_sight};
+use crate::{
+    consts::MAX_PATH_DIST,
+    data::*,
+    util::{entities_have_line_of_sight, handle_attack_aggression},
+};
 use common::{
     comp::{
-        ability::{self, Ability, AbilityKind, ActiveAbilities, AuxiliaryAbility, Capability},
+        ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance},
         buff::BuffKind,
         item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
@@ -15,7 +19,6 @@ use common::{
     vol::ReadVol,
 };
 use rand::{prelude::SliceRandom, Rng};
-use specs::saveload::MarkerAllocator;
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
@@ -473,991 +476,782 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        const INT_COUNTER_STANCE: usize = 0;
-        use ability::SwordStance;
-        let stance = |stance| match stance {
-            1 => SwordStance::Offensive,
-            2 => SwordStance::Defensive,
-            3 => SwordStance::Mobility,
-            4 => SwordStance::Crippling,
-            5 => SwordStance::Cleaving,
-            6 => SwordStance::Parrying,
-            7 => SwordStance::Heavy,
-            8 => SwordStance::Reaching,
-            _ => SwordStance::Balanced,
-        };
         if !agent.action_state.initialized {
-            // TODO: Don't always assume that if they have skill checked for, they have
-            // entire set of necessary skills to take full advantage of AI. Make sure to
-            // change this to properly query for all required skills when AI dynamically get
-            // new skills and don't have pre-created skill sets.
-            agent.action_state.int_counters[INT_COUNTER_STANCE] = if self
-                .skill_set
-                .has_skill(Skill::Sword(SwordSkill::CripplingFinisher))
-            {
-                // Hack to make cleaving stance come up less often because agents cannot use it
-                // effectively due to only considering a single target
-                // Remove when agents properly consider multiple targets
-                // (stance, weight)
-                let options = [(4, 3), (5, 1), (6, 3), (7, 3), (8, 3)];
-                options.choose_weighted(rng, |x| x.1).map_or(0, |x| x.0)
-                // rng.gen_range(4..9)
-            } else if self
-                .skill_set
-                .has_skill(Skill::Sword(SwordSkill::OffensiveFinisher))
-            {
-                rng.gen_range(1..4)
-            } else {
-                0
+            agent.action_state.initialized = true;
+            let available_tactics = {
+                let mut tactics = Vec::new();
+                let try_tactic = |skill, tactic, tactics: &mut Vec<SwordTactics>| {
+                    if self.skill_set.has_skill(Skill::Sword(skill)) {
+                        tactics.push(tactic);
+                    }
+                };
+                try_tactic(
+                    SwordSkill::HeavyFortitude,
+                    SwordTactics::HeavyAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::AgileDancingEdge,
+                    SwordTactics::AgileAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::DefensiveStalwartSword,
+                    SwordTactics::DefensiveAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::CripplingEviscerate,
+                    SwordTactics::CripplingAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    SwordSkill::CleavingBladeFever,
+                    SwordTactics::CleavingAdvanced,
+                    &mut tactics,
+                );
+                if tactics.is_empty() {
+                    try_tactic(
+                        SwordSkill::HeavyWindmillSlash,
+                        SwordTactics::HeavySimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::AgileQuickDraw,
+                        SwordTactics::AgileSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::DefensiveDisengage,
+                        SwordTactics::DefensiveSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::CripplingGouge,
+                        SwordTactics::CripplingSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        SwordSkill::CleavingWhirlwindSlice,
+                        SwordTactics::CleavingSimple,
+                        &mut tactics,
+                    );
+                }
+                if tactics.is_empty() {
+                    try_tactic(SwordSkill::CrescentSlash, SwordTactics::Basic, &mut tactics);
+                }
+                if tactics.is_empty() {
+                    tactics.push(SwordTactics::Unskilled);
+                }
+                tactics
             };
+
+            let tactic = available_tactics
+                .choose(rng)
+                .copied()
+                .unwrap_or(SwordTactics::Unskilled);
+
+            agent.action_state.int_counters[IntCounters::Tactics as usize] = tactic as u8;
+
             let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
-            let mut set_sword_ability = |slot, skill| {
+            let set_sword_ability = |controller: &mut Controller, slot, skill| {
                 controller.push_event(ControlEvent::ChangeAbility {
                     slot,
                     auxiliary_key,
                     new_ability: AuxiliaryAbility::MainWeapon(skill),
-                })
-            };
-            match stance(agent.action_state.int_counters[INT_COUNTER_STANCE]) {
-                SwordStance::Balanced => {
-                    // Balanced finisher
-                    set_sword_ability(0, 8);
-                },
-                SwordStance::Offensive => {
-                    // Offensive combo
-                    set_sword_ability(0, 0);
-                    // Offensive advance
-                    set_sword_ability(1, 9);
-                    // Offensive finisher
-                    set_sword_ability(2, 8);
-                },
-                SwordStance::Defensive => {
-                    // Defensive combo
-                    set_sword_ability(0, 3);
-                    // Defensive retreat
-                    set_sword_ability(1, 9);
-                    // Defensive bulwark
-                    set_sword_ability(2, 10);
-                },
-                SwordStance::Mobility => {
-                    // Mobility combo
-                    set_sword_ability(0, 6);
-                    // Mobility feint
-                    set_sword_ability(1, 9);
-                    // Mobility agility
-                    set_sword_ability(2, 10);
-                },
-                SwordStance::Crippling => {
-                    // Crippling combo
-                    set_sword_ability(0, 1);
-                    // Crippling finisher
-                    set_sword_ability(1, 8);
-                    // Crippling strike
-                    set_sword_ability(2, 9);
-                    // Crippling gouge
-                    set_sword_ability(3, 10);
-                },
-                SwordStance::Cleaving => {
-                    // Cleaving combo
-                    set_sword_ability(0, 2);
-                    // Cleaving finisher
-                    set_sword_ability(1, 8);
-                    // Cleaving spin
-                    set_sword_ability(2, 10);
-                    // Cleaving dive
-                    set_sword_ability(3, 9);
-                },
-                SwordStance::Parrying => {
-                    // Parrying combo
-                    set_sword_ability(0, 4);
-                    // Parrying parry
-                    set_sword_ability(1, 10);
-                    // Parrying riposte
-                    set_sword_ability(2, 9);
-                    // Parrying counter
-                    set_sword_ability(3, 8);
-                },
-                SwordStance::Heavy => {
-                    // Heavy combo
-                    set_sword_ability(0, 5);
-                    // Heavy finisher
-                    set_sword_ability(1, 8);
-                    // Heavy pommelstrike
-                    set_sword_ability(2, 10);
-                    // Heavy fortitude
-                    set_sword_ability(3, 9);
-                },
-                SwordStance::Reaching => {
-                    // Reaching combo
-                    set_sword_ability(0, 7);
-                    // Reaching charge
-                    set_sword_ability(1, 9);
-                    // Reaching flurry
-                    set_sword_ability(2, 8);
-                    // Reaching skewer
-                    set_sword_ability(3, 10);
-                },
-            }
-            agent.action_state.initialized = true;
-        }
-
-        let advance = |agent: &mut Agent, controller: &mut Controller, dist: f32, angle: f32| {
-            if attack_data.dist_sqrd > (dist + self.body.map_or(0.0, |b| b.max_radius())).powi(2)
-                || attack_data.angle > angle
-            {
-                self.path_toward_target(
-                    agent,
-                    controller,
-                    tgt_data.pos.0,
-                    read_data,
-                    Path::Separate,
-                    None,
-                );
-            }
-        };
-
-        const AVERAGE_ROLL_FREQUENCY: f32 = 12.0;
-        const TIMER_LAST_ROLL: usize = 0;
-        const CONDITION_RANDOM_ROLL: usize = 0;
-        const MIN_ENERGY_FOR_ROLL: f32 = 30.0;
-        if self.energy.current() > MIN_ENERGY_FOR_ROLL {
-            agent.action_state.timers[TIMER_LAST_ROLL] += read_data.dt.0;
-        }
-        if (-agent.action_state.timers[TIMER_LAST_ROLL] / AVERAGE_ROLL_FREQUENCY).exp()
-            < rng.gen::<f32>() / std::f32::consts::E
-        {
-            agent.action_state.conditions[CONDITION_RANDOM_ROLL] = true;
-        }
-        if agent.action_state.conditions[CONDITION_RANDOM_ROLL] {
-            controller.push_basic_input(InputKind::Roll);
-            advance(agent, controller, 1.0, 30.0);
-            let random_angle = rng.gen_range(-PI..PI) / 4.0;
-            controller.inputs.move_dir.rotated_z(random_angle);
-        }
-        if matches!(self.char_state, CharacterState::Roll(c) if c.stage_section == StageSection::Recover)
-        {
-            agent.action_state.timers[TIMER_LAST_ROLL] = 0.0;
-            agent.action_state.conditions[CONDITION_RANDOM_ROLL] = false;
-        }
-
-        // Called when out of energy, or the situation is not right to use another
-        // ability. Only contains tactics for using M1 and M2
-        let fallback_rng_1 = rng.gen::<f32>() < 0.67;
-        let fallback_tactics = |agent: &mut Agent, controller: &mut Controller| {
-            const BALANCED_COMBO: ComboMeleeData = ComboMeleeData {
-                min_range: 0.0,
-                max_range: 2.5,
-                angle: 40.0,
-                energy: 0.0,
-            };
-            const BALANCED_THRUST: ComboMeleeData = ComboMeleeData {
-                min_range: 0.0,
-                max_range: 4.0,
-                angle: 8.0,
-                energy: 0.0,
+                });
             };
 
-            let balanced_thrust_targetable = BALANCED_THRUST.could_use(attack_data, self);
-
-            if (matches!(self.char_state, CharacterState::ChargedMelee(c) if c.charge_amount < 0.95)
-                || matches!(
-                    tgt_data.char_state.and_then(|cs| cs.stage_section()),
-                    Some(StageSection::Buildup)
-                ))
-                && balanced_thrust_targetable
-            {
-                // If target in buildup (and therefore likely to still be around for an attack
-                // that needs charging), thrust
-                // Or if already thrusting, keep thrussting
-                controller.push_basic_input(InputKind::Secondary);
-            } else if BALANCED_COMBO.could_use(attack_data, self) && fallback_rng_1 {
-                controller.push_basic_input(InputKind::Primary);
-            } else if balanced_thrust_targetable {
-                controller.push_basic_input(InputKind::Secondary);
+            match tactic {
+                SwordTactics::Unskilled => {},
+                SwordTactics::Basic => {
+                    // Crescent slash
+                    set_sword_ability(controller, 0, 0);
+                    // Fell strike
+                    set_sword_ability(controller, 1, 1);
+                    // Skewer
+                    set_sword_ability(controller, 2, 2);
+                    // Cascade
+                    set_sword_ability(controller, 3, 3);
+                    // Cross cut
+                    set_sword_ability(controller, 4, 4);
+                },
+                SwordTactics::HeavySimple => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Crescent slash
+                    set_sword_ability(controller, 1, 0);
+                    // Cascade
+                    set_sword_ability(controller, 2, 3);
+                    // Windmill slash
+                    set_sword_ability(controller, 3, 6);
+                    // Pommel strike
+                    set_sword_ability(controller, 4, 7);
+                },
+                SwordTactics::AgileSimple => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Skewer
+                    set_sword_ability(controller, 1, 2);
+                    // Cross cut
+                    set_sword_ability(controller, 2, 4);
+                    // Quick draw
+                    set_sword_ability(controller, 3, 8);
+                    // Feint
+                    set_sword_ability(controller, 4, 9);
+                },
+                SwordTactics::DefensiveSimple => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Crescent slash
+                    set_sword_ability(controller, 1, 0);
+                    // Fell strike
+                    set_sword_ability(controller, 2, 1);
+                    // Riposte
+                    set_sword_ability(controller, 3, 10);
+                    // Disengage
+                    set_sword_ability(controller, 4, 11);
+                },
+                SwordTactics::CripplingSimple => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Fell strike
+                    set_sword_ability(controller, 1, 1);
+                    // Skewer
+                    set_sword_ability(controller, 2, 2);
+                    // Gouge
+                    set_sword_ability(controller, 3, 12);
+                    // Hamstring
+                    set_sword_ability(controller, 4, 13);
+                },
+                SwordTactics::CleavingSimple => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Cascade
+                    set_sword_ability(controller, 1, 3);
+                    // Cross cut
+                    set_sword_ability(controller, 2, 4);
+                    // Whirlwind slice
+                    set_sword_ability(controller, 3, 14);
+                    // Earth splitter
+                    set_sword_ability(controller, 4, 15);
+                },
+                SwordTactics::HeavyAdvanced => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Windmill slash
+                    set_sword_ability(controller, 1, 6);
+                    // Pommel strike
+                    set_sword_ability(controller, 2, 7);
+                    // Fortitude
+                    set_sword_ability(controller, 3, 16);
+                    // Pillar Thrust
+                    set_sword_ability(controller, 4, 17);
+                },
+                SwordTactics::AgileAdvanced => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Quick draw
+                    set_sword_ability(controller, 1, 8);
+                    // Feint
+                    set_sword_ability(controller, 2, 9);
+                    // Dancing edge
+                    set_sword_ability(controller, 3, 18);
+                    // Flurry
+                    set_sword_ability(controller, 4, 19);
+                },
+                SwordTactics::DefensiveAdvanced => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Riposte
+                    set_sword_ability(controller, 1, 10);
+                    // Disengage
+                    set_sword_ability(controller, 2, 11);
+                    // Stalwart sword
+                    set_sword_ability(controller, 3, 20);
+                    // Deflect
+                    set_sword_ability(controller, 4, 21);
+                },
+                SwordTactics::CripplingAdvanced => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Gouge
+                    set_sword_ability(controller, 1, 12);
+                    // Hamstring
+                    set_sword_ability(controller, 2, 13);
+                    // Eviscerate
+                    set_sword_ability(controller, 3, 22);
+                    // Bloody gash
+                    set_sword_ability(controller, 4, 23);
+                },
+                SwordTactics::CleavingAdvanced => {
+                    // Finisher
+                    set_sword_ability(controller, 0, 5);
+                    // Whirlwind slice
+                    set_sword_ability(controller, 1, 14);
+                    // Earth splitter
+                    set_sword_ability(controller, 2, 15);
+                    // Blade fever
+                    set_sword_ability(controller, 3, 24);
+                    // Sky splitter
+                    set_sword_ability(controller, 4, 25);
+                },
             }
 
-            advance(agent, controller, 1.5, BALANCED_COMBO.angle);
-        };
+            agent.action_state.int_counters[IntCounters::ActionMode as usize] =
+                ActionMode::Reckless as u8;
+        }
 
-        let in_stance = |stance| {
-            if let CharacterState::ComboMelee2(c) = self.char_state {
-                c.static_data.is_stance
-                    && c.static_data
-                        .ability_info
-                        .ability_meta
-                        .and_then(|meta| meta.kind)
-                        .map_or(false, |kind| AbilityKind::Sword(stance) == kind)
-            } else {
-                false
-            }
-        };
+        enum IntCounters {
+            Tactics = 0,
+            ActionMode = 1,
+        }
 
-        match stance(agent.action_state.int_counters[INT_COUNTER_STANCE]) {
-            SwordStance::Balanced => {
-                const BALANCED_FINISHER: FinisherMeleeData = FinisherMeleeData {
-                    range: 2.5,
-                    angle: 12.5,
-                    energy: 30.0,
-                    combo: 10,
-                };
+        enum Timers {
+            GuardedCycle = 0,
+            PosTimeOut = 1,
+        }
 
-                if self
-                    .skill_set
-                    .has_skill(Skill::Sword(SwordSkill::BalancedFinisher))
-                    && BALANCED_FINISHER.could_use(attack_data, self)
-                {
-                    controller.push_basic_input(InputKind::Ability(0));
-                    advance(
-                        agent,
-                        controller,
-                        BALANCED_FINISHER.range,
-                        BALANCED_FINISHER.angle,
-                    );
+        enum Conditions {
+            GuardedDefend = 0,
+            RollingBreakThrough = 1,
+        }
+
+        enum FloatCounters {
+            GuardedTimer = 0,
+        }
+
+        enum Positions {
+            GuardedCover = 0,
+            Flee = 1,
+        }
+
+        let attempt_attack = handle_attack_aggression(
+            self,
+            agent,
+            controller,
+            attack_data,
+            tgt_data,
+            read_data,
+            rng,
+            Timers::PosTimeOut as usize,
+            Timers::GuardedCycle as usize,
+            FloatCounters::GuardedTimer as usize,
+            IntCounters::ActionMode as usize,
+            Conditions::GuardedDefend as usize,
+            Conditions::RollingBreakThrough as usize,
+            Positions::GuardedCover as usize,
+            Positions::Flee as usize,
+        );
+
+        let attack_failed = if attempt_attack {
+            let context = AbilityContext::from(self.stance);
+            let extract_ability = |input: AbilityInput| {
+                AbilityData::from_ability(
+                    &self
+                        .active_abilities
+                        .activate_ability(
+                            input,
+                            Some(self.inventory),
+                            self.skill_set,
+                            self.body,
+                            Some(self.char_state),
+                            context,
+                        )
+                        .unwrap_or_default()
+                        .0,
+                )
+            };
+            let primary = extract_ability(AbilityInput::Primary);
+            let secondary = extract_ability(AbilityInput::Secondary);
+            let abilities = [
+                extract_ability(AbilityInput::Auxiliary(0)),
+                extract_ability(AbilityInput::Auxiliary(1)),
+                extract_ability(AbilityInput::Auxiliary(2)),
+                extract_ability(AbilityInput::Auxiliary(3)),
+                extract_ability(AbilityInput::Auxiliary(4)),
+            ];
+            let could_use_input = |input, desired_energy| match input {
+                InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                    p.could_use(attack_data, self, tgt_data, desired_energy)
+                }),
+                InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                    s.could_use(attack_data, self, tgt_data, desired_energy)
+                }),
+                InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                    a.could_use(attack_data, self, tgt_data, desired_energy)
+                }),
+                _ => false,
+            };
+            let continue_current_input = |current_input, next_input: &mut Option<InputKind>| {
+                if matches!(current_input, InputKind::Secondary) {
+                    let charging =
+                        matches!(self.char_state.stage_section(), Some(StageSection::Charge));
+                    let charged = self
+                        .char_state
+                        .durations()
+                        .and_then(|durs| durs.charge)
+                        .zip(self.char_state.timer())
+                        .map_or(false, |(dur, timer)| timer > dur);
+                    if !(charging && charged) {
+                        *next_input = Some(InputKind::Secondary);
+                    }
                 } else {
-                    fallback_tactics(agent, controller);
+                    *next_input = Some(current_input);
                 }
-            },
-            SwordStance::Offensive => {
-                const OFFENSIVE_COMBO: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 2.0,
-                    angle: 30.0,
-                    energy: 4.0,
-                };
-                const OFFENSIVE_ADVANCE: ComboMeleeData = ComboMeleeData {
-                    min_range: 6.0,
-                    max_range: 10.0,
-                    angle: 20.0,
-                    energy: 10.0,
-                };
-                const OFFENSIVE_FINISHER: FinisherMeleeData = FinisherMeleeData {
-                    range: 2.0,
-                    angle: 10.0,
-                    energy: 40.0,
-                    combo: 10,
-                };
-                const DESIRED_ENERGY: f32 = 50.0;
-
-                if self.energy.current() < DESIRED_ENERGY {
-                    fallback_tactics(agent, controller);
-                } else if !in_stance(SwordStance::Offensive) {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else {
-                    let used_finisher = if OFFENSIVE_FINISHER.could_use(attack_data, self)
-                        && OFFENSIVE_FINISHER.use_desirable(tgt_data, self)
-                    {
-                        controller.push_basic_input(InputKind::Ability(2));
-                        advance(
-                            agent,
-                            controller,
-                            OFFENSIVE_FINISHER.range,
-                            OFFENSIVE_FINISHER.angle,
-                        );
-                        true
+            };
+            match SwordTactics::from_u8(
+                agent.action_state.int_counters[IntCounters::Tactics as usize],
+            ) {
+                SwordTactics::Unskilled => {
+                    let desired_energy = 15.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else if rng.gen_bool(0.5) {
+                        next_input = Some(InputKind::Primary);
                     } else {
-                        false
+                        next_input = Some(InputKind::Secondary);
                     };
-
-                    if !used_finisher {
-                        if OFFENSIVE_COMBO.could_use(attack_data, self) {
-                            controller.push_basic_input(InputKind::Primary);
-                            advance(
-                                agent,
-                                controller,
-                                OFFENSIVE_COMBO.max_range,
-                                OFFENSIVE_COMBO.angle,
-                            );
-                        } else if OFFENSIVE_ADVANCE.could_use(attack_data, self) {
-                            controller.push_basic_input(InputKind::Ability(1));
-                            advance(
-                                agent,
-                                controller,
-                                OFFENSIVE_ADVANCE.max_range,
-                                OFFENSIVE_ADVANCE.angle,
-                            );
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
                         } else {
-                            advance(
-                                agent,
-                                controller,
-                                OFFENSIVE_COMBO.max_range,
-                                OFFENSIVE_COMBO.angle,
-                            );
+                            true
                         }
-                    }
-                }
-            },
-            SwordStance::Defensive => {
-                const DEFENSIVE_COMBO: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 2.5,
-                    angle: 35.0,
-                    energy: 3.0,
-                };
-                const DEFENSIVE_RETREAT: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 3.0,
-                    angle: 35.0,
-                    energy: 10.0,
-                };
-                const DEFENSIVE_BULWARK: SelfBuffData = SelfBuffData {
-                    buff: BuffKind::ProtectingWard,
-                    energy: 40.0,
-                };
-                const BASIC_BLOCK: BlockData = BlockData {
-                    angle: 55.0,
-                    range: 5.0,
-                    energy: 2.5,
-                };
-                const DESIRED_ENERGY: f32 = 50.0;
-                const CONDITION_HOLD: usize = 1;
-                const COUNTER_ANGLE: usize = 1;
-                const TIMER_HOLD_TIMEOUT: usize = 1;
-                const HOLD_TIMEOUT: f32 = 3.0;
-
-                let mut try_block = || {
-                    if let Some(char_state) = tgt_data.char_state {
-                        matches!(char_state.stage_section(), Some(StageSection::Buildup))
-                            && char_state.is_melee_attack()
-                            && BASIC_BLOCK.could_use(attack_data, self)
-                            && char_state
-                                .timer()
-                                .map_or(false, |timer| rng.gen::<f32>() < timer.as_secs_f32() * 4.0)
-                            && self
-                                .char_state
-                                .ability_info()
-                                .and_then(|a| a.ability_meta)
-                                .map(|m| m.capabilities)
-                                .map_or(false, |c| c.contains(Capability::BLOCK_INTERRUPT))
                     } else {
-                        false
+                        true
                     }
-                };
-
-                if agent.action_state.conditions[CONDITION_HOLD] {
-                    agent.action_state.timers[TIMER_HOLD_TIMEOUT] += read_data.dt.0;
-                }
-
-                if read_data.time.0
-                    - self
-                        .health
-                        .map_or(read_data.time.0, |h| h.last_change.time.0)
-                    < read_data.dt.0 as f64 * 2.0
-                    || agent.action_state.timers[TIMER_HOLD_TIMEOUT] > HOLD_TIMEOUT
-                {
-                    // If attacked in last couple ticks, stop standing still
-                    agent.action_state.conditions[CONDITION_HOLD] = false;
-                    agent.action_state.timers[TIMER_HOLD_TIMEOUT] = 0.0;
-                } else if matches!(
-                    self.char_state.ability_info().and_then(|info| info.input),
-                    Some(InputKind::Ability(1))
-                ) {
-                    // If used defensive retreat, stand still for a little bit to bait people
-                    // forward
-                    agent.action_state.conditions[CONDITION_HOLD] = true;
-                };
-
-                if self.energy.current() < DESIRED_ENERGY {
-                    fallback_tactics(agent, controller);
-                } else if !in_stance(SwordStance::Defensive) {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else if DEFENSIVE_BULWARK.could_use(self) && DEFENSIVE_BULWARK.use_desirable(self)
-                {
-                    controller.push_basic_input(InputKind::Ability(2));
-                } else if try_block() {
-                    controller.push_basic_input(InputKind::Block);
-                } else if DEFENSIVE_RETREAT.could_use(attack_data, self) && rng.gen::<f32>() < 0.2 {
-                    controller.push_basic_input(InputKind::Ability(1));
-                    if !agent.action_state.conditions[CONDITION_HOLD] {
-                        advance(
-                            agent,
-                            controller,
-                            DEFENSIVE_RETREAT.max_range,
-                            DEFENSIVE_RETREAT.angle,
-                        );
-                    }
-                } else if DEFENSIVE_COMBO.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Primary);
-                    if !agent.action_state.conditions[CONDITION_HOLD] {
-                        advance(
-                            agent,
-                            controller,
-                            DEFENSIVE_COMBO.max_range,
-                            DEFENSIVE_COMBO.angle,
-                        );
-                    }
-                } else if agent.action_state.conditions[CONDITION_HOLD] {
-                    agent.action_state.counters[COUNTER_ANGLE] += rng.gen::<f32>() * read_data.dt.0;
-                    controller.inputs.move_dir =
-                        Vec2::unit_x().rotated_z(agent.action_state.counters[COUNTER_ANGLE]) * 0.25;
-                } else {
-                    advance(
-                        agent,
-                        controller,
-                        DEFENSIVE_COMBO.max_range,
-                        DEFENSIVE_COMBO.angle,
-                    );
-                }
-            },
-            SwordStance::Mobility => {
-                const MOBILITY_COMBO: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 2.5,
-                    angle: 35.0,
-                    energy: 3.0,
-                };
-                const MOBILITY_FEINT: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 3.0,
-                    angle: 35.0,
-                    energy: 10.0,
-                };
-                const MOBILITY_AGILITY: SelfBuffData = SelfBuffData {
-                    buff: BuffKind::Hastened,
-                    energy: 40.0,
-                };
-                const DESIRED_ENERGY: f32 = 50.0;
-
-                let mut try_roll = |controller: &mut Controller| {
-                    if let Some(char_state) = tgt_data.char_state {
-                        let try_roll =
-                            matches!(char_state.stage_section(), Some(StageSection::Buildup))
-                                && char_state.is_melee_attack()
-                                && char_state.timer().map_or(false, |timer| {
-                                    rng.gen::<f32>() < timer.as_secs_f32() * 4.0
-                                })
-                                && matches!(
-                                    self.char_state.stage_section(),
-                                    Some(StageSection::Recover)
-                                )
-                                && self
-                                    .char_state
-                                    .ability_info()
-                                    .and_then(|a| a.ability_meta)
-                                    .map(|m| m.capabilities)
-                                    .map_or(false, |c| c.contains(Capability::ROLL_INTERRUPT));
-                        if try_roll {
-                            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
-                                .xy()
-                                .try_normalized()
-                                .unwrap_or_default();
-                            controller.push_basic_input(InputKind::Roll);
+                },
+                SwordTactics::Basic => {
+                    let desired_energy = 25.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let attempt_ability = InputKind::Ability(rng.gen_range(0..5));
+                        if could_use_input(attempt_ability, desired_energy) {
+                            next_input = Some(attempt_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
                         }
-                        try_roll
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
                     } else {
-                        false
+                        true
                     }
-                };
-
-                if matches!(self.char_state, CharacterState::Roll(_)) {
-                    controller.push_basic_input(InputKind::Jump);
-                }
-
-                if self.energy.current() < DESIRED_ENERGY {
-                    fallback_tactics(agent, controller);
-                } else if !in_stance(SwordStance::Mobility) {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else if MOBILITY_AGILITY.could_use(self) && MOBILITY_AGILITY.use_desirable(self) {
-                    controller.push_basic_input(InputKind::Ability(2));
-                } else if try_roll(controller) {
-                    // Nothing here, rolling handled in try_roll function
-                } else if MOBILITY_FEINT.could_use(attack_data, self) && rng.gen::<f32>() < 0.3 {
-                    controller.push_basic_input(InputKind::Ability(1));
-                    advance(
-                        agent,
-                        controller,
-                        MOBILITY_FEINT.max_range,
-                        MOBILITY_FEINT.angle,
-                    );
-                } else if MOBILITY_COMBO.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Primary);
-                    advance(
-                        agent,
-                        controller,
-                        MOBILITY_COMBO.max_range,
-                        MOBILITY_COMBO.angle,
-                    );
-                } else {
-                    advance(
-                        agent,
-                        controller,
-                        MOBILITY_COMBO.max_range,
-                        MOBILITY_COMBO.angle,
-                    );
-                }
-
-                const CONDITION_FEINT_DIR: usize = 1;
-
-                if rng.gen::<f32>() < read_data.dt.0 {
-                    agent.action_state.conditions[CONDITION_FEINT_DIR] =
-                        !agent.action_state.conditions[CONDITION_FEINT_DIR];
-                }
-                let dir = if agent.action_state.conditions[CONDITION_FEINT_DIR] {
-                    1.0
-                } else {
-                    -1.0
-                };
-                controller.inputs.move_dir.rotated_z(PI / 4.0 * dir);
-            },
-            SwordStance::Crippling => {
-                const CRIPPLING_COMBO: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 2.5,
-                    angle: 35.0,
-                    energy: 5.0,
-                };
-                const CRIPPLING_GOUGE: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 3.0,
-                    angle: 35.0,
-                    energy: 25.0,
-                };
-                const CRIPPLING_STRIKE: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 3.0,
-                    angle: 35.0,
-                    energy: 25.0,
-                };
-                const CRIPPLING_FINISHER: FinisherMeleeData = FinisherMeleeData {
-                    range: 2.5,
-                    angle: 10.0,
-                    energy: 40.0,
-                    combo: 10,
-                };
-                const DESIRED_ENERGY: f32 = 50.0;
-
-                if self.energy.current() < DESIRED_ENERGY {
-                    fallback_tactics(agent, controller);
-                } else if !in_stance(SwordStance::Crippling) {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else if CRIPPLING_FINISHER.could_use(attack_data, self)
-                    && CRIPPLING_FINISHER.use_desirable(tgt_data, self)
-                {
-                    controller.push_basic_input(InputKind::Ability(1));
-                    advance(
-                        agent,
-                        controller,
-                        CRIPPLING_FINISHER.range,
-                        CRIPPLING_FINISHER.angle,
-                    );
-                } else if tgt_data
-                    .buffs
-                    .map_or(false, |buffs| !buffs.contains(BuffKind::Crippled))
-                    && CRIPPLING_STRIKE.could_use(attack_data, self)
-                {
-                    controller.push_basic_input(InputKind::Ability(2));
-                    advance(
-                        agent,
-                        controller,
-                        CRIPPLING_STRIKE.max_range,
-                        CRIPPLING_STRIKE.angle,
-                    );
-                } else if CRIPPLING_GOUGE.could_use(attack_data, self) && rng.gen::<f32>() < 0.3 {
-                    controller.push_basic_input(InputKind::Ability(3));
-                    advance(
-                        agent,
-                        controller,
-                        CRIPPLING_GOUGE.max_range,
-                        CRIPPLING_GOUGE.angle,
-                    );
-                } else if CRIPPLING_COMBO.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Primary);
-                    advance(
-                        agent,
-                        controller,
-                        CRIPPLING_COMBO.max_range,
-                        CRIPPLING_COMBO.angle,
-                    );
-                } else {
-                    advance(
-                        agent,
-                        controller,
-                        CRIPPLING_COMBO.max_range,
-                        CRIPPLING_COMBO.angle,
-                    );
-                }
-            },
-            SwordStance::Cleaving => {
-                // TODO: Rewrite cleaving stance tactics when agents can consider multiple
-                // targets at once. Remove hack to make cleaving AI appear less frequently above
-                // when doing so.
-                const CLEAVING_COMBO: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 2.5,
-                    angle: 35.0,
-                    energy: 6.0,
-                };
-                const CLEAVING_FINISHER: FinisherMeleeData = FinisherMeleeData {
-                    range: 2.0,
-                    angle: 10.0,
-                    energy: 40.0,
-                    combo: 10,
-                };
-                const CLEAVING_SPIN: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 5.0,
-                    angle: 360.0,
-                    energy: 20.0,
-                };
-                const CLEAVING_DIVE: DiveMeleeData = DiveMeleeData {
-                    range: 5.0,
-                    angle: 10.0,
-                    energy: 25.0,
-                };
-                const DESIRED_ENERGY: f32 = 50.0;
-
-                // TODO: Remove when agents actually have multiple targets
-                // Hacky check for multiple nearby melee range targets
-                let are_nearby_targets = || {
-                    if let Some(health) = self.health {
-                        health
-                            .recent_damagers()
-                            .filter(|(_, time)| read_data.time.0 - time.0 < 5.0)
-                            .filter_map(|(uid, _)| {
-                                read_data.uid_allocator.retrieve_entity_internal(uid.0)
-                            })
-                            .filter(|e| {
-                                read_data.positions.get(*e).map_or(false, |pos| {
-                                    pos.0.distance_squared(self.pos.0) < 10_f32.powi(2)
-                                })
-                            })
-                            .count()
-                            > 1
+                },
+                SwordTactics::HeavySimple => {
+                    let desired_energy = 35.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
                     } else {
-                        false
-                    }
-                };
-
-                const CONDITION_SELF_ROLLING: usize = 1;
-                const TIMER_DIVE_TIMEOUT: usize = 1;
-
-                if matches!(self.char_state, CharacterState::Roll(_)) {
-                    agent.action_state.conditions[CONDITION_SELF_ROLLING] = true;
-                }
-
-                if agent.action_state.conditions[CONDITION_SELF_ROLLING] {
-                    if self.physics_state.on_ground.is_some() {
-                        controller.push_basic_input(InputKind::Jump);
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Heavy))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
                     } else {
-                        controller.push_basic_input(InputKind::Ability(3));
+                        true
                     }
-                    agent.action_state.timers[TIMER_DIVE_TIMEOUT] += read_data.dt.0;
-                    if agent.action_state.timers[TIMER_DIVE_TIMEOUT] > 2.0 {
-                        agent.action_state.timers[TIMER_DIVE_TIMEOUT] = 0.0;
-                        agent.action_state.conditions[CONDITION_SELF_ROLLING] = false;
-                    }
-                    advance(agent, controller, CLEAVING_DIVE.range, CLEAVING_DIVE.angle);
-                } else if self.energy.current() < DESIRED_ENERGY {
-                    fallback_tactics(agent, controller);
-                } else if !in_stance(SwordStance::Cleaving) {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else if CLEAVING_FINISHER.could_use(attack_data, self)
-                    && CLEAVING_FINISHER.use_desirable(tgt_data, self)
-                {
-                    controller.push_basic_input(InputKind::Ability(1));
-                    advance(
-                        agent,
-                        controller,
-                        CLEAVING_FINISHER.range,
-                        CLEAVING_FINISHER.angle,
-                    );
-                } else if CLEAVING_SPIN.could_use(attack_data, self) && are_nearby_targets() {
-                    controller.push_basic_input(InputKind::Ability(2));
-                    advance(
-                        agent,
-                        controller,
-                        CLEAVING_SPIN.max_range,
-                        CLEAVING_SPIN.angle,
-                    );
-                } else if CLEAVING_DIVE.npc_should_use_hack(self, tgt_data) {
-                    controller.push_basic_input(InputKind::Roll);
-                    advance(agent, controller, CLEAVING_DIVE.range, CLEAVING_DIVE.angle);
-                } else if CLEAVING_COMBO.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Primary);
-                    advance(
-                        agent,
-                        controller,
-                        CLEAVING_COMBO.max_range,
-                        CLEAVING_COMBO.angle,
-                    );
-                } else {
-                    advance(
-                        agent,
-                        controller,
-                        CLEAVING_COMBO.max_range,
-                        CLEAVING_COMBO.angle,
-                    );
-                }
-            },
-            SwordStance::Parrying => {
-                const PARRYING_COMBO: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 2.5,
-                    angle: 35.0,
-                    energy: 6.0,
-                };
-                const PARRYING_PARRY: BlockData = BlockData {
-                    angle: 40.0,
-                    range: 5.0,
-                    energy: 10.0,
-                };
-                const PARRYING_RIPOSTE: BlockData = BlockData {
-                    angle: 15.0,
-                    range: 3.5,
-                    energy: 20.0,
-                };
-                const PARRYING_COUNTER: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 2.5,
-                    angle: 25.0,
-                    energy: 15.0,
-                };
-                const DESIRED_ENERGY: f32 = 50.0;
-
-                let try_parry = |pregen_rng_1: f32| {
-                    if let Some(char_state) = tgt_data.char_state {
-                        matches!(char_state.stage_section(), Some(StageSection::Buildup))
-                            && char_state.is_melee_attack()
-                            && char_state
-                                .timer()
-                                .map_or(false, |timer| pregen_rng_1 < timer.as_secs_f32() * 4.0)
+                },
+                SwordTactics::AgileSimple => {
+                    let desired_energy = 35.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
                     } else {
-                        false
-                    }
-                };
-
-                if self.energy.current() < DESIRED_ENERGY {
-                    fallback_tactics(agent, controller);
-                } else if !in_stance(SwordStance::Parrying) {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else if matches!(
-                    tgt_data.char_state.and_then(|cs| cs.stage_section()),
-                    Some(StageSection::Buildup)
-                ) && PARRYING_COUNTER.could_use(attack_data, self)
-                    && rng.gen::<f32>() < self.health.map_or(0.0, |h| h.fraction())
-                {
-                    controller.push_basic_input(InputKind::Ability(3));
-                    advance(
-                        agent,
-                        controller,
-                        PARRYING_COUNTER.max_range,
-                        PARRYING_COUNTER.angle,
-                    );
-                } else if try_parry(rng.gen::<f32>()) {
-                    if PARRYING_RIPOSTE.could_use(attack_data, self)
-                        && rng.gen::<f32>() > self.health.map_or(0.0, |h| h.fraction())
-                    {
-                        controller.push_basic_input(InputKind::Ability(2));
-                        advance(
-                            agent,
-                            controller,
-                            PARRYING_RIPOSTE.range,
-                            PARRYING_RIPOSTE.angle,
-                        );
-                    } else if PARRYING_PARRY.could_use(attack_data, self) {
-                        controller.push_basic_input(InputKind::Ability(1));
-                        advance(
-                            agent,
-                            controller,
-                            PARRYING_PARRY.range,
-                            PARRYING_PARRY.angle,
-                        );
-                    } else if PARRYING_COMBO.could_use(attack_data, self) {
-                        controller.push_basic_input(InputKind::Primary);
-                        advance(
-                            agent,
-                            controller,
-                            PARRYING_COMBO.max_range,
-                            PARRYING_COMBO.angle,
-                        );
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Agile))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
                     } else {
-                        advance(
-                            agent,
-                            controller,
-                            PARRYING_COMBO.max_range,
-                            PARRYING_COMBO.angle,
-                        );
+                        true
                     }
-                } else if PARRYING_COMBO.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Primary);
-                    advance(
-                        agent,
-                        controller,
-                        PARRYING_COMBO.max_range,
-                        PARRYING_COMBO.angle,
-                    );
-                } else {
-                    advance(
-                        agent,
-                        controller,
-                        PARRYING_COMBO.max_range,
-                        PARRYING_COMBO.angle,
-                    );
-                }
-            },
-            SwordStance::Heavy => {
-                const HEAVY_COMBO: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 2.5,
-                    angle: 35.0,
-                    energy: 5.0,
-                };
-                const HEAVY_FINISHER: FinisherMeleeData = FinisherMeleeData {
-                    range: 2.5,
-                    angle: 10.0,
-                    energy: 40.0,
-                    combo: 10,
-                };
-                const HEAVY_POMMELSTRIKE: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 3.0,
-                    angle: 3.0,
-                    energy: 15.0,
-                };
-                const HEAVY_FORTITUDE: SelfBuffData = SelfBuffData {
-                    buff: BuffKind::Fortitude,
-                    energy: 40.0,
-                };
-                const DESIRED_ENERGY: f32 = 50.0;
+                },
+                SwordTactics::DefensiveSimple => {
+                    let desired_energy = 35.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Defensive))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(InputKind::Ability(3), desired_energy) {
+                            next_input = Some(InputKind::Ability(3));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::CripplingSimple => {
+                    let desired_energy = 35.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Crippling))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::CleavingSimple => {
+                    let desired_energy = 35.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(3..5));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Cleaving))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::HeavyAdvanced => {
+                    let desired_energy = 50.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Heavy))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::AgileAdvanced => {
+                    let desired_energy = 50.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Agile))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::DefensiveAdvanced => {
+                    let desired_energy = 50.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..4));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Defensive))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if could_use_input(InputKind::Ability(4), desired_energy)
+                            && rng.gen_bool(2.0 * read_data.dt.0 as f64)
+                        {
+                            next_input = Some(InputKind::Ability(4));
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::CripplingAdvanced => {
+                    let desired_energy = 50.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Crippling))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+                SwordTactics::CleavingAdvanced => {
+                    let desired_energy = 50.0;
+                    let current_input = self.char_state.ability_info().map(|ai| ai.input);
+                    let mut next_input = None;
+                    if let Some(input) = current_input {
+                        continue_current_input(input, &mut next_input);
+                    } else {
+                        let stance_ability = InputKind::Ability(rng.gen_range(1..3));
+                        let random_ability = InputKind::Ability(rng.gen_range(1..5));
+                        if !matches!(self.stance, Some(Stance::Sword(SwordStance::Cleaving))) {
+                            if could_use_input(stance_ability, desired_energy) {
+                                next_input = Some(stance_ability);
+                            } else if rng.gen_bool(0.5) {
+                                next_input = Some(InputKind::Primary);
+                            } else {
+                                next_input = Some(InputKind::Secondary);
+                            }
+                        } else if could_use_input(InputKind::Ability(0), desired_energy) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if could_use_input(random_ability, desired_energy) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    };
+                    if let Some(input) = next_input {
+                        if could_use_input(input, desired_energy) {
+                            controller.push_basic_input(input);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                },
+            }
+        } else {
+            false
+        };
 
-                const CONDITION_POISE_DMG: usize = 1;
-                const TIMER_POMMELSTRIKE: usize = 1;
-
-                agent.action_state.conditions[CONDITION_POISE_DMG] = self
-                    .poise
-                    .map_or(false, |p| p.current() < p.maximum() * 0.8);
-                if matches!(
-                    self.char_state.ability_info().and_then(|info| info.ability),
-                    Some(Ability::MainWeaponAux(21))
-                ) {
-                    agent.action_state.timers[TIMER_POMMELSTRIKE] = 0.0;
-                }
-
-                if self.energy.current() < DESIRED_ENERGY {
-                    fallback_tactics(agent, controller);
-                } else if !in_stance(SwordStance::Heavy) {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else if HEAVY_FORTITUDE.could_use(self)
-                    && HEAVY_FORTITUDE.use_desirable(self)
-                    && agent.action_state.conditions[CONDITION_POISE_DMG]
-                {
-                    controller.push_basic_input(InputKind::Ability(3));
-                } else if HEAVY_FINISHER.could_use(attack_data, self)
-                    && HEAVY_FINISHER.use_desirable(tgt_data, self)
-                {
-                    controller.push_basic_input(InputKind::Ability(1));
-                    advance(
-                        agent,
-                        controller,
-                        HEAVY_FINISHER.range,
-                        HEAVY_FINISHER.angle,
-                    );
-                } else if HEAVY_POMMELSTRIKE.could_use(attack_data, self)
-                    && rng.gen::<f32>()
-                        < agent.action_state.timers[TIMER_POMMELSTRIKE]
-                            * self.poise.map_or(0.5, |p| p.fraction())
-                {
-                    controller.push_basic_input(InputKind::Ability(2));
-                    advance(
-                        agent,
-                        controller,
-                        HEAVY_POMMELSTRIKE.max_range,
-                        HEAVY_POMMELSTRIKE.angle,
-                    );
-                } else if HEAVY_COMBO.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Primary);
-                    advance(agent, controller, HEAVY_COMBO.max_range, HEAVY_COMBO.angle);
-                    agent.action_state.timers[TIMER_POMMELSTRIKE] += read_data.dt.0;
-                } else {
-                    advance(agent, controller, HEAVY_COMBO.max_range, HEAVY_COMBO.angle);
-                }
-            },
-            SwordStance::Reaching => {
-                const REACHING_COMBO: ComboMeleeData = ComboMeleeData {
-                    min_range: 0.0,
-                    max_range: 4.5,
-                    angle: 6.0,
-                    energy: 5.0,
-                };
-                const REACHING_CHARGE: DashMeleeData = DashMeleeData {
-                    range: 3.5,
-                    angle: 12.5,
-                    initial_energy: 10.0,
-                    energy_drain: 20.0,
-                    speed: 3.0,
-                    charge_dur: 1.0,
-                };
-                const REACHING_FLURRY: RapidMeleeData = RapidMeleeData {
-                    range: 4.0,
-                    angle: 7.5,
-                    energy: 10.0,
-                    strikes: 6,
-                };
-                const REACHING_SKEWER: ComboMeleeData = ComboMeleeData {
-                    min_range: 1.0,
-                    max_range: 7.5,
-                    angle: 7.5,
-                    energy: 15.0,
-                };
-                const DESIRED_ENERGY: f32 = 50.0;
-
-                if self.energy.current() < DESIRED_ENERGY {
-                    fallback_tactics(agent, controller);
-                } else if !in_stance(SwordStance::Reaching) {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else if matches!(self.char_state, CharacterState::DashMelee(s) if s.stage_section != StageSection::Recover)
-                    || (REACHING_CHARGE.could_use(attack_data, self)
-                        && REACHING_CHARGE.use_desirable(attack_data, self))
-                {
-                    controller.push_basic_input(InputKind::Ability(1));
-                    advance(
-                        agent,
-                        controller,
-                        REACHING_CHARGE.range,
-                        REACHING_CHARGE.angle,
-                    );
-                } else if REACHING_FLURRY.could_use(attack_data, self)
-                    && matches!(
-                        tgt_data.char_state.and_then(|cs| cs.stage_section()),
-                        Some(StageSection::Buildup)
-                    )
-                    && rng.gen::<f32>() < 0.5
-                {
-                    controller.push_basic_input(InputKind::Ability(2));
-                    advance(
-                        agent,
-                        controller,
-                        REACHING_FLURRY.range,
-                        REACHING_FLURRY.angle,
-                    );
-                } else if REACHING_SKEWER.could_use(attack_data, self) && rng.gen::<f32>() < 0.33 {
-                    controller.push_basic_input(InputKind::Ability(3));
-                    advance(
-                        agent,
-                        controller,
-                        REACHING_SKEWER.max_range,
-                        REACHING_SKEWER.angle,
-                    );
-                } else if REACHING_COMBO.could_use(attack_data, self) {
-                    controller.push_basic_input(InputKind::Primary);
-                    advance(
-                        agent,
-                        controller,
-                        REACHING_COMBO.max_range,
-                        REACHING_COMBO.angle,
-                    );
-                } else {
-                    advance(
-                        agent,
-                        controller,
-                        REACHING_COMBO.max_range,
-                        REACHING_COMBO.angle,
-                    );
-                }
-            },
-        }
-
-        if self.active_abilities.auxiliary_sets.is_empty() {
-            agent.action_state.initialized = false;
+        if attack_failed && attack_data.dist_sqrd > 1.5_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
         }
     }
 
@@ -1517,7 +1311,8 @@ impl<'a> AgentData<'a> {
                 // Use shotgun if target close and have sufficient energy
                 controller.push_basic_input(InputKind::Ability(0));
             } else if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
+                && self.energy.current()
+                    > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicRanged(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else roll away if can roll and have enough energy, and not using shotgun
@@ -1622,7 +1417,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             ConditionStaffCanShockwave = 0,
         }
-        let context = AbilityContext::try_from(Some(self.char_state));
+        let context = AbilityContext::from(self.stance);
         let extract_ability = |input: AbilityInput| {
             self.active_abilities
                 .activate_ability(
@@ -1630,6 +1425,7 @@ impl<'a> AgentData<'a> {
                     Some(self.inventory),
                     self.skill_set,
                     self.body,
+                    Some(self.char_state),
                     context,
                 )
                 .unwrap_or_default()
@@ -1646,7 +1442,8 @@ impl<'a> AgentData<'a> {
         let shockwave_cost = shockwave.energy_cost();
         if self.body.map_or(false, |b| b.is_humanoid())
             && attack_data.in_min_range()
-            && self.energy.current() > CharacterAbility::default_roll().energy_cost()
+            && self.energy.current()
+                > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
             && !matches!(self.char_state, CharacterState::Shockwave(_))
         {
             // if a humanoid, have enough stamina, not in shockwave, and in melee range,
@@ -1683,7 +1480,8 @@ impl<'a> AgentData<'a> {
                         [ActionStateConditions::ConditionStaffCanShockwave as usize] = true;
                 }
             } else if self.energy.current()
-                > shockwave_cost + CharacterAbility::default_roll().energy_cost()
+                > shockwave_cost
+                    + CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && attack_data.dist_sqrd < flamethrower_range.powi(2)
             {
                 controller.push_basic_input(InputKind::Secondary);
@@ -1820,7 +1618,8 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if self.body.map_or(false, |b| b.is_humanoid())
-                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
+                && self.energy.current()
+                    > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else roll away if can roll and have enough energy, and not using aura or in
@@ -3983,7 +3782,8 @@ impl<'a> AgentData<'a> {
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if self.body.map_or(false, |b| b.is_humanoid())
-                && self.energy.current() > CharacterAbility::default_roll().energy_cost()
+                && self.energy.current()
+                    > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else use steam beam

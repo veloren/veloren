@@ -509,7 +509,7 @@ impl<'a> Widget for Crafting<'a> {
             }
         };
 
-        let make_psuedo_recipe = |craft_sprite| Recipe {
+        let make_pseudo_recipe = |craft_sprite| Recipe {
             output: (
                 Arc::<ItemDef>::load_expect_cloned("common.items.weapons.empty.empty"),
                 0,
@@ -518,9 +518,9 @@ impl<'a> Widget for Crafting<'a> {
             craft_sprite: Some(craft_sprite),
         };
 
-        let weapon_recipe = make_psuedo_recipe(SpriteKind::CraftingBench);
-        let metal_comp_recipe = make_psuedo_recipe(SpriteKind::Anvil);
-        let wood_comp_recipe = make_psuedo_recipe(SpriteKind::CraftingBench);
+        let weapon_recipe = make_pseudo_recipe(SpriteKind::CraftingBench);
+        let metal_comp_recipe = make_pseudo_recipe(SpriteKind::Anvil);
+        let wood_comp_recipe = make_pseudo_recipe(SpriteKind::CraftingBench);
         let modular_entries = {
             // A BTreeMap is used over a HashMap as when a HashMap is used, the UI shuffles
             // the positions of these every tick, so a BTreeMap is necessary to keep it

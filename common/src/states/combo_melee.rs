@@ -1,5 +1,5 @@
 use crate::{
-    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
     comp::{
         character_state::OutputEvents,
         melee::MultiTarget,
@@ -72,16 +72,7 @@ impl Stage<f32> {
     }
 
     #[must_use]
-    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
-        if let Some(CombatEffect::Buff(CombatBuff {
-            kind: _,
-            dur_secs: _,
-            ref mut strength,
-            chance: _,
-        })) = self.damage_effect
-        {
-            *strength *= stats.buff_strength;
-        }
+    pub fn adjusted_by_stats(self, stats: Stats) -> Self {
         Self {
             stage: self.stage,
             base_damage: self.base_damage * stats.power,
@@ -97,7 +88,7 @@ impl Stage<f32> {
             base_recover_duration: self.base_recover_duration / stats.speed,
             forward_movement: self.forward_movement,
             damage_kind: self.damage_kind,
-            damage_effect: self.damage_effect,
+            damage_effect: self.damage_effect.map(|de| de.adjusted_by_stats(stats)),
         }
     }
 
@@ -342,12 +333,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self
-                        .static_data
-                        .ability_info
-                        .input
-                        .map_or(false, |input| input_is_pressed(data, input))
-                    {
+                    if input_is_pressed(data, self.static_data.ability_info.input) {
                         reset_state(self, data, output_events, &mut update);
                     } else {
                         end_melee_ability(data, &mut update);
@@ -361,7 +347,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_interrupts(data, &mut update);
+        handle_interrupts(data, &mut update, output_events);
 
         update
     }
@@ -385,11 +371,14 @@ fn reset_state(
     output_events: &mut OutputEvents,
     update: &mut StateUpdate,
 ) {
-    if let Some(input) = data.static_data.ability_info.input {
-        handle_input(join, output_events, update, input);
+    handle_input(
+        join,
+        output_events,
+        update,
+        data.static_data.ability_info.input,
+    );
 
-        if let CharacterState::ComboMelee(c) = &mut update.character {
-            c.stage = (data.stage % data.static_data.num_stages) + 1;
-        }
+    if let CharacterState::ComboMelee(c) = &mut update.character {
+        c.stage = (data.stage % data.static_data.num_stages) + 1;
     }
 }
