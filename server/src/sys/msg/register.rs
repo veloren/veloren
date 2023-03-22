@@ -351,7 +351,7 @@ impl<'a> System<'a> for Sys {
                             material_stats: (*read_data.material_stats).clone(),
                             ability_map: (*read_data.ability_map).clone(),
                             server_constants: ServerConstants {
-                                day_cycle_coefficient: 1400.0 / read_data.settings.day_length
+                                day_cycle_coefficient: 1440.0 / read_data.settings.day_length
                             },
                         })?;
                         debug!("Done initial sync with client.");

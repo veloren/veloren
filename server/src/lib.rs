@@ -565,7 +565,7 @@ impl Server {
         rtsim::init(&mut state);
 
         let server_constants = ServerConstants {
-            day_cycle_coefficient: 1400.0 / settings.day_length,
+            day_cycle_coefficient: 1440.0 / settings.day_length,
         };
 
         let this = Self {
