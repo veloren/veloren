@@ -7,7 +7,7 @@ use common::{
     comp::{self, Body},
     grid::Grid,
     terrain::TerrainChunkSize,
-    vol::RectVolSize,
+    vol::RectVolSize, rtsim::Personality,
 };
 use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 use tracing::warn;
@@ -76,6 +76,7 @@ impl Rule for SimulateNpcs {
                         };
                         data.spawn_npc(
                             Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
+                                .with_personality(Personality::random(&mut rng))
                                 .with_home(site_id)
                                 .with_faction(npc.faction)
                                 .with_profession(npc.profession.clone()),
