@@ -79,10 +79,10 @@ use common::{
     event::{EventBus, ServerEvent},
     resources::{BattleMode, GameMode, Time, TimeOfDay},
     rtsim::RtSimEntity,
+    shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::{TerrainChunk, TerrainChunkSize},
     vol::RectRasterableVol,
-    shared_server_config::ServerConstants,
 };
 use common_ecs::run_now;
 use common_net::{
@@ -565,7 +565,7 @@ impl Server {
         rtsim::init(&mut state);
 
         let server_constants = ServerConstants {
-            day_cycle_coefficient: 1400.0 / settings.day_length
+            day_cycle_coefficient: 1400.0 / settings.day_length,
         };
 
         let this = Self {
@@ -710,7 +710,7 @@ impl Server {
             },
             false,
             Some(&mut state_tick_metrics),
-            &self.server_constants
+            &self.server_constants,
         );
 
         let before_handle_events = Instant::now();

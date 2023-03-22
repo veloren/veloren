@@ -12,12 +12,12 @@ use common::{
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBook},
     resources::{Time, TimeOfDay},
+    shared_server_config::ServerConstants,
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
     uuid::Uuid,
     weather::WeatherGrid,
-    shared_server_config::ServerConstants,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -67,7 +67,7 @@ pub enum ServerInit {
         component_recipe_book: ComponentRecipeBook,
         material_stats: MaterialStatManifest,
         ability_map: comp::item::tool::AbilityMap,
-        server_constants: ServerConstants
+        server_constants: ServerConstants,
     },
 }
 

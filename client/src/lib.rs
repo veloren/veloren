@@ -40,6 +40,7 @@ use common::{
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBook},
     resources::{GameMode, PlayerEntity, Time, TimeOfDay},
+    shared_server_config::ServerConstants,
     spiral::Spiral2d,
     terrain::{
         block::Block, map::MapConfig, neighbors, site::DungeonKindMeta, BiomeKind,
@@ -50,7 +51,6 @@ use common::{
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
     weather::{Weather, WeatherGrid},
-    shared_server_config::ServerConstants,
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
@@ -266,7 +266,7 @@ pub struct Client {
     pending_chunks: HashMap<Vec2<i32>, Instant>,
     target_time_of_day: Option<TimeOfDay>,
 
-    connected_server_constants: ServerConstants
+    connected_server_constants: ServerConstants,
 }
 
 /// Holds data related to the current players characters, as well as some
@@ -749,7 +749,7 @@ impl Client {
             pending_chunks: HashMap::new(),
             target_time_of_day: None,
 
-            connected_server_constants: server_constants
+            connected_server_constants: server_constants,
         })
     }
 
@@ -1804,7 +1804,7 @@ impl Client {
             },
             true,
             None,
-            &self.connected_server_constants
+            &self.connected_server_constants,
         );
         // TODO: avoid emitting these in the first place
         let _ = self

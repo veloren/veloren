@@ -6,10 +6,11 @@ mod tests {
             Controller, Energy, Ori, PhysicsState, Poise, Pos, Skill, Stats, Vel,
         },
         resources::{DeltaTime, GameMode, Time},
+        shared_server_config::ServerConstants,
         terrain::{MapSizeLg, TerrainChunk},
         uid::Uid,
         util::Dir,
-        SkillSetBuilder, shared_server_config::ServerConstants,
+        SkillSetBuilder,
     };
     use common_ecs::dispatch;
     use common_state::State;

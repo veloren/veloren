@@ -10,8 +10,8 @@ use common::{
     event::{EventBus, ServerEvent},
     recipe::{default_component_recipe_book, default_recipe_book},
     resources::TimeOfDay,
-    uid::{Uid, UidAllocator},
     shared_server_config::ServerConstants,
+    uid::{Uid, UidAllocator},
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};

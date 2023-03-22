@@ -16,13 +16,13 @@ use common::{
         DeltaTime, EntitiesDiedLastTick, GameMode, PlayerEntity, PlayerPhysicsSettings, Time,
         TimeOfDay,
     },
+    shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::{Block, MapSizeLg, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     trade::Trades,
     vol::{ReadVol, WriteVol},
     weather::{Weather, WeatherGrid},
-    shared_server_config::ServerConstants,
 };
 use common_base::span;
 use common_ecs::{PhysicsMetrics, SysMetrics};
@@ -595,7 +595,7 @@ impl State {
         add_systems: impl Fn(&mut DispatcherBuilder),
         update_terrain_and_regions: bool,
         mut metrics: Option<&mut StateTickMetrics>,
-        server_constants: &ServerConstants
+        server_constants: &ServerConstants,
     ) {
         span!(_guard, "tick", "State::tick");
 
@@ -609,7 +609,8 @@ impl State {
         }
 
         // Change the time accordingly.
-        self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * server_constants.day_cycle_coefficient;
+        self.ecs.write_resource::<TimeOfDay>().0 +=
+            dt.as_secs_f64() * server_constants.day_cycle_coefficient;
 
         // Update delta time.
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping
