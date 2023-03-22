@@ -227,7 +227,7 @@ impl Settings {
     pub fn load(path: &Path) -> Self {
         let path = Self::get_settings_path(path);
 
-        let settings = if let Ok(file) = fs::File::open(&path) {
+        let mut settings = if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader(file) {
                 Ok(x) => x,
                 Err(e) => {
@@ -255,12 +255,8 @@ impl Settings {
             default_settings
         };
 
-        if let Err(e) = settings.validate() {
-            // TODO: Handle in a better way (like have load return result)
-            panic!("{e}");
-        } else {
-            settings
-        }
+        settings.validate();
+        settings
     }
 
     fn save_to_file(&self, path: &Path) -> std::io::Result<()> {
@@ -314,12 +310,20 @@ impl Settings {
         path
     }
 
-    fn validate(&self) -> Result<(), InvalidSettingsError> {
-        if self.day_length <= 0.0 {
-            return Err(InvalidSettingsError::InvalidDayDuration);
-        }
+    fn validate(&mut self) {
+        const INVALID_SETTING_MSG: &str =
+            "Invalid value for setting in userdata/server/server_config/settings.ron.";
 
-        Ok(())
+        let default_values = Settings::default();
+
+        if self.day_length <= 0.0 {
+            warn!(
+                "{} Setting: day_length, Value: {}. Set day_length to it's default value of {}. \
+                 Help: day_length must be a positive floating point value above 0.",
+                INVALID_SETTING_MSG, self.day_length, default_values.day_length
+            );
+            self.day_length = default_values.day_length;
+        }
     }
 }
 
