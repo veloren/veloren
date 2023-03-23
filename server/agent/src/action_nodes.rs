@@ -1463,16 +1463,11 @@ impl<'a> AgentData<'a> {
             Tactic::AdletHunter => {
                 self.handle_adlet_hunter(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
-            Tactic::AdletIcepicker => self.handle_adlet_icepicker(
-                agent,
-                controller,
-                &attack_data,
-                tgt_data,
-                read_data,
-                rng,
-            ),
+            Tactic::AdletIcepicker => {
+                self.handle_adlet_icepicker(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::AdletTracker => {
-                self.handle_adlet_tracker(agent, controller, &attack_data, tgt_data, read_data, rng)
+                self.handle_adlet_tracker(agent, controller, &attack_data, tgt_data, read_data)
             },
         }
     }

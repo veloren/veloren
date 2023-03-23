@@ -12,8 +12,8 @@ LeapMelee(
             energy_regen: 0,
         ),
         range: 4,
-        angle: 30,
+        angle: 360,
     ),
-    forward_leap_strength: 18,
-    vertical_leap_strength: 8,
+    forward_leap_strength: 24,
+    vertical_leap_strength: 16,
 )

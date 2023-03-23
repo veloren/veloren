@@ -347,6 +347,14 @@ pub enum AbilityData {
         range: f32,
         angle: f32,
     },
+    LeapMelee {
+        energy: f32,
+        range: f32,
+        angle: f32,
+        forward_leap: f32,
+        vertical_leap: f32,
+        leap_dur: f32,
+    },
 }
 
 impl AbilityData {
@@ -486,6 +494,21 @@ impl AbilityData {
                 range: melee_constructor.range,
                 angle: melee_constructor.angle,
             },
+            LeapMelee {
+                energy_cost,
+                movement_duration,
+                melee_constructor,
+                forward_leap_strength,
+                vertical_leap_strength,
+                ..
+            } => Self::LeapMelee {
+                energy: *energy_cost,
+                leap_dur: *movement_duration,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+                forward_leap: *forward_leap_strength,
+                vertical_leap: *vertical_leap_strength,
+            },
             _ => return None,
         };
         Some(inner)
@@ -503,6 +526,14 @@ impl AbilityData {
             let range_inc = forced_movement.map_or(0.0, |fm| match fm {
                 ForcedMovement::Forward(speed) => speed * 15.0,
                 ForcedMovement::Reverse(speed) => -speed,
+                ForcedMovement::Leap {
+                    vertical, forward, ..
+                } => {
+                    let dur = vertical * 2.0 / GRAVITY;
+                    // 0.8 factor to allow for fact that agent looks down as they approach, so won't
+                    // go as far
+                    forward * dur * 0.8
+                },
                 _ => 0.0,
             });
             let body_rad = agent_data.body.map_or(0.0, |b| b.max_radius());
@@ -646,6 +677,23 @@ impl AbilityData {
                 range,
                 angle,
             } => melee_check(*range, *angle, None) && energy_check(*energy),
+            LeapMelee {
+                energy,
+                range,
+                angle,
+                leap_dur,
+                forward_leap,
+                vertical_leap,
+            } => {
+                use common::states::utils::MovementDirection;
+                let forced_move = Some(ForcedMovement::Leap {
+                    vertical: *vertical_leap * *leap_dur * 2.0,
+                    forward: *forward_leap,
+                    progress: 0.0,
+                    direction: MovementDirection::Look,
+                });
+                melee_check(*range, *angle, forced_move) && energy_check(*energy)
+            },
         }
     }
 }

@@ -193,7 +193,7 @@ impl AdletStronghold {
         let mut cavern_structures = Vec::<(AdletStructure, Vec2<i32>, Dir)>::new();
 
         fn valid_cavern_struct_pos(
-            structures: &Vec<(AdletStructure, Vec2<i32>, Dir)>,
+            structures: &[(AdletStructure, Vec2<i32>, Dir)],
             structure: AdletStructure,
             rpos: Vec2<i32>,
         ) -> bool {

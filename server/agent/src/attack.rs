@@ -4578,6 +4578,13 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
+        const ROTATE_TIMER: usize = 0;
+        const ROTATE_DIR_CONDITION: usize = 0;
+        agent.action_state.timers[ROTATE_TIMER] -= read_data.dt.0;
+        if agent.action_state.timers[ROTATE_TIMER] < 0.0 {
+            agent.action_state.conditions[ROTATE_DIR_CONDITION] = rng.gen_bool(0.5);
+            agent.action_state.timers[ROTATE_TIMER] = rng.gen::<f32>() * 5.0;
+        }
         let primary = self.extract_ability(AbilityInput::Primary);
         let secondary = self.extract_ability(AbilityInput::Secondary);
         let could_use_input = |input| match input {
@@ -4608,6 +4615,21 @@ impl<'a> AgentData<'a> {
                 Path::Separate,
                 None,
             );
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+            let dir = if agent.action_state.conditions[ROTATE_DIR_CONDITION] {
+                1.0
+            } else {
+                -1.0
+            };
+            controller.inputs.move_dir.rotate_z(PI / 2.0 * dir);
         }
     }
 
@@ -4618,8 +4640,38 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
     ) {
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+        let move_forwards = if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else if could_use_input(InputKind::Secondary) && attack_data.dist_sqrd > 5_f32.powi(2) {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else {
+            true
+        };
+
+        if move_forwards && attack_data.dist_sqrd > 2_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
     }
 
     pub fn handle_adlet_tracker(
@@ -4629,7 +4681,38 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
     ) {
+        const TRAP_TIMER: usize = 0;
+        agent.action_state.timers[TRAP_TIMER] += read_data.dt.0;
+        if agent.action_state.timers[TRAP_TIMER] > 20.0 {
+            agent.action_state.timers[TRAP_TIMER] = 0.0;
+        }
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+        let move_forwards = if agent.action_state.timers[TRAP_TIMER] < 3.0 {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else {
+            true
+        };
+
+        if move_forwards && attack_data.dist_sqrd > 2_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
     }
 }
