@@ -6,6 +6,7 @@ mod tests {
             Controller, Energy, Ori, PhysicsState, Poise, Pos, Skill, Stats, Vel,
         },
         resources::{DeltaTime, GameMode, Time},
+        shared_server_config::ServerConstants,
         terrain::{MapSizeLg, TerrainChunk},
         uid::Uid,
         util::Dir,
@@ -81,6 +82,8 @@ mod tests {
             },
             false,
             None,
+            // Dummy ServerConstants
+            &ServerConstants::default(),
         );
     }
 

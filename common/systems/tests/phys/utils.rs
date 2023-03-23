@@ -7,6 +7,7 @@ use common::{
         Vel,
     },
     resources::{DeltaTime, GameMode, Time},
+    shared_server_config::ServerConstants,
     skillset_builder::SkillSetBuilder,
     terrain::{
         Block, BlockKind, MapSizeLg, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainGrid,
@@ -64,6 +65,7 @@ pub fn tick(state: &mut State, dt: Duration) {
         },
         false,
         None,
+        &ServerConstants::default(),
     );
 }
 

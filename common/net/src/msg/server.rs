@@ -12,6 +12,7 @@ use common::{
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBook},
     resources::{Time, TimeOfDay},
+    shared_server_config::ServerConstants,
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
@@ -66,6 +67,7 @@ pub enum ServerInit {
         component_recipe_book: ComponentRecipeBook,
         material_stats: MaterialStatManifest,
         ability_map: comp::item::tool::AbilityMap,
+        server_constants: ServerConstants,
     },
 }
 

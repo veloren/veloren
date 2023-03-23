@@ -40,6 +40,7 @@ use common::{
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBook},
     resources::{GameMode, PlayerEntity, Time, TimeOfDay},
+    shared_server_config::ServerConstants,
     spiral::Spiral2d,
     terrain::{
         block::Block, map::MapConfig, neighbors, site::DungeonKindMeta, BiomeKind,
@@ -264,6 +265,8 @@ pub struct Client {
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
     target_time_of_day: Option<TimeOfDay>,
+
+    connected_server_constants: ServerConstants,
 }
 
 /// Holds data related to the current players characters, as well as some
@@ -355,6 +358,7 @@ impl Client {
             component_recipe_book,
             material_stats,
             ability_map,
+            server_constants,
         } = loop {
             tokio::select! {
                 // Spawn in a blocking thread (leaving the network thread free).  This is mostly
@@ -744,6 +748,8 @@ impl Client {
 
             pending_chunks: HashMap::new(),
             target_time_of_day: None,
+
+            connected_server_constants: server_constants,
         })
     }
 
@@ -1802,6 +1808,7 @@ impl Client {
             },
             true,
             None,
+            &self.connected_server_constants,
         );
         // TODO: avoid emitting these in the first place
         let _ = self

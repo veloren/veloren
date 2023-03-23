@@ -22,6 +22,7 @@ use core::time::Duration;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
 use std::{
+    fmt::Display,
     fs,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     path::{Path, PathBuf},
@@ -166,6 +167,8 @@ pub struct Settings {
     pub world_seed: u32,
     pub server_name: String,
     pub start_time: f64,
+    /// Length of a day in minutes.
+    pub day_length: f64,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
@@ -203,6 +206,7 @@ impl Default for Settings {
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Server".into(),
             max_players: 100,
+            day_length: 30.0,
             start_time: 9.0 * 3600.0,
             map_file: None,
             max_view_distance: Some(65),
@@ -223,7 +227,7 @@ impl Settings {
     pub fn load(path: &Path) -> Self {
         let path = Self::get_settings_path(path);
 
-        if let Ok(file) = fs::File::open(&path) {
+        let mut settings = if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader(file) {
                 Ok(x) => x,
                 Err(e) => {
@@ -249,7 +253,10 @@ impl Settings {
                 error!(?e, "Failed to create default settings file!");
             }
             default_settings
-        }
+        };
+
+        settings.validate();
+        settings
     }
 
     fn save_to_file(&self, path: &Path) -> std::io::Result<()> {
@@ -301,6 +308,35 @@ impl Settings {
         let mut path = with_config_dir(path);
         path.push(SETTINGS_FILENAME);
         path
+    }
+
+    fn validate(&mut self) {
+        const INVALID_SETTING_MSG: &str =
+            "Invalid value for setting in userdata/server/server_config/settings.ron.";
+
+        let default_values = Settings::default();
+
+        if self.day_length <= 0.0 {
+            warn!(
+                "{} Setting: day_length, Value: {}. Set day_length to it's default value of {}. \
+                 Help: day_length must be a positive floating point value above 0.",
+                INVALID_SETTING_MSG, self.day_length, default_values.day_length
+            );
+            self.day_length = default_values.day_length;
+        }
+    }
+}
+
+pub enum InvalidSettingsError {
+    InvalidDayDuration,
+}
+impl Display for InvalidSettingsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InvalidSettingsError::InvalidDayDuration => {
+                f.write_str("Invalid settings error: Day length was invalid (zero or negative).")
+            },
+        }
     }
 }
 

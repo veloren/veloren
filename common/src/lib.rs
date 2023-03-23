@@ -31,6 +31,7 @@ pub mod combat;
 pub mod comp;
 pub mod consts;
 pub mod resources;
+pub mod shared_server_config;
 pub mod uid;
 
 // NOTE: Comment out macro to get rustfmt to re-order these as needed.

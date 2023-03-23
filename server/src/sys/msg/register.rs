@@ -10,6 +10,7 @@ use common::{
     event::{EventBus, ServerEvent},
     recipe::{default_component_recipe_book, default_recipe_book},
     resources::TimeOfDay,
+    shared_server_config::ServerConstants,
     uid::{Uid, UidAllocator},
 };
 use common_base::prof_span;
@@ -349,6 +350,9 @@ impl<'a> System<'a> for Sys {
                             component_recipe_book: default_component_recipe_book().cloned(),
                             material_stats: (*read_data.material_stats).clone(),
                             ability_map: (*read_data.ability_map).clone(),
+                            server_constants: ServerConstants {
+                                day_cycle_coefficient: 1440.0 / read_data.settings.day_length
+                            },
                         })?;
                         debug!("Done initial sync with client.");
 

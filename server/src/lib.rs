@@ -79,6 +79,7 @@ use common::{
     event::{EventBus, ServerEvent},
     resources::{BattleMode, GameMode, Time, TimeOfDay},
     rtsim::RtSimEntity,
+    shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::{TerrainChunk, TerrainChunkSize},
     vol::RectRasterableVol,
@@ -205,6 +206,8 @@ pub struct Server {
     metrics_shutdown: Arc<Notify>,
     database_settings: Arc<RwLock<DatabaseSettings>>,
     disconnect_all_clients_requested: bool,
+
+    server_constants: ServerConstants,
 }
 
 impl Server {
@@ -561,6 +564,10 @@ impl Server {
         #[cfg(not(feature = "worldgen"))]
         rtsim::init(&mut state);
 
+        let server_constants = ServerConstants {
+            day_cycle_coefficient: 1440.0 / settings.day_length,
+        };
+
         let this = Self {
             state,
             world,
@@ -571,6 +578,8 @@ impl Server {
             metrics_shutdown,
             database_settings,
             disconnect_all_clients_requested: false,
+
+            server_constants,
         };
 
         debug!(?settings, "created veloren server with");
@@ -701,6 +710,7 @@ impl Server {
             },
             false,
             Some(&mut state_tick_metrics),
+            &self.server_constants,
         );
 
         let before_handle_events = Instant::now();
