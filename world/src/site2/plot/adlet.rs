@@ -19,7 +19,6 @@ use vek::{num_integer::Roots, *};
 
 pub struct AdletStronghold {
     name: String,
-    seed: u32,
     entrance: Vec2<i32>,
     surface_radius: i32,
     // Structure indicates the kind of structure it is, vec2 is relative position of structure
@@ -84,7 +83,6 @@ impl AdletStructure {
 impl AdletStronghold {
     pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng, _index: IndexRef) -> Self {
         let name = NameGen::location(rng).generate_adlet();
-        let seed = rng.gen();
         let entrance = wpos;
 
         let surface_radius: i32 = {
@@ -360,7 +358,6 @@ impl AdletStronghold {
 
         Self {
             name,
-            seed,
             entrance,
             surface_radius,
             outer_structures,
@@ -1092,11 +1089,12 @@ impl Structure for AdletStronghold {
                             let yetipit_mobs = 2
                                 + (RandomField::new(0)
                                     .get(yetipit_center.with_z(level - (3 * down) - 3))
-                                    % 2) as i32;
+                                    % 4) as i32;
                             for _ in 0..yetipit_mobs {
                                 let yetipit_mob_spawn =
                                     yetipit_center.with_z(level - (3 * down) - 3);
-                                painter.spawn(random_adlet(yetipit_mob_spawn.as_(), &mut rng));
+                                painter
+                                    .spawn(random_yetipit_mob(yetipit_mob_spawn.as_(), &mut rng));
                             }
                             painter
                                 .cone_with_radius(
@@ -1361,11 +1359,32 @@ impl Structure for AdletStronghold {
                             max: (wpos + (pen_size as i32) - 1).with_z(alt as i32 + 1),
                         })
                         .fill(grass_fill.clone());
-                    let animalpen_mobs =
-                        4 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
-                    for _ in 0..animalpen_mobs {
+                    enum AnimalPenKind {
+                        Rat,
+                        Wolf,
+                        Bear,
+                    }
+                    let (kind, num) = {
+                        let rand_field = RandomField::new(1).get(wpos.with_z(alt as i32));
+                        match RandomField::new(0).get(wpos.with_z(alt as i32)) % 4 {
+                            0 => (AnimalPenKind::Bear, 1 + rand_field % 2),
+                            1 => (AnimalPenKind::Wolf, 2 + rand_field % 3),
+                            _ => (AnimalPenKind::Rat, 5 + rand_field % 5),
+                        }
+                    };
+                    for _ in 0..num {
                         let animalpen_mob_spawn = wpos.with_z(alt as i32);
-                        painter.spawn(rat(animalpen_mob_spawn.as_(), &mut rng));
+                        match kind {
+                            AnimalPenKind::Rat => {
+                                painter.spawn(rat(animalpen_mob_spawn.as_(), &mut rng))
+                            },
+                            AnimalPenKind::Wolf => {
+                                painter.spawn(wolf(animalpen_mob_spawn.as_(), &mut rng))
+                            },
+                            AnimalPenKind::Bear => {
+                                painter.spawn(bear(animalpen_mob_spawn.as_(), &mut rng))
+                            },
+                        }
                     }
                 },
                 AdletStructure::CookFire => {
@@ -1999,6 +2018,15 @@ fn icedrake<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 fn tursus<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
     EntityInfo::at(pos.map(|x| x as f32))
         .with_asset_expect("common.entity.wild.aggressive.tursus", rng)
+}
+
+fn random_yetipit_mob<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    match rng.gen_range(0..4) {
+        0 => frostfang(pos, rng),
+        1 => roshwalr(pos, rng),
+        2 => icedrake(pos, rng),
+        _ => tursus(pos, rng),
+    }
 }
 
 fn yeti<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
