@@ -607,6 +607,9 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_low::Species::Basilisk => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.basilisk",
             )),
+            quadruped_low::Species::Icedrake => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.icedrake",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadlowbasic",
             )),

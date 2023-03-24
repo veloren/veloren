@@ -542,6 +542,14 @@
         ],
     ),
     // TODO: Allow ability sets to expand other ability sets
+    Custom("Ice Drake"): (
+        primary: Simple(None, "common.abilities.custom.icedrake.triplestrike"),
+        secondary: Simple(None, "common.abilities.custom.icedrake.singlestrike"),
+        abilities: [
+            Simple(None, "common.abilities.custom.icedrake.icebombs"),
+            Simple(None, "common.abilities.custom.icedrake.icebreath"),
+                ],
+    ),
     Custom("Dagon"): (
     primary: Simple(None, "common.abilities.custom.dagon.dagonbombs"),
     secondary: Simple(None, "common.abilities.custom.dagon.seaurchins"),

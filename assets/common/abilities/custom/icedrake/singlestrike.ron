@@ -1,0 +1,27 @@
+ComboMelee(
+    stage_data: [
+        (
+            stage: 1,
+            base_damage: 40.0,
+            damage_increase: 0,
+            base_poise_damage: 28,
+            poise_damage_increase: 0,
+            knockback: 3.0,
+            range: 2.0,
+            angle: 60.0,
+            base_buildup_duration: 1.2,
+            base_swing_duration: 0.07,
+            hit_timing: 0.5,
+            base_recover_duration: 0.8,
+            forward_movement: 3.0,
+            damage_kind: Crushing,
+        ),
+    ],
+    initial_energy_gain: 0,
+    max_energy_gain: 0,
+    energy_increase: 0,
+    speed_increase: 0.0,
+    max_speed_increase: 0.0,
+    scales_from_combo: 0,
+    ori_modifier: 0.6,
+)
