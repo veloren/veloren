@@ -307,8 +307,7 @@ impl HumHeadSpec {
         };
         let hair = match spec.hair.get(body.hair_style as usize) {
             Some(Some(spec)) => Some((
-                graceful_load_segment(&spec.0, spec.2)
-                    .map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
+                graceful_load_segment(&spec.0, spec.2).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
@@ -319,8 +318,7 @@ impl HumHeadSpec {
         };
         let beard = match spec.beard.get(body.beard as usize) {
             Some(Some(spec)) => Some((
-                graceful_load_segment(&spec.0, spec.2)
-                    .map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
+                graceful_load_segment(&spec.0, spec.2).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
@@ -330,10 +328,7 @@ impl HumHeadSpec {
             },
         };
         let accessory = match spec.accessory.get(body.accessory as usize) {
-            Some(Some(spec)) => Some((
-                graceful_load_segment(&spec.0, spec.2),
-                Vec3::from(spec.1),
-            )),
+            Some(Some(spec)) => Some((graceful_load_segment(&spec.0, spec.2), Vec3::from(spec.1))),
             Some(None) => None,
             None => {
                 warn!("No specification for this accessory: {:?}", body.accessory);
