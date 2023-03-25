@@ -171,7 +171,7 @@ macro_rules! make_vox_spec {
 // All offsets should be relative to an initial origin that doesn't change when
 // combining segments
 #[derive(Deserialize)]
-struct VoxSpec<T>(String, [T; 3]);
+struct VoxSpec<T>(String, [T; 3], #[serde(default)] u32);
 
 #[derive(Deserialize)]
 struct VoxSimple(String);
@@ -286,12 +286,12 @@ impl HumHeadSpec {
         let eye_rgb = body.species.eye_color(body.eye_color);
 
         // Load segment pieces
-        let bare_head = graceful_load_mat_segment(&spec.head.0, DEFAULT_INDEX);
+        let bare_head = graceful_load_mat_segment(&spec.head.0, spec.head.2);
 
         let eyes = match spec.eyes.get(body.eyes as usize) {
             Some(Some(spec)) => Some((
                 color_spec.color_segment(
-                    graceful_load_mat_segment(&spec.0, DEFAULT_INDEX)
+                    graceful_load_mat_segment(&spec.0, spec.2)
                         .map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                     skin_rgb,
                     hair_color,
@@ -307,7 +307,7 @@ impl HumHeadSpec {
         };
         let hair = match spec.hair.get(body.hair_style as usize) {
             Some(Some(spec)) => Some((
-                graceful_load_segment(&spec.0, DEFAULT_INDEX)
+                graceful_load_segment(&spec.0, spec.2)
                     .map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
@@ -319,7 +319,7 @@ impl HumHeadSpec {
         };
         let beard = match spec.beard.get(body.beard as usize) {
             Some(Some(spec)) => Some((
-                graceful_load_segment(&spec.0, DEFAULT_INDEX)
+                graceful_load_segment(&spec.0, spec.2)
                     .map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
@@ -331,7 +331,7 @@ impl HumHeadSpec {
         };
         let accessory = match spec.accessory.get(body.accessory as usize) {
             Some(Some(spec)) => Some((
-                graceful_load_segment(&spec.0, DEFAULT_INDEX),
+                graceful_load_segment(&spec.0, spec.2),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
@@ -561,9 +561,9 @@ impl HumArmorShoulderSpec {
 
         let mut shoulder_segment = color_spec.color_segment(
             if flipped {
-                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0, DEFAULT_INDEX)
+                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0, spec.left.vox_spec.2)
             } else {
-                graceful_load_mat_segment(&spec.right.vox_spec.0, DEFAULT_INDEX)
+                graceful_load_mat_segment(&spec.right.vox_spec.0, spec.right.vox_spec.2)
             },
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
@@ -643,7 +643,7 @@ impl HumArmorChestSpec {
 
         let bare_chest = graceful_load_mat_segment("armor.empty", DEFAULT_INDEX);
 
-        let mut chest_armor = graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX);
+        let mut chest_armor = graceful_load_mat_segment(&spec.vox_spec.0, spec.vox_spec.2);
 
         if let Some(color) = spec.color {
             let chest_color = Vec3::from(color);
@@ -682,9 +682,9 @@ impl HumArmorHandSpec {
 
         let mut hand_segment = color_spec.color_segment(
             if flipped {
-                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0, DEFAULT_INDEX)
+                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0, spec.left.vox_spec.2)
             } else {
-                graceful_load_mat_segment(&spec.right.vox_spec.0, DEFAULT_INDEX)
+                graceful_load_mat_segment(&spec.right.vox_spec.0, spec.right.vox_spec.2)
             },
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
@@ -743,7 +743,7 @@ impl HumArmorBeltSpec {
         };
 
         let mut belt_segment = color_spec.color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX),
+            graceful_load_mat_segment(&spec.vox_spec.0, spec.vox_spec.2),
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
@@ -773,7 +773,7 @@ impl HumArmorBackSpec {
         };
 
         let mut back_segment = color_spec.color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX),
+            graceful_load_mat_segment(&spec.vox_spec.0, spec.vox_spec.2),
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
@@ -817,7 +817,7 @@ impl HumArmorPantsSpec {
 
         let bare_pants = graceful_load_mat_segment("armor.empty", DEFAULT_INDEX);
 
-        let mut pants_armor = graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX);
+        let mut pants_armor = graceful_load_mat_segment(&spec.vox_spec.0, spec.vox_spec.2);
 
         if let Some(color) = spec.color {
             let pants_color = Vec3::from(color);
@@ -856,9 +856,9 @@ impl HumArmorFootSpec {
 
         let mut foot_segment = color_spec.color_segment(
             if flipped {
-                graceful_load_mat_segment_flipped(&spec.vox_spec.0, DEFAULT_INDEX)
+                graceful_load_mat_segment_flipped(&spec.vox_spec.0, spec.vox_spec.2)
             } else {
-                graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX)
+                graceful_load_mat_segment(&spec.vox_spec.0, spec.vox_spec.2)
             },
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
@@ -905,7 +905,7 @@ impl HumMainWeaponSpec {
         };
 
         let tool_kind_segment =
-            graceful_load_segment_flipped(&spec.vox_spec.0, flipped, DEFAULT_INDEX);
+            graceful_load_segment_flipped(&spec.vox_spec.0, flipped, spec.vox_spec.2);
         let mut offset = Vec3::from(spec.vox_spec.1);
 
         if flipped {
@@ -937,7 +937,7 @@ impl HumArmorLanternSpec {
         };
 
         let mut lantern_segment = color_spec.color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX),
+            graceful_load_mat_segment(&spec.vox_spec.0, spec.vox_spec.2),
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
@@ -959,7 +959,7 @@ impl HumArmorHeadSpec {
             .get(&(body.species, body.body_type, head?.to_string()))
         {
             Some(spec) => Some((
-                graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX),
+                graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2),
                 Vec3::<f32>::from(spec.vox_spec.1).as_(),
             )),
             None => {
@@ -1002,7 +1002,7 @@ impl HumArmorTabardSpec {
 
         let bare_tabard = graceful_load_mat_segment("armor.empty", DEFAULT_INDEX);
 
-        let mut tabard_armor = graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX);
+        let mut tabard_armor = graceful_load_mat_segment(&spec.vox_spec.0, spec.vox_spec.2);
 
         if let Some(color) = spec.color {
             let tabard_color = Vec3::from(color);
@@ -1038,7 +1038,7 @@ impl HumArmorGliderSpec {
         };
 
         let mut glider_segment = color_spec.color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0, DEFAULT_INDEX),
+            graceful_load_mat_segment(&spec.vox_spec.0, spec.vox_spec.2),
             body.species.skin_color(body.skin),
             color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
@@ -3096,7 +3096,7 @@ impl BipedSmallArmorHeadSpec {
             &self.0.default
         };
 
-        let head_segment = graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX);
+        let head_segment = graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2);
 
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
@@ -3117,7 +3117,7 @@ impl BipedSmallArmorChestSpec {
             &self.0.default
         };
 
-        let chest_segment = graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX);
+        let chest_segment = graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2);
 
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
@@ -3138,7 +3138,7 @@ impl BipedSmallArmorTailSpec {
             &self.0.default
         };
 
-        let tail_segment = graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX);
+        let tail_segment = graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2);
 
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
@@ -3159,7 +3159,7 @@ impl BipedSmallArmorPantsSpec {
             &self.0.default
         };
 
-        let pants_segment = graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX);
+        let pants_segment = graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2);
 
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
@@ -3181,9 +3181,9 @@ impl BipedSmallArmorHandSpec {
         };
 
         let hand_segment = if flipped {
-            graceful_load_segment_flipped(&spec.left.vox_spec.0, true, DEFAULT_INDEX)
+            graceful_load_segment_flipped(&spec.left.vox_spec.0, true, spec.left.vox_spec.2)
         } else {
-            graceful_load_segment(&spec.right.vox_spec.0, DEFAULT_INDEX)
+            graceful_load_segment(&spec.right.vox_spec.0, spec.right.vox_spec.2)
         };
         let offset = if flipped {
             spec.left.vox_spec.1
@@ -3213,9 +3213,9 @@ impl BipedSmallArmorFootSpec {
         };
 
         let foot_segment = if flipped {
-            graceful_load_segment_flipped(&spec.left.vox_spec.0, true, DEFAULT_INDEX)
+            graceful_load_segment_flipped(&spec.left.vox_spec.0, true, spec.left.vox_spec.2)
         } else {
-            graceful_load_segment(&spec.right.vox_spec.0, DEFAULT_INDEX)
+            graceful_load_segment(&spec.right.vox_spec.0, spec.right.vox_spec.2)
         };
         let offset = if flipped {
             spec.left.vox_spec.1
@@ -3242,9 +3242,9 @@ impl BipedSmallWeaponSpec {
         };
 
         let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0, true, DEFAULT_INDEX)
+            graceful_load_segment_flipped(&spec.vox_spec.0, true, spec.vox_spec.2)
         } else {
-            graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX)
+            graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2)
         };
 
         let offset = Vec3::new(
@@ -4406,9 +4406,9 @@ impl BipedLargeMainSpec {
         };
 
         let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0, true, DEFAULT_INDEX)
+            graceful_load_segment_flipped(&spec.vox_spec.0, true, spec.vox_spec.2)
         } else {
-            graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX)
+            graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2)
         };
 
         let offset = Vec3::new(
@@ -4435,9 +4435,9 @@ impl BipedLargeSecondSpec {
         };
 
         let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0, true, DEFAULT_INDEX)
+            graceful_load_segment_flipped(&spec.vox_spec.0, true, spec.vox_spec.2)
         } else {
-            graceful_load_segment(&spec.vox_spec.0, DEFAULT_INDEX)
+            graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2)
         };
 
         let offset = Vec3::new(
