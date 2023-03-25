@@ -247,7 +247,6 @@ impl Animation for ShootAnimation {
                 let pullback = 1.0 - move3;
                 let move1abs = move1base * pullback;
                 let move2abs = move2base * pullback;
-
                 next.control_l.position = Vec3::new(
                     0.0,
                     0.0 + move1abs * 4.0 + move2abs * -4.0,
@@ -273,6 +272,15 @@ impl Animation for ShootAnimation {
                 next.control.orientation =
                     Quaternion::rotation_x(-0.3 + move1abs * 0.5 + move2abs * -0.5 + move3 * 0.5)
                         * Quaternion::rotation_y(0.5 * speednorm);
+
+                if matches!(stage_section, Some(StageSection::Recover)) {
+                    if move3 < 0.05 {
+                        next.main.position += Vec3::new(0.0, 100000.0, -10000000.0);
+                    }
+                    if move3 < 0.3 {
+                        next.main.scale = Vec3::zero();
+                    }
+                }
             },
             _ => {},
         }
