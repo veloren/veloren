@@ -5,7 +5,7 @@ BasicRanged(
     projectile: Trap(
         damage: 25,
     ),
-    projectile_body: Object(Snowball),
+    projectile_body: Object(AdletTrap),
     projectile_speed: 10.0,
     num_projectiles: 1,
     projectile_spread: 0.0,

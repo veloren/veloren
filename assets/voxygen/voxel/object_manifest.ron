@@ -929,4 +929,14 @@
             central: ("armor.empty"),
         )
     ),
+    AdletTrap: (
+        bone0: (
+            offset: (-4.5, -2.5, 0.0),
+            central: ("weapon.projectile.adlet-trap"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

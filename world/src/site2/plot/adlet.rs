@@ -276,7 +276,7 @@ impl AdletStronghold {
         if let Some(rpos) = attempt(50, || {
             let rpos = {
                 let theta = rng.gen_range(0.0..TAU);
-                let radius = (cavern_radius - 5) as f32;
+                let radius = cavern_radius as f32;
                 Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
             };
             valid_cavern_struct_pos(&cavern_structures, AdletStructure::YetiPit, rpos)
@@ -1204,11 +1204,18 @@ impl Structure for AdletStronghold {
                         }
                     }
                     // yetipit entrance
-                    // dome
+                    // rocks
                     painter
                         .sphere(Aabb {
-                            min: (yetipit_entrance_pos - 20).with_z(alt as i32 - 25),
-                            max: (yetipit_entrance_pos + 20).with_z(alt as i32 + 15),
+                            min: (yetipit_entrance_pos - 8).with_z(alt as i32 - 8),
+                            max: (yetipit_entrance_pos + 8).with_z(alt as i32 + 8),
+                        })
+                        .fill(rock_fill.clone());
+                    // repaint ground
+                    painter
+                        .cylinder(Aabb {
+                            min: (yetipit_entrance_pos - 8).with_z(alt as i32 - 20),
+                            max: (yetipit_entrance_pos + 8).with_z(alt as i32),
                         })
                         .fill(snow_ice_fill.clone());
                     // tunnel
@@ -1217,34 +1224,28 @@ impl Structure for AdletStronghold {
                         / Vec2::new((door_dist.x).pow(2).sqrt(), (door_dist.y).pow(2).sqrt());
                     painter
                         .cubic_bezier(
-                            (yetipit_entrance_pos + door_dir * 20).with_z(alt as i32 + 2),
+                            (yetipit_entrance_pos + door_dir * 10).with_z(alt as i32 + 2),
                             (yetipit_entrance_pos - door_dir * 20).with_z(alt as i32 - 10),
-                            (yetipit_entrance_pos + door_dir * 30).with_z((alt as i32) - 30),
+                            (yetipit_entrance_pos + door_dir * 20).with_z((alt as i32) - 30),
                             self.cavern_center.with_z((alt as i32) - 50),
                             4.0,
                         )
                         .clear();
-                    let door_pos = yetipit_entrance_pos + door_dir * 8;
+                    // bone door
                     painter
-                        .line(
-                            (door_pos + door_dir * 1).with_z(alt as i32),
-                            (door_pos + door_dir * 2).with_z(alt as i32 - 3),
+                        .sphere_with_radius(
+                            (yetipit_entrance_pos + door_dir).with_z(alt as i32 - 4),
                             4.0,
                         )
                         .fill(Fill::Block(Block::air(SpriteKind::BoneKeyDoor)));
                     painter
-                        .line(
-                            (door_pos + door_dir * 3).with_z(alt as i32 - 1),
-                            (door_pos + door_dir * 4).with_z(alt as i32 - 4),
-                            0.5,
+                        .sphere_with_radius(
+                            (yetipit_entrance_pos + door_dir * 2).with_z(alt as i32 - 2),
+                            1.0,
                         )
                         .fill(Fill::Block(Block::air(SpriteKind::BoneKeyhole)));
                     painter
-                        .line(
-                            door_pos.with_z(alt as i32),
-                            (door_pos + door_dir * 1).with_z(alt as i32 - 3),
-                            4.0,
-                        )
+                        .sphere_with_radius(yetipit_entrance_pos.with_z(alt as i32 - 4), 4.0)
                         .clear();
                 },
                 AdletStructure::Tannery => {
