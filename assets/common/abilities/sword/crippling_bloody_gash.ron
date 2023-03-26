@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 15,
+                    damage: 18,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 5,
@@ -19,7 +19,7 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 20,
+    energy_cost_per_strike: 10,
     meta: (
         requirements: (stance: Some(Sword(Crippling))),
     ),

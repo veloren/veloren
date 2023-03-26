@@ -10,18 +10,19 @@ ComboMelee2(
                 ),
                 range: 4.0,
                 angle: 15.0,
+                damage_effect: Some(BuffsVulnerable(0.5, Parried)),
             ),
-            buildup_duration: 0.35,
+            buildup_duration: 0.4,
             swing_duration: 0.1,
             hit_timing: 0.5,
             recover_duration: 0.2,
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 10,
+    energy_cost_per_strike: 5,
     meta: (
         capabilities: (
-            // When in buildup, attack can get cancelled into parry
+            // The ability will parry melee attacks in the buildup portion
             bits: 0b00100000,
         ),
     ),

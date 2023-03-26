@@ -2904,7 +2904,7 @@ bitflags::bitflags! {
         const POISE_RESISTANT     = 0b00001000;
         // WHen in the ability, an entity only receives half as much knockback
         const KNOCKBACK_RESISTANT = 0b00010000;
-        // The ability will interrupt itself into a parry if hit with melee
+        // The ability will parry melee attacks in the buildup portion
         const BUILDUP_PARRIES     = 0b00100000;
     }
 }

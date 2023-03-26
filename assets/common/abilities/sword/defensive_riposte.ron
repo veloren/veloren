@@ -1,11 +1,11 @@
 RiposteMelee(
-    energy_cost: 20,
+    energy_cost: 5,
     buildup_duration: 0.3,
-    swing_duration: 0.2,
-    recover_duration: 0.3,
+    swing_duration: 0.1,
+    recover_duration: 0.2,
     melee_constructor: (
         kind: Slash(
-            damage: 25,
+            damage: 18,
             poise: 5,
             knockback: 0,
             energy_regen: 5,

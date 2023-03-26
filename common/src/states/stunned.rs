@@ -37,7 +37,7 @@ impl CharacterBehavior for Data {
 
         if matches!(
             self.static_data.poise_state,
-            PoiseState::Stunned | PoiseState::Dazed | PoiseState::KnockedDown
+            PoiseState::Dazed | PoiseState::KnockedDown
         ) {
             leave_stance(data, output_events);
         }

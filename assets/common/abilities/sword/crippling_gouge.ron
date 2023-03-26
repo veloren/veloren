@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 8,
+                    damage: 16,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 0,
@@ -12,8 +12,8 @@ ComboMelee2(
                 angle: 45.0,
                 damage_effect: Some(Buff((
                     kind: Bleeding,
-                    dur_secs: 8.0,
-                    strength: DamageFraction(0.35),
+                    dur_secs: 4.0,
+                    strength: DamageFraction(0.4),
                     chance: 1.0,
                 ))),
             ),
@@ -24,7 +24,7 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 15,
+    energy_cost_per_strike: 5,
     meta: (
         init_event: Some(EnterStance(Sword(Crippling))),
     ),

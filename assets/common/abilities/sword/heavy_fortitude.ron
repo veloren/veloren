@@ -4,8 +4,8 @@ SelfBuff(
     recover_duration: 0.6,
     buff_kind: Fortitude,
     buff_strength: 1.0,
-    buff_duration: Some(30.0),
-    energy_cost: 25,
+    buff_duration: Some(20.0),
+    energy_cost: 15,
     meta: (
         requirements: (stance: Some(Sword(Heavy))),
     ),

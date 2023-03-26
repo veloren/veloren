@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 8,
+                    damage: 12,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 0,
@@ -11,19 +11,19 @@ ComboMelee2(
                 range: 5.0,
                 angle: 20.0,
             ),
-            buildup_duration: 0.2,
+            buildup_duration: 0.15,
             swing_duration: 0.05,
             hit_timing: 0.5,
-            recover_duration: 0.05,
+            recover_duration: 0.1,
             movement: (
-                buildup: None,
+                buildup: Some(Forward(1.0)),
                 swing: Some(Forward(3.0)),
-                recover: Some(Forward(2.0)),
+                recover: Some(Forward(1.0)),
             ),
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 10,
+    energy_cost_per_strike: 5,
     meta: (
         init_event: Some(EnterStance(Sword(Agile))),
     ),

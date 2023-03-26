@@ -88,19 +88,27 @@ impl PoiseState {
         let (charstate_parameters, impulse) = match self {
             PoiseState::Normal => (None, None),
             PoiseState::Interrupted => (
-                Some((Duration::from_millis(200), Duration::from_millis(200), 0.8)),
+                Some((Duration::from_millis(250), Duration::from_millis(250), 0.8)),
                 None,
             ),
             PoiseState::Stunned => (
-                Some((Duration::from_millis(400), Duration::from_millis(400), 0.5)),
+                Some((Duration::from_millis(750), Duration::from_millis(750), 0.5)),
                 None,
             ),
             PoiseState::Dazed => (
-                Some((Duration::from_millis(750), Duration::from_millis(450), 0.2)),
+                Some((
+                    Duration::from_millis(1000),
+                    Duration::from_millis(1000),
+                    0.2,
+                )),
                 None,
             ),
             PoiseState::KnockedDown => (
-                Some((Duration::from_millis(1000), Duration::from_millis(600), 0.0)),
+                Some((
+                    Duration::from_millis(2000),
+                    Duration::from_millis(2000),
+                    0.0,
+                )),
                 Some(10.0),
             ),
         };

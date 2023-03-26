@@ -13,7 +13,7 @@ RapidMelee(
         angle: 15.0,
         damage_effect: Some(BuffsVulnerable(1.0, Bleeding)),
     ),
-    energy_cost: 7.5,
+    energy_cost: 5,
     max_strikes: Some(4),
     move_modifier: 0.7,
     ori_modifier: 0.2,

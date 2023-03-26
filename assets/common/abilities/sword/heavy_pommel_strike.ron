@@ -4,7 +4,7 @@ ComboMelee2(
             melee_constructor: (
                 kind: Bash(
                     damage: 12,
-                    poise: 60,
+                    poise: 50,
                     knockback: 0,
                     energy_regen: 0,
                 ),
@@ -19,7 +19,7 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 15,
+    energy_cost_per_strike: 5,
     meta: (
         init_event: Some(EnterStance(Sword(Heavy))),
     ),

@@ -4,7 +4,7 @@ ComboMelee2(
             melee_constructor: (
                 kind: Slash(
                     damage: 11,
-                    poise: 15,
+                    poise: 20,
                     knockback: 0,
                     energy_regen: 0,
                 ),
@@ -37,7 +37,7 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 10,
+    energy_cost_per_strike: 5,
     auto_progress: true,
     meta: (
         init_event: Some(EnterStance(Sword(Heavy))),

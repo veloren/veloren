@@ -18,5 +18,5 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 15,
+    energy_cost_per_strike: 5,
 )

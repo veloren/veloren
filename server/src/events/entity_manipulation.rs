@@ -43,7 +43,7 @@ use rand_distr::Distribution;
 use specs::{
     join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
 };
-use std::{collections::HashMap, iter, ops::Mul, time::Duration};
+use std::{collections::HashMap, iter, time::Duration};
 use tracing::{debug, error};
 use vek::{Vec2, Vec3};
 
@@ -1274,11 +1274,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 });
                 true
             },
-            char_state => char_state.ability_info().map_or(false, |info| {
-                info.ability_meta
-                    .capabilities
-                    .contains(comp::ability::Capability::BUILDUP_PARRIES)
-            }),
+            _ => false,
         };
         if return_to_wield {
             *char_state =
@@ -1287,39 +1283,30 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
     };
 
     if let Some(attacker) = attacker {
-        if let Some(char_state) = ecs.read_storage::<comp::CharacterState>().get(attacker) {
-            // By having a duration twice as long as either the recovery duration or 0.5 s,
-            // causes recover duration to effectively be either doubled or increased by 0.5
-            // s when a buff is applied that halves their attack speed.
-            let duration = char_state
-                .durations()
-                .and_then(|durs| durs.recover)
-                .map_or(0.5, |dur| dur.as_secs_f64())
-                .max(0.5)
-                .mul(2.0);
-            let data = buff::BuffData::new(1.0, Some(Secs(duration)), None);
-            let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
-                BuffSource::Character { by: *uid }
-            } else {
-                BuffSource::World
-            };
-            let time = ecs.read_resource::<Time>();
-            let stats = ecs.read_storage::<comp::Stats>();
-            let healths = ecs.read_storage::<comp::Health>();
-            let buff = buff::Buff::new(
-                BuffKind::Parried,
-                data,
-                vec![buff::BuffCategory::Physical],
-                source,
-                *time,
-                stats.get(attacker),
-                healths.get(attacker),
-            );
-            server_eventbus.emit_now(ServerEvent::Buff {
-                entity: attacker,
-                buff_change: buff::BuffChange::Add(buff),
-            });
-        }
+        // When attacker is parried, add the parried debuff for 2 seconds, which slows
+        // them
+        let data = buff::BuffData::new(1.0, Some(Secs(2.0)), None);
+        let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
+            BuffSource::Character { by: *uid }
+        } else {
+            BuffSource::World
+        };
+        let time = ecs.read_resource::<Time>();
+        let stats = ecs.read_storage::<comp::Stats>();
+        let healths = ecs.read_storage::<comp::Health>();
+        let buff = buff::Buff::new(
+            BuffKind::Parried,
+            data,
+            vec![buff::BuffCategory::Physical],
+            source,
+            *time,
+            stats.get(attacker),
+            healths.get(attacker),
+        );
+        server_eventbus.emit_now(ServerEvent::Buff {
+            entity: attacker,
+            buff_change: buff::BuffChange::Add(buff),
+        });
     }
 }
 

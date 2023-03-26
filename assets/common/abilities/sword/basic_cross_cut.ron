@@ -4,12 +4,12 @@ ComboMelee2(
             melee_constructor: (
                 kind: Slash(
                     damage: 10,
-                    poise: 3,
+                    poise: 5,
                     knockback: 0,
                     energy_regen: 0,
                 ),
                 range: 3.5,
-                angle: 50.0,
+                angle: 90.0,
             ),
             buildup_duration: 0.15,
             swing_duration: 0.1,
@@ -20,13 +20,13 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 10,
-                    poise: 3,
+                    damage: 14,
+                    poise: 5,
                     knockback: 0,
                     energy_regen: 0,
                 ),
                 range: 3.5,
-                angle: 50.0,
+                angle: 90.0,
             ),
             buildup_duration: 0.15,
             swing_duration: 0.1,
@@ -35,6 +35,6 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 7.5,
+    energy_cost_per_strike: 2.5,
     auto_progress: true,
 )
