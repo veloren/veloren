@@ -1261,6 +1261,12 @@
             threshold: 0.2,
             subtitle: "subtitle-arrow_shot",
         ),
+        Yeet: (
+                files: [
+            "voxygen.audio.sfx.abilities.yeet",
+                ],
+                threshold: 0.3,
+        ),
         FireShot: (
             files: [
                 "voxygen.audio.sfx.abilities.fire_shot_1",
@@ -1282,6 +1288,18 @@
             ],
             threshold: 0.2,
             subtitle: "subtitle-arrow_hit",
+        ),
+        Klonk: (
+            files: [
+                    "voxygen.audio.sfx.abilities.klonk",
+            ],
+            threshold: 0.4,
+        ),
+        SmashKlonk: (
+            files: [
+                    "voxygen.audio.sfx.abilities.smashklonk",
+            ],
+            threshold: 0.4,
         ),
         SkillPointGain: (
             files: [

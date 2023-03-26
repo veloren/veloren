@@ -115,29 +115,21 @@ impl Animation for ShootAnimation {
                     let pullback = 1.0 - move3;
                     let move1abs = move1base * pullback;
                     let move2abs = move2base * pullback;
+                    next.main.position = Vec3::new(2.0, -3.0, -3.0);
 
-                    next.control_l.position = Vec3::new(
-                        0.0,
-                        0.0 + move1abs * 4.0 + move2abs * -4.0,
-                        -2.0 + move1abs * -8.0,
-                    );
-                    next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 2.0, -2.0);
-
-                    next.control.position = Vec3::new(
-                        -1.0,
-                        0.0 + move1abs * -8.0 + move2abs * 8.0 + s_a.grip.2,
-                        3.0 + move1abs * 7.0 - s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0,
+                    next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2 - 2.0);
+                    next.hand_r.position = Vec3::new(
+                        s_a.hand.0,
+                        s_a.hand.1 + move2abs * 1.5,
+                        s_a.hand.2 - 2.5 + move1abs * 2.5,
                     );
 
-                    next.control_l.orientation =
-                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.3);
-                    next.control_r.orientation =
-                        Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2)
-                            * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7)
+                            * Quaternion::rotation_y(0.0 + move1abs * -0.7);
 
-                    next.control.orientation =
-                        Quaternion::rotation_x(-0.3 + move1abs * 0.5 + move2abs * -0.5)
-                            * Quaternion::rotation_y(0.5 * speednorm);
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0 * move1abs)
+                        * Quaternion::rotation_y(-0.7 * move1abs + move2abs * 0.1);
                 },
                 _ => {
                     let (move1base, move2base, move3) = match stage_section {

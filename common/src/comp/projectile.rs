@@ -127,6 +127,8 @@ pub enum ProjectileConstructor {
     },
     Trap {
         damage: f32,
+        knockback: f32,
+        energy_regen: f32,
     },
 }
 
@@ -793,27 +795,57 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
-            Trap { damage } => {
-                let damage = AttackDamage::new(
+            Trap {
+                damage,
+                knockback,
+                energy_regen,
+            } => {
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    })
+                    .adjusted_by_stats(tool_stats),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let buff = CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Bleeding,
+                    dur_secs: 10.0,
+                    strength: CombatBuffStrength::DamageFraction(0.5),
+                    chance: 0.3,
+                })
+                .adjusted_by_stats(tool_stats);
+                let mut damage = AttackDamage::new(
                     Damage {
-                        source: DamageSource::Explosion,
+                        source: DamageSource::Projectile,
                         kind: DamageKind::Piercing,
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
                     instance,
-                );
+                )
+                .with_effect(buff);
+                if let Some(damage_effect) = damage_effect {
+                    damage = damage.with_effect(damage_effect);
+                }
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult);
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(energy)
+                    .with_effect(knockback)
+                    .with_combo_increment();
+
                 Projectile {
-                    hit_solid: vec![],
+                    hit_solid: vec![Effect::Stick, Effect::Bonk],
                     hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
-                    time_left: Duration::from_secs(300),
+                    time_left: Duration::from_secs(15),
                     owner,
                     ignore_group: true,
                     is_sticky: true,
-                    is_point: false,
+                    is_point: true,
                 }
             },
         }
@@ -939,8 +971,13 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *radius *= range;
             },
-            Trap { ref mut damage } => {
+            Trap {
+                ref mut damage,
+                ref mut energy_regen,
+                ..
+            } => {
                 *damage *= power;
+                *energy_regen *= regen;
             },
         }
         self

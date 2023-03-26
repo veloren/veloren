@@ -3,9 +3,12 @@ BasicRanged(
     buildup_duration: 0.75,
     recover_duration: 0.75,
     projectile: Trap(
-        damage: 25,
+        damage: 12,
+        knockback: 0,
+        energy_regen: 0,
     ),
     projectile_body: Object(AdletTrap),
+    projectile_light: None,
     projectile_speed: 10.0,
     num_projectiles: 1,
     projectile_spread: 0.0,

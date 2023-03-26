@@ -174,6 +174,9 @@ pub enum SfxEvent {
     CyclopsCharge,
     LaserBeam,
     Music(ToolKind, AbilitySpec),
+    Yeet,
+    Klonk,
+    SmashKlonk,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -493,6 +496,10 @@ impl SfxMgr {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::LaserBeam);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
+                    Body::Object(object::Body::AdletTrap) => {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Yeet);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
+                    },
                     _ => {
                         // not mapped to sfx file
                     },
@@ -526,6 +533,23 @@ impl SfxMgr {
                         );
                     } else {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::ArrowHit);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                    }
+                },
+                Body::Object(object::Body::AdletTrap) => {
+                    if target.is_none() {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                    } else if *source == client.uid() {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SmashKlonk);
+                        audio.emit_sfx(
+                            sfx_trigger_item,
+                            client.position().unwrap_or(*pos),
+                            Some(2.0),
+                            underwater,
+                        );
+                    } else {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SmashKlonk);
                         audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                     }
                 },

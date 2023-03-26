@@ -1471,7 +1471,7 @@ impl Structure for AdletStronghold {
                     // 4 hide pieces
                     for dir in CARDINALS {
                         let hide_size =
-                            6 + (RandomField::new(0).get((wpos + dir).with_z(alt as i32)) % 4);
+                            6 + (RandomField::new(0).get((wpos + dir).with_z(alt as i32)) % 2);
                         let hide_color =
                             match RandomField::new(0).get((wpos + dir).with_z(alt as i32)) % 4 {
                                 0 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(73, 29, 0))),
