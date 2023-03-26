@@ -73,7 +73,14 @@ buff-desc-potionsickness = Le pozioni ti cureranno meno.
 buff-stat-potionsickness =
     Le pozioni che berrai ti cureranno
     del { $strength }% in meno.
+## Reckless
+buff-title-reckless = Spericolato
+buff-desc-reckless = I tuoi attacchi sono più potenti, tuttavia lasci le tue difese scoperte.
+## Polymorped
+buff-title-polymorphed = Mutaforma
+buff-desc-polymorphed = Il tuo corpo cambia la forma.
 ## Util
 buff-text-over_seconds = in { $dur_secs } secondi
 buff-text-for_seconds = per { $dur_secs } secondi
+buff-mysterious = Effetto misterioso
 buff-remove = Premi per rimuovere
