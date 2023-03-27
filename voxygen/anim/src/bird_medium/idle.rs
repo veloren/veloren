@@ -41,6 +41,8 @@ impl Animation for IdleAnimation {
         next.leg_r.scale = Vec3::one() * s_a.scaler * 0.99;
         next.chest.scale = Vec3::one() * s_a.scaler * 0.99;
         next.tail.scale = Vec3::one() * 1.01;
+        next.wing_in_l.scale = Vec3::one() * s_a.scaler * 0.99;
+        next.wing_in_r.scale = Vec3::one() * s_a.scaler * 0.99;
 
         next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2);
         next.leg_l.orientation = Quaternion::rotation_x(0.0);
@@ -67,8 +69,10 @@ impl Animation for IdleAnimation {
             * Quaternion::rotation_y(PI / 2.5 - wave_slow_cos * 0.06)
             * Quaternion::rotation_z(PI / 4.0);
 
-        next.wing_out_l.position = Vec3::new(-s_a.wing_out.0 / 2.5, s_a.wing_out.1, s_a.wing_out.2);
-        next.wing_out_r.position = Vec3::new(s_a.wing_out.0 / 2.5, s_a.wing_out.1, s_a.wing_out.2);
+        next.wing_out_l.position =
+            Vec3::new(-s_a.wing_out.0 / 2.5, s_a.wing_out.1, s_a.wing_out.2 + 1.0);
+        next.wing_out_r.position =
+            Vec3::new(s_a.wing_out.0 / 2.5, s_a.wing_out.1, s_a.wing_out.2 + 1.0);
         next.wing_out_l.orientation = Quaternion::rotation_y(0.1) * Quaternion::rotation_z(0.2);
         next.wing_out_r.orientation = Quaternion::rotation_y(-0.1) * Quaternion::rotation_z(-0.2);
 
