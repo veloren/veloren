@@ -43,7 +43,9 @@ impl Animation for ChargeswingAnimation {
         next.off_weapon_trail = true;
 
         match ability_id {
-            Some("common.abilities.sword.basic_thrust") => {
+            Some(
+                "common.abilities.sword.basic_thrust" | "common.abilities.sword.defensive_jab",
+            ) => {
                 let (move1, move2, move3, tension) = match stage_section {
                     Some(StageSection::Charge) => (
                         anim_time.powf(0.25).min(1.0),

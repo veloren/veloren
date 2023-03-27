@@ -1,0 +1,25 @@
+ChargedMelee(
+    energy_cost: 0,
+    energy_drain: 0,
+    melee_constructor: (
+        kind: Stab(
+            damage: 0,
+            poise: 0,
+            knockback: 0,
+            energy_regen: 0,
+        ),
+        scaled: Some(Stab(
+            damage: 10,
+            poise: 5,
+            knockback: 0,
+            energy_regen: 15,
+        )),
+        range: 4.5,
+        angle: 10.0,
+        damage_effect: Some(BuffsVulnerable(0.5, Parried)),
+    ),
+    charge_duration: 0.3,
+    swing_duration: 0.1,
+    hit_timing: 0.2,
+    recover_duration: 0.1,
+)

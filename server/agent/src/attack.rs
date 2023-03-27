@@ -512,7 +512,7 @@ impl<'a> AgentData<'a> {
                 );
                 if tactics.is_empty() {
                     try_tactic(
-                        SwordSkill::HeavyWindmillSlash,
+                        SwordSkill::HeavySweep,
                         SwordTactics::HeavySimple,
                         &mut tactics,
                     );

@@ -909,13 +909,11 @@ impl CharacterAbility {
                 CharacterAbility::DiveMelee {
                     buildup_duration,
                     energy_cost,
-                    vertical_speed,
                     ..
                 } => {
-                    // If either falling fast enough or is on ground and able to be activated from
+                    // If either in the air or is on ground and able to be activated from
                     // ground
-                    (data.vel.0.z < -*vertical_speed
-                        || (data.physics.on_ground.is_some() && buildup_duration.is_some()))
+                    (data.physics.on_ground.is_none() || buildup_duration.is_some())
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 CharacterAbility::ComboMelee { .. }

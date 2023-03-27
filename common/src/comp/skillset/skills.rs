@@ -33,7 +33,7 @@ pub enum SwordSkill {
     Cascade,
     CrossCut,
     Finisher,
-    HeavyWindmillSlash,
+    HeavySweep,
     HeavyPommelStrike,
     HeavyFortitude,
     HeavyPillarThrust,

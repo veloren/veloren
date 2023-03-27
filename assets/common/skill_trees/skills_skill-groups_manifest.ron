@@ -22,7 +22,7 @@
         Sword(Cascade),
         Sword(CrossCut),
         Sword(Finisher),
-        Sword(HeavyWindmillSlash),
+        Sword(HeavySweep),
         Sword(HeavyPommelStrike),
         Sword(HeavyFortitude),
         Sword(HeavyPillarThrust),
