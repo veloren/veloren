@@ -170,25 +170,33 @@ impl BuffKind {
                 rate: -data.strength,
                 kind: ModifierKind::Additive,
                 instance,
+                tick_dur: Secs(0.5),
             }],
-            BuffKind::Regeneration | BuffKind::Saturation => {
-                vec![BuffEffect::HealthChangeOverTime {
-                    rate: data.strength,
-                    kind: ModifierKind::Additive,
-                    instance,
-                }]
-            },
+            BuffKind::Regeneration => vec![BuffEffect::HealthChangeOverTime {
+                rate: data.strength,
+                kind: ModifierKind::Additive,
+                instance,
+                tick_dur: Secs(1.0),
+            }],
+            BuffKind::Saturation => vec![BuffEffect::HealthChangeOverTime {
+                rate: data.strength,
+                kind: ModifierKind::Additive,
+                instance,
+                tick_dur: Secs(3.0),
+            }],
             BuffKind::Potion => {
                 vec![BuffEffect::HealthChangeOverTime {
                     rate: data.strength * stats.map_or(1.0, |s| s.heal_multiplier),
                     kind: ModifierKind::Additive,
                     instance,
+                    tick_dur: Secs(0.1),
                 }]
             },
             BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
                 rate: data.strength,
                 kind: ModifierKind::Fractional,
                 instance,
+                tick_dur: Secs(2.0),
             }],
             BuffKind::Cursed => vec![
                 BuffEffect::MaxHealthChangeOverTime {
@@ -200,11 +208,13 @@ impl BuffKind {
                     rate: -1.0,
                     kind: ModifierKind::Additive,
                     instance,
+                    tick_dur: Secs(0.5),
                 },
             ],
             BuffKind::EnergyRegen => vec![BuffEffect::EnergyChangeOverTime {
                 rate: data.strength,
                 kind: ModifierKind::Additive,
+                tick_dur: Secs(1.0),
             }],
             BuffKind::IncreaseMaxEnergy => vec![BuffEffect::MaxEnergyModifier {
                 value: data.strength,
@@ -225,10 +235,12 @@ impl BuffKind {
                 rate: -data.strength,
                 kind: ModifierKind::Additive,
                 instance,
+                tick_dur: Secs(0.25),
             }],
             BuffKind::Poisoned => vec![BuffEffect::EnergyChangeOverTime {
                 rate: -data.strength,
                 kind: ModifierKind::Additive,
+                tick_dur: Secs(0.5),
             }],
             BuffKind::Crippled => vec![
                 BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
@@ -236,6 +248,7 @@ impl BuffKind {
                     rate: -data.strength * 4.0,
                     kind: ModifierKind::Additive,
                     instance,
+                    tick_dur: Secs(0.5),
                 },
             ],
             BuffKind::Frenzied => vec![
@@ -244,6 +257,7 @@ impl BuffKind {
                     rate: data.strength * 10.0,
                     kind: ModifierKind::Additive,
                     instance,
+                    tick_dur: Secs(1.0),
                 },
             ],
             BuffKind::Frozen => vec![
@@ -321,9 +335,14 @@ pub enum BuffEffect {
         rate: f32,
         kind: ModifierKind,
         instance: u64,
+        tick_dur: Secs,
     },
     /// Periodically consume entity energy
-    EnergyChangeOverTime { rate: f32, kind: ModifierKind },
+    EnergyChangeOverTime {
+        rate: f32,
+        kind: ModifierKind,
+        tick_dur: Secs,
+    },
     /// Changes maximum health by a certain amount
     MaxHealthModifier { value: f32, kind: ModifierKind },
     /// Changes maximum energy by a certain amount

@@ -433,25 +433,48 @@ fn execute_effect(
     time: Time,
     buff_will_expire: bool,
 ) {
+    let num_ticks = |tick_dur: Secs| {
+        let time_passed = time.0 - buff_start_time.0;
+        let dt = dt as f64;
+        // Number of ticks has 3 parts
+        //
+        // First part checks if delta time was larger than the tick duration, if it was
+        // determines number of ticks in that time
+        //
+        // Second part checks if delta time has just passed the threshold for a tick
+        // ending/starting (and accounts for if that delta time was longer than the tick
+        // duration)
+        //
+        // Third part returns the fraction of the current time passed since the last
+        // time a tick duration would have happened, this is ignored (by flooring) when
+        // the buff is not ending, but is used if the buff is ending this tick
+        let num_ticks = (dt / tick_dur.0).floor()
+            + if (dt % tick_dur.0) > (time_passed % tick_dur.0) {
+                1.0
+            } else {
+                0.0
+            }
+            + (time_passed % tick_dur.0) / tick_dur.0;
+        if buff_will_expire {
+            Some(num_ticks as f32)
+        } else {
+            let floored = num_ticks.floor();
+            if floored >= 1.0 {
+                Some(floored as f32)
+            } else {
+                None
+            }
+        }
+    };
     match effect {
         BuffEffect::HealthChangeOverTime {
             rate,
             kind,
             instance,
+            tick_dur,
         } => {
-            // Apply health change if buff wasn't just added, only once per second or when
-            // buff is about to be removed
-            let time_passed = (time.0 - buff_start_time.0) as f32;
-            let one_second = (time_passed % 1.0) < dt;
-            if time_passed > dt && (one_second || buff_will_expire) {
-                let amount = if one_second {
-                    // If buff not expiring this tick, then 1 second has passed
-                    *rate
-                } else {
-                    // If buff expiring this tick, only a fraction of the second has passed since
-                    // last tick
-                    ((time.0 - buff_start_time.0) % 1.0) as f32 * rate
-                };
+            if let Some(num_ticks) = num_ticks(*tick_dur) {
+                let amount = *rate * num_ticks * tick_dur.0 as f32;
 
                 let (cause, by) = if amount != 0.0 {
                     (Some(DamageSource::Buff(buff_kind)), buff_owner)
@@ -483,20 +506,13 @@ fn execute_effect(
                 });
             };
         },
-        BuffEffect::EnergyChangeOverTime { rate, kind } => {
-            // Apply energy change if buff wasn't just added, only once per second or when
-            // buff is about to be removed
-            let time_passed = (time.0 - buff_start_time.0) as f32;
-            let one_second = (time_passed % 1.0) < dt;
-            if time_passed > dt && (one_second || buff_will_expire) {
-                let amount = if one_second {
-                    // If buff not expiring this tick, then 1 second has passed
-                    *rate
-                } else {
-                    // If buff expiring this tick, only a fraction of the second has passed since
-                    // last tick
-                    ((time.0 - buff_start_time.0) % 1.0) as f32 * rate
-                };
+        BuffEffect::EnergyChangeOverTime {
+            rate,
+            kind,
+            tick_dur,
+        } => {
+            if let Some(num_ticks) = num_ticks(*tick_dur) {
+                let amount = *rate * num_ticks * tick_dur.0 as f32;
 
                 let amount = match *kind {
                     ModifierKind::Additive => amount,
