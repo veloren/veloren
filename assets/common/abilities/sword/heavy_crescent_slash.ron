@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 23,
+                    damage: 20,
                     poise: 15,
                     knockback: 0,
                     energy_regen: 0,
@@ -12,7 +12,7 @@ ComboMelee2(
                 angle: 60.0,
                 damage_effect: Some(StunnedVulnerable(0.5)),
             ),
-            buildup_duration: 0.15,
+            buildup_duration: 0.25,
             swing_duration: 0.15,
             hit_timing: 0.5,
             recover_duration: 0.25,
