@@ -1,0 +1,14 @@
+SpawnEntry (
+    name: "April Fools Tundra Core",
+    note: "April Fools NPCs",
+    rules: [
+        Pack(
+            groups: [
+                (3, (3, 6, "common.entity.calendar.april_fools.aggressive.trickster")),
+            ],
+            spawn_mode: Land,
+            calendar_events: Some([AprilFools]),
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

@@ -3,7 +3,7 @@ ItemDef(
     description: "They say gods eat it to get eternal youth.",
     kind: Consumable(
         kind: Drink,
-        effects: [
+        effects: All([
             Buff((
                 kind: Regeneration,
                 data: (
@@ -36,7 +36,7 @@ ItemDef(
                     ),
                 cat_ids: [Natural],
             )),
-        ]
+        ])
     ),
     quality: Debug,
     tags: [Food],

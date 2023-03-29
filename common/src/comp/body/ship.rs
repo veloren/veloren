@@ -21,7 +21,7 @@ pub const ALL_SHIPS: [Body; 2] = [Body::SailBoat, Body::Galleon];
 
 make_case_elim!(
     body,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum Body {
         DefaultAirship = 0,

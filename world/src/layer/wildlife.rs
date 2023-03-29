@@ -171,6 +171,10 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
             "world.wildlife.spawn.calendar.halloween.tundra.core",
             |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5,
         ),
+        (
+            "world.wildlife.spawn.calendar.april_fools.tundra.core",
+            |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5,
+        ),
         // Snowy animals
         ("world.wildlife.spawn.tundra.snow", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.3) * BASE_DENSITY * col.snow_cover as i32 as f32 * 1.0
@@ -194,6 +198,15 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                     * 1.0
             },
         ),
+        (
+            "world.wildlife.spawn.calendar.april_fools.tundra.snow",
+            |c, col| {
+                close(c.temp, CONFIG.snow_temp, 0.3)
+                    * BASE_DENSITY
+                    * col.snow_cover as i32 as f32
+                    * 1.0
+            },
+        ),
         // Forest animals
         ("world.wildlife.spawn.tundra.forest", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4
@@ -205,6 +218,10 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         ),
         (
             "world.wildlife.spawn.calendar.halloween.tundra.forest",
+            |c, col| close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4,
+        ),
+        (
+            "world.wildlife.spawn.calendar.april_fools.tundra.forest",
             |c, col| close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4,
         ),
         // **Taiga**
@@ -221,6 +238,12 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         ),
         (
             "world.wildlife.spawn.calendar.halloween.taiga.core",
+            |c, col| {
+                close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
+            },
+        ),
+        (
+            "world.wildlife.spawn.calendar.april_fools.taiga.core",
             |c, col| {
                 close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
             },
@@ -276,6 +299,15 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                     * 4.0
             },
         ),
+        (
+            "world.wildlife.spawn.calendar.april_fools.temperate.rainforest",
+            |c, _col| {
+                close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
+                    * close(c.humidity, CONFIG.forest_hum, 0.6)
+                    * BASE_DENSITY
+                    * 4.0
+            },
+        ),
         // Water animals
         ("world.wildlife.spawn.temperate.water", |c, col| {
             close(c.temp, CONFIG.temperate_temp, 1.0) * col.tree_density * BASE_DENSITY * 5.0
@@ -298,6 +330,15 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         // Jungle animals event
         (
             "world.wildlife.spawn.calendar.halloween.jungle.area",
+            |c, _col| {
+                close(c.temp, CONFIG.tropical_temp + 0.2, 0.3)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.2)
+                    * BASE_DENSITY
+                    * 8.0
+            },
+        ),
+        (
+            "world.wildlife.spawn.calendar.april_fools.jungle.area",
             |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.jungle_hum, 0.2)
@@ -354,6 +395,15 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         // Tropical Rainforest animals event
         (
             "world.wildlife.spawn.calendar.halloween.tropical.rainforest",
+            |c, _col| {
+                close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
+                    * close(c.humidity, CONFIG.desert_hum, 0.4)
+                    * BASE_DENSITY
+                    * 2.0
+            },
+        ),
+        (
+            "world.wildlife.spawn.calendar.april_fools.tropical.rainforest",
             |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
                     * close(c.humidity, CONFIG.desert_hum, 0.4)

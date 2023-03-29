@@ -51,7 +51,7 @@ pub fn create_character(
         .active_offhand(character_offhand.map(|x| Item::new_from_asset_expect(&x)))
         .build();
     let mut inventory = Inventory::with_loadout_humanoid(loadout);
-    let stats = Stats::new(character_alias.to_string());
+    let stats = Stats::new(character_alias.to_string(), body);
     let skill_set = SkillSet::default();
     // Default items for new characters
     inventory

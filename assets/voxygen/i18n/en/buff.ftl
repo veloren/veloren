@@ -76,7 +76,11 @@ buff-stat-potionsickness =
 ## Reckless
 buff-title-reckless = Reckless
 buff-desc-reckless = Your attacks are more powerful, however you are leaving your defenses open.
+## Polymorped
+buff-title-polymorphed = Polymorphed
+buff-desc-polymorphed = Your body changes form.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds
+buff-mysterious = Mysterious effect
 buff-remove = Click to remove

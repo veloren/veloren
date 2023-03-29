@@ -1046,6 +1046,7 @@ impl TradePricing {
             } else if let ItemKind::Consumable { kind: _, effects } = &*i.kind() {
                 (
                     effects
+                        .effects()
                         .iter()
                         .map(|e| {
                             if let crate::effect::Effect::Buff(b) = e {

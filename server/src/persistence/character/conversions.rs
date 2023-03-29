@@ -600,8 +600,8 @@ pub fn convert_character_from_database(character: &Character) -> common::charact
     }
 }
 
-pub fn convert_stats_from_database(alias: String) -> Stats {
-    let mut new_stats = Stats::empty();
+pub fn convert_stats_from_database(alias: String, body: Body) -> Stats {
+    let mut new_stats = Stats::empty(body);
     new_stats.name = alias;
     new_stats
 }

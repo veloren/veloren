@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{error::Error, fmt};
 
+use super::Body;
+
 #[derive(Debug)]
 #[allow(dead_code)] // TODO: remove once trade sim hits master
 pub enum StatChangeError {
@@ -48,6 +50,7 @@ impl Error for StatChangeError {}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub name: String,
+    pub original_body: Body,
     pub damage_reduction: f32,
     pub poise_reduction: f32,
     pub heal_multiplier: f32,
@@ -62,9 +65,10 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: String, body: Body) -> Self {
         Self {
             name,
+            original_body: body,
             damage_reduction: 0.0,
             poise_reduction: 0.0,
             heal_multiplier: 1.0,
@@ -81,12 +85,14 @@ impl Stats {
 
     /// Creates an empty `Stats` instance - used during character loading from
     /// the database
-    pub fn empty() -> Self { Self::new("".to_string()) }
+    pub fn empty(body: Body) -> Self { Self::new("".to_string(), body) }
 
     /// Resets temporary modifiers to default values
     pub fn reset_temp_modifiers(&mut self) {
-        // TODO: Figure out how to avoid clone
-        *self = Self::new(self.name.clone());
+        let name = std::mem::take(&mut self.name);
+        let body = self.original_body;
+
+        *self = Self::new(name, body);
     }
 }
 

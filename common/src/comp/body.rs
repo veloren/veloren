@@ -31,7 +31,7 @@ use super::{BuffKind, Collider, Density, Mass, Scale};
 
 make_case_elim!(
     body,
-    #[derive(Copy, Clone, Debug, Display, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[derive(Copy, Clone, Debug, Display, PartialEq, PartialOrd, Ord, Eq, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum Body {
         Humanoid(body: humanoid::Body) = 0,
@@ -53,6 +53,16 @@ make_case_elim!(
         ItemDrop(body: item_drop::Body) = 16,
     }
 );
+
+// Implemented for Buff, to be able to implement EnumIter.
+impl Default for Body {
+    fn default() -> Self {
+        Body::QuadrupedSmall(quadruped_small::Body {
+            species: quadruped_small::Species::Frog,
+            body_type: quadruped_small::BodyType::Female,
+        })
+    }
+}
 
 /// Data representing data generic to the body together with per-species data.
 ///

@@ -356,7 +356,7 @@ impl StateExt for State {
             // TODO: some of these are required in order for the character_behavior system to
             // recognize a possesed airship; that system should be refactored to use `.maybe()`
             .with(comp::Energy::new(ship.into(), 0))
-            .with(comp::Stats::new("Airship".to_string()))
+            .with(comp::Stats::new("Airship".to_string(), body))
             .with(comp::SkillSet::default())
             .with(comp::ActiveAbilities::default())
             .with(comp::Combo::default());

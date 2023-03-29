@@ -125,10 +125,11 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        for (entity, buff_comp, mut stat, health, energy, physics_state) in (
+        for (entity, buff_comp, mut stat, mut body, health, energy, physics_state) in (
             &read_data.entities,
             &read_data.buffs,
             &mut stats,
+            &mut bodies,
             &read_data.healths,
             &read_data.energies,
             read_data.physics_states.maybe(),
@@ -330,6 +331,8 @@ impl<'a> System<'a> for Sys {
             // Call to reset stats to base values
             stat.reset_temp_modifiers();
 
+            let mut body_override = stat.original_body;
+
             // Iterator over the lists of buffs by kind
             let mut buff_kinds = buff_comp
                 .kinds
@@ -368,6 +371,7 @@ impl<'a> System<'a> for Sys {
                                 kind_start_time,
                                 &read_data,
                                 &mut stat,
+                                &mut body_override,
                                 health,
                                 energy,
                                 entity,
@@ -380,6 +384,11 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                 }
+            }
+
+            // Update body if needed.
+            if body_override != *body {
+                *body = body_override;
             }
 
             // Remove buffs that expire
@@ -414,6 +423,7 @@ fn execute_effect(
     buff_kind_start_time: Time,
     read_data: &ReadData,
     stat: &mut Stats,
+    body_override: &mut Body,
     health: &Health,
     energy: &Energy,
     entity: Entity,
@@ -592,5 +602,6 @@ fn execute_effect(
         BuffEffect::CriticalChance(cc) => {
             stat.crit_chance_modifier *= *cc;
         },
+        BuffEffect::BodyChange(b) => *body_override = *b,
     };
 }

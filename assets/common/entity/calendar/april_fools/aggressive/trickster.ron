@@ -1,0 +1,24 @@
+#![enable(implicit_some)]
+(
+    name: Name("Trickster"),
+    body: RandomWith("draugr"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.calendar.april_fools.trickster"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.calendar.halloween.trickster"),
+            active_hands: InHands((Choice([
+                (1, Item("common.items.tool.instruments.double_bass")),
+                (1, Item("common.items.tool.instruments.flute")),
+                (1, Item("common.items.tool.instruments.lyre")),
+                (1, Item("common.items.tool.instruments.kalimba")),
+                (1, Item("common.items.tool.instruments.sitar")),
+                (1, Item("common.items.tool.instruments.washboard")),
+                (1, Item("common.items.tool.instruments.lute")),
+                (1, Item("common.items.tool.instruments.guitar")),
+                (1, Item("common.items.tool.instruments.melodica")),
+            ]), None)),
+        )),
+    ),
+    meta: [],
+)

@@ -1375,6 +1375,41 @@ impl ParticleMgr {
                             },
                         );
                     },
+                    BuffKind::Polymorphed(_) => {
+                        let mut multiplicity = 0;
+                        // Only show particles for polymorph at the beginning, after the
+                        // drinking animation finishes
+                        if buff_ids.0
+                            .iter()
+                            .filter_map(|id| buffs.buffs.get(id))
+                            .any(|buff| {
+                                matches!(buff.elapsed(Time(time)), dur if (0.1..=0.3).contains(&dur.0))
+                            })
+                        {
+                            multiplicity = 1;
+                        }
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + multiplicity
+                                    * self.scheduler.heartbeats(Duration::from_millis(3)) as usize,
+                            || {
+                                let start_pos = pos + Vec3::unit_z() * body.eye_height() / 2.0;
+                                let end_pos = start_pos
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-1.0..1.0))
+                                        .normalized()
+                                        * 5.0;
+
+                                Particle::new_directed(
+                                    Duration::from_secs(2),
+                                    time,
+                                    ParticleMode::Explosion,
+                                    start_pos,
+                                    end_pos,
+                                )
+                            },
+                        )
+                    },
                     _ => {},
                 }
             }

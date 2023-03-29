@@ -133,7 +133,7 @@ pub fn create_player(state: &mut State) -> Entity {
         ))
         .with(Health::new(body, body.base_health()))
         .with(skill_set)
-        .with(Stats::empty())
+        .with(Stats::empty(body))
         .build()
 }
 

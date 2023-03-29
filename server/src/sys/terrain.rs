@@ -454,7 +454,7 @@ impl NpcData {
         }
 
         let name = name.unwrap_or_else(|| "Unnamed".to_string());
-        let stats = comp::Stats::new(name);
+        let stats = comp::Stats::new(name, body);
 
         let skill_set = {
             let skillset_builder = SkillSetBuilder::default();
