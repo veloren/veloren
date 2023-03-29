@@ -360,7 +360,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.sword.basic_thrust" => imgs.sword_basic_thrust,
         "common.abilities.sword.heavy_slam" => imgs.sword_heavy_slam,
         "common.abilities.sword.agile_perforate" => imgs.sword_agile_perforate,
-        "common.abilities.sword.defensive_jab" => imgs.sword_defensive_jab,
+        "common.abilities.sword.defensive_vital_jab" => imgs.sword_defensive_vital_jab,
         "common.abilities.sword.crippling_deep_rend" => imgs.sword_crippling_deep_rend,
         "common.abilities.sword.cleaving_spiral_slash" => imgs.sword_cleaving_spiral_slash,
         "veloren.core.pseudo_abilities.sword.crescent_slash" => imgs.sword_crescent_slash,

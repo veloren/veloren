@@ -44,7 +44,8 @@ impl Animation for ChargeswingAnimation {
 
         match ability_id {
             Some(
-                "common.abilities.sword.basic_thrust" | "common.abilities.sword.defensive_jab",
+                "common.abilities.sword.basic_thrust"
+                | "common.abilities.sword.defensive_vital_jab",
             ) => {
                 let (move1, move2, move3, tension) = match stage_section {
                     Some(StageSection::Charge) => (

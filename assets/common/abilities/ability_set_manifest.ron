@@ -20,7 +20,7 @@
                 None: (None, "common.abilities.sword.basic_thrust"),
                 Stance(Sword(Heavy)): (None, "common.abilities.sword.heavy_slam"),
                 Stance(Sword(Agile)): (None, "common.abilities.sword.agile_perforate"),
-                Stance(Sword(Defensive)): (None, "common.abilities.sword.defensive_jab"),
+                Stance(Sword(Defensive)): (None, "common.abilities.sword.defensive_vital_jab"),
                 Stance(Sword(Crippling)): (None, "common.abilities.sword.crippling_deep_rend"),
                 Stance(Sword(Cleaving)): (None, "common.abilities.sword.cleaving_spiral_slash"),
             },

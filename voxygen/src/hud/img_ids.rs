@@ -225,7 +225,7 @@ image_ids! {
         sword_basic_thrust: "voxygen.element.skills.sword.basic_thrust",
         sword_heavy_slam: "voxygen.element.skills.sword.heavy_slam",
         sword_agile_perforate: "voxygen.element.skills.sword.agile_perforate",
-        sword_defensive_jab: "voxygen.element.skills.sword.defensive_jab",
+        sword_defensive_vital_jab: "voxygen.element.skills.sword.defensive_vital_jab",
         sword_crippling_deep_rend: "voxygen.element.skills.sword.crippling_deep_rend",
         sword_cleaving_spiral_slash: "voxygen.element.skills.sword.cleaving_spiral_slash",
         sword_crescent_slash: "voxygen.element.skills.sword.crescent_slash",
