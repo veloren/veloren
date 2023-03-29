@@ -173,6 +173,7 @@ pub enum Tactic {
     BorealHammer,
     Dullahan,
     Cyclops,
+    IceDrake,
 
     // Adlets
     AdletHunter,
@@ -355,6 +356,12 @@ pub enum AbilityData {
         vertical_leap: f32,
         leap_dur: f32,
     },
+    BasicBeam {
+        energy_drain: f32,
+        range: f32,
+        angle: f32,
+        ori_rate: f32,
+    },
 }
 
 impl AbilityData {
@@ -509,6 +516,18 @@ impl AbilityData {
                 forward_leap: *forward_leap_strength,
                 vertical_leap: *vertical_leap_strength,
             },
+            BasicBeam {
+                range,
+                max_angle,
+                ori_rate,
+                energy_drain,
+                ..
+            } => Self::BasicBeam {
+                range: *range,
+                angle: *max_angle,
+                ori_rate: *ori_rate,
+                energy_drain: *energy_drain,
+            },
             _ => return None,
         };
         Some(inner)
@@ -558,6 +577,20 @@ impl AbilityData {
                 proj_speed * 2_f32.sqrt() / 2.0 * flight_time
             };
             attack_data.dist_sqrd < max_horiz_dist.powi(2)
+                && entities_have_line_of_sight(
+                    agent_data.pos,
+                    agent_data.body,
+                    agent_data.scale,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    tgt_data.scale,
+                    read_data,
+                )
+        };
+        let beam_check = |range: f32, angle, ori_rate: f32| {
+            let angle_inc = ori_rate.to_degrees();
+            attack_data.dist_sqrd < range.powi(2)
+                && attack_data.angle < angle + angle_inc
                 && entities_have_line_of_sight(
                     agent_data.pos,
                     agent_data.body,
@@ -694,6 +727,12 @@ impl AbilityData {
                 });
                 melee_check(*range, *angle, forced_move) && energy_check(*energy)
             },
+            BasicBeam {
+                energy_drain,
+                range,
+                angle,
+                ori_rate,
+            } => beam_check(*range, *angle, *ori_rate) && energy_check(*energy_drain * 3.0),
         }
     }
 }

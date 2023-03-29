@@ -4715,4 +4715,81 @@ impl<'a> AgentData<'a> {
             );
         }
     }
+
+    pub fn handle_icedrake(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let abilities = [
+            self.extract_ability(AbilityInput::Auxiliary(0)),
+            self.extract_ability(AbilityInput::Auxiliary(1)),
+        ];
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                a.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+
+        match self.char_state.ability_info().map(|ai| ai.input) {
+            Some(input @ InputKind::Primary) => {
+                if !matches!(self.char_state.stage_section(), Some(StageSection::Recover))
+                    && could_use_input(input)
+                {
+                    controller.push_basic_input(input)
+                }
+            },
+            Some(input @ InputKind::Ability(1)) => {
+                if self
+                    .char_state
+                    .timer()
+                    .map_or(false, |t| t.as_secs_f32() < 3.0)
+                    && could_use_input(input)
+                {
+                    controller.push_basic_input(input)
+                }
+            },
+            _ => {},
+        }
+
+        let move_forwards = if could_use_input(InputKind::Primary) && rng.gen_bool(0.4) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else if could_use_input(InputKind::Secondary) && rng.gen_bool(0.8) {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if could_use_input(InputKind::Ability(1)) && rng.gen_bool(0.9) {
+            controller.push_basic_input(InputKind::Ability(1));
+            true
+        } else if could_use_input(InputKind::Ability(0)) {
+            controller.push_basic_input(InputKind::Ability(0));
+            true
+        } else {
+            true
+        };
+
+        if move_forwards && attack_data.dist_sqrd > 3_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
 }
