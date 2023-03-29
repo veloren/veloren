@@ -67,14 +67,6 @@ impl CharacterBehavior for Data {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Action;
                     }
-
-                    // Consume combo if any was required
-                    if self.static_data.minimum_combo > 0 {
-                        output_events.emit_server(ServerEvent::ComboChange {
-                            entity: data.entity,
-                            change: -data.combo.map_or(0, |c| c.counter() as i32),
-                        });
-                    }
                 }
             },
             StageSection::Action => {
@@ -117,6 +109,14 @@ impl CharacterBehavior for Data {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Recover;
                     }
+                }
+
+                // Consume combo if any was required
+                if self.static_data.minimum_combo > 0 {
+                    output_events.emit_server(ServerEvent::ComboChange {
+                        entity: data.entity,
+                        change: -data.combo.map_or(0, |c| c.counter() as i32),
+                    });
                 }
             },
             StageSection::Recover => {

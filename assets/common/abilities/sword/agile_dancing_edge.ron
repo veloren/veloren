@@ -4,8 +4,8 @@ SelfBuff(
     recover_duration: 0.3,
     buff_kind: Hastened,
     buff_strength: 0.25,
-    buff_duration: Some(30.0),
-    energy_cost: 30,
+    buff_duration: Some(20.0),
+    energy_cost: 20,
     meta: (
         requirements: (stance: Some(Sword(Agile))),
     ),

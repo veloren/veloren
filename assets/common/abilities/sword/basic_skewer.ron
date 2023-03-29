@@ -23,5 +23,5 @@ ComboMelee2(
             ),
         ),
     ],
-    energy_cost_per_strike: 10,
+    energy_cost_per_strike: 5,
 )

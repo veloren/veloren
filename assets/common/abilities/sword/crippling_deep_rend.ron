@@ -9,10 +9,10 @@ ChargedMelee(
             energy_regen: 0,
         ),
         scaled: Some(Slash(
-            damage: 12,
+            damage: 15,
             poise: 5,
             knockback: 0,
-            energy_regen: 15,
+            energy_regen: 10,
         )),
         damage_effect: Some(BuffsVulnerable(0.5, Bleeding)),
         range: 4.5,

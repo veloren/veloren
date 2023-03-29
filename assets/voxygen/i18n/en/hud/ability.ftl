@@ -44,8 +44,8 @@ common-abilities-sword-heavy_slam = Heavy Slam
     .desc = A strong overhead slash that can be charged to be more staggering
 common-abilities-sword-agile_perforate = Perforate
     .desc = A rapid flurry of light attacks
-common-abilities-sword-defensive_parry = Parry
-    .desc = If timed properly, can deflect melee strikes
+common-abilities-sword-defensive_vital_jab = Defensive Vital Jab
+    .desc = A quickly charged jab that does more damage against parried foes
 common-abilities-sword-crippling_deep_rend = Deep Rend
     .desc = A strike aimed at an already open wound, deals more damage to bleeding enemies
 common-abilities-sword-cleaving_spiral_slash = Spiral Slash
@@ -158,9 +158,9 @@ common-abilities-sword-cleaving_bladestorm = Bladestorm
     .desc =
         Decimate your enemies with multiple cyclic swings of your sword
         Requires a moderate amount of combo to use
-common-abilities-sword-heavy_windmill_slash = Windmill Slash
+common-abilities-sword-heavy_sweep = Heavy Sweep
     .desc =
-        Double overhead swings that can heavily stagger
+        A heavy, wide, sweeping strike that deals more damage to a staggered enemy
         Enters heavy stance
 common-abilities-sword-heavy_pommel_strike = Pommel Strike
     .desc =

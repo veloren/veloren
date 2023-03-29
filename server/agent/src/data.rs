@@ -127,6 +127,8 @@ pub enum Tactic {
     Bow,
     Staff,
     Sceptre,
+    // TODO: Remove tactic and ability spec
+    SwordSimple,
 
     // Broad creature tactics
     CircleCharge { radius: u32, circle_time: u32 },

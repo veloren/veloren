@@ -1,7 +1,7 @@
 ({
-    Sword(HeavyWindmillSlash): Any({Sword(CrescentSlash): 1, Sword(Cascade): 1}),
+    Sword(HeavySweep): Any({Sword(CrescentSlash): 1, Sword(Cascade): 1}),
     Sword(HeavyPommelStrike): Any({Sword(CrescentSlash): 1, Sword(Cascade): 1}),
-    Sword(HeavyFortitude): All({Sword(HeavyWindmillSlash): 1}),
+    Sword(HeavyFortitude): All({Sword(HeavySweep): 1}),
     Sword(HeavyPillarThrust): All({Sword(HeavyPommelStrike): 1}),
     Sword(AgileQuickDraw): Any({Sword(CrossCut): 1, Sword(Skewer): 1}),
     Sword(AgileFeint): Any({Sword(CrossCut): 1, Sword(Skewer): 1}),

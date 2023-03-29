@@ -512,7 +512,7 @@ impl<'a> AgentData<'a> {
                 );
                 if tactics.is_empty() {
                     try_tactic(
-                        SwordSkill::HeavyWindmillSlash,
+                        SwordSkill::HeavySweep,
                         SwordTactics::HeavySimple,
                         &mut tactics,
                     );
@@ -4211,5 +4211,56 @@ impl<'a> AgentData<'a> {
             Path::Full,
             None,
         );
+    }
+
+    pub fn handle_sword_simple_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const DASH_TIMER: usize = 0;
+        agent.action_state.timers[DASH_TIMER] += read_data.dt.0;
+        if matches!(self.char_state, CharacterState::DashMelee(s) if !matches!(s.stage_section, StageSection::Recover))
+        {
+            controller.push_basic_input(InputKind::Secondary);
+        } else if attack_data.in_min_range() && attack_data.angle < 45.0 {
+            if agent.action_state.timers[DASH_TIMER] > 2.0 {
+                agent.action_state.timers[DASH_TIMER] = 0.0;
+            }
+            controller.push_basic_input(InputKind::Primary);
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
+            && self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            )
+            && entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                tgt_data.pos,
+                tgt_data.body,
+                read_data,
+            )
+            && agent.action_state.timers[DASH_TIMER] > 4.0
+            && attack_data.angle < 45.0
+        {
+            controller.push_basic_input(InputKind::Secondary);
+            agent.action_state.timers[DASH_TIMER] = 0.0;
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
+        }
     }
 }

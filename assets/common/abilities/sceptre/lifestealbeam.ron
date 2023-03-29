@@ -3,7 +3,7 @@ BasicBeam(
     recover_duration: 0.20,
     beam_duration: 1.0,
     damage: 4,
-    tick_rate: 4,
+    tick_rate: 3,
     range: 25.0,
     max_angle: 1.0,
     damage_effect: Some(Lifesteal(0.05)),

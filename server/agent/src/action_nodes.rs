@@ -829,7 +829,7 @@ impl<'a> AgentData<'a> {
                 if let Some(ability_spec) = item.ability_spec() {
                     match &*ability_spec {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
-                            "Oni" | "Sword Simple" => Tactic::Sword,
+                            "Oni" | "Sword Simple" => Tactic::SwordSimple,
                             "Staff Simple" => Tactic::Staff,
                             "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
                             "Bow Simple" | "Boreal Bow" => Tactic::Bow,
@@ -1321,6 +1321,13 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
                 rng,
+            ),
+            Tactic::SwordSimple => self.handle_sword_simple_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
             ),
         }
     }

@@ -1,5 +1,5 @@
 DiveMelee(
-    energy_cost: 25,
+    energy_cost: 15,
     vertical_speed: 5,
     buildup_duration: Some(0.1),
     movement_duration: 5,
@@ -7,13 +7,13 @@ DiveMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Slash(
-            damage: 20,
+            damage: 30,
             poise: 40,
             knockback: 0,
             energy_regen: 0,
         ),
         scaled: Some(Slash(
-            damage: 5,
+            damage: 10,
             poise: 10,
             knockback: 0,
             energy_regen: 0,
@@ -23,7 +23,7 @@ DiveMelee(
         multi_target: Some(Normal),
         damage_effect: Some(StunnedVulnerable(0.5)),
     ),
-    max_scaling: 6,
+    max_scaling: 3,
     meta: (
         requirements: (stance: Some(Sword(Heavy))),
     ),

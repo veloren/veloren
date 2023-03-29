@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 18,
+                    damage: 20,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 0,
@@ -14,15 +14,15 @@ ComboMelee2(
                     kind: Bleeding,
                     dur_secs: 8.0,
                     strength: DamageFraction(0.25),
-                    chance: 0.25,
+                    chance: 1.0,
                 ))),
             ),
-            buildup_duration: 0.35,
+            buildup_duration: 0.4,
             swing_duration: 0.1,
             hit_timing: 0.5,
             recover_duration: 0.2,
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 10,
+    energy_cost_per_strike: 5,
 )

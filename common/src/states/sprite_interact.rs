@@ -56,8 +56,6 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        leave_stance(data, output_events);
-
         let ori_dir = Dir::from_unnormalized(Vec3::from(
             (self.static_data.sprite_pos.map(|x| x as f32 + 0.5) - data.pos.0).xy(),
         ));

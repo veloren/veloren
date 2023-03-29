@@ -1627,8 +1627,8 @@ impl<'a> Diary<'a> {
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 263.0, 429.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Sword(SwordSkill::HeavyWindmillSlash),
-                ability_id: "common.abilities.sword.heavy_windmill_slash",
+                skill: Skill::Sword(SwordSkill::HeavySweep),
+                ability_id: "common.abilities.sword.heavy_sweep",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 457.0, 2.0),
             },
             SkillIcon::Ability {

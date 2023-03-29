@@ -259,10 +259,7 @@ impl Animation for BlockAnimation {
                     next.second = next.main;
                 }
             },
-            Some(
-                "common.abilities.sword.defensive_parry"
-                | "common.abilities.sword.defensive_deflect",
-            ) => {
+            Some("common.abilities.sword.defensive_deflect") => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powi(2), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, (anim_time * 20.0).sin(), 0.0),

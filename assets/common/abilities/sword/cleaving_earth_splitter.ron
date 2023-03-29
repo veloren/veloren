@@ -1,5 +1,5 @@
 DiveMelee(
-    energy_cost: 15,
+    energy_cost: 5,
     vertical_speed: 5,
     buildup_duration: Some(0.1),
     movement_duration: 5,
@@ -7,22 +7,22 @@ DiveMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Slash(
-            damage: 5,
+            damage: 10,
             poise: 5,
             knockback: 0,
             energy_regen: 0,
         ),
         scaled: Some(Slash(
-            damage: 10,
+            damage: 15,
             poise: 10,
             knockback: 0,
             energy_regen: 0,
         )),
-        range: 6.0,
-        angle: 15.0,
+        range: 4.0,
+        angle: 360.0,
         multi_target: Some(Normal),
     ),
-    max_scaling: 10.0,
+    max_scaling: 6.0,
     meta: (
         init_event: Some(EnterStance(Sword(Cleaving))),
     ),

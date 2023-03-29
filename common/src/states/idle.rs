@@ -21,7 +21,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        const LEAVE_STANCE_DELAY: f64 = 5.0;
+        const LEAVE_STANCE_DELAY: f64 = 30.0;
         if (self.time_entered.0 + LEAVE_STANCE_DELAY) < data.time.0 {
             leave_stance(data, output_events);
         }

@@ -20,7 +20,7 @@
         (Sword(Skewer), 1),
         (Sword(FellStrike), 1),
         (Sword(Finisher), 1),
-        (Sword(HeavyWindmillSlash), 1),
+        (Sword(HeavySweep), 1),
         (Sword(HeavyPommelStrike), 1),
         (Sword(HeavyFortitude), 1),
         (Sword(HeavyPillarThrust), 1),

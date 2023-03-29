@@ -909,13 +909,11 @@ impl CharacterAbility {
                 CharacterAbility::DiveMelee {
                     buildup_duration,
                     energy_cost,
-                    vertical_speed,
                     ..
                 } => {
-                    // If either falling fast enough or is on ground and able to be activated from
+                    // If either in the air or is on ground and able to be activated from
                     // ground
-                    (data.vel.0.z < -*vertical_speed
-                        || (data.physics.on_ground.is_some() && buildup_duration.is_some()))
+                    (data.physics.on_ground.is_none() || buildup_duration.is_some())
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 CharacterAbility::ComboMelee { .. }
@@ -2904,7 +2902,7 @@ bitflags::bitflags! {
         const POISE_RESISTANT     = 0b00001000;
         // WHen in the ability, an entity only receives half as much knockback
         const KNOCKBACK_RESISTANT = 0b00010000;
-        // The ability will interrupt itself into a parry if hit with melee
+        // The ability will parry melee attacks in the buildup portion
         const BUILDUP_PARRIES     = 0b00100000;
     }
 }

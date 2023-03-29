@@ -52,8 +52,6 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        leave_stance(data, output_events);
-
         match self.static_data.item_kind {
             ItemUseKind::Consumable(ConsumableKind::Drink) => {
                 handle_orientation(data, &mut update, 1.0, None);

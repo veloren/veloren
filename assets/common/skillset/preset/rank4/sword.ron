@@ -6,7 +6,7 @@
     Skill((Sword(Skewer), 1)),
     Skill((Sword(FellStrike), 1)),
     Skill((Sword(Finisher), 1)),
-    Skill((Sword(HeavyWindmillSlash), 1)),
+    Skill((Sword(HeavySweep), 1)),
     Skill((Sword(HeavyPommelStrike), 1)),
     Skill((Sword(HeavyFortitude), 1)),
     Skill((Sword(HeavyPillarThrust), 1)),
