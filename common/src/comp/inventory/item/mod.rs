@@ -266,6 +266,23 @@ impl TagExampleInfo for ItemTag {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Effects {
+    Any(Vec<Effect>),
+    All(Vec<Effect>),
+    One(Effect),
+}
+
+impl Effects {
+    pub fn effects(&self) -> &[Effect] {
+        match self {
+            Effects::Any(effects) => effects,
+            Effects::All(effects) => effects,
+            Effects::One(effect) => std::slice::from_ref(effect),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(Tool),
@@ -275,7 +292,7 @@ pub enum ItemKind {
     Glider,
     Consumable {
         kind: ConsumableKind,
-        effects: Vec<Effect>,
+        effects: Effects,
     },
     Throwable {
         kind: Throwable,

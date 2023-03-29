@@ -157,6 +157,7 @@ lazy_static! {
             BuffKind::Parried => "parried",
             BuffKind::PotionSickness => "potion_sickness",
             BuffKind::Reckless => "reckless",
+            BuffKind::Polymorphed(_) => "polymorphed",
         };
         let mut buff_parser = HashMap::new();
         for kind in BuffKind::iter() {

@@ -3,7 +3,7 @@ ItemDef(
     description: "Giving you that special prickle.",
     kind: Consumable(
         kind: Drink,
-        effects: [
+        effects: One(
             Buff((
                 kind: Saturation,
                 data: (
@@ -12,7 +12,7 @@ ItemDef(
                     ),
                 cat_ids: [Natural],
             )),
-        ]
+        )
     ),
     quality: Moderate,
     tags: [Food],

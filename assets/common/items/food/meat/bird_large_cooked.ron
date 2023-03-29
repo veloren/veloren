@@ -3,7 +3,7 @@ ItemDef(
     description: "Makes for a legendary meal.",
     kind: Consumable(
         kind: Food,
-        effects: [
+        effects: One(
             Buff((
                 kind: Saturation,
                 data: (
@@ -12,7 +12,7 @@ ItemDef(
                     ),
                 cat_ids: [Natural],
             )),
-        ]
+        )
     ),
     quality: Common,
     tags: [Food],

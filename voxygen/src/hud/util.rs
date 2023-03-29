@@ -5,7 +5,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            ItemDefinitionId, ItemDesc, ItemKind, MaterialKind, MaterialStatManifest,
+            Effects, ItemDefinitionId, ItemDesc, ItemKind, MaterialKind, MaterialStatManifest,
         },
         BuffKind,
     },
@@ -112,7 +112,10 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
                 + (item.num_slots() > 0) as usize
         },
         ItemKind::Tool(_) => 7,
-        ItemKind::Consumable { effects, .. } => effects.len(),
+        ItemKind::Consumable { effects, .. } => match effects {
+            Effects::Any(_) | Effects::One(_) => 1,
+            Effects::All(effects) => effects.len(),
+        },
         ItemKind::ModularComponent { .. } => 7,
         _ => 0,
     }
@@ -138,108 +141,119 @@ pub fn line_count(item: &dyn ItemDesc, msm: &MaterialStatManifest, i18n: &Locali
 ///
 /// FIXME: handle which effects should have description in `stats_count`
 /// to not waste space in item box
-pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
+pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
     let mut descriptions = Vec::new();
+    match effects {
+        Effects::Any(_) => {
+            descriptions.push(i18n.get_msg("buff-mysterious").into_owned());
+        },
+        Effects::All(_) | Effects::One(_) => {
+            for effect in effects.effects() {
+                let mut description = String::new();
+                if let Effect::Buff(buff) = effect {
+                    let strength = buff.data.strength;
+                    let dur_secs = buff.data.duration.map(|d| d.0 as f32);
+                    let str_total = dur_secs.map_or(strength, |secs| strength * secs);
 
-    for effect in effects {
-        let mut description = String::new();
-        if let Effect::Buff(buff) = effect {
-            let strength = buff.data.strength;
-            let dur_secs = buff.data.duration.map(|d| d.0 as f32);
-            let str_total = dur_secs.map_or(strength, |secs| strength * secs);
+                    let format_float =
+                        |input: f32| format!("{:.1}", input).trim_end_matches(".0").to_string();
 
-            let format_float =
-                |input: f32| format!("{:.1}", input).trim_end_matches(".0").to_string();
+                    let buff_desc = match buff.kind {
+                        BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => i18n
+                            .get_msg_ctx("buff-stat-health", &i18n::fluent_args! {
+                                "str_total" => format_float(str_total),
+                            }),
+                        BuffKind::EnergyRegen => {
+                            i18n.get_msg_ctx("buff-stat-energy_regen", &i18n::fluent_args! {
+                                "str_total" => format_float(str_total),
+                            })
+                        },
+                        BuffKind::IncreaseMaxEnergy => {
+                            i18n.get_msg_ctx("buff-stat-increase_max_energy", &i18n::fluent_args! {
+                                "strength" => format_float(strength),
+                            })
+                        },
+                        BuffKind::IncreaseMaxHealth => {
+                            i18n.get_msg_ctx("buff-stat-increase_max_health", &i18n::fluent_args! {
+                                "strength" => format_float(strength),
+                            })
+                        },
+                        BuffKind::PotionSickness => {
+                            i18n.get_msg_ctx("buff-stat-potionsickness", &i18n::fluent_args! {
+                                "strength" => format_float(strength * 100.0),
+                            })
+                        },
+                        BuffKind::Invulnerability => i18n.get_msg("buff-stat-invulnerability"),
+                        BuffKind::Bleeding
+                        | BuffKind::Burning
+                        | BuffKind::CampfireHeal
+                        | BuffKind::Cursed
+                        | BuffKind::ProtectingWard
+                        | BuffKind::Crippled
+                        | BuffKind::Frenzied
+                        | BuffKind::Frozen
+                        | BuffKind::Wet
+                        | BuffKind::Ensnared
+                        | BuffKind::Poisoned
+                        | BuffKind::Hastened
+                        | BuffKind::Fortitude
+                        | BuffKind::Parried
+                        | BuffKind::Reckless
+                        | BuffKind::Polymorphed(_) => Cow::Borrowed(""),
+                    };
 
-            let buff_desc = match buff.kind {
-                BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => i18n
-                    .get_msg_ctx("buff-stat-health", &i18n::fluent_args! {
-                        "str_total" => format_float(str_total),
-                    }),
-                BuffKind::EnergyRegen => {
-                    i18n.get_msg_ctx("buff-stat-energy_regen", &i18n::fluent_args! {
-                        "str_total" => format_float(str_total),
-                    })
-                },
-                BuffKind::IncreaseMaxEnergy => {
-                    i18n.get_msg_ctx("buff-stat-increase_max_energy", &i18n::fluent_args! {
-                        "strength" => format_float(strength),
-                    })
-                },
-                BuffKind::IncreaseMaxHealth => {
-                    i18n.get_msg_ctx("buff-stat-increase_max_health", &i18n::fluent_args! {
-                        "strength" => format_float(strength),
-                    })
-                },
-                BuffKind::PotionSickness => {
-                    i18n.get_msg_ctx("buff-stat-potionsickness", &i18n::fluent_args! {
-                        "strength" => format_float(strength * 100.0),
-                    })
-                },
-                BuffKind::Invulnerability => i18n.get_msg("buff-stat-invulnerability"),
-                BuffKind::Bleeding
-                | BuffKind::Burning
-                | BuffKind::CampfireHeal
-                | BuffKind::Cursed
-                | BuffKind::ProtectingWard
-                | BuffKind::Crippled
-                | BuffKind::Frenzied
-                | BuffKind::Frozen
-                | BuffKind::Wet
-                | BuffKind::Ensnared
-                | BuffKind::Poisoned
-                | BuffKind::Hastened
-                | BuffKind::Fortitude
-                | BuffKind::Parried
-                | BuffKind::Reckless => Cow::Borrowed(""),
-            };
+                    write!(&mut description, "{}", buff_desc).unwrap();
 
-            write!(&mut description, "{}", buff_desc).unwrap();
+                    let dur_desc = if let Some(dur_secs) = dur_secs {
+                        match buff.kind {
+                            BuffKind::Saturation
+                            | BuffKind::Regeneration
+                            | BuffKind::EnergyRegen => {
+                                i18n.get_msg_ctx("buff-text-over_seconds", &i18n::fluent_args! {
+                                    "dur_secs" => dur_secs
+                                })
+                            },
+                            BuffKind::IncreaseMaxEnergy
+                            | BuffKind::IncreaseMaxHealth
+                            | BuffKind::Invulnerability
+                            | BuffKind::PotionSickness
+                            | BuffKind::Polymorphed(_) => {
+                                i18n.get_msg_ctx("buff-text-for_seconds", &i18n::fluent_args! {
+                                    "dur_secs" => dur_secs
+                                })
+                            },
+                            BuffKind::Bleeding
+                            | BuffKind::Burning
+                            | BuffKind::Potion
+                            | BuffKind::CampfireHeal
+                            | BuffKind::Cursed
+                            | BuffKind::ProtectingWard
+                            | BuffKind::Crippled
+                            | BuffKind::Frenzied
+                            | BuffKind::Frozen
+                            | BuffKind::Wet
+                            | BuffKind::Ensnared
+                            | BuffKind::Poisoned
+                            | BuffKind::Hastened
+                            | BuffKind::Fortitude
+                            | BuffKind::Parried
+                            | BuffKind::Reckless => Cow::Borrowed(""),
+                        }
+                    } else if let BuffKind::Saturation
+                    | BuffKind::Regeneration
+                    | BuffKind::EnergyRegen = buff.kind
+                    {
+                        i18n.get_msg("buff-text-every_second")
+                    } else {
+                        Cow::Borrowed("")
+                    };
 
-            let dur_desc = if let Some(dur_secs) = dur_secs {
-                match buff.kind {
-                    BuffKind::Saturation | BuffKind::Regeneration | BuffKind::EnergyRegen => i18n
-                        .get_msg_ctx("buff-text-over_seconds", &i18n::fluent_args! {
-                            "dur_secs" => dur_secs
-                        }),
-                    BuffKind::IncreaseMaxEnergy
-                    | BuffKind::IncreaseMaxHealth
-                    | BuffKind::Invulnerability
-                    | BuffKind::PotionSickness => {
-                        i18n.get_msg_ctx("buff-text-for_seconds", &i18n::fluent_args! {
-                            "dur_secs" => dur_secs
-                        })
-                    },
-                    BuffKind::Bleeding
-                    | BuffKind::Burning
-                    | BuffKind::Potion
-                    | BuffKind::CampfireHeal
-                    | BuffKind::Cursed
-                    | BuffKind::ProtectingWard
-                    | BuffKind::Crippled
-                    | BuffKind::Frenzied
-                    | BuffKind::Frozen
-                    | BuffKind::Wet
-                    | BuffKind::Ensnared
-                    | BuffKind::Poisoned
-                    | BuffKind::Hastened
-                    | BuffKind::Fortitude
-                    | BuffKind::Parried
-                    | BuffKind::Reckless => Cow::Borrowed(""),
+                    write!(&mut description, " {}", dur_desc).unwrap();
                 }
-            } else if let BuffKind::Saturation | BuffKind::Regeneration | BuffKind::EnergyRegen =
-                buff.kind
-            {
-                i18n.get_msg("buff-text-every_second")
-            } else {
-                Cow::Borrowed("")
-            };
-
-            write!(&mut description, " {}", dur_desc).unwrap();
-        }
-        descriptions.push(description);
+                descriptions.push(description);
+            }
+        },
     }
-
     descriptions
 }
 

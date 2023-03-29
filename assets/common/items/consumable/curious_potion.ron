@@ -1,0 +1,67 @@
+ItemDef(
+    name: "Curious Potion",
+    description: "Wonder what this does...",
+    kind: Consumable(
+        kind: Drink,
+        effects: Any([
+            Buff((
+                kind: Polymorphed(QuadrupedSmall(( species: Frog, body_type: Female ))),
+                data: (
+                    strength: 0.0,
+                    duration: Some(60),
+                ),
+                cat_ids: [Natural],
+            )),
+            Buff((
+                kind: Polymorphed(QuadrupedSmall(( species: Rabbit, body_type: Female ))),
+                data: (
+                    strength: 0.0,
+                    duration: Some(60),
+                ),
+                cat_ids: [Natural],
+            )),
+            Buff((
+                kind: Polymorphed(QuadrupedSmall(( species: Rat, body_type: Female ))),
+                data: (
+                    strength: 0.0,
+                    duration: Some(60),
+                ),
+                cat_ids: [Natural],
+            )),
+            Buff((
+                kind: Polymorphed(QuadrupedSmall(( species: Squirrel, body_type: Female ))),
+                data: (
+                    strength: 0.0,
+                    duration: Some(60),
+                ),
+                cat_ids: [Natural],
+            )),
+            Buff((
+                kind: Polymorphed(QuadrupedSmall(( species: Cat, body_type: Female ))),
+                data: (
+                    strength: 0.0,
+                    duration: Some(60),
+                ),
+                cat_ids: [Natural],
+            )),
+            Buff((
+                kind: Polymorphed(QuadrupedSmall(( species: Fungome, body_type: Female ))),
+                data: (
+                    strength: 0.0,
+                    duration: Some(60),
+                ),
+                cat_ids: [Natural],
+            )),
+            Buff((
+                kind: Polymorphed(QuadrupedSmall(( species: Pig, body_type: Female ))),
+                data: (
+                    strength: 0.0,
+                    duration: Some(60),
+                ),
+                cat_ids: [Natural],
+            )),
+        ])
+    ),
+    quality: Common,
+    tags: [Potion],
+)

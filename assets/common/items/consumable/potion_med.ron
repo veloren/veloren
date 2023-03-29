@@ -3,7 +3,7 @@ ItemDef(
     description: "An innovative invention from an apothecary, better than its smaller precursors.",
     kind: Consumable(
         kind: Drink,
-        effects: [
+        effects: All([
             Buff((
                 kind: Potion,
                 data: (
@@ -20,7 +20,7 @@ ItemDef(
                 ),
                 cat_ids: [Natural],
             )),
-        ]
+        ])
     ),
     quality: Common,
     tags: [Potion],

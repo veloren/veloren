@@ -231,7 +231,7 @@ pub fn load_character_data(
                 let pet = comp::Pet::new_from_database(
                     NonZeroU64::new(db_pet.database_id as u64).unwrap(),
                 );
-                let pet_stats = comp::Stats::new(db_pet.name.to_owned());
+                let pet_stats = comp::Stats::new(db_pet.name.to_owned(), pet_body);
                 Some((pet, pet_body, pet_stats))
             } else {
                 warn!(
@@ -259,10 +259,11 @@ pub fn load_character_data(
 
     let (skill_set, skill_set_persistence_load_error) =
         convert_skill_set_from_database(&skill_group_data);
+    let body = convert_body_from_database(&body_data.variant, &body_data.body_data)?;
     Ok((
         PersistedComponents {
-            body: convert_body_from_database(&body_data.variant, &body_data.body_data)?,
-            stats: convert_stats_from_database(character_data.alias),
+            body,
+            stats: convert_stats_from_database(character_data.alias, body),
             skill_set,
             inventory: convert_inventory_from_database_items(
                 character_containers.inventory_container_id,

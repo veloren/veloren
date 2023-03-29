@@ -8,6 +8,7 @@ use strum::EnumIter;
 pub enum CalendarEvent {
     Christmas = 0,
     Halloween = 1,
+    AprilFools = 2,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -41,6 +42,10 @@ impl Calendar {
 
         if now.month() == 10 && (24..=31).contains(&now.day()) {
             this.events.push(CalendarEvent::Halloween);
+        }
+
+        if now.month() == 4 && now.day() == 1 {
+            this.events.push(CalendarEvent::AprilFools);
         }
 
         this

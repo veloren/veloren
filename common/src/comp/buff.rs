@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
 use strum::EnumIter;
 
+use super::Body;
+
 /// De/buff Kind.
 /// This is used to determine what effects a buff will have
 #[derive(
@@ -107,6 +109,8 @@ pub enum BuffKind {
     /// Results from drinking a potion.
     /// Decreases the health gained from subsequent potions.
     PotionSickness,
+    // Changed into another body.
+    Polymorphed(Body),
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -136,7 +140,8 @@ impl BuffKind {
             | BuffKind::Ensnared
             | BuffKind::Poisoned
             | BuffKind::Parried
-            | BuffKind::PotionSickness => false,
+            | BuffKind::PotionSickness
+            | BuffKind::Polymorphed(_) => false,
         }
     }
 
@@ -150,149 +155,17 @@ impl BuffKind {
     /// Checks if multiple instances of the buff should be processed, instead of
     /// only the strongest.
     pub fn stacks(self) -> bool { matches!(self, BuffKind::PotionSickness) }
-}
 
-// Struct used to store data relevant to a buff
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BuffData {
-    pub strength: f32,
-    pub duration: Option<Secs>,
-    pub delay: Option<Secs>,
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl BuffData {
-    pub fn new(strength: f32, duration: Option<Secs>, delay: Option<Secs>) -> Self {
-        Self {
-            strength,
-            duration,
-            delay,
-        }
-    }
-}
-
-/// De/buff category ID.
-/// Similar to `BuffKind`, but to mark a category (for more generic usage, like
-/// positive/negative buffs).
-#[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize)]
-pub enum BuffCategory {
-    Natural,
-    Physical,
-    Magical,
-    Divine,
-    PersistOnDeath,
-    FromActiveAura(Uid, AuraKey),
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum ModifierKind {
-    Additive,
-    Fractional,
-}
-
-/// Data indicating and configuring behaviour of a de/buff.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum BuffEffect {
-    /// Periodically damages or heals entity
-    HealthChangeOverTime {
-        rate: f32,
-        kind: ModifierKind,
-        instance: u64,
-    },
-    /// Periodically consume entity energy
-    EnergyChangeOverTime { rate: f32, kind: ModifierKind },
-    /// Changes maximum health by a certain amount
-    MaxHealthModifier { value: f32, kind: ModifierKind },
-    /// Changes maximum energy by a certain amount
-    MaxEnergyModifier { value: f32, kind: ModifierKind },
-    /// Reduces damage after armor is accounted for by this fraction
-    DamageReduction(f32),
-    /// Gradually changes an entities max health over time
-    MaxHealthChangeOverTime {
-        rate: f32,
-        kind: ModifierKind,
-        target_fraction: f32,
-    },
-    /// Modifies move speed of target
-    MovementSpeed(f32),
-    /// Modifies attack speed of target
-    AttackSpeed(f32),
-    /// Modifies ground friction of target
-    GroundFriction(f32),
-    /// Reduces poise damage taken after armor is accounted for by this fraction
-    PoiseReduction(f32),
-    /// Reduces amount healed by consumables
-    HealReduction(f32),
-    /// Increases poise damage dealt when health is lost
-    PoiseDamageFromLostHealth { initial_health: f32, strength: f32 },
-    /// Modifier to the amount of damage dealt with attacks
-    AttackDamage(f32),
-    /// Multiplies crit chance of attacks
-    CriticalChance(f32),
-}
-
-/// Actual de/buff.
-/// Buff can timeout after some time if `time` is Some. If `time` is None,
-/// Buff will last indefinitely, until removed manually (by some action, like
-/// uncursing).
-///
-/// Buff has a kind, which is used to determine the effects in a builder
-/// function.
-///
-/// To provide more classification info when needed,
-/// buff can be in one or more buff category.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Buff {
-    pub kind: BuffKind,
-    pub data: BuffData,
-    pub cat_ids: Vec<BuffCategory>,
-    pub end_time: Option<Time>,
-    pub start_time: Time,
-    pub effects: Vec<BuffEffect>,
-    pub source: BuffSource,
-}
-
-/// Information about whether buff addition or removal was requested.
-/// This to implement "on_add" and "on_remove" hooks for constant buffs.
-#[derive(Clone, Debug)]
-pub enum BuffChange {
-    /// Adds this buff.
-    Add(Buff),
-    /// Removes all buffs with this ID.
-    RemoveByKind(BuffKind),
-    /// Removes all buffs with this ID, but not debuffs.
-    RemoveFromController(BuffKind),
-    /// Removes buffs of these indices (first vec is for active buffs, second is
-    /// for inactive buffs), should only be called when buffs expire
-    RemoveById(Vec<BuffId>),
-    /// Removes buffs of these categories (first vec is of categories of which
-    /// all are required, second vec is of categories of which at least one is
-    /// required, third vec is of categories that will not be removed)
-    RemoveByCategory {
-        all_required: Vec<BuffCategory>,
-        any_required: Vec<BuffCategory>,
-        none_required: Vec<BuffCategory>,
-    },
-    // Refreshes durations of all buffs with this kind
-    Refresh(BuffKind),
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl Buff {
-    /// Builder function for buffs
-    pub fn new(
-        kind: BuffKind,
-        data: BuffData,
-        cat_ids: Vec<BuffCategory>,
-        source: BuffSource,
-        time: Time,
+    pub fn effects(
+        &self,
+        data: &BuffData,
         stats: Option<&Stats>,
         health: Option<&Health>,
-    ) -> Self {
+    ) -> Vec<BuffEffect> {
         // Normalized nonlinear scaling
         let nn_scaling = |a| a / (a + 0.5);
         let instance = rand::random();
-        let effects = match kind {
+        match self {
             BuffKind::Bleeding => vec![BuffEffect::HealthChangeOverTime {
                 rate: -data.strength,
                 kind: ModifierKind::Additive,
@@ -397,7 +270,151 @@ impl Buff {
                 BuffEffect::DamageReduction(-data.strength),
                 BuffEffect::AttackDamage(1.0 + data.strength),
             ],
-        };
+            BuffKind::Polymorphed(body) => vec![BuffEffect::BodyChange(*body)],
+        }
+    }
+}
+
+// Struct used to store data relevant to a buff
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BuffData {
+    pub strength: f32,
+    pub duration: Option<Secs>,
+    pub delay: Option<Secs>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl BuffData {
+    pub fn new(strength: f32, duration: Option<Secs>, delay: Option<Secs>) -> Self {
+        Self {
+            strength,
+            duration,
+            delay,
+        }
+    }
+}
+
+/// De/buff category ID.
+/// Similar to `BuffKind`, but to mark a category (for more generic usage, like
+/// positive/negative buffs).
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub enum BuffCategory {
+    Natural,
+    Physical,
+    Magical,
+    Divine,
+    PersistOnDeath,
+    FromActiveAura(Uid, AuraKey),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ModifierKind {
+    Additive,
+    Fractional,
+}
+
+/// Data indicating and configuring behaviour of a de/buff.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum BuffEffect {
+    /// Periodically damages or heals entity
+    HealthChangeOverTime {
+        rate: f32,
+        kind: ModifierKind,
+        instance: u64,
+    },
+    /// Periodically consume entity energy
+    EnergyChangeOverTime { rate: f32, kind: ModifierKind },
+    /// Changes maximum health by a certain amount
+    MaxHealthModifier { value: f32, kind: ModifierKind },
+    /// Changes maximum energy by a certain amount
+    MaxEnergyModifier { value: f32, kind: ModifierKind },
+    /// Reduces damage after armor is accounted for by this fraction
+    DamageReduction(f32),
+    /// Gradually changes an entities max health over time
+    MaxHealthChangeOverTime {
+        rate: f32,
+        kind: ModifierKind,
+        target_fraction: f32,
+    },
+    /// Modifies move speed of target
+    MovementSpeed(f32),
+    /// Modifies attack speed of target
+    AttackSpeed(f32),
+    /// Modifies ground friction of target
+    GroundFriction(f32),
+    /// Reduces poise damage taken after armor is accounted for by this fraction
+    PoiseReduction(f32),
+    /// Reduces amount healed by consumables
+    HealReduction(f32),
+    /// Increases poise damage dealt when health is lost
+    PoiseDamageFromLostHealth { initial_health: f32, strength: f32 },
+    /// Modifier to the amount of damage dealt with attacks
+    AttackDamage(f32),
+    /// Multiplies crit chance of attacks
+    CriticalChance(f32),
+    /// Changes body.
+    BodyChange(Body),
+}
+
+/// Actual de/buff.
+/// Buff can timeout after some time if `time` is Some. If `time` is None,
+/// Buff will last indefinitely, until removed manually (by some action, like
+/// uncursing).
+///
+/// Buff has a kind, which is used to determine the effects in a builder
+/// function.
+///
+/// To provide more classification info when needed,
+/// buff can be in one or more buff category.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Buff {
+    pub kind: BuffKind,
+    pub data: BuffData,
+    pub cat_ids: Vec<BuffCategory>,
+    pub end_time: Option<Time>,
+    pub start_time: Time,
+    pub effects: Vec<BuffEffect>,
+    pub source: BuffSource,
+}
+
+/// Information about whether buff addition or removal was requested.
+/// This to implement "on_add" and "on_remove" hooks for constant buffs.
+#[derive(Clone, Debug)]
+pub enum BuffChange {
+    /// Adds this buff.
+    Add(Buff),
+    /// Removes all buffs with this ID.
+    RemoveByKind(BuffKind),
+    /// Removes all buffs with this ID, but not debuffs.
+    RemoveFromController(BuffKind),
+    /// Removes buffs of these indices (first vec is for active buffs, second is
+    /// for inactive buffs), should only be called when buffs expire
+    RemoveById(Vec<BuffId>),
+    /// Removes buffs of these categories (first vec is of categories of which
+    /// all are required, second vec is of categories of which at least one is
+    /// required, third vec is of categories that will not be removed)
+    RemoveByCategory {
+        all_required: Vec<BuffCategory>,
+        any_required: Vec<BuffCategory>,
+        none_required: Vec<BuffCategory>,
+    },
+    // Refreshes durations of all buffs with this kind
+    Refresh(BuffKind),
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Buff {
+    /// Builder function for buffs
+    pub fn new(
+        kind: BuffKind,
+        data: BuffData,
+        cat_ids: Vec<BuffCategory>,
+        source: BuffSource,
+        time: Time,
+        stats: Option<&Stats>,
+        health: Option<&Health>,
+    ) -> Self {
+        let effects = kind.effects(&data, stats, health);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids
             .iter()

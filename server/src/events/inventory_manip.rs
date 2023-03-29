@@ -1,5 +1,5 @@
 use hashbrown::HashSet;
-use rand::Rng;
+use rand::{seq::IteratorRandom, Rng};
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
 use tracing::{debug, error, warn};
 use vek::{Rgb, Vec3};
@@ -542,8 +542,20 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             drop(inventories);
 
             if let Some(effects) = maybe_effect {
-                for effect in effects {
-                    state.apply_effect(entity, effect, None);
+                match effects {
+                    item::Effects::Any(effects) => {
+                        if let Some(effect) = effects.into_iter().choose(&mut rand::thread_rng()) {
+                            state.apply_effect(entity, effect, None);
+                        }
+                    },
+                    item::Effects::All(effects) => {
+                        for effect in effects {
+                            state.apply_effect(entity, effect, None);
+                        }
+                    },
+                    item::Effects::One(effect) => {
+                        state.apply_effect(entity, effect, None);
+                    },
                 }
             }
             if let Some(event) = event {
@@ -950,7 +962,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     });
             },
             item::Throwable::TrainingDummy => {
-                new_entity = new_entity.with(comp::Stats::new("Training Dummy".to_string()));
+                new_entity = new_entity.with(comp::Stats::new(
+                    "Training Dummy".to_string(),
+                    Body::Object(common::comp::object::Body::TrainingDummy),
+                ));
             },
         };
 

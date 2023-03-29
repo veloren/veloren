@@ -69,7 +69,7 @@ mod tests {
             .with(Poise::new(body))
             .with(skill_set)
             .with(PhysicsState::default())
-            .with(Stats::empty())
+            .with(Stats::empty(body))
             .with(Uid(1))
             .build()
     }

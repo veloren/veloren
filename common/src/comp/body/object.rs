@@ -9,7 +9,7 @@ use vek::Vec3;
 
 make_case_elim!(
     body,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum Body {
         Arrow = 0,

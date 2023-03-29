@@ -794,6 +794,7 @@
     Simple("common.items.consumable.potion_med"): "voxel.object.potion_red",
     Simple("common.items.consumable.potion_minor"): "voxel.object.potion_red",
     Simple("common.items.consumable.potion_big"): "voxel.object.potion_red",
+    Simple("common.items.consumable.curious_potion"): "voxel.object.curious_potion",
     Simple("common.items.boss_drops.potions"): "voxel.object.potion_red",
     Simple("common.items.food.cheese"): "voxel.object.cheese",
     Simple("common.items.food.blue_cheese"): "voxel.object.blue_cheese",

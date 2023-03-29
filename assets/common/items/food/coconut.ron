@@ -3,7 +3,7 @@ ItemDef(
     description: "Reliable source of water and fat. Can often be found growing on palm trees.",
     kind: Consumable(
         kind: Food,
-        effects: [
+        effects: One(
             Buff((
                 kind: Saturation,
                 data: (
@@ -12,7 +12,7 @@ ItemDef(
                     ),
                 cat_ids: [Natural],
             )),
-        ]
+        )
     ),
     quality: Common,
     tags: [Food],

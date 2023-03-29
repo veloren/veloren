@@ -531,6 +531,15 @@ impl MusicMgr {
                             soundtrack.tracks.push(track)
                         }
                     },
+                    _ => {
+                        for track in SoundtrackCollection::load_expect("voxygen.audio.soundtrack")
+                            .read()
+                            .tracks
+                            .clone()
+                        {
+                            soundtrack.tracks.push(track)
+                        }
+                    },
                 }
             }
         }
@@ -615,6 +624,7 @@ mod tests {
                             "voxygen.audio.calendar.christmas.soundtrack",
                         );
                 },
+                _ => {},
             }
         }
     }

@@ -3134,6 +3134,10 @@
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
+    Simple("common.items.consumable.curious_potion"): VoxTrans(
+        "voxel.object.curious_potion",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
     Simple("common.items.food.cheese"): VoxTrans(
         "voxel.object.cheese",
         (0.0, 0.0, 0.0), (-60.0, 27.0, 17.0), 0.7,

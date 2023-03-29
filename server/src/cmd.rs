@@ -1220,7 +1220,7 @@ fn handle_spawn(
                     .state
                     .create_npc(
                         pos,
-                        comp::Stats::new(get_npc_name(id, npc::BodyType::from_body(body))),
+                        comp::Stats::new(get_npc_name(id, npc::BodyType::from_body(body)), body),
                         comp::SkillSet::default(),
                         Some(comp::Health::new(body, 0)),
                         comp::Poise::new(body),
@@ -1294,7 +1294,7 @@ fn handle_spawn_training_dummy(
 
     let body = comp::Body::Object(comp::object::Body::TrainingDummy);
 
-    let stats = comp::Stats::new("Training Dummy".to_string());
+    let stats = comp::Stats::new("Training Dummy".to_string(), body);
     let skill_set = comp::SkillSet::default();
     let health = comp::Health::new(body, 0);
     let poise = comp::Poise::new(body);
@@ -3823,6 +3823,15 @@ fn handle_body(
         insert_or_replace_component(server, target, body.mass(), "mass")?;
         insert_or_replace_component(server, target, body.density(), "density")?;
         insert_or_replace_component(server, target, body.collider(), "collider")?;
+
+        if let Some(mut stat) = server
+            .state
+            .ecs_mut()
+            .write_storage::<comp::Stats>()
+            .get_mut(target)
+        {
+            stat.original_body = body;
+        }
         Ok(())
     } else {
         Err(action.help_string())
