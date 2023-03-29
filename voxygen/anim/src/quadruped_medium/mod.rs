@@ -1,5 +1,6 @@
 pub mod alpha;
 pub mod beta;
+pub mod combomelee;
 pub mod dash;
 pub mod feed;
 pub mod hoof;
@@ -12,9 +13,10 @@ pub mod stunned;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, dash::DashAnimation, feed::FeedAnimation,
-    hoof::HoofAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapMeleeAnimation,
-    run::RunAnimation, shockwave::ShockwaveAnimation, stunned::StunnedAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, combomelee::ComboAnimation, dash::DashAnimation,
+    feed::FeedAnimation, hoof::HoofAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    leapmelee::LeapMeleeAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    stunned::StunnedAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

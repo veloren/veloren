@@ -574,6 +574,9 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_medium::Species::Akhlut => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.akhlut",
             )),
+            quadruped_medium::Species::Frostfang => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.frostfang",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedbasic",
             )),

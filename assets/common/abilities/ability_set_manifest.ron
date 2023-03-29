@@ -354,6 +354,11 @@
         secondary: Simple(None, "common.abilities.custom.quadmedbasic.triplestrike"),
         abilities: [],
     ),
+    Custom("Frostfang"): (
+        primary: Simple(None, "common.abilities.custom.frostfang.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.frostfang.triplestrike"),
+        abilities: [],
+    ),
     Custom("Roshwalr"): (
         primary: Simple(None, "common.abilities.custom.roshwalr.doublehusk"),
         secondary: Simple(None, "common.abilities.custom.roshwalr.slowcharge"),

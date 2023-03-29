@@ -1,6 +1,6 @@
 use super::{
     super::{vek::*, Animation},
-    QuadrupedLowSkeleton, SkeletonAttr,
+    QuadrupedMediumSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
 
@@ -14,12 +14,12 @@ impl Animation for ComboAnimation {
         f32,
         f32,
     );
-    type Skeleton = QuadrupedLowSkeleton;
+    type Skeleton = QuadrupedMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"quadruped_low_combo\0";
+    const UPDATE_FN: &'static [u8] = b"quadruped_medium_combo\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_combo")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_combo")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, stage_section, _ability_info, current_strike, global_time, timer): Self::Dependency<'_>,
@@ -40,8 +40,8 @@ impl Animation for ComboAnimation {
         for strike in 0..=current_strike {
             match ability_id {
                 Some(
-                    "common.abilities.custom.icedrake.multi_bite"
-                    | "common.abilities.custom.icedrake.icy_bite",
+                    "common.abilities.custom.frostfang.singlestrike"
+                    | "common.abilities.custom.frostfang.triplestrike",
                 ) => {
                     let (movement1base, movement2base, movement3) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0),
@@ -61,41 +61,41 @@ impl Animation for ComboAnimation {
 
                     match strike {
                         0 | 2 => {
-                            next.head_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+                            next.head.orientation = Quaternion::rotation_z(twitch3 * -0.7);
 
-                            next.head_lower.orientation =
+                            next.head.orientation =
                                 Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
                                     * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
 
                             next.jaw.orientation =
                                 Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
-                            next.chest.orientation =
+                            next.torso_front.orientation =
                                 Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)
                                     * Quaternion::rotation_z(movement1 * -0.2 + movement2 * 0.6);
 
-                            next.tail_front.orientation = Quaternion::rotation_x(0.15)
+                            next.torso_back.orientation = Quaternion::rotation_x(0.15)
                                 * Quaternion::rotation_z(movement1 * -0.4 + movement2 * -0.2);
 
-                            next.tail_rear.orientation = Quaternion::rotation_x(-0.12)
+                            next.tail.orientation = Quaternion::rotation_x(-0.12)
                                 * Quaternion::rotation_z(movement1 * -0.4 + movement2 * -0.2);
                         },
                         1 => {
-                            next.head_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+                            next.head.orientation = Quaternion::rotation_z(twitch3 * 0.2);
 
-                            next.head_lower.orientation =
+                            next.neck.orientation =
                                 Quaternion::rotation_x(movement1abs * 0.15 + movement2abs * -0.6)
                                     * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.15);
 
                             next.jaw.orientation =
                                 Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
-                            next.chest.orientation =
+                            next.torso_front.orientation =
                                 Quaternion::rotation_y(movement1 * 0.08 + movement2 * -0.15)
                                     * Quaternion::rotation_z(movement1 * 0.2 + movement2 * -0.3);
 
-                            next.tail_front.orientation = Quaternion::rotation_x(0.15)
+                            next.torso_back.orientation = Quaternion::rotation_x(0.15)
                                 * Quaternion::rotation_z(movement1 * 0.4 + movement2 * 0.2);
 
-                            next.tail_rear.orientation = Quaternion::rotation_x(-0.12)
+                            next.tail.orientation = Quaternion::rotation_x(-0.12)
                                 * Quaternion::rotation_z(movement1 * 0.4 + movement2 * 0.2);
                         },
                         _ => {},
