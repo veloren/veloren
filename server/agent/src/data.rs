@@ -1,7 +1,7 @@
 use crate::util::*;
 use common::{
     comp::{
-        ability::CharacterAbility,
+        ability::{CharacterAbility, MAX_ABILITIES},
         buff::{BuffKind, Buffs},
         character_state::AttackFilters,
         group,
@@ -122,6 +122,12 @@ pub enum Tactic {
     FixedTurret,
     RotatingTurret,
     RadialTurret,
+    // u8s are weights that each ability gets used, if it can be used
+    RandomAbilities {
+        primary: u8,
+        secondary: u8,
+        abilities: [u8; MAX_ABILITIES],
+    },
 
     // Tool specific tactics
     Axe,
@@ -134,7 +140,10 @@ pub enum Tactic {
     SwordSimple,
 
     // Broad creature tactics
-    CircleCharge { radius: u32, circle_time: u32 },
+    CircleCharge {
+        radius: u32,
+        circle_time: u32,
+    },
     QuadLowRanged,
     TailSlap,
     QuadLowQuick,
@@ -549,9 +558,9 @@ impl AbilityData {
                     vertical, forward, ..
                 } => {
                     let dur = vertical * 2.0 / GRAVITY;
-                    // 0.8 factor to allow for fact that agent looks down as they approach, so won't
-                    // go as far
-                    forward * dur * 0.8
+                    // 0.75 factor to allow for fact that agent looks down as they approach, so
+                    // won't go as far
+                    forward * dur * 0.75
                 },
                 _ => 0.0,
             });

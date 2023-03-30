@@ -176,7 +176,7 @@ pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadDa
         .cast()
         .0
         .powi(2)
-        >= dist_sqrd
+        >= (dist_sqrd - 0.01)
 }
 
 pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {

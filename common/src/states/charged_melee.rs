@@ -54,6 +54,17 @@ pub struct Data {
     pub charge_amount: f32,
 }
 
+impl Data {
+    /// How complete the charge is, on a scale of 0.0 to 1.0
+    pub fn charge_frac(&self) -> f32 {
+        if let StageSection::Charge = self.stage_section {
+            (self.timer.as_secs_f32() / self.static_data.charge_duration.as_secs_f32()).min(1.0)
+        } else {
+            0.0
+        }
+    }
+}
+
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);

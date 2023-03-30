@@ -10,12 +10,6 @@ ComboMelee2(
                 ),
                 range: 2.5,
                 angle: 30.0,
-                damage_effect: Some(Buff((
-                    kind: Frozen,
-                    dur_secs: 10.0,
-                    strength: DamageFraction(0.5),
-                    chance: 1.0,
-                ))),
             ),
             buildup_duration: 0.9,
             swing_duration: 0.07,
@@ -36,20 +30,11 @@ ComboMelee2(
                 ),
                 range: 2.5,
                 angle: 30.0,
-                damage_effect: Some(Buff((
-                    kind: Frozen,
-                    dur_secs: 10.0,
-                    strength: DamageFraction(0.5),
-                    chance: 1.0,
-                ))),
             ),
             buildup_duration: 0.8,
             swing_duration: 0.07,
             hit_timing: 0.5,
             recover_duration: 0.4,
-            movement: (
-                swing: Some(Forward(0.0)),
-            ),
             ori_modifier: 0.7,
         ),
         (
@@ -62,12 +47,6 @@ ComboMelee2(
                 ),
                 range: 2.5,
                 angle: 30.0,
-                damage_effect: Some(Buff((
-                    kind: Frozen,
-                    dur_secs: 10.0,
-                    strength: DamageFraction(0.5),
-                    chance: 1.0,
-                ))),
             ),
             buildup_duration: 0.8,
             swing_duration: 0.07,
@@ -80,4 +59,5 @@ ComboMelee2(
         ),
     ],
     energy_cost_per_strike: 0,
+    auto_progress: true,
 )

@@ -14,6 +14,7 @@ use common::{
     combat::perception_dist_multiplier_from_stealth,
     comp::{
         self,
+        ability::MAX_ABILITIES,
         agent::{Sound, SoundKind, Target},
         inventory::slot::EquipSlot,
         item::{
@@ -1018,6 +1019,16 @@ impl<'a> AgentData<'a> {
                             "Adlet Icepicker" => Tactic::AdletIcepicker,
                             "Adlet Tracker" => Tactic::AdletTracker,
                             "Ice Drake" => Tactic::IceDrake,
+                            "Frostfang" => Tactic::RandomAbilities {
+                                primary: 1,
+                                secondary: 3,
+                                abilities: [0; MAX_ABILITIES],
+                            },
+                            "Tursus Claws" => Tactic::RandomAbilities {
+                                primary: 2,
+                                secondary: 1,
+                                abilities: [4, 0, 0, 0, 0],
+                            },
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1473,6 +1484,21 @@ impl<'a> AgentData<'a> {
             Tactic::IceDrake => {
                 self.handle_icedrake(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
+            Tactic::RandomAbilities {
+                primary,
+                secondary,
+                abilities,
+            } => self.handle_random_abilities(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+                primary,
+                secondary,
+                abilities,
+            ),
         }
     }
 

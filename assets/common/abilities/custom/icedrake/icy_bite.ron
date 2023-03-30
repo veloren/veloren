@@ -13,7 +13,7 @@ ComboMelee2(
                 damage_effect: Some(Buff((
                     kind: Frozen,
                     dur_secs: 10.0,
-                    strength: DamageFraction(0.5),
+                    strength: Value(0.5),
                     chance: 1.0,
                 ))),
             ),
