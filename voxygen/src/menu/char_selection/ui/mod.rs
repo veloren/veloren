@@ -1910,7 +1910,7 @@ impl CharSelectionUi {
             client.sites()
                 .values()
                 // TODO: Enforce this server-side and add some way to customise it?
-                .filter(|info| matches!(&info.site.kind, SiteKind::Town | SiteKind::Castle | SiteKind::Bridge))
+                .filter(|info| matches!(&info.site.kind, SiteKind::Town /*| SiteKind::Castle | SiteKind::Bridge*/))
                 .map(|info| info.site.clone())
                 .collect(),
             client.world_data().chunk_size().as_(),
