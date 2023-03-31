@@ -27,7 +27,7 @@ use common::{
     outcome::{HealthChangeInfo, Outcome},
     resources::{Secs, Time},
     rtsim::RtSimEntity,
-    states::utils::{AbilityInfo, StageSection},
+    states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
     util::Dir,

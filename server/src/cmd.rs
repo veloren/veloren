@@ -1218,7 +1218,7 @@ fn handle_rtsim_tp(
 fn handle_rtsim_info(
     server: &mut Server,
     client: EcsEntity,
-    target: EcsEntity,
+    _target: EcsEntity,
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
@@ -1267,7 +1267,7 @@ fn handle_rtsim_info(
 fn handle_rtsim_purge(
     server: &mut Server,
     client: EcsEntity,
-    target: EcsEntity,
+    _target: EcsEntity,
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
@@ -1298,8 +1298,8 @@ fn handle_rtsim_chunk(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    args: Vec<String>,
-    action: &ServerChatCommand,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use crate::rtsim::{ChunkStates, RtSim};
     let pos = position(server, target, "target")?;

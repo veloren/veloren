@@ -526,7 +526,7 @@ impl State {
     // Apply terrain changes
     pub fn apply_terrain_changes(
         &self,
-        mut block_update: impl FnMut(&specs::World, Vec3<i32>, Block, Block),
+        block_update: impl FnMut(&specs::World, Vec3<i32>, Block, Block),
     ) {
         self.apply_terrain_changes_internal(false, block_update);
     }

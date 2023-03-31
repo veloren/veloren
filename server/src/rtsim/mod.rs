@@ -5,25 +5,21 @@ pub mod tick;
 use common::{
     grid::Grid,
     rtsim::{ChunkResource, RtSimEntity, RtSimVehicle, WorldSettings},
-    slowjob::SlowJobPool,
-    terrain::{Block, TerrainChunk},
-    vol::RectRasterableVol,
+    terrain::Block,
 };
-use common_ecs::{dispatch, System};
+use common_ecs::dispatch;
 use enum_map::EnumMap;
 use rtsim::{
-    data::{npc::SimulationMode, Data, ReadError},
+    data::{npc::SimulationMode, Data},
     event::{OnDeath, OnSetup},
-    rule::Rule,
     RtState,
 };
-use specs::{DispatcherBuilder, WorldExt};
+use specs::DispatcherBuilder;
 use std::{
     error::Error,
     fs::{self, File},
     io::{self, Write},
     path::PathBuf,
-    sync::Arc,
     time::Instant,
 };
 use tracing::{debug, error, info, warn};

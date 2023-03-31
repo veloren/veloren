@@ -500,7 +500,7 @@ impl World {
             rtsim_resource_blocks.sort_unstable_by_key(|pos| pos.into_array());
             rtsim_resource_blocks.dedup();
             for wpos in rtsim_resource_blocks {
-                chunk.map(wpos - chunk_wpos2d.with_z(0), |block| {
+                let _ = chunk.map(wpos - chunk_wpos2d.with_z(0), |block| {
                     if let Some(res) = block.get_rtsim_resource() {
                         // Note: this represents the upper limit, not the actual number spanwed, so
                         // we increment this before deciding whether we're going to spawn the

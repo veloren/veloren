@@ -1392,7 +1392,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         near_aabb: Aabb<i32>,
         radius: f32,
         z_range: Range<f32>,
-        scale: f32,
     ) -> bool {
         let player_aabb = player_aabb(pos, radius, z_range);
 
@@ -1558,7 +1557,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     near_aabb,
                     radius,
                     z_range.clone(),
-                    scale,
                 )
             }
             // ...and there is a collision with a block beneath our current hitbox...
@@ -1571,7 +1569,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     near_aabb,
                     radius,
                     z_range.clone(),
-                    scale,
                 )
             } {
                 // ...block-hop!
@@ -1626,7 +1623,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             near_aabb,
             radius,
             z_range.clone(),
-            scale,
         )
     } {
         //prof_span!("snap!!");

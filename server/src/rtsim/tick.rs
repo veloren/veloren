@@ -3,16 +3,15 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp::{self, inventory::loadout::Loadout, skillset::skills, Agent, Body},
+    comp::{self, Body},
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
-    lottery::LootSpec,
     resources::{DeltaTime, Time, TimeOfDay},
-    rtsim::{RtSimController, RtSimEntity, RtSimVehicle},
+    rtsim::{RtSimEntity, RtSimVehicle},
     slowjob::SlowJobPool,
     terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
-    LoadoutBuilder, SkillSetBuilder,
+    LoadoutBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim::data::{

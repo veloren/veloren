@@ -30,7 +30,7 @@ pub fn density_factor_by_altitude(lower_limit: f32, altitude: f32, upper_limit: 
 const MUSH_FACT: f32 = 1.0e-4; // To balance things around the mushroom spawning rate
 const GRASS_FACT: f32 = 1.0e-3; // To balance things around the grass spawning rate
 const DEPTH_WATER_NORM: f32 = 15.0; // Water depth at which regular underwater sprites start spawning
-pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng, calendar: Option<&Calendar>) {
+pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Option<&Calendar>) {
     enum WaterMode {
         Underwater,
         Floating,

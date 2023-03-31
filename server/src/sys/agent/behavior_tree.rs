@@ -769,12 +769,12 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
 }
 
 fn remembers_fight_with(
-    rtsim_entity: Option<&RtSimEntity>,
-    read_data: &ReadData,
-    other: EcsEntity,
+    _rtsim_entity: Option<&RtSimEntity>,
+    _read_data: &ReadData,
+    _other: EcsEntity,
 ) -> bool {
     // TODO: implement for rtsim2
-    let name = || read_data.stats.get(other).map(|stats| stats.name.clone());
+    // let name = || read_data.stats.get(other).map(|stats| stats.name.clone());
 
     // rtsim_entity.map_or(false, |rtsim_entity| {
     //     name().map_or(false, |name| {

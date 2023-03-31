@@ -210,6 +210,8 @@ fn path_towns(
 impl Rule for NpcAi {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind::<Self, OnTick>(|ctx| {
+            // Temporarily take the brains of NPCs out of their heads to appease the borrow
+            // checker
             let mut npc_data = {
                 let mut data = ctx.state.data_mut();
                 data.npcs
@@ -224,6 +226,7 @@ impl Rule for NpcAi {
                     .collect::<Vec<_>>()
             };
 
+            // Do a little thinking
             {
                 let data = &*ctx.state.data();
 
@@ -245,56 +248,12 @@ impl Rule for NpcAi {
                     });
             }
 
+            // Reinsert NPC brains
             let mut data = ctx.state.data_mut();
             for (npc_id, controller, brain) in npc_data {
                 data.npcs[npc_id].action = controller.action;
                 data.npcs[npc_id].brain = Some(brain);
             }
-
-            /*
-            let action: ControlFlow<()> = try {
-                brain.tick(&mut NpcData {
-                    ctx: &ctx,
-                    npc,
-                    npc_id,
-                    controller: &mut controller,
-                });
-                /*
-                // // Choose a random plaza in the npcs home site (which should be the
-                // // current here) to go to.
-                let task =
-                    generate(move |(_, npc, ctx): &(NpcId, &Npc, &EventCtx<_, _>)| {
-                        let data = ctx.state.data();
-                        let site2 =
-                            npc.home.and_then(|home| data.sites.get(home)).and_then(
-                                |home| match &ctx.index.sites.get(home.world_site?).kind
-                                {
-                                    SiteKind::Refactor(site2)
-                                    | SiteKind::CliffTown(site2)
-                                    | SiteKind::DesertCity(site2) => Some(site2),
-                                    _ => None,
-                                },
-                            );
-
-                        let wpos = site2
-                            .and_then(|site2| {
-                                let plaza = &site2.plots
-                                    [site2.plazas().choose(&mut thread_rng())?];
-                                Some(site2.tile_center_wpos(plaza.root_tile()).as_())
-                            })
-                            .unwrap_or(npc.wpos.xy());
-
-                        TravelTo {
-                            wpos,
-                            use_paths: true,
-                        }
-                    })
-                    .repeat();
-
-                task_state.perform(task, &(npc_id, &*npc, &ctx), &mut controller)?;
-                */
-            };
-            */
         });
 
         Ok(Self)
@@ -371,16 +330,12 @@ where
                 site_exit = next;
             }
 
-            // println!("[NPC {:?}] Pathing in site...", ctx.npc_id);
             if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
-                // println!("[NPC {:?}] Found path of length {} from {:?} to {:?}!", ctx.npc_id,
-                // path.len(), wpos, site_exit);
                 Some(itertools::Either::Left(
                     seq(path.into_iter().map(|wpos| goto_2d(wpos, 1.0, 8.0)))
                         .then(goto_2d(site_exit, 1.0, 8.0)),
                 ))
             } else {
-                // println!("[NPC {:?}] No path", ctx.npc_id);
                 Some(itertools::Either::Right(goto_2d(site_exit, 1.0, 8.0)))
             }
         } else {
@@ -395,13 +350,9 @@ fn travel_to_point(wpos: Vec2<f32>) -> impl Action {
         const WAYPOINT: f32 = 24.0;
         let start = ctx.npc.wpos.xy();
         let diff = wpos - start;
-        // if diff.magnitude() > 1.0 {
         let n = (diff.magnitude() / WAYPOINT).max(1.0);
         let mut points = (1..n as usize + 1).map(move |i| start + diff * (i as f32 / n));
         traverse_points(move |_| points.next()).boxed()
-        // } else {
-        //     finish().boxed()
-        // }
     })
     .debug(|| "travel to point")
 }
@@ -858,18 +809,3 @@ fn think() -> impl Action {
         _ => casual(idle()),
     })
 }
-
-// if !matches!(stages.front(), Some(TravelStage::IntraSite { .. })) {
-//     let data = ctx.state.data();
-//     if let Some((site2, site)) = npc
-//         .current_site
-//         .and_then(|current_site| data.sites.get(current_site))
-//         .and_then(|site| site.world_site)
-//         .and_then(|site| Some((get_site2(site)?, site)))
-//     {
-//         let end = site2.wpos_tile_pos(self.wpos.as_());
-//         if let Some(path) = path_town(npc.wpos, site, ctx.index, |_|
-// Some(end)) {             stages.push_front(TravelStage::IntraSite { path,
-// site });         }
-//     }
-// }

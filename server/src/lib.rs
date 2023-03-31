@@ -7,8 +7,7 @@
     let_chains,
     never_type,
     option_zip,
-    unwrap_infallible,
-    explicit_generic_args_with_impl_trait
+    unwrap_infallible
 )]
 #![feature(hash_drain_filter)]
 
@@ -1464,7 +1463,7 @@ impl Drop for Server {
 
         #[cfg(feature = "worldgen")]
         {
-            info!("Saving rtsim state...");
+            debug!("Saving rtsim state...");
             self.state.ecs().write_resource::<rtsim::RtSim>().save(true);
         }
     }

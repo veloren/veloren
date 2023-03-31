@@ -1,8 +1,5 @@
 use crate::rtsim::{event::OnBlockChange, ChunkStates};
-use common::{
-    terrain::{CoordinateConversions, TerrainChunk},
-    vol::RectRasterableVol,
-};
+use common::terrain::CoordinateConversions;
 use rtsim::{RtState, Rule, RuleError};
 
 pub struct DepleteResources;
@@ -22,7 +19,7 @@ impl Rule for DepleteResources {
                             / chunk_state.max_res[res] as f32;
                     }
                 }
-                // Add resources
+                // Replenish resources
                 if let Some(res) = ctx.event.new.get_rtsim_resource() {
                     if chunk_state.max_res[res] > 0 {
                         chunk_res[res] = (chunk_res[res] * chunk_state.max_res[res] as f32 + 1.0)
@@ -31,7 +28,7 @@ impl Rule for DepleteResources {
                             / chunk_state.max_res[res] as f32;
                     }
                 }
-                //println!("Chunk resources = {:?}", chunk_res);
+
                 ctx.state
                     .data_mut()
                     .nature
