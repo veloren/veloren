@@ -178,6 +178,9 @@ enum Mode {
         create_button: button::State,
         rand_character_button: button::State,
         rand_name_button: button::State,
+        /// `character_id.is_some()` can be used to determine if we're in edit
+        /// mode as opposed to create mode.
+        // TODO: Something less janky? Express the problem domain better!
         character_id: Option<CharacterId>,
         start_site_idx: usize,
     },
@@ -1241,51 +1244,56 @@ impl Controls {
                     rand_character.into(),
                 ];
 
-                let right_column_content = vec![
-                    Image::new(self.map_img)
-                        .height(Length::Units(300))
-                        .width(Length::Units(300))
+                let right_column_content = if character_id.is_none() {
+                    vec![
+                        Image::new(self.map_img)
+                            .height(Length::Units(300))
+                            .width(Length::Units(300))
+                            .into(),
+                        Column::with_children(if self.possible_starting_sites.is_empty() {
+                            Vec::new()
+                        } else {
+                            let site_slider = char_slider(
+                                i18n.get_msg("char_selection-starting_site").into_owned(),
+                                &mut sliders.starting_site,
+                                self.possible_starting_sites.len() as u32 - 1,
+                                *start_site_idx as u32,
+                                |x| Message::StartSite(x as usize),
+                                (fonts, imgs),
+                            );
+
+                            let site_name = Text::new(i18n
+                                    .get_msg_ctx("char_selection-starting_site_name", &i18n::fluent_args! {
+                                        "name" => self.possible_starting_sites[*start_site_idx].name.as_deref()
+                                            .unwrap_or("Unknown"),
+                                    })
+                                    .into_owned())
+                                .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                                .into();
+
+                            let site_kind = Text::new(i18n
+                                    .get_msg_ctx("char_selection-starting_site_kind", &i18n::fluent_args! {
+                                        "kind" => match self.possible_starting_sites[*start_site_idx].kind {
+                                            SiteKind::Town => i18n.get_msg("hud-map-town").into_owned(),
+                                            SiteKind::Castle => i18n.get_msg("hud-map-castle").into_owned(),
+                                            SiteKind::Bridge => i18n.get_msg("hud-map-bridge").into_owned(),
+                                            _ => "Unknown".to_string(),
+                                        },
+                                    })
+                                    .into_owned())
+                                .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                                .into();
+
+                            vec![site_slider, site_name, site_kind]
+                        })
+                        .max_width(200)
+                        .padding(5)
                         .into(),
-                    Column::with_children(if self.possible_starting_sites.is_empty() {
-                        Vec::new()
-                    } else {
-                        let site_slider = char_slider(
-                            i18n.get_msg("char_selection-starting_site").into_owned(),
-                            &mut sliders.starting_site,
-                            self.possible_starting_sites.len() as u32 - 1,
-                            *start_site_idx as u32,
-                            |x| Message::StartSite(x as usize),
-                            (fonts, imgs),
-                        );
-
-                        let site_name = Text::new(i18n
-                                .get_msg_ctx("char_selection-starting_site_name", &i18n::fluent_args! {
-                                    "name" => self.possible_starting_sites[*start_site_idx].name.as_deref()
-                                        .unwrap_or("Unknown"),
-                                })
-                                .into_owned())
-                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
-                            .into();
-
-                        let site_kind = Text::new(i18n
-                                .get_msg_ctx("char_selection-starting_site_kind", &i18n::fluent_args! {
-                                    "kind" => match self.possible_starting_sites[*start_site_idx].kind {
-                                        SiteKind::Town => i18n.get_msg("hud-map-town").into_owned(),
-                                        SiteKind::Castle => i18n.get_msg("hud-map-castle").into_owned(),
-                                        SiteKind::Bridge => i18n.get_msg("hud-map-bridge").into_owned(),
-                                        _ => "Unknown".to_string(),
-                                    },
-                                })
-                                .into_owned())
-                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
-                            .into();
-
-                        vec![site_slider, site_name, site_kind]
-                    })
-                    .max_width(200)
-                    .padding(5)
-                    .into(),
-                ];
+                    ]
+                } else {
+                    // If we're editing an existing character, don't display the world column
+                    Vec::new()
+                };
 
                 let column = |column_content, scroll| {
                     let column = Container::new(
