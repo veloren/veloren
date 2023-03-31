@@ -76,6 +76,7 @@ image_ids! {
         arrow_r_inactive: "voxygen.element.ui.diary.buttons.arrow_r_inactive",
         ability_frame: "voxygen.element.ui.diary.abilitiy_desc_frame",
         ability_frame_dual: "voxygen.element.ui.diary.abilitiy_desc_frame_dual",
+        sword_tree_paths: "voxygen.element.ui.diary.sword_path_overlay",
 
         // Skill Trees
         book_bg: "voxygen.element.ui.diary.spellbook_bg",
