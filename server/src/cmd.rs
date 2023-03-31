@@ -1193,7 +1193,7 @@ fn handle_rtsim_tp(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    use crate::rtsim2::RtSim;
+    use crate::rtsim::RtSim;
     let pos = if let Some(id) = parse_cmd_args!(args, u32) {
         // TODO: Take some other identifier than an integer to this command.
         server
@@ -1222,7 +1222,7 @@ fn handle_rtsim_info(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    use crate::rtsim2::RtSim;
+    use crate::rtsim::RtSim;
     if let Some(id) = parse_cmd_args!(args, u32) {
         // TODO: Take some other identifier than an integer to this command.
         let rtsim = server.state.ecs().read_resource::<RtSim>();
@@ -1271,7 +1271,7 @@ fn handle_rtsim_purge(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    use crate::rtsim2::RtSim;
+    use crate::rtsim::RtSim;
     if let Some(should_purge) = parse_cmd_args!(args, bool) {
         server
             .state
@@ -1301,7 +1301,7 @@ fn handle_rtsim_chunk(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    use crate::rtsim2::{ChunkStates, RtSim};
+    use crate::rtsim::{ChunkStates, RtSim};
     let pos = position(server, target, "target")?;
 
     let chunk_key = pos.0.xy().as_::<i32>().wpos_to_cpos();
@@ -2034,7 +2034,7 @@ fn handle_kill_npcs(
                         .get(entity)
                         .copied()
                     {
-                        ecs.write_resource::<crate::rtsim2::RtSim>()
+                        ecs.write_resource::<crate::rtsim::RtSim>()
                             .hook_rtsim_entity_delete(
                                 &ecs.read_resource::<Arc<world::World>>(),
                                 ecs.read_resource::<world::IndexOwned>().as_index_ref(),

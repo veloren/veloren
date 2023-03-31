@@ -1,414 +1,242 @@
-#![allow(dead_code)] // TODO: Remove this when rtsim is fleshed out
+pub mod event;
+pub mod rule;
+pub mod tick;
 
-mod chunks;
-pub(crate) mod entity;
-mod load_chunks;
-mod tick;
-mod unload_chunks;
-
-use crate::rtsim::entity::{Personality, Travel};
-
-use self::chunks::Chunks;
 use common::{
-    comp,
-    rtsim::{Memory, RtSimController, RtSimEntity, RtSimId},
-    terrain::TerrainChunk,
+    grid::Grid,
+    rtsim::{ChunkResource, RtSimEntity, RtSimVehicle, WorldSettings},
+    slowjob::SlowJobPool,
+    terrain::{Block, TerrainChunk},
     vol::RectRasterableVol,
 };
 use common_ecs::{dispatch, System};
-use common_state::State;
-use rand::prelude::*;
-use slab::Slab;
+use enum_map::EnumMap;
+use rtsim::{
+    data::{npc::SimulationMode, Data, ReadError},
+    event::{OnDeath, OnSetup},
+    rule::Rule,
+    RtState,
+};
 use specs::{DispatcherBuilder, WorldExt};
+use std::{
+    error::Error,
+    fs::{self, File},
+    io::{self, Write},
+    path::PathBuf,
+    sync::Arc,
+    time::Instant,
+};
+use tracing::{debug, error, info, warn};
 use vek::*;
-
-pub use self::entity::{Brain, Entity, RtSimEntityKind};
+use world::{IndexRef, World};
 
 pub struct RtSim {
-    tick: u64,
-    chunks: Chunks,
-    entities: Slab<Entity>,
+    file_path: PathBuf,
+    last_saved: Option<Instant>,
+    state: RtState,
 }
 
 impl RtSim {
-    pub fn new(world_chunk_size: Vec2<u32>) -> Self {
-        Self {
-            tick: 0,
-            chunks: Chunks::new(world_chunk_size),
-            entities: Slab::new(),
-        }
+    pub fn new(
+        settings: &WorldSettings,
+        index: IndexRef,
+        world: &World,
+        data_dir: PathBuf,
+    ) -> Result<Self, ron::Error> {
+        let file_path = Self::get_file_path(data_dir);
+
+        info!("Looking for rtsim data at {}...", file_path.display());
+        let data = 'load: {
+            if std::env::var("RTSIM_NOLOAD").map_or(true, |v| v != "1") {
+                match File::open(&file_path) {
+                    Ok(file) => {
+                        info!("Rtsim data found. Attempting to load...");
+                        match Data::from_reader(io::BufReader::new(file)) {
+                            Ok(data) => {
+                                info!("Rtsim data loaded.");
+                                if data.should_purge {
+                                    warn!(
+                                        "The should_purge flag was set on the rtsim data, \
+                                         generating afresh"
+                                    );
+                                } else {
+                                    break 'load data;
+                                }
+                            },
+                            Err(e) => {
+                                error!("Rtsim data failed to load: {}", e);
+                                let mut i = 0;
+                                loop {
+                                    let mut backup_path = file_path.clone();
+                                    backup_path.set_extension(if i == 0 {
+                                        format!("backup_{}", i)
+                                    } else {
+                                        "ron_backup".to_string()
+                                    });
+                                    if !backup_path.exists() {
+                                        fs::rename(&file_path, &backup_path)?;
+                                        warn!(
+                                            "Failed rtsim data was moved to {}",
+                                            backup_path.display()
+                                        );
+                                        info!("A fresh rtsim data will now be generated.");
+                                        break;
+                                    }
+                                    i += 1;
+                                }
+                            },
+                        }
+                    },
+                    Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                        info!("No rtsim data found. Generating from world...")
+                    },
+                    Err(e) => return Err(e.into()),
+                }
+            } else {
+                warn!(
+                    "'RTSIM_NOLOAD' is set, skipping loading of rtsim state (old state will be \
+                     overwritten)."
+                );
+            }
+
+            let data = Data::generate(settings, &world, index);
+            info!("Rtsim data generated.");
+            data
+        };
+
+        let mut this = Self {
+            last_saved: None,
+            state: RtState::new(data).with_resource(ChunkStates(Grid::populate_from(
+                world.sim().get_size().as_(),
+                |_| None,
+            ))),
+            file_path,
+        };
+
+        rule::start_rules(&mut this.state);
+
+        this.state.emit(OnSetup, world, index);
+
+        Ok(this)
     }
 
-    pub fn hook_load_chunk(&mut self, key: Vec2<i32>) {
-        if let Some(chunk) = self.chunks.chunk_mut(key) {
-            if !chunk.is_loaded {
-                chunk.is_loaded = true;
-                self.chunks.chunks_to_load.push(key);
-            }
+    fn get_file_path(mut data_dir: PathBuf) -> PathBuf {
+        let mut path = std::env::var("VELOREN_RTSIM")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| {
+                data_dir.push("rtsim");
+                data_dir
+            });
+        path.push("data.dat");
+        path
+    }
+
+    pub fn hook_load_chunk(&mut self, key: Vec2<i32>, max_res: EnumMap<ChunkResource, usize>) {
+        if let Some(chunk_state) = self.state.resource_mut::<ChunkStates>().0.get_mut(key) {
+            *chunk_state = Some(LoadedChunkState { max_res });
         }
     }
 
     pub fn hook_unload_chunk(&mut self, key: Vec2<i32>) {
-        if let Some(chunk) = self.chunks.chunk_mut(key) {
-            if chunk.is_loaded {
-                chunk.is_loaded = false;
-                self.chunks.chunks_to_unload.push(key);
+        if let Some(chunk_state) = self.state.resource_mut::<ChunkStates>().0.get_mut(key) {
+            *chunk_state = None;
+        }
+    }
+
+    pub fn hook_block_update(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        wpos: Vec3<i32>,
+        old: Block,
+        new: Block,
+    ) {
+        self.state
+            .emit(event::OnBlockChange { wpos, old, new }, world, index);
+    }
+
+    pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
+        if let Some(npc) = self.state.data_mut().npcs.get_mut(entity.0) {
+            npc.mode = SimulationMode::Simulated;
+        }
+    }
+
+    pub fn hook_rtsim_vehicle_unload(&mut self, entity: RtSimVehicle) {
+        if let Some(vehicle) = self.state.data_mut().npcs.vehicles.get_mut(entity.0) {
+            vehicle.mode = SimulationMode::Simulated;
+        }
+    }
+
+    pub fn hook_rtsim_entity_delete(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        entity: RtSimEntity,
+    ) {
+        // Should entity deletion be death? They're not exactly the same thing...
+        self.state.emit(OnDeath { npc_id: entity.0 }, world, index);
+        self.state.data_mut().npcs.remove(entity.0);
+    }
+
+    pub fn save(&mut self, /* slowjob_pool: &SlowJobPool, */ wait_until_finished: bool) {
+        info!("Saving rtsim data...");
+        let file_path = self.file_path.clone();
+        let data = self.state.data().clone();
+        debug!("Starting rtsim data save job...");
+        // TODO: Use slow job
+        // slowjob_pool.spawn("RTSIM_SAVE", move || {
+        let handle = std::thread::spawn(move || {
+            let tmp_file_name = "data_tmp.dat";
+            if let Err(e) = file_path
+                .parent()
+                .map(|dir| {
+                    fs::create_dir_all(dir)?;
+                    // We write to a temporary file and then rename to avoid corruption.
+                    Ok(dir.join(tmp_file_name))
+                })
+                .unwrap_or_else(|| Ok(tmp_file_name.into()))
+                .and_then(|tmp_file_path| Ok((File::create(&tmp_file_path)?, tmp_file_path)))
+                .map_err(|e: io::Error| Box::new(e) as Box<dyn Error>)
+                .and_then(|(mut file, tmp_file_path)| {
+                    debug!("Writing rtsim data to file...");
+                    data.write_to(io::BufWriter::new(&mut file))?;
+                    file.flush()?;
+                    drop(file);
+                    fs::rename(tmp_file_path, file_path)?;
+                    debug!("Rtsim data saved.");
+                    Ok(())
+                })
+            {
+                error!("Saving rtsim data failed: {}", e);
             }
+        });
+
+        if wait_until_finished {
+            handle.join().expect("Save thread failed to join");
         }
+
+        self.last_saved = Some(Instant::now());
     }
 
-    pub fn assimilate_entity(&mut self, entity: RtSimId) {
-        // tracing::info!("Assimilated rtsim entity {}", entity);
-        self.entities.get_mut(entity).map(|e| e.is_loaded = false);
+    // TODO: Clean up this API a bit
+    pub fn get_chunk_resources(&self, key: Vec2<i32>) -> EnumMap<ChunkResource, f32> {
+        self.state.data().nature.get_chunk_resources(key)
     }
 
-    pub fn reify_entity(&mut self, entity: RtSimId) {
-        // tracing::info!("Reified rtsim entity {}", entity);
-        self.entities.get_mut(entity).map(|e| e.is_loaded = true);
-    }
+    pub fn state(&self) -> &RtState { &self.state }
 
-    pub fn update_entity(&mut self, entity: RtSimId, pos: Vec3<f32>) {
-        self.entities.get_mut(entity).map(|e| e.pos = pos);
+    pub fn set_should_purge(&mut self, should_purge: bool) {
+        self.state.data_mut().should_purge = should_purge;
     }
+}
 
-    pub fn destroy_entity(&mut self, entity: RtSimId) {
-        // tracing::info!("Destroyed rtsim entity {}", entity);
-        self.entities.remove(entity);
-    }
+pub struct ChunkStates(pub Grid<Option<LoadedChunkState>>);
 
-    pub fn get_entity(&self, entity: RtSimId) -> Option<&Entity> { self.entities.get(entity) }
-
-    pub fn insert_entity_memory(&mut self, entity: RtSimId, memory: Memory) {
-        self.entities
-            .get_mut(entity)
-            .map(|entity| entity.brain.add_memory(memory));
-    }
-
-    pub fn forget_entity_enemy(&mut self, entity: RtSimId, name: &str) {
-        if let Some(entity) = self.entities.get_mut(entity) {
-            entity.brain.forget_enemy(name);
-        }
-    }
-
-    pub fn set_entity_mood(&mut self, entity: RtSimId, memory: Memory) {
-        self.entities
-            .get_mut(entity)
-            .map(|entity| entity.brain.set_mood(memory));
-    }
+pub struct LoadedChunkState {
+    // The maximum possible number of each resource in this chunk
+    pub max_res: EnumMap<ChunkResource, usize>,
 }
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
-    dispatch::<unload_chunks::Sys>(dispatch_builder, &[]);
-    dispatch::<load_chunks::Sys>(dispatch_builder, &[&unload_chunks::Sys::sys_name()]);
-    dispatch::<tick::Sys>(dispatch_builder, &[
-        &load_chunks::Sys::sys_name(),
-        &unload_chunks::Sys::sys_name(),
-    ]);
-}
-
-pub fn init(
-    state: &mut State,
-    #[cfg(feature = "worldgen")] world: &world::World,
-    #[cfg(feature = "worldgen")] index: world::IndexRef,
-) {
-    #[cfg(feature = "worldgen")]
-    let mut rtsim = RtSim::new(world.sim().get_size());
-    #[cfg(not(feature = "worldgen"))]
-    let mut rtsim = RtSim::new(Vec2::new(40, 40));
-
-    // TODO: Determine number of rtsim entities based on things like initial site
-    // populations rather than world size
-    #[cfg(feature = "worldgen")]
-    {
-        for _ in 0..world.sim().get_size().product() / 400 {
-            let pos = rtsim
-                .chunks
-                .size()
-                .map2(TerrainChunk::RECT_SIZE, |sz, chunk_sz| {
-                    thread_rng().gen_range(0..sz * chunk_sz) as i32
-                });
-
-            rtsim.entities.insert(Entity {
-                is_loaded: false,
-                pos: Vec3::from(pos.map(|e| e as f32)),
-                seed: thread_rng().gen(),
-                controller: RtSimController::default(),
-                last_time_ticked: 0.0,
-                kind: RtSimEntityKind::Wanderer,
-                brain: Brain {
-                    begin: None,
-                    tgt: None,
-                    route: Travel::Lost,
-                    last_visited: None,
-                    memories: Vec::new(),
-                    personality: Personality::random(&mut thread_rng()),
-                },
-            });
-        }
-        for (site_id, site) in world
-            .civs()
-            .sites
-            .iter()
-            .filter_map(|(site_id, site)| site.site_tmp.map(|id| (site_id, &index.sites[id])))
-        {
-            use world::site::SiteKind;
-            match &site.kind {
-                #[allow(clippy::single_match)]
-                SiteKind::Dungeon(dungeon) => match dungeon.dungeon_difficulty() {
-                    Some(5) => {
-                        let pos = site.get_origin();
-                        if let Some(nearest_village) = world
-                            .civs()
-                            .sites
-                            .iter()
-                            .filter(|(_, site)| site.is_settlement())
-                            .min_by_key(|(_, site)| {
-                                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                                wpos.map(|e| e as f32)
-                                    .distance_squared(pos.map(|x| x as f32))
-                                    as u32
-                            })
-                            .map(|(id, _)| id)
-                        {
-                            for _ in 0..25 {
-                                rtsim.entities.insert(Entity {
-                                    is_loaded: false,
-                                    pos: Vec3::from(pos.map(|e| e as f32)),
-                                    seed: thread_rng().gen(),
-                                    controller: RtSimController::default(),
-                                    last_time_ticked: 0.0,
-                                    kind: RtSimEntityKind::Cultist,
-                                    brain: Brain::raid(site_id, nearest_village, &mut thread_rng()),
-                                });
-                            }
-                        }
-                    },
-                    _ => {},
-                },
-                SiteKind::Refactor(site2) => {
-                    // villagers
-                    for _ in 0..site.economy.population().min(site2.plots().len() as f32) as usize {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plots()
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |plot| {
-                                    site2.tile_center_wpos(plot.root_tile())
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::Villager,
-                            brain: Brain::villager(site_id, &mut thread_rng()),
-                        });
-                    }
-
-                    // guards
-                    for _ in 0..site2.plazas().len() {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plazas()
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |p| {
-                                    site2.tile_center_wpos(site2.plot(p).root_tile())
-                                        + Vec2::new(
-                                            thread_rng().gen_range(-8..9),
-                                            thread_rng().gen_range(-8..9),
-                                        )
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::TownGuard,
-                            brain: Brain::town_guard(site_id, &mut thread_rng()),
-                        });
-                    }
-
-                    // merchants
-                    for _ in 0..site2.plazas().len() {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plazas()
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |p| {
-                                    site2.tile_center_wpos(site2.plot(p).root_tile())
-                                        + Vec2::new(
-                                            thread_rng().gen_range(-8..9),
-                                            thread_rng().gen_range(-8..9),
-                                        )
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::Merchant,
-                            brain: Brain::merchant(site_id, &mut thread_rng()),
-                        });
-                    }
-                },
-                SiteKind::CliffTown(site2) => {
-                    for _ in 0..(site2.plazas().len() as f32 * 1.5) as usize {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plazas()
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |p| {
-                                    site2.tile_center_wpos(site2.plot(p).root_tile())
-                                        + Vec2::new(
-                                            thread_rng().gen_range(-8..9),
-                                            thread_rng().gen_range(-8..9),
-                                        )
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::Merchant,
-                            brain: Brain::merchant(site_id, &mut thread_rng()),
-                        });
-                    }
-                },
-                SiteKind::SavannahPit(site2) => {
-                    for _ in 0..4 {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plots()
-                                .filter(|plot| {
-                                    matches!(plot.kind(), world::site2::PlotKind::SavannahPit(_))
-                                })
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |plot| {
-                                    site2.tile_center_wpos(
-                                        plot.root_tile()
-                                            + Vec2::new(
-                                                thread_rng().gen_range(-5..5),
-                                                thread_rng().gen_range(-5..5),
-                                            ),
-                                    )
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::Merchant,
-                            brain: Brain::merchant(site_id, &mut thread_rng()),
-                        });
-                    }
-                },
-                SiteKind::DesertCity(site2) => {
-                    // villagers
-                    for _ in 0..(site2.plazas().len() as f32 * 1.5) as usize {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plots()
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |plot| {
-                                    site2.tile_center_wpos(plot.root_tile())
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::Villager,
-                            brain: Brain::villager(site_id, &mut thread_rng()),
-                        });
-                    }
-
-                    // guards
-                    for _ in 0..site2.plazas().len() {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plazas()
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |p| {
-                                    site2.tile_center_wpos(site2.plot(p).root_tile())
-                                        + Vec2::new(
-                                            thread_rng().gen_range(-8..9),
-                                            thread_rng().gen_range(-8..9),
-                                        )
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::TownGuard,
-                            brain: Brain::town_guard(site_id, &mut thread_rng()),
-                        });
-                    }
-
-                    // merchants
-                    for _ in 0..site2.plazas().len() {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plazas()
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |p| {
-                                    site2.tile_center_wpos(site2.plot(p).root_tile())
-                                        + Vec2::new(
-                                            thread_rng().gen_range(-8..9),
-                                            thread_rng().gen_range(-8..9),
-                                        )
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::Merchant,
-                            brain: Brain::merchant(site_id, &mut thread_rng()),
-                        });
-                    }
-                },
-                SiteKind::ChapelSite(site2) => {
-                    // prisoners
-                    for _ in 0..10 {
-                        rtsim.entities.insert(Entity {
-                            is_loaded: false,
-                            pos: site2
-                                .plots()
-                                .filter(|plot| {
-                                    matches!(plot.kind(), world::site2::PlotKind::SeaChapel(_))
-                                })
-                                .choose(&mut thread_rng())
-                                .map_or(site.get_origin(), |plot| {
-                                    site2.tile_center_wpos(Vec2::new(
-                                        plot.root_tile().x,
-                                        plot.root_tile().y + 4,
-                                    ))
-                                })
-                                .with_z(0)
-                                .map(|e| e as f32),
-                            seed: thread_rng().gen(),
-                            controller: RtSimController::default(),
-                            last_time_ticked: 0.0,
-                            kind: RtSimEntityKind::Prisoner,
-                            brain: Brain::villager(site_id, &mut thread_rng()),
-                        });
-                    }
-                },
-                _ => {},
-            }
-        }
-    }
-
-    state.ecs_mut().insert(rtsim);
-    state.ecs_mut().register::<RtSimEntity>();
-    tracing::info!("Initiated real-time world simulation");
+    dispatch::<tick::Sys>(dispatch_builder, &[]);
 }

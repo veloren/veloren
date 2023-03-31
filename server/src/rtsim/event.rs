@@ -1,5 +1,5 @@
 use common::terrain::Block;
-use rtsim2::Event;
+use rtsim::Event;
 use vek::*;
 
 #[derive(Clone)]

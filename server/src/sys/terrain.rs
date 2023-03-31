@@ -10,7 +10,7 @@ use crate::{
     chunk_serialize::ChunkSendEntry,
     client::Client,
     presence::{Presence, RepositionOnChunkLoad},
-    rtsim2,
+    rtsim,
     settings::Settings,
     ChunkRequest, Tick,
 };
@@ -50,7 +50,7 @@ pub type TerrainPersistenceData<'a> = ();
 pub const SAFE_ZONE_RADIUS: f32 = 200.0;
 
 #[cfg(feature = "worldgen")]
-type RtSimData<'a> = WriteExpect<'a, rtsim2::RtSim>;
+type RtSimData<'a> = WriteExpect<'a, rtsim::RtSim>;
 #[cfg(not(feature = "worldgen"))]
 type RtSimData<'a> = ();
 

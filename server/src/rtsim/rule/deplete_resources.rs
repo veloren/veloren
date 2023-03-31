@@ -1,9 +1,9 @@
-use crate::rtsim2::{event::OnBlockChange, ChunkStates};
+use crate::rtsim::{event::OnBlockChange, ChunkStates};
 use common::{
     terrain::{CoordinateConversions, TerrainChunk},
     vol::RectRasterableVol,
 };
-use rtsim2::{RtState, Rule, RuleError};
+use rtsim::{RtState, Rule, RuleError};
 
 pub struct DepleteResources;
 

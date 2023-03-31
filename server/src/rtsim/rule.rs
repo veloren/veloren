@@ -1,6 +1,6 @@
 pub mod deplete_resources;
 
-use rtsim2::RtState;
+use rtsim::RtState;
 use tracing::info;
 
 pub fn start_rules(rtstate: &mut RtState) {

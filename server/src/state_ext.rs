@@ -5,7 +5,7 @@ use crate::{
     persistence::PersistedComponents,
     pet::restore_pet,
     presence::{Presence, RepositionOnChunkLoad},
-    rtsim2::RtSim,
+    rtsim::RtSim,
     settings::Settings,
     sys::sentinel::DeletedEntities,
     wiring, BattleModeBuffer, SpawnPoint,

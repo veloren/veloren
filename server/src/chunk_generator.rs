@@ -1,6 +1,6 @@
 #[cfg(not(feature = "worldgen"))]
 use crate::test_world::{IndexOwned, World};
-use crate::{metrics::ChunkGenMetrics, rtsim2::RtSim};
+use crate::{metrics::ChunkGenMetrics, rtsim::RtSim};
 use common::{
     calendar::Calendar, generation::ChunkSupplement, resources::TimeOfDay, slowjob::SlowJobPool,
     terrain::TerrainChunk,

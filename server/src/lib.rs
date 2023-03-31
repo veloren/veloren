@@ -30,9 +30,7 @@ pub mod metrics;
 pub mod persistence;
 mod pet;
 pub mod presence;
-// TODO: Remove
-//pub mod rtsim;
-pub mod rtsim2;
+pub mod rtsim;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
@@ -566,7 +564,7 @@ impl Server {
         // Init rtsim, loading it from disk if possible
         #[cfg(feature = "worldgen")]
         {
-            match rtsim2::RtSim::new(
+            match rtsim::RtSim::new(
                 &settings.world,
                 index.as_index_ref(),
                 &world,
@@ -721,7 +719,7 @@ impl Server {
             // When a resource block updates, inform rtsim
             if old_block.get_rtsim_resource().is_some() || new_block.get_rtsim_resource().is_some()
             {
-                ecs.write_resource::<rtsim2::RtSim>().hook_block_update(
+                ecs.write_resource::<rtsim::RtSim>().hook_block_update(
                     &ecs.read_resource::<Arc<world::World>>(),
                     ecs.read_resource::<world::IndexOwned>().as_index_ref(),
                     wpos,
@@ -750,7 +748,7 @@ impl Server {
                 */
                 #[cfg(feature = "worldgen")]
                 {
-                    rtsim2::add_server_systems(dispatcher_builder);
+                    rtsim::add_server_systems(dispatcher_builder);
                     weather::add_server_systems(dispatcher_builder);
                 }
             },
@@ -871,7 +869,7 @@ impl Server {
             {
                 self.state
                     .ecs()
-                    .write_resource::<rtsim2::RtSim>()
+                    .write_resource::<rtsim::RtSim>()
                     .hook_rtsim_entity_unload(rtsim_entity);
             }
             #[cfg(feature = "worldgen")]
@@ -884,7 +882,7 @@ impl Server {
             {
                 self.state
                     .ecs()
-                    .write_resource::<rtsim2::RtSim>()
+                    .write_resource::<rtsim::RtSim>()
                     .hook_rtsim_vehicle_unload(rtsim_vehicle);
             }
 
@@ -1039,7 +1037,7 @@ impl Server {
                 let client = ecs.read_storage::<Client>();
                 let mut terrain = ecs.write_resource::<common::terrain::TerrainGrid>();
                 #[cfg(feature = "worldgen")]
-                let rtsim = ecs.read_resource::<rtsim2::RtSim>();
+                let rtsim = ecs.read_resource::<rtsim::RtSim>();
                 #[cfg(not(feature = "worldgen"))]
                 let rtsim = ();
 
@@ -1222,7 +1220,7 @@ impl Server {
         let ecs = self.state.ecs();
         let slow_jobs = ecs.read_resource::<SlowJobPool>();
         #[cfg(feature = "worldgen")]
-        let rtsim = ecs.read_resource::<rtsim2::RtSim>();
+        let rtsim = ecs.read_resource::<rtsim::RtSim>();
         #[cfg(not(feature = "worldgen"))]
         let rtsim = ();
         ecs.write_resource::<ChunkGenerator>().generate_chunk(
@@ -1467,10 +1465,7 @@ impl Drop for Server {
         #[cfg(feature = "worldgen")]
         {
             info!("Saving rtsim state...");
-            self.state
-                .ecs()
-                .write_resource::<rtsim2::RtSim>()
-                .save(true);
+            self.state.ecs().write_resource::<rtsim::RtSim>().save(true);
         }
     }
 }

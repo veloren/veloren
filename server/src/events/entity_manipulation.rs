@@ -7,7 +7,7 @@ use crate::{
         skillset::SkillGroupKind,
         BuffKind, BuffSource, PhysicsState,
     },
-    rtsim2,
+    rtsim,
     sys::terrain::SAFE_ZONE_RADIUS,
     Server, SpawnPoint, StateExt,
 };
@@ -527,7 +527,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         {
             state
                 .ecs()
-                .write_resource::<rtsim2::RtSim>()
+                .write_resource::<rtsim::RtSim>()
                 .hook_rtsim_entity_delete(
                     &state.ecs().read_resource::<Arc<world::World>>(),
                     state
