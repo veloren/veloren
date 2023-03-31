@@ -74,8 +74,8 @@ use crate::{
     },
     settings::chat::ChatFilter,
     ui::{
-        self, fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable,
-        ScaleMode, Ui,
+        self, default_water_color, fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic,
+        Ingameable, ScaleMode, Ui,
     },
     window::Event as WinEvent,
     GlobalState,
@@ -106,7 +106,7 @@ use common::{
     terrain::{SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
-    util::{srgba_to_linear, Dir},
+    util::Dir,
     vol::RectRasterableVol,
 };
 use common_base::{prof_span, span};
@@ -1303,15 +1303,15 @@ impl Hud {
         ui.set_scaling_mode(settings.interface.ui_scale);
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
-        // NOTE: Use a border the same color as the LOD ocean color (but with a
-        // translucent alpha since UI have transparency and LOD doesn't).
-        let water_color = srgba_to_linear(Rgba::new(0.0, 0.18, 0.37, 1.0));
         // Load world map
         let mut layers = Vec::new();
         for layer in client.world_data().map_layers() {
-            layers.push(
-                ui.add_graphic_with_rotations(Graphic::Image(Arc::clone(layer), Some(water_color))),
-            );
+            // NOTE: Use a border the same color as the LOD ocean color (but with a
+            // translucent alpha since UI have transparency and LOD doesn't).
+            layers.push(ui.add_graphic_with_rotations(Graphic::Image(
+                Arc::clone(layer),
+                Some(default_water_color()),
+            )));
         }
         let world_map = (layers, client.world_data().chunk_size().map(|e| e as u32));
         // Load images.

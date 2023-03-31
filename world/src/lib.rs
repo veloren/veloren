@@ -219,6 +219,11 @@ impl World {
 
     pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
 
+    /// Find a position that's accessible to a player at the given world
+    /// position by searching blocks vertically.
+    ///
+    /// If `ascending` is `true`, we try to find the highest accessible position
+    /// instead of the lowest.
     pub fn find_accessible_pos(
         &self,
         index: IndexRef,

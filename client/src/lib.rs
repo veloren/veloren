@@ -951,6 +951,7 @@ impl Client {
         mainhand: Option<String>,
         offhand: Option<String>,
         body: comp::Body,
+        start_site: Option<SiteId>,
     ) {
         self.character_list.loading = true;
         self.send_msg(ClientGeneral::CreateCharacter {
@@ -958,6 +959,7 @@ impl Client {
             mainhand,
             offhand,
             body,
+            start_site,
         });
     }
 

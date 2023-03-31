@@ -48,6 +48,7 @@ pub enum ClientGeneral {
         mainhand: Option<String>,
         offhand: Option<String>,
         body: comp::Body,
+        start_site: Option<SiteId>,
     },
     DeleteCharacter(CharacterId),
     EditCharacter {

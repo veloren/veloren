@@ -1,7 +1,7 @@
 use crate::{
     render::UiDrawer,
     ui::{
-        self,
+        self, default_water_color,
         fonts::IcedFonts as Fonts,
         ice::{
             component::{
@@ -15,7 +15,8 @@ use crate::{
             },
             Element, IcedRenderer, IcedUi as Ui,
         },
-        img_ids::ImageGraphic,
+        img_ids::{GraphicCreator, ImageGraphic, PixelGraphic},
+        GraphicId,
     },
     window, GlobalState,
 };
@@ -25,6 +26,7 @@ use common::{
     comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
     LoadoutBuilder,
 };
+use common_net::msg::world_msg::{SiteId, SiteInfo, SiteKind};
 use i18n::{Localization, LocalizationHandle};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
@@ -133,6 +135,7 @@ pub enum Event {
         mainhand: Option<String>,
         offhand: Option<String>,
         body: comp::Body,
+        start_site: Option<SiteId>,
     },
     EditCharacter {
         alias: String,
@@ -168,13 +171,15 @@ enum Mode {
         species_buttons: [button::State; 6],
         tool_buttons: [button::State; 6],
         sliders: Sliders,
-        scroll: scrollable::State,
+        left_scroll: scrollable::State,
+        right_scroll: scrollable::State,
         name_input: text_input::State,
         back_button: button::State,
         create_button: button::State,
         rand_character_button: button::State,
         rand_name_button: button::State,
         character_id: Option<CharacterId>,
+        start_site_idx: usize,
     },
 }
 
@@ -217,13 +222,15 @@ impl Mode {
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
             sliders: Default::default(),
-            scroll: Default::default(),
+            left_scroll: Default::default(),
+            right_scroll: Default::default(),
             name_input: Default::default(),
             back_button: Default::default(),
             create_button: Default::default(),
             rand_character_button: Default::default(),
             rand_name_button: Default::default(),
             character_id: None,
+            start_site_idx: 0,
         }
     }
 
@@ -243,13 +250,15 @@ impl Mode {
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
             sliders: Default::default(),
-            scroll: Default::default(),
+            left_scroll: Default::default(),
+            right_scroll: Default::default(),
             name_input: Default::default(),
             back_button: Default::default(),
             create_button: Default::default(),
             rand_character_button: Default::default(),
             rand_name_button: Default::default(),
             character_id: Some(character_id),
+            start_site_idx: 0,
         }
     }
 }
@@ -279,6 +288,8 @@ struct Controls {
     // Id of the selected character
     selected: Option<CharacterId>,
     default_name: String,
+    map_img: GraphicId,
+    possible_starting_sites: Vec<SiteInfo>,
 }
 
 #[derive(Clone)]
@@ -309,6 +320,7 @@ enum Message {
     EyeColor(u8),
     Accessory(u8),
     Beard(u8),
+    StartSite(usize),
     // Workaround for widgets that require a message but we don't want them to actually do
     // anything
     DoNothing,
@@ -321,6 +333,8 @@ impl Controls {
         selected: Option<CharacterId>,
         default_name: String,
         server_info: &ServerInfo,
+        map_img: GraphicId,
+        possible_starting_sites: Vec<SiteInfo>,
     ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
@@ -339,6 +353,8 @@ impl Controls {
             mode: Mode::select(Some(InfoContent::LoadingCharacters)),
             selected,
             default_name,
+            map_img,
+            possible_starting_sites,
         }
     }
 
@@ -831,7 +847,8 @@ impl Controls {
                 inventory: _,
                 mainhand,
                 offhand: _,
-                ref mut scroll,
+                ref mut left_scroll,
+                ref mut right_scroll,
                 ref mut body_type_buttons,
                 ref mut species_buttons,
                 ref mut tool_buttons,
@@ -842,6 +859,7 @@ impl Controls {
                 ref mut rand_character_button,
                 ref mut rand_name_button,
                 character_id,
+                start_site_idx,
             } => {
                 let unselected_style = style::button::Style::new(imgs.icon_border)
                     .hover_image(imgs.icon_border_mo)
@@ -1070,19 +1088,19 @@ impl Controls {
                 // Height of interactable area
                 const SLIDER_HEIGHT: u16 = 30;
 
-                fn char_slider<'a>(
+                fn char_slider<'a, T: Copy + Into<u32>>(
                     text: String,
                     state: &'a mut slider::State,
-                    max: u8,
-                    selected_val: u8,
-                    on_change: impl 'static + Fn(u8) -> Message,
+                    max: T,
+                    selected_val: T,
+                    on_change: impl 'static + Fn(u32) -> Message,
                     (fonts, imgs): (&Fonts, &Imgs),
                 ) -> Element<'a, Message> {
                     Column::with_children(vec![
                         Text::new(text)
                             .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
                             .into(),
-                        Slider::new(state, 0..=max, selected_val, on_change)
+                        Slider::new(state, 0..=max.into(), selected_val.into(), on_change)
                             .height(SLIDER_HEIGHT)
                             .style(style::slider::Style::images(
                                 imgs.slider_indicator,
@@ -1096,13 +1114,13 @@ impl Controls {
                     .align_items(Align::Center)
                     .into()
                 }
-                fn char_slider_greyable<'a>(
+                fn char_slider_greyable<'a, T: Copy + Into<u32>>(
                     active: bool,
                     text: String,
                     state: &'a mut slider::State,
-                    max: u8,
-                    selected_val: u8,
-                    on_change: impl 'static + Fn(u8) -> Message,
+                    max: T,
+                    selected_val: T,
+                    on_change: impl 'static + Fn(u32) -> Message,
                     (fonts, imgs): (&Fonts, &Imgs),
                 ) -> Element<'a, Message> {
                     if active {
@@ -1115,19 +1133,21 @@ impl Controls {
                                 .into(),
                             // "Disabled" slider
                             // TODO: add iced support for disabled sliders (like buttons)
-                            Slider::new(state, 0..=max, selected_val, |_| Message::DoNothing)
-                                .height(SLIDER_HEIGHT)
-                                .style(style::slider::Style {
-                                    cursor: style::slider::Cursor::Color(Rgba::zero()),
-                                    bar: style::slider::Bar::Image(
-                                        imgs.slider_range,
-                                        Rgba::from_translucent(255, 51),
-                                        SLIDER_BAR_PAD,
-                                    ),
-                                    labels: false,
-                                    ..Default::default()
-                                })
-                                .into(),
+                            Slider::new(state, 0..=max.into(), selected_val.into(), |_| {
+                                Message::DoNothing
+                            })
+                            .height(SLIDER_HEIGHT)
+                            .style(style::slider::Style {
+                                cursor: style::slider::Cursor::Color(Rgba::zero()),
+                                bar: style::slider::Bar::Image(
+                                    imgs.slider_range,
+                                    Rgba::from_translucent(255, 51),
+                                    SLIDER_BAR_PAD,
+                                ),
+                                labels: false,
+                                ..Default::default()
+                            })
+                            .into(),
                         ])
                         .align_items(Align::Center)
                         .into()
@@ -1140,7 +1160,7 @@ impl Controls {
                         &mut sliders.hair_style,
                         body.species.num_hair_styles(body.body_type) - 1,
                         body.hair_style,
-                        Message::HairStyle,
+                        |x| Message::HairStyle(x as u8),
                         (fonts, imgs),
                     ),
                     char_slider(
@@ -1148,7 +1168,7 @@ impl Controls {
                         &mut sliders.hair_color,
                         body.species.num_hair_colors() - 1,
                         body.hair_color,
-                        Message::HairColor,
+                        |x| Message::HairColor(x as u8),
                         (fonts, imgs),
                     ),
                     char_slider(
@@ -1156,7 +1176,7 @@ impl Controls {
                         &mut sliders.skin,
                         body.species.num_skin_colors() - 1,
                         body.skin,
-                        Message::Skin,
+                        |x| Message::Skin(x as u8),
                         (fonts, imgs),
                     ),
                     char_slider(
@@ -1164,7 +1184,7 @@ impl Controls {
                         &mut sliders.eyes,
                         body.species.num_eyes(body.body_type) - 1,
                         body.eyes,
-                        Message::Eyes,
+                        |x| Message::Eyes(x as u8),
                         (fonts, imgs),
                     ),
                     char_slider(
@@ -1172,7 +1192,7 @@ impl Controls {
                         &mut sliders.eye_color,
                         body.species.num_eye_colors() - 1,
                         body.eye_color,
-                        Message::EyeColor,
+                        |x| Message::EyeColor(x as u8),
                         (fonts, imgs),
                     ),
                     char_slider_greyable(
@@ -1181,7 +1201,7 @@ impl Controls {
                         &mut sliders.accessory,
                         body.species.num_accessories(body.body_type) - 1,
                         body.accessory,
-                        Message::Accessory,
+                        |x| Message::Accessory(x as u8),
                         (fonts, imgs),
                     ),
                     char_slider_greyable(
@@ -1190,7 +1210,7 @@ impl Controls {
                         &mut sliders.beard,
                         body.species.num_beards(body.body_type) - 1,
                         body.beard,
-                        Message::Beard,
+                        |x| Message::Beard(x as u8),
                         (fonts, imgs),
                     ),
                 ])
@@ -1213,7 +1233,7 @@ impl Controls {
                     tooltip::text(&tooltip_text, tooltip_style)
                 });
 
-                let column_content = vec![
+                let left_column_content = vec![
                     body_type.into(),
                     tool.into(),
                     species.into(),
@@ -1221,47 +1241,96 @@ impl Controls {
                     rand_character.into(),
                 ];
 
-                let left_column = Container::new(
-                    Scrollable::new(scroll)
-                        .push(
-                            Column::with_children(column_content)
-                                .align_items(Align::Center)
-                                .width(Length::Fill)
-                                .spacing(5),
-                        )
-                        .padding(5)
-                        .width(Length::Fill)
-                        .align_items(Align::Center)
-                        .style(style::scrollable::Style {
-                            track: None,
-                            scroller: style::scrollable::Scroller::Color(UI_MAIN),
-                        }),
-                )
-                .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
-                //.max_width(360)
-                //.width(Length::Fill)
-                .height(Length::Fill);
+                let right_column_content = vec![
+                    Image::new(self.map_img)
+                        .height(Length::Units(300))
+                        .width(Length::Units(300))
+                        .into(),
+                    Column::with_children(if self.possible_starting_sites.is_empty() {
+                        Vec::new()
+                    } else {
+                        let site_slider = char_slider(
+                            i18n.get_msg("char_selection-starting_site").into_owned(),
+                            &mut sliders.starting_site,
+                            self.possible_starting_sites.len() as u32 - 1,
+                            *start_site_idx as u32,
+                            |x| Message::StartSite(x as usize),
+                            (fonts, imgs),
+                        );
 
-                let left_column = Column::with_children(vec![
-                    Container::new(left_column)
-                        .style(style::container::Style::color(Rgba::from_translucent(
-                            0,
-                            BANNER_ALPHA,
-                        )))
-                        .width(Length::Units(320))
-                        .center_x()
-                        .into(),
-                    Image::new(imgs.frame_bottom)
-                        .height(Length::Units(40))
-                        .width(Length::Units(320))
-                        .color(Rgba::from_translucent(0, BANNER_ALPHA))
-                        .into(),
-                ])
-                .height(Length::Fill);
+                        let site_name = Text::new(i18n
+                                .get_msg_ctx("char_selection-starting_site_name", &i18n::fluent_args! {
+                                    "name" => self.possible_starting_sites[*start_site_idx].name.as_deref()
+                                        .unwrap_or("Unknown"),
+                                })
+                                .into_owned())
+                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                            .into();
+
+                        let site_kind = Text::new(i18n
+                                .get_msg_ctx("char_selection-starting_site_kind", &i18n::fluent_args! {
+                                    "kind" => match self.possible_starting_sites[*start_site_idx].kind {
+                                        SiteKind::Town => i18n.get_msg("hud-map-town").into_owned(),
+                                        SiteKind::Castle => i18n.get_msg("hud-map-castle").into_owned(),
+                                        SiteKind::Bridge => i18n.get_msg("hud-map-bridge").into_owned(),
+                                        _ => "Unknown".to_string(),
+                                    },
+                                })
+                                .into_owned())
+                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                            .into();
+
+                        vec![site_slider, site_name, site_kind]
+                    })
+                    .max_width(200)
+                    .padding(5)
+                    .into(),
+                ];
+
+                let column = |column_content, scroll| {
+                    let column = Container::new(
+                        Scrollable::new(scroll)
+                            .push(
+                                Column::with_children(column_content)
+                                    .align_items(Align::Center)
+                                    .width(Length::Fill)
+                                    .spacing(5),
+                            )
+                            .padding(5)
+                            .width(Length::Fill)
+                            .align_items(Align::Center)
+                            .style(style::scrollable::Style {
+                                track: None,
+                                scroller: style::scrollable::Scroller::Color(UI_MAIN),
+                            }),
+                    )
+                    .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
+                    //.max_width(360)
+                    //.width(Length::Fill)
+                    .height(Length::Fill);
+
+                    Column::with_children(vec![
+                        Container::new(column)
+                            .style(style::container::Style::color(Rgba::from_translucent(
+                                0,
+                                BANNER_ALPHA,
+                            )))
+                            .width(Length::Units(320))
+                            .center_x()
+                            .into(),
+                        Image::new(imgs.frame_bottom)
+                            .height(Length::Units(40))
+                            .width(Length::Units(320))
+                            .color(Rgba::from_translucent(0, BANNER_ALPHA))
+                            .into(),
+                    ])
+                    .height(Length::Fill)
+                };
 
                 let top = Row::with_children(vec![
-                    left_column.into(),
+                    column(left_column_content, left_scroll).into(),
                     MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill).into(),
+                    column(right_column_content, right_scroll).into(),
                 ])
                 .padding(10)
                 .width(Length::Fill)
@@ -1516,6 +1585,7 @@ impl Controls {
                     body,
                     mainhand,
                     offhand,
+                    start_site_idx,
                     ..
                 } = &self.mode
                 {
@@ -1524,6 +1594,10 @@ impl Controls {
                         mainhand: mainhand.map(String::from),
                         offhand: offhand.map(String::from),
                         body: comp::Body::Humanoid(*body),
+                        start_site: self
+                            .possible_starting_sites
+                            .get(*start_site_idx)
+                            .map(|info| info.id),
                     });
                     self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
                 }
@@ -1643,6 +1717,11 @@ impl Controls {
                     body.validate();
                 }
             },
+            Message::StartSite(idx) => {
+                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
+                    *start_site_idx = idx;
+                }
+            },
         }
     }
 
@@ -1707,6 +1786,19 @@ impl CharSelectionUi {
             selected_character,
             default_name,
             client.server_info(),
+            ui.add_graphic(
+                PixelGraphic::new_graphic((
+                    client.world_data().map_image().clone(),
+                    Some(default_water_color()),
+                ))
+                .expect("Failed to generate map image"),
+            ),
+            client.sites()
+                .values()
+                // TODO: Enforce this server-side and add some way to customise it?
+                .filter(|info| matches!(&info.site.kind, SiteKind::Town | SiteKind::Castle | SiteKind::Bridge))
+                .map(|info| info.site.clone())
+                .collect(),
         );
 
         Self {
@@ -1814,4 +1906,5 @@ struct Sliders {
     eye_color: slider::State,
     accessory: slider::State,
     beard: slider::State,
+    starting_site: slider::State,
 }

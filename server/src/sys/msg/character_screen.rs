@@ -1,3 +1,8 @@
+#[cfg(not(feature = "worldgen"))]
+use crate::test_world::{IndexOwned, World};
+#[cfg(feature = "worldgen")]
+use world::{IndexOwned, World};
+
 use crate::{
     automod::AutoMod,
     character_creator,
@@ -7,15 +12,17 @@ use crate::{
     EditableSettings,
 };
 use common::{
-    comp::{Admin, AdminRole, ChatType, Player, UnresolvedChatMsg},
+    comp::{Admin, AdminRole, ChatType, Player, UnresolvedChatMsg, Waypoint},
     event::{EventBus, ServerEvent},
+    resources::Time,
+    terrain::TerrainChunkSize,
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::sync::{atomic::Ordering, Arc};
-use tracing::debug;
+use tracing::{debug, error};
 
 impl Sys {
     fn handle_client_character_screen_msg(
@@ -32,6 +39,9 @@ impl Sys {
         censor: &ReadExpect<'_, Arc<censor::Censor>>,
         automod: &AutoMod,
         msg: ClientGeneral,
+        time: Time,
+        index: &ReadExpect<'_, IndexOwned>,
+        world: &ReadExpect<'_, Arc<World>>,
     ) -> Result<(), crate::error::Error> {
         let mut send_join_messages = || -> Result<(), crate::error::Error> {
             // Give the player a welcome message
@@ -135,6 +145,7 @@ impl Sys {
                 mainhand,
                 offhand,
                 body,
+                start_site,
             } => {
                 if censor.check(&alias) {
                     debug!(?alias, "denied alias as it contained a banned word");
@@ -151,6 +162,22 @@ impl Sys {
                         offhand.clone(),
                         body,
                         character_updater,
+                        start_site.and_then(|site_idx| {
+                            // TODO: This corresponds to the ID generation logic in `world/src/lib.rs`
+                            // Really, we should have a way to consistently refer to sites, but that's a job for rtsim2
+                            // and the site changes that it will require. Until then, this code is very hacky.
+                            world.civs().sites.iter()
+                                .find(|(_, site)| site.site_tmp.map(|i| i.id()) == Some(site_idx))
+                                .map(Some)
+                                .unwrap_or_else(|| {
+                                    error!("Tried to create character with starting site index {}, but such a site does not exist", site_idx);
+                                    None
+                                })
+                                .map(|(_, site)| {
+                                    let wpos2d = TerrainChunkSize::center_wpos(site.center);
+                                    Waypoint::new(world.find_accessible_pos(index.as_index_ref(), wpos2d, true), time)
+                                })
+                        }),
                     ) {
                         debug!(
                             ?error,
@@ -226,6 +253,9 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, EditableSettings>,
         ReadExpect<'a, Arc<censor::Censor>>,
         ReadExpect<'a, AutoMod>,
+        ReadExpect<'a, Time>,
+        ReadExpect<'a, IndexOwned>,
+        ReadExpect<'a, Arc<World>>,
     );
 
     const NAME: &'static str = "msg::character_screen";
@@ -247,6 +277,9 @@ impl<'a> System<'a> for Sys {
             editable_settings,
             censor,
             automod,
+            time,
+            index,
+            world,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
@@ -267,6 +300,9 @@ impl<'a> System<'a> for Sys {
                     &censor,
                     &automod,
                     msg,
+                    *time,
+                    &index,
+                    &world,
                 )
             });
         }

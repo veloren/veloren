@@ -1090,3 +1090,6 @@ fn default_scissor(physical_resolution: Vec2<u32>) -> Aabr<u16> {
         },
     }
 }
+
+// TODO: Don't hard code this
+pub fn default_water_color() -> Rgba<f32> { srgba_to_linear(Rgba::new(0.0, 0.18, 0.37, 1.0)) }
