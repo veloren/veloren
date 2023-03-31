@@ -43,6 +43,8 @@ pub struct Data {
     pub factions: Factions,
 
     pub time_of_day: TimeOfDay,
+    // If true, rtsim data will be ignored (and, hence, overwritten on next save) on load.
+    pub should_purge: bool,
 }
 
 pub type ReadError = rmp_serde::decode::Error;

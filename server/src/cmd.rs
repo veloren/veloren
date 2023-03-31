@@ -184,8 +184,9 @@ fn do_command(
         ServerChatCommand::Tell => handle_tell,
         ServerChatCommand::Time => handle_time,
         ServerChatCommand::Tp => handle_tp,
-        ServerChatCommand::TpNpc => handle_tp_npc,
-        ServerChatCommand::NpcInfo => handle_npc_info,
+        ServerChatCommand::RtsimTp => handle_rtsim_tp,
+        ServerChatCommand::RtsimInfo => handle_rtsim_info,
+        ServerChatCommand::RtsimPurge => handle_rtsim_purge,
         ServerChatCommand::RtsimChunk => handle_rtsim_chunk,
         ServerChatCommand::Unban => handle_unban,
         ServerChatCommand::Version => handle_version,
@@ -1185,7 +1186,7 @@ fn handle_tp(
     })
 }
 
-fn handle_tp_npc(
+fn handle_rtsim_tp(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
@@ -1214,7 +1215,7 @@ fn handle_tp_npc(
     })
 }
 
-fn handle_npc_info(
+fn handle_rtsim_info(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
@@ -1260,6 +1261,36 @@ fn handle_npc_info(
         Ok(())
     } else {
         Err(action.help_string())
+    }
+}
+
+fn handle_rtsim_purge(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim2::RtSim;
+    if let Some(should_purge) = parse_cmd_args!(args, bool) {
+        server
+            .state
+            .ecs()
+            .write_resource::<RtSim>()
+            .set_should_purge(should_purge);
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                format!(
+                    "Rtsim data {} be purged on next startup",
+                    if should_purge { "WILL" } else { "will NOT" },
+                ),
+            ),
+        );
+        Ok(())
+    } else {
+        return Err(action.help_string());
     }
 }
 

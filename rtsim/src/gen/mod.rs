@@ -44,6 +44,7 @@ impl Data {
             },
 
             time_of_day: TimeOfDay(settings.start_time),
+            should_purge: false,
         };
 
         let initial_factions = (0..16)

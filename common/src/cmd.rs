@@ -310,8 +310,9 @@ pub enum ServerChatCommand {
     Tell,
     Time,
     Tp,
-    TpNpc,
-    NpcInfo,
+    RtsimTp,
+    RtsimInfo,
+    RtsimPurge,
     RtsimChunk,
     Unban,
     Version,
@@ -682,15 +683,24 @@ impl ServerChatCommand {
                 "Teleport to another player",
                 Some(Moderator),
             ),
-            ServerChatCommand::TpNpc => cmd(
+            ServerChatCommand::RtsimTp => cmd(
                 vec![Integer("npc index", 0, Required)],
                 "Teleport to an rtsim npc",
                 Some(Moderator),
             ),
-            ServerChatCommand::NpcInfo => cmd(
+            ServerChatCommand::RtsimInfo => cmd(
                 vec![Integer("npc index", 0, Required)],
                 "Display information about an rtsim NPC",
                 Some(Moderator),
+            ),
+            ServerChatCommand::RtsimPurge => cmd(
+                vec![Boolean(
+                    "whether purging of rtsim data should occur on next startup",
+                    true.to_string(),
+                    Required,
+                )],
+                "Purge rtsim data on next startup",
+                Some(Admin),
             ),
             ServerChatCommand::RtsimChunk => cmd(
                 vec![],
@@ -824,8 +834,9 @@ impl ServerChatCommand {
             ServerChatCommand::Tell => "tell",
             ServerChatCommand::Time => "time",
             ServerChatCommand::Tp => "tp",
-            ServerChatCommand::TpNpc => "tp_npc",
-            ServerChatCommand::NpcInfo => "npc_info",
+            ServerChatCommand::RtsimTp => "rtsim_tp",
+            ServerChatCommand::RtsimInfo => "rtsim_info",
+            ServerChatCommand::RtsimPurge => "rtsim_purge",
             ServerChatCommand::RtsimChunk => "rtsim_chunk",
             ServerChatCommand::Unban => "unban",
             ServerChatCommand::Version => "version",

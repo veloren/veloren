@@ -80,8 +80,8 @@ use common::{
     comp,
     event::{EventBus, ServerEvent},
     resources::{BattleMode, GameMode, Time, TimeOfDay},
-    shared_server_config::ServerConstants,
     rtsim::{RtSimEntity, RtSimVehicle},
+    shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::{Block, TerrainChunk, TerrainChunkSize},
     vol::RectRasterableVol,
@@ -1463,6 +1463,15 @@ impl Drop for Server {
                 info!("Unloading terrain persistence...");
                 terrain_persistence.unload_all()
             });
+
+        #[cfg(feature = "worldgen")]
+        {
+            info!("Saving rtsim state...");
+            self.state
+                .ecs()
+                .write_resource::<rtsim2::RtSim>()
+                .save(true);
+        }
     }
 }
 

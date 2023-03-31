@@ -3,7 +3,7 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
-use rand::{Rng, seq::IteratorRandom};
+use rand::{seq::IteratorRandom, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use strum::{EnumIter, IntoEnumIterator};
@@ -56,7 +56,6 @@ pub enum MemoryItem {
     Mood { state: MoodState },
 }
 
-
 #[derive(EnumIter, Clone, Copy)]
 pub enum PersonalityTrait {
     Open,
@@ -88,7 +87,9 @@ pub struct Personality {
 
 fn distributed(min: u8, max: u8, rng: &mut impl Rng) -> u8 {
     let l = max - min;
-    min + rng.gen_range(0..=l / 3) + rng.gen_range(0..=l / 3 + l % 3 % 2) + rng.gen_range(0..=l / 3 + l % 3 / 2)
+    min + rng.gen_range(0..=l / 3)
+        + rng.gen_range(0..=l / 3 + l % 3 % 2)
+        + rng.gen_range(0..=l / 3 + l % 3 / 2)
 }
 
 impl Personality {
@@ -96,13 +97,11 @@ impl Personality {
     pub const LITTLE_HIGH: u8 = Self::MID + (Self::MAX - Self::MIN) / 20;
     pub const LITTLE_LOW: u8 = Self::MID - (Self::MAX - Self::MIN) / 20;
     pub const LOW_THRESHOLD: u8 = (Self::MAX - Self::MIN) / 5 * 2 + Self::MIN;
-    const MIN: u8 = 0;
-    pub const MID: u8 = (Self::MAX - Self::MIN) / 2;
     const MAX: u8 = 255;
+    pub const MID: u8 = (Self::MAX - Self::MIN) / 2;
+    const MIN: u8 = 0;
 
-    fn distributed_value(rng: &mut impl Rng) -> u8 {
-        distributed(Self::MIN, Self::MAX, rng)
-    }
+    fn distributed_value(rng: &mut impl Rng) -> u8 { distributed(Self::MIN, Self::MAX, rng) }
 
     pub fn random(rng: &mut impl Rng) -> Self {
         Self {
@@ -130,27 +129,43 @@ impl Personality {
             extraversion: Self::distributed_value(rng),
             neuroticism: Self::distributed_value(rng),
             agreeableness: Self::distributed_value(rng),
-            conscientiousness: distributed(Self::LOW_THRESHOLD,  Self::MAX, rng),
+            conscientiousness: distributed(Self::LOW_THRESHOLD, Self::MAX, rng),
         }
     }
 
     pub fn is(&self, trait_: PersonalityTrait) -> bool {
         match trait_ {
             PersonalityTrait::Open => self.openness > Personality::HIGH_THRESHOLD,
-            PersonalityTrait::Adventurous => self.openness > Personality::HIGH_THRESHOLD && self.neuroticism < Personality::MID,
+            PersonalityTrait::Adventurous => {
+                self.openness > Personality::HIGH_THRESHOLD && self.neuroticism < Personality::MID
+            },
             PersonalityTrait::Closed => self.openness < Personality::LOW_THRESHOLD,
             PersonalityTrait::Conscientious => self.conscientiousness > Personality::HIGH_THRESHOLD,
             PersonalityTrait::Busybody => self.agreeableness < Personality::LOW_THRESHOLD,
-            PersonalityTrait::Unconscientious => self.conscientiousness < Personality::LOW_THRESHOLD,
+            PersonalityTrait::Unconscientious => {
+                self.conscientiousness < Personality::LOW_THRESHOLD
+            },
             PersonalityTrait::Extroverted => self.extraversion > Personality::HIGH_THRESHOLD,
             PersonalityTrait::Introverted => self.extraversion < Personality::LOW_THRESHOLD,
             PersonalityTrait::Agreeable => self.agreeableness > Personality::HIGH_THRESHOLD,
-            PersonalityTrait::Sociable => self.agreeableness > Personality::HIGH_THRESHOLD && self.extraversion > Personality::MID,
+            PersonalityTrait::Sociable => {
+                self.agreeableness > Personality::HIGH_THRESHOLD
+                    && self.extraversion > Personality::MID
+            },
             PersonalityTrait::Disagreeable => self.agreeableness < Personality::LOW_THRESHOLD,
             PersonalityTrait::Neurotic => self.neuroticism > Personality::HIGH_THRESHOLD,
-            PersonalityTrait::Seeker => self.neuroticism > Personality::HIGH_THRESHOLD && self.openness > Personality::LITTLE_HIGH,
-            PersonalityTrait::Worried => self.neuroticism > Personality::HIGH_THRESHOLD && self.agreeableness > Personality::LITTLE_HIGH,
-            PersonalityTrait::SadLoner => self.neuroticism > Personality::HIGH_THRESHOLD && self.extraversion < Personality::LITTLE_LOW,
+            PersonalityTrait::Seeker => {
+                self.neuroticism > Personality::HIGH_THRESHOLD
+                    && self.openness > Personality::LITTLE_HIGH
+            },
+            PersonalityTrait::Worried => {
+                self.neuroticism > Personality::HIGH_THRESHOLD
+                    && self.agreeableness > Personality::LITTLE_HIGH
+            },
+            PersonalityTrait::SadLoner => {
+                self.neuroticism > Personality::HIGH_THRESHOLD
+                    && self.extraversion < Personality::LITTLE_LOW
+            },
             PersonalityTrait::Stable => self.neuroticism < Personality::LOW_THRESHOLD,
         }
     }
@@ -160,14 +175,19 @@ impl Personality {
     }
 
     pub fn will_ambush(&self) -> bool {
-        self.agreeableness < Self::LOW_THRESHOLD
-            && self.conscientiousness < Self::LOW_THRESHOLD
+        self.agreeableness < Self::LOW_THRESHOLD && self.conscientiousness < Self::LOW_THRESHOLD
     }
 }
 
 impl Default for Personality {
     fn default() -> Self {
-        Self { openness: Personality::MID, conscientiousness: Personality::MID, extraversion: Personality::MID, agreeableness: Personality::MID, neuroticism: Personality::MID }
+        Self {
+            openness: Personality::MID,
+            conscientiousness: Personality::MID,
+            extraversion: Personality::MID,
+            agreeableness: Personality::MID,
+            neuroticism: Personality::MID,
+        }
     }
 }
 
@@ -198,7 +218,7 @@ impl Default for RtSimController {
     fn default() -> Self {
         Self {
             travel_to: None,
-            personality:Personality::default(),
+            personality: Personality::default(),
             heading_to: None,
             speed_factor: 1.0,
             events: Vec::new(),
@@ -210,7 +230,7 @@ impl RtSimController {
     pub fn with_destination(pos: Vec3<f32>) -> Self {
         Self {
             travel_to: Some(pos),
-            personality:Personality::default(),
+            personality: Personality::default(),
             heading_to: None,
             speed_factor: 0.5,
             events: Vec::new(),

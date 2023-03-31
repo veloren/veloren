@@ -9,7 +9,7 @@ use common::{
         BehaviorState, ControlAction, Item, TradingBehavior, UnresolvedChatMsg, UtteranceKind,
     },
     event::ServerEvent,
-    rtsim::{Memory, MemoryItem, RtSimEvent, PersonalityTrait},
+    rtsim::{Memory, MemoryItem, PersonalityTrait, RtSimEvent},
     trade::{TradeAction, TradePhase, TradeResult},
 };
 use rand::{thread_rng, Rng};
@@ -106,65 +106,64 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                     match subject {
                         Subject::Regular => {
                             if let Some(tgt_stats) = read_data.stats.get(target) {
-                                agent.rtsim_controller.events.push(RtSimEvent::AddMemory(
-                                    Memory {
+                                agent
+                                    .rtsim_controller
+                                    .events
+                                    .push(RtSimEvent::AddMemory(Memory {
                                         item: MemoryItem::CharacterInteraction {
                                             name: tgt_stats.name.clone(),
                                         },
                                         time_to_forget: read_data.time.0 + 600.0,
-                                    },
-                                ));
+                                    }));
                                 if let Some(destination_name) = &agent.rtsim_controller.heading_to {
                                     let personality = &agent.rtsim_controller.personality;
                                     let standard_response_msg = || -> String {
                                         if personality.will_ambush() {
                                             format!(
-                                                "I'm heading to {}! Want to come along? We'll make \
-                                                great travel buddies, hehe.",
+                                                "I'm heading to {}! Want to come along? We'll \
+                                                 make great travel buddies, hehe.",
                                                 destination_name
                                             )
-                                        } else if personality.is(PersonalityTrait::Extroverted)
-                                        {
+                                        } else if personality.is(PersonalityTrait::Extroverted) {
                                             format!(
                                                 "I'm heading to {}! Want to come along?",
                                                 destination_name
                                             )
-                                        } else if personality.is(PersonalityTrait::Disagreeable)
-                                        {
+                                        } else if personality.is(PersonalityTrait::Disagreeable) {
                                             "Hrm.".to_string()
                                         } else {
                                             "Hello!".to_string()
                                         }
                                     };
-                                    let msg = if false /* TODO: Remembers character */ {
-                                            if personality.will_ambush() {
-                                                "Just follow me a bit more, hehe.".to_string()
-                                            } else if personality.is(PersonalityTrait::Extroverted)
+                                    let msg = if false
+                                    /* TODO: Remembers character */
+                                    {
+                                        if personality.will_ambush() {
+                                            "Just follow me a bit more, hehe.".to_string()
+                                        } else if personality.is(PersonalityTrait::Extroverted) {
+                                            if personality.is(PersonalityTrait::Extroverted) {
+                                                format!(
+                                                    "Greetings fair {}! It has been far too long \
+                                                     since last I saw you. I'm going to {} right \
+                                                     now.",
+                                                    &tgt_stats.name, destination_name
+                                                )
+                                            } else if personality.is(PersonalityTrait::Disagreeable)
                                             {
-                                                if personality.is(PersonalityTrait::Extroverted)
-                                                {
-                                                    format!(
-                                                        "Greetings fair {}! It has been far \
-                                                            too long since last I saw you. I'm \
-                                                            going to {} right now.",
-                                                        &tgt_stats.name, destination_name
-                                                    )
-                                                } else if personality.is(PersonalityTrait::Disagreeable)
-                                                {
-                                                    "Oh. It's you again.".to_string()
-                                                } else {
-                                                    format!(
-                                                        "Hi again {}! Unfortunately I'm in a \
-                                                            hurry right now. See you!",
-                                                        &tgt_stats.name
-                                                    )
-                                                }
+                                                "Oh. It's you again.".to_string()
                                             } else {
-                                                standard_response_msg()
+                                                format!(
+                                                    "Hi again {}! Unfortunately I'm in a hurry \
+                                                     right now. See you!",
+                                                    &tgt_stats.name
+                                                )
                                             }
                                         } else {
                                             standard_response_msg()
-                                        };
+                                        }
+                                    } else {
+                                        standard_response_msg()
+                                    };
                                     agent_data.chat_npc(msg, event_emitter);
                                 }
                                 /*else if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
@@ -183,14 +182,14 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                         };
                                         agent_data.chat_npc(msg, event_emitter);
                                     }
-                                }*/ else {
+                                }*/
+                                else {
                                     let mut rng = thread_rng();
-                                    if let Some(extreme_trait) = agent.rtsim_controller.personality.chat_trait(&mut rng)
+                                    if let Some(extreme_trait) =
+                                        agent.rtsim_controller.personality.chat_trait(&mut rng)
                                     {
                                         let msg = match extreme_trait {
-                                            PersonalityTrait::Open => {
-                                                "npc-speech-villager_open"
-                                            },
+                                            PersonalityTrait::Open => "npc-speech-villager_open",
                                             PersonalityTrait::Adventurous => {
                                                 "npc-speech-villager_adventurous"
                                             },

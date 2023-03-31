@@ -54,7 +54,14 @@ impl RtSim {
                         match Data::from_reader(io::BufReader::new(file)) {
                             Ok(data) => {
                                 info!("Rtsim data loaded.");
-                                break 'load data;
+                                if data.should_purge {
+                                    warn!(
+                                        "The should_purge flag was set on the rtsim data, \
+                                         generating afresh"
+                                    );
+                                } else {
+                                    break 'load data;
+                                }
                             },
                             Err(e) => {
                                 error!("Rtsim data failed to load: {}", e);
@@ -171,14 +178,14 @@ impl RtSim {
         self.state.data_mut().npcs.remove(entity.0);
     }
 
-    pub fn save(&mut self, slowjob_pool: &SlowJobPool) {
+    pub fn save(&mut self, /* slowjob_pool: &SlowJobPool, */ wait_until_finished: bool) {
         info!("Saving rtsim data...");
         let file_path = self.file_path.clone();
         let data = self.state.data().clone();
         debug!("Starting rtsim data save job...");
         // TODO: Use slow job
         // slowjob_pool.spawn("RTSIM_SAVE", move || {
-        std::thread::spawn(move || {
+        let handle = std::thread::spawn(move || {
             let tmp_file_name = "data_tmp.dat";
             if let Err(e) = file_path
                 .parent()
@@ -203,6 +210,11 @@ impl RtSim {
                 error!("Saving rtsim data failed: {}", e);
             }
         });
+
+        if wait_until_finished {
+            handle.join();
+        }
+
         self.last_saved = Some(Instant::now());
     }
 
@@ -212,6 +224,10 @@ impl RtSim {
     }
 
     pub fn state(&self) -> &RtState { &self.state }
+
+    pub fn set_should_purge(&mut self, should_purge: bool) {
+        self.state.data_mut().should_purge = should_purge;
+    }
 }
 
 pub struct ChunkStates(pub Grid<Option<LoadedChunkState>>);

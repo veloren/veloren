@@ -223,7 +223,9 @@ impl<'a> System<'a> for Sys {
             .last_saved
             .map_or(true, |ls| ls.elapsed() > Duration::from_secs(60))
         {
-            rtsim.save(&slow_jobs);
+            // TODO: Use slow jobs
+            let _ = slow_jobs;
+            rtsim.save(/* &slow_jobs, */ false);
         }
 
         let chunk_states = rtsim.state.resource::<ChunkStates>();

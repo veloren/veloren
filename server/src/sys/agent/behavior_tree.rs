@@ -741,12 +741,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
 
                 if !in_aggro_range && is_time_to_retarget {
-                    agent_data.choose_target(
-                        agent,
-                        controller,
-                        read_data,
-                        event_emitter,
-                    );
+                    agent_data.choose_target(agent, controller, read_data, event_emitter);
                 }
 
                 if aggro_on {
