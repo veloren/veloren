@@ -175,7 +175,7 @@ impl Sys {
                                 })
                                 .map(|(_, site)| {
                                     let wpos2d = TerrainChunkSize::center_wpos(site.center);
-                                    Waypoint::new(world.find_accessible_pos(index.as_index_ref(), wpos2d, true), time)
+                                    Waypoint::new(world.find_accessible_pos(index.as_index_ref(), wpos2d, false), time)
                                 })
                         }),
                     ) {
