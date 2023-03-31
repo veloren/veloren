@@ -15,8 +15,8 @@ use crate::{
             },
             Element, IcedRenderer, IcedUi as Ui,
         },
-        img_ids::{GraphicCreator, ImageGraphic, PixelGraphic},
-        GraphicId,
+        img_ids::ImageGraphic,
+        Graphic, GraphicId,
     },
     window, GlobalState,
 };
@@ -38,6 +38,7 @@ use iced::{
     button, scrollable, slider, text_input, Align, Button, Column, Container, HorizontalAlignment,
     Length, Row, Scrollable, Slider, Space, Text, TextInput,
 };
+use std::sync::Arc;
 use vek::{Rgba, Vec2};
 
 pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
@@ -428,32 +429,34 @@ impl Controls {
         ])
         .width(Length::Fill);
 
-        // TODO: There is probably a better way to conditionally add in the warning box
-        // here
-        let mut warning_container =
-            if let Some(mismatched_version) = &self.server_mismatched_version {
-                let warning = Text::<IcedRenderer>::new(format!(
-                    "{}\n{}: {} {}: {}",
-                    i18n.get_msg("char_selection-version_mismatch"),
-                    i18n.get_msg("main-login-server_version"),
-                    mismatched_version,
-                    i18n.get_msg("main-login-client_version"),
-                    *common::util::GIT_HASH
-                ))
-                .size(self.fonts.cyri.scale(18))
-                .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
-                .width(Length::Fill)
-                .horizontal_alignment(HorizontalAlignment::Center);
-                Some(
+        let mut warning_container = if let Some(mismatched_version) =
+            &self.server_mismatched_version
+        {
+            let warning = Text::<IcedRenderer>::new(format!(
+                "{}\n{}: {} {}: {}",
+                i18n.get_msg("char_selection-version_mismatch"),
+                i18n.get_msg("main-login-server_version"),
+                mismatched_version,
+                i18n.get_msg("main-login-client_version"),
+                *common::util::GIT_HASH
+            ))
+            .size(self.fonts.cyri.scale(18))
+            .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
+            .width(Length::Fill)
+            .horizontal_alignment(HorizontalAlignment::Center);
+            Some(
+                Container::new(
                     Container::new(Row::with_children(vec![warning.into()]).width(Length::Fill))
                         .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
                         .padding(12)
                         .width(Length::Fill)
                         .center_x(),
                 )
-            } else {
-                None
-            };
+                .padding(16),
+            )
+        } else {
+            None
+        };
 
         let content = match &mut self.mode {
             Mode::Select {
@@ -731,8 +734,8 @@ impl Controls {
                 let left_column = Column::with_children(vec![server.into(), characters.into()])
                     .spacing(10)
                     .width(Length::Units(322)) // TODO: see if we can get iced to work with settings below
-                    //.max_width(360)
-                    //.width(Length::Fill)
+                    // .max_width(360)
+                    // .width(Length::Fill)
                     .height(Length::Fill);
 
                 let top = Row::with_children(vec![
@@ -1415,7 +1418,7 @@ impl Controls {
                             }),
                     )
                     .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
-                    //.max_width(360)
+                    // .max_width(360)
                     // .width(Length::Fill)
                     .height(Length::Fill);
 
@@ -1435,7 +1438,6 @@ impl Controls {
                             .into(),
                     ])
                     .height(Length::Fill)
-                    // .width(Length::Fill)
                 };
 
                 let mouse_area =
@@ -1901,13 +1903,10 @@ impl CharSelectionUi {
             selected_character,
             default_name,
             client.server_info(),
-            ui.add_graphic(
-                PixelGraphic::new_graphic((
-                    client.world_data().map_image().clone(),
-                    Some(default_water_color()),
-                ))
-                .expect("Failed to generate map image"),
-            ),
+            ui.add_graphic(Graphic::Image(
+                Arc::clone(client.world_data().map_image()),
+                Some(default_water_color()),
+            )),
             client.sites()
                 .values()
                 // TODO: Enforce this server-side and add some way to customise it?

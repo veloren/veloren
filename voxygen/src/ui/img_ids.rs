@@ -3,7 +3,6 @@ use common::{
     assets::{self, AssetExt, DotVoxAsset, Error},
     figure::Segment,
 };
-use image::DynamicImage;
 use std::sync::Arc;
 use vek::*;
 
@@ -110,16 +109,6 @@ impl<'a> GraphicCreator<'a> for VoxelPixArtGraphic {
             },
             SampleStrat::PixelCoverage,
         ))
-    }
-}
-
-pub enum PixelGraphic {}
-
-impl<'a> GraphicCreator<'a> for PixelGraphic {
-    type Specifier = (Arc<DynamicImage>, Option<Rgba<f32>>);
-
-    fn new_graphic((img, col): Self::Specifier) -> Result<Graphic, Error> {
-        Ok(Graphic::Image(img, col))
     }
 }
 
