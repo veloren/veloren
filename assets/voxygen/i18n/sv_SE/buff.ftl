@@ -73,6 +73,9 @@ buff-desc-potionsickness = Trolldrycker helar dig mindre efter att du nyligen dr
 buff-stat-potionsickness =
     Minskar mängden du helas av
     påföljande trolldrycker med { $strength }%.
+## Reckless
+buff-title-reckless = Hänsynslös
+buff-desc-reckless = Dina attacker är kraftfullare, men du lämnar ditt försvar öppet.
 ## Util
 buff-text-over_seconds = under { $dur_secs } sekunder
 buff-text-for_seconds = i { $dur_secs } sekunder
