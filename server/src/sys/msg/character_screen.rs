@@ -25,6 +25,7 @@ use std::sync::{atomic::Ordering, Arc};
 use tracing::{debug, error};
 
 impl Sys {
+    #[allow(clippy::too_many_arguments)] // Shhhh, go bother someone else clippy
     fn handle_client_character_screen_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,
