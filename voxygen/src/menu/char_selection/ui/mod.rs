@@ -24,6 +24,8 @@ use client::{Client, ServerInfo};
 use common::{
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER, MAX_NAME_LENGTH},
     comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
+    terrain::TerrainChunkSize,
+    vol::RectVolSize,
     LoadoutBuilder,
 };
 use common_net::msg::world_msg::{SiteId, SiteInfo, SiteKind};
@@ -36,7 +38,7 @@ use iced::{
     button, scrollable, slider, text_input, Align, Button, Column, Container, HorizontalAlignment,
     Length, Row, Scrollable, Slider, Space, Text, TextInput,
 };
-use vek::Rgba;
+use vek::{Rgba, Vec2};
 
 pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
 pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
@@ -123,6 +125,9 @@ image_ids_ice! {
         // Tooltips
         tt_edge: "voxygen.element.ui.generic.frames.tooltip.edge",
         tt_corner: "voxygen.element.ui.generic.frames.tooltip.corner",
+
+        // Map things
+        target: "voxygen.element.ui.char_select.icons.target",
     }
 }
 
@@ -293,6 +298,7 @@ struct Controls {
     default_name: String,
     map_img: GraphicId,
     possible_starting_sites: Vec<SiteInfo>,
+    world_sz: Vec2<u32>,
 }
 
 #[derive(Clone)]
@@ -338,6 +344,7 @@ impl Controls {
         server_info: &ServerInfo,
         map_img: GraphicId,
         possible_starting_sites: Vec<SiteInfo>,
+        world_sz: Vec2<u32>,
     ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
@@ -358,6 +365,7 @@ impl Controls {
             default_name,
             map_img,
             possible_starting_sites,
+            world_sz,
         }
     }
 
@@ -1245,11 +1253,32 @@ impl Controls {
                 ];
 
                 let right_column_content = if character_id.is_none() {
+                    let map_sz = Vec2::new(300, 300);
+                    let map_img = Image::new(self.map_img)
+                        .height(Length::Units(map_sz.x))
+                        .width(Length::Units(map_sz.y));
+                    let map = if let Some(info) = self.possible_starting_sites.get(*start_site_idx)
+                    {
+                        let pos_frac = info
+                            .wpos
+                            .map2(self.world_sz * TerrainChunkSize::RECT_SIZE, |e, sz| {
+                                e as f32 / sz as f32
+                            });
+                        let point = Vec2::new(pos_frac.x, 1.0 - pos_frac.y)
+                            .map2(map_sz, |e, sz| e * sz as f32 - 12.0);
+                        Overlay::new(
+                            Image::new(imgs.target)
+                                .height(Length::Units(24))
+                                .width(Length::Units(24)),
+                            map_img,
+                        )
+                        .over_position(iced::Point::new(point.x, point.y))
+                        .into()
+                    } else {
+                        map_img.into()
+                    };
                     vec![
-                        Image::new(self.map_img)
-                            .height(Length::Units(300))
-                            .width(Length::Units(300))
-                            .into(),
+                        map,
                         Column::with_children(if self.possible_starting_sites.is_empty() {
                             Vec::new()
                         } else {
@@ -1807,6 +1836,7 @@ impl CharSelectionUi {
                 .filter(|info| matches!(&info.site.kind, SiteKind::Town | SiteKind::Castle | SiteKind::Bridge))
                 .map(|info| info.site.clone())
                 .collect(),
+            client.world_data().chunk_size().as_(),
         );
 
         Self {

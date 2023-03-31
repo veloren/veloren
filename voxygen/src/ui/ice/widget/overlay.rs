@@ -19,6 +19,7 @@ pub struct Overlay<'a, M, R: Renderer> {
     vertical_alignment: Align,
     over: Element<'a, M, R>,
     under: Element<'a, M, R>,
+    pos: Option<Point>,
     // add style etc as needed
 }
 
@@ -41,7 +42,14 @@ where
             vertical_alignment: Align::Start,
             over: over.into(),
             under: under.into(),
+            pos: None,
         }
+    }
+
+    #[must_use]
+    pub fn over_position(mut self, pos: Point) -> Self {
+        self.pos = Some(pos);
+        self
     }
 
     #[must_use]
@@ -130,10 +138,10 @@ where
             .pad(self.padding),
         );
 
-        over.move_to(Point::new(
-            self.padding.left.into(),
-            self.padding.top.into(),
-        ));
+        over.move_to(
+            self.pos
+                .unwrap_or_else(|| Point::new(self.padding.left.into(), self.padding.top.into())),
+        );
         over.align(self.horizontal_alignment, self.vertical_alignment, size);
 
         layout::Node::with_children(size, vec![over, under])
