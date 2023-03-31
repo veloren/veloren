@@ -212,7 +212,7 @@ impl RtSim {
         });
 
         if wait_until_finished {
-            handle.join();
+            handle.join().expect("Save thread failed to join");
         }
 
         self.last_saved = Some(Instant::now());

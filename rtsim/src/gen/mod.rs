@@ -18,7 +18,7 @@ use common::{
 use rand::prelude::*;
 use tracing::info;
 use vek::*;
-use world::{site::SiteKind, IndexRef, World};
+use world::{site::SiteKind, site2::PlotKind, IndexRef, World};
 
 impl Data {
     pub fn generate(settings: &WorldSettings, world: &World, index: IndexRef) -> Self {
@@ -77,10 +77,16 @@ impl Data {
             this.sites.len()
         );
         // Spawn some test entities at the sites
-        for (site_id, site) in this.sites.iter()
-        // TODO: Stupid
-        .filter(|(_, site)| site.world_site.map_or(false, |ws|
-        matches!(&index.sites.get(ws).kind, SiteKind::Refactor(_))))
+        for (site_id, site, site2) in this.sites.iter()
+        // TODO: Stupid. Only find site2 towns
+        .filter_map(|(site_id, site)| Some((site_id, site, site.world_site
+            .and_then(|ws| match &index.sites.get(ws).kind {
+                SiteKind::Refactor(site2)
+                | SiteKind::CliffTown(site2)
+                | SiteKind::SavannahPit(site2)
+                | SiteKind::DesertCity(site2) => Some(site2),
+                _ => None,
+            })?)))
         {
             let Some(good_or_evil) = site
                 .faction
@@ -88,8 +94,13 @@ impl Data {
                 .map(|f| f.good_or_evil)
             else { continue };
 
-            let rand_wpos = |rng: &mut SmallRng| {
-                let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
+            let rand_wpos = |rng: &mut SmallRng, matches_plot: fn(&PlotKind) -> bool| {
+                let wpos2d = site2
+                    .plots()
+                    .filter(|plot| matches_plot(plot.kind()))
+                    .choose(&mut thread_rng())
+                    .map(|plot| site2.tile_center_wpos(plot.root_tile()))
+                    .unwrap_or_else(|| site.wpos.map(|e| e + rng.gen_range(-10..10)));
                 wpos2d
                     .map(|e| e as f32 + 0.5)
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
@@ -98,47 +109,71 @@ impl Data {
                 let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
                 Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
             };
+            let matches_buildings = (|kind: &PlotKind| {
+                matches!(
+                    kind,
+                    PlotKind::House(_) | PlotKind::Workshop(_) | PlotKind::Plaza
+                )
+            }) as _;
+            let matches_plazas = (|kind: &PlotKind| matches!(kind, PlotKind::Plaza)) as _;
             if good_or_evil {
-                for _ in 0..32 {
+                for _ in 0..site2.plots().len() {
                     this.npcs.create_npc(
-                        Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
-                            .with_faction(site.faction)
-                            .with_home(site_id)
-                            .with_personality(Personality::random(&mut rng))
-                            .with_profession(match rng.gen_range(0..20) {
-                                0 => Profession::Hunter,
-                                1 => Profession::Blacksmith,
-                                2 => Profession::Chef,
-                                3 => Profession::Alchemist,
-                                5..=8 => Profession::Farmer,
-                                9..=10 => Profession::Herbalist,
-                                11..=15 => Profession::Guard,
-                                _ => Profession::Adventurer(rng.gen_range(0..=3)),
-                            }),
+                        Npc::new(
+                            rng.gen(),
+                            rand_wpos(&mut rng, matches_buildings),
+                            random_humanoid(&mut rng),
+                        )
+                        .with_faction(site.faction)
+                        .with_home(site_id)
+                        .with_personality(Personality::random(&mut rng))
+                        .with_profession(match rng.gen_range(0..20) {
+                            0 => Profession::Hunter,
+                            1 => Profession::Blacksmith,
+                            2 => Profession::Chef,
+                            3 => Profession::Alchemist,
+                            5..=8 => Profession::Farmer,
+                            9..=10 => Profession::Herbalist,
+                            11..=16 => Profession::Guard,
+                            _ => Profession::Adventurer(rng.gen_range(0..=3)),
+                        }),
                     );
                 }
             } else {
                 for _ in 0..15 {
                     this.npcs.create_npc(
-                        Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
-                            .with_personality(Personality::random_evil(&mut rng))
-                            .with_faction(site.faction)
-                            .with_home(site_id)
-                            .with_profession(match rng.gen_range(0..20) {
-                                _ => Profession::Cultist,
-                            }),
+                        Npc::new(
+                            rng.gen(),
+                            rand_wpos(&mut rng, matches_buildings),
+                            random_humanoid(&mut rng),
+                        )
+                        .with_personality(Personality::random_evil(&mut rng))
+                        .with_faction(site.faction)
+                        .with_home(site_id)
+                        .with_profession(match rng.gen_range(0..20) {
+                            _ => Profession::Cultist,
+                        }),
                     );
                 }
             }
-            this.npcs.create_npc(
-                Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
-                    .with_home(site_id)
-                    .with_personality(Personality::random_good(&mut rng))
-                    .with_profession(Profession::Merchant),
-            );
+            // Merchants
+            if good_or_evil {
+                for _ in 0..(site2.plots().len() / 6) + 1 {
+                    this.npcs.create_npc(
+                        Npc::new(
+                            rng.gen(),
+                            rand_wpos(&mut rng, matches_plazas),
+                            random_humanoid(&mut rng),
+                        )
+                        .with_home(site_id)
+                        .with_personality(Personality::random_good(&mut rng))
+                        .with_profession(Profession::Merchant),
+                    );
+                }
+            }
 
             if rng.gen_bool(0.4) {
-                let wpos = rand_wpos(&mut rng) + Vec3::unit_z() * 50.0;
+                let wpos = rand_wpos(&mut rng, matches_plazas) + Vec3::unit_z() * 50.0;
                 let vehicle_id = this
                     .npcs
                     .create_vehicle(Vehicle::new(wpos, comp::body::ship::Body::DefaultAirship));

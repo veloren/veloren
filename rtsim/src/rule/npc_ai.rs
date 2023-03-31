@@ -395,13 +395,13 @@ fn travel_to_point(wpos: Vec2<f32>) -> impl Action {
         const WAYPOINT: f32 = 24.0;
         let start = ctx.npc.wpos.xy();
         let diff = wpos - start;
+        // if diff.magnitude() > 1.0 {
         let n = (diff.magnitude() / WAYPOINT).max(1.0);
         let mut points = (1..n as usize + 1).map(move |i| start + diff * (i as f32 / n));
-        if diff.magnitude() > 1.0 {
-            traverse_points(move |_| points.next()).boxed()
-        } else {
-            finish().boxed()
-        }
+        traverse_points(move |_| points.next()).boxed()
+        // } else {
+        //     finish().boxed()
+        // }
     })
     .debug(|| "travel to point")
 }
@@ -525,11 +525,16 @@ fn adventure() -> impl Action {
             .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
             .map(|(site_id, _)| site_id)
         {
+            let wait_time = if matches!(ctx.npc.profession, Some(Profession::Merchant)) {
+                60.0 * 15.0
+            } else {
+                60.0 * 3.0
+            };
             // Travel to the site
             important(
                 travel_to_site(tgt_site)
                 // Stop for a few minutes
-                .then(villager(tgt_site).repeat().stop_if(timeout(60.0 * 3.0)))
+                .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
                 .map(|_| ())
                 .boxed(),
             )
