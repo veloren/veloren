@@ -183,6 +183,8 @@ enum Mode {
         create_button: button::State,
         rand_character_button: button::State,
         rand_name_button: button::State,
+        prev_starting_site_button: button::State,
+        next_starting_site_button: button::State,
         /// `character_id.is_some()` can be used to determine if we're in edit
         /// mode as opposed to create mode.
         // TODO: Something less janky? Express the problem domain better!
@@ -237,6 +239,8 @@ impl Mode {
             create_button: Default::default(),
             rand_character_button: Default::default(),
             rand_name_button: Default::default(),
+            prev_starting_site_button: Default::default(),
+            next_starting_site_button: Default::default(),
             character_id: None,
             start_site_idx: 0,
         }
@@ -265,6 +269,8 @@ impl Mode {
             create_button: Default::default(),
             rand_character_button: Default::default(),
             rand_name_button: Default::default(),
+            prev_starting_site_button: Default::default(),
+            next_starting_site_button: Default::default(),
             character_id: Some(character_id),
             start_site_idx: 0,
         }
@@ -329,7 +335,9 @@ enum Message {
     EyeColor(u8),
     Accessory(u8),
     Beard(u8),
-    StartSite(usize),
+    StartingSite(usize),
+    PrevStartingSite,
+    NextStartingSite,
     // Workaround for widgets that require a message but we don't want them to actually do
     // anything
     DoNothing,
@@ -419,6 +427,33 @@ impl Controls {
             version.into(),
         ])
         .width(Length::Fill);
+
+        // TODO: There is probably a better way to conditionally add in the warning box
+        // here
+        let mut warning_container =
+            if let Some(mismatched_version) = &self.server_mismatched_version {
+                let warning = Text::<IcedRenderer>::new(format!(
+                    "{}\n{}: {} {}: {}",
+                    i18n.get_msg("char_selection-version_mismatch"),
+                    i18n.get_msg("main-login-server_version"),
+                    mismatched_version,
+                    i18n.get_msg("main-login-client_version"),
+                    *common::util::GIT_HASH
+                ))
+                .size(self.fonts.cyri.scale(18))
+                .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
+                .width(Length::Fill)
+                .horizontal_alignment(HorizontalAlignment::Center);
+                Some(
+                    Container::new(Row::with_children(vec![warning.into()]).width(Length::Fill))
+                        .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
+                        .padding(12)
+                        .width(Length::Fill)
+                        .center_x(),
+                )
+            } else {
+                None
+            };
 
         let content = match &mut self.mode {
             Mode::Select {
@@ -869,6 +904,8 @@ impl Controls {
                 ref mut create_button,
                 ref mut rand_character_button,
                 ref mut rand_name_button,
+                ref mut prev_starting_site_button,
+                ref mut next_starting_site_button,
                 character_id,
                 start_site_idx,
             } => {
@@ -1277,48 +1314,83 @@ impl Controls {
                     } else {
                         map_img.into()
                     };
-                    vec![
-                        map,
-                        Column::with_children(if self.possible_starting_sites.is_empty() {
-                            Vec::new()
-                        } else {
-                            let site_slider = char_slider(
-                                i18n.get_msg("char_selection-starting_site").into_owned(),
-                                &mut sliders.starting_site,
-                                self.possible_starting_sites.len() as u32 - 1,
-                                *start_site_idx as u32,
-                                |x| Message::StartSite(x as usize),
-                                (fonts, imgs),
-                            );
 
-                            let site_name = Text::new(i18n
-                                    .get_msg_ctx("char_selection-starting_site_name", &i18n::fluent_args! {
-                                        "name" => self.possible_starting_sites[*start_site_idx].name.as_deref()
-                                            .unwrap_or("Unknown"),
-                                    })
-                                    .into_owned())
-                                .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
-                                .into();
-
-                            let site_kind = Text::new(i18n
-                                    .get_msg_ctx("char_selection-starting_site_kind", &i18n::fluent_args! {
-                                        "kind" => match self.possible_starting_sites[*start_site_idx].kind {
-                                            SiteKind::Town => i18n.get_msg("hud-map-town").into_owned(),
-                                            SiteKind::Castle => i18n.get_msg("hud-map-castle").into_owned(),
-                                            SiteKind::Bridge => i18n.get_msg("hud-map-bridge").into_owned(),
-                                            _ => "Unknown".to_string(),
-                                        },
-                                    })
-                                    .into_owned())
-                                .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
-                                .into();
-
-                            vec![site_slider, site_name, site_kind]
-                        })
-                        .max_width(200)
+                    if self.possible_starting_sites.is_empty() {
+                        vec![map]
+                    } else {
+                        let site_buttons = Row::with_children(vec![
+                            Button::new(
+                                prev_starting_site_button,
+                                Container::new(Text::new("<"))
+                                    .width(Length::Fill)
+                                    .height(Length::Fill)
+                                    .center_x()
+                                    .center_y(),
+                            )
+                            .style(
+                                style::button::Style::new(imgs.char_selection)
+                                    .hover_image(imgs.char_selection_hover)
+                                    .press_image(imgs.char_selection_press),
+                            )
+                            .width(Length::Fill)
+                            .height(Length::Fill)
+                            .on_press(Message::PrevStartingSite)
+                            .into(),
+                            Button::new(
+                                next_starting_site_button,
+                                Container::new(Text::new(">"))
+                                    .width(Length::Fill)
+                                    .height(Length::Fill)
+                                    .center_x()
+                                    .center_y(),
+                            )
+                            .style(
+                                style::button::Style::new(imgs.char_selection)
+                                    .hover_image(imgs.char_selection_hover)
+                                    .press_image(imgs.char_selection_press),
+                            )
+                            .width(Length::Fill)
+                            .height(Length::Fill)
+                            .on_press(Message::NextStartingSite)
+                            .into(),
+                        ])
+                        .max_height(30)
                         .padding(5)
-                        .into(),
-                    ]
+                        .into();
+
+                        let site_slider = char_slider(
+                            i18n.get_msg("char_selection-starting_site").into_owned(),
+                            &mut sliders.starting_site,
+                            self.possible_starting_sites.len() as u32 - 1,
+                            *start_site_idx as u32,
+                            |x| Message::StartingSite(x as usize),
+                            (fonts, imgs),
+                        );
+
+                        let site_name = Text::new(i18n
+                                .get_msg_ctx("char_selection-starting_site_name", &i18n::fluent_args! {
+                                    "name" => self.possible_starting_sites[*start_site_idx].name.as_deref()
+                                        .unwrap_or("Unknown"),
+                                })
+                                .into_owned())
+                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                            .into();
+
+                        let site_kind = Text::new(i18n
+                                .get_msg_ctx("char_selection-starting_site_kind", &i18n::fluent_args! {
+                                    "kind" => match self.possible_starting_sites[*start_site_idx].kind {
+                                        SiteKind::Town => i18n.get_msg("hud-map-town").into_owned(),
+                                        SiteKind::Castle => i18n.get_msg("hud-map-castle").into_owned(),
+                                        SiteKind::Bridge => i18n.get_msg("hud-map-bridge").into_owned(),
+                                        _ => "Unknown".to_string(),
+                                    },
+                                })
+                                .into_owned())
+                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                            .into();
+
+                        vec![map, site_slider, site_buttons, site_name, site_kind]
+                    }
                 } else {
                     // If we're editing an existing character, don't display the world column
                     Vec::new()
@@ -1331,7 +1403,8 @@ impl Controls {
                                 Column::with_children(column_content)
                                     .align_items(Align::Center)
                                     .width(Length::Fill)
-                                    .spacing(5),
+                                    .spacing(5)
+                                    .padding(5),
                             )
                             .padding(5)
                             .width(Length::Fill)
@@ -1343,7 +1416,7 @@ impl Controls {
                     )
                     .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
                     //.max_width(360)
-                    //.width(Length::Fill)
+                    // .width(Length::Fill)
                     .height(Length::Fill);
 
                     Column::with_children(vec![
@@ -1362,11 +1435,24 @@ impl Controls {
                             .into(),
                     ])
                     .height(Length::Fill)
+                    // .width(Length::Fill)
                 };
+
+                let mouse_area =
+                    MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill);
 
                 let top = Row::with_children(vec![
                     column(left_column_content, left_scroll).into(),
-                    MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill).into(),
+                    Column::with_children(
+                        if let Some(warning_container) = warning_container.take() {
+                            vec![warning_container.into(), mouse_area.into()]
+                        } else {
+                            vec![mouse_area.into()]
+                        },
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .into(),
                     column(right_column_content, right_scroll).into(),
                 ])
                 .padding(10)
@@ -1479,46 +1565,20 @@ impl Controls {
             },
         };
 
-        // TODO: There is probably a better way to conditionally add in the warning box
-        // here
-        if let Some(mismatched_version) = &self.server_mismatched_version {
-            let warning = Text::<IcedRenderer>::new(format!(
-                "{}\n{}: {} {}: {}",
-                i18n.get_msg("char_selection-version_mismatch"),
-                i18n.get_msg("main-login-server_version"),
-                mismatched_version,
-                i18n.get_msg("main-login-client_version"),
-                *common::util::GIT_HASH
-            ))
-            .size(self.fonts.cyri.scale(18))
-            .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
-            .width(Length::Fill)
-            .horizontal_alignment(HorizontalAlignment::Center);
-            let warning_container =
-                Container::new(Row::with_children(vec![warning.into()]).width(Length::Fill))
-                    .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
-                    .padding(12)
-                    .center_x()
-                    .width(Length::Fill);
-
-            Container::new(
-                Column::with_children(vec![top_text.into(), warning_container.into(), content])
-                    .spacing(3)
-                    .width(Length::Fill)
-                    .height(Length::Fill),
-            )
-            .padding(3)
-            .into()
+        let children = if let Some(warning_container) = warning_container {
+            vec![top_text.into(), warning_container.into(), content]
         } else {
-            Container::new(
-                Column::with_children(vec![top_text.into(), content])
-                    .spacing(3)
-                    .width(Length::Fill)
-                    .height(Length::Fill),
-            )
-            .padding(3)
-            .into()
-        }
+            vec![top_text.into(), content]
+        };
+
+        Container::new(
+            Column::with_children(children)
+                .spacing(3)
+                .width(Length::Fill)
+                .height(Length::Fill),
+        )
+        .padding(3)
+        .into()
     }
 
     fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem]) {
@@ -1754,9 +1814,27 @@ impl Controls {
                     body.validate();
                 }
             },
-            Message::StartSite(idx) => {
+            Message::StartingSite(idx) => {
                 if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
                     *start_site_idx = idx;
+                }
+            },
+            Message::PrevStartingSite => {
+                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
+                    if !self.possible_starting_sites.is_empty() {
+                        *start_site_idx = (*start_site_idx + self.possible_starting_sites.len()
+                            - 1)
+                            % self.possible_starting_sites.len();
+                    }
+                }
+            },
+            Message::NextStartingSite => {
+                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
+                    if !self.possible_starting_sites.is_empty() {
+                        *start_site_idx =
+                            (*start_site_idx + self.possible_starting_sites.len() + 1)
+                                % self.possible_starting_sites.len();
+                    }
                 }
             },
         }
