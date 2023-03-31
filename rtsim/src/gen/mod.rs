@@ -11,7 +11,7 @@ use common::{
     comp::{self, Body},
     grid::Grid,
     resources::TimeOfDay,
-    rtsim::{WorldSettings, Personality},
+    rtsim::{Personality, WorldSettings},
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };

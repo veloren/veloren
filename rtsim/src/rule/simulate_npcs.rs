@@ -6,8 +6,9 @@ use crate::{
 use common::{
     comp::{self, Body},
     grid::Grid,
+    rtsim::Personality,
     terrain::TerrainChunkSize,
-    vol::RectVolSize, rtsim::Personality,
+    vol::RectVolSize,
 };
 use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 use tracing::warn;
@@ -155,7 +156,9 @@ impl Rule for SimulateNpcs {
                     .world
                     .sim()
                     .get(npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_())
-                    .and_then(|chunk| data.sites.world_site_map.get(chunk.sites.first()?).copied());
+                    .and_then(|chunk| chunk.sites
+                        .iter()
+                        .find_map(|site| data.sites.world_site_map.get(site).copied()));
 
                 let chunk_pos =
                     npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();

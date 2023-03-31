@@ -3,7 +3,7 @@ pub use common::rtsim::{NpcId, Profession};
 use common::{
     comp,
     grid::Grid,
-    rtsim::{FactionId, SiteId, VehicleId, Personality},
+    rtsim::{FactionId, Personality, SiteId, VehicleId},
     store::Id,
     vol::RectVolSize,
 };

@@ -350,7 +350,7 @@ fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action 
     })
 }
 
-fn traverse_points<F>(mut next_point: F) -> impl Action<()>
+fn traverse_points<F>(mut next_point: F) -> impl Action
 where
     F: FnMut(&mut NpcCtx) -> Option<Vec2<f32>> + Send + Sync + 'static,
 {
@@ -397,7 +397,11 @@ fn travel_to_point(wpos: Vec2<f32>) -> impl Action {
         let diff = wpos - start;
         let n = (diff.magnitude() / WAYPOINT).max(1.0);
         let mut points = (1..n as usize + 1).map(move |i| start + diff * (i as f32 / n));
-        traverse_points(move |_| points.next())
+        if diff.magnitude() > 1.0 {
+            traverse_points(move |_| points.next()).boxed()
+        } else {
+            finish().boxed()
+        }
     })
     .debug(|| "travel to point")
 }
@@ -538,7 +542,17 @@ fn adventure() -> impl Action {
 
 fn villager(visiting_site: SiteId) -> impl Action {
     choose(move |ctx| {
-        if ctx.npc.current_site != Some(visiting_site) {
+        if ctx
+            .state
+            .data()
+            .sites
+            .get(visiting_site)
+            .map_or(true, |s| s.world_site.is_none())
+        {
+            casual(
+                idle().debug(|| "idling (visiting site does not exist, perhaps it's stale data?)"),
+            )
+        } else if ctx.npc.current_site != Some(visiting_site) {
             let npc_home = ctx.npc.home;
             // Travel to the site we're supposed to be in
             urgent(travel_to_site(visiting_site).debug(move || {
