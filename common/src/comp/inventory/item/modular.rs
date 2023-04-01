@@ -392,7 +392,7 @@ pub enum ModularWeaponCreationError {
 /// Check if hand restrictions are compatible.
 ///
 /// If at least on of them is omitted, check is passed.
-fn compatible_handndess(a: Option<Hands>, b: Option<Hands>) -> bool {
+pub fn compatible_handedness(a: Option<Hands>, b: Option<Hands>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => a == b,
         _ => true,
@@ -416,7 +416,7 @@ pub fn generate_weapon_primary_components(
             .get(&(tool, material_id.to_owned()))
             .into_iter()
             .flatten()
-            .filter(|(_comp, hand)| compatible_handndess(hand_restriction, *hand))
+            .filter(|(_comp, hand)| compatible_handedness(hand_restriction, *hand))
             .map(|(c, h)| (c.duplicate(ability_map, msm), hand_restriction.or(*h)))
             .collect())
     } else {
@@ -450,7 +450,7 @@ pub fn random_weapon_primary_component(
                 .get(&(tool, material_id.to_owned()))
                 .into_iter()
                 .flatten()
-                .filter(|(_comp, hand)| compatible_handndess(hand_restriction, *hand))
+                .filter(|(_comp, hand)| compatible_handedness(hand_restriction, *hand))
                 .collect::<Vec<_>>();
 
             let (comp, hand) = primary_components
@@ -490,8 +490,8 @@ pub fn generate_weapons(
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| compatible_handndess(hand_restriction, *hand))
-            .filter(|(_def, hand)| compatible_handndess(comp_hand, *hand));
+            .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand))
+            .filter(|(_def, hand)| compatible_handedness(comp_hand, *hand));
 
         for (def, _hand) in secondaries {
             let secondary = Item::new_from_item_base(
@@ -532,7 +532,7 @@ pub fn random_weapon(
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| compatible_handndess(hand_restriction, *hand))
+            .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand))
             .collect::<Vec<_>>();
 
         let secondary_component = {

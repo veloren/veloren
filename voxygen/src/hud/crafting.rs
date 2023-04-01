@@ -1122,15 +1122,19 @@ impl<'a> Widget for Crafting<'a> {
 
                     let output_item = match recipe_kind {
                         RecipeKind::ModularWeapon => {
-                            if let Some((primary_comp, toolkind)) = primary_slot
+                            if let Some((primary_comp, toolkind, hand_restriction)) = primary_slot
                                 .invslot
                                 .and_then(|slot| self.inventory.get(slot))
                                 .and_then(|item| {
                                     if let ItemKind::ModularComponent(
-                                        ModularComponent::ToolPrimaryComponent { toolkind, .. },
+                                        ModularComponent::ToolPrimaryComponent {
+                                            toolkind,
+                                            hand_restriction,
+                                            ..
+                                        },
                                     ) = &*item.kind()
                                     {
-                                        Some((item, *toolkind))
+                                        Some((item, *toolkind, *hand_restriction))
                                     } else {
                                         None
                                     }
@@ -1143,8 +1147,8 @@ impl<'a> Widget for Crafting<'a> {
                                         matches!(
                                             &*item.kind(),
                                             ItemKind::ModularComponent(
-                                                ModularComponent::ToolSecondaryComponent { toolkind: toolkind_b, .. }
-                                            ) if toolkind == *toolkind_b
+                                                ModularComponent::ToolSecondaryComponent { toolkind: toolkind_b, hand_restriction: hand_restriction_b, .. }
+                                            ) if toolkind == *toolkind_b && modular::compatible_handedness(hand_restriction, *hand_restriction_b)
                                         )
                                     })
                                     .map(|secondary_comp| {
