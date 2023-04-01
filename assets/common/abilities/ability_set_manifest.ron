@@ -777,9 +777,11 @@
         secondary: Simple(None, "common.abilities.adlet.tracker.trap"),
         abilities: [],
     ),
-    // Custom("Adlet Alpha"): (
-    //     primary: Simple(None, "common.abilities.adlet.alpha"),
-    //     secondary: Simple(None, "common.abilities.adlet.alpha"),
-    //     abilities: [],
-    // ),
+    Custom("Adlet Elder"): (
+        primary: Simple(None, "common.abilities.adlet.elder.triplestrike"),
+        secondary: Simple(None, "common.abilities.adlet.elder.dash"),
+        abilities: [
+            Simple(None, "common.abilities.adlet.elder.trap")
+        ],
+    ),
 })

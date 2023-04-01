@@ -289,6 +289,7 @@ impl Body {
                 biped_large::Species::Mountaintroll => 600.0,
                 biped_large::Species::Swamptroll => 600.0,
                 biped_large::Species::Gigasfrost => 400.0,
+                biped_large::Species::AdletElder => 350.0,
                 _ => 400.0,
             },
             Body::BipedSmall(_) => 50.0,
@@ -429,6 +430,7 @@ impl Body {
                 biped_large::Species::Huskbrute => Vec3::new(4.6, 3.0, 5.0),
                 biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 4.0),
                 biped_large::Species::Gigasfrost => Vec3::new(6.0, 3.0, 8.0),
+                biped_large::Species::AdletElder => Vec3::new(3.5, 3.0, 5.0),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -801,6 +803,7 @@ impl Body {
                 biped_large::Species::Cultistwarlord => 250,
                 biped_large::Species::Cultistwarlock => 250,
                 biped_large::Species::Gigasfrost => 20000,
+                biped_large::Species::AdletElder => 1500,
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {

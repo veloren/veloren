@@ -965,6 +965,10 @@
             gigas_frost: (
                 keyword: "gigas_frost",
                 generic: "Frost Gigas"
+            ),
+            adlet_elder: (
+                keyword: "adlet_elder",
+                generic: "Adlet Elder"
             )
         )
     ),

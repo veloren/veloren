@@ -1759,6 +1759,8 @@ impl Structure for AdletStronghold {
                             (2 + (4 * dir.x)) as u8,
                         );
                     }
+                    let boss_spawn = wpos.with_z(alt as i32);
+                    painter.spawn(adlet_elder(boss_spawn.as_(), &mut rng));
                 },
             }
         }
@@ -1981,11 +1983,10 @@ fn random_adlet<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
     }
 }
 
-// TODO: Whatever the adlet boss/chieftain thing is
-// fn adlet_<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-//     EntityInfo::at(pos.map(|x| x as f32))
-//         .with_asset_expect("common.entity.dungeon.adlet.", rng)
-// }
+fn adlet_elder<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.adlet.elder", rng)
+}
 
 fn rat<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
     EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect("common.entity.wild.peaceful.rat", rng)

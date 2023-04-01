@@ -739,6 +739,9 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::Gigasfrost, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.axe.gigas_frost_axe",
             )),
+            (biped_large::Species::AdletElder, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.sword.adlet_elder_sword",
+            )),
         },
         Body::Object(body) => match body {
             object::Body::Crossbow => Some(Item::new_from_asset_expect(

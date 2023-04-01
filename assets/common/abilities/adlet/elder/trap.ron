@@ -1,0 +1,16 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.75,
+    recover_duration: 0.75,
+    projectile: Trap(
+        damage: 25,
+        knockback: 4,
+        energy_regen: 0,
+    ),
+    projectile_body: Object(AdletTrap),
+    projectile_light: None,
+    projectile_speed: 20.0,
+    num_projectiles: 6,
+    projectile_spread: 0.3,
+    move_efficiency: 0.8,
+)
