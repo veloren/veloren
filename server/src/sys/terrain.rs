@@ -12,7 +12,7 @@ use crate::{
     presence::{Presence, RepositionOnChunkLoad},
     rtsim::RtSim,
     settings::Settings,
-    ChunkRequest, SpawnPoint, Tick,
+    ChunkRequest, Tick,
 };
 use common::{
     calendar::Calendar,
@@ -62,7 +62,6 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Tick>,
-        Read<'a, SpawnPoint>,
         Read<'a, Settings>,
         Read<'a, TimeOfDay>,
         Read<'a, Calendar>,
@@ -95,7 +94,6 @@ impl<'a> System<'a> for Sys {
         (
             server_event_bus,
             tick,
-            spawn_point,
             server_settings,
             time_of_day,
             calendar,
@@ -226,14 +224,6 @@ impl<'a> System<'a> for Sys {
                         });
                     },
                 }
-            }
-
-            // Insert a safezone if chunk contains the spawn position
-            if server_settings.gameplay.safe_spawn && is_spawn_chunk(key, *spawn_point) {
-                server_emitter.emit(ServerEvent::CreateSafezone {
-                    range: Some(SAFE_ZONE_RADIUS),
-                    pos: Pos(spawn_point.0),
-                });
             }
         }
 
@@ -710,10 +700,4 @@ pub fn chunk_in_vd(player_chunk_pos: Vec2<i16>, player_vd_sqr: i32, chunk_pos: V
     let adjusted_dist_sqr = (player_chunk_pos.as_::<i32>() - chunk_pos).magnitude_squared();
 
     adjusted_dist_sqr <= player_vd_sqr
-}
-
-fn is_spawn_chunk(chunk_pos: Vec2<i32>, spawn_pos: SpawnPoint) -> bool {
-    // FIXME: Ensure spawn_pos doesn't overflow before performing this cast.
-    let spawn_chunk_pos = TerrainGrid::chunk_key(spawn_pos.0.map(|e| e as i32));
-    chunk_pos == spawn_chunk_pos
 }

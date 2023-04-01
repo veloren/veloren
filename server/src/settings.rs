@@ -81,8 +81,6 @@ pub struct GameplaySettings {
     #[serde(default)]
     pub battle_mode: ServerBattleMode,
     #[serde(default)]
-    pub safe_spawn: bool,
-    #[serde(default)]
     pub explosion_burn_marks: bool,
 }
 
@@ -90,7 +88,6 @@ impl Default for GameplaySettings {
     fn default() -> Self {
         Self {
             battle_mode: ServerBattleMode::default(),
-            safe_spawn: false,
             explosion_burn_marks: true,
         }
     }
@@ -175,7 +172,6 @@ pub struct Settings {
     pub max_view_distance: Option<u32>,
     pub max_player_group_size: u32,
     pub client_timeout: Duration,
-    pub spawn_town: Option<String>,
     pub max_player_for_kill_broadcast: Option<usize>,
     pub calendar_mode: CalendarMode,
 
@@ -213,7 +209,6 @@ impl Default for Settings {
             max_player_group_size: 6,
             calendar_mode: CalendarMode::Auto,
             client_timeout: Duration::from_secs(40),
-            spawn_town: None,
             max_player_for_kill_broadcast: None,
             experimental_terrain_persistence: false,
             gameplay: GameplaySettings::default(),
