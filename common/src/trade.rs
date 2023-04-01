@@ -381,15 +381,16 @@ impl SitePrices {
         inventories: &[Option<ReducedInventory>; 2],
         who: usize,
         reduce: bool,
-    ) -> f32 {
+    ) -> Option<f32> {
         offers[who]
             .iter()
             .map(|(slot, amount)| {
                 inventories[who]
                     .as_ref()
-                    .and_then(|ri| {
-                        ri.inventory.get(slot).map(|item| {
-                            if let Some(vec) = TradePricing::get_materials(&item.name.as_ref()) {
+                    .map(|ri| {
+                        let item = ri.inventory.get(slot)?;
+                        if let Some(vec) = TradePricing::get_materials(&item.name.as_ref()) {
+                            Some(
                                 vec.iter()
                                     .map(|(amount2, material)| {
                                         self.values.get(material).copied().unwrap_or_default()
@@ -397,15 +398,15 @@ impl SitePrices {
                                             * (if reduce { material.trade_margin() } else { 1.0 })
                                     })
                                     .sum::<f32>()
-                                    * (*amount as f32)
-                            } else {
-                                0.0
-                            }
-                        })
+                                    * (*amount as f32),
+                            )
+                        } else {
+                            None
+                        }
                     })
-                    .unwrap_or_default()
+                    .unwrap_or(Some(0.0))
             })
-            .sum()
+            .try_fold(0.0, |a, p| Some(a + p?))
     }
 }
 
