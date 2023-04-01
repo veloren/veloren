@@ -3159,7 +3159,7 @@
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Simple("common.items.mineral.ore.veloritefrag"): VoxTrans(
-        "voxel.sprite.velorite.velorite_1",
+        "voxel.sprite.velorite.velorite",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Simple("common.items.food.apple_mushroom_curry"): VoxTrans(
