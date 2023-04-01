@@ -4035,14 +4035,12 @@ impl Hud {
                              remove,
                              quantity: &mut u32| {
                                 if let Some(prices) = prices {
-                                    let balance0 =
-                                        prices.balance(&trade.offers, &r_inventories, who, true);
-                                    let balance1 = prices.balance(
-                                        &trade.offers,
-                                        &r_inventories,
-                                        1 - who,
-                                        false,
-                                    );
+                                    let balance0 = prices
+                                        .balance(&trade.offers, &r_inventories, who, true)
+                                        .unwrap_or(0.0); // TODO: Don't default to 0 here?
+                                    let balance1 = prices
+                                        .balance(&trade.offers, &r_inventories, 1 - who, false)
+                                        .unwrap_or(0.0); // TODO: Don't default to 0 here?
                                     if let Some(item) = inventory.get(slot) {
                                         if let Some(materials) =
                                             TradePricing::get_materials(&item.item_definition_id())
