@@ -47,6 +47,8 @@ widget_ids! {
         death_message_2,
         death_message_1_bg,
         death_message_2_bg,
+        death_message_3,
+        death_message_3_bg,
         death_bg,
         // Level up message
         level_up,
@@ -436,6 +438,12 @@ impl<'a> Skillbar<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_2_bg, ui);
+            Text::new(&self.localized_strings.get_msg("hud_items_lost_dur"))
+                .mid_bottom_with_margin_on(state.ids.death_message_2_bg, -50.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.death_message_3_bg, ui);
             Text::new(&self.localized_strings.get_msg("hud-you_died"))
                 .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
                 .font_size(self.fonts.cyri.scale(50))
@@ -448,6 +456,12 @@ impl<'a> Skillbar<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_2, ui);
+            Text::new(&self.localized_strings.get_msg("hud_items_lost_dur"))
+                .bottom_left_with_margins_on(state.ids.death_message_3_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(CRITICAL_HP_COLOR)
+                .set(state.ids.death_message_3, ui);
         }
     }
 

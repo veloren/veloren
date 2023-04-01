@@ -5082,6 +5082,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::Anvil => "hud-crafting-anvil",
         SpriteKind::Cauldron => "hud-crafting-cauldron",
         SpriteKind::CookingPot => "hud-crafting-cooking_pot",
+        SpriteKind::RepairBench => "hud-crafting-repair_bench",
         SpriteKind::CraftingBench => "hud-crafting-crafting_bench",
         SpriteKind::Forge => "hud-crafting-forge",
         SpriteKind::Loom => "hud-crafting-loom",
