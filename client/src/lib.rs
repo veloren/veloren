@@ -149,6 +149,8 @@ impl WorldData {
 
     pub fn map_image(&self) -> &Arc<DynamicImage> { &self.map.0[0] }
 
+    pub fn topo_map_image(&self) -> &Arc<DynamicImage> { &self.map.0[1] }
+
     pub fn min_chunk_alt(&self) -> f32 { self.map.2.x }
 
     pub fn max_chunk_alt(&self) -> f32 { self.map.2.y }
