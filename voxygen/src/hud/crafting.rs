@@ -1148,7 +1148,7 @@ impl<'a> Widget for Crafting<'a> {
                                             &*item.kind(),
                                             ItemKind::ModularComponent(
                                                 ModularComponent::ToolSecondaryComponent { toolkind: toolkind_b, hand_restriction: hand_restriction_b, .. }
-                                            ) if toolkind == *toolkind_b && modular::compatible_handndess(hand_restriction, *hand_restriction_b)
+                                            ) if toolkind == *toolkind_b && modular::compatible_handedness(hand_restriction, *hand_restriction_b)
                                         )
                                     })
                                     .map(|secondary_comp| {
