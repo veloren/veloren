@@ -95,7 +95,7 @@ impl RtSim {
                 );
             }
 
-            let data = Data::generate(settings, &world, index);
+            let data = Data::generate(settings, world, index);
             info!("Rtsim data generated.");
             data
         };

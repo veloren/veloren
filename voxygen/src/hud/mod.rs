@@ -4035,44 +4035,48 @@ impl Hud {
                              remove,
                              quantity: &mut u32| {
                                 if let Some(prices) = prices {
-                                    let balance0 = prices
+                                    if let Some((balance0, balance1)) = prices
                                         .balance(&trade.offers, &r_inventories, who, true)
-                                        .unwrap_or(0.0); // TODO: Don't default to 0 here?
-                                    let balance1 = prices
-                                        .balance(&trade.offers, &r_inventories, 1 - who, false)
-                                        .unwrap_or(0.0); // TODO: Don't default to 0 here?
-                                    if let Some(item) = inventory.get(slot) {
-                                        if let Some(materials) =
-                                            TradePricing::get_materials(&item.item_definition_id())
-                                        {
-                                            let unit_price: f32 = materials
-                                                .iter()
-                                                .map(|e| {
-                                                    prices
-                                                        .values
-                                                        .get(&e.1)
-                                                        .cloned()
-                                                        .unwrap_or_default()
-                                                        * e.0
-                                                        * (if ours {
-                                                            e.1.trade_margin()
-                                                        } else {
-                                                            1.0
-                                                        })
-                                                })
-                                                .sum();
+                                        .zip(prices.balance(
+                                            &trade.offers,
+                                            &r_inventories,
+                                            1 - who,
+                                            false,
+                                        ))
+                                    {
+                                        if let Some(item) = inventory.get(slot) {
+                                            if let Some(materials) = TradePricing::get_materials(
+                                                &item.item_definition_id(),
+                                            ) {
+                                                let unit_price: f32 = materials
+                                                    .iter()
+                                                    .map(|e| {
+                                                        prices
+                                                            .values
+                                                            .get(&e.1)
+                                                            .cloned()
+                                                            .unwrap_or_default()
+                                                            * e.0
+                                                            * (if ours {
+                                                                e.1.trade_margin()
+                                                            } else {
+                                                                1.0
+                                                            })
+                                                    })
+                                                    .sum();
 
-                                            let mut float_delta = if ours ^ remove {
-                                                (balance1 - balance0) / unit_price
-                                            } else {
-                                                (balance0 - balance1) / unit_price
-                                            };
-                                            if ours ^ remove {
-                                                float_delta = float_delta.ceil();
-                                            } else {
-                                                float_delta = float_delta.floor();
+                                                let mut float_delta = if ours ^ remove {
+                                                    (balance1 - balance0) / unit_price
+                                                } else {
+                                                    (balance0 - balance1) / unit_price
+                                                };
+                                                if ours ^ remove {
+                                                    float_delta = float_delta.ceil();
+                                                } else {
+                                                    float_delta = float_delta.floor();
+                                                }
+                                                *quantity = float_delta.max(0.0) as u32;
                                             }
-                                            *quantity = float_delta.max(0.0) as u32;
                                         }
                                     }
                                 }

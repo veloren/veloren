@@ -165,25 +165,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                         standard_response_msg()
                                     };
                                     agent_data.chat_npc(msg, event_emitter);
-                                }
-                                /*else if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
-                                    if !agent.behavior.is(BehaviorState::TRADING) {
-                                        controller.push_initiate_invite(by, InviteKind::Trade);
-                                        agent_data.chat_npc(
-                                            "npc-speech-merchant_advertisement",
-                                            event_emitter,
-                                        );
-                                    } else {
-                                        let default_msg = "npc-speech-merchant_busy";
-                                        let msg = if agent.rtsim_controller.personality.is(PersonalityTrait::Disagreeable) {
-                                            "npc-speech-merchant_busy_rude"
-                                        } else {
-                                            default_msg
-                                        };
-                                        agent_data.chat_npc(msg, event_emitter);
-                                    }
-                                }*/
-                                else {
+                                } else {
                                     let mut rng = thread_rng();
                                     if let Some(extreme_trait) =
                                         agent.rtsim_controller.personality.chat_trait(&mut rng)
@@ -522,22 +504,36 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
         let (tradeid, pending, prices, inventories) = *boxval;
         if agent.behavior.is(BehaviorState::TRADING) {
             let who = usize::from(!agent.behavior.is(BehaviorState::TRADING_ISSUER));
+            let mut message = |msg| {
+                if let Some(with) = agent
+                    .target
+                    .as_ref()
+                    .and_then(|tgt_data| read_data.uids.get(tgt_data.target))
+                {
+                    event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_tell(
+                        *agent_data.uid,
+                        *with,
+                        msg,
+                    )));
+                } else {
+                    event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                        *agent_data.uid,
+                        msg,
+                    )));
+                }
+            };
             match agent.behavior.trading_behavior {
                 TradingBehavior::RequireBalanced { .. } => {
                     let balance0 = prices.balance(&pending.offers, &inventories, 1 - who, true);
                     let balance1 = prices.balance(&pending.offers, &inventories, who, false);
                     match (balance0, balance1) {
                         (_, None) => {
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
-                                *agent_data.uid,
-                                format!("I'm not willing to sell that item"),
-                            )))
+                            let msg = "I'm not willing to sell that item".to_string();
+                            message(msg);
                         },
                         (None, _) => {
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
-                                *agent_data.uid,
-                                format!("I'm not willing to buy that item"),
-                            )))
+                            let msg = "I'm not willing to buy that item".to_string();
+                            message(msg);
                         },
                         (Some(balance0), Some(balance1)) => {
                             if balance0 >= balance1 {
@@ -567,27 +563,7 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                                         "That only covers {:.0}% of my costs!",
                                         (balance0 / balance1 * 100.0).floor()
                                     );
-                                    if let Some(tgt_data) = &agent.target {
-                                        // If talking with someone in particular, "tell" it only to
-                                        // them
-                                        if let Some(with) = read_data.uids.get(tgt_data.target) {
-                                            event_emitter.emit(ServerEvent::Chat(
-                                                UnresolvedChatMsg::npc_tell(
-                                                    *agent_data.uid,
-                                                    *with,
-                                                    msg,
-                                                ),
-                                            ));
-                                        } else {
-                                            event_emitter.emit(ServerEvent::Chat(
-                                                UnresolvedChatMsg::npc_say(*agent_data.uid, msg),
-                                            ));
-                                        }
-                                    } else {
-                                        event_emitter.emit(ServerEvent::Chat(
-                                            UnresolvedChatMsg::npc_say(*agent_data.uid, msg),
-                                        ));
-                                    }
+                                    message(msg);
                                 }
                                 if pending.phase != TradePhase::Mutate {
                                     // we got into the review phase but without balanced goods,

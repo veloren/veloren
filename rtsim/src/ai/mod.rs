@@ -469,7 +469,7 @@ impl<F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static, R: 'static> Actio
         };
 
         match prev.0.tick(ctx) {
-            ControlFlow::Continue(()) => return ControlFlow::Continue(()),
+            ControlFlow::Continue(()) => ControlFlow::Continue(()),
             ControlFlow::Break(r) => {
                 self.prev = None;
                 ControlFlow::Break(r)

@@ -45,7 +45,7 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
     let mut astar = Astar::new(
         1000,
         start,
-        &heuristic,
+        heuristic,
         BuildHasherDefault::<FxHasher64>::default(),
     );
 
@@ -76,12 +76,12 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
         let building = if a_tile.is_building() && b_tile.is_road() {
             a_tile
                 .plot
-                .and_then(|plot| is_door_tile(plot, *a).then(|| 1.0))
+                .and_then(|plot| is_door_tile(plot, *a).then_some(1.0))
                 .unwrap_or(10000.0)
         } else if b_tile.is_building() && a_tile.is_road() {
             b_tile
                 .plot
-                .and_then(|plot| is_door_tile(plot, *b).then(|| 1.0))
+                .and_then(|plot| is_door_tile(plot, *b).then_some(1.0))
                 .unwrap_or(10000.0)
         } else if (a_tile.is_building() || b_tile.is_building()) && a_tile.plot != b_tile.plot {
             10000.0
@@ -493,7 +493,7 @@ fn adventure() -> impl Action {
             casual(finish().boxed())
         }
     })
-    .debug(move || format!("adventure"))
+    .debug(move || "adventure")
 }
 
 fn villager(visiting_site: SiteId) -> impl Action {
@@ -513,9 +513,9 @@ fn villager(visiting_site: SiteId) -> impl Action {
             // Travel to the site we're supposed to be in
             urgent(travel_to_site(visiting_site).debug(move || {
                 if npc_home == Some(visiting_site) {
-                    format!("travel home")
+                    "travel home".to_string()
                 } else {
-                    format!("travel to visiting site")
+                    "travel to visiting site".to_string()
                 }
             }))
         } else if DayPeriod::from(ctx.time_of_day.0).is_dark()

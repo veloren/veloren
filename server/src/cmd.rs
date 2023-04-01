@@ -1290,7 +1290,7 @@ fn handle_rtsim_purge(
         );
         Ok(())
     } else {
-        return Err(action.help_string());
+        Err(action.help_string())
     }
 }
 

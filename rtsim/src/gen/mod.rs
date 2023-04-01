@@ -150,9 +150,7 @@ impl Data {
                         .with_personality(Personality::random_evil(&mut rng))
                         .with_faction(site.faction)
                         .with_home(site_id)
-                        .with_profession(match rng.gen_range(0..20) {
-                            _ => Profession::Cultist,
-                        }),
+                        .with_profession(Profession::Cultist),
                     );
                 }
             }

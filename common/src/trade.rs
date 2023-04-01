@@ -389,20 +389,17 @@ impl SitePrices {
                     .as_ref()
                     .map(|ri| {
                         let item = ri.inventory.get(slot)?;
-                        if let Some(vec) = TradePricing::get_materials(&item.name.as_ref()) {
-                            Some(
-                                vec.iter()
-                                    .map(|(amount2, material)| {
-                                        self.values.get(material).copied().unwrap_or_default()
-                                            * *amount2
-                                            * (if reduce { material.trade_margin() } else { 1.0 })
-                                    })
-                                    .sum::<f32>()
-                                    * (*amount as f32),
-                            )
-                        } else {
-                            None
-                        }
+                        let vec = TradePricing::get_materials(&item.name.as_ref())?;
+                        Some(
+                            vec.iter()
+                                .map(|(amount2, material)| {
+                                    self.values.get(material).copied().unwrap_or_default()
+                                        * *amount2
+                                        * (if reduce { material.trade_margin() } else { 1.0 })
+                                })
+                                .sum::<f32>()
+                                * (*amount as f32),
+                        )
                     })
                     .unwrap_or(Some(0.0))
             })

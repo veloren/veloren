@@ -27,10 +27,8 @@ impl Rule for SimulateNpcs {
                     if let Some(vehicle) = data.npcs.vehicles.get_mut(ride.vehicle) {
                         let actor = crate::data::Actor::Npc(npc_id);
                         vehicle.riders.push(actor);
-                        if ride.steering {
-                            if vehicle.driver.replace(actor).is_some() {
-                                panic!("Replaced driver");
-                            }
+                        if ride.steering && vehicle.driver.replace(actor).is_some() {
+                            panic!("Replaced driver");
                         }
                     }
                 }

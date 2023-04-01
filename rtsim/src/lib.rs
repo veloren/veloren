@@ -136,9 +136,9 @@ impl RtState {
     }
 
     pub fn emit<E: Event>(&mut self, e: E, world: &World, index: IndexRef) {
-        self.event_handlers
-            .get::<EventHandlersOf<E>>()
-            .map(|handlers| handlers.iter().for_each(|f| f(self, world, index, &e)));
+        if let Some(handlers) = self.event_handlers.get::<EventHandlersOf<E>>() {
+            handlers.iter().for_each(|f| f(self, world, index, &e));
+        }
     }
 
     pub fn tick(

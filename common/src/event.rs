@@ -64,7 +64,7 @@ impl NpcBuilder {
             stats,
             skill_set: comp::SkillSet::default(),
             health: None,
-            poise: comp::Poise::new(body.clone()),
+            poise: comp::Poise::new(body),
             inventory: comp::Inventory::with_empty(),
             body,
             agent: None,
