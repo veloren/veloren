@@ -214,7 +214,24 @@ impl<'a> Widget for Group<'a> {
                 .unwrap_or_else(|| format!("Npc<{}>", uid)),
         };
 
-        let open_invite = self.client.invite();
+        let open_invite = self.client.invite().and_then(|invite| {
+            // Don't show invite if it comes from a muted player
+            if self
+                .client
+                .player_list()
+                .get(&invite.0)
+                .map_or(true, |player| {
+                    self.global_state
+                        .profile
+                        .mutelist
+                        .contains_key(&player.uuid)
+                })
+            {
+                None
+            } else {
+                Some(invite)
+            }
+        });
 
         let my_uid = self.client.uid();
 
