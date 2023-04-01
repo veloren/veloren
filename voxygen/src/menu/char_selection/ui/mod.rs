@@ -37,7 +37,7 @@ use crate::settings::Settings;
 //use ui::ice::widget;
 use iced::{
     button, scrollable, slider, text_input, Align, Button, Column, Container, HorizontalAlignment,
-    Length, Row, Scrollable, Slider, Space, Text, TextInput,
+    Length, Row, Scrollable, Slider, Space, Text, TextInput, Color
 };
 use std::sync::Arc;
 use vek::{Rgba, Vec2};
@@ -1336,9 +1336,15 @@ impl Controls {
                         self.possible_starting_sites[*start_site_idx]
                             .name
                             .as_deref()
-                            .unwrap_or("Unknown"),
+                            .unwrap_or("Unknown")
                     )
-                    .horizontal_alignment(HorizontalAlignment::Left);
+                    .horizontal_alignment(HorizontalAlignment::Left)
+                    .color(Color::from_rgb(131.0, 102.0, 0.0))
+                    /* .stroke(Stroke {
+                        color: Color::WHITE,
+                        width: 1.0,
+                    }) */;
+                    //TODO: Add text-outline here whenever we updated iced to a version supporting this
 
                     let map = if let Some(info) = self.possible_starting_sites.get(*start_site_idx)
                     {
