@@ -885,7 +885,7 @@ fn handle_respawn(
         .state
         .read_storage::<comp::Waypoint>()
         .get(target)
-        .ok_or_else(|| format!("No waypoint set"))?
+        .ok_or_else(|| "No waypoint set")?
         .get_pos();
 
     position_mut(server, target, "target", |current_pos| {
