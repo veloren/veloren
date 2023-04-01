@@ -1,7 +1,8 @@
 use crate::{
+    hud::default_water_color,
     render::UiDrawer,
     ui::{
-        self, default_water_color,
+        self,
         fonts::IcedFonts as Fonts,
         ice::{
             component::{
@@ -1322,43 +1323,27 @@ impl Controls {
                         vec![map]
                     } else {
                         let site_buttons = Row::with_children(vec![
-                            Button::new(
+                            neat_button(
                                 prev_starting_site_button,
-                                Container::new(Text::new("<"))
-                                    .width(Length::Fill)
-                                    .height(Length::Fill)
-                                    .center_x()
-                                    .center_y(),
+                                i18n.get_msg("char_selection-starting_site_prev")
+                                    .into_owned(),
+                                FILL_FRAC_ONE,
+                                button_style,
+                                Some(Message::PrevStartingSite),
                             )
-                            .style(
-                                style::button::Style::new(imgs.char_selection)
-                                    .hover_image(imgs.char_selection_hover)
-                                    .press_image(imgs.char_selection_press),
-                            )
-                            .width(Length::Fill)
-                            .height(Length::Fill)
-                            .on_press(Message::PrevStartingSite)
                             .into(),
-                            Button::new(
+                            neat_button(
                                 next_starting_site_button,
-                                Container::new(Text::new(">"))
-                                    .width(Length::Fill)
-                                    .height(Length::Fill)
-                                    .center_x()
-                                    .center_y(),
+                                i18n.get_msg("char_selection-starting_site_next")
+                                    .into_owned(),
+                                FILL_FRAC_ONE,
+                                button_style,
+                                Some(Message::NextStartingSite),
                             )
-                            .style(
-                                style::button::Style::new(imgs.char_selection)
-                                    .hover_image(imgs.char_selection_hover)
-                                    .press_image(imgs.char_selection_press),
-                            )
-                            .width(Length::Fill)
-                            .height(Length::Fill)
-                            .on_press(Message::NextStartingSite)
                             .into(),
                         ])
-                        .max_height(30)
-                        .padding(5)
+                        .max_height(60)
+                        .padding(15)
                         .into();
 
                         let site_slider = char_slider(

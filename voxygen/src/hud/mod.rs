@@ -74,8 +74,8 @@ use crate::{
     },
     settings::chat::ChatFilter,
     ui::{
-        self, default_water_color, fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic,
-        Ingameable, ScaleMode, Ui,
+        self, fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable,
+        ScaleMode, Ui,
     },
     window::Event as WinEvent,
     GlobalState,
@@ -106,7 +106,7 @@ use common::{
     terrain::{SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
-    util::Dir,
+    util::{srgba_to_linear, Dir},
     vol::RectRasterableVol,
 };
 use common_base::{prof_span, span};
@@ -221,6 +221,9 @@ const NAMETAG_DMG_RANGE: f32 = 120.0;
 const SPEECH_BUBBLE_RANGE: f32 = NAMETAG_RANGE;
 const EXP_FLOATER_LIFETIME: f32 = 2.0;
 const EXP_ACCUMULATION_DURATION: f32 = 0.5;
+
+// TODO: Don't hard code this
+pub fn default_water_color() -> Rgba<f32> { srgba_to_linear(Rgba::new(0.0, 0.18, 0.37, 1.0)) }
 
 widget_ids! {
     struct Ids {
