@@ -128,8 +128,8 @@ image_ids_ice! {
         tt_edge: "voxygen.element.ui.generic.frames.tooltip.edge",
         tt_corner: "voxygen.element.ui.generic.frames.tooltip.corner",
 
-        // Map things
-        target: "voxygen.element.ui.char_select.icons.target",
+        // Startzone Selection
+        town_marker: "voxygen.element.ui.char_select.icons.town_marker",
     }
 }
 
@@ -1140,6 +1140,31 @@ impl Controls {
                 // Height of interactable area
                 const SLIDER_HEIGHT: u16 = 30;
 
+                fn starter_slider<'a, T: Copy + Into<u32>>(
+                    text: String,
+                    size: u16,
+                    state: &'a mut slider::State,
+                    max: T,
+                    selected_val: T,
+                    on_change: impl 'static + Fn(u32) -> Message,
+                    imgs: &Imgs,
+                ) -> Element<'a, Message> {
+                    Column::with_children(vec![
+                        Text::new(text).size(size).into(),
+                        Slider::new(state, 0..=max.into(), selected_val.into(), on_change)
+                            .height(SLIDER_HEIGHT)
+                            .style(style::slider::Style::images(
+                                imgs.slider_indicator,
+                                imgs.slider_range,
+                                SLIDER_BAR_PAD,
+                                SLIDER_CURSOR_SIZE,
+                                SLIDER_BAR_HEIGHT,
+                            ))
+                            .into(),
+                    ])
+                    .align_items(Align::Center)
+                    .into()
+                }
                 fn char_slider<'a, T: Copy + Into<u32>>(
                     text: String,
                     state: &'a mut slider::State,
@@ -1294,10 +1319,28 @@ impl Controls {
                 ];
 
                 let right_column_content = if character_id.is_none() {
-                    let map_sz = Vec2::new(300, 300);
+                    let site_slider = starter_slider(
+                        i18n.get_msg("char_selection-starting_site").into_owned(),
+                        30,
+                        &mut sliders.starting_site,
+                        self.possible_starting_sites.len() as u32 - 1,
+                        *start_site_idx as u32,
+                        |x| Message::StartingSite(x as usize),
+                        imgs,
+                    );
+                    let map_sz = Vec2::new(500, 500);
                     let map_img = Image::new(self.map_img)
                         .height(Length::Units(map_sz.x))
                         .width(Length::Units(map_sz.y));
+                    let site_name = Text::new(format!(
+                        "{}",
+                        self.possible_starting_sites[*start_site_idx]
+                            .name
+                            .as_deref()
+                            .unwrap_or("Unknown")
+                    ))
+                    .horizontal_alignment(HorizontalAlignment::Left);
+
                     let map = if let Some(info) = self.possible_starting_sites.get(*start_site_idx)
                     {
                         let pos_frac = info
@@ -1307,13 +1350,25 @@ impl Controls {
                             });
                         let point = Vec2::new(pos_frac.x, 1.0 - pos_frac.y)
                             .map2(map_sz, |e, sz| e * sz as f32 - 12.0);
+                        let marker_img = Image::new(imgs.town_marker)
+                            .height(Length::Units(27))
+                            .width(Length::Units(16));
+                        let marker_content: Column<Message, IcedRenderer> = Column::new()
+                            .spacing(2)
+                            .push(site_name)
+                            .push(marker_img)
+                            .align_items(Align::Center)
+                            .into();
+
                         Overlay::new(
-                            Image::new(imgs.target)
-                                .height(Length::Units(24))
-                                .width(Length::Units(24)),
+                            Container::new(marker_content)
+                                .width(Length::Fill)
+                                .height(Length::Fill)
+                                .center_x()
+                                .center_y(),
                             map_img,
                         )
-                        .over_position(iced::Point::new(point.x, point.y))
+                        .over_position(iced::Point::new(point.x, point.y - 34.0))
                         .into()
                     } else {
                         map_img.into()
@@ -1345,46 +1400,29 @@ impl Controls {
                         .max_height(60)
                         .padding(15)
                         .into();
+                        // Todo: use this to change the site icon if we use different starting site
+                        // types
+                        /* let site_kind = Text::new(i18n
+                            .get_msg_ctx("char_selection-starting_site_kind", &i18n::fluent_args! {
+                                "kind" => match self.possible_starting_sites[*start_site_idx].kind {
+                                    SiteKind::Town => i18n.get_msg("hud-map-town").into_owned(),
+                                    SiteKind::Castle => i18n.get_msg("hud-map-castle").into_owned(),
+                                    SiteKind::Bridge => i18n.get_msg("hud-map-bridge").into_owned(),
+                                    _ => "Unknown".to_string(),
+                                },
+                            })
+                            .into_owned())
+                        .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                        .into(); */
 
-                        let site_slider = char_slider(
-                            i18n.get_msg("char_selection-starting_site").into_owned(),
-                            &mut sliders.starting_site,
-                            self.possible_starting_sites.len() as u32 - 1,
-                            *start_site_idx as u32,
-                            |x| Message::StartingSite(x as usize),
-                            (fonts, imgs),
-                        );
-
-                        let site_name = Text::new(i18n
-                                .get_msg_ctx("char_selection-starting_site_name", &i18n::fluent_args! {
-                                    "name" => self.possible_starting_sites[*start_site_idx].name.as_deref()
-                                        .unwrap_or("Unknown"),
-                                })
-                                .into_owned())
-                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
-                            .into();
-
-                        let site_kind = Text::new(i18n
-                                .get_msg_ctx("char_selection-starting_site_kind", &i18n::fluent_args! {
-                                    "kind" => match self.possible_starting_sites[*start_site_idx].kind {
-                                        SiteKind::Town => i18n.get_msg("hud-map-town").into_owned(),
-                                        SiteKind::Castle => i18n.get_msg("hud-map-castle").into_owned(),
-                                        SiteKind::Bridge => i18n.get_msg("hud-map-bridge").into_owned(),
-                                        _ => "Unknown".to_string(),
-                                    },
-                                })
-                                .into_owned())
-                            .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
-                            .into();
-
-                        vec![map, site_slider, site_buttons, site_name, site_kind]
+                        vec![site_slider, map, site_buttons]
                     }
                 } else {
                     // If we're editing an existing character, don't display the world column
                     Vec::new()
                 };
 
-                let column = |column_content, scroll| {
+                let column_left = |column_content, scroll| {
                     let column = Container::new(
                         Scrollable::new(scroll)
                             .push(
@@ -1424,12 +1462,55 @@ impl Controls {
                     ])
                     .height(Length::Fill)
                 };
+                let column_right = |column_content, scroll| {
+                    let column = Container::new(
+                        Scrollable::new(scroll)
+                            .push(
+                                Column::with_children(column_content)
+                                    .align_items(Align::Center)
+                                    .width(Length::Fill)
+                                    .spacing(5)
+                                    .padding(5),
+                            )
+                            .padding(5)
+                            .width(Length::Fill)
+                            .align_items(Align::Center)
+                            .style(style::scrollable::Style {
+                                track: None,
+                                scroller: style::scrollable::Scroller::Color(UI_MAIN),
+                            }),
+                    )
+                    .width(Length::Units(520)) // TODO: see if we can get iced to work with settings below
+                    // .max_width(360)
+                    // .width(Length::Fill)
+                    .height(Length::Fill);
+                    if character_id.is_none() {
+                        Column::with_children(vec![
+                            Container::new(column)
+                                .style(style::container::Style::color(Rgba::from_translucent(
+                                    0,
+                                    BANNER_ALPHA,
+                                )))
+                                .width(Length::Units(520))
+                                .center_x()
+                                .into(),
+                            Image::new(imgs.frame_bottom)
+                                .height(Length::Units(40))
+                                .width(Length::Units(520))
+                                .color(Rgba::from_translucent(0, BANNER_ALPHA))
+                                .into(),
+                        ])
+                        .height(Length::Fill)
+                    } else {
+                        Column::with_children(vec![Container::new(column).into()])
+                    }
+                };
 
                 let mouse_area =
                     MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill);
 
                 let top = Row::with_children(vec![
-                    column(left_column_content, left_scroll).into(),
+                    column_left(left_column_content, left_scroll).into(),
                     Column::with_children(
                         if let Some(warning_container) = warning_container.take() {
                             vec![warning_container.into(), mouse_area.into()]
@@ -1440,7 +1521,9 @@ impl Controls {
                     .width(Length::Fill)
                     .height(Length::Fill)
                     .into(),
-                    column(right_column_content, right_scroll).into(),
+                    column_right(right_column_content, right_scroll)
+                        .width(Length::Units(520))
+                        .into(),
                 ])
                 .padding(10)
                 .width(Length::Fill)
