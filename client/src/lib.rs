@@ -265,6 +265,7 @@ pub struct Client {
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
     target_time_of_day: Option<TimeOfDay>,
+    dt_adjustment: f64,
 
     connected_server_constants: ServerConstants,
 }
@@ -748,6 +749,7 @@ impl Client {
 
             pending_chunks: HashMap::new(),
             target_time_of_day: None,
+            dt_adjustment: 1.0,
 
             connected_server_constants: server_constants,
         })
@@ -1801,7 +1803,7 @@ impl Client {
 
         // 4) Tick the client's LocalState
         self.state.tick(
-            dt,
+            Duration::from_secs_f64(dt.as_secs_f64() * self.dt_adjustment),
             |dispatch_builder| {
                 add_local_systems(dispatch_builder);
                 add_foreign_systems(dispatch_builder);
@@ -2169,9 +2171,18 @@ impl Client {
                 *self.state.ecs_mut().write_resource() = calendar;
                 let mut time = self.state.ecs_mut().write_resource::<Time>();
                 // Avoid side-eye from Einstein
-                if new_time.0 > time.0 {
+                // If new time from server is at least 5 seconds ahead, replace client time.
+                // Otherwise try to slightly twean client time (by 1%) to keep it in line with
+                // server time.
+                let dt_adjustment = if new_time.0 > time.0 + 5.0 {
                     *time = new_time;
-                }
+                    1.0
+                } else if new_time.0 > time.0 {
+                    1.01
+                } else {
+                    0.99
+                };
+                self.dt_adjustment = dt_adjustment;
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
                 self.state
