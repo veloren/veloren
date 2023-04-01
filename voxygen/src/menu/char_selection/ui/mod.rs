@@ -36,8 +36,8 @@ use crate::settings::Settings;
 //use std::time::Duration;
 //use ui::ice::widget;
 use iced::{
-    button, scrollable, slider, text_input, Align, Button, Column, Container, HorizontalAlignment,
-    Length, Row, Scrollable, Slider, Space, Text, TextInput, Color
+    button, scrollable, slider, text_input, Align, Button, Color, Column, Container,
+    HorizontalAlignment, Length, Row, Scrollable, Slider, Space, Text, TextInput,
 };
 use std::sync::Arc;
 use vek::{Rgba, Vec2};
@@ -1344,7 +1344,8 @@ impl Controls {
                         color: Color::WHITE,
                         width: 1.0,
                     }) */;
-                    //TODO: Add text-outline here whenever we updated iced to a version supporting this
+                    //TODO: Add text-outline here whenever we updated iced to a version supporting
+                    // this
 
                     let map = if let Some(info) = self.possible_starting_sites.get(*start_site_idx)
                     {
