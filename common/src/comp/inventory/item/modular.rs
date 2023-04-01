@@ -392,7 +392,7 @@ pub enum ModularWeaponCreationError {
 /// Check if hand restrictions are compatible.
 ///
 /// If at least on of them is omitted, check is passed.
-fn compatible_handndess(a: Option<Hands>, b: Option<Hands>) -> bool {
+pub fn compatible_handndess(a: Option<Hands>, b: Option<Hands>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => a == b,
         _ => true,
