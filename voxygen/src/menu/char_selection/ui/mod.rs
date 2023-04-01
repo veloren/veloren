@@ -1332,13 +1332,12 @@ impl Controls {
                     let map_img = Image::new(self.map_img)
                         .height(Length::Units(map_sz.x))
                         .width(Length::Units(map_sz.y));
-                    let site_name = Text::new(format!(
-                        "{}",
+                    let site_name = Text::new(
                         self.possible_starting_sites[*start_site_idx]
                             .name
                             .as_deref()
-                            .unwrap_or("Unknown")
-                    ))
+                            .unwrap_or("Unknown"),
+                    )
                     .horizontal_alignment(HorizontalAlignment::Left);
 
                     let map = if let Some(info) = self.possible_starting_sites.get(*start_site_idx)
@@ -1357,8 +1356,7 @@ impl Controls {
                             .spacing(2)
                             .push(site_name)
                             .push(marker_img)
-                            .align_items(Align::Center)
-                            .into();
+                            .align_items(Align::Center);
 
                         Overlay::new(
                             Container::new(marker_content)
@@ -1385,8 +1383,7 @@ impl Controls {
                                 FILL_FRAC_ONE,
                                 button_style,
                                 Some(Message::PrevStartingSite),
-                            )
-                            .into(),
+                            ),
                             neat_button(
                                 next_starting_site_button,
                                 i18n.get_msg("char_selection-starting_site_next")
@@ -1394,8 +1391,7 @@ impl Controls {
                                 FILL_FRAC_ONE,
                                 button_style,
                                 Some(Message::NextStartingSite),
-                            )
-                            .into(),
+                            ),
                         ])
                         .max_height(60)
                         .padding(15)
