@@ -257,7 +257,6 @@ impl CharacterState {
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
-                | CharacterState::UseItem(_)
                 | CharacterState::Wielding(_)
                 | CharacterState::Talk
                 | CharacterState::FinisherMelee(_)
