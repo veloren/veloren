@@ -10,11 +10,12 @@ use entity_creation::{
     handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_aura, handle_bonk, handle_buff, handle_change_ability, handle_combo_change,
-    handle_delete, handle_destroy, handle_energy_change, handle_entity_attacked_hook,
-    handle_explosion, handle_health_change, handle_knockback, handle_land_on_ground,
-    handle_make_admin, handle_parry_hook, handle_poise, handle_respawn, handle_stance_change,
-    handle_teleport_to, handle_update_map_marker,
+    handle_aura, handle_bonk, handle_buff, handle_change_ability, handle_change_body,
+    handle_combo_change, handle_delete, handle_destroy, handle_energy_change,
+    handle_entity_attacked_hook, handle_explosion, handle_health_change, handle_knockback,
+    handle_land_on_ground, handle_make_admin, handle_parry_hook, handle_poise,
+    handle_remove_light_emitter, handle_respawn, handle_stance_change, handle_teleport_to,
+    handle_update_map_marker,
 };
 use group_manip::handle_group;
 use information::handle_site_info;
@@ -302,6 +303,12 @@ impl Server {
                 } => handle_make_admin(self, entity, admin, uuid),
                 ServerEvent::ChangeStance { entity, stance } => {
                     handle_stance_change(self, entity, stance)
+                },
+                ServerEvent::ChangeBody { entity, new_body } => {
+                    handle_change_body(self, entity, new_body)
+                },
+                ServerEvent::RemoveLightEmitter { entity } => {
+                    handle_remove_light_emitter(self, entity)
                 },
             }
         }

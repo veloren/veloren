@@ -242,6 +242,13 @@ pub enum ServerEvent {
         entity: EcsEntity,
         stance: comp::Stance,
     },
+    ChangeBody {
+        entity: EcsEntity,
+        new_body: comp::Body,
+    },
+    RemoveLightEmitter {
+        entity: EcsEntity,
+    },
 }
 
 pub struct EventBus<E> {
