@@ -78,10 +78,10 @@ recipes: {
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
-    // UNCRAFTABLE WEAPONS
+    // NON-MODULAR WEAPONS
     ItemDefId("common.items.weapons.hammer.burnt_drumstick"): (
         inputs: [
-            (Item("common.items.food.meat.bird_large_cooked"), 1),
+            (Item("common.items.food.meat.bird_large_raw"), 1),
         ],
     ),
     ItemDefId("common.items.weapons.sword.cultist"): (
@@ -995,6 +995,11 @@ recipes: {
         ],
     ),
     // MISC/HEAD
+    ItemDefId("common.items.armor.misc.head.straw"): (
+        inputs: [
+            (Item("common.items.flowers.wild_flax"), 2),
+        ],
+    ),
     ItemDefId("common.items.armor.misc.head.bandana.red"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.linen_red"), 1),
@@ -1053,7 +1058,7 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
-    ItemDefId("common.items.armor.merchant.hat"): (
+    ItemDefId("common.items.armor.merchant.turban"): (
         inputs: [
             (Item("common.items.crafting_ing.cloth.linen_red"), 4),
             (Item("common.items.mineral.gem.diamond"), 1),
