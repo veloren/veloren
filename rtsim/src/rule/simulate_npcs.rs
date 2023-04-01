@@ -146,7 +146,6 @@ impl Rule for SimulateNpcs {
                         cell.vehicles.push(vehicle_id);
                     }
                 }
-
             }
             for (npc_id, npc) in data.npcs.npcs.iter_mut() {
                 // Update the NPC's current site, if any

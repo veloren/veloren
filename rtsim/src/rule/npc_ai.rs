@@ -352,7 +352,7 @@ fn travel_to_point(wpos: Vec2<f32>) -> impl Action {
         let diff = wpos - start;
         let n = (diff.magnitude() / WAYPOINT).max(1.0);
         let mut points = (1..n as usize + 1).map(move |i| start + diff * (i as f32 / n));
-        traverse_points(move |_| points.next()).boxed()
+        traverse_points(move |_| points.next())
     })
     .debug(|| "travel to point")
 }

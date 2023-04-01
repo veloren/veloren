@@ -11,7 +11,7 @@ impl Rule for Setup {
         rtstate.bind::<Self, OnSetup>(|ctx| {
             let data = &mut *ctx.state.data_mut();
             // Delete rtsim sites that don't correspond to a world site
-            data.sites.retain(|site_id, site| {
+            data.sites.sites.retain(|site_id, site| {
                 if let Some((world_site_id, _)) = ctx
                     .index
                     .sites
@@ -19,6 +19,7 @@ impl Rule for Setup {
                     .find(|(_, world_site)| world_site.get_origin() == site.wpos)
                 {
                     site.world_site = Some(world_site_id);
+                    data.sites.world_site_map.insert(world_site_id, site_id);
                     true
                 } else {
                     warn!(
