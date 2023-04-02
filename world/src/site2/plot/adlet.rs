@@ -484,15 +484,20 @@ impl Structure for AdletStronghold {
                 min: (self.entrance - 15).with_z(self.cavern_alt as i32 - 15),
                 max: (self.entrance + 15).with_z(self.cavern_alt as i32 + 15),
             })
-            .without(painter.aabb(Aabb {
+            .fill(snow_ice_fill.clone());
+
+        painter
+            .cylinder(Aabb {
                 min: (self.entrance - 15).with_z(self.cavern_alt as i32),
                 max: (self.entrance + 15).with_z(self.cavern_alt as i32 + 20),
-            }))
-            .without(painter.cylinder(Aabb {
+            })
+            .clear();
+        painter
+            .cylinder(Aabb {
                 min: (self.entrance - 14).with_z(self.cavern_alt as i32 - 1),
                 max: (self.entrance + 14).with_z(self.cavern_alt as i32),
-            }))
-            .fill(snow_ice_fill.clone());
+            })
+            .clear();
         painter
             .cylinder(Aabb {
                 min: (self.entrance - 12).with_z(self.cavern_alt as i32 - 40),
@@ -597,7 +602,6 @@ impl Structure for AdletStronghold {
                 }
             });
         let alt = self.cavern_alt;
-        // keep entrance clear
         cavern.clear();
 
         // snow cylinder for cavern ground and to carve out yetipit
@@ -674,7 +678,7 @@ impl Structure for AdletStronghold {
                         )
                         .clear();
                     // Foundation
-                    painter
+                    let foundation = painter
                         .sphere(Aabb {
                             min: (igloo_pos - 15).with_z(alt as i32 - 45 + height_handle),
                             max: (igloo_pos + 15).with_z(alt as i32 - 15 + height_handle),
@@ -682,20 +686,23 @@ impl Structure for AdletStronghold {
                         .union(painter.sphere(Aabb {
                             min: (igloo_pos - 10).with_z(alt as i32 - 20 + height_handle),
                             max: (igloo_pos + 10).with_z(alt as i32 - 5 + height_handle),
-                        }))
-                        .without(cavern)
-                        .fill(snow_ice_fill.clone());
+                        }));
+                    foundation.fill(snow_ice_fill.clone());
+                    foundation.intersect(cavern).clear();
                     // Platform
                     painter
                         .sphere(Aabb {
                             min: (igloo_pos - 13).with_z(alt as i32 - 11 + height_handle),
                             max: (igloo_pos + 13).with_z(alt as i32 + 11 + height_handle),
                         })
-                        .without(painter.aabb(Aabb {
+                        .fill(snow_ice_fill.clone());
+
+                    painter
+                        .cylinder(Aabb {
                             min: (igloo_pos - 13).with_z(alt as i32 - 4 + height_handle),
                             max: (igloo_pos + 13).with_z(alt as i32 + 16 + height_handle),
-                        }))
-                        .fill(snow_ice_fill.clone());
+                        })
+                        .clear();
                     // igloo snow
                     painter
                         .sphere_with_radius(igloo_pos.with_z(alt as i32 - 1), igloo_size)
@@ -743,14 +750,6 @@ impl Structure for AdletStronghold {
                                 .with_z(alt as i32 - 2 + height_handle),
                         })
                         .clear();
-                    // igloo floor
-                    painter
-                        .cylinder_with_radius(
-                            (igloo_pos).with_z(alt as i32 - 7 + height_handle),
-                            (igloo_size as i32 - 4) as f32,
-                            2.0,
-                        )
-                        .fill(snow_fill.clone());
                     // bones
                     let bones_size = igloo_size as i32;
                     for h in 0..(bones_size + 4) {
@@ -762,17 +761,10 @@ impl Structure for AdletStronghold {
                                     .with_z((alt as i32) - 5 + h + height_handle),
                                 0.5,
                             )
-                            .intersect(
-                                painter
-                                    .sphere_with_radius(
-                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
-                                        9.0,
-                                    )
-                                    .without(painter.sphere_with_radius(
-                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
-                                        5.0,
-                                    )),
-                            )
+                            .intersect(painter.sphere_with_radius(
+                                igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                9.0,
+                            ))
                             .fill(bone_fill.clone());
 
                         painter
@@ -783,19 +775,24 @@ impl Structure for AdletStronghold {
                                     .with_z((alt as i32) - 4 + h + height_handle),
                                 0.5,
                             )
-                            .intersect(
-                                painter
-                                    .sphere_with_radius(
-                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
-                                        9.0,
-                                    )
-                                    .without(painter.sphere_with_radius(
-                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
-                                        5.0,
-                                    )),
-                            )
+                            .intersect(painter.sphere_with_radius(
+                                igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                9.0,
+                            ))
                             .fill(bone_fill.clone());
                     }
+                    painter
+                        .sphere_with_radius(igloo_pos.with_z((alt as i32) - 2 + height_handle), 5.0)
+                        .clear();
+
+                    // igloo floor
+                    painter
+                        .cylinder_with_radius(
+                            (igloo_pos).with_z(alt as i32 - 7 + height_handle),
+                            (igloo_size as i32 - 4) as f32,
+                            2.0,
+                        )
+                        .fill(snow_fill.clone());
                     // top decor bone with some hide
                     painter
                         .aabb(Aabb {
@@ -811,16 +808,14 @@ impl Structure for AdletStronghold {
                             max: Vec2::new(igloo_pos.x + 1, igloo_pos.y + 2)
                                 .with_z((alt as i32) + bones_size + 4 + height_handle),
                         })
-                        .without(
-                            painter.aabb(Aabb {
-                                min: igloo_pos
-                                    .with_z((alt as i32) + bones_size + 3 + height_handle),
-                                max: (igloo_pos + 1)
-                                    .with_z((alt as i32) + bones_size + 4 + height_handle),
-                            }),
-                        )
                         .fill(bone_fill.clone());
-
+                    painter
+                        .aabb(Aabb {
+                            min: igloo_pos.with_z((alt as i32) + bones_size + 3 + height_handle),
+                            max: (igloo_pos + 1)
+                                .with_z((alt as i32) + bones_size + 4 + height_handle),
+                        })
+                        .clear();
                     let top_color = Fill::Sampling(Arc::new(|igloo_pos| {
                         Some(match (RandomField::new(0).get(igloo_pos)) % 10 {
                             0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
@@ -1489,9 +1484,9 @@ impl Structure for AdletStronghold {
                     // clear room
                     painter
                         .sphere_with_radius(wpos.with_z((alt as i32) + 2), 6.0)
-                        .without(painter.aabb(Aabb {
-                            min: (wpos - (2 * hut_radius)).with_z(alt as i32 - hut_radius),
-                            max: (wpos + (2 * hut_radius)).with_z(alt as i32),
+                        .intersect(painter.cylinder(Aabb {
+                            min: (wpos - 6).with_z(alt as i32),
+                            max: (wpos + 6).with_z(alt as i32 + 2 * hut_radius),
                         }))
                         .clear();
                     //clear entries
@@ -1512,12 +1507,7 @@ impl Structure for AdletStronghold {
                                 0.5,
                             )
                             .intersect(
-                                painter
-                                    .sphere_with_radius(wpos.with_z((alt as i32) + 2), 9.0)
-                                    .without(
-                                        painter
-                                            .sphere_with_radius(wpos.with_z((alt as i32) + 2), 5.0),
-                                    ),
+                                painter.sphere_with_radius(wpos.with_z((alt as i32) + 2), 9.0),
                             )
                             .fill(bone_fill.clone());
 
@@ -1530,15 +1520,18 @@ impl Structure for AdletStronghold {
                                 0.5,
                             )
                             .intersect(
-                                painter
-                                    .sphere_with_radius(wpos.with_z((alt as i32) + 2), 9.0)
-                                    .without(
-                                        painter
-                                            .sphere_with_radius(wpos.with_z((alt as i32) + 2), 5.0),
-                                    ),
+                                painter.sphere_with_radius(wpos.with_z((alt as i32) + 2), 9.0),
                             )
                             .fill(bone_fill.clone());
                     }
+                    painter
+                        .sphere_with_radius(wpos.with_z((alt as i32) + 2), 5.0)
+                        .intersect(painter.cylinder(Aabb {
+                            min: (wpos - 5).with_z(alt as i32),
+                            max: (wpos + 5).with_z((alt as i32) + 2 * hut_radius),
+                        }))
+                        .clear();
+
                     // top decor bone with some hide
                     painter
                         .aabb(Aabb {
@@ -1553,12 +1546,13 @@ impl Structure for AdletStronghold {
                             max: Vec2::new(wpos.x + 1, wpos.y + 2)
                                 .with_z((alt as i32) + hut_radius + 8),
                         })
-                        .without(painter.aabb(Aabb {
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
                             min: wpos.with_z((alt as i32) + hut_radius + 7),
                             max: (wpos + 1).with_z((alt as i32) + hut_radius + 8),
-                        }))
-                        .fill(bone_fill.clone());
-
+                        })
+                        .clear();
                     let top_color = Fill::Sampling(Arc::new(|wpos| {
                         Some(match (RandomField::new(0).get(wpos)) % 10 {
                             0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
@@ -1611,59 +1605,7 @@ impl Structure for AdletStronghold {
                                 (bosshut_pos + (3 * dir)).with_z((alt as i32) + 2),
                                 hide_size as f32,
                             )
-                            .without(painter.sphere_with_radius(
-                                (bosshut_pos + (3 * dir)).with_z((alt as i32) + 2),
-                                (hide_size - 1) as f32,
-                            ))
-                            .without(
-                                painter
-                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 9.0),
-                            )
-                            .without(painter.aabb(Aabb {
-                                min: (bosshut_pos - (2 * hut_radius)).with_z((alt as i32) - 10),
-                                max: (bosshut_pos + (2 * hut_radius)).with_z(alt as i32),
-                            }))
                             .fill(hide_color.clone());
-                    }
-                    // large entries
-                    for n in 0..2 {
-                        painter
-                            .sphere_with_radius(
-                                (Vec2::new(
-                                    bosshut_pos.x,
-                                    bosshut_pos.y - hut_radius + (2 * (hut_radius * n)),
-                                ))
-                                .with_z((alt as i32) + 2),
-                                9.0,
-                            )
-                            .without(painter.aabb(Aabb {
-                                min: (bosshut_pos - (2 * hut_radius)).with_z((alt as i32) - 10),
-                                max: (bosshut_pos + (2 * hut_radius)).with_z(alt as i32),
-                            }))
-                            .intersect(
-                                painter
-                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0)
-                                    .without(painter.sphere_with_radius(
-                                        bosshut_pos.with_z((alt as i32) + 2),
-                                        13.0,
-                                    )),
-                            )
-                            .fill(bone_fill.clone());
-
-                        painter
-                            .sphere_with_radius(
-                                (Vec2::new(
-                                    bosshut_pos.x,
-                                    bosshut_pos.y - hut_radius + (2 * (hut_radius * n)),
-                                ))
-                                .with_z((alt as i32) + 2),
-                                7.0,
-                            )
-                            .without(painter.aabb(Aabb {
-                                min: (bosshut_pos - (2 * hut_radius)).with_z((alt as i32) - 10),
-                                max: (bosshut_pos + (2 * hut_radius)).with_z(alt as i32),
-                            }))
-                            .clear();
                     }
                     // bones
                     for h in 0..(hut_radius + 4) {
@@ -1675,11 +1617,14 @@ impl Structure for AdletStronghold {
                             )
                             .intersect(
                                 painter
-                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0)
-                                    .without(painter.sphere_with_radius(
-                                        bosshut_pos.with_z((alt as i32) + 2),
-                                        9.0,
-                                    )),
+                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0),
+                            )
+                            .intersect(
+                                painter.cylinder(Aabb {
+                                    min: (bosshut_pos - 2 * hut_radius).with_z(alt as i32),
+                                    max: (bosshut_pos + 2 * hut_radius)
+                                        .with_z((alt as i32) + 2 * hut_radius),
+                                }),
                             )
                             .fill(bone_fill.clone());
 
@@ -1699,14 +1644,72 @@ impl Structure for AdletStronghold {
                             )
                             .intersect(
                                 painter
-                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0)
-                                    .without(painter.sphere_with_radius(
-                                        bosshut_pos.with_z((alt as i32) + 2),
-                                        9.0,
-                                    )),
+                                    .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0),
+                            )
+                            .intersect(
+                                painter.cylinder(Aabb {
+                                    min: (bosshut_pos - 2 * hut_radius).with_z(alt as i32),
+                                    max: (bosshut_pos + 2 * hut_radius)
+                                        .with_z((alt as i32) + 2 * hut_radius),
+                                }),
                             )
                             .fill(bone_fill.clone());
                     }
+                    painter
+                        .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 9.0)
+                        .intersect(painter.aabb(Aabb {
+                            min: (bosshut_pos - 9).with_z(alt as i32),
+                            max: (bosshut_pos + 9).with_z(alt as i32 + 11),
+                        }))
+                        .clear();
+
+                    for n in 0..2 {
+                        // large entries
+
+                        painter
+                            .sphere_with_radius(
+                                (Vec2::new(
+                                    bosshut_pos.x,
+                                    bosshut_pos.y - hut_radius + (2 * (hut_radius * n)),
+                                ))
+                                .with_z((alt as i32) + 2),
+                                7.0,
+                            )
+                            .intersect(
+                                painter.cylinder(Aabb {
+                                    min: Vec2::new(
+                                        bosshut_pos.x - 7,
+                                        bosshut_pos.y - hut_radius + (2 * (hut_radius * n) - 7),
+                                    )
+                                    .with_z(alt as i32),
+                                    max: Vec2::new(
+                                        bosshut_pos.x + 7,
+                                        bosshut_pos.y - hut_radius + (2 * (hut_radius * n) + 7),
+                                    )
+                                    .with_z(alt as i32 + 9),
+                                }),
+                            )
+                            .clear();
+                        let entry_start = Vec2::new(
+                            bosshut_pos.x - hut_radius + 3,
+                            bosshut_pos.y - hut_radius - 3 + (n * ((2 * hut_radius) + 6)),
+                        )
+                        .with_z(alt as i32);
+                        let entry_peak = Vec2::new(
+                            bosshut_pos.x,
+                            bosshut_pos.y - hut_radius - 1 + (n * (2 * hut_radius)),
+                        )
+                        .with_z(alt as i32 + hut_radius);
+                        let entry_end = Vec2::new(
+                            bosshut_pos.x + hut_radius - 3,
+                            bosshut_pos.y - hut_radius - 3 + (n * ((2 * hut_radius) + 6)),
+                        )
+                        .with_z(alt as i32);
+                        painter
+                            .cubic_bezier(entry_start, entry_peak, entry_peak, entry_end, 1.0)
+                            .fill(bone_fill.clone());
+                    }
+
                     // top decor bone with some hide
                     painter
                         .aabb(Aabb {
@@ -1721,11 +1724,13 @@ impl Structure for AdletStronghold {
                             max: Vec2::new(bosshut_pos.x + 1, bosshut_pos.y + 2)
                                 .with_z((alt as i32) + hut_radius + 9),
                         })
-                        .without(painter.aabb(Aabb {
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
                             min: bosshut_pos.with_z((alt as i32) + hut_radius + 8),
                             max: (bosshut_pos + 1).with_z((alt as i32) + hut_radius + 9),
-                        }))
-                        .fill(bone_fill.clone());
+                        })
+                        .clear();
 
                     let top_color = Fill::Sampling(Arc::new(|bosshut_pos| {
                         Some(match (RandomField::new(0).get(bosshut_pos)) % 10 {
