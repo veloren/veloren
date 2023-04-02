@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{self, Body},
     grid::Grid,
-    rtsim::{Actor, Personality},
+    rtsim::{Actor, NpcAction, Personality},
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
@@ -261,6 +261,13 @@ impl Rule for SimulateNpcs {
                                     .min(1.0))
                                 .with_z(0.0);
                             }
+                        }
+                    }
+
+                    // Consume NPC actions
+                    for action in std::mem::take(&mut npc.controller.actions) {
+                        match action {
+                            NpcAction::Greet(_) => {}, // Currently, just swallow greeting actions
                         }
                     }
 
