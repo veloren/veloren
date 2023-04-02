@@ -145,7 +145,7 @@
             color: None
         ),
         "common.items.armor.alchemist.pants": (
-            vox_spec: ("armor.alchemist.pants", (-5.0, -4.0, 0.5)),
+            vox_spec: ("armor.alchemist", (-5.0, -4.0, 0.5), 3),
             color: None
         ),
         "common.items.armor.blacksmith.pants": (

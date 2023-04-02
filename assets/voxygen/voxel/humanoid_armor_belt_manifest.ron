@@ -117,7 +117,7 @@
             color: None
         ),
         "common.items.armor.alchemist.belt":(
-            vox_spec: ("armor.alchemist.belt", (-4.0, -4.0, 2.5)),
+            vox_spec: ("armor.alchemist", (-4.0, -4.0, 2.5), 2),
             color: None
         ),
         "common.items.armor.blacksmith.belt":(

@@ -325,51 +325,51 @@
         ),
         // Alchemist Goggles
         (Human, Male, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-4.0, 0.0, 1.0)),
+            vox_spec: ("armor.alchemist", (2.0, 9.0, 1.0), 0),
             color: None
         ),
         (Human, Female, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-4.0, 1.0, 1.0)),
+            vox_spec: ("armor.alchemist", (2.0, 10.0, 1.0), 0),
             color: None
         ),
         (Elf, Male, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-3.0, 0.0, 1.0)),
+            vox_spec: ("armor.alchemist", (3.0, 9.0, 1.0), 0),
             color: None
         ),
         (Elf, Female, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-3.0, -1.0, 1.0)),
+            vox_spec: ("armor.alchemist", (3.0, 8.0, 1.0), 0),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-5.0, 1.0, 1.0)),
+            vox_spec: ("armor.alchemist", (1.0, 10.0, 1.0), 0),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-5.0, 1.0, 1.0)),
+            vox_spec: ("armor.alchemist", (1.0, 10.0, 1.0), 0),
             color: None
         ),
         (Danari, Male, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-2.0, 0.0, 3.0)),
+            vox_spec: ("armor.alchemist", (4.0, 9.0, 3.0), 0),
             color: None
         ),
         (Danari, Female, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-2.0, 1.0, 3.0)),
+            vox_spec: ("armor.alchemist", (4.0, 10.0, 3.0), 0),
             color: None
         ),
         (Draugr, Male, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-6.0, 0.0, 3.0)),
+            vox_spec: ("armor.alchemist", (0.0, 9.0, 3.0), 0),
             color: None
         ),
         (Draugr, Female, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-6.0, 0.0, 2.0)),
+            vox_spec: ("armor.alchemist", (0.0, 9.0, 2.0), 0),
             color: None
         ),
         (Orc, Male, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-3.0, 2.0, 4.0)),
+            vox_spec: ("armor.alchemist", (3.0, 11.0, 4.0), 0),
             color: None
         ),
         (Orc, Female, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist.hat", (-3.0, -1.0, 1.0)),
+            vox_spec: ("armor.alchemist", (3.0, 8.0, 1.0), 0),
             color: None
         ),
         // Chef hat

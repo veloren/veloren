@@ -187,7 +187,7 @@
             color: None
         ),
         "common.items.armor.alchemist.chest": (
-            vox_spec: ("armor.alchemist.chest", (-7.0, -4.0, 2.0)),
+            vox_spec: ("armor.alchemist", (-7.0, -4.0, 2.0), 1),
             color: None
         ),
         "common.items.armor.blacksmith.chest": (
