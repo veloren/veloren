@@ -1140,18 +1140,18 @@ impl Controls {
                 // Height of interactable area
                 const SLIDER_HEIGHT: u16 = 30;
 
-                fn starter_slider<'a, T: Copy + Into<u32>>(
+                fn starter_slider<'a>(
                     text: String,
                     size: u16,
                     state: &'a mut slider::State,
-                    max: T,
-                    selected_val: T,
+                    max: u32,
+                    selected_val: u32,
                     on_change: impl 'static + Fn(u32) -> Message,
                     imgs: &Imgs,
                 ) -> Element<'a, Message> {
                     Column::with_children(vec![
                         Text::new(text).size(size).into(),
-                        Slider::new(state, 0..=max.into(), selected_val.into(), on_change)
+                        Slider::new(state, 0..=max, selected_val, on_change)
                             .height(SLIDER_HEIGHT)
                             .style(style::slider::Style::images(
                                 imgs.slider_indicator,
@@ -1165,19 +1165,19 @@ impl Controls {
                     .align_items(Align::Center)
                     .into()
                 }
-                fn char_slider<'a, T: Copy + Into<u32>>(
+                fn char_slider<'a>(
                     text: String,
                     state: &'a mut slider::State,
-                    max: T,
-                    selected_val: T,
-                    on_change: impl 'static + Fn(u32) -> Message,
+                    max: u8,
+                    selected_val: u8,
+                    on_change: impl 'static + Fn(u8) -> Message,
                     (fonts, imgs): (&Fonts, &Imgs),
                 ) -> Element<'a, Message> {
                     Column::with_children(vec![
                         Text::new(text)
                             .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
                             .into(),
-                        Slider::new(state, 0..=max.into(), selected_val.into(), on_change)
+                        Slider::new(state, 0..=max, selected_val, on_change)
                             .height(SLIDER_HEIGHT)
                             .style(style::slider::Style::images(
                                 imgs.slider_indicator,
@@ -1191,13 +1191,13 @@ impl Controls {
                     .align_items(Align::Center)
                     .into()
                 }
-                fn char_slider_greyable<'a, T: Copy + Into<u32>>(
+                fn char_slider_greyable<'a>(
                     active: bool,
                     text: String,
                     state: &'a mut slider::State,
-                    max: T,
-                    selected_val: T,
-                    on_change: impl 'static + Fn(u32) -> Message,
+                    max: u8,
+                    selected_val: u8,
+                    on_change: impl 'static + Fn(u8) -> Message,
                     (fonts, imgs): (&Fonts, &Imgs),
                 ) -> Element<'a, Message> {
                     if active {
@@ -1237,7 +1237,7 @@ impl Controls {
                         &mut sliders.hair_style,
                         body.species.num_hair_styles(body.body_type) - 1,
                         body.hair_style,
-                        |x| Message::HairStyle(x as u8),
+                        Message::HairStyle,
                         (fonts, imgs),
                     ),
                     char_slider(
@@ -1245,7 +1245,7 @@ impl Controls {
                         &mut sliders.hair_color,
                         body.species.num_hair_colors() - 1,
                         body.hair_color,
-                        |x| Message::HairColor(x as u8),
+                        Message::HairColor,
                         (fonts, imgs),
                     ),
                     char_slider(
@@ -1253,7 +1253,7 @@ impl Controls {
                         &mut sliders.skin,
                         body.species.num_skin_colors() - 1,
                         body.skin,
-                        |x| Message::Skin(x as u8),
+                        Message::Skin,
                         (fonts, imgs),
                     ),
                     char_slider(
@@ -1261,7 +1261,7 @@ impl Controls {
                         &mut sliders.eyes,
                         body.species.num_eyes(body.body_type) - 1,
                         body.eyes,
-                        |x| Message::Eyes(x as u8),
+                        Message::Eyes,
                         (fonts, imgs),
                     ),
                     char_slider(
@@ -1269,7 +1269,7 @@ impl Controls {
                         &mut sliders.eye_color,
                         body.species.num_eye_colors() - 1,
                         body.eye_color,
-                        |x| Message::EyeColor(x as u8),
+                        Message::EyeColor,
                         (fonts, imgs),
                     ),
                     char_slider_greyable(
@@ -1278,7 +1278,7 @@ impl Controls {
                         &mut sliders.accessory,
                         body.species.num_accessories(body.body_type) - 1,
                         body.accessory,
-                        |x| Message::Accessory(x as u8),
+                        Message::Accessory,
                         (fonts, imgs),
                     ),
                     char_slider_greyable(
@@ -1287,7 +1287,7 @@ impl Controls {
                         &mut sliders.beard,
                         body.species.num_beards(body.body_type) - 1,
                         body.beard,
-                        |x| Message::Beard(x as u8),
+                        Message::Beard,
                         (fonts, imgs),
                     ),
                 ])
