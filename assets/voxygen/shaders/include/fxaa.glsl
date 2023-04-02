@@ -84,11 +84,11 @@ vec4 fxaa(texture2D tex, sampler smplr, vec2 fragCoord, vec2 resolution,
     float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);
     dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX),
               max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX),
-              dir * rcpDirMin)) * inverseVP;
+              dir * rcpDirMin)) * inverseVP * 0.75;
 
     vec3 rgbA = 0.5 * (
         texture(sampler2D(tex, smplr), fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
-        texture(sampler2D(tex, smplr), fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
+        texture(sampler2D(tex, smplr), fragCoord * inverseVP + dir * (1.7 / 3.0 - 0.5)).xyz);
     vec3 rgbB = rgbA * 0.5 + 0.25 * (
         texture(sampler2D(tex, smplr), fragCoord * inverseVP + dir * -0.5).xyz +
         texture(sampler2D(tex, smplr), fragCoord * inverseVP + dir * 0.5).xyz);

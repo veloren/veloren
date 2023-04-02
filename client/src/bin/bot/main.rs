@@ -189,6 +189,7 @@ impl BotClient {
                 Some("common.items.weapons.sword.starter".to_string()),
                 None,
                 body.into(),
+                None,
             );
             client.load_character_list();
         }

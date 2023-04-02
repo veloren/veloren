@@ -13,7 +13,7 @@ use crate::{
     weather::WeatherSim,
     wiring,
     wiring::OutputFormula,
-    Server, Settings, SpawnPoint, StateExt,
+    Server, Settings, StateExt,
 };
 use assets::AssetExt;
 use authc::Uuid;
@@ -150,7 +150,7 @@ fn do_command(
         ServerChatCommand::GroupPromote => handle_group_promote,
         ServerChatCommand::Health => handle_health,
         ServerChatCommand::Help => handle_help,
-        ServerChatCommand::Home => handle_home,
+        ServerChatCommand::Respawn => handle_respawn,
         ServerChatCommand::JoinFaction => handle_join_faction,
         ServerChatCommand::Jump => handle_jump,
         ServerChatCommand::Kick => handle_kick,
@@ -874,25 +874,23 @@ fn handle_site(
     Ok(())
 }
 
-fn handle_home(
+fn handle_respawn(
     server: &mut Server,
     _client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let home_pos = server.state.mut_resource::<SpawnPoint>().0;
-    let time = *server.state.mut_resource::<Time>();
+    let waypoint = server
+        .state
+        .read_storage::<comp::Waypoint>()
+        .get(target)
+        .ok_or("No waypoint set")?
+        .get_pos();
 
     position_mut(server, target, "target", |current_pos| {
-        current_pos.0 = home_pos
-    })?;
-    insert_or_replace_component(
-        server,
-        target,
-        comp::Waypoint::temp_new(home_pos, time),
-        "target",
-    )
+        current_pos.0 = waypoint;
+    })
 }
 
 fn handle_kill(

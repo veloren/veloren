@@ -135,6 +135,9 @@ use world::{
     IndexOwned, World,
 };
 
+/// SpawnPoint corresponds to the default location that players are positioned
+/// at if they have no waypoint. Players *should* always have a waypoint, so
+/// this should basically never be used in practice.
 #[derive(Copy, Clone)]
 pub struct SpawnPoint(pub Vec3<f32>);
 
@@ -395,6 +398,8 @@ impl Server {
 
         #[cfg(feature = "worldgen")]
         let spawn_point = SpawnPoint({
+            use world::civ::SiteKind;
+
             let index = index.as_index_ref();
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
             // but are needed to be explicit about casting (and to make the compiler stop
@@ -402,27 +407,14 @@ impl Server {
 
             // Search for town defined by spawn_town server setting. If this fails, or is
             // None, set spawn to the nearest town to the centre of the world
-            let spawn_chunk = match settings.spawn_town.as_ref().and_then(|spawn_town| {
-                world.civs().sites().find(|site| {
-                    site.site_tmp
-                        .map_or(false, |id| index.sites[id].name() == spawn_town)
-                })
-            }) {
-                Some(t) => t.center,
-                None => {
-                    let center_chunk = world.sim().map_size_lg().chunks().map(i32::from) / 2;
-                    use world::civ::SiteKind;
-                    world
-                        .civs()
-                        .sites()
-                        .filter(|site| {
-                            matches!(site.kind, SiteKind::Settlement | SiteKind::Refactor)
-                        })
-                        .map(|site| site.center)
-                        .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
-                        .unwrap_or(center_chunk)
-                },
-            };
+            let center_chunk = world.sim().map_size_lg().chunks().map(i32::from) / 2;
+            let spawn_chunk = world
+                .civs()
+                .sites()
+                .filter(|site| matches!(site.kind, SiteKind::Settlement | SiteKind::Refactor))
+                .map(|site| site.center)
+                .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
+                .unwrap_or(center_chunk);
 
             world.find_accessible_pos(index, TerrainChunkSize::center_wpos(spawn_chunk), false)
         });
@@ -558,7 +550,7 @@ impl Server {
         // Initiate real-time world simulation
         #[cfg(feature = "worldgen")]
         {
-            rtsim::init(&mut state, &world, index.as_index_ref(), spawn_point);
+            rtsim::init(&mut state, &world, index.as_index_ref());
             weather::init(&mut state, &world);
         }
         #[cfg(not(feature = "worldgen"))]

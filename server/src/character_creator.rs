@@ -1,7 +1,10 @@
 use crate::persistence::{character_updater::CharacterUpdater, PersistedComponents};
 use common::{
     character::CharacterId,
-    comp::{inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats},
+    comp::{
+        inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats,
+        Waypoint,
+    },
 };
 use specs::{Entity, WriteExpect};
 
@@ -32,6 +35,7 @@ pub fn create_character(
     character_offhand: Option<String>,
     body: Body,
     character_updater: &mut WriteExpect<'_, CharacterUpdater>,
+    waypoint: Option<Waypoint>,
 ) -> Result<(), CreationError> {
     // quick fix whitelist validation for now; eventually replace the
     // `Option<String>` with an index into a server-provided list of starter
@@ -63,7 +67,6 @@ pub fn create_character(
         .push(Item::new_from_asset_expect("common.items.food.cheese"))
         .expect("Inventory has at least 1 slot left!");
 
-    let waypoint = None;
     let map_marker = None;
 
     character_updater.create_character(entity, player_uuid, character_alias, PersistedComponents {

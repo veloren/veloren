@@ -149,6 +149,8 @@ impl WorldData {
 
     pub fn map_image(&self) -> &Arc<DynamicImage> { &self.map.0[0] }
 
+    pub fn topo_map_image(&self) -> &Arc<DynamicImage> { &self.map.0[1] }
+
     pub fn min_chunk_alt(&self) -> f32 { self.map.2.x }
 
     pub fn max_chunk_alt(&self) -> f32 { self.map.2.y }
@@ -953,6 +955,7 @@ impl Client {
         mainhand: Option<String>,
         offhand: Option<String>,
         body: comp::Body,
+        start_site: Option<SiteId>,
     ) {
         self.character_list.loading = true;
         self.send_msg(ClientGeneral::CreateCharacter {
@@ -960,6 +963,7 @@ impl Client {
             mainhand,
             offhand,
             body,
+            start_site,
         });
     }
 

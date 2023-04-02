@@ -148,6 +148,7 @@ fn run_client(
             Some("common.items.weapons.sword.starter".into()),
             None,
             body(),
+            None,
         );
 
         client.load_character_list();

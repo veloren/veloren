@@ -1,4 +1,5 @@
 use crate::{
+    hud::default_water_color,
     render::UiDrawer,
     ui::{
         self,
@@ -16,6 +17,7 @@ use crate::{
             Element, IcedRenderer, IcedUi as Ui,
         },
         img_ids::ImageGraphic,
+        Graphic, GraphicId,
     },
     window, GlobalState,
 };
@@ -23,18 +25,22 @@ use client::{Client, ServerInfo};
 use common::{
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER, MAX_NAME_LENGTH},
     comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
+    terrain::TerrainChunkSize,
+    vol::RectVolSize,
     LoadoutBuilder,
 };
+use common_net::msg::world_msg::{SiteId, SiteInfo, SiteKind};
 use i18n::{Localization, LocalizationHandle};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
 //use std::time::Duration;
 //use ui::ice::widget;
 use iced::{
-    button, scrollable, slider, text_input, Align, Button, Column, Container, HorizontalAlignment,
-    Length, Row, Scrollable, Slider, Space, Text, TextInput,
+    button, scrollable, slider, text_input, Align, Button, Color, Column, Container,
+    HorizontalAlignment, Length, Row, Scrollable, Slider, Space, Text, TextInput,
 };
-use vek::Rgba;
+use std::sync::Arc;
+use vek::{Rgba, Vec2};
 
 pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
 pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
@@ -121,6 +127,9 @@ image_ids_ice! {
         // Tooltips
         tt_edge: "voxygen.element.ui.generic.frames.tooltip.edge",
         tt_corner: "voxygen.element.ui.generic.frames.tooltip.corner",
+
+        // Startzone Selection
+        town_marker: "voxygen.element.ui.char_select.icons.town_marker",
     }
 }
 
@@ -133,6 +142,7 @@ pub enum Event {
         mainhand: Option<String>,
         offhand: Option<String>,
         body: comp::Body,
+        start_site: Option<SiteId>,
     },
     EditCharacter {
         alias: String,
@@ -168,13 +178,20 @@ enum Mode {
         species_buttons: [button::State; 6],
         tool_buttons: [button::State; 6],
         sliders: Sliders,
-        scroll: scrollable::State,
+        left_scroll: scrollable::State,
+        right_scroll: scrollable::State,
         name_input: text_input::State,
         back_button: button::State,
         create_button: button::State,
         rand_character_button: button::State,
         rand_name_button: button::State,
+        prev_starting_site_button: button::State,
+        next_starting_site_button: button::State,
+        /// `character_id.is_some()` can be used to determine if we're in edit
+        /// mode as opposed to create mode.
+        // TODO: Something less janky? Express the problem domain better!
         character_id: Option<CharacterId>,
+        start_site_idx: usize,
     },
 }
 
@@ -217,13 +234,17 @@ impl Mode {
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
             sliders: Default::default(),
-            scroll: Default::default(),
+            left_scroll: Default::default(),
+            right_scroll: Default::default(),
             name_input: Default::default(),
             back_button: Default::default(),
             create_button: Default::default(),
             rand_character_button: Default::default(),
             rand_name_button: Default::default(),
+            prev_starting_site_button: Default::default(),
+            next_starting_site_button: Default::default(),
             character_id: None,
+            start_site_idx: 0,
         }
     }
 
@@ -243,13 +264,17 @@ impl Mode {
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
             sliders: Default::default(),
-            scroll: Default::default(),
+            left_scroll: Default::default(),
+            right_scroll: Default::default(),
             name_input: Default::default(),
             back_button: Default::default(),
             create_button: Default::default(),
             rand_character_button: Default::default(),
             rand_name_button: Default::default(),
+            prev_starting_site_button: Default::default(),
+            next_starting_site_button: Default::default(),
             character_id: Some(character_id),
+            start_site_idx: 0,
         }
     }
 }
@@ -279,6 +304,9 @@ struct Controls {
     // Id of the selected character
     selected: Option<CharacterId>,
     default_name: String,
+    map_img: GraphicId,
+    possible_starting_sites: Vec<SiteInfo>,
+    world_sz: Vec2<u32>,
 }
 
 #[derive(Clone)]
@@ -309,6 +337,9 @@ enum Message {
     EyeColor(u8),
     Accessory(u8),
     Beard(u8),
+    StartingSite(usize),
+    PrevStartingSite,
+    NextStartingSite,
     // Workaround for widgets that require a message but we don't want them to actually do
     // anything
     DoNothing,
@@ -321,6 +352,9 @@ impl Controls {
         selected: Option<CharacterId>,
         default_name: String,
         server_info: &ServerInfo,
+        map_img: GraphicId,
+        possible_starting_sites: Vec<SiteInfo>,
+        world_sz: Vec2<u32>,
     ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
@@ -339,6 +373,9 @@ impl Controls {
             mode: Mode::select(Some(InfoContent::LoadingCharacters)),
             selected,
             default_name,
+            map_img,
+            possible_starting_sites,
+            world_sz,
         }
     }
 
@@ -392,6 +429,35 @@ impl Controls {
             version.into(),
         ])
         .width(Length::Fill);
+
+        let mut warning_container = if let Some(mismatched_version) =
+            &self.server_mismatched_version
+        {
+            let warning = Text::<IcedRenderer>::new(format!(
+                "{}\n{}: {} {}: {}",
+                i18n.get_msg("char_selection-version_mismatch"),
+                i18n.get_msg("main-login-server_version"),
+                mismatched_version,
+                i18n.get_msg("main-login-client_version"),
+                *common::util::GIT_HASH
+            ))
+            .size(self.fonts.cyri.scale(18))
+            .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
+            .width(Length::Fill)
+            .horizontal_alignment(HorizontalAlignment::Center);
+            Some(
+                Container::new(
+                    Container::new(Row::with_children(vec![warning.into()]).width(Length::Fill))
+                        .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
+                        .padding(12)
+                        .width(Length::Fill)
+                        .center_x(),
+                )
+                .padding(16),
+            )
+        } else {
+            None
+        };
 
         let content = match &mut self.mode {
             Mode::Select {
@@ -669,8 +735,8 @@ impl Controls {
                 let left_column = Column::with_children(vec![server.into(), characters.into()])
                     .spacing(10)
                     .width(Length::Units(322)) // TODO: see if we can get iced to work with settings below
-                    //.max_width(360)
-                    //.width(Length::Fill)
+                    // .max_width(360)
+                    // .width(Length::Fill)
                     .height(Length::Fill);
 
                 let top = Row::with_children(vec![
@@ -831,7 +897,8 @@ impl Controls {
                 inventory: _,
                 mainhand,
                 offhand: _,
-                ref mut scroll,
+                ref mut left_scroll,
+                ref mut right_scroll,
                 ref mut body_type_buttons,
                 ref mut species_buttons,
                 ref mut tool_buttons,
@@ -841,7 +908,10 @@ impl Controls {
                 ref mut create_button,
                 ref mut rand_character_button,
                 ref mut rand_name_button,
+                ref mut prev_starting_site_button,
+                ref mut next_starting_site_button,
                 character_id,
+                start_site_idx,
             } => {
                 let unselected_style = style::button::Style::new(imgs.icon_border)
                     .hover_image(imgs.icon_border_mo)
@@ -1070,6 +1140,31 @@ impl Controls {
                 // Height of interactable area
                 const SLIDER_HEIGHT: u16 = 30;
 
+                fn starter_slider<'a>(
+                    text: String,
+                    size: u16,
+                    state: &'a mut slider::State,
+                    max: u32,
+                    selected_val: u32,
+                    on_change: impl 'static + Fn(u32) -> Message,
+                    imgs: &Imgs,
+                ) -> Element<'a, Message> {
+                    Column::with_children(vec![
+                        Text::new(text).size(size).into(),
+                        Slider::new(state, 0..=max, selected_val, on_change)
+                            .height(SLIDER_HEIGHT)
+                            .style(style::slider::Style::images(
+                                imgs.slider_indicator,
+                                imgs.slider_range,
+                                SLIDER_BAR_PAD,
+                                SLIDER_CURSOR_SIZE,
+                                SLIDER_BAR_HEIGHT,
+                            ))
+                            .into(),
+                    ])
+                    .align_items(Align::Center)
+                    .into()
+                }
                 fn char_slider<'a>(
                     text: String,
                     state: &'a mut slider::State,
@@ -1115,19 +1210,21 @@ impl Controls {
                                 .into(),
                             // "Disabled" slider
                             // TODO: add iced support for disabled sliders (like buttons)
-                            Slider::new(state, 0..=max, selected_val, |_| Message::DoNothing)
-                                .height(SLIDER_HEIGHT)
-                                .style(style::slider::Style {
-                                    cursor: style::slider::Cursor::Color(Rgba::zero()),
-                                    bar: style::slider::Bar::Image(
-                                        imgs.slider_range,
-                                        Rgba::from_translucent(255, 51),
-                                        SLIDER_BAR_PAD,
-                                    ),
-                                    labels: false,
-                                    ..Default::default()
-                                })
-                                .into(),
+                            Slider::new(state, 0..=max.into(), selected_val.into(), |_| {
+                                Message::DoNothing
+                            })
+                            .height(SLIDER_HEIGHT)
+                            .style(style::slider::Style {
+                                cursor: style::slider::Cursor::Color(Rgba::zero()),
+                                bar: style::slider::Bar::Image(
+                                    imgs.slider_range,
+                                    Rgba::from_translucent(255, 51),
+                                    SLIDER_BAR_PAD,
+                                ),
+                                labels: false,
+                                ..Default::default()
+                            })
+                            .into(),
                         ])
                         .align_items(Align::Center)
                         .into()
@@ -1213,7 +1310,7 @@ impl Controls {
                     tooltip::text(&tooltip_text, tooltip_style)
                 });
 
-                let column_content = vec![
+                let left_column_content = vec![
                     body_type.into(),
                     tool.into(),
                     species.into(),
@@ -1221,47 +1318,215 @@ impl Controls {
                     rand_character.into(),
                 ];
 
-                let left_column = Container::new(
-                    Scrollable::new(scroll)
-                        .push(
-                            Column::with_children(column_content)
-                                .align_items(Align::Center)
-                                .width(Length::Fill)
-                                .spacing(5),
-                        )
-                        .padding(5)
-                        .width(Length::Fill)
-                        .align_items(Align::Center)
-                        .style(style::scrollable::Style {
-                            track: None,
-                            scroller: style::scrollable::Scroller::Color(UI_MAIN),
-                        }),
-                )
-                .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
-                //.max_width(360)
-                //.width(Length::Fill)
-                .height(Length::Fill);
+                let right_column_content = if character_id.is_none() {
+                    let site_slider = starter_slider(
+                        i18n.get_msg("char_selection-starting_site").into_owned(),
+                        30,
+                        &mut sliders.starting_site,
+                        self.possible_starting_sites.len() as u32 - 1,
+                        *start_site_idx as u32,
+                        |x| Message::StartingSite(x as usize),
+                        imgs,
+                    );
+                    let map_sz = Vec2::new(500, 500);
+                    let map_img = Image::new(self.map_img)
+                        .height(Length::Units(map_sz.x))
+                        .width(Length::Units(map_sz.y));
+                    let site_name = Text::new(
+                        self.possible_starting_sites[*start_site_idx]
+                            .name
+                            .as_deref()
+                            .unwrap_or("Unknown")
+                    )
+                    .horizontal_alignment(HorizontalAlignment::Left)
+                    .color(Color::from_rgb(131.0, 102.0, 0.0))
+                    /* .stroke(Stroke {
+                        color: Color::WHITE,
+                        width: 1.0,
+                    }) */;
+                    //TODO: Add text-outline here whenever we updated iced to a version supporting
+                    // this
 
-                let left_column = Column::with_children(vec![
-                    Container::new(left_column)
-                        .style(style::container::Style::color(Rgba::from_translucent(
-                            0,
-                            BANNER_ALPHA,
-                        )))
-                        .width(Length::Units(320))
-                        .center_x()
-                        .into(),
-                    Image::new(imgs.frame_bottom)
-                        .height(Length::Units(40))
-                        .width(Length::Units(320))
-                        .color(Rgba::from_translucent(0, BANNER_ALPHA))
-                        .into(),
-                ])
-                .height(Length::Fill);
+                    let map = if let Some(info) = self.possible_starting_sites.get(*start_site_idx)
+                    {
+                        let pos_frac = info
+                            .wpos
+                            .map2(self.world_sz * TerrainChunkSize::RECT_SIZE, |e, sz| {
+                                e as f32 / sz as f32
+                            });
+                        let point = Vec2::new(pos_frac.x, 1.0 - pos_frac.y)
+                            .map2(map_sz, |e, sz| e * sz as f32 - 12.0);
+                        let marker_img = Image::new(imgs.town_marker)
+                            .height(Length::Units(27))
+                            .width(Length::Units(16));
+                        let marker_content: Column<Message, IcedRenderer> = Column::new()
+                            .spacing(2)
+                            .push(site_name)
+                            .push(marker_img)
+                            .align_items(Align::Center);
+
+                        Overlay::new(
+                            Container::new(marker_content)
+                                .width(Length::Fill)
+                                .height(Length::Fill)
+                                .center_x()
+                                .center_y(),
+                            map_img,
+                        )
+                        .over_position(iced::Point::new(point.x, point.y - 34.0))
+                        .into()
+                    } else {
+                        map_img.into()
+                    };
+
+                    if self.possible_starting_sites.is_empty() {
+                        vec![map]
+                    } else {
+                        let site_buttons = Row::with_children(vec![
+                            neat_button(
+                                prev_starting_site_button,
+                                i18n.get_msg("char_selection-starting_site_prev")
+                                    .into_owned(),
+                                FILL_FRAC_ONE,
+                                button_style,
+                                Some(Message::PrevStartingSite),
+                            ),
+                            neat_button(
+                                next_starting_site_button,
+                                i18n.get_msg("char_selection-starting_site_next")
+                                    .into_owned(),
+                                FILL_FRAC_ONE,
+                                button_style,
+                                Some(Message::NextStartingSite),
+                            ),
+                        ])
+                        .max_height(60)
+                        .padding(15)
+                        .into();
+                        // Todo: use this to change the site icon if we use different starting site
+                        // types
+                        /* let site_kind = Text::new(i18n
+                            .get_msg_ctx("char_selection-starting_site_kind", &i18n::fluent_args! {
+                                "kind" => match self.possible_starting_sites[*start_site_idx].kind {
+                                    SiteKind::Town => i18n.get_msg("hud-map-town").into_owned(),
+                                    SiteKind::Castle => i18n.get_msg("hud-map-castle").into_owned(),
+                                    SiteKind::Bridge => i18n.get_msg("hud-map-bridge").into_owned(),
+                                    _ => "Unknown".to_string(),
+                                },
+                            })
+                            .into_owned())
+                        .size(fonts.cyri.scale(SLIDER_TEXT_SIZE))
+                        .into(); */
+
+                        vec![site_slider, map, site_buttons]
+                    }
+                } else {
+                    // If we're editing an existing character, don't display the world column
+                    Vec::new()
+                };
+
+                let column_left = |column_content, scroll| {
+                    let column = Container::new(
+                        Scrollable::new(scroll)
+                            .push(
+                                Column::with_children(column_content)
+                                    .align_items(Align::Center)
+                                    .width(Length::Fill)
+                                    .spacing(5)
+                                    .padding(5),
+                            )
+                            .padding(5)
+                            .width(Length::Fill)
+                            .align_items(Align::Center)
+                            .style(style::scrollable::Style {
+                                track: None,
+                                scroller: style::scrollable::Scroller::Color(UI_MAIN),
+                            }),
+                    )
+                    .width(Length::Units(320)) // TODO: see if we can get iced to work with settings below
+                    // .max_width(360)
+                    // .width(Length::Fill)
+                    .height(Length::Fill);
+
+                    Column::with_children(vec![
+                        Container::new(column)
+                            .style(style::container::Style::color(Rgba::from_translucent(
+                                0,
+                                BANNER_ALPHA,
+                            )))
+                            .width(Length::Units(320))
+                            .center_x()
+                            .into(),
+                        Image::new(imgs.frame_bottom)
+                            .height(Length::Units(40))
+                            .width(Length::Units(320))
+                            .color(Rgba::from_translucent(0, BANNER_ALPHA))
+                            .into(),
+                    ])
+                    .height(Length::Fill)
+                };
+                let column_right = |column_content, scroll| {
+                    let column = Container::new(
+                        Scrollable::new(scroll)
+                            .push(
+                                Column::with_children(column_content)
+                                    .align_items(Align::Center)
+                                    .width(Length::Fill)
+                                    .spacing(5)
+                                    .padding(5),
+                            )
+                            .padding(5)
+                            .width(Length::Fill)
+                            .align_items(Align::Center)
+                            .style(style::scrollable::Style {
+                                track: None,
+                                scroller: style::scrollable::Scroller::Color(UI_MAIN),
+                            }),
+                    )
+                    .width(Length::Units(520)) // TODO: see if we can get iced to work with settings below
+                    // .max_width(360)
+                    // .width(Length::Fill)
+                    .height(Length::Fill);
+                    if character_id.is_none() {
+                        Column::with_children(vec![
+                            Container::new(column)
+                                .style(style::container::Style::color(Rgba::from_translucent(
+                                    0,
+                                    BANNER_ALPHA,
+                                )))
+                                .width(Length::Units(520))
+                                .center_x()
+                                .into(),
+                            Image::new(imgs.frame_bottom)
+                                .height(Length::Units(40))
+                                .width(Length::Units(520))
+                                .color(Rgba::from_translucent(0, BANNER_ALPHA))
+                                .into(),
+                        ])
+                        .height(Length::Fill)
+                    } else {
+                        Column::with_children(vec![Container::new(column).into()])
+                    }
+                };
+
+                let mouse_area =
+                    MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill);
 
                 let top = Row::with_children(vec![
-                    left_column.into(),
-                    MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill).into(),
+                    column_left(left_column_content, left_scroll).into(),
+                    Column::with_children(
+                        if let Some(warning_container) = warning_container.take() {
+                            vec![warning_container.into(), mouse_area.into()]
+                        } else {
+                            vec![mouse_area.into()]
+                        },
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .into(),
+                    column_right(right_column_content, right_scroll)
+                        .width(Length::Units(520))
+                        .into(),
                 ])
                 .padding(10)
                 .width(Length::Fill)
@@ -1373,46 +1638,20 @@ impl Controls {
             },
         };
 
-        // TODO: There is probably a better way to conditionally add in the warning box
-        // here
-        if let Some(mismatched_version) = &self.server_mismatched_version {
-            let warning = Text::<IcedRenderer>::new(format!(
-                "{}\n{}: {} {}: {}",
-                i18n.get_msg("char_selection-version_mismatch"),
-                i18n.get_msg("main-login-server_version"),
-                mismatched_version,
-                i18n.get_msg("main-login-client_version"),
-                *common::util::GIT_HASH
-            ))
-            .size(self.fonts.cyri.scale(18))
-            .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
-            .width(Length::Fill)
-            .horizontal_alignment(HorizontalAlignment::Center);
-            let warning_container =
-                Container::new(Row::with_children(vec![warning.into()]).width(Length::Fill))
-                    .style(style::container::Style::color(Rgba::new(0, 0, 0, 217)))
-                    .padding(12)
-                    .center_x()
-                    .width(Length::Fill);
-
-            Container::new(
-                Column::with_children(vec![top_text.into(), warning_container.into(), content])
-                    .spacing(3)
-                    .width(Length::Fill)
-                    .height(Length::Fill),
-            )
-            .padding(3)
-            .into()
+        let children = if let Some(warning_container) = warning_container {
+            vec![top_text.into(), warning_container.into(), content]
         } else {
-            Container::new(
-                Column::with_children(vec![top_text.into(), content])
-                    .spacing(3)
-                    .width(Length::Fill)
-                    .height(Length::Fill),
-            )
-            .padding(3)
-            .into()
-        }
+            vec![top_text.into(), content]
+        };
+
+        Container::new(
+            Column::with_children(children)
+                .spacing(3)
+                .width(Length::Fill)
+                .height(Length::Fill),
+        )
+        .padding(3)
+        .into()
     }
 
     fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem]) {
@@ -1516,6 +1755,7 @@ impl Controls {
                     body,
                     mainhand,
                     offhand,
+                    start_site_idx,
                     ..
                 } = &self.mode
                 {
@@ -1524,6 +1764,10 @@ impl Controls {
                         mainhand: mainhand.map(String::from),
                         offhand: offhand.map(String::from),
                         body: comp::Body::Humanoid(*body),
+                        start_site: self
+                            .possible_starting_sites
+                            .get(*start_site_idx)
+                            .map(|info| info.id),
                     });
                     self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
                 }
@@ -1643,6 +1887,29 @@ impl Controls {
                     body.validate();
                 }
             },
+            Message::StartingSite(idx) => {
+                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
+                    *start_site_idx = idx;
+                }
+            },
+            Message::PrevStartingSite => {
+                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
+                    if !self.possible_starting_sites.is_empty() {
+                        *start_site_idx = (*start_site_idx + self.possible_starting_sites.len()
+                            - 1)
+                            % self.possible_starting_sites.len();
+                    }
+                }
+            },
+            Message::NextStartingSite => {
+                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
+                    if !self.possible_starting_sites.is_empty() {
+                        *start_site_idx =
+                            (*start_site_idx + self.possible_starting_sites.len() + 1)
+                                % self.possible_starting_sites.len();
+                    }
+                }
+            },
         }
     }
 
@@ -1707,6 +1974,17 @@ impl CharSelectionUi {
             selected_character,
             default_name,
             client.server_info(),
+            ui.add_graphic(Graphic::Image(
+                Arc::clone(client.world_data().topo_map_image()),
+                Some(default_water_color()),
+            )),
+            client.sites()
+                .values()
+                // TODO: Enforce this server-side and add some way to customise it?
+                .filter(|info| matches!(&info.site.kind, SiteKind::Town /*| SiteKind::Castle | SiteKind::Bridge*/))
+                .map(|info| info.site.clone())
+                .collect(),
+            client.world_data().chunk_size().as_(),
         );
 
         Self {
@@ -1814,4 +2092,5 @@ struct Sliders {
     eye_color: slider::State,
     accessory: slider::State,
     beard: slider::State,
+    starting_site: slider::State,
 }

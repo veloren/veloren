@@ -796,8 +796,7 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.show_peaks_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_peaks_text, ui);
-        // Voxel map (TODO: enable this once Pfau approves the final UI, and once
-        // there's a non-placeholder graphic for the checkbox)
+
         const EXPOSE_VOXEL_MAP_TOGGLE_IN_UI: bool = false;
         if EXPOSE_VOXEL_MAP_TOGGLE_IN_UI {
             Image::new(self.imgs.mmap_poi_peak)

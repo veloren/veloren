@@ -222,6 +222,9 @@ const SPEECH_BUBBLE_RANGE: f32 = NAMETAG_RANGE;
 const EXP_FLOATER_LIFETIME: f32 = 2.0;
 const EXP_ACCUMULATION_DURATION: f32 = 0.5;
 
+// TODO: Don't hard code this
+pub fn default_water_color() -> Rgba<f32> { srgba_to_linear(Rgba::new(0.0, 0.18, 0.37, 1.0)) }
+
 widget_ids! {
     struct Ids {
         // Crosshair
@@ -1303,15 +1306,15 @@ impl Hud {
         ui.set_scaling_mode(settings.interface.ui_scale);
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
-        // NOTE: Use a border the same color as the LOD ocean color (but with a
-        // translucent alpha since UI have transparency and LOD doesn't).
-        let water_color = srgba_to_linear(Rgba::new(0.0, 0.18, 0.37, 1.0));
         // Load world map
         let mut layers = Vec::new();
         for layer in client.world_data().map_layers() {
-            layers.push(
-                ui.add_graphic_with_rotations(Graphic::Image(Arc::clone(layer), Some(water_color))),
-            );
+            // NOTE: Use a border the same color as the LOD ocean color (but with a
+            // translucent alpha since UI have transparency and LOD doesn't).
+            layers.push(ui.add_graphic_with_rotations(Graphic::Image(
+                Arc::clone(layer),
+                Some(default_water_color()),
+            )));
         }
         let world_map = (layers, client.world_data().chunk_size().map(|e| e as u32));
         // Load images.
