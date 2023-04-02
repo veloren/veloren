@@ -20,24 +20,24 @@ pub fn animate_by_pulse(ids: &[Id], pulse: f32) -> Id {
 #[derive(Serialize, Deserialize)]
 pub enum ImageSpec {
     Png(String),
-    Vox(String),
-    // (specifier, offset, (axis, 2 * angle / pi), zoom)
-    VoxTrans(String, [f32; 3], [f32; 3], f32),
+    Vox(String, #[serde(default)] u32),
+    // (specifier, offset, (axis, 2 * angle / pi), zoom, model_index)
+    VoxTrans(String, [f32; 3], [f32; 3], f32, #[serde(default)] u32),
 }
 impl ImageSpec {
     fn create_graphic(&self) -> Graphic {
         match self {
             ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(specifier), None),
-            ImageSpec::Vox(specifier) => Graphic::Voxel(
-                graceful_load_segment_no_skin(specifier),
+            ImageSpec::Vox(specifier, model_index) => Graphic::Voxel(
+                graceful_load_segment_no_skin(specifier, *model_index),
                 Transform {
                     stretch: false,
                     ..Default::default()
                 },
                 SampleStrat::None,
             ),
-            ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom) => Graphic::Voxel(
-                graceful_load_segment_no_skin(specifier),
+            ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom, model_index) => Graphic::Voxel(
+                graceful_load_segment_no_skin(specifier, *model_index),
                 Transform {
                     ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
                         .rotated_y(rot_y * std::f32::consts::PI / 180.0)
@@ -163,9 +163,9 @@ fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
     handle.read().to_image()
 }
 
-fn graceful_load_segment_no_skin(specifier: &str) -> Arc<Segment> {
+fn graceful_load_segment_no_skin(specifier: &str, model_index: u32) -> Arc<Segment> {
     use common::figure::{mat_cell::MatCell, MatSegment};
-    let mat_seg = MatSegment::from(&graceful_load_vox(specifier).read().0);
+    let mat_seg = MatSegment::from((&graceful_load_vox(specifier).read().0, model_index as usize));
     let seg = mat_seg
         .map(|mat_cell| match mat_cell {
             MatCell::None => None,
