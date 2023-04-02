@@ -3,7 +3,7 @@ pub use common::rtsim::{NpcId, Profession};
 use common::{
     comp,
     grid::Grid,
-    rtsim::{FactionId, Personality, SiteId, VehicleId},
+    rtsim::{Actor, FactionId, NpcAction, Personality, SiteId, VehicleId},
     store::Id,
     vol::RectVolSize,
 };
@@ -20,8 +20,6 @@ use world::{
     site::Site as WorldSite,
     util::{RandomPerm, LOCALITY},
 };
-
-use super::Actor;
 
 #[derive(Copy, Clone, Debug, Default)]
 pub enum SimulationMode {
@@ -45,24 +43,21 @@ pub struct PathingMemory {
     pub intersite_path: Option<(PathData<(Id<Track>, bool), SiteId>, usize)>,
 }
 
-#[derive(Clone, Copy)]
-pub enum NpcAction {
-    /// (wpos, speed_factor)
-    Goto(Vec3<f32>, f32),
-}
-
+#[derive(Default)]
 pub struct Controller {
-    pub action: Option<NpcAction>,
+    pub actions: Vec<NpcAction>,
+    /// (wpos, speed_factor)
+    pub goto: Option<(Vec3<f32>, f32)>,
 }
 
 impl Controller {
-    pub fn idle() -> Self { Self { action: None } }
+    pub fn do_idle(&mut self) { self.goto = None; }
 
-    pub fn goto(wpos: Vec3<f32>, speed_factor: f32) -> Self {
-        Self {
-            action: Some(NpcAction::Goto(wpos, speed_factor)),
-        }
+    pub fn do_goto(&mut self, wpos: Vec3<f32>, speed_factor: f32) {
+        self.goto = Some((wpos, speed_factor));
     }
+
+    pub fn do_greet(&mut self, actor: Actor) { self.actions.push(NpcAction::Greet(actor)); }
 }
 
 pub struct Brain {
@@ -91,7 +86,7 @@ pub struct Npc {
     pub current_site: Option<SiteId>,
 
     #[serde(skip_serializing, skip_deserializing)]
-    pub action: Option<NpcAction>,
+    pub controller: Controller,
 
     /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the
     /// server, loaded corresponds to being within a loaded chunk). When in
@@ -118,7 +113,7 @@ impl Clone for Npc {
             // Not persisted
             chunk_pos: None,
             current_site: Default::default(),
-            action: Default::default(),
+            controller: Default::default(),
             mode: Default::default(),
             brain: Default::default(),
         }
@@ -138,7 +133,7 @@ impl Npc {
             riding: None,
             chunk_pos: None,
             current_site: None,
-            action: None,
+            controller: Controller::default(),
             mode: SimulationMode::Simulated,
             brain: None,
         }
@@ -248,6 +243,7 @@ impl Vehicle {
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct GridCell {
     pub npcs: Vec<NpcId>,
+    pub characters: Vec<common::character::CharacterId>,
     pub vehicles: Vec<VehicleId>,
 }
 
@@ -269,23 +265,33 @@ impl Npcs {
     }
 
     /// Queries nearby npcs, not garantueed to work if radius > 32.0
-    pub fn nearby(&self, wpos: Vec2<f32>, radius: f32) -> impl Iterator<Item = NpcId> + '_ {
+    pub fn nearby(&self, wpos: Vec2<f32>, radius: f32) -> impl Iterator<Item = Actor> + '_ {
         let chunk_pos =
             wpos.as_::<i32>() / common::terrain::TerrainChunkSize::RECT_SIZE.as_::<i32>();
         let r_sqr = radius * radius;
         LOCALITY
             .into_iter()
-            .filter_map(move |neighbor| {
-                self.npc_grid.get(chunk_pos + neighbor).map(|cell| {
+            .flat_map(move |neighbor| {
+                self.npc_grid.get(chunk_pos + neighbor).map(move |cell| {
                     cell.npcs
                         .iter()
                         .copied()
-                        .filter(|npc| {
+                        .filter(move |npc| {
                             self.npcs
                                 .get(*npc)
                                 .map_or(false, |npc| npc.wpos.xy().distance_squared(wpos) < r_sqr)
                         })
-                        .collect::<Vec<_>>()
+                        .map(Actor::Npc)
+                        .chain(cell.characters
+                        .iter()
+                        .copied()
+                        // TODO: Filter characters by distance too
+                        // .filter(move |npc| {
+                        //     self.npcs
+                        //         .get(*npc)
+                        //         .map_or(false, |npc| npc.wpos.xy().distance_squared(wpos) < r_sqr)
+                        // })
+                        .map(Actor::Character))
                 })
             })
             .flatten()

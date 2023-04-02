@@ -6,18 +6,14 @@ use crate::TerrainPersistence;
 use world::{IndexOwned, World};
 
 use crate::{
-    chunk_generator::ChunkGenerator,
-    chunk_serialize::ChunkSendEntry,
-    client::Client,
-    presence::{Presence, RepositionOnChunkLoad},
-    rtsim,
-    settings::Settings,
-    ChunkRequest, Tick,
+    chunk_generator::ChunkGenerator, chunk_serialize::ChunkSendEntry, client::Client,
+    presence::RepositionOnChunkLoad, rtsim, settings::Settings, ChunkRequest, Tick,
 };
 use common::{
     calendar::Calendar,
     comp::{
-        self, agent, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate, Pos, Waypoint,
+        self, agent, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate, Pos, Presence,
+        Waypoint,
     },
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::EntityInfo,

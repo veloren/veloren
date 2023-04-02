@@ -62,7 +62,7 @@ use crate::{
     location::Locations,
     login_provider::LoginProvider,
     persistence::PersistedComponents,
-    presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
+    presence::{RegionSubscription, RepositionOnChunkLoad},
     state_ext::StateExt,
     sys::sentinel::DeletedEntities,
 };
@@ -376,7 +376,7 @@ impl Server {
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
-        state.ecs_mut().register::<Presence>();
+        state.ecs_mut().register::<comp::Presence>();
         state.ecs_mut().register::<wiring::WiringElement>();
         state.ecs_mut().register::<wiring::Circuit>();
         state.ecs_mut().register::<Anchor>();
@@ -833,7 +833,7 @@ impl Server {
             (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
-                !&self.state.ecs().read_storage::<Presence>(),
+                !&self.state.ecs().read_storage::<comp::Presence>(),
                 self.state.ecs().read_storage::<Anchor>().maybe(),
             )
                 .join()

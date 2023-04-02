@@ -8,11 +8,10 @@ use crate::{
     character_creator,
     client::Client,
     persistence::{character_loader::CharacterLoader, character_updater::CharacterUpdater},
-    presence::Presence,
     EditableSettings,
 };
 use common::{
-    comp::{Admin, AdminRole, ChatType, Player, UnresolvedChatMsg, Waypoint},
+    comp::{Admin, AdminRole, ChatType, Player, Presence, UnresolvedChatMsg, Waypoint},
     event::{EventBus, ServerEvent},
     resources::Time,
     terrain::TerrainChunkSize,

@@ -99,7 +99,7 @@ use common::{
         loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
-        BuffData, BuffKind, Health, Item, MapMarkerChange,
+        BuffData, BuffKind, Health, Item, MapMarkerChange, PresenceKind,
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
@@ -115,7 +115,7 @@ use common::{
 };
 use common_base::{prof_span, span};
 use common_net::{
-    msg::{world_msg::SiteId, Notification, PresenceKind},
+    msg::{world_msg::SiteId, Notification},
     sync::WorldSyncExt,
 };
 use conrod_core::{

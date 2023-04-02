@@ -7,7 +7,7 @@ use common::{
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
-    rtsim::{RtSimEntity, RtSimVehicle},
+    rtsim::{Actor, RtSimEntity, RtSimVehicle},
     slowjob::SlowJobPool,
     terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
@@ -16,7 +16,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim::data::{
     npc::{Profession, SimulationMode},
-    Actor, Npc, Sites,
+    Npc, Sites,
 };
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
@@ -366,17 +366,17 @@ impl<'a> System<'a> for Sys {
                     // Update entity state
                     if let Some(agent) = agent {
                         agent.rtsim_controller.personality = npc.personality;
-                        if let Some(action) = npc.action {
-                            match action {
-                                rtsim::data::npc::NpcAction::Goto(wpos, sf) => {
-                                    agent.rtsim_controller.travel_to = Some(wpos);
-                                    agent.rtsim_controller.speed_factor = sf;
-                                },
-                            }
+                        if let Some((wpos, speed_factor)) = npc.controller.goto {
+                            agent.rtsim_controller.travel_to = Some(wpos);
+                            agent.rtsim_controller.speed_factor = speed_factor;
                         } else {
                             agent.rtsim_controller.travel_to = None;
                             agent.rtsim_controller.speed_factor = 1.0;
                         }
+                        agent
+                            .rtsim_controller
+                            .actions
+                            .extend(std::mem::take(&mut npc.controller.actions));
                     }
                 });
         }

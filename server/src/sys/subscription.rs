@@ -1,10 +1,10 @@
 use super::sentinel::{DeletedEntities, TrackedStorages};
 use crate::{
     client::Client,
-    presence::{self, Presence, RegionSubscription},
+    presence::{self, RegionSubscription},
 };
 use common::{
-    comp::{Ori, Pos, Vel},
+    comp::{Ori, Pos, Presence, Vel},
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
     terrain::{CoordinateConversions, TerrainChunkSize},
     uid::Uid,

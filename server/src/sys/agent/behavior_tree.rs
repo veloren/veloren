@@ -9,7 +9,7 @@ use common::{
     },
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
-    rtsim::RtSimEntity,
+    rtsim::{NpcAction, RtSimEntity},
 };
 use rand::{prelude::ThreadRng, thread_rng, Rng};
 use specs::{
@@ -160,7 +160,11 @@ impl BehaviorTree {
     /// Idle BehaviorTree
     pub fn idle() -> Self {
         Self {
-            tree: vec![set_owner_if_no_target, handle_timed_events],
+            tree: vec![
+                set_owner_if_no_target,
+                handle_rtsim_actions,
+                handle_timed_events,
+            ],
         }
     }
 
@@ -464,6 +468,42 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
     false
 }
 
+/// Handle action requests from rtsim, such as talking to NPCs or attacking
+fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
+    if let Some(action) = bdata.agent.rtsim_controller.actions.pop_front() {
+        match action {
+            NpcAction::Greet(actor) => {
+                if bdata.agent.allowed_to_speak() {
+                    if let Some(target) = bdata.read_data.lookup_actor(actor) {
+                        let target_pos = bdata.read_data.positions.get(target).map(|pos| pos.0);
+
+                        bdata.agent.target = Some(Target::new(
+                            target,
+                            false,
+                            bdata.read_data.time.0,
+                            false,
+                            target_pos,
+                        ));
+
+                        if bdata.agent_data.look_toward(
+                            &mut bdata.controller,
+                            &bdata.read_data,
+                            target,
+                        ) {
+                            bdata.controller.push_utterance(UtteranceKind::Greeting);
+                            bdata.controller.push_action(ControlAction::Talk);
+                            bdata
+                                .agent_data
+                                .chat_npc("npc-speech-villager", &mut bdata.event_emitter);
+                        }
+                    }
+                }
+            },
+        }
+    }
+    false
+}
+
 /// Handle timed events, like looking at the player we are talking to
 fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
     let timeout = if bdata.agent.behavior.is(BehaviorState::TRADING) {
@@ -746,9 +786,11 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
 
                 if aggro_on {
                     let target_data = TargetData::new(tgt_pos, target, read_data);
-                    let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
+                    // let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 
-                    tgt_name.map(|tgt_name| agent.add_fight_to_memory(&tgt_name, read_data.time.0));
+                    // TODO: Reimplement in rtsim2
+                    // tgt_name.map(|tgt_name| agent.add_fight_to_memory(&tgt_name,
+                    // read_data.time.0));
                     agent_data.attack(agent, controller, &target_data, read_data, rng);
                 } else {
                     agent_data.menacing(
@@ -760,7 +802,9 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         rng,
                         remembers_fight_with(agent_data.rtsim_entity, read_data, target),
                     );
-                    remember_fight(agent_data.rtsim_entity, read_data, agent, target);
+                    // TODO: Reimplement in rtsim2
+                    // remember_fight(agent_data.rtsim_entity, read_data, agent,
+                    // target);
                 }
             }
         }
@@ -784,17 +828,17 @@ fn remembers_fight_with(
     false
 }
 
-/// Remember target.
-fn remember_fight(
-    rtsim_entity: Option<&RtSimEntity>,
-    read_data: &ReadData,
-    agent: &mut Agent,
-    target: EcsEntity,
-) {
-    rtsim_entity.is_some().then(|| {
-        read_data
-            .stats
-            .get(target)
-            .map(|stats| agent.add_fight_to_memory(&stats.name, read_data.time.0))
-    });
-}
+// /// Remember target.
+// fn remember_fight(
+//     rtsim_entity: Option<&RtSimEntity>,
+//     read_data: &ReadData,
+//     agent: &mut Agent,
+//     target: EcsEntity,
+// ) {
+//     rtsim_entity.is_some().then(|| {
+//         read_data
+//             .stats
+//             .get(target)
+//             .map(|stats| agent.add_fight_to_memory(&stats.name,
+// read_data.time.0))     });
+// }

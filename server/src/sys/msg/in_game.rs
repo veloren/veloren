@@ -1,10 +1,10 @@
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
-use crate::{client::Client, presence::Presence, Settings};
+use crate::{client::Client, Settings};
 use common::{
     comp::{
         Admin, AdminRole, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player,
-        Pos, SkillSet, Vel,
+        Pos, Presence, PresenceKind, SkillSet, Vel,
     },
     event::{EventBus, ServerEvent},
     link::Is,
@@ -15,7 +15,7 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
+use common_net::msg::{ClientGeneral, ServerGeneral};
 use common_state::{BlockChange, BuildAreas};
 use core::mem;
 use rayon::prelude::*;

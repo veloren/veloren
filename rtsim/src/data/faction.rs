@@ -1,5 +1,4 @@
-use super::Actor;
-pub use common::rtsim::FactionId;
+pub use common::rtsim::{Actor, FactionId};
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::ops::{Deref, DerefMut};

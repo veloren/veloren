@@ -3,13 +3,13 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
+use crate::character::CharacterId;
 use rand::{seq::IteratorRandom, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Component;
+use std::collections::VecDeque;
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
-
-use crate::comp::dialogue::MoodState;
 
 slotmap::new_key_type! { pub struct NpcId; }
 
@@ -26,34 +26,26 @@ impl Component for RtSimEntity {
     type Storage = specs::VecStorage<Self>;
 }
 
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum Actor {
+    Npc(NpcId),
+    Character(CharacterId),
+}
+
+impl Actor {
+    pub fn npc(&self) -> Option<NpcId> {
+        match self {
+            Actor::Npc(id) => Some(*id),
+            Actor::Character(_) => None,
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug)]
 pub struct RtSimVehicle(pub VehicleId);
 
 impl Component for RtSimVehicle {
     type Storage = specs::VecStorage<Self>;
-}
-
-#[derive(Clone, Debug)]
-pub enum RtSimEvent {
-    AddMemory(Memory),
-    SetMood(Memory),
-    ForgetEnemy(String),
-    PrintMemories,
-}
-
-#[derive(Clone, Debug)]
-pub struct Memory {
-    pub item: MemoryItem,
-    pub time_to_forget: f64,
-}
-
-#[derive(Clone, Debug)]
-pub enum MemoryItem {
-    // These are structs to allow more data beyond name to be stored
-    // such as clothing worn, weapon used, etc.
-    CharacterInteraction { name: String },
-    CharacterFight { name: String },
-    Mood { state: MoodState },
 }
 
 #[derive(EnumIter, Clone, Copy)]
@@ -210,8 +202,7 @@ pub struct RtSimController {
     pub heading_to: Option<String>,
     /// Proportion of full speed to move
     pub speed_factor: f32,
-    /// Events
-    pub events: Vec<RtSimEvent>,
+    pub actions: VecDeque<NpcAction>,
 }
 
 impl Default for RtSimController {
@@ -221,7 +212,7 @@ impl Default for RtSimController {
             personality: Personality::default(),
             heading_to: None,
             speed_factor: 1.0,
-            events: Vec::new(),
+            actions: VecDeque::new(),
         }
     }
 }
@@ -233,9 +224,14 @@ impl RtSimController {
             personality: Personality::default(),
             heading_to: None,
             speed_factor: 0.5,
-            events: Vec::new(),
+            actions: VecDeque::new(),
         }
     }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum NpcAction {
+    Greet(Actor),
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, enum_map::Enum)]

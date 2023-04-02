@@ -1,5 +1,8 @@
-use crate::{chunk_serialize::ChunkSendEntry, client::Client, presence::Presence, Settings};
-use common::{comp::Pos, event::EventBus};
+use crate::{chunk_serialize::ChunkSendEntry, client::Client, Settings};
+use common::{
+    comp::{Pos, Presence},
+    event::EventBus,
+};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{CompressedData, ServerGeneral};
 use common_state::TerrainChanges;

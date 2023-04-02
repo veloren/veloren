@@ -1,16 +1,16 @@
 use super::Event;
 use crate::{
     client::Client, metrics::PlayerMetrics, persistence::character_updater::CharacterUpdater,
-    presence::Presence, state_ext::StateExt, BattleModeBuffer, Server,
+    state_ext::StateExt, BattleModeBuffer, Server,
 };
 use common::{
     character::CharacterId,
     comp,
-    comp::{group, pet::is_tameable},
+    comp::{group, pet::is_tameable, Presence, PresenceKind},
     uid::{Uid, UidAllocator},
 };
 use common_base::span;
-use common_net::msg::{PlayerListUpdate, PresenceKind, ServerGeneral};
+use common_net::msg::{PlayerListUpdate, ServerGeneral};
 use common_state::State;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, Join, WorldExt};
 use tracing::{debug, error, trace, warn, Instrument};

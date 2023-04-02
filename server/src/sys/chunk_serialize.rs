@@ -2,10 +2,9 @@ use crate::{
     chunk_serialize::{ChunkSendEntry, SerializedChunk},
     client::Client,
     metrics::NetworkRequestMetrics,
-    presence::Presence,
     Tick,
 };
-use common::{event::EventBus, slowjob::SlowJobPool, terrain::TerrainGrid};
+use common::{comp::Presence, event::EventBus, slowjob::SlowJobPool, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use hashbrown::{hash_map::Entry, HashMap};

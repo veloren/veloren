@@ -3,7 +3,7 @@ use std::hash::BuildHasherDefault;
 use crate::{
     ai::{casual, choose, finish, important, just, now, seq, until, urgent, Action, NpcCtx},
     data::{
-        npc::{Brain, Controller, PathData},
+        npc::{Brain, PathData},
         Sites,
     },
     event::OnTick,
@@ -217,7 +217,7 @@ impl Rule for NpcAi {
                 data.npcs
                     .iter_mut()
                     .map(|(npc_id, npc)| {
-                        let controller = Controller { action: npc.action };
+                        let controller = std::mem::take(&mut npc.controller);
                         let brain = npc.brain.take().unwrap_or_else(|| Brain {
                             action: Box::new(think().repeat()),
                         });
@@ -251,7 +251,7 @@ impl Rule for NpcAi {
             // Reinsert NPC brains
             let mut data = ctx.state.data_mut();
             for (npc_id, controller, brain) in npc_data {
-                data.npcs[npc_id].action = controller.action;
+                data.npcs[npc_id].controller = controller;
                 data.npcs[npc_id].brain = Some(brain);
             }
         });
@@ -260,7 +260,7 @@ impl Rule for NpcAi {
     }
 }
 
-fn idle() -> impl Action { just(|ctx| *ctx.controller = Controller::idle()).debug(|| "idle") }
+fn idle() -> impl Action { just(|ctx| ctx.controller.do_idle()).debug(|| "idle") }
 
 /// Try to walk toward a 3D position without caring for obstacles.
 fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
@@ -292,7 +292,7 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
             )
         });
 
-        *ctx.controller = Controller::goto(*waypoint, speed_factor);
+        ctx.controller.do_goto(*waypoint, speed_factor);
     })
     .repeat()
     .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < goal_dist.powi(2))
@@ -452,6 +452,24 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
     move |ctx| ctx.time.0 > *timeout.get_or_insert(ctx.time.0 + time)
 }
 
+fn socialize() -> impl Action {
+    just(|ctx| {
+        let mut rng = thread_rng();
+        // TODO: Bit odd, should wait for a while after greeting
+        if thread_rng().gen_bool(0.0002) {
+            if let Some(other) = ctx
+                .state
+                .data()
+                .npcs
+                .nearby(ctx.npc.wpos.xy(), 8.0)
+                .choose(&mut rng)
+            {
+                ctx.controller.do_greet(other);
+            }
+        }
+    })
+}
+
 fn adventure() -> impl Action {
     choose(|ctx| {
         // Choose a random site that's fairly close by
@@ -540,7 +558,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     {
                         travel_to_point(house_wpos)
                             .debug(|| "walk to house")
-                            .then(idle().repeat().debug(|| "wait in house"))
+                            .then(socialize().repeat().debug(|| "wait in house"))
                             .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
                             .map(|_| ())
                             .boxed()
@@ -570,7 +588,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         // ...then wait for some time before moving on
                         .then({
                             let wait_time = thread_rng().gen_range(10.0..30.0);
-                            idle().repeat().stop_if(timeout(wait_time))
+                            socialize().repeat().stop_if(timeout(wait_time))
                                 .debug(|| "wait at plaza")
                         })
                         .map(|_| ())
@@ -735,7 +753,7 @@ fn humanoid() -> impl Action {
                     casual(finish())
                 }
             } else {
-                important(idle())
+                important(socialize())
             }
         } else if matches!(
             ctx.npc.profession,
@@ -806,6 +824,6 @@ fn think() -> impl Action {
     choose(|ctx| match ctx.npc.body {
         common::comp::Body::Humanoid(_) => casual(humanoid()),
         common::comp::Body::BirdLarge(_) => casual(bird_large()),
-        _ => casual(idle()),
+        _ => casual(socialize()),
     })
 }

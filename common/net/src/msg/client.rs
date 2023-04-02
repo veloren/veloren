@@ -101,7 +101,7 @@ impl ClientMsg {
         &self,
         c_type: ClientType,
         registered: bool,
-        presence: Option<super::PresenceKind>,
+        presence: Option<comp::PresenceKind>,
     ) -> bool {
         match self {
             ClientMsg::Type(t) => c_type == *t,

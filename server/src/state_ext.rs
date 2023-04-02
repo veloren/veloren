@@ -4,7 +4,7 @@ use crate::{
     events::{self, update_map_markers},
     persistence::PersistedComponents,
     pet::restore_pet,
-    presence::{Presence, RepositionOnChunkLoad},
+    presence::RepositionOnChunkLoad,
     rtsim::RtSim,
     settings::Settings,
     sys::sentinel::DeletedEntities,
@@ -19,7 +19,7 @@ use common::{
         self,
         item::{ItemKind, MaterialStatManifest},
         skills::{GeneralSkill, Skill},
-        ChatType, Group, Inventory, Item, Player, Poise,
+        ChatType, Group, Inventory, Item, Player, Poise, Presence, PresenceKind,
     },
     effect::Effect,
     link::{Link, LinkHandle},
@@ -30,7 +30,7 @@ use common::{
     LoadoutBuilder, ViewDistances,
 };
 use common_net::{
-    msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
+    msg::{CharacterInfo, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
 use common_state::State;

@@ -229,10 +229,11 @@ impl<'a> AgentData<'a> {
                 controller.push_cancel_input(InputKind::Fly)
             }
 
-            let chase_tgt = *travel_to/*read_data.terrain
+            let chase_tgt = read_data
+                .terrain
                 .try_find_space(travel_to.as_())
                 .map(|pos| pos.as_())
-                .unwrap_or(*travel_to)*/;
+                .unwrap_or(*travel_to);
 
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
@@ -1460,11 +1461,12 @@ impl<'a> AgentData<'a> {
                                 self.idle(agent, controller, read_data, rng);
                             } else {
                                 let target_data = TargetData::new(tgt_pos, target, read_data);
-                                if let Some(tgt_name) =
-                                    read_data.stats.get(target).map(|stats| stats.name.clone())
-                                {
-                                    agent.add_fight_to_memory(&tgt_name, read_data.time.0)
-                                }
+                                // TODO: Reimplement this in rtsim
+                                // if let Some(tgt_name) =
+                                //     read_data.stats.get(target).map(|stats| stats.name.clone())
+                                // {
+                                //     agent.add_fight_to_memory(&tgt_name, read_data.time.0)
+                                // }
                                 self.attack(agent, controller, &target_data, read_data, rng);
                             }
                         }

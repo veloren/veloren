@@ -4,7 +4,7 @@ use crate::{
         quadruped_small, ship, Body, UtteranceKind,
     },
     path::Chaser,
-    rtsim::{Memory, MemoryItem, RtSimController, RtSimEvent},
+    rtsim::RtSimController,
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
@@ -713,23 +713,6 @@ impl Agent {
     }
 
     pub fn allowed_to_speak(&self) -> bool { self.behavior.can(BehaviorCapability::SPEAK) }
-
-    pub fn forget_enemy(&mut self, target_name: &str) {
-        self.rtsim_controller
-            .events
-            .push(RtSimEvent::ForgetEnemy(target_name.to_owned()));
-    }
-
-    pub fn add_fight_to_memory(&mut self, target_name: &str, time: f64) {
-        self.rtsim_controller
-            .events
-            .push(RtSimEvent::AddMemory(Memory {
-                item: MemoryItem::CharacterFight {
-                    name: target_name.to_owned(),
-                },
-                time_to_forget: time + 300.0,
-            }));
-    }
 }
 
 impl Component for Agent {

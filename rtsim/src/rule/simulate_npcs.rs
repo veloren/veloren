@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{self, Body},
     grid::Grid,
-    rtsim::Personality,
+    rtsim::{Actor, Personality},
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
@@ -25,7 +25,7 @@ impl Rule for SimulateNpcs {
             for (npc_id, npc) in data.npcs.npcs.iter() {
                 if let Some(ride) = &npc.riding {
                     if let Some(vehicle) = data.npcs.vehicles.get_mut(ride.vehicle) {
-                        let actor = crate::data::Actor::Npc(npc_id);
+                        let actor = Actor::Npc(npc_id);
                         vehicle.riders.push(actor);
                         if ride.steering && vehicle.driver.replace(actor).is_some() {
                             panic!("Replaced driver");
@@ -153,9 +153,12 @@ impl Rule for SimulateNpcs {
                     .world
                     .sim()
                     .get(npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_())
-                    .and_then(|chunk| chunk.sites
-                        .iter()
-                        .find_map(|site| data.sites.world_site_map.get(site).copied()));
+                    .and_then(|chunk| {
+                        chunk
+                            .sites
+                            .iter()
+                            .find_map(|site| data.sites.world_site_map.get(site).copied())
+                    });
 
                 let chunk_pos =
                     npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
@@ -176,83 +179,98 @@ impl Rule for SimulateNpcs {
 
                 // Simulate the NPC's movement and interactions
                 if matches!(npc.mode, SimulationMode::Simulated) {
-                    if let Some(riding) = &npc.riding {
-                        if let Some(vehicle) = data.npcs.vehicles.get_mut(riding.vehicle) {
-                            if let Some(action) = npc.action && riding.steering {
-                                match action {
-                                    crate::data::npc::NpcAction::Goto(target, speed_factor) => {
-                                        let diff = target.xy() - vehicle.wpos.xy();
-                                        let dist2 = diff.magnitude_squared();
+                    // Move NPCs if they have a target destination
+                    if let Some((target, speed_factor)) = npc.controller.goto {
+                        // Simulate NPC movement when riding
+                        if let Some(riding) = &npc.riding {
+                            if let Some(vehicle) = data.npcs.vehicles.get_mut(riding.vehicle) {
+                                // If steering, the NPC controls the vehicle's motion
+                                if riding.steering {
+                                    let diff = target.xy() - vehicle.wpos.xy();
+                                    let dist2 = diff.magnitude_squared();
 
-                                        if dist2 > 0.5f32.powi(2) {
-                                            let mut wpos = vehicle.wpos + (diff
-                                                * (vehicle.get_speed() * speed_factor * ctx.event.dt
+                                    if dist2 > 0.5f32.powi(2) {
+                                        let mut wpos = vehicle.wpos
+                                            + (diff
+                                                * (vehicle.get_speed()
+                                                    * speed_factor
+                                                    * ctx.event.dt
                                                     / dist2.sqrt())
                                                 .min(1.0))
                                             .with_z(0.0);
 
-                                            let is_valid = match vehicle.body {
-                                                common::comp::ship::Body::DefaultAirship | common::comp::ship::Body::AirBalloon => true,
-                                                common::comp::ship::Body::SailBoat | common::comp::ship::Body::Galleon => {
-                                                    let chunk_pos = wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
-                                                    ctx.world.sim().get(chunk_pos).map_or(true, |f| f.river.river_kind.is_some())
-                                                },
-                                                _ => false,
-                                            };
+                                        let is_valid = match vehicle.body {
+                                            common::comp::ship::Body::DefaultAirship
+                                            | common::comp::ship::Body::AirBalloon => true,
+                                            common::comp::ship::Body::SailBoat
+                                            | common::comp::ship::Body::Galleon => {
+                                                let chunk_pos = wpos.xy().as_::<i32>()
+                                                    / TerrainChunkSize::RECT_SIZE.as_::<i32>();
+                                                ctx.world
+                                                    .sim()
+                                                    .get(chunk_pos)
+                                                    .map_or(true, |f| f.river.river_kind.is_some())
+                                            },
+                                            _ => false,
+                                        };
 
-                                            if is_valid {
-                                                match vehicle.body {
-                                                    common::comp::ship::Body::DefaultAirship | common::comp::ship::Body::AirBalloon => {
-                                                        if let Some(alt) = ctx.world.sim().get_alt_approx(wpos.xy().as_()).filter(|alt| wpos.z < *alt) {
-                                                            wpos.z = alt;
-                                                        }
-                                                    },
-                                                    common::comp::ship::Body::SailBoat | common::comp::ship::Body::Galleon => {
-                                                        wpos.z = ctx
-                                                            .world
-                                                            .sim()
-                                                            .get_interpolated(wpos.xy().map(|e| e as i32), |chunk| chunk.water_alt)
-                                                            .unwrap_or(0.0);
-                                                    },
-                                                    _ => {},
-                                                }
-                                                vehicle.wpos = wpos;
+                                        if is_valid {
+                                            match vehicle.body {
+                                                common::comp::ship::Body::DefaultAirship
+                                                | common::comp::ship::Body::AirBalloon => {
+                                                    if let Some(alt) = ctx
+                                                        .world
+                                                        .sim()
+                                                        .get_alt_approx(wpos.xy().as_())
+                                                        .filter(|alt| wpos.z < *alt)
+                                                    {
+                                                        wpos.z = alt;
+                                                    }
+                                                },
+                                                common::comp::ship::Body::SailBoat
+                                                | common::comp::ship::Body::Galleon => {
+                                                    wpos.z = ctx
+                                                        .world
+                                                        .sim()
+                                                        .get_interpolated(
+                                                            wpos.xy().map(|e| e as i32),
+                                                            |chunk| chunk.water_alt,
+                                                        )
+                                                        .unwrap_or(0.0);
+                                                },
+                                                _ => {},
                                             }
+                                            vehicle.wpos = wpos;
                                         }
                                     }
                                 }
+                                npc.wpos = vehicle.wpos;
+                            } else {
+                                // Vehicle doens't exist anymore
+                                npc.riding = None;
                             }
-                            npc.wpos = vehicle.wpos;
+                        // If not riding, we assume they're just walking
                         } else {
-                            // Vehicle doens't exist anymore
-                            npc.riding = None;
+                            let diff = target.xy() - npc.wpos.xy();
+                            let dist2 = diff.magnitude_squared();
+
+                            if dist2 > 0.5f32.powi(2) {
+                                npc.wpos += (diff
+                                    * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
+                                        / dist2.sqrt())
+                                    .min(1.0))
+                                .with_z(0.0);
+                            }
                         }
                     }
-                    // Move NPCs if they have a target destination
-                    else if let Some(action) = npc.action {
-                        match action {
-                            crate::data::npc::NpcAction::Goto(target, speed_factor) => {
-                                let diff = target.xy() - npc.wpos.xy();
-                                let dist2 = diff.magnitude_squared();
 
-                                if dist2 > 0.5f32.powi(2) {
-                                    npc.wpos += (diff
-                                        * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
-                                            / dist2.sqrt())
-                                        .min(1.0))
-                                    .with_z(0.0);
-                                }
-                            },
-                        }
-
-                        // Make sure NPCs remain on the surface
-                        npc.wpos.z = ctx
-                            .world
-                            .sim()
-                            .get_surface_alt_approx(npc.wpos.xy().map(|e| e as i32))
-                            .unwrap_or(0.0) + npc.body.flying_height();
-                    }
-
+                    // Make sure NPCs remain on the surface
+                    npc.wpos.z = ctx
+                        .world
+                        .sim()
+                        .get_surface_alt_approx(npc.wpos.xy().map(|e| e as i32))
+                        .unwrap_or(0.0)
+                        + npc.body.flying_height();
                 }
             }
         });

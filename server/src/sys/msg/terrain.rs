@@ -1,9 +1,9 @@
 use crate::{
     chunk_serialize::ChunkSendEntry, client::Client, lod::Lod, metrics::NetworkRequestMetrics,
-    presence::Presence, ChunkRequest,
+    ChunkRequest,
 };
 use common::{
-    comp::Pos,
+    comp::{Pos, Presence},
     event::{EventBus, ServerEvent},
     spiral::Spiral2d,
     terrain::{CoordinateConversions, TerrainChunkSize, TerrainGrid},

@@ -5,7 +5,6 @@ use crate::{
     client::Client,
     location::Locations,
     login_provider::LoginProvider,
-    presence::Presence,
     settings::{
         Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
@@ -31,7 +30,7 @@ use common::{
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::item::{tool::AbilityMap, MaterialStatManifest, Quality},
         invite::InviteKind,
-        AdminRole, ChatType, Inventory, Item, LightEmitter, WaypointArea,
+        AdminRole, ChatType, Inventory, Item, LightEmitter, Presence, PresenceKind, WaypointArea,
     },
     depot,
     effect::Effect,
@@ -49,7 +48,7 @@ use common::{
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use common_net::{
-    msg::{DisconnectReason, Notification, PlayerListUpdate, PresenceKind, ServerGeneral},
+    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
 use common_state::{BuildAreaError, BuildAreas};

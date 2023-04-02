@@ -18,7 +18,8 @@ use common::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{tool::ToolKind, ItemDesc},
-        ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
+        ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, PresenceKind, Stats,
+        UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
@@ -32,10 +33,7 @@ use common::{
     vol::ReadVol,
 };
 use common_base::{prof_span, span};
-use common_net::{
-    msg::{server::InviteAnswer, PresenceKind},
-    sync::WorldSyncExt,
-};
+use common_net::{msg::server::InviteAnswer, sync::WorldSyncExt};
 
 use crate::{
     audio::sfx::SfxEvent,

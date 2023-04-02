@@ -296,7 +296,7 @@ impl ServerMsg {
         &self,
         c_type: ClientType,
         registered: bool,
-        presence: Option<super::PresenceKind>,
+        presence: Option<comp::PresenceKind>,
     ) -> bool {
         match self {
             ServerMsg::Info(_) | ServerMsg::Init(_) | ServerMsg::RegisterAnswer(_) => {

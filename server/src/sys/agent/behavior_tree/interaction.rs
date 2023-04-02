@@ -9,7 +9,7 @@ use common::{
         BehaviorState, ControlAction, Item, TradingBehavior, UnresolvedChatMsg, UtteranceKind,
     },
     event::ServerEvent,
-    rtsim::{Memory, MemoryItem, PersonalityTrait, RtSimEvent},
+    rtsim::PersonalityTrait,
     trade::{TradeAction, TradePhase, TradeResult},
 };
 use rand::{thread_rng, Rng};
@@ -106,15 +106,6 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                     match subject {
                         Subject::Regular => {
                             if let Some(tgt_stats) = read_data.stats.get(target) {
-                                agent
-                                    .rtsim_controller
-                                    .events
-                                    .push(RtSimEvent::AddMemory(Memory {
-                                        item: MemoryItem::CharacterInteraction {
-                                            name: tgt_stats.name.clone(),
-                                        },
-                                        time_to_forget: read_data.time.0 + 600.0,
-                                    }));
                                 if let Some(destination_name) = &agent.rtsim_controller.heading_to {
                                     let personality = &agent.rtsim_controller.personality;
                                     let standard_response_msg = || -> String {
@@ -252,6 +243,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                             }
                         },
                         Subject::Mood => {
+                            // TODO: Reimplement in rtsim2
                             /*
                             if let Some(rtsim_entity) = &bdata.rtsim_entity {
                                 if !rtsim_entity.brain.remembers_mood() {
