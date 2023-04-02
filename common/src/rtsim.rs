@@ -192,41 +192,28 @@ impl Default for Personality {
 /// into the game as a physical entity or not). Agent code should attempt to act
 /// upon its instructions where reasonable although deviations for various
 /// reasons (obstacle avoidance, counter-attacking, etc.) are expected.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct RtSimController {
-    /// When this field is `Some(..)`, the agent should attempt to make progress
-    /// toward the given location, accounting for obstacles and other
-    /// high-priority situations like being attacked.
-    pub travel_to: Option<Vec3<f32>>,
+    pub activity: Option<NpcActivity>,
+    pub actions: VecDeque<NpcAction>,
     pub personality: Personality,
     pub heading_to: Option<String>,
-    /// Proportion of full speed to move
-    pub speed_factor: f32,
-    pub actions: VecDeque<NpcAction>,
-}
-
-impl Default for RtSimController {
-    fn default() -> Self {
-        Self {
-            travel_to: None,
-            personality: Personality::default(),
-            heading_to: None,
-            speed_factor: 1.0,
-            actions: VecDeque::new(),
-        }
-    }
 }
 
 impl RtSimController {
     pub fn with_destination(pos: Vec3<f32>) -> Self {
         Self {
-            travel_to: Some(pos),
-            personality: Personality::default(),
-            heading_to: None,
-            speed_factor: 0.5,
-            actions: VecDeque::new(),
+            activity: Some(NpcActivity::Goto(pos, 0.5)),
+            ..Default::default()
         }
     }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum NpcActivity {
+    /// (travel_to, speed_factor)
+    Goto(Vec3<f32>, f32),
+    Gather(&'static [ChunkResource]),
 }
 
 #[derive(Clone, Copy, Debug)]

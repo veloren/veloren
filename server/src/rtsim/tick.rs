@@ -366,13 +366,7 @@ impl<'a> System<'a> for Sys {
                     // Update entity state
                     if let Some(agent) = agent {
                         agent.rtsim_controller.personality = npc.personality;
-                        if let Some((wpos, speed_factor)) = npc.controller.goto {
-                            agent.rtsim_controller.travel_to = Some(wpos);
-                            agent.rtsim_controller.speed_factor = speed_factor;
-                        } else {
-                            agent.rtsim_controller.travel_to = None;
-                            agent.rtsim_controller.speed_factor = 1.0;
-                        }
+                        agent.rtsim_controller.activity = npc.controller.activity;
                         agent
                             .rtsim_controller
                             .actions

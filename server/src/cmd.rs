@@ -185,6 +185,7 @@ fn do_command(
         ServerChatCommand::Tp => handle_tp,
         ServerChatCommand::RtsimTp => handle_rtsim_tp,
         ServerChatCommand::RtsimInfo => handle_rtsim_info,
+        ServerChatCommand::RtsimNpc => handle_rtsim_npc,
         ServerChatCommand::RtsimPurge => handle_rtsim_purge,
         ServerChatCommand::RtsimChunk => handle_rtsim_chunk,
         ServerChatCommand::Unban => handle_unban,
@@ -1251,6 +1252,61 @@ fn handle_rtsim_info(
         } else {
             let _ = writeln!(&mut info, "<NPC has no brain>");
         }
+
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, info),
+        );
+
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn handle_rtsim_npc(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim::RtSim;
+    if let Some(query) = parse_cmd_args!(args, String) {
+        let terms = query
+            .split(',')
+            .map(|s| s.trim().to_lowercase())
+            .collect::<Vec<_>>();
+
+        let rtsim = server.state.ecs().read_resource::<RtSim>();
+        let data = rtsim.state().data();
+        let npcs = data
+            .npcs
+            .values()
+            .enumerate()
+            .filter(|(idx, npc)| {
+                let tags = [
+                    npc.profession
+                        .as_ref()
+                        .map(|p| format!("{:?}", p))
+                        .unwrap_or_default(),
+                    format!("{:?}", npc.mode),
+                    format!("{}", idx),
+                ];
+                terms
+                    .iter()
+                    .all(|term| tags.iter().any(|tag| term.eq_ignore_ascii_case(tag.trim())))
+            })
+            .collect::<Vec<_>>();
+
+        let mut info = String::new();
+
+        let _ = writeln!(&mut info, "-- NPCs matching [{}] --", terms.join(", "));
+        for (idx, _) in &npcs {
+            let _ = write!(&mut info, "{}, ", idx);
+        }
+        let _ = writeln!(&mut info, "");
+        let _ = writeln!(&mut info, "Matched {} NPCs.", npcs.len());
 
         server.notify_client(
             client,

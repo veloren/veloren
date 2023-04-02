@@ -3,7 +3,9 @@ pub use common::rtsim::{NpcId, Profession};
 use common::{
     comp,
     grid::Grid,
-    rtsim::{Actor, FactionId, NpcAction, Personality, SiteId, VehicleId},
+    rtsim::{
+        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, Personality, SiteId, VehicleId,
+    },
     store::Id,
     vol::RectVolSize,
 };
@@ -46,15 +48,18 @@ pub struct PathingMemory {
 #[derive(Default)]
 pub struct Controller {
     pub actions: Vec<NpcAction>,
-    /// (wpos, speed_factor)
-    pub goto: Option<(Vec3<f32>, f32)>,
+    pub activity: Option<NpcActivity>,
 }
 
 impl Controller {
-    pub fn do_idle(&mut self) { self.goto = None; }
+    pub fn do_idle(&mut self) { self.activity = None; }
 
     pub fn do_goto(&mut self, wpos: Vec3<f32>, speed_factor: f32) {
-        self.goto = Some((wpos, speed_factor));
+        self.activity = Some(NpcActivity::Goto(wpos, speed_factor));
+    }
+
+    pub fn do_gather(&mut self, resources: &'static [ChunkResource]) {
+        self.activity = Some(NpcActivity::Gather(resources));
     }
 
     pub fn do_greet(&mut self, actor: Actor) { self.actions.push(NpcAction::Greet(actor)); }

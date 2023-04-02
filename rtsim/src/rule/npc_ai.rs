@@ -12,7 +12,8 @@ use crate::{
 use common::{
     astar::{Astar, PathResult},
     path::Path,
-    rtsim::{Profession, SiteId},
+    rtsim::{ChunkResource, Profession, SiteId},
+    spiral::Spiral2d,
     store::Id,
     terrain::{SiteKindMeta, TerrainChunkSize},
     time::DayPeriod,
@@ -514,8 +515,22 @@ fn adventure() -> impl Action {
     .debug(move || "adventure")
 }
 
+fn gather_ingredients() -> impl Action {
+    just(|ctx| {
+        ctx.controller.do_gather(
+            &[
+                ChunkResource::Fruit,
+                ChunkResource::Mushroom,
+                ChunkResource::Plant,
+            ][..],
+        )
+    })
+    .debug(|| "gather ingredients")
+}
+
 fn villager(visiting_site: SiteId) -> impl Action {
     choose(move |ctx| {
+        /*
         if ctx
             .state
             .data()
@@ -523,23 +538,24 @@ fn villager(visiting_site: SiteId) -> impl Action {
             .get(visiting_site)
             .map_or(true, |s| s.world_site.is_none())
         {
-            casual(
-                idle().debug(|| "idling (visiting site does not exist, perhaps it's stale data?)"),
-            )
+            return casual(idle()
+                .debug(|| "idling (visiting site does not exist, perhaps it's stale data?)"));
         } else if ctx.npc.current_site != Some(visiting_site) {
             let npc_home = ctx.npc.home;
             // Travel to the site we're supposed to be in
-            urgent(travel_to_site(visiting_site).debug(move || {
+            return urgent(travel_to_site(visiting_site).debug(move || {
                 if npc_home == Some(visiting_site) {
                     "travel home".to_string()
                 } else {
                     "travel to visiting site".to_string()
                 }
-            }))
-        } else if DayPeriod::from(ctx.time_of_day.0).is_dark()
+            }));
+        } else
+        */
+        if DayPeriod::from(ctx.time_of_day.0).is_dark()
             && !matches!(ctx.npc.profession, Some(Profession::Guard))
         {
-            important(
+            return important(
                 now(move |ctx| {
                     if let Some(house_wpos) = ctx
                         .state
@@ -567,38 +583,63 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     }
                 })
                 .debug(|| "find somewhere to sleep"),
-            )
-        } else {
-            casual(now(move |ctx| {
-                // Choose a plaza in the site we're visiting to walk to
-                if let Some(plaza_wpos) = ctx
-                    .state
-                    .data()
-                    .sites
-                    .get(visiting_site)
-                    .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
-                    .and_then(|site2| {
-                        let plaza = &site2.plots[site2.plazas().choose(&mut thread_rng())?];
-                        Some(site2.tile_center_wpos(plaza.root_tile()).as_())
-                    })
-                {
-                    // Walk to the plaza...
-                    travel_to_point(plaza_wpos)
-                        .debug(|| "walk to plaza")
-                        // ...then wait for some time before moving on
+            );
+        // Villagers with roles should perform those roles
+        } else if matches!(ctx.npc.profession, Some(Profession::Herbalist)) {
+            let chunk_pos = ctx.npc.wpos.xy().as_() / TerrainChunkSize::RECT_SIZE.as_();
+            if let Some(tree_chunk) = Spiral2d::new()
+                .skip(thread_rng().gen_range(1..=8))
+                .take(49)
+                .map(|rpos| chunk_pos + rpos)
+                .find(|cpos| {
+                    ctx.world
+                        .sim()
+                        .get(*cpos)
+                        .map_or(false, |c| c.tree_density > 0.75)
+                })
+            {
+                return important(
+                    travel_to_point(TerrainChunkSize::center_wpos(tree_chunk).as_())
+                        .debug(|| "walk to forest")
                         .then({
                             let wait_time = thread_rng().gen_range(10.0..30.0);
-                            socialize().repeat().stop_if(timeout(wait_time))
-                                .debug(|| "wait at plaza")
+                            gather_ingredients().repeat().stop_if(timeout(wait_time))
                         })
-                        .map(|_| ())
-                        .boxed()
-                } else {
-                    // No plazas? :(
-                    finish().boxed()
-                }
-            }))
+                        .map(|_| ()),
+                );
+            }
         }
+
+        // If nothing else needs doing, walk between plazas and socialize
+        casual(now(move |ctx| {
+            // Choose a plaza in the site we're visiting to walk to
+            if let Some(plaza_wpos) = ctx
+                .state
+                .data()
+                .sites
+                .get(visiting_site)
+                .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
+                .and_then(|site2| {
+                    let plaza = &site2.plots[site2.plazas().choose(&mut thread_rng())?];
+                    Some(site2.tile_center_wpos(plaza.root_tile()).as_())
+                })
+            {
+                // Walk to the plaza...
+                travel_to_point(plaza_wpos)
+                    .debug(|| "walk to plaza")
+                    // ...then wait for some time before moving on
+                    .then({
+                        let wait_time = thread_rng().gen_range(30.0..90.0);
+                        socialize().repeat().stop_if(timeout(wait_time))
+                            .debug(|| "wait at plaza")
+                    })
+                    .map(|_| ())
+                    .boxed()
+            } else {
+                // No plazas? :(
+                finish().boxed()
+            }
+        }))
     })
     .debug(move || format!("villager at site {:?}", visiting_site))
 }

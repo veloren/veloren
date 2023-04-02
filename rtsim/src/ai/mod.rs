@@ -86,6 +86,7 @@ pub trait Action<R = ()>: Any + Send + Sync {
     /// // Walk toward an enemy NPC and, once done, attack the enemy NPC
     /// goto(enemy_npc).then(attack(enemy_npc))
     /// ```
+    #[must_use]
     fn then<A1: Action<R1>, R1>(self, other: A1) -> Then<Self, A1, R>
     where
         Self: Sized,
@@ -106,6 +107,7 @@ pub trait Action<R = ()>: Any + Send + Sync {
     /// // Endlessly collect flax from the environment
     /// find_and_collect(ChunkResource::Flax).repeat()
     /// ```
+    #[must_use]
     fn repeat<R1>(self) -> Repeat<Self, R1>
     where
         Self: Sized,
@@ -121,6 +123,7 @@ pub trait Action<R = ()>: Any + Send + Sync {
     /// // Keep going on adventures until your 111th birthday
     /// go_on_an_adventure().repeat().stop_if(|ctx| ctx.npc.age > 111.0)
     /// ```
+    #[must_use]
     fn stop_if<F: FnMut(&mut NpcCtx) -> bool>(self, f: F) -> StopIf<Self, F>
     where
         Self: Sized,
@@ -129,6 +132,7 @@ pub trait Action<R = ()>: Any + Send + Sync {
     }
 
     /// Map the completion value of this action to something else.
+    #[must_use]
     fn map<F: FnMut(R) -> R1, R1>(self, f: F) -> Map<Self, F, R>
     where
         Self: Sized,
@@ -157,6 +161,7 @@ pub trait Action<R = ()>: Any + Send + Sync {
     ///     go_on_an_adventure().boxed()
     /// }
     /// ```
+    #[must_use]
     fn boxed(self) -> Box<dyn Action<R>>
     where
         Self: Sized,
@@ -172,6 +177,7 @@ pub trait Action<R = ()>: Any + Send + Sync {
     /// ```ignore
     /// goto(npc.home).debug(|| "Going home")
     /// ```
+    #[must_use]
     fn debug<F, T>(self, mk_info: F) -> Debug<Self, F, T>
     where
         Self: Sized,
@@ -412,6 +418,7 @@ impl Action<()> for Finish {
 ///     }
 /// })
 /// ```
+#[must_use]
 pub fn finish() -> Finish { Finish }
 
 // Tree
@@ -425,12 +432,15 @@ pub const CASUAL: Priority = 2;
 pub struct Node<R>(Box<dyn Action<R>>, Priority);
 
 /// Perform an action with [`URGENT`] priority (see [`choose`]).
+#[must_use]
 pub fn urgent<A: Action<R>, R>(a: A) -> Node<R> { Node(Box::new(a), URGENT) }
 
 /// Perform an action with [`IMPORTANT`] priority (see [`choose`]).
+#[must_use]
 pub fn important<A: Action<R>, R>(a: A) -> Node<R> { Node(Box::new(a), IMPORTANT) }
 
 /// Perform an action with [`CASUAL`] priority (see [`choose`]).
+#[must_use]
 pub fn casual<A: Action<R>, R>(a: A) -> Node<R> { Node(Box::new(a), CASUAL) }
 
 /// See [`choose`] and [`watch`].
@@ -501,6 +511,7 @@ impl<F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static, R: 'static> Actio
 ///     }
 /// })
 /// ```
+#[must_use]
 pub fn choose<R: 'static, F>(f: F) -> impl Action<R>
 where
     F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static,
@@ -535,6 +546,7 @@ where
 ///     }
 /// })
 /// ```
+#[must_use]
 pub fn watch<R: 'static, F>(f: F) -> impl Action<R>
 where
     F: FnMut(&mut NpcCtx) -> Node<R> + Send + Sync + 'static,
@@ -679,6 +691,7 @@ impl<R: Send + Sync + 'static, I: Iterator<Item = A> + Clone + Send + Sync + 'st
 ///     .into_iter()
 ///     .map(|enemy| attack(enemy)))
 /// ```
+#[must_use]
 pub fn seq<I, A, R>(iter: I) -> Sequence<I, A, R>
 where
     I: Iterator<Item = A> + Clone,

@@ -495,6 +495,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                             bdata
                                 .agent_data
                                 .chat_npc("npc-speech-villager", &mut bdata.event_emitter);
+                            // Start a timer so that they eventually stop interacting
                             bdata
                                 .agent
                                 .timer

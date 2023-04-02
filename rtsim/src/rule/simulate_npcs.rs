@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{self, Body},
     grid::Grid,
-    rtsim::{Actor, NpcAction, Personality},
+    rtsim::{Actor, NpcAction, NpcActivity, Personality},
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
@@ -179,13 +179,14 @@ impl Rule for SimulateNpcs {
 
                 // Simulate the NPC's movement and interactions
                 if matches!(npc.mode, SimulationMode::Simulated) {
-                    // Move NPCs if they have a target destination
-                    if let Some((target, speed_factor)) = npc.controller.goto {
-                        // Simulate NPC movement when riding
-                        if let Some(riding) = &npc.riding {
-                            if let Some(vehicle) = data.npcs.vehicles.get_mut(riding.vehicle) {
+                    // Simulate NPC movement when riding
+                    if let Some(riding) = &npc.riding {
+                        if let Some(vehicle) = data.npcs.vehicles.get_mut(riding.vehicle) {
+                            match npc.controller.activity {
                                 // If steering, the NPC controls the vehicle's motion
-                                if riding.steering {
+                                Some(NpcActivity::Goto(target, speed_factor))
+                                    if riding.steering =>
+                                {
                                     let diff = target.xy() - vehicle.wpos.xy();
                                     let dist2 = diff.magnitude_squared();
 
@@ -243,24 +244,39 @@ impl Rule for SimulateNpcs {
                                             vehicle.wpos = wpos;
                                         }
                                     }
-                                }
-                                npc.wpos = vehicle.wpos;
-                            } else {
-                                // Vehicle doens't exist anymore
-                                npc.riding = None;
+                                },
+                                // When riding, other actions are disabled
+                                Some(NpcActivity::Goto(_, _) | NpcActivity::Gather(_)) => {},
+                                None => {},
                             }
-                        // If not riding, we assume they're just walking
+                            npc.wpos = vehicle.wpos;
                         } else {
-                            let diff = target.xy() - npc.wpos.xy();
-                            let dist2 = diff.magnitude_squared();
+                            // Vehicle doens't exist anymore
+                            npc.riding = None;
+                        }
+                    // If not riding, we assume they're just walking
+                    } else {
+                        match npc.controller.activity {
+                            // Move NPCs if they have a target destination
+                            Some(NpcActivity::Goto(target, speed_factor)) => {
+                                let diff = target.xy() - npc.wpos.xy();
+                                let dist2 = diff.magnitude_squared();
 
-                            if dist2 > 0.5f32.powi(2) {
-                                npc.wpos += (diff
-                                    * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
-                                        / dist2.sqrt())
-                                    .min(1.0))
-                                .with_z(0.0);
-                            }
+                                if dist2 > 0.5f32.powi(2) {
+                                    npc.wpos += (diff
+                                        * (npc.body.max_speed_approx()
+                                            * speed_factor
+                                            * ctx.event.dt
+                                            / dist2.sqrt())
+                                        .min(1.0))
+                                    .with_z(0.0);
+                                }
+                            },
+                            Some(NpcActivity::Gather(_)) => {
+                                // TODO: Maybe they should walk around randomly
+                                // when gathering resources?
+                            },
+                            None => {},
                         }
                     }
 
