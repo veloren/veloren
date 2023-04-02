@@ -348,6 +348,21 @@ impl ItemKind {
         };
         result
     }
+
+    pub fn has_durability(&self) -> bool {
+        match self {
+            ItemKind::Tool(_) => true,
+            ItemKind::Armor(armor) => armor.kind.has_durability(),
+            ItemKind::ModularComponent(_)
+            | ItemKind::Lantern(_)
+            | ItemKind::Glider
+            | ItemKind::Consumable { .. }
+            | ItemKind::Throwable { .. }
+            | ItemKind::Utility { .. }
+            | ItemKind::Ingredient { .. }
+            | ItemKind::TagExamples { .. } => false,
+        }
+    }
 }
 
 pub type ItemId = AtomicCell<Option<NonZeroU64>>;
@@ -1215,20 +1230,7 @@ impl Item {
         DurabilityMultiplier(mult)
     }
 
-    pub fn has_durability(&self) -> bool {
-        match &*self.kind() {
-            ItemKind::Tool(_) => true,
-            ItemKind::Armor(armor) => armor.kind.has_durability(),
-            ItemKind::ModularComponent(_)
-            | ItemKind::Lantern(_)
-            | ItemKind::Glider
-            | ItemKind::Consumable { .. }
-            | ItemKind::Throwable { .. }
-            | ItemKind::Utility { .. }
-            | ItemKind::Ingredient { .. }
-            | ItemKind::TagExamples { .. } => false,
-        }
-    }
+    pub fn has_durability(&self) -> bool { self.kind().has_durability() }
 
     pub fn increment_damage(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
         if let Some(durability_lost) = &mut self.durability_lost {
@@ -1351,7 +1353,7 @@ impl ItemDesc for ItemDef {
 
     fn components(&self) -> &[Item] { &[] }
 
-    fn has_durability(&self) -> bool { false }
+    fn has_durability(&self) -> bool { self.kind().has_durability() }
 
     fn durability(&self) -> Option<u32> { None }
 
