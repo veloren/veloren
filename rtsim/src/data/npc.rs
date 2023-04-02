@@ -62,6 +62,8 @@ impl Controller {
         self.activity = Some(NpcActivity::Gather(resources));
     }
 
+    pub fn do_hunt_animals(&mut self) { self.activity = Some(NpcActivity::HuntAnimals); }
+
     pub fn do_greet(&mut self, actor: Actor) { self.actions.push(NpcAction::Greet(actor)); }
 }
 

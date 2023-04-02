@@ -528,6 +528,25 @@ fn gather_ingredients() -> impl Action {
     .debug(|| "gather ingredients")
 }
 
+fn hunt_animals() -> impl Action {
+    just(|ctx| ctx.controller.do_hunt_animals()).debug(|| "hunt_animals")
+}
+
+fn find_forest(ctx: &NpcCtx) -> Option<Vec2<f32>> {
+    let chunk_pos = ctx.npc.wpos.xy().as_() / TerrainChunkSize::RECT_SIZE.as_();
+    Spiral2d::new()
+        .skip(thread_rng().gen_range(1..=8))
+        .take(49)
+        .map(|rpos| chunk_pos + rpos)
+        .find(|cpos| {
+            ctx.world
+                .sim()
+                .get(*cpos)
+                .map_or(false, |c| c.tree_density > 0.75 && c.surface_veg > 0.5)
+        })
+        .map(|chunk| TerrainChunkSize::center_wpos(chunk).as_())
+}
+
 fn villager(visiting_site: SiteId) -> impl Action {
     choose(move |ctx| {
         /*
@@ -586,24 +605,25 @@ fn villager(visiting_site: SiteId) -> impl Action {
             );
         // Villagers with roles should perform those roles
         } else if matches!(ctx.npc.profession, Some(Profession::Herbalist)) {
-            let chunk_pos = ctx.npc.wpos.xy().as_() / TerrainChunkSize::RECT_SIZE.as_();
-            if let Some(tree_chunk) = Spiral2d::new()
-                .skip(thread_rng().gen_range(1..=8))
-                .take(49)
-                .map(|rpos| chunk_pos + rpos)
-                .find(|cpos| {
-                    ctx.world
-                        .sim()
-                        .get(*cpos)
-                        .map_or(false, |c| c.tree_density > 0.75)
-                })
-            {
+            if let Some(forest_wpos) = find_forest(ctx) {
                 return important(
-                    travel_to_point(TerrainChunkSize::center_wpos(tree_chunk).as_())
+                    travel_to_point(forest_wpos)
                         .debug(|| "walk to forest")
                         .then({
                             let wait_time = thread_rng().gen_range(10.0..30.0);
                             gather_ingredients().repeat().stop_if(timeout(wait_time))
+                        })
+                        .map(|_| ()),
+                );
+            }
+        } else if matches!(ctx.npc.profession, Some(Profession::Hunter)) {
+            if let Some(forest_wpos) = find_forest(ctx) {
+                return important(
+                    travel_to_point(forest_wpos)
+                        .debug(|| "walk to forest")
+                        .then({
+                            let wait_time = thread_rng().gen_range(30.0..60.0);
+                            hunt_animals().repeat().stop_if(timeout(wait_time))
                         })
                         .map(|_| ()),
                 );

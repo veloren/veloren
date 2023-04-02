@@ -437,6 +437,7 @@ fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
                     bdata.agent,
                     bdata.read_data,
                     bdata.controller,
+                    bdata.event_emitter,
                     bdata.rng,
                 );
                 return true;
@@ -543,12 +544,14 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
                     bdata.controller,
                     bdata.read_data,
                     bdata.event_emitter,
+                    AgentData::is_enemy,
                 );
             } else {
                 bdata.agent_data.handle_sounds_heard(
                     bdata.agent,
                     bdata.controller,
                     bdata.read_data,
+                    bdata.event_emitter,
                     bdata.rng,
                 );
             }
@@ -763,12 +766,12 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.0;
                     agent.target = None;
                     agent.flee_from_pos = None;
-                    agent_data.idle(agent, controller, read_data, rng);
+                    agent_data.idle(agent, controller, read_data, event_emitter, rng);
                 }
             } else if is_dead(target, read_data) {
                 agent_data.exclaim_relief_about_enemy_dead(agent, event_emitter);
                 agent.target = None;
-                agent_data.idle(agent, controller, read_data, rng);
+                agent_data.idle(agent, controller, read_data, event_emitter, rng);
             } else if is_invulnerable(target, read_data)
                 || stop_pursuing(
                     dist_sqrd,
@@ -780,13 +783,19 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                 )
             {
                 agent.target = None;
-                agent_data.idle(agent, controller, read_data, rng);
+                agent_data.idle(agent, controller, read_data, event_emitter, rng);
             } else {
                 let is_time_to_retarget =
                     read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
 
                 if !in_aggro_range && is_time_to_retarget {
-                    agent_data.choose_target(agent, controller, read_data, event_emitter);
+                    agent_data.choose_target(
+                        agent,
+                        controller,
+                        read_data,
+                        event_emitter,
+                        AgentData::is_enemy,
+                    );
                 }
 
                 if aggro_on {

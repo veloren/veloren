@@ -161,6 +161,7 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
+        event_emitter: &mut Emitter<ServerEvent>,
         rng: &mut impl Rng,
     ) {
         enum ActionTimers {
@@ -213,249 +214,267 @@ impl<'a> AgentData<'a> {
         }
 
         agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.0;
-        match agent.rtsim_controller.activity {
-            Some(NpcActivity::Goto(travel_to, speed_factor)) => {
-                // If it has an rtsim destination and can fly, then it should.
-                // If it is flying and bumps something above it, then it should move down.
-                if self.traversal_config.can_fly
-                    && !read_data
-                        .terrain
-                        .ray(self.pos.0, self.pos.0 + (Vec3::unit_z() * 3.0))
-                        .until(Block::is_solid)
-                        .cast()
-                        .1
-                        .map_or(true, |b| b.is_some())
-                {
-                    controller.push_basic_input(InputKind::Fly);
-                } else {
-                    controller.push_cancel_input(InputKind::Fly)
-                }
-
-                let chase_tgt = read_data
-                    .terrain
-                    .try_find_space(travel_to.as_())
-                    .map(|pos| pos.as_())
-                    .unwrap_or(travel_to);
-
-                if let Some((bearing, speed)) = agent.chaser.chase(
-                    &*read_data.terrain,
-                    self.pos.0,
-                    self.vel.0,
-                    chase_tgt,
-                    TraversalConfig {
-                        min_tgt_dist: 1.25,
-                        ..self.traversal_config
-                    },
-                ) {
-                    controller.inputs.move_dir =
-                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
-                            * speed.min(speed_factor);
-                    self.jump_if(bearing.z > 1.5 || self.traversal_config.can_fly, controller);
-                    controller.inputs.climb = Some(comp::Climb::Up);
-                    //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid().is_some());
-
-                    let height_offset = bearing.z
-                        + if self.traversal_config.can_fly {
-                            // NOTE: costs 4 us (imbris)
-                            let obstacle_ahead = read_data
-                                .terrain
-                                .ray(
-                                    self.pos.0 + Vec3::unit_z(),
-                                    self.pos.0
-                                        + bearing.try_normalized().unwrap_or_else(Vec3::unit_y)
-                                            * 80.0
-                                        + Vec3::unit_z(),
-                                )
-                                .until(Block::is_solid)
-                                .cast()
-                                .1
-                                .map_or(true, |b| b.is_some());
-
-                            let mut ground_too_close = self
-                                .body
-                                .map(|body| {
-                                    #[cfg(feature = "worldgen")]
-                                    let height_approx = self.pos.0.z
-                                        - read_data
-                                            .world
-                                            .sim()
-                                            .get_alt_approx(self.pos.0.xy().map(|x: f32| x as i32))
-                                            .unwrap_or(0.0);
-                                    #[cfg(not(feature = "worldgen"))]
-                                    let height_approx = self.pos.0.z;
-
-                                    height_approx < body.flying_height()
-                                })
-                                .unwrap_or(false);
-
-                            const NUM_RAYS: usize = 5;
-
-                            // NOTE: costs 15-20 us (imbris)
-                            for i in 0..=NUM_RAYS {
-                                let magnitude = self.body.map_or(20.0, |b| b.flying_height());
-                                // Lerp between a line straight ahead and straight down to detect a
-                                // wedge of obstacles we might fly into (inclusive so that both
-                                // vectors are sampled)
-                                if let Some(dir) = Lerp::lerp(
-                                    -Vec3::unit_z(),
-                                    Vec3::new(bearing.x, bearing.y, 0.0),
-                                    i as f32 / NUM_RAYS as f32,
-                                )
-                                .try_normalized()
-                                {
-                                    ground_too_close |= read_data
-                                        .terrain
-                                        .ray(self.pos.0, self.pos.0 + magnitude * dir)
-                                        .until(|b: &Block| b.is_solid() || b.is_liquid())
-                                        .cast()
-                                        .1
-                                        .map_or(false, |b| b.is_some())
-                                }
-                            }
-
-                            if obstacle_ahead || ground_too_close {
-                                5.0 //fly up when approaching obstacles
-                            } else {
-                                -2.0
-                            } //flying things should slowly come down from the stratosphere
-                        } else {
-                            0.05 //normal land traveller offset
-                        };
-                    if let Some(pid) = agent.position_pid_controller.as_mut() {
-                        pid.sp = self.pos.0.z + height_offset * Vec3::unit_z();
-                        controller.inputs.move_z = pid.calc_err();
-                    } else {
-                        controller.inputs.move_z = height_offset;
-                    }
-                    // Put away weapon
-                    if rng.gen_bool(0.1)
-                        && matches!(
-                            read_data.char_states.get(*self.entity),
-                            Some(CharacterState::Wielding(_))
-                        )
+        'activity: {
+            match agent.rtsim_controller.activity {
+                Some(NpcActivity::Goto(travel_to, speed_factor)) => {
+                    // If it has an rtsim destination and can fly, then it should.
+                    // If it is flying and bumps something above it, then it should move down.
+                    if self.traversal_config.can_fly
+                        && !read_data
+                            .terrain
+                            .ray(self.pos.0, self.pos.0 + (Vec3::unit_z() * 3.0))
+                            .until(Block::is_solid)
+                            .cast()
+                            .1
+                            .map_or(true, |b| b.is_some())
                     {
-                        controller.push_action(ControlAction::Unwield);
+                        controller.push_basic_input(InputKind::Fly);
+                    } else {
+                        controller.push_cancel_input(InputKind::Fly)
                     }
-                }
-            },
-            Some(NpcActivity::Gather(resources)) => {
-                // TODO: Implement
-                controller.push_action(ControlAction::Dance);
-            },
-            None => {
-                // Bats should fly
-                // Use a proportional controller as the bouncing effect mimics bat flight
-                if self.traversal_config.can_fly
-                    && self
-                        .inventory
-                        .equipped(EquipSlot::ActiveMainhand)
-                        .as_ref()
-                        .map_or(false, |item| {
-                            item.ability_spec().map_or(false, |a_s| match &*a_s {
-                                AbilitySpec::Custom(spec) => {
-                                    matches!(
-                                        spec.as_str(),
-                                        "Simple Flying Melee"
-                                            | "Flame Wyvern"
-                                            | "Frost Wyvern"
-                                            | "Cloud Wyvern"
-                                            | "Sea Wyvern"
-                                            | "Weald Wyvern"
-                                    )
-                                },
-                                _ => false,
-                            })
-                        })
-                {
-                    // Bats don't like the ground, so make sure they are always flying
-                    controller.push_basic_input(InputKind::Fly);
-                    // Use a proportional controller with a coefficient of 1.0 to
-                    // maintain altitude
-                    let alt = read_data
-                        .terrain
-                        .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 7.0))
-                        .until(Block::is_solid)
-                        .cast()
-                        .0;
-                    let set_point = 5.0;
-                    let error = set_point - alt;
-                    controller.inputs.move_z = error;
-                    // If on the ground, jump
-                    if self.physics_state.on_ground.is_some() {
-                        controller.push_basic_input(InputKind::Jump);
-                    }
-                }
-                agent.bearing += Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 0.1
-                    - agent.bearing * 0.003
-                    - agent.patrol_origin.map_or(Vec2::zero(), |patrol_origin| {
-                        (self.pos.0 - patrol_origin).xy() * 0.0002
-                    });
 
-                // Stop if we're too close to a wall
-                // or about to walk off a cliff
-                // NOTE: costs 1 us (imbris) <- before cliff raycast added
-                agent.bearing *= 0.1
-                    + if read_data
+                    let chase_tgt = read_data
+                        .terrain
+                        .try_find_space(travel_to.as_())
+                        .map(|pos| pos.as_())
+                        .unwrap_or(travel_to);
+
+                    if let Some((bearing, speed)) = agent.chaser.chase(
+                        &*read_data.terrain,
+                        self.pos.0,
+                        self.vel.0,
+                        chase_tgt,
+                        TraversalConfig {
+                            min_tgt_dist: 1.25,
+                            ..self.traversal_config
+                        },
+                    ) {
+                        controller.inputs.move_dir =
+                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
+                                * speed.min(speed_factor);
+                        self.jump_if(bearing.z > 1.5 || self.traversal_config.can_fly, controller);
+                        controller.inputs.climb = Some(comp::Climb::Up);
+                        //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid().is_some());
+
+                        let height_offset = bearing.z
+                            + if self.traversal_config.can_fly {
+                                // NOTE: costs 4 us (imbris)
+                                let obstacle_ahead = read_data
+                                    .terrain
+                                    .ray(
+                                        self.pos.0 + Vec3::unit_z(),
+                                        self.pos.0
+                                            + bearing.try_normalized().unwrap_or_else(Vec3::unit_y)
+                                                * 80.0
+                                            + Vec3::unit_z(),
+                                    )
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .1
+                                    .map_or(true, |b| b.is_some());
+
+                                let mut ground_too_close = self
+                                    .body
+                                    .map(|body| {
+                                        #[cfg(feature = "worldgen")]
+                                        let height_approx = self.pos.0.z
+                                            - read_data
+                                                .world
+                                                .sim()
+                                                .get_alt_approx(
+                                                    self.pos.0.xy().map(|x: f32| x as i32),
+                                                )
+                                                .unwrap_or(0.0);
+                                        #[cfg(not(feature = "worldgen"))]
+                                        let height_approx = self.pos.0.z;
+
+                                        height_approx < body.flying_height()
+                                    })
+                                    .unwrap_or(false);
+
+                                const NUM_RAYS: usize = 5;
+
+                                // NOTE: costs 15-20 us (imbris)
+                                for i in 0..=NUM_RAYS {
+                                    let magnitude = self.body.map_or(20.0, |b| b.flying_height());
+                                    // Lerp between a line straight ahead and straight down to
+                                    // detect a
+                                    // wedge of obstacles we might fly into (inclusive so that both
+                                    // vectors are sampled)
+                                    if let Some(dir) = Lerp::lerp(
+                                        -Vec3::unit_z(),
+                                        Vec3::new(bearing.x, bearing.y, 0.0),
+                                        i as f32 / NUM_RAYS as f32,
+                                    )
+                                    .try_normalized()
+                                    {
+                                        ground_too_close |= read_data
+                                            .terrain
+                                            .ray(self.pos.0, self.pos.0 + magnitude * dir)
+                                            .until(|b: &Block| b.is_solid() || b.is_liquid())
+                                            .cast()
+                                            .1
+                                            .map_or(false, |b| b.is_some())
+                                    }
+                                }
+
+                                if obstacle_ahead || ground_too_close {
+                                    5.0 //fly up when approaching obstacles
+                                } else {
+                                    -2.0
+                                } //flying things should slowly come down from the stratosphere
+                            } else {
+                                0.05 //normal land traveller offset
+                            };
+                        if let Some(pid) = agent.position_pid_controller.as_mut() {
+                            pid.sp = self.pos.0.z + height_offset * Vec3::unit_z();
+                            controller.inputs.move_z = pid.calc_err();
+                        } else {
+                            controller.inputs.move_z = height_offset;
+                        }
+                        // Put away weapon
+                        if rng.gen_bool(0.1)
+                            && matches!(
+                                read_data.char_states.get(*self.entity),
+                                Some(CharacterState::Wielding(_))
+                            )
+                        {
+                            controller.push_action(ControlAction::Unwield);
+                        }
+                    }
+                    break 'activity; // Don't fall through to idle wandering
+                },
+                Some(NpcActivity::Gather(resources)) => {
+                    // TODO: Implement
+                    controller.push_action(ControlAction::Dance);
+                    break 'activity; // Don't fall through to idle wandering
+                },
+                Some(NpcActivity::HuntAnimals) => {
+                    if rng.gen::<f32>() < 0.1 {
+                        self.choose_target(
+                            agent,
+                            controller,
+                            read_data,
+                            event_emitter,
+                            AgentData::is_hunting_animal,
+                        );
+                    }
+                },
+                None => {},
+            }
+
+            // Bats should fly
+            // Use a proportional controller as the bouncing effect mimics bat flight
+            if self.traversal_config.can_fly
+                && self
+                    .inventory
+                    .equipped(EquipSlot::ActiveMainhand)
+                    .as_ref()
+                    .map_or(false, |item| {
+                        item.ability_spec().map_or(false, |a_s| match &*a_s {
+                            AbilitySpec::Custom(spec) => {
+                                matches!(
+                                    spec.as_str(),
+                                    "Simple Flying Melee"
+                                        | "Flame Wyvern"
+                                        | "Frost Wyvern"
+                                        | "Cloud Wyvern"
+                                        | "Sea Wyvern"
+                                        | "Weald Wyvern"
+                                )
+                            },
+                            _ => false,
+                        })
+                    })
+            {
+                // Bats don't like the ground, so make sure they are always flying
+                controller.push_basic_input(InputKind::Fly);
+                // Use a proportional controller with a coefficient of 1.0 to
+                // maintain altitude
+                let alt = read_data
+                    .terrain
+                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 7.0))
+                    .until(Block::is_solid)
+                    .cast()
+                    .0;
+                let set_point = 5.0;
+                let error = set_point - alt;
+                controller.inputs.move_z = error;
+                // If on the ground, jump
+                if self.physics_state.on_ground.is_some() {
+                    controller.push_basic_input(InputKind::Jump);
+                }
+            }
+            agent.bearing += Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 0.1
+                - agent.bearing * 0.003
+                - agent.patrol_origin.map_or(Vec2::zero(), |patrol_origin| {
+                    (self.pos.0 - patrol_origin).xy() * 0.0002
+                });
+
+            // Stop if we're too close to a wall
+            // or about to walk off a cliff
+            // NOTE: costs 1 us (imbris) <- before cliff raycast added
+            agent.bearing *= 0.1
+                + if read_data
+                    .terrain
+                    .ray(
+                        self.pos.0 + Vec3::unit_z(),
+                        self.pos.0
+                            + Vec3::from(agent.bearing)
+                                .try_normalized()
+                                .unwrap_or_else(Vec3::unit_y)
+                                * 5.0
+                            + Vec3::unit_z(),
+                    )
+                    .until(Block::is_solid)
+                    .cast()
+                    .1
+                    .map_or(true, |b| b.is_none())
+                    && read_data
                         .terrain
                         .ray(
-                            self.pos.0 + Vec3::unit_z(),
+                            self.pos.0
+                                + Vec3::from(agent.bearing)
+                                    .try_normalized()
+                                    .unwrap_or_else(Vec3::unit_y),
                             self.pos.0
                                 + Vec3::from(agent.bearing)
                                     .try_normalized()
                                     .unwrap_or_else(Vec3::unit_y)
-                                    * 5.0
-                                + Vec3::unit_z(),
+                                - Vec3::unit_z() * 4.0,
                         )
                         .until(Block::is_solid)
                         .cast()
-                        .1
-                        .map_or(true, |b| b.is_none())
-                        && read_data
-                            .terrain
-                            .ray(
-                                self.pos.0
-                                    + Vec3::from(agent.bearing)
-                                        .try_normalized()
-                                        .unwrap_or_else(Vec3::unit_y),
-                                self.pos.0
-                                    + Vec3::from(agent.bearing)
-                                        .try_normalized()
-                                        .unwrap_or_else(Vec3::unit_y)
-                                    - Vec3::unit_z() * 4.0,
-                            )
-                            .until(Block::is_solid)
-                            .cast()
-                            .0
-                            < 3.0
-                    {
-                        0.9
-                    } else {
-                        0.0
-                    };
-
-                if agent.bearing.magnitude_squared() > 0.5f32.powi(2) {
-                    controller.inputs.move_dir = agent.bearing * 0.65;
-                }
-
-                // Put away weapon
-                if rng.gen_bool(0.1)
-                    && matches!(
-                        read_data.char_states.get(*self.entity),
-                        Some(CharacterState::Wielding(_))
-                    )
+                        .0
+                        < 3.0
                 {
-                    controller.push_action(ControlAction::Unwield);
-                }
+                    0.9
+                } else {
+                    0.0
+                };
 
-                if rng.gen::<f32>() < 0.0015 {
-                    controller.push_utterance(UtteranceKind::Calm);
-                }
+            if agent.bearing.magnitude_squared() > 0.5f32.powi(2) {
+                controller.inputs.move_dir = agent.bearing * 0.65;
+            }
 
-                // Sit
-                if rng.gen::<f32>() < 0.0035 {
-                    controller.push_action(ControlAction::Sit);
-                }
-            },
+            // Put away weapon
+            if rng.gen_bool(0.1)
+                && matches!(
+                    read_data.char_states.get(*self.entity),
+                    Some(CharacterState::Wielding(_))
+                )
+            {
+                controller.push_action(ControlAction::Unwield);
+            }
+
+            if rng.gen::<f32>() < 0.0015 {
+                controller.push_utterance(UtteranceKind::Calm);
+            }
+
+            // Sit
+            if rng.gen::<f32>() < 0.0035 {
+                controller.push_action(ControlAction::Sit);
+            }
         }
     }
 
@@ -660,6 +679,7 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         read_data: &ReadData,
         event_emitter: &mut Emitter<ServerEvent>,
+        is_enemy: fn(&Self, EcsEntity, &ReadData) -> bool,
     ) {
         enum ActionStateTimers {
             TimerChooseTarget = 0,
@@ -700,7 +720,7 @@ impl<'a> AgentData<'a> {
         let get_pos = |entity| read_data.positions.get(entity);
         let get_enemy = |(entity, attack_target): (EcsEntity, bool)| {
             if attack_target {
-                if self.is_enemy(entity, read_data) {
+                if is_enemy(self, entity, read_data) {
                     Some((entity, true))
                 } else if can_ambush(entity, read_data) {
                     controller.clone().push_utterance(UtteranceKind::Ambush);
@@ -1385,12 +1405,13 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
+        event_emitter: &mut Emitter<ServerEvent>,
         rng: &mut impl Rng,
     ) {
         agent.forget_old_sounds(read_data.time.0);
 
         if is_invulnerable(*self.entity, read_data) {
-            self.idle(agent, controller, read_data, rng);
+            self.idle(agent, controller, read_data, event_emitter, rng);
             return;
         }
 
@@ -1423,13 +1444,13 @@ impl<'a> AgentData<'a> {
                 } else if self.below_flee_health(agent) || !follows_threatening_sounds {
                     self.flee(agent, controller, &sound_pos, &read_data.terrain);
                 } else {
-                    self.idle(agent, controller, read_data, rng);
+                    self.idle(agent, controller, read_data, event_emitter, rng);
                 }
             } else {
-                self.idle(agent, controller, read_data, rng);
+                self.idle(agent, controller, read_data, event_emitter, rng);
             }
         } else {
-            self.idle(agent, controller, read_data, rng);
+            self.idle(agent, controller, read_data, event_emitter, rng);
         }
     }
 
@@ -1438,6 +1459,7 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         read_data: &ReadData,
         controller: &mut Controller,
+        event_emitter: &mut Emitter<ServerEvent>,
         rng: &mut impl Rng,
     ) {
         if let Some(Target { target, .. }) = agent.target {
@@ -1467,7 +1489,7 @@ impl<'a> AgentData<'a> {
                                     Some(tgt_pos.0),
                                 ));
 
-                                self.idle(agent, controller, read_data, rng);
+                                self.idle(agent, controller, read_data, event_emitter, rng);
                             } else {
                                 let target_data = TargetData::new(tgt_pos, target, read_data);
                                 // TODO: Reimplement this in rtsim
@@ -1595,13 +1617,18 @@ impl<'a> AgentData<'a> {
         })
     }
 
-    fn is_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+    pub fn is_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
         let other_alignment = read_data.alignments.get(entity);
 
         (entity != *self.entity)
             && !self.passive_towards(entity, read_data)
             && (are_our_owners_hostile(self.alignment, other_alignment, read_data)
                 || (is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)))
+    }
+
+    pub fn is_hunting_animal(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        (entity != *self.entity)
+            && matches!(read_data.bodies.get(entity), Some(Body::QuadrupedSmall(_)))
     }
 
     fn should_defend(&self, entity: EcsEntity, read_data: &ReadData) -> bool {

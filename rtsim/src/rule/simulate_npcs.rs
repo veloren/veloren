@@ -246,7 +246,11 @@ impl Rule for SimulateNpcs {
                                     }
                                 },
                                 // When riding, other actions are disabled
-                                Some(NpcActivity::Goto(_, _) | NpcActivity::Gather(_)) => {},
+                                Some(
+                                    NpcActivity::Goto(_, _)
+                                    | NpcActivity::Gather(_)
+                                    | NpcActivity::HuntAnimals,
+                                ) => {},
                                 None => {},
                             }
                             npc.wpos = vehicle.wpos;
@@ -272,7 +276,7 @@ impl Rule for SimulateNpcs {
                                     .with_z(0.0);
                                 }
                             },
-                            Some(NpcActivity::Gather(_)) => {
+                            Some(NpcActivity::Gather(_) | NpcActivity::HuntAnimals) => {
                                 // TODO: Maybe they should walk around randomly
                                 // when gathering resources?
                             },

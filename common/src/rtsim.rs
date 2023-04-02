@@ -214,6 +214,8 @@ pub enum NpcActivity {
     /// (travel_to, speed_factor)
     Goto(Vec3<f32>, f32),
     Gather(&'static [ChunkResource]),
+    // TODO: Generalise to other entities? What kinds of animals?
+    HuntAnimals,
 }
 
 #[derive(Clone, Copy, Debug)]
