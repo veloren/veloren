@@ -42,26 +42,20 @@ pub struct ReadData<'a> {
     buffs: ReadStorage<'a, Buffs>,
     auras: ReadStorage<'a, Auras>,
     positions: ReadStorage<'a, Pos>,
+    bodies: ReadStorage<'a, Body>,
+    light_emitters: ReadStorage<'a, LightEmitter>,
 }
 
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    type SystemData = (
-        ReadData<'a>,
-        WriteStorage<'a, Stats>,
-        WriteStorage<'a, Body>,
-        WriteStorage<'a, LightEmitter>,
-    );
+    type SystemData = (ReadData<'a>, WriteStorage<'a, Stats>);
 
     const NAME: &'static str = "buff";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(
-        job: &mut Job<Self>,
-        (read_data, mut stats, mut bodies, mut light_emitters): Self::SystemData,
-    ) {
+    fn run(job: &mut Job<Self>, (read_data, mut stats): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
         // Set to false to avoid spamming server
@@ -73,9 +67,9 @@ impl<'a> System<'a> for Sys {
         job.cpu_stats.measure(ParMode::Rayon);
         let to_put_out_campfires = (
             &read_data.entities,
-            &bodies,
+            &read_data.bodies,
             &read_data.physics_states,
-            &light_emitters, //to improve iteration speed
+            &read_data.light_emitters, //to improve iteration speed
         )
             .par_join()
             .map_init(
@@ -117,19 +111,20 @@ impl<'a> System<'a> for Sys {
             // slower than parallel checking above
             for e in to_put_out_campfires {
                 {
-                    bodies
-                        .get_mut(e)
-                        .map(|mut body| *body = Body::Object(object::Body::Campfire));
-                    light_emitters.remove(e);
+                    server_emitter.emit(ServerEvent::ChangeBody {
+                        entity: e,
+                        new_body: Body::Object(object::Body::Campfire),
+                    });
+                    server_emitter.emit(ServerEvent::RemoveLightEmitter { entity: e });
                 }
             }
         }
 
-        for (entity, buff_comp, mut stat, mut body, health, energy, physics_state) in (
+        for (entity, buff_comp, mut stat, body, health, energy, physics_state) in (
             &read_data.entities,
             &read_data.buffs,
             &mut stats,
-            &mut bodies,
+            &read_data.bodies,
             &read_data.healths,
             &read_data.energies,
             read_data.physics_states.maybe(),
@@ -331,7 +326,7 @@ impl<'a> System<'a> for Sys {
             // Call to reset stats to base values
             stat.reset_temp_modifiers();
 
-            let mut body_override = stat.original_body;
+            let mut body_override = None;
 
             // Iterator over the lists of buffs by kind
             let mut buff_kinds = buff_comp
@@ -371,6 +366,7 @@ impl<'a> System<'a> for Sys {
                                 kind_start_time,
                                 &read_data,
                                 &mut stat,
+                                body,
                                 &mut body_override,
                                 health,
                                 energy,
@@ -387,8 +383,9 @@ impl<'a> System<'a> for Sys {
             }
 
             // Update body if needed.
-            if body_override != *body {
-                *body = body_override;
+            let new_body = body_override.unwrap_or(stat.original_body);
+            if new_body != *body {
+                server_emitter.emit(ServerEvent::ChangeBody { entity, new_body });
             }
 
             // Remove buffs that expire
@@ -416,6 +413,8 @@ impl<'a> System<'a> for Sys {
     }
 }
 
+// TODO: Globally disable this clippy lint
+#[allow(clippy::too_many_arguments)]
 fn execute_effect(
     effect: &BuffEffect,
     buff_kind: BuffKind,
@@ -423,7 +422,8 @@ fn execute_effect(
     buff_kind_start_time: Time,
     read_data: &ReadData,
     stat: &mut Stats,
-    body_override: &mut Body,
+    current_body: &Body,
+    body_override: &mut Option<Body>,
     health: &Health,
     energy: &Energy,
     entity: Entity,
@@ -618,6 +618,16 @@ fn execute_effect(
         BuffEffect::CriticalChance(cc) => {
             stat.crit_chance_modifier *= *cc;
         },
-        BuffEffect::BodyChange(b) => *body_override = *b,
+        BuffEffect::BodyChange(b) => {
+            // For when an entity is under the effects of multiple de/buffs that change the
+            // body, to avoid flickering between many bodies only change the body if the
+            // override body is not equal to the current body. (If the buff that caused the
+            // current body is still active, body override will eventually pick up on it,
+            // otherwise this will end up with a new body, though random depending on
+            // iteration order)
+            if Some(current_body) != body_override.as_ref() {
+                *body_override = Some(*b)
+            }
+        },
     };
 }

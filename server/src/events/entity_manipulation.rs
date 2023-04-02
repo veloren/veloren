@@ -1465,3 +1465,22 @@ pub fn handle_stance_change(server: &mut Server, entity: EcsEntity, new_stance: 
         *stance = new_stance;
     }
 }
+
+pub fn handle_change_body(server: &mut Server, entity: EcsEntity, new_body: comp::Body) {
+    if let Some(mut body) = server
+        .state
+        .ecs_mut()
+        .write_storage::<comp::Body>()
+        .get_mut(entity)
+    {
+        *body = new_body;
+    }
+}
+
+pub fn handle_remove_light_emitter(server: &mut Server, entity: EcsEntity) {
+    server
+        .state
+        .ecs_mut()
+        .write_storage::<comp::LightEmitter>()
+        .remove(entity);
+}
