@@ -490,11 +490,15 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                             &bdata.read_data,
                             target,
                         ) {
-                            bdata.controller.push_utterance(UtteranceKind::Greeting);
                             bdata.controller.push_action(ControlAction::Talk);
+                            bdata.controller.push_utterance(UtteranceKind::Greeting);
                             bdata
                                 .agent_data
                                 .chat_npc("npc-speech-villager", &mut bdata.event_emitter);
+                            bdata
+                                .agent
+                                .timer
+                                .start(bdata.read_data.time.0, TimerAction::Interact);
                         }
                     }
                 }
