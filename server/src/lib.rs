@@ -549,17 +549,6 @@ impl Server {
 
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
-        // Initiate real-time world simulation
-        /*
-        #[cfg(feature = "worldgen")]
-        {
-            rtsim::init(&mut state, &world, index.as_index_ref());
-            weather::init(&mut state, &world);
-        }
-        #[cfg(not(feature = "worldgen"))]
-        rtsim::init(&mut state);
-        */
-
         // Init rtsim, loading it from disk if possible
         #[cfg(feature = "worldgen")]
         {
@@ -738,13 +727,6 @@ impl Server {
                 add_local_systems(dispatcher_builder);
                 sys::msg::add_server_systems(dispatcher_builder);
                 sys::add_server_systems(dispatcher_builder);
-                /*
-                #[cfg(feature = "worldgen")]
-                {
-                    rtsim::add_server_systems(dispatcher_builder);
-                    weather::add_server_systems(dispatcher_builder);
-                }
-                */
                 #[cfg(feature = "worldgen")]
                 {
                     rtsim::add_server_systems(dispatcher_builder);

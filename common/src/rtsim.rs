@@ -227,6 +227,8 @@ pub enum NpcAction {
     Say(Cow<'static, str>),
 }
 
+// Note: the `serde(name = "...")` is to minimise the length of field
+// identifiers for the sake of rtsim persistence
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, enum_map::Enum)]
 pub enum ChunkResource {
     #[serde(rename = "0")]
@@ -253,6 +255,8 @@ pub enum ChunkResource {
     Ore, // Iron, copper, etc.
 }
 
+// Note: the `serde(name = "...")` is to minimise the length of field
+// identifiers for the sake of rtsim persistence
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Profession {
     #[serde(rename = "0")]

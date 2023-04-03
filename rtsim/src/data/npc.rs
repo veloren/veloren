@@ -83,8 +83,8 @@ pub struct Brain {
 #[derive(Serialize, Deserialize)]
 pub struct Npc {
     // Persisted state
-    /// Represents the location of the NPC.
     pub seed: u32,
+    /// Represents the location of the NPC.
     pub wpos: Vec3<f32>,
 
     pub body: comp::Body,

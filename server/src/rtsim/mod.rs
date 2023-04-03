@@ -22,7 +22,7 @@ use std::{
     path::PathBuf,
     time::Instant,
 };
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, trace, warn};
 use vek::*;
 use world::{IndexRef, World};
 
@@ -175,10 +175,10 @@ impl RtSim {
     }
 
     pub fn save(&mut self, /* slowjob_pool: &SlowJobPool, */ wait_until_finished: bool) {
-        info!("Saving rtsim data...");
+        debug!("Saving rtsim data...");
         let file_path = self.file_path.clone();
         let data = self.state.data().clone();
-        debug!("Starting rtsim data save job...");
+        trace!("Starting rtsim data save job...");
         // TODO: Use slow job
         // slowjob_pool.spawn("RTSIM_SAVE", move || {
         let handle = std::thread::spawn(move || {

@@ -528,15 +528,15 @@ where
 ///
 /// The inner function will be run every tick to decide on an action. When an
 /// action is chosen, it will be performed until completed unless a different
-/// action is chosen in a subsequent tick. [`watch`] is very unfocussed and will
-/// happily switch between actions rapidly between ticks if conditions change.
-/// If you want something that tends to commit to actions until they are
-/// completed, see [`choose`].
+/// action of the same or higher priority is chosen in a subsequent tick.
+/// [`watch`] is very unfocussed and will happily switch between actions
+/// rapidly between ticks if conditions change. If you want something that
+/// tends to commit to actions until they are completed, see [`choose`].
 ///
 /// # Example
 ///
 /// ```ignore
-/// choose(|ctx| {
+/// watch(|ctx| {
 ///     if ctx.npc.is_being_attacked() {
 ///         urgent(combat()) // If we're in danger, do something!
 ///     } else if ctx.npc.is_hungry() {

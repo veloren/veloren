@@ -310,7 +310,7 @@ fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action 
     })
 }
 
-fn traverse_points<F>(mut next_point: F) -> impl Action
+fn traverse_points<F>(mut next_point: F, speed_factor: f32) -> impl Action
 where
     F: FnMut(&mut NpcCtx) -> Option<Vec2<f32>> + Send + Sync + 'static,
 {
@@ -333,33 +333,40 @@ where
 
             if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
                 Some(itertools::Either::Left(
-                    seq(path.into_iter().map(|wpos| goto_2d(wpos, 1.0, 8.0)))
-                        .then(goto_2d(site_exit, 1.0, 8.0)),
+                    seq(path.into_iter().map(|wpos| goto_2d(wpos, 1.0, 8.0))).then(goto_2d(
+                        site_exit,
+                        speed_factor,
+                        8.0,
+                    )),
                 ))
             } else {
-                Some(itertools::Either::Right(goto_2d(site_exit, 1.0, 8.0)))
+                Some(itertools::Either::Right(goto_2d(
+                    site_exit,
+                    speed_factor,
+                    8.0,
+                )))
             }
         } else {
-            Some(itertools::Either::Right(goto_2d(wpos, 1.0, 8.0)))
+            Some(itertools::Either::Right(goto_2d(wpos, speed_factor, 8.0)))
         }
     })
 }
 
 /// Try to travel to a site. Where practical, paths will be taken.
-fn travel_to_point(wpos: Vec2<f32>) -> impl Action {
+fn travel_to_point(wpos: Vec2<f32>, speed_factor: f32) -> impl Action {
     now(move |ctx| {
         const WAYPOINT: f32 = 48.0;
         let start = ctx.npc.wpos.xy();
         let diff = wpos - start;
         let n = (diff.magnitude() / WAYPOINT).max(1.0);
         let mut points = (1..n as usize + 1).map(move |i| start + diff * (i as f32 / n));
-        traverse_points(move |_| points.next())
+        traverse_points(move |_| points.next(), speed_factor)
     })
     .debug(|| "travel to point")
 }
 
 /// Try to travel to a site. Where practical, paths will be taken.
-fn travel_to_site(tgt_site: SiteId) -> impl Action {
+fn travel_to_site(tgt_site: SiteId, speed_factor: f32) -> impl Action {
     now(move |ctx| {
         let sites = &ctx.state.data().sites;
 
@@ -397,7 +404,7 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
                 } else {
                     None
                 }
-            })
+            }, speed_factor)
                 .boxed()
 
             // For every track in the path we discovered between the sites...
@@ -438,7 +445,7 @@ fn travel_to_site(tgt_site: SiteId) -> impl Action {
             //     .boxed()
         } else if let Some(site) = sites.get(tgt_site) {
             // If all else fails, just walk toward the target site in a straight line
-            travel_to_point(site.wpos.map(|e| e as f32 + 0.5)).boxed()
+            travel_to_point(site.wpos.map(|e| e as f32 + 0.5), speed_factor).boxed()
         } else {
             // If we can't find a way to get to the site at all, there's nothing more to be done
             finish().boxed()
@@ -512,7 +519,7 @@ fn adventure() -> impl Action {
                 .unwrap_or_default();
             // Travel to the site
             important(just(move |ctx| ctx.controller.say(format!("I've spent enough time here, onward to {}!", site_name)))
-                .then(travel_to_site(tgt_site))
+                .then(travel_to_site(tgt_site, 0.6))
                 // Stop for a few minutes
                 .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
                 .map(|_| ())
@@ -572,7 +579,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
         } else if ctx.npc.current_site != Some(visiting_site) {
             let npc_home = ctx.npc.home;
             // Travel to the site we're supposed to be in
-            return urgent(travel_to_site(visiting_site).debug(move || {
+            return urgent(travel_to_site(visiting_site, 1.0).debug(move || {
                 if npc_home == Some(visiting_site) {
                     "travel home".to_string()
                 } else {
@@ -602,7 +609,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         })
                     {
                         just(|ctx| ctx.controller.say("It's dark, time to go home"))
-                            .then(travel_to_point(house_wpos))
+                            .then(travel_to_point(house_wpos, 0.65))
                             .debug(|| "walk to house")
                             .then(socialize().repeat().debug(|| "wait in house"))
                             .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
@@ -621,7 +628,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
         {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
-                    travel_to_point(forest_wpos)
+                    travel_to_point(forest_wpos, 0.5)
                         .debug(|| "walk to forest")
                         .then({
                             let wait_time = thread_rng().gen_range(10.0..30.0);
@@ -636,7 +643,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
                     just(|ctx| ctx.controller.say("Time to go hunting!"))
-                        .then(travel_to_point(forest_wpos))
+                        .then(travel_to_point(forest_wpos, 0.75))
                         .debug(|| "walk to forest")
                         .then({
                             let wait_time = thread_rng().gen_range(30.0..60.0);
@@ -685,7 +692,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                 })
             {
                 // Walk to the plaza...
-                travel_to_point(plaza_wpos)
+                travel_to_point(plaza_wpos, 0.5)
                     .debug(|| "walk to plaza")
                     // ...then wait for some time before moving on
                     .then({

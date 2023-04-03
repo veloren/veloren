@@ -244,55 +244,6 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                         },
                         Subject::Mood => {
                             // TODO: Reimplement in rtsim2
-                            /*
-                            if let Some(rtsim_entity) = &bdata.rtsim_entity {
-                                if !rtsim_entity.brain.remembers_mood() {
-                                    // TODO: the following code will need a rework to
-                                    // implement more mood contexts
-                                    // This require that town NPCs becomes rtsim_entities to
-                                    // work fully.
-                                    match rand::random::<u32>() % 3 {
-                                        0 => agent.rtsim_controller.events.push(
-                                            RtSimEvent::SetMood(Memory {
-                                                item: MemoryItem::Mood {
-                                                    state: MoodState::Good(
-                                                        MoodContext::GoodWeather,
-                                                    ),
-                                                },
-                                                time_to_forget: read_data.time.0 + 21200.0,
-                                            }),
-                                        ),
-                                        1 => agent.rtsim_controller.events.push(
-                                            RtSimEvent::SetMood(Memory {
-                                                item: MemoryItem::Mood {
-                                                    state: MoodState::Neutral(
-                                                        MoodContext::EverydayLife,
-                                                    ),
-                                                },
-                                                time_to_forget: read_data.time.0 + 21200.0,
-                                            }),
-                                        ),
-                                        2 => agent.rtsim_controller.events.push(
-                                            RtSimEvent::SetMood(Memory {
-                                                item: MemoryItem::Mood {
-                                                    state: MoodState::Bad(
-                                                        MoodContext::GoodWeather,
-                                                    ),
-                                                },
-                                                time_to_forget: read_data.time.0 + 86400.0,
-                                            }),
-                                        ),
-                                        _ => {}, // will never happen
-                                    }
-                                }
-                                if let Some(memory) = rtsim_entity.brain.get_mood() {
-                                    let msg = match &memory.item {
-                                        MemoryItem::Mood { state } => state.describe(),
-                                        _ => "".to_string(),
-                                    };
-                                    agent_data.chat_npc(msg, event_emitter);
-                                }
-                            }*/
                         },
                         Subject::Location(location) => {
                             if let Some(tgt_pos) = read_data.positions.get(target) {
