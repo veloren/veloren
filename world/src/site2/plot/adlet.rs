@@ -136,12 +136,14 @@ impl AdletStronghold {
         let desired_structures = surface_radius.pow(2) / 100;
         for _ in 0..desired_structures {
             if let Some((rpos, kind)) = attempt(50, || {
+                let structure_kind = AdletStructure::Igloo;
+                /*
                 // Choose structure kind
                 let structure_kind = match rng.gen_range(0..10) {
                     // TODO: Add more variants
                     _ => AdletStructure::Igloo,
                 };
-
+                 */
                 // Choose relative position
                 let structure_center = {
                     let theta = rng.gen::<f32>() * TAU;
@@ -430,6 +432,13 @@ impl Structure for AdletStronghold {
                 _ => Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
             })
         }));
+        let snow_ice_air_fill = Fill::Sampling(Arc::new(|wpos| {
+            Some(match (RandomField::new(0).get(wpos)) % 100 {
+                0..=3 => Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)),
+                4..=24 => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+                _ => Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
+            })
+        }));
         let bone_fill = Fill::Brick(BlockKind::Misc, Rgb::new(200, 160, 140), 1);
         let snow_fill = Fill::Block(Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)));
         let ice_fill = Fill::Block(Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)));
@@ -503,7 +512,7 @@ impl Structure for AdletStronghold {
                 min: (self.entrance - 12).with_z(self.cavern_alt as i32 - 40),
                 max: (self.entrance + 12).with_z(self.cavern_alt as i32 - 10),
             })
-            .fill(snow_ice_fill.clone());
+            .fill(snow_ice_air_fill.clone());
 
         let valid_entrance = painter.segment_prism(tunnel_start, tunnel_end, 20.0, 30.0);
         painter
@@ -670,6 +679,7 @@ impl Structure for AdletStronghold {
                     let igloo_pos = wpos;
                     let igloo_size = 8.0;
                     let height_handle = 0;
+                    let bones_size = igloo_size as i32;
                     painter
                         .cylinder_with_radius(
                             (igloo_pos).with_z(alt as i32 - 5 + height_handle),
@@ -678,16 +688,27 @@ impl Structure for AdletStronghold {
                         )
                         .clear();
                     // Foundation
-                    let foundation = painter
-                        .sphere(Aabb {
-                            min: (igloo_pos - 15).with_z(alt as i32 - 45 + height_handle),
-                            max: (igloo_pos + 15).with_z(alt as i32 - 15 + height_handle),
-                        })
-                        .union(painter.sphere(Aabb {
-                            min: (igloo_pos - 10).with_z(alt as i32 - 20 + height_handle),
-                            max: (igloo_pos + 10).with_z(alt as i32 - 5 + height_handle),
-                        }));
-                    foundation.fill(snow_ice_fill.clone());
+                    let foundation = match RandomField::new(0).get((wpos).with_z(alt as i32)) % 3 {
+                        1 => painter
+                            .sphere(Aabb {
+                                min: (igloo_pos - 15).with_z(alt as i32 - 45 + height_handle),
+                                max: (igloo_pos + 15).with_z(alt as i32 - 15 + height_handle),
+                            })
+                            .union(painter.sphere(Aabb {
+                                min: (igloo_pos - 10).with_z(alt as i32 - 20 + height_handle),
+                                max: (igloo_pos + 10).with_z(alt as i32 - 5 + height_handle),
+                            })),
+                        _ => painter
+                            .sphere(Aabb {
+                                min: (igloo_pos - 15).with_z(alt as i32 - 60 + height_handle),
+                                max: (igloo_pos + 15).with_z(alt as i32 - 30 + height_handle),
+                            })
+                            .union(painter.cone(Aabb {
+                                min: (igloo_pos - 15).with_z(alt as i32 - 45 + height_handle),
+                                max: (igloo_pos + 15).with_z(alt as i32 + 8 + height_handle),
+                            })),
+                    };
+                    foundation.fill(snow_ice_air_fill.clone());
                     foundation.intersect(cavern).clear();
                     // Platform
                     painter
@@ -695,7 +716,7 @@ impl Structure for AdletStronghold {
                             min: (igloo_pos - 13).with_z(alt as i32 - 11 + height_handle),
                             max: (igloo_pos + 13).with_z(alt as i32 + 11 + height_handle),
                         })
-                        .fill(snow_ice_fill.clone());
+                        .fill(snow_ice_air_fill.clone());
 
                     painter
                         .cylinder(Aabb {
@@ -703,88 +724,219 @@ impl Structure for AdletStronghold {
                             max: (igloo_pos + 13).with_z(alt as i32 + 16 + height_handle),
                         })
                         .clear();
-                    // igloo snow
-                    painter
-                        .sphere_with_radius(igloo_pos.with_z(alt as i32 - 1), igloo_size)
-                        .fill(snow_fill.clone());
-                    // 4 hide pieces
-                    for dir in CARDINALS {
-                        let hide_size =
-                            5 + (RandomField::new(0).get((igloo_pos + dir).with_z(alt as i32)) % 4);
-                        let hide_color =
-                            match RandomField::new(0).get((igloo_pos + dir).with_z(alt as i32)) % 4
-                            {
-                                0 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(73, 29, 0))),
-                                1 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(78, 67, 43))),
-                                2 => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(83, 74, 41))),
-                                _ => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(14, 36, 34))),
-                            };
-                        painter
-                            .sphere_with_radius(
-                                (igloo_pos + (2 * dir)).with_z((alt as i32) + 1 + height_handle),
-                                hide_size as f32,
-                            )
-                            .fill(hide_color.clone());
-                    }
-                    // clear room
-                    painter
-                        .sphere_with_radius(
-                            igloo_pos.with_z(alt as i32 - 1 + height_handle),
-                            (igloo_size as i32 - 2) as f32,
-                        )
-                        .clear();
-                    // clear entries
-                    painter
-                        .aabb(Aabb {
-                            min: Vec2::new(igloo_pos.x - 1, igloo_pos.y - igloo_size as i32 - 2)
-                                .with_z(alt as i32 - 4 + height_handle),
-                            max: Vec2::new(igloo_pos.x + 1, igloo_pos.y + igloo_size as i32 + 2)
-                                .with_z(alt as i32 - 2 + height_handle),
-                        })
-                        .clear();
-                    painter
-                        .aabb(Aabb {
-                            min: Vec2::new(igloo_pos.x - igloo_size as i32 - 2, igloo_pos.y - 1)
-                                .with_z(alt as i32 - 4 + height_handle),
-                            max: Vec2::new(igloo_pos.x + igloo_size as i32 + 2, igloo_pos.y + 1)
-                                .with_z(alt as i32 - 2 + height_handle),
-                        })
-                        .clear();
-                    // bones
-                    let bones_size = igloo_size as i32;
-                    for h in 0..(bones_size + 4) {
-                        painter
-                            .line(
-                                (igloo_pos - bones_size)
-                                    .with_z((alt as i32) - 5 + h + height_handle),
-                                (igloo_pos + bones_size)
-                                    .with_z((alt as i32) - 5 + h + height_handle),
-                                0.5,
-                            )
-                            .intersect(painter.sphere_with_radius(
-                                igloo_pos.with_z((alt as i32) - 2 + height_handle),
-                                9.0,
-                            ))
-                            .fill(bone_fill.clone());
+                    // 2 igloo variants
+                    match RandomField::new(0).get((igloo_pos).with_z(alt as i32)) % 4 {
+                        0 => {
+                            // clear room
+                            painter
+                                .sphere_with_radius(
+                                    igloo_pos.with_z(alt as i32 - 1 + height_handle),
+                                    (igloo_size as i32 - 2) as f32,
+                                )
+                                .clear();
+                            let pos_var = RandomField::new(0).get(igloo_pos.with_z(alt as i32)) % 5;
+                            let radius = 8 + pos_var;
+                            let bones = 8.0 + pos_var as f32;
+                            let phi = TAU / bones;
+                            for n in 1..=bones as i32 {
+                                let bone_hide_fill = Fill::Sampling(Arc::new(|pos| {
+                                    Some(match (RandomField::new(0).get(pos)) % 35 {
+                                        0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
+                                        1 => Block::new(BlockKind::Wood, Rgb::new(78, 67, 43)),
+                                        2 => Block::new(BlockKind::Wood, Rgb::new(83, 74, 41)),
+                                        3 => Block::new(BlockKind::Wood, Rgb::new(14, 36, 34)),
+                                        _ => Block::new(BlockKind::Misc, Rgb::new(200, 160, 140)),
+                                    })
+                                }));
 
-                        painter
-                            .line(
-                                Vec2::new(igloo_pos.x - bones_size, igloo_pos.y + bones_size)
-                                    .with_z((alt as i32) - 4 + h + height_handle),
-                                Vec2::new(igloo_pos.x + bones_size, igloo_pos.y - bones_size)
-                                    .with_z((alt as i32) - 4 + h + height_handle),
-                                0.5,
-                            )
-                            .intersect(painter.sphere_with_radius(
-                                igloo_pos.with_z((alt as i32) - 2 + height_handle),
-                                9.0,
-                            ))
-                            .fill(bone_fill.clone());
-                    }
-                    painter
-                        .sphere_with_radius(igloo_pos.with_z((alt as i32) - 2 + height_handle), 5.0)
-                        .clear();
+                                let pos = Vec2::new(
+                                    igloo_pos.x + (radius as f32 * ((n as f32 * phi).cos())) as i32,
+                                    igloo_pos.y + (radius as f32 * ((n as f32 * phi).sin())) as i32,
+                                );
+                                let bone_var = RandomField::new(0).get(pos.with_z(alt as i32)) % 5;
 
+                                match RandomField::new(0).get((igloo_pos - 1).with_z(alt as i32))
+                                    % 3
+                                {
+                                    0 => {
+                                        painter
+                                            .line(
+                                                pos.with_z(alt as i32 - 6 + height_handle),
+                                                igloo_pos.with_z(alt as i32 + 8 + height_handle),
+                                                1.0,
+                                            )
+                                            .fill(bone_hide_fill.clone());
+                                    },
+                                    _ => {
+                                        painter
+                                            .cubic_bezier(
+                                                pos.with_z(alt as i32 - 6 + height_handle),
+                                                (pos - ((igloo_pos - pos) / 2)).with_z(
+                                                    alt as i32
+                                                        + 12
+                                                        + bone_var as i32
+                                                        + height_handle,
+                                                ),
+                                                (pos + ((igloo_pos - pos) / 2))
+                                                    .with_z(alt as i32 + 9 + height_handle),
+                                                igloo_pos.with_z(alt as i32 + 4 + height_handle),
+                                                1.0,
+                                            )
+                                            .fill(bone_hide_fill.clone());
+                                    },
+                                };
+                            }
+                            let outside_wolfs = 2
+                                + (RandomField::new(0)
+                                    .get((igloo_pos - 1).with_z(alt as i32 - 5 + height_handle))
+                                    % 5) as i32;
+                            for _ in 0..outside_wolfs {
+                                let igloo_mob_spawn =
+                                    (igloo_pos - 1).with_z(alt as i32 - 5 + height_handle);
+                                painter.spawn(wolf(igloo_mob_spawn.as_(), &mut rng))
+                            }
+                        },
+                        _ => {
+                            // igloo snow
+                            painter
+                                .sphere_with_radius(igloo_pos.with_z(alt as i32 - 1), igloo_size)
+                                .fill(snow_fill.clone());
+                            // 4 hide pieces
+                            for dir in CARDINALS {
+                                let hide_size = 5
+                                    + (RandomField::new(0)
+                                        .get((igloo_pos + dir).with_z(alt as i32))
+                                        % 4);
+                                let hide_color = match RandomField::new(0)
+                                    .get((igloo_pos + dir).with_z(alt as i32))
+                                    % 4
+                                {
+                                    0 => Fill::Block(Block::new(
+                                        BlockKind::Wood,
+                                        Rgb::new(73, 29, 0),
+                                    )),
+                                    1 => Fill::Block(Block::new(
+                                        BlockKind::Wood,
+                                        Rgb::new(78, 67, 43),
+                                    )),
+                                    2 => Fill::Block(Block::new(
+                                        BlockKind::Wood,
+                                        Rgb::new(83, 74, 41),
+                                    )),
+                                    _ => Fill::Block(Block::new(
+                                        BlockKind::Wood,
+                                        Rgb::new(14, 36, 34),
+                                    )),
+                                };
+                                painter
+                                    .sphere_with_radius(
+                                        (igloo_pos + (2 * dir))
+                                            .with_z((alt as i32) + 1 + height_handle),
+                                        hide_size as f32,
+                                    )
+                                    .fill(hide_color.clone());
+                            }
+                            // clear room
+                            painter
+                                .sphere_with_radius(
+                                    igloo_pos.with_z(alt as i32 - 1 + height_handle),
+                                    (igloo_size as i32 - 2) as f32,
+                                )
+                                .clear();
+                            // clear entries
+                            painter
+                                .aabb(Aabb {
+                                    min: Vec2::new(
+                                        igloo_pos.x - 1,
+                                        igloo_pos.y - igloo_size as i32 - 2,
+                                    )
+                                    .with_z(alt as i32 - 4 + height_handle),
+                                    max: Vec2::new(
+                                        igloo_pos.x + 1,
+                                        igloo_pos.y + igloo_size as i32 + 2,
+                                    )
+                                    .with_z(alt as i32 - 2 + height_handle),
+                                })
+                                .clear();
+                            painter
+                                .aabb(Aabb {
+                                    min: Vec2::new(
+                                        igloo_pos.x - igloo_size as i32 - 2,
+                                        igloo_pos.y - 1,
+                                    )
+                                    .with_z(alt as i32 - 4 + height_handle),
+                                    max: Vec2::new(
+                                        igloo_pos.x + igloo_size as i32 + 2,
+                                        igloo_pos.y + 1,
+                                    )
+                                    .with_z(alt as i32 - 2 + height_handle),
+                                })
+                                .clear();
+                            // bones
+                            for h in 0..(bones_size + 4) {
+                                painter
+                                    .line(
+                                        (igloo_pos - bones_size)
+                                            .with_z((alt as i32) - 5 + h + height_handle),
+                                        (igloo_pos + bones_size)
+                                            .with_z((alt as i32) - 5 + h + height_handle),
+                                        0.5,
+                                    )
+                                    .intersect(painter.sphere_with_radius(
+                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                        9.0,
+                                    ))
+                                    .fill(bone_fill.clone());
+
+                                painter
+                                    .line(
+                                        Vec2::new(
+                                            igloo_pos.x - bones_size,
+                                            igloo_pos.y + bones_size,
+                                        )
+                                        .with_z((alt as i32) - 4 + h + height_handle),
+                                        Vec2::new(
+                                            igloo_pos.x + bones_size,
+                                            igloo_pos.y - bones_size,
+                                        )
+                                        .with_z((alt as i32) - 4 + h + height_handle),
+                                        0.5,
+                                    )
+                                    .intersect(painter.sphere_with_radius(
+                                        igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                        9.0,
+                                    ))
+                                    .fill(bone_fill.clone());
+                            }
+                            painter
+                                .sphere_with_radius(
+                                    igloo_pos.with_z((alt as i32) - 2 + height_handle),
+                                    5.0,
+                                )
+                                .clear();
+
+                            // WallSconce
+                            painter.rotated_sprite(
+                                Vec2::new(
+                                    igloo_pos.x - bones_size + 4,
+                                    igloo_pos.y + bones_size - 5,
+                                )
+                                .with_z((alt as i32) - 1 + height_handle),
+                                SpriteKind::WallSconce,
+                                0_u8,
+                            );
+                            let igloo_mobs = 2
+                                + (RandomField::new(0)
+                                    .get((igloo_pos - 1).with_z(alt as i32 - 5 + height_handle))
+                                    % 2) as i32;
+
+                            for _ in 0..igloo_mobs {
+                                let igloo_mob_spawn =
+                                    (igloo_pos - 1).with_z(alt as i32 - 5 + height_handle);
+                                painter.spawn(random_adlet(igloo_mob_spawn.as_(), &mut rng));
+                            }
+                        },
+                    };
                     // igloo floor
                     painter
                         .cylinder_with_radius(
@@ -832,27 +984,12 @@ impl Structure for AdletStronghold {
                                 .with_z((alt as i32) + bones_size + 1 + height_handle),
                         })
                         .fill(top_color.clone());
-                    // WallSconce
-                    painter.rotated_sprite(
-                        Vec2::new(igloo_pos.x - bones_size + 4, igloo_pos.y + bones_size - 5)
-                            .with_z((alt as i32) - 1 + height_handle),
-                        SpriteKind::WallSconce,
-                        0_u8,
-                    );
+
                     // FireBowl
                     painter.sprite(
                         igloo_pos.with_z(alt as i32 - 5 + height_handle),
                         SpriteKind::FireBowlGround,
                     );
-                    let igloo_mobs = 2
-                        + (RandomField::new(0)
-                            .get((igloo_pos - 1).with_z(alt as i32 - 5 + height_handle))
-                            % 2) as i32;
-                    for _ in 0..igloo_mobs {
-                        let igloo_mob_spawn =
-                            (igloo_pos - 1).with_z(alt as i32 - 5 + height_handle);
-                        painter.spawn(random_adlet(igloo_mob_spawn.as_(), &mut rng));
-                    }
                 },
                 AdletStructure::SpeleothemCluster => {
                     let layer_color = Fill::Sampling(Arc::new(|wpos| {
