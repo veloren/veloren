@@ -348,7 +348,7 @@ where
 /// Try to travel to a site. Where practical, paths will be taken.
 fn travel_to_point(wpos: Vec2<f32>) -> impl Action {
     now(move |ctx| {
-        const WAYPOINT: f32 = 24.0;
+        const WAYPOINT: f32 = 48.0;
         let start = ctx.npc.wpos.xy();
         let diff = wpos - start;
         let n = (diff.magnitude() / WAYPOINT).max(1.0);
@@ -506,9 +506,12 @@ fn adventure() -> impl Action {
             } else {
                 60.0 * 3.0
             };
+            let site_name = ctx.state.data().sites[tgt_site].world_site
+                .map(|ws| ctx.index.sites.get(ws).name().to_string())
+                .unwrap_or_default();
             // Travel to the site
-            important(
-                travel_to_site(tgt_site)
+            important(just(move |ctx| ctx.controller.say(format!("I've spent enough time here, onward to {}!", site_name)))
+                .then(travel_to_site(tgt_site))
                 // Stop for a few minutes
                 .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
                 .map(|_| ())
@@ -597,10 +600,12 @@ fn villager(visiting_site: SiteId) -> impl Action {
                             Some(site2.tile_center_wpos(house.root_tile()).as_())
                         })
                     {
-                        travel_to_point(house_wpos)
+                        just(|ctx| ctx.controller.say("It's dark, time to go home"))
+                            .then(travel_to_point(house_wpos))
                             .debug(|| "walk to house")
                             .then(socialize().repeat().debug(|| "wait in house"))
                             .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
+                            .then(just(|ctx| ctx.controller.say("A new day begins!")))
                             .map(|_| ())
                             .boxed()
                     } else {
@@ -610,9 +615,11 @@ fn villager(visiting_site: SiteId) -> impl Action {
                 .debug(|| "find somewhere to sleep"),
             );
         // Villagers with roles should perform those roles
-        } else if matches!(ctx.npc.profession, Some(Profession::Herbalist)) {
+        } else if matches!(ctx.npc.profession, Some(Profession::Herbalist))
+            && thread_rng().gen_bool(0.8)
+        {
             if let Some(forest_wpos) = find_forest(ctx) {
-                return important(
+                return casual(
                     travel_to_point(forest_wpos)
                         .debug(|| "walk to forest")
                         .then({
@@ -622,10 +629,13 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Hunter)) {
+        } else if matches!(ctx.npc.profession, Some(Profession::Hunter))
+            && thread_rng().gen_bool(0.8)
+        {
             if let Some(forest_wpos) = find_forest(ctx) {
-                return important(
-                    travel_to_point(forest_wpos)
+                return casual(
+                    just(|ctx| ctx.controller.say("Time to go hunting!"))
+                        .then(travel_to_point(forest_wpos))
                         .debug(|| "walk to forest")
                         .then({
                             let wait_time = thread_rng().gen_range(30.0..60.0);

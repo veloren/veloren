@@ -15,6 +15,7 @@ use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::{
+    borrow::Cow,
     collections::VecDeque,
     ops::{Deref, DerefMut},
 };
@@ -69,6 +70,10 @@ impl Controller {
     pub fn do_dance(&mut self) { self.activity = Some(NpcActivity::Dance); }
 
     pub fn greet(&mut self, actor: Actor) { self.actions.push(NpcAction::Greet(actor)); }
+
+    pub fn say(&mut self, msg: impl Into<Cow<'static, str>>) {
+        self.actions.push(NpcAction::Say(msg.into()));
+    }
 }
 
 pub struct Brain {

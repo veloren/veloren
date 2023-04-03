@@ -7,7 +7,7 @@ use crate::character::CharacterId;
 use rand::{seq::IteratorRandom, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Component;
-use std::collections::VecDeque;
+use std::{borrow::Cow, collections::VecDeque};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
@@ -219,9 +219,11 @@ pub enum NpcActivity {
     Dance,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum NpcAction {
     Greet(Actor),
+    // TODO: Use some sort of structured, language-independent value that frontends can translate instead
+    Say(Cow<'static, str>),
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, enum_map::Enum)]

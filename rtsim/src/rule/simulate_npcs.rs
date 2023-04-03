@@ -292,7 +292,7 @@ impl Rule for SimulateNpcs {
                     // Consume NPC actions
                     for action in std::mem::take(&mut npc.controller.actions) {
                         match action {
-                            NpcAction::Greet(_) => {}, // Currently, just swallow greeting actions
+                            NpcAction::Greet(_) | NpcAction::Say(_) => {}, // Currently, just swallow interactions
                         }
                     }
 
