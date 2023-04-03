@@ -18,6 +18,8 @@ use crate::{
 };
 use common::{
     astar::Astar,
+    comp::Alignment,
+    generation::EntityInfo,
     lottery::Lottery,
     spiral::Spiral2d,
     store::{Id, Store},
@@ -1076,9 +1078,10 @@ impl Site {
         self.origin + tile * TILE_SIZE as i32 + TILE_SIZE as i32 / 2
     }
 
-    pub fn render_tile(&self, canvas: &mut Canvas, _dynamic_rng: &mut impl Rng, tpos: Vec2<i32>) {
+    pub fn render_tile(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng, tpos: Vec2<i32>) {
         let tile = self.tiles.get(tpos);
         let twpos = self.tile_wpos(tpos);
+        let twpos_center = self.tile_center_wpos(tpos);
         let border = TILE_SIZE as i32;
         let cols = (-border..TILE_SIZE as i32 + border).flat_map(|y| {
             (-border..TILE_SIZE as i32 + border)
@@ -1111,11 +1114,9 @@ impl Site {
                         let sub_surface_color = canvas
                             .col(wpos2d)
                             .map_or(Rgb::zero(), |col| col.sub_surface_color * 0.5);
-                        let mut underground = true;
                         for z in -8..6 {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
                                 if b.kind() == BlockKind::Snow {
-                                    underground = false;
                                     b.into_vacant()
                                 } else if b.is_filled() {
                                     if b.is_terrain() {
@@ -1127,10 +1128,22 @@ impl Site {
                                         b
                                     }
                                 } else {
-                                    underground = false;
                                     b.into_vacant()
                                 }
                             })
+                        }
+                        if wpos2d == twpos_center && dynamic_rng.gen_bool(0.01) {
+                            let spec = [
+                                "common.entity.wild.peaceful.cat",
+                                "common.entity.wild.peaceful.dog",
+                            ]
+                            .choose(dynamic_rng)
+                            .unwrap();
+                            canvas.spawn(
+                                EntityInfo::at(Vec3::new(wpos2d.x, wpos2d.y, alt).as_())
+                                    .with_asset_expect(&spec, dynamic_rng)
+                                    .with_alignment(Alignment::Tame),
+                            );
                         }
                     }
                 });
