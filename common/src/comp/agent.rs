@@ -83,7 +83,7 @@ impl Alignment {
         }
     }
 
-    // Never attacks
+    // Usually never attacks
     pub fn passive_towards(self, other: Alignment) -> bool {
         match (self, other) {
             (Alignment::Enemy, Alignment::Enemy) => true,
@@ -92,6 +92,20 @@ impl Alignment {
             (Alignment::Npc, Alignment::Tame) => true,
             (Alignment::Enemy, Alignment::Wild) => true,
             (Alignment::Wild, Alignment::Enemy) => true,
+            (Alignment::Tame, Alignment::Npc) => true,
+            (Alignment::Tame, Alignment::Tame) => true,
+            (_, Alignment::Passive) => true,
+            _ => false,
+        }
+    }
+
+    // Never attacks
+    pub fn friendly_towards(self, other: Alignment) -> bool {
+        match (self, other) {
+            (Alignment::Enemy, Alignment::Enemy) => true,
+            (Alignment::Owned(a), Alignment::Owned(b)) if a == b => true,
+            (Alignment::Npc, Alignment::Npc) => true,
+            (Alignment::Npc, Alignment::Tame) => true,
             (Alignment::Tame, Alignment::Npc) => true,
             (Alignment::Tame, Alignment::Tame) => true,
             (_, Alignment::Passive) => true,

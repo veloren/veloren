@@ -1632,6 +1632,7 @@ impl<'a> AgentData<'a> {
 
     pub fn is_hunting_animal(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
         (entity != *self.entity)
+            && !self.friendly_towards(entity, read_data)
             && matches!(read_data.bodies.get(entity), Some(Body::QuadrupedSmall(_)))
     }
 
@@ -1662,6 +1663,16 @@ impl<'a> AgentData<'a> {
             (self.alignment, read_data.alignments.get(entity))
         {
             self_alignment.passive_towards(*other_alignment)
+        } else {
+            false
+        }
+    }
+
+    fn friendly_towards(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        if let (Some(self_alignment), Some(other_alignment)) =
+            (self.alignment, read_data.alignments.get(entity))
+        {
+            self_alignment.friendly_towards(*other_alignment)
         } else {
             false
         }
