@@ -1,7 +1,7 @@
 use std::hash::BuildHasherDefault;
 
 use crate::{
-    ai::{casual, choose, finish, important, just, now, seq, until, urgent, Action, NpcCtx},
+    ai::{casual, choose, finish, important, just, now, seq, until, Action, NpcCtx},
     data::{
         npc::{Brain, PathData},
         Sites,

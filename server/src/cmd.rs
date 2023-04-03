@@ -1305,7 +1305,7 @@ fn handle_rtsim_npc(
         for (idx, _) in &npcs {
             let _ = write!(&mut info, "{}, ", idx);
         }
-        let _ = writeln!(&mut info, "");
+        let _ = writeln!(&mut info);
         let _ = writeln!(&mut info, "Matched {} NPCs.", npcs.len());
 
         server.notify_client(

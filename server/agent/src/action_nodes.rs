@@ -344,7 +344,7 @@ impl<'a> AgentData<'a> {
                     }
                     break 'activity; // Don't fall through to idle wandering
                 },
-                Some(NpcActivity::Gather(resources)) => {
+                Some(NpcActivity::Gather(_resources)) => {
                     // TODO: Implement
                     controller.push_action(ControlAction::Dance);
                     break 'activity; // Don't fall through to idle wandering
