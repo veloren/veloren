@@ -124,11 +124,11 @@ pub trait Action<R = ()>: Any + Send + Sync {
     /// go_on_an_adventure().repeat().stop_if(|ctx| ctx.npc.age > 111.0)
     /// ```
     #[must_use]
-    fn stop_if<F: FnMut(&mut NpcCtx) -> bool>(self, f: F) -> StopIf<Self, F>
+    fn stop_if<F: FnMut(&mut NpcCtx) -> bool + Clone>(self, f: F) -> StopIf<Self, F>
     where
         Self: Sized,
     {
-        StopIf(self, f)
+        StopIf(self, f.clone(), f)
     }
 
     /// Map the completion value of this action to something else.
@@ -704,10 +704,10 @@ where
 
 /// See [`Action::stop_if`].
 #[derive(Copy, Clone)]
-pub struct StopIf<A, F>(A, F);
+pub struct StopIf<A, F>(A, F, F);
 
-impl<A: Action<R>, F: FnMut(&mut NpcCtx) -> bool + Send + Sync + 'static, R> Action<Option<R>>
-    for StopIf<A, F>
+impl<A: Action<R>, F: FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync + 'static, R>
+    Action<Option<R>> for StopIf<A, F>
 {
     fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
 
@@ -715,7 +715,10 @@ impl<A: Action<R>, F: FnMut(&mut NpcCtx) -> bool + Send + Sync + 'static, R> Act
 
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
 
-    fn reset(&mut self) { self.0.reset(); }
+    fn reset(&mut self) {
+        self.0.reset();
+        self.1 = self.2.clone();
+    }
 
     fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<Option<R>> {
         if (self.1)(ctx) {

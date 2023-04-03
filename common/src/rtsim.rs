@@ -222,7 +222,8 @@ pub enum NpcActivity {
 #[derive(Clone, Debug)]
 pub enum NpcAction {
     Greet(Actor),
-    // TODO: Use some sort of structured, language-independent value that frontends can translate instead
+    // TODO: Use some sort of structured, language-independent value that frontends can translate
+    // instead
     Say(Cow<'static, str>),
 }
 

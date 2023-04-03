@@ -469,6 +469,7 @@ fn socialize() -> impl Action {
             just(|ctx| ctx.controller.do_dance())
                 .repeat()
                 .stop_if(timeout(6.0))
+                .debug(|| "dancing")
                 .map(|_| ())
                 .boxed()
         } else {
@@ -644,6 +645,29 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .map(|_| ()),
                 );
             }
+        } else if matches!(ctx.npc.profession, Some(Profession::Merchant))
+            && thread_rng().gen_bool(0.8)
+        {
+            return casual(
+                just(|ctx| {
+                    ctx.controller.say(
+                        *[
+                            "All my goods are of the highest quality!",
+                            "Does anybody want to buy my wares?",
+                            "I've got the best offers in town.",
+                            "Looking for supplies? I've got you covered.",
+                        ]
+                        .iter()
+                        .choose(&mut thread_rng())
+                        .unwrap(),
+                    ) // Can't fail
+                })
+                .then(idle().repeat().stop_if(timeout(8.0)))
+                .repeat()
+                .stop_if(timeout(60.0))
+                .debug(|| "sell wares")
+                .map(|_| ()),
+            );
         }
 
         // If nothing else needs doing, walk between plazas and socialize

@@ -506,6 +506,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                 }
             },
             NpcAction::Say(msg) => {
+                bdata.controller.push_utterance(UtteranceKind::Greeting);
                 bdata.agent_data.chat_npc(msg, &mut bdata.event_emitter);
             },
         }
