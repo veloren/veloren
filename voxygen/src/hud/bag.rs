@@ -1,5 +1,5 @@
 use super::{
-    cr_color, get_quality_col,
+    cr_color,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
@@ -467,7 +467,7 @@ impl<'a> InventoryScroller<'a> {
                         )
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
-                        .color(get_quality_col(item))
+                        .color(color::WHITE)
                         .set(state.ids.inv_slot_names[i], ui);
 
                     Text::new(&format!("{}", item.amount()))
@@ -478,7 +478,7 @@ impl<'a> InventoryScroller<'a> {
                         )
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
-                        .color(get_quality_col(item))
+                        .color(color::WHITE)
                         .set(state.ids.inv_slot_amounts[i], ui);
                 }
             } else {
