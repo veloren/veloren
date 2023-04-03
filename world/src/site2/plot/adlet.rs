@@ -779,7 +779,7 @@ impl Structure for AdletStronghold {
                                                 ),
                                                 (pos + ((igloo_pos - pos) / 2))
                                                     .with_z(alt as i32 + 9 + height_handle),
-                                                igloo_pos.with_z(alt as i32 + 4 + height_handle),
+                                                igloo_pos.with_z(alt as i32 + 5 + height_handle),
                                                 1.0,
                                             )
                                             .fill(bone_hide_fill.clone());
@@ -1621,7 +1621,7 @@ impl Structure for AdletStronghold {
                     // clear room
                     painter
                         .sphere_with_radius(wpos.with_z((alt as i32) + 2), 6.0)
-                        .intersect(painter.cylinder(Aabb {
+                        .intersect(painter.aabb(Aabb {
                             min: (wpos - 6).with_z(alt as i32),
                             max: (wpos + 6).with_z(alt as i32 + 2 * hut_radius),
                         }))
@@ -1663,7 +1663,7 @@ impl Structure for AdletStronghold {
                     }
                     painter
                         .sphere_with_radius(wpos.with_z((alt as i32) + 2), 5.0)
-                        .intersect(painter.cylinder(Aabb {
+                        .intersect(painter.aabb(Aabb {
                             min: (wpos - 5).with_z(alt as i32),
                             max: (wpos + 5).with_z((alt as i32) + 2 * hut_radius),
                         }))
@@ -1757,7 +1757,7 @@ impl Structure for AdletStronghold {
                                     .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0),
                             )
                             .intersect(
-                                painter.cylinder(Aabb {
+                                painter.aabb(Aabb {
                                     min: (bosshut_pos - 2 * hut_radius).with_z(alt as i32),
                                     max: (bosshut_pos + 2 * hut_radius)
                                         .with_z((alt as i32) + 2 * hut_radius),
@@ -1784,7 +1784,7 @@ impl Structure for AdletStronghold {
                                     .sphere_with_radius(bosshut_pos.with_z((alt as i32) + 2), 14.0),
                             )
                             .intersect(
-                                painter.cylinder(Aabb {
+                                painter.aabb(Aabb {
                                     min: (bosshut_pos - 2 * hut_radius).with_z(alt as i32),
                                     max: (bosshut_pos + 2 * hut_radius)
                                         .with_z((alt as i32) + 2 * hut_radius),
@@ -1813,7 +1813,7 @@ impl Structure for AdletStronghold {
                                 7.0,
                             )
                             .intersect(
-                                painter.cylinder(Aabb {
+                                painter.aabb(Aabb {
                                     min: Vec2::new(
                                         bosshut_pos.x - 7,
                                         bosshut_pos.y - hut_radius + (2 * (hut_radius * n) - 7),
