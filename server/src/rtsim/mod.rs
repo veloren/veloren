@@ -2,6 +2,7 @@ pub mod event;
 pub mod rule;
 pub mod tick;
 
+use atomicwrites::{AtomicFile, OverwriteBehavior};
 use common::{
     grid::Grid,
     rtsim::{ChunkResource, RtSimEntity, RtSimVehicle, WorldSettings},
@@ -18,7 +19,7 @@ use specs::DispatcherBuilder;
 use std::{
     error::Error,
     fs::{self, File},
-    io::{self, Write},
+    io,
     path::PathBuf,
     time::Instant,
 };
@@ -182,23 +183,24 @@ impl RtSim {
         // TODO: Use slow job
         // slowjob_pool.spawn("RTSIM_SAVE", move || {
         let handle = std::thread::spawn(move || {
-            let tmp_file_name = "data_tmp.dat";
             if let Err(e) = file_path
                 .parent()
                 .map(|dir| {
                     fs::create_dir_all(dir)?;
                     // We write to a temporary file and then rename to avoid corruption.
-                    Ok(dir.join(tmp_file_name))
+                    Ok(dir.join(&file_path))
                 })
-                .unwrap_or_else(|| Ok(tmp_file_name.into()))
-                .and_then(|tmp_file_path| Ok((File::create(&tmp_file_path)?, tmp_file_path)))
+                .unwrap_or(Ok(file_path))
+                .map(|file_path| AtomicFile::new(file_path, OverwriteBehavior::AllowOverwrite))
                 .map_err(|e: io::Error| Box::new(e) as Box<dyn Error>)
-                .and_then(|(mut file, tmp_file_path)| {
+                .and_then(|file| {
                     debug!("Writing rtsim data to file...");
-                    data.write_to(io::BufWriter::new(&mut file))?;
-                    file.flush()?;
+                    file.write(move |file| -> Result<(), rtsim::data::WriteError> {
+                        data.write_to(io::BufWriter::new(file))?;
+                        // file.flush()?;
+                        Ok(())
+                    })?;
                     drop(file);
-                    fs::rename(tmp_file_path, file_path)?;
                     debug!("Rtsim data saved.");
                     Ok(())
                 })
