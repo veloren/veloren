@@ -478,24 +478,24 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                     if let Some(target) = bdata.read_data.lookup_actor(actor) {
                         let target_pos = bdata.read_data.positions.get(target).map(|pos| pos.0);
 
-                        bdata.agent.target = Some(Target::new(
-                            target,
-                            false,
-                            bdata.read_data.time.0,
-                            false,
-                            target_pos,
-                        ));
-
                         if bdata.agent_data.look_toward(
                             &mut bdata.controller,
                             &bdata.read_data,
                             target,
                         ) {
+                            bdata.agent.target = Some(Target::new(
+                                target,
+                                false,
+                                bdata.read_data.time.0,
+                                false,
+                                target_pos,
+                            ));
+
                             bdata.controller.push_action(ControlAction::Talk);
                             bdata.controller.push_utterance(UtteranceKind::Greeting);
                             bdata
                                 .agent_data
-                                .chat_npc("npc-speech-villager", &mut bdata.event_emitter);
+                                .chat_npc("npc-speech-villager_open", &mut bdata.event_emitter);
                             // Start a timer so that they eventually stop interacting
                             bdata
                                 .agent

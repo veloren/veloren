@@ -457,7 +457,7 @@ fn socialize() -> impl Action {
     just(|ctx| {
         let mut rng = thread_rng();
         // TODO: Bit odd, should wait for a while after greeting
-        if thread_rng().gen_bool(0.0002) {
+        if thread_rng().gen_bool(0.0003) {
             if let Some(other) = ctx
                 .state
                 .data()

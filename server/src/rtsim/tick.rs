@@ -3,14 +3,15 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp::{self, Body},
+    comp::{self, Body, Presence, PresenceKind},
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity, RtSimVehicle},
     slowjob::SlowJobPool,
-    terrain::CoordinateConversions,
+    terrain::{CoordinateConversions, TerrainChunkSize},
     trade::{Good, SiteInformation},
+    vol::RectVolSize,
     LoadoutBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -187,6 +188,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, RtSimEntity>,
         ReadStorage<'a, RtSimVehicle>,
         WriteStorage<'a, comp::Agent>,
+        ReadStorage<'a, Presence>,
     );
 
     const NAME: &'static str = "rtsim::tick";
@@ -208,16 +210,53 @@ impl<'a> System<'a> for Sys {
             rtsim_entities,
             rtsim_vehicles,
             mut agents,
+            presences,
         ): Self::SystemData,
     ) {
         let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
 
-        rtsim.state.data_mut().time_of_day = *time_of_day;
+        // Set up rtsim inputs
+        {
+            let mut data = rtsim.state.data_mut();
+
+            // Update time of day
+            data.time_of_day = *time_of_day;
+
+            // Update character map (i.e: so that rtsim knows where players are)
+            // TODO: Other entities too? Or do we now care about that?
+            data.npcs.character_map.clear();
+            for (character, wpos) in
+                (&presences, &positions)
+                    .join()
+                    .filter_map(|(presence, pos)| {
+                        if let PresenceKind::Character(character) = &presence.kind {
+                            Some((character, pos.0))
+                        } else {
+                            None
+                        }
+                    })
+            {
+                let chunk_pos = wpos
+                    .xy()
+                    .as_::<i32>()
+                    .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
+                        e.div_euclid(sz)
+                    });
+                data.npcs
+                    .character_map
+                    .entry(chunk_pos)
+                    .or_default()
+                    .push((*character, wpos));
+            }
+        }
+
+        // Tick rtsim
         rtsim
             .state
             .tick(&world, index.as_index_ref(), *time_of_day, *time, dt.0);
 
+        // Perform a save if required
         if rtsim
             .last_saved
             .map_or(true, |ls| ls.elapsed() > Duration::from_secs(60))
@@ -230,6 +269,7 @@ impl<'a> System<'a> for Sys {
         let chunk_states = rtsim.state.resource::<ChunkStates>();
         let data = &mut *rtsim.state.data_mut();
 
+        // Load in vehicles
         for (vehicle_id, vehicle) in data.npcs.vehicles.iter_mut() {
             let chunk = vehicle.wpos.xy().as_::<i32>().wpos_to_cpos();
 
@@ -296,6 +336,7 @@ impl<'a> System<'a> for Sys {
             }
         }
 
+        // Load in NPCs
         for (npc_id, npc) in data.npcs.npcs.iter_mut() {
             let chunk = npc.wpos.xy().as_::<i32>().wpos_to_cpos();
 

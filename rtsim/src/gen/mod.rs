@@ -34,6 +34,7 @@ impl Data {
                 npcs: Default::default(),
                 vehicles: Default::default(),
                 npc_grid: Grid::new(Vec2::zero(), Default::default()),
+                character_map: Default::default(),
             },
             sites: Sites {
                 sites: Default::default(),

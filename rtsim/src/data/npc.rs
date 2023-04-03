@@ -7,8 +7,10 @@ use common::{
         Actor, ChunkResource, FactionId, NpcAction, NpcActivity, Personality, SiteId, VehicleId,
     },
     store::Id,
+    terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
+use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
@@ -87,22 +89,22 @@ pub struct Npc {
     pub personality: Personality,
 
     // Unpersisted state
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     pub chunk_pos: Option<Vec2<i32>>,
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     pub current_site: Option<SiteId>,
 
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     pub controller: Controller,
 
     /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the
     /// server, loaded corresponds to being within a loaded chunk). When in
     /// loaded mode, the interactions of the NPC should not be simulated but
     /// should instead be derived from the game.
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     pub mode: SimulationMode,
 
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     pub brain: Option<Brain>,
 }
 
@@ -203,13 +205,13 @@ pub struct Vehicle {
 
     pub body: comp::ship::Body,
 
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     pub chunk_pos: Option<Vec2<i32>>,
 
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     pub driver: Option<Actor>,
 
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     // TODO: Find a way to detect riders when the vehicle is loaded
     pub riders: Vec<Actor>,
 
@@ -217,7 +219,7 @@ pub struct Vehicle {
     /// the server, loaded corresponds to being within a loaded chunk). When
     /// in loaded mode, the interactions of the Vehicle should not be
     /// simulated but should instead be derived from the game.
-    #[serde(skip_serializing, skip_deserializing)]
+    #[serde(skip)]
     pub mode: SimulationMode,
 }
 
@@ -250,7 +252,6 @@ impl Vehicle {
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct GridCell {
     pub npcs: Vec<NpcId>,
-    pub characters: Vec<common::character::CharacterId>,
     pub vehicles: Vec<VehicleId>,
 }
 
@@ -258,8 +259,11 @@ pub struct GridCell {
 pub struct Npcs {
     pub npcs: HopSlotMap<NpcId, Npc>,
     pub vehicles: HopSlotMap<VehicleId, Vehicle>,
+    // TODO: This feels like it should be its own rtsim resource
     #[serde(skip, default = "construct_npc_grid")]
     pub npc_grid: Grid<GridCell>,
+    #[serde(skip)]
+    pub character_map: HashMap<Vec2<i32>, Vec<(common::character::CharacterId, Vec3<f32>)>>,
 }
 
 fn construct_npc_grid() -> Grid<GridCell> { Grid::new(Vec2::zero(), Default::default()) }
@@ -273,8 +277,11 @@ impl Npcs {
 
     /// Queries nearby npcs, not garantueed to work if radius > 32.0
     pub fn nearby(&self, wpos: Vec2<f32>, radius: f32) -> impl Iterator<Item = Actor> + '_ {
-        let chunk_pos =
-            wpos.as_::<i32>() / common::terrain::TerrainChunkSize::RECT_SIZE.as_::<i32>();
+        let chunk_pos = wpos
+            .as_::<i32>()
+            .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
+                e.div_euclid(sz)
+            });
         let r_sqr = radius * radius;
         LOCALITY
             .into_iter()
@@ -289,19 +296,24 @@ impl Npcs {
                                 .map_or(false, |npc| npc.wpos.xy().distance_squared(wpos) < r_sqr)
                         })
                         .map(Actor::Npc)
-                        .chain(cell.characters
-                        .iter()
-                        .copied()
-                        // TODO: Filter characters by distance too
-                        // .filter(move |npc| {
-                        //     self.npcs
-                        //         .get(*npc)
-                        //         .map_or(false, |npc| npc.wpos.xy().distance_squared(wpos) < r_sqr)
-                        // })
-                        .map(Actor::Character))
                 })
             })
             .flatten()
+            .chain(
+                self.character_map
+                    .get(&chunk_pos)
+                    .map(|characters| {
+                        characters.iter().filter_map(move |(character, c_wpos)| {
+                            if c_wpos.xy().distance_squared(wpos) < r_sqr {
+                                Some(Actor::Character(*character))
+                            } else {
+                                None
+                            }
+                        })
+                    })
+                    .into_iter()
+                    .flatten(),
+            )
     }
 }
 
