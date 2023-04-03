@@ -249,7 +249,8 @@ impl Rule for SimulateNpcs {
                                 Some(
                                     NpcActivity::Goto(_, _)
                                     | NpcActivity::Gather(_)
-                                    | NpcActivity::HuntAnimals,
+                                    | NpcActivity::HuntAnimals
+                                    | NpcActivity::Dance,
                                 ) => {},
                                 None => {},
                             }
@@ -276,7 +277,11 @@ impl Rule for SimulateNpcs {
                                     .with_z(0.0);
                                 }
                             },
-                            Some(NpcActivity::Gather(_) | NpcActivity::HuntAnimals) => {
+                            Some(
+                                NpcActivity::Gather(_)
+                                | NpcActivity::HuntAnimals
+                                | NpcActivity::Dance,
+                            ) => {
                                 // TODO: Maybe they should walk around randomly
                                 // when gathering resources?
                             },

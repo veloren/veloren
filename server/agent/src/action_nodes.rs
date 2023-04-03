@@ -349,6 +349,10 @@ impl<'a> AgentData<'a> {
                     controller.push_action(ControlAction::Dance);
                     break 'activity; // Don't fall through to idle wandering
                 },
+                Some(NpcActivity::Dance) => {
+                    controller.push_action(ControlAction::Dance);
+                    break 'activity; // Don't fall through to idle wandering
+                },
                 Some(NpcActivity::HuntAnimals) => {
                     if rng.gen::<f32>() < 0.1 {
                         self.choose_target(

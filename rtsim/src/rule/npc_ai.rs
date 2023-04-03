@@ -454,19 +454,25 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
 }
 
 fn socialize() -> impl Action {
-    just(|ctx| {
+    now(|ctx| {
         let mut rng = thread_rng();
         // TODO: Bit odd, should wait for a while after greeting
-        if thread_rng().gen_bool(0.0003) {
-            if let Some(other) = ctx
-                .state
-                .data()
-                .npcs
-                .nearby(ctx.npc.wpos.xy(), 8.0)
-                .choose(&mut rng)
-            {
-                ctx.controller.do_greet(other);
-            }
+        if thread_rng().gen_bool(0.0003) && let Some(other) = ctx
+            .state
+            .data()
+            .npcs
+            .nearby(ctx.npc.wpos.xy(), 8.0)
+            .choose(&mut rng)
+        {
+            just(move |ctx| ctx.controller.greet(other)).boxed()
+        } else if thread_rng().gen_bool(0.0003) {
+            just(|ctx| ctx.controller.do_dance())
+                .repeat()
+                .stop_if(timeout(6.0))
+                .map(|_| ())
+                .boxed()
+        } else {
+            idle().boxed()
         }
     })
 }

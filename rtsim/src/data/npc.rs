@@ -66,7 +66,9 @@ impl Controller {
 
     pub fn do_hunt_animals(&mut self) { self.activity = Some(NpcActivity::HuntAnimals); }
 
-    pub fn do_greet(&mut self, actor: Actor) { self.actions.push(NpcAction::Greet(actor)); }
+    pub fn do_dance(&mut self) { self.activity = Some(NpcActivity::Dance); }
+
+    pub fn greet(&mut self, actor: Actor) { self.actions.push(NpcAction::Greet(actor)); }
 }
 
 pub struct Brain {

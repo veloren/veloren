@@ -216,6 +216,7 @@ pub enum NpcActivity {
     Gather(&'static [ChunkResource]),
     // TODO: Generalise to other entities? What kinds of animals?
     HuntAnimals,
+    Dance,
 }
 
 #[derive(Clone, Copy, Debug)]
