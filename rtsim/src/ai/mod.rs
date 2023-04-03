@@ -3,6 +3,7 @@ use crate::{
     RtState,
 };
 use common::resources::{Time, TimeOfDay};
+use rand_chacha::ChaChaRng;
 use std::{any::Any, marker::PhantomData, ops::ControlFlow};
 use world::{IndexRef, World};
 
@@ -20,6 +21,8 @@ pub struct NpcCtx<'a> {
     pub npc_id: NpcId,
     pub npc: &'a Npc,
     pub controller: &'a mut Controller,
+
+    pub rng: ChaChaRng,
 }
 
 /// A trait that describes 'actions': long-running tasks performed by rtsim

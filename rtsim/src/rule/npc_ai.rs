@@ -22,6 +22,7 @@ use common::{
 use fxhash::FxHasher64;
 use itertools::Itertools;
 use rand::prelude::*;
+use rand_chacha::ChaChaRng;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use vek::*;
 use world::{
@@ -245,6 +246,7 @@ impl Rule for NpcAi {
                             npc,
                             npc_id: *npc_id,
                             controller,
+                            rng: ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>()),
                         });
                     });
             }
@@ -462,17 +464,16 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
 
 fn socialize() -> impl Action {
     now(|ctx| {
-        let mut rng = thread_rng();
         // TODO: Bit odd, should wait for a while after greeting
-        if thread_rng().gen_bool(0.0003) && let Some(other) = ctx
+        if ctx.rng.gen_bool(0.0003) && let Some(other) = ctx
             .state
             .data()
             .npcs
             .nearby(ctx.npc.wpos.xy(), 8.0)
-            .choose(&mut rng)
+            .choose(&mut ctx.rng)
         {
             just(move |ctx| ctx.controller.greet(other)).boxed()
-        } else if thread_rng().gen_bool(0.0003) {
+        } else if ctx.rng.gen_bool(0.0003) {
             just(|ctx| ctx.controller.do_dance())
                 .repeat()
                 .stop_if(timeout(6.0))
@@ -504,7 +505,7 @@ fn adventure() -> impl Action {
                             | SiteKind::DesertCity(_)
                     ),
                 ) && ctx.npc.current_site.map_or(true, |cs| *site_id != cs)
-                    && thread_rng().gen_bool(0.25)
+                    && ctx.rng.gen_bool(0.25)
             })
             .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
             .map(|(site_id, _)| site_id)
@@ -549,10 +550,10 @@ fn hunt_animals() -> impl Action {
     just(|ctx| ctx.controller.do_hunt_animals()).debug(|| "hunt_animals")
 }
 
-fn find_forest(ctx: &NpcCtx) -> Option<Vec2<f32>> {
+fn find_forest(ctx: &mut NpcCtx) -> Option<Vec2<f32>> {
     let chunk_pos = ctx.npc.wpos.xy().as_() / TerrainChunkSize::RECT_SIZE.as_();
     Spiral2d::new()
-        .skip(thread_rng().gen_range(1..=8))
+        .skip(ctx.rng.gen_range(1..=8))
         .take(49)
         .map(|rpos| chunk_pos + rpos)
         .find(|cpos| {
@@ -604,7 +605,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                             let house = site2
                                 .plots()
                                 .filter(|p| matches!(p.kind(), PlotKind::House(_)))
-                                .choose(&mut thread_rng())?;
+                                .choose(&mut ctx.rng)?;
                             Some(site2.tile_center_wpos(house.root_tile()).as_())
                         })
                     {
@@ -623,37 +624,33 @@ fn villager(visiting_site: SiteId) -> impl Action {
                 .debug(|| "find somewhere to sleep"),
             );
         // Villagers with roles should perform those roles
-        } else if matches!(ctx.npc.profession, Some(Profession::Herbalist))
-            && thread_rng().gen_bool(0.8)
+        } else if matches!(ctx.npc.profession, Some(Profession::Herbalist)) && ctx.rng.gen_bool(0.8)
         {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
                     travel_to_point(forest_wpos, 0.5)
                         .debug(|| "walk to forest")
                         .then({
-                            let wait_time = thread_rng().gen_range(10.0..30.0);
+                            let wait_time = ctx.rng.gen_range(10.0..30.0);
                             gather_ingredients().repeat().stop_if(timeout(wait_time))
                         })
                         .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Hunter))
-            && thread_rng().gen_bool(0.8)
-        {
+        } else if matches!(ctx.npc.profession, Some(Profession::Hunter)) && ctx.rng.gen_bool(0.8) {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
                     just(|ctx| ctx.controller.say("Time to go hunting!"))
                         .then(travel_to_point(forest_wpos, 0.75))
                         .debug(|| "walk to forest")
                         .then({
-                            let wait_time = thread_rng().gen_range(30.0..60.0);
+                            let wait_time = ctx.rng.gen_range(30.0..60.0);
                             hunt_animals().repeat().stop_if(timeout(wait_time))
                         })
                         .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Merchant))
-            && thread_rng().gen_bool(0.8)
+        } else if matches!(ctx.npc.profession, Some(Profession::Merchant)) && ctx.rng.gen_bool(0.8)
         {
             return casual(
                 just(|ctx| {
@@ -665,7 +662,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                             "Looking for supplies? I've got you covered.",
                         ]
                         .iter()
-                        .choose(&mut thread_rng())
+                        .choose(&mut ctx.rng)
                         .unwrap(),
                     ) // Can't fail
                 })
@@ -687,7 +684,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                 .get(visiting_site)
                 .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
                 .and_then(|site2| {
-                    let plaza = &site2.plots[site2.plazas().choose(&mut thread_rng())?];
+                    let plaza = &site2.plots[site2.plazas().choose(&mut ctx.rng)?];
                     Some(site2.tile_center_wpos(plaza.root_tile()).as_())
                 })
             {
@@ -696,7 +693,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     .debug(|| "walk to plaza")
                     // ...then wait for some time before moving on
                     .then({
-                        let wait_time = thread_rng().gen_range(30.0..90.0);
+                        let wait_time = ctx.rng.gen_range(30.0..90.0);
                         socialize().repeat().stop_if(timeout(wait_time))
                             .debug(|| "wait at plaza")
                     })
@@ -794,7 +791,7 @@ fn pilot() -> impl Action {
                     .and_then(|site| ctx.index.sites.get(site).kind.convert_to_meta())
                     .map_or(false, |meta| matches!(meta, SiteKindMeta::Settlement(_)))
             })
-            .choose(&mut thread_rng());
+            .choose(&mut ctx.rng);
         if let Some((_id, site)) = site {
             let start_chunk =
                 ctx.npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
@@ -826,7 +823,7 @@ fn captain() -> impl Action {
                     .get(*neighbor)
                     .map_or(false, |c| c.river.river_kind.is_some())
             })
-            .choose(&mut thread_rng())
+            .choose(&mut ctx.rng)
         {
             let wpos = TerrainChunkSize::center_wpos(chunk);
             let wpos = wpos.as_().with_z(
@@ -891,7 +888,7 @@ fn bird_large() -> impl Action {
                                 matches!(ctx.index.sites.get(site).kind, SiteKind::Dungeon(_))
                             })
                     })
-                    .choose(&mut thread_rng())
+                    .choose(&mut ctx.rng)
                 {
                     casual(goto(
                         site.wpos.as_::<f32>().with_z(
