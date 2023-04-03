@@ -475,9 +475,9 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
         match action {
             NpcAction::Greet(actor) => {
                 if bdata.agent.allowed_to_speak() {
-                    if let Some(target) = bdata.read_data.lookup_actor(actor) {
-                        let target_pos = bdata.read_data.positions.get(target).map(|pos| pos.0);
-
+                    if let Some(target) = bdata.read_data.lookup_actor(actor)
+                        && let Some(target_pos) = bdata.read_data.positions.get(target)
+                    {
                         if bdata.agent_data.look_toward(
                             &mut bdata.controller,
                             &bdata.read_data,
@@ -488,7 +488,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                                 false,
                                 bdata.read_data.time.0,
                                 false,
-                                target_pos,
+                                Some(target_pos.0),
                             ));
 
                             bdata.controller.push_action(ControlAction::Talk);

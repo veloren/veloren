@@ -212,8 +212,6 @@ const MENU_BG: Color = Color::Rgba(0.1, 0.12, 0.12, 1.0);
 
 /// Distance at which nametags are visible for group members
 const NAMETAG_GROUP_RANGE: f32 = 1000.0;
-/// Distance at which nametags are visible for merchants
-const NAMETAG_MERCHANT_RANGE: f32 = 50.0;
 /// Distance at which nametags are visible
 const NAMETAG_RANGE: f32 = 40.0;
 /// Time nametags stay visible after doing damage even if they are out of range
@@ -2268,11 +2266,6 @@ impl Hud {
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
                         let in_group = client.group_members().contains_key(uid);
                         let is_me = entity == me;
-                        // TODO: once the site2 rework lands and merchants have dedicated stalls or
-                        // buildings, they no longer need to be emphasized via the higher overhead
-                        // text radius relative to other NPCs
-                        let is_merchant =
-                            stats.name == "Merchant" && client.player_list().get(uid).is_none();
                         let dist_sqr = pos.distance_squared(player_pos);
                         // Determine whether to display nametag and healthbar based on whether the
                         // entity has been damaged, is targeted/selected, or is in your group
@@ -2282,13 +2275,10 @@ impl Hud {
                             && (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
                                 || health.map_or(true, overhead::should_show_healthbar)
-                                || in_group
-                                || is_merchant)
+                                || in_group)
                             && dist_sqr
                                 < (if in_group {
                                     NAMETAG_GROUP_RANGE
-                                } else if is_merchant {
-                                    NAMETAG_MERCHANT_RANGE
                                 } else if hpfl
                                     .time_since_last_dmg_by_me
                                     .map_or(false, |t| t < NAMETAG_DMG_TIME)
