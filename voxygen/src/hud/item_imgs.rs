@@ -36,19 +36,21 @@ impl ImageSpec {
                 },
                 SampleStrat::None,
             ),
-            ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom, model_index) => Graphic::Voxel(
-                graceful_load_segment_no_skin(specifier, *model_index),
-                Transform {
-                    ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
-                        .rotated_y(rot_y * std::f32::consts::PI / 180.0)
-                        .rotated_z(rot_z * std::f32::consts::PI / 180.0),
-                    offset: Vec3::from(*offset),
-                    zoom: *zoom,
-                    orth: true, // TODO: Is this what we want here? @Pfau
-                    stretch: false,
-                },
-                SampleStrat::None,
-            ),
+            ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom, model_index) => {
+                Graphic::Voxel(
+                    graceful_load_segment_no_skin(specifier, *model_index),
+                    Transform {
+                        ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
+                            .rotated_y(rot_y * std::f32::consts::PI / 180.0)
+                            .rotated_z(rot_z * std::f32::consts::PI / 180.0),
+                        offset: Vec3::from(*offset),
+                        zoom: *zoom,
+                        orth: true, // TODO: Is this what we want here? @Pfau
+                        stretch: false,
+                    },
+                    SampleStrat::None,
+                )
+            },
         }
     }
 }
