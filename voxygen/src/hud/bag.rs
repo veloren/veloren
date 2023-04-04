@@ -28,7 +28,7 @@ use common::{
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, State as ConrodState, Text},
-    widget_ids, Color, Colorable, Positionable, Scalar, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
 use std::borrow::Cow;
@@ -48,6 +48,8 @@ widget_ids! {
         inv_scrollbar,
         inv_slots_0,
         inv_slots[],
+        inv_slot_names[],
+        inv_slot_amounts[],
         bg,
         bg_frame,
         char_ico,
@@ -89,6 +91,7 @@ pub struct InventoryScroller<'a> {
     inventory: &'a Inventory,
     bg_ids: &'a BackgroundIds,
     show_salvage: bool,
+    details_mode: bool,
 }
 
 impl<'a> InventoryScroller<'a> {
@@ -112,6 +115,7 @@ impl<'a> InventoryScroller<'a> {
         inventory: &'a Inventory,
         bg_ids: &'a BackgroundIds,
         show_salvage: bool,
+        details_mode: bool,
     ) -> Self {
         InventoryScroller {
             client,
@@ -133,6 +137,7 @@ impl<'a> InventoryScroller<'a> {
             inventory,
             bg_ids,
             show_salvage,
+            details_mode,
         }
     }
 
@@ -273,7 +278,8 @@ impl<'a> InventoryScroller<'a> {
                 .set(state.ids.left_scrollbar_slots, ui);
         }
 
-        let grid_width = if self.show_bag_inv && !self.on_right {
+        let grid_width = 362.0;
+        let grid_height = if self.show_bag_inv && !self.on_right {
             440.0 // This for the left bag
         } else if self.show_bag_inv && self.on_right {
             600.0 // This for the expanded right bag
@@ -282,7 +288,7 @@ impl<'a> InventoryScroller<'a> {
         };
 
         // Alignment for Grid
-        Rectangle::fill_with([362.0, grid_width], color::TRANSPARENT)
+        Rectangle::fill_with([grid_width, grid_height], color::TRANSPARENT)
             .bottom_left_with_margins_on(
                 self.bg_ids.bg_frame,
                 29.0,
@@ -301,6 +307,20 @@ impl<'a> InventoryScroller<'a> {
             state.update(|s| {
                 s.ids
                     .inv_slots
+                    .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
+            });
+        }
+        if state.ids.inv_slot_names.len() < self.inventory.capacity() {
+            state.update(|s| {
+                s.ids
+                    .inv_slot_names
+                    .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
+            });
+        }
+        if state.ids.inv_slot_amounts.len() < self.inventory.capacity() {
+            state.update(|s| {
+                s.ids
+                    .inv_slot_amounts
                     .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
             });
         }
@@ -339,9 +359,27 @@ impl<'a> InventoryScroller<'a> {
             pulse: self.pulse,
         };
 
-        for (i, (pos, item)) in self.inventory.slots_with_id().enumerate() {
-            let x = i % 9;
-            let y = i / 9;
+        let mut i = 0;
+        let mut items = self.inventory.slots_with_id().collect::<Vec<_>>();
+        if self.details_mode && !self.is_us {
+            items.sort_by_cached_key(|(_, item)| {
+                (
+                    item.is_none(),
+                    item.as_ref()
+                        .map(|i| (std::cmp::Reverse(i.quality()), i.name(), i.amount())),
+                )
+            });
+        }
+        for (pos, item) in items.into_iter() {
+            if self.details_mode && !self.is_us && matches!(item, None) {
+                continue;
+            }
+            let (x, y) = if self.details_mode {
+                (0, i)
+            } else {
+                (i % 9, i / 9)
+            };
+            let slot_size = if self.details_mode { 20.0 } else { 40.0 };
 
             // Slot
             let mut slot_widget = slot_maker
@@ -351,12 +389,12 @@ impl<'a> InventoryScroller<'a> {
                         ours: self.is_us,
                         entity: self.entity,
                     },
-                    [40.0; 2],
+                    [slot_size as f32; 2],
                 )
                 .top_left_with_margins_on(
                     state.ids.inv_alignment,
-                    0.0 + y as f64 * (40.0),
-                    0.0 + x as f64 * (40.0),
+                    0.0 + y as f64 * slot_size,
+                    0.0 + x as f64 * slot_size,
                 );
 
             // Highlight slots are provided by the loadout item that the mouse is over
@@ -420,9 +458,33 @@ impl<'a> InventoryScroller<'a> {
                         )
                         .set(state.ids.inv_slots[i], ui);
                 }
+                if self.details_mode {
+                    Text::new(&item.name())
+                        .top_left_with_margins_on(
+                            state.ids.inv_alignment,
+                            0.0 + y as f64 * slot_size,
+                            30.0 + x as f64 * slot_size,
+                        )
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14))
+                        .color(color::WHITE)
+                        .set(state.ids.inv_slot_names[i], ui);
+
+                    Text::new(&format!("{}", item.amount()))
+                        .top_left_with_margins_on(
+                            state.ids.inv_alignment,
+                            0.0 + y as f64 * slot_size,
+                            grid_width - 40.0 + x as f64 * slot_size,
+                        )
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14))
+                        .color(color::WHITE)
+                        .set(state.ids.inv_slot_amounts[i], ui);
+                }
             } else {
                 slot_widget.set(state.ids.inv_slots[i], ui);
             }
+            i += 1;
         }
     }
 
@@ -529,6 +591,7 @@ widget_ids! {
         tab_3,
         tab_4,
         bag_expand_btn,
+        bag_details_btn,
         // Armor Slots
         slots_bg,
         head_slot,
@@ -654,6 +717,7 @@ pub enum Event {
     Close,
     SortInventory,
     SwapEquippedWeapons,
+    SetDetailsMode(bool),
 }
 
 impl<'a> Widget for Bag<'a> {
@@ -768,6 +832,7 @@ impl<'a> Widget for Bag<'a> {
             inventory,
             &state.bg_ids,
             self.show.crafting_fields.salvage,
+            self.show.bag_details,
         )
         .set(state.ids.inventory_scroller, ui);
 
@@ -776,49 +841,73 @@ impl<'a> Widget for Bag<'a> {
             .w_h(40.0, 37.0)
             .top_left_with_margins_on(state.bg_ids.bg, 4.0, 2.0)
             .set(state.ids.char_ico, ui);
-        // Button to expand bag
-        let txt = if self.show.bag_inv {
-            "Show Loadout"
+
+        let buttons_top = if self.show.bag_inv { 53.0 } else { 460.0 };
+        let (txt, btn, hover, press) = if self.show.bag_details {
+            (
+                "Grid mode",
+                self.imgs.grid_btn,
+                self.imgs.grid_btn_hover,
+                self.imgs.grid_btn_press,
+            )
         } else {
-            "Expand Bag"
+            (
+                "List mode",
+                self.imgs.list_btn,
+                self.imgs.list_btn_hover,
+                self.imgs.list_btn_press,
+            )
         };
-        let expand_btn = Button::image(if self.show.bag_inv {
-            self.imgs.collapse_btn
+        let details_btn = Button::image(btn)
+            .w_h(32.0, 17.0)
+            .hover_image(hover)
+            .press_image(press);
+        if details_btn
+            .mid_top_with_margin_on(state.bg_ids.bg_frame, buttons_top)
+            .with_tooltip(self.tooltip_manager, txt, "", &bag_tooltip, TEXT_COLOR)
+            .set(state.ids.bag_details_btn, ui)
+            .was_clicked()
+        {
+            event = Some(Event::SetDetailsMode(!self.show.bag_details));
+        }
+        // Button to expand bag
+        let (txt, btn, hover, press) = if self.show.bag_inv {
+            (
+                "Show Loadout",
+                self.imgs.collapse_btn,
+                self.imgs.collapse_btn_hover,
+                self.imgs.collapse_btn_press,
+            )
         } else {
-            self.imgs.expand_btn
-        })
-        .w_h(30.0, 17.0)
-        .hover_image(if self.show.bag_inv {
-            self.imgs.collapse_btn_hover
-        } else {
-            self.imgs.expand_btn_hover
-        })
-        .press_image(if self.show.bag_inv {
-            self.imgs.collapse_btn_press
-        } else {
-            self.imgs.expand_btn_press
-        });
+            (
+                "Expand Bag",
+                self.imgs.expand_btn,
+                self.imgs.expand_btn_hover,
+                self.imgs.expand_btn_press,
+            )
+        };
+        let expand_btn = Button::image(btn)
+            .w_h(30.0, 17.0)
+            .hover_image(hover)
+            .press_image(press);
 
         // Only show expand button when it's needed...
-        if inventory.slots().count() > 45 || self.show.bag_inv {
-            let expand_btn_top = if self.show.bag_inv { 53.0 } else { 460.0 };
-            if expand_btn
-                .top_right_with_margins_on(state.bg_ids.bg_frame, expand_btn_top, 37.0)
+        if (inventory.slots().count() > 45 || self.show.bag_inv)
+            && expand_btn
+                .top_right_with_margins_on(state.bg_ids.bg_frame, buttons_top, 37.0)
                 .with_tooltip(self.tooltip_manager, txt, "", &bag_tooltip, TEXT_COLOR)
                 .set(state.ids.bag_expand_btn, ui)
                 .was_clicked()
-            {
-                event = Some(Event::BagExpand);
-            }
+        {
+            event = Some(Event::BagExpand);
         }
 
         // Sort inventory button
-        let inv_sort_btn_top: Scalar = if !self.show.bag_inv { 460.0 } else { 53.0 };
         if Button::image(self.imgs.inv_sort_btn)
             .w_h(30.0, 17.0)
             .hover_image(self.imgs.inv_sort_btn_hover)
             .press_image(self.imgs.inv_sort_btn_press)
-            .top_left_with_margins_on(state.bg_ids.bg_frame, inv_sort_btn_top, 47.0)
+            .top_left_with_margins_on(state.bg_ids.bg_frame, buttons_top, 47.0)
             .with_tooltip(
                 self.tooltip_manager,
                 &(match inventory.next_sort_order() {

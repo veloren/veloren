@@ -23,7 +23,8 @@ use crate::{
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable,
+        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
+        Tooltipable,
     },
 };
 
@@ -34,6 +35,13 @@ use super::{
     Hud, HudInfo, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use std::borrow::Cow;
+
+#[derive(Debug)]
+pub enum TradeEvent {
+    TradeAction(TradeAction),
+    SetDetailsMode(bool),
+    HudUpdate(HudUpdate),
+}
 
 #[derive(Debug)]
 pub enum HudUpdate {
@@ -69,6 +77,7 @@ widget_ids! {
         amount_open_ovlay,
         amount_input,
         amount_btn,
+        trade_details_btn,
     }
 }
 
@@ -80,6 +89,7 @@ pub struct Trade<'a> {
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
     rot_imgs: &'a ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -98,6 +108,7 @@ impl<'a> Trade<'a> {
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
+        tooltip_manager: &'a mut TooltipManager,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         localized_strings: &'a Localization,
@@ -112,6 +123,7 @@ impl<'a> Trade<'a> {
             item_imgs,
             fonts,
             rot_imgs,
+            tooltip_manager,
             item_tooltip_manager,
             common: widget::CommonBuilder::default(),
             slot_manager,
@@ -187,7 +199,8 @@ impl<'a> Trade<'a> {
         trade: &'a PendingTrade,
         prices: &'a Option<SitePrices>,
         ours: bool,
-    ) -> Option<TradeAction> {
+    ) -> Option<TradeEvent> {
+        let mut event = None;
         let inventories = self.client.inventories();
         let check_if_us = |who: usize| -> Option<_> {
             let uid = trade.parties[who];
@@ -273,22 +286,24 @@ impl<'a> Trade<'a> {
             .collect();
 
         if matches!(trade.phase(), TradePhase::Mutate) {
-            self.phase1_itemwidget(
-                state,
-                ui,
-                inventory,
-                who,
-                ours,
-                entity,
-                name,
-                prices,
-                &tradeslots,
-            );
+            event = self
+                .phase1_itemwidget(
+                    state,
+                    ui,
+                    inventory,
+                    who,
+                    ours,
+                    entity,
+                    name,
+                    prices,
+                    &tradeslots,
+                )
+                .or(event);
         } else {
             self.phase2_itemwidget(state, ui, inventory, who, ours, entity, &tradeslots);
         }
 
-        None
+        event
     }
 
     fn phase1_itemwidget(
@@ -302,7 +317,8 @@ impl<'a> Trade<'a> {
         name: String,
         prices: &'a Option<SitePrices>,
         tradeslots: &[TradeSlot],
-    ) {
+    ) -> Option<TradeEvent> {
+        let mut event = None;
         // Tooltips
         let item_tooltip = ItemTooltip::new(
             {
@@ -351,8 +367,56 @@ impl<'a> Trade<'a> {
                 inventory,
                 &state.bg_ids,
                 false,
+                self.show.trade_details,
             )
             .set(state.ids.inventory_scroller, ui);
+
+            let bag_tooltip = Tooltip::new({
+                // Edge images [t, b, r, l]
+                // Corner images [tr, tl, br, bl]
+                let edge = &self.rot_imgs.tt_side;
+                let corner = &self.rot_imgs.tt_corner;
+                ImageFrame::new(
+                    [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                    [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                    Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                    5.0,
+                )
+            })
+            .title_font_size(self.fonts.cyri.scale(15))
+            .parent(ui.window)
+            .desc_font_size(self.fonts.cyri.scale(12))
+            .font_id(self.fonts.cyri.conrod_id)
+            .desc_text_color(TEXT_COLOR);
+
+            let buttons_top = 53.0;
+            let (txt, btn, hover, press) = if self.show.trade_details {
+                (
+                    "Grid mode",
+                    self.imgs.grid_btn,
+                    self.imgs.grid_btn_hover,
+                    self.imgs.grid_btn_press,
+                )
+            } else {
+                (
+                    "List mode",
+                    self.imgs.list_btn,
+                    self.imgs.list_btn_hover,
+                    self.imgs.list_btn_press,
+                )
+            };
+            let details_btn = Button::image(btn)
+                .w_h(32.0, 17.0)
+                .hover_image(hover)
+                .press_image(press);
+            if details_btn
+                .mid_top_with_margin_on(state.bg_ids.bg_frame, buttons_top)
+                .with_tooltip(self.tooltip_manager, txt, "", &bag_tooltip, TEXT_COLOR)
+                .set(state.ids.trade_details_btn, ui)
+                .was_clicked()
+            {
+                event = Some(TradeEvent::SetDetailsMode(!self.show.trade_details));
+            }
         }
 
         let mut slot_maker = SlotMaker {
@@ -428,6 +492,7 @@ impl<'a> Trade<'a> {
                 slot_widget.set(slot_id, ui);
             }
         }
+        event
     }
 
     fn phase2_itemwidget(
@@ -495,7 +560,7 @@ impl<'a> Trade<'a> {
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
-    ) -> Option<TradeAction> {
+    ) -> Option<TradeEvent> {
         let mut event = None;
         let (hover_img, press_img, accept_button_luminance) = if trade.is_empty_trade() {
             //Darken the accept button if the trade is empty.
@@ -543,7 +608,7 @@ impl<'a> Trade<'a> {
         {
             event = Some(TradeAction::Decline);
         }
-        event
+        event.map(TradeEvent::TradeAction)
     }
 
     fn input_item_amount(
@@ -551,7 +616,7 @@ impl<'a> Trade<'a> {
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
-    ) -> Option<HudUpdate> {
+    ) -> Option<TradeEvent> {
         let mut event = None;
         let selected = self.slot_manager.selected().and_then(|s| match s {
             SlotKind::Trade(t_s) => t_s.invslot.and_then(|slot| {
@@ -671,14 +736,14 @@ impl<'a> Trade<'a> {
                 .color(TEXT_GRAY_COLOR.alpha(0.25))
                 .set(state.ids.amount_notice, ui);
         }
-        event
+        event.map(TradeEvent::HudUpdate)
     }
 
     fn close_button(
         &mut self,
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
-    ) -> Option<TradeAction> {
+    ) -> Option<TradeEvent> {
         if Button::image(self.imgs.close_btn)
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_btn_hover)
@@ -687,7 +752,7 @@ impl<'a> Trade<'a> {
             .set(state.ids.trade_close, ui)
             .was_clicked()
         {
-            Some(TradeAction::Decline)
+            Some(TradeEvent::TradeAction(TradeAction::Decline))
         } else {
             None
         }
@@ -695,7 +760,7 @@ impl<'a> Trade<'a> {
 }
 
 impl<'a> Widget for Trade<'a> {
-    type Event = Option<Result<TradeAction, HudUpdate>>;
+    type Event = Option<TradeEvent>;
     type State = State;
     type Style = ();
 
@@ -718,7 +783,7 @@ impl<'a> Widget for Trade<'a> {
         let mut event = None;
         let (trade, prices) = match self.client.pending_trade() {
             Some((_, trade, prices)) => (trade, prices),
-            None => return Some(Ok(TradeAction::Decline)),
+            None => return Some(TradeEvent::TradeAction(TradeAction::Decline)),
         };
 
         if state.ids.inv_alignment.len() < 2 {
@@ -747,8 +812,6 @@ impl<'a> Widget for Trade<'a> {
         event = self.item_pane(state, ui, trade, prices, true).or(event);
         event = self.accept_decline_buttons(state, ui, trade).or(event);
         event = self.close_button(state, ui).or(event);
-        self.input_item_amount(state, ui, trade)
-            .map(Err)
-            .or_else(|| event.map(Ok))
+        self.input_item_amount(state, ui, trade).or(event)
     }
 }

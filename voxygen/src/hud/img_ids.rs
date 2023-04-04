@@ -565,6 +565,12 @@ image_ids! {
         edit_btn_press: "voxygen.element.ui.char_select.icons.pen_press",
 
         // Inventory
+        grid_btn: "voxygen.element.ui.bag.buttons.inv_grid",
+        grid_btn_hover: "voxygen.element.ui.bag.buttons.inv_grid_hover",
+        grid_btn_press: "voxygen.element.ui.bag.buttons.inv_grid_press",
+        list_btn: "voxygen.element.ui.bag.buttons.inv_list",
+        list_btn_hover: "voxygen.element.ui.bag.buttons.inv_list_hover",
+        list_btn_press: "voxygen.element.ui.bag.buttons.inv_list_press",
         collapse_btn: "voxygen.element.ui.bag.buttons.inv_collapse",
         collapse_btn_hover: "voxygen.element.ui.bag.buttons.inv_collapse_hover",
         collapse_btn_press: "voxygen.element.ui.bag.buttons.inv_collapse_press",
