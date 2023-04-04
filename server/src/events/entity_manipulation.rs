@@ -546,6 +546,16 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     if vel.z <= -30.0 {
         let char_states = ecs.read_storage::<CharacterState>();
 
+        // This disables all fall damage when in the water by returning early. This was added as
+        // a *temporary* fix a bug that causes you to take fall damage while swimming downwards.
+        // FIXME: Fix the actual bug and remove the following if statement.
+        if let Some(phys_data) = ecs.read_storage::<PhysicsState>().get(entity) {
+            if phys_data.in_liquid().is_some() {
+                debug!("Entity in liquid, skip fall damage calculations.");
+                return;
+            }
+        }
+
         let reduced_vel_z = if let Some(CharacterState::DiveMelee(c)) = char_states.get(entity) {
             (vel.z + c.static_data.vertical_speed).min(0.0)
         } else {
