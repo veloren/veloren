@@ -298,10 +298,10 @@ impl Body {
 
     /// Returns the position where a projectile should be fired relative to this
     /// body
-    pub fn projectile_offsets(&self, ori: Vec3<f32>) -> Vec3<f32> {
+    pub fn projectile_offsets(&self, ori: Vec3<f32>, scale: f32) -> Vec3<f32> {
         let body_offsets_z = match self {
             Body::Golem(_) => self.height() * 0.4,
-            _ => self.eye_height(),
+            _ => self.eye_height(scale),
         };
 
         let dim = self.dimensions();
@@ -611,6 +611,9 @@ pub fn handle_orientation(
             .ori
             .slerped_towards(target_ori, target_fraction.min(1.0))
     };
+
+    // Look at things
+    update.character_activity.look_dir = Some(data.controller.inputs.look_dir);
 }
 
 /// Updates components to move player as if theyre swimming

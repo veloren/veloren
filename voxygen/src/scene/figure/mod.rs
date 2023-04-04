@@ -33,9 +33,9 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
-        ship, Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
-        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, SkillSet, Stance,
-        Vel,
+        ship, Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory,
+        Item, ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos,
+        Scale, SkillSet, Stance, Vel,
     },
     link::Is,
     mounting::Rider,
@@ -741,14 +741,14 @@ impl FigureMgr {
                 scale,
                 body,
                 character,
+                character_activity,
                 last_character,
                 physics,
                 health,
                 inventory,
                 item,
                 light_emitter,
-                is_rider,
-                (collider, stance, skillset),
+                (is_rider, collider, stance, skillset),
             ),
         ) in (
             &ecs.entities(),
@@ -759,14 +759,15 @@ impl FigureMgr {
             ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<CharacterState>().maybe(),
+            ecs.read_storage::<CharacterActivity>().maybe(),
             ecs.read_storage::<Last<CharacterState>>().maybe(),
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
-            ecs.read_storage::<Is<Rider>>().maybe(),
             (
+                ecs.read_storage::<Is<Rider>>().maybe(),
                 ecs.read_storage::<Collider>().maybe(),
                 ecs.read_storage::<Stance>().maybe(),
                 ecs.read_storage::<SkillSet>().maybe(),
@@ -779,7 +780,13 @@ impl FigureMgr {
             let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel)
                 / scale.map_or(1.0, |s| s.0);
 
-            let look_dir = controller.map(|c| c.inputs.look_dir).unwrap_or_default();
+            // Priortise CharacterActivity as the source of the look direction
+            let look_dir = character_activity.and_then(|ca| ca.look_dir)
+                // Failing that, take the controller as the source of truth
+                .or_else(|| controller.map(|c| c.inputs.look_dir))
+                // If that still didn't work, fall back to the interpolation orientation
+                .or_else(|| interpolated.map(|i| i.ori.look_dir()))
+                .unwrap_or_default();
             let is_viewpoint = scene_data.viewpoint_entity == entity;
             let viewpoint_camera_mode = if is_viewpoint {
                 camera_mode

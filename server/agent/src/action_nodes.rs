@@ -23,7 +23,7 @@ use common::{
         item_drop,
         projectile::ProjectileConstructor,
         Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller,
-        HealthChange, InputKind, InventoryAction, Pos, UnresolvedChatMsg, UtteranceKind,
+        HealthChange, InputKind, InventoryAction, Pos, Scale, UnresolvedChatMsg, UtteranceKind,
     },
     effect::{BuffEffect, Effect},
     event::{Emitter, ServerEvent},
@@ -514,8 +514,10 @@ impl<'a> AgentData<'a> {
         target: EcsEntity,
     ) -> bool {
         if let Some(tgt_pos) = read_data.positions.get(target) {
-            let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
-            let tgt_eye_offset = read_data.bodies.get(target).map_or(0.0, |b| b.eye_height());
+            let eye_offset = self.body.map_or(0.0, |b| b.eye_height(self.scale));
+            let tgt_eye_offset = read_data.bodies.get(target).map_or(0.0, |b| {
+                b.eye_height(read_data.scales.get(target).map_or(1.0, |s| s.0))
+            });
             if let Some(dir) = Dir::from_unnormalized(
                 Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
                     - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
@@ -794,8 +796,8 @@ impl<'a> AgentData<'a> {
             },
         };
 
-        let is_detected = |entity: &EcsEntity, e_pos: &Pos| {
-            self.detects_other(agent, controller, entity, e_pos, read_data)
+        let is_detected = |entity: &EcsEntity, e_pos: &Pos, e_scale: Option<&Scale>| {
+            self.detects_other(agent, controller, entity, e_pos, e_scale, read_data)
         };
 
         let target = entities_nearby
@@ -805,7 +807,7 @@ impl<'a> AgentData<'a> {
             .filter_map(|(entity, attack_target)| {
                 get_pos(entity).map(|pos| (entity, pos, attack_target))
             })
-            .filter(|(entity, e_pos, _)| is_detected(entity, e_pos))
+            .filter(|(entity, e_pos, _)| is_detected(entity, e_pos, read_data.scales.get(*entity)))
             .min_by_key(|(_, e_pos, attack_target)| {
                 (
                     *attack_target,
@@ -997,9 +999,11 @@ impl<'a> AgentData<'a> {
             .angle_between((tgt_data.pos.0 - self.pos.0).xy())
             .to_degrees();
 
-        let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
+        let eye_offset = self.body.map_or(0.0, |b| b.eye_height(self.scale));
 
-        let tgt_eye_height = tgt_data.body.map_or(0.0, |b| b.eye_height());
+        let tgt_eye_height = tgt_data
+            .body
+            .map_or(0.0, |b| b.eye_height(tgt_data.scale.map_or(1.0, |s| s.0)));
         let tgt_eye_offset = tgt_eye_height +
                    // Special case for jumping attacks to jump at the body
                    // of the target and not the ground around the target
@@ -1037,7 +1041,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            body.projectile_offsets(self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec(), self.scale)
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1062,7 +1066,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            body.projectile_offsets(self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec(), self.scale)
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1077,7 +1081,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            body.projectile_offsets(self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec(), self.scale)
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1684,6 +1688,7 @@ impl<'a> AgentData<'a> {
         controller: &Controller,
         other: EcsEntity,
         other_pos: &Pos,
+        other_scale: Option<&Scale>,
         read_data: &ReadData,
     ) -> bool {
         let other_stealth_multiplier = {
@@ -1708,7 +1713,15 @@ impl<'a> AgentData<'a> {
 
         (within_sight_dist)
             && within_fov
-            && entities_have_line_of_sight(self.pos, self.body, other_pos, other_body, read_data)
+            && entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                other_pos,
+                other_body,
+                other_scale,
+                read_data,
+            )
     }
 
     pub fn detects_other(
@@ -1717,10 +1730,11 @@ impl<'a> AgentData<'a> {
         controller: &Controller,
         other: &EcsEntity,
         other_pos: &Pos,
+        other_scale: Option<&Scale>,
         read_data: &ReadData,
     ) -> bool {
         self.can_sense_directly_near(other_pos)
-            || self.can_see_entity(agent, controller, *other, other_pos, read_data)
+            || self.can_see_entity(agent, controller, *other, other_pos, other_scale, read_data)
     }
 
     pub fn can_sense_directly_near(&self, e_pos: &Pos) -> bool {

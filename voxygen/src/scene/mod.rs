@@ -547,7 +547,7 @@ impl Scene {
                     (
                         matches!(b, comp::Body::Humanoid(_)),
                         b.height(),
-                        b.eye_height(),
+                        b.eye_height(1.0), // Scale is applied later
                     )
                 });
 

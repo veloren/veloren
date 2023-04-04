@@ -2,7 +2,7 @@ use common::{
     comp::{
         ability::Stance,
         agent::{Sound, SoundKind},
-        Body, BuffChange, ControlEvent, Controller, Pos,
+        Body, BuffChange, ControlEvent, Controller, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
     uid::UidAllocator,
@@ -22,6 +22,7 @@ pub struct ReadData<'a> {
     server_bus: Read<'a, EventBus<ServerEvent>>,
     positions: ReadStorage<'a, Pos>,
     bodies: ReadStorage<'a, Body>,
+    scales: ReadStorage<'a, Scale>,
 }
 
 #[derive(Default)]
@@ -91,13 +92,15 @@ impl<'a> System<'a> for Sys {
                     },
                     ControlEvent::Respawn => server_emitter.emit(ServerEvent::Respawn(entity)),
                     ControlEvent::Utterance(kind) => {
-                        if let (Some(pos), Some(body)) = (
+                        if let (Some(pos), Some(body), scale) = (
                             read_data.positions.get(entity),
                             read_data.bodies.get(entity),
+                            read_data.scales.get(entity),
                         ) {
                             let sound = Sound::new(
                                 SoundKind::Utterance(kind, *body),
-                                pos.0 + Vec3::unit_z() * body.eye_height(),
+                                pos.0
+                                    + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0)),
                                 8.0, // TODO: Come up with a better way of determining this
                                 1.0,
                             );

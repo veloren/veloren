@@ -1,4 +1,5 @@
 use vek::Vec2;
+// TODO: Move this to common/src/, it's not a component
 
 /// Cardinal directions
 pub enum Direction {

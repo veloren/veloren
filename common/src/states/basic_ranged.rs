@@ -91,7 +91,10 @@ impl CharacterBehavior for Data {
                     // Shoots all projectiles simultaneously
                     for i in 0..self.static_data.num_projectiles {
                         // Gets offsets
-                        let body_offsets = data.body.projectile_offsets(update.ori.look_vec());
+                        let body_offsets = data.body.projectile_offsets(
+                            update.ori.look_vec(),
+                            data.scale.map_or(1.0, |s| s.0),
+                        );
                         let pos = Pos(data.pos.0 + body_offsets);
                         // Adds a slight spread to the projectiles. First projectile has no spread,
                         // and spread increases linearly with number of projectiles created.

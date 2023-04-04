@@ -139,11 +139,12 @@ impl BehaviorTree {
                 handle_inbox_trade_accepted,
                 handle_inbox_finished_trade,
                 handle_inbox_update_pending_trade,
+                handle_timed_events,
             ]);
             Self { tree }
         } else {
             Self {
-                tree: vec![handle_inbox_cancel_interactions],
+                tree: vec![handle_inbox_cancel_interactions, handle_timed_events],
             }
         }
     }
@@ -477,7 +478,6 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                 if bdata.agent.allowed_to_speak()
                     && let Some(target) = bdata.read_data.lookup_actor(actor)
                     && let Some(target_pos) = bdata.read_data.positions.get(target)
-                    && bdata.agent_data.look_toward(bdata.controller, bdata.read_data, target)
                 {
                     bdata.agent.target = Some(Target::new(
                         target,
@@ -486,6 +486,8 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                         false,
                         Some(target_pos.0),
                     ));
+                    // We're always aware of someone we're talking to
+                    bdata.agent.awareness.set_maximally_aware();
 
                     bdata.controller.push_action(ControlAction::Talk);
                     bdata.controller.push_utterance(UtteranceKind::Greeting);
@@ -497,15 +499,20 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                         .agent
                         .timer
                         .start(bdata.read_data.time.0, TimerAction::Interact);
+                    true
+                } else {
+                    false
                 }
             },
             NpcAction::Say(msg) => {
                 bdata.controller.push_utterance(UtteranceKind::Greeting);
                 bdata.agent_data.chat_npc(msg, bdata.event_emitter);
+                false
             },
         }
+    } else {
+        false
     }
-    false
 }
 
 /// Handle timed events, like looking at the player we are talking to
@@ -571,7 +578,14 @@ fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
         let target = target_info.target;
 
         if let Some(target_pos) = read_data.positions.get(target) {
-            if agent_data.detects_other(agent, controller, &target, target_pos, read_data) {
+            if agent_data.detects_other(
+                agent,
+                controller,
+                &target,
+                target_pos,
+                read_data.scales.get(target),
+                read_data,
+            ) {
                 let updated_pos = Some(target_pos.0);
 
                 let Target {
@@ -631,9 +645,10 @@ fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
 
     let target = agent.target.map(|t| t.target);
     let tgt_pos = target.and_then(|t| read_data.positions.get(t));
+    let tgt_scale = target.and_then(|t| read_data.scales.get(t));
 
     if let (Some(target), Some(tgt_pos)) = (target, tgt_pos) {
-        if agent_data.can_see_entity(agent, controller, target, tgt_pos, read_data) {
+        if agent_data.can_see_entity(agent, controller, target, tgt_pos, tgt_scale, read_data) {
             agent.awareness.change_by(1.75 * read_data.dt.0);
         } else if agent_data.can_sense_directly_near(tgt_pos) {
             agent.awareness.change_by(0.25);

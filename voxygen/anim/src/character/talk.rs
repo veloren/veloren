@@ -31,7 +31,8 @@ impl Animation for TalkAnimation {
         let slowb = (anim_time * 4.0 + PI / 2.0).sin();
         let slowc = (anim_time * 12.0 + PI / 2.0).sin();
 
-        next.head.orientation = Quaternion::rotation_x(slowc * 0.035 + look_dir.z * 0.7);
+        next.head.orientation =
+            Quaternion::rotation_x(slowc * 0.035 + look_dir.z.atan2(look_dir.xy().magnitude()));
         next.hand_l.position = Vec3::new(
             -s_a.hand.0 + 0.5 + slowb * 0.5,
             s_a.hand.1 + 5.0 + slowc * 1.0,

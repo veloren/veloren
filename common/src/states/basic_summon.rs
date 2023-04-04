@@ -149,7 +149,7 @@ impl CharacterBehavior for Data {
                         let collision_vector = Vec3::new(
                             data.pos.0.x + (summon_frac * 2.0 * PI).sin() * obstacle_xy,
                             data.pos.0.y + (summon_frac * 2.0 * PI).cos() * obstacle_xy,
-                            data.pos.0.z + data.body.eye_height(),
+                            data.pos.0.z + data.body.eye_height(data.scale.map_or(1.0, |s| s.0)),
                         );
 
                         // Check for collision in z up to 50 blocks

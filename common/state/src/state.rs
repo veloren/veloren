@@ -199,6 +199,7 @@ impl State {
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Immovable>();
         ecs.register::<comp::CharacterState>();
+        ecs.register::<comp::CharacterActivity>();
         ecs.register::<comp::Object>();
         ecs.register::<comp::Group>();
         ecs.register::<comp::Shockwave>();

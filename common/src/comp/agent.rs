@@ -625,6 +625,11 @@ impl Awareness {
             self.reached = false;
         }
     }
+
+    pub fn set_maximally_aware(&mut self) {
+        self.reached = true;
+        self.level = Self::ALERT;
+    }
 }
 
 #[derive(Clone, Debug, PartialOrd, PartialEq, Eq)]

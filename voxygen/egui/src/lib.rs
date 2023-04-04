@@ -346,8 +346,19 @@ pub fn maintain_egui_inner(
                             ui.label("Body");
                             ui.label("Poise");
                             ui.label("Character State");
+                            ui.label("Character Activity");
                             ui.end_row();
-                            for (entity, body, stats, pos, _ori, vel, poise, character_state) in (
+                            for (
+                                entity,
+                                body,
+                                stats,
+                                pos,
+                                _ori,
+                                vel,
+                                poise,
+                                character_state,
+                                character_activity,
+                            ) in (
                                 &ecs.entities(),
                                 ecs.read_storage::<Body>().maybe(),
                                 ecs.read_storage::<comp::Stats>().maybe(),
@@ -356,14 +367,18 @@ pub fn maintain_egui_inner(
                                 ecs.read_storage::<comp::Vel>().maybe(),
                                 ecs.read_storage::<Poise>().maybe(),
                                 ecs.read_storage::<comp::CharacterState>().maybe(),
+                                ecs.read_storage::<comp::CharacterActivity>().maybe(),
                             )
                                 .join()
-                                .filter(|(_, _, _, pos, _, _, _, _)| {
-                                    client_pos.map_or(true, |client_pos| {
-                                        pos.map_or(0.0, |pos| pos.0.distance_squared(client_pos.0))
-                                            < max_entity_distance
-                                    })
-                                })
+                                .filter(
+                                    |(_, _, _, pos, _, _, _, _, _)| {
+                                        client_pos.map_or(true, |client_pos| {
+                                            pos.map_or(0.0, |pos| {
+                                                pos.0.distance_squared(client_pos.0)
+                                            }) < max_entity_distance
+                                        })
+                                    },
+                                )
                             {
                                 if ui.button("View").clicked() {
                                     previous_selected_entity =
@@ -416,6 +431,12 @@ pub fn maintain_egui_inner(
 
                                 if let Some(character_state) = character_state {
                                     ui.label(character_state.to_string());
+                                } else {
+                                    ui.label("-");
+                                }
+
+                                if let Some(character_activity) = character_activity {
+                                    ui.label(format!("{:?}", character_activity));
                                 } else {
                                     ui.label("-");
                                 }
@@ -507,11 +528,11 @@ fn selected_entity_window(
         buffs,
         auras,
         character_state,
+        character_activity,
         physics_state,
         alignment,
         scale,
-        mass,
-        (density, health, energy),
+        (mass, density, health, energy),
     ) in (
         &ecs.entities(),
         ecs.read_storage::<Body>().maybe(),
@@ -523,18 +544,19 @@ fn selected_entity_window(
         ecs.read_storage::<comp::Buffs>().maybe(),
         ecs.read_storage::<comp::Auras>().maybe(),
         ecs.read_storage::<comp::CharacterState>().maybe(),
+        ecs.read_storage::<comp::CharacterActivity>().maybe(),
         ecs.read_storage::<comp::PhysicsState>().maybe(),
         ecs.read_storage::<comp::Alignment>().maybe(),
         ecs.read_storage::<comp::Scale>().maybe(),
-        ecs.read_storage::<comp::Mass>().maybe(),
         (
+            ecs.read_storage::<comp::Mass>().maybe(),
             ecs.read_storage::<comp::Density>().maybe(),
             ecs.read_storage::<comp::Health>().maybe(),
             ecs.read_storage::<comp::Energy>().maybe(),
         ),
     )
         .join()
-        .filter(|(e, _, _, _, _, _, _, _, _, _, _, _, _, _, (_, _, _))| e.id() == entity_id)
+        .filter(|(e, _, _, _, _, _, _, _, _, _, _, _, _, _, (_, _, _, _))| e.id() == entity_id)
     {
         let time = ecs.read_resource::<Time>();
         if let Some(pos) = pos {
@@ -699,6 +721,18 @@ fn selected_entity_window(
 
                     CollapsingHeader::new("Character State").default_open(false).show(ui, |ui| {
                         draw_char_state_group(ui, selected_entity_info, character_state);
+                    });
+                }
+
+                if let Some(character_activity) = character_activity {
+                    CollapsingHeader::new("CharacterActivity").default_open(false).show(ui, |ui| {
+                            Grid::new("selected_entity_character_activity_grid")
+                                .spacing([40.0, 4.0])
+                                .max_col_width(100.0)
+                                .striped(true)
+                                .show(ui, |ui| {
+                                    two_col_row(ui, "look_dir", format!("{:.3?}", character_activity.look_dir));
+                                });
                     });
                 }
 

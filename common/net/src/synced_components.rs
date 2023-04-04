@@ -40,6 +40,7 @@ macro_rules! synced_components {
             sticky: Sticky,
             immovable: Immovable,
             character_state: CharacterState,
+            character_activity: CharacterActivity,
             shockwave: Shockwave,
             beam_segment: BeamSegment,
             alignment: Alignment,
@@ -198,6 +199,10 @@ impl NetSync for Immovable {
 }
 
 impl NetSync for CharacterState {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for CharacterActivity {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

@@ -286,6 +286,7 @@ impl StateExt for State {
             .with(poise)
             .with(comp::Alignment::Npc)
             .with(comp::CharacterState::default())
+            .with(comp::CharacterActivity::default())
             .with(inventory)
             .with(comp::Buffs::default())
             .with(comp::Combo::default())
@@ -352,6 +353,7 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(Inventory::with_empty())
             .with(comp::CharacterState::default())
+            .with(comp::CharacterActivity::default())
             // TODO: some of these are required in order for the character_behavior system to
             // recognize a possesed airship; that system should be refactored to use `.maybe()`
             .with(comp::Energy::new(ship.into(), 0))
@@ -559,6 +561,7 @@ impl StateExt for State {
                 z_max: 1.75,
             });
             self.write_component_ignore_entity_dead(entity, comp::CharacterState::default());
+            self.write_component_ignore_entity_dead(entity, comp::CharacterActivity::default());
             self.write_component_ignore_entity_dead(entity, comp::Alignment::Owned(player_uid));
             self.write_component_ignore_entity_dead(entity, comp::Buffs::default());
             self.write_component_ignore_entity_dead(entity, comp::Auras::default());

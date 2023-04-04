@@ -97,203 +97,190 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                     false,
                     target_pos,
                 ));
+                // We're always aware of someone we're talking to
+                agent.awareness.set_maximally_aware();
 
-                if agent_data.look_toward(controller, read_data, target) {
-                    controller.push_action(ControlAction::Stand);
-                    controller.push_action(ControlAction::Talk);
-                    controller.push_utterance(UtteranceKind::Greeting);
+                controller.push_action(ControlAction::Stand);
+                controller.push_action(ControlAction::Talk);
+                controller.push_utterance(UtteranceKind::Greeting);
 
-                    match subject {
-                        Subject::Regular => {
-                            if let Some(tgt_stats) = read_data.stats.get(target) {
-                                if let Some(destination_name) = &agent.rtsim_controller.heading_to {
-                                    let personality = &agent.rtsim_controller.personality;
-                                    let standard_response_msg = || -> String {
-                                        if personality.will_ambush() {
+                match subject {
+                    Subject::Regular => {
+                        if let Some(tgt_stats) = read_data.stats.get(target) {
+                            if let Some(destination_name) = &agent.rtsim_controller.heading_to {
+                                let personality = &agent.rtsim_controller.personality;
+                                let standard_response_msg = || -> String {
+                                    if personality.will_ambush() {
+                                        format!(
+                                            "I'm heading to {}! Want to come along? We'll make \
+                                             great travel buddies, hehe.",
+                                            destination_name
+                                        )
+                                    } else if personality.is(PersonalityTrait::Extroverted) {
+                                        format!(
+                                            "I'm heading to {}! Want to come along?",
+                                            destination_name
+                                        )
+                                    } else if personality.is(PersonalityTrait::Disagreeable) {
+                                        "Hrm.".to_string()
+                                    } else {
+                                        "Hello!".to_string()
+                                    }
+                                };
+                                let msg = if false
+                                /* TODO: Remembers character */
+                                {
+                                    if personality.will_ambush() {
+                                        "Just follow me a bit more, hehe.".to_string()
+                                    } else if personality.is(PersonalityTrait::Extroverted) {
+                                        if personality.is(PersonalityTrait::Extroverted) {
                                             format!(
-                                                "I'm heading to {}! Want to come along? We'll \
-                                                 make great travel buddies, hehe.",
-                                                destination_name
-                                            )
-                                        } else if personality.is(PersonalityTrait::Extroverted) {
-                                            format!(
-                                                "I'm heading to {}! Want to come along?",
-                                                destination_name
+                                                "Greetings fair {}! It has been far too long \
+                                                 since last I saw you. I'm going to {} right now.",
+                                                &tgt_stats.name, destination_name
                                             )
                                         } else if personality.is(PersonalityTrait::Disagreeable) {
-                                            "Hrm.".to_string()
+                                            "Oh. It's you again.".to_string()
                                         } else {
-                                            "Hello!".to_string()
-                                        }
-                                    };
-                                    let msg = if false
-                                    /* TODO: Remembers character */
-                                    {
-                                        if personality.will_ambush() {
-                                            "Just follow me a bit more, hehe.".to_string()
-                                        } else if personality.is(PersonalityTrait::Extroverted) {
-                                            if personality.is(PersonalityTrait::Extroverted) {
-                                                format!(
-                                                    "Greetings fair {}! It has been far too long \
-                                                     since last I saw you. I'm going to {} right \
-                                                     now.",
-                                                    &tgt_stats.name, destination_name
-                                                )
-                                            } else if personality.is(PersonalityTrait::Disagreeable)
-                                            {
-                                                "Oh. It's you again.".to_string()
-                                            } else {
-                                                format!(
-                                                    "Hi again {}! Unfortunately I'm in a hurry \
-                                                     right now. See you!",
-                                                    &tgt_stats.name
-                                                )
-                                            }
-                                        } else {
-                                            standard_response_msg()
+                                            format!(
+                                                "Hi again {}! Unfortunately I'm in a hurry right \
+                                                 now. See you!",
+                                                &tgt_stats.name
+                                            )
                                         }
                                     } else {
                                         standard_response_msg()
+                                    }
+                                } else {
+                                    standard_response_msg()
+                                };
+                                agent_data.chat_npc(msg, event_emitter);
+                            } else {
+                                let mut rng = thread_rng();
+                                if let Some(extreme_trait) =
+                                    agent.rtsim_controller.personality.chat_trait(&mut rng)
+                                {
+                                    let msg = match extreme_trait {
+                                        PersonalityTrait::Open => "npc-speech-villager_open",
+                                        PersonalityTrait::Adventurous => {
+                                            "npc-speech-villager_adventurous"
+                                        },
+                                        PersonalityTrait::Closed => "npc-speech-villager_closed",
+                                        PersonalityTrait::Conscientious => {
+                                            "npc-speech-villager_conscientious"
+                                        },
+                                        PersonalityTrait::Busybody => {
+                                            "npc-speech-villager_busybody"
+                                        },
+                                        PersonalityTrait::Unconscientious => {
+                                            "npc-speech-villager_unconscientious"
+                                        },
+                                        PersonalityTrait::Extroverted => {
+                                            "npc-speech-villager_extroverted"
+                                        },
+                                        PersonalityTrait::Introverted => {
+                                            "npc-speech-villager_introverted"
+                                        },
+                                        PersonalityTrait::Agreeable => {
+                                            "npc-speech-villager_agreeable"
+                                        },
+                                        PersonalityTrait::Sociable => {
+                                            "npc-speech-villager_sociable"
+                                        },
+                                        PersonalityTrait::Disagreeable => {
+                                            "npc-speech-villager_disagreeable"
+                                        },
+                                        PersonalityTrait::Neurotic => {
+                                            "npc-speech-villager_neurotic"
+                                        },
+                                        PersonalityTrait::Seeker => "npc-speech-villager_seeker",
+                                        PersonalityTrait::SadLoner => {
+                                            "npc-speech-villager_sad_loner"
+                                        },
+                                        PersonalityTrait::Worried => "npc-speech-villager_worried",
+                                        PersonalityTrait::Stable => "npc-speech-villager_stable",
                                     };
                                     agent_data.chat_npc(msg, event_emitter);
                                 } else {
-                                    let mut rng = thread_rng();
-                                    if let Some(extreme_trait) =
-                                        agent.rtsim_controller.personality.chat_trait(&mut rng)
-                                    {
-                                        let msg = match extreme_trait {
-                                            PersonalityTrait::Open => "npc-speech-villager_open",
-                                            PersonalityTrait::Adventurous => {
-                                                "npc-speech-villager_adventurous"
-                                            },
-                                            PersonalityTrait::Closed => {
-                                                "npc-speech-villager_closed"
-                                            },
-                                            PersonalityTrait::Conscientious => {
-                                                "npc-speech-villager_conscientious"
-                                            },
-                                            PersonalityTrait::Busybody => {
-                                                "npc-speech-villager_busybody"
-                                            },
-                                            PersonalityTrait::Unconscientious => {
-                                                "npc-speech-villager_unconscientious"
-                                            },
-                                            PersonalityTrait::Extroverted => {
-                                                "npc-speech-villager_extroverted"
-                                            },
-                                            PersonalityTrait::Introverted => {
-                                                "npc-speech-villager_introverted"
-                                            },
-                                            PersonalityTrait::Agreeable => {
-                                                "npc-speech-villager_agreeable"
-                                            },
-                                            PersonalityTrait::Sociable => {
-                                                "npc-speech-villager_sociable"
-                                            },
-                                            PersonalityTrait::Disagreeable => {
-                                                "npc-speech-villager_disagreeable"
-                                            },
-                                            PersonalityTrait::Neurotic => {
-                                                "npc-speech-villager_neurotic"
-                                            },
-                                            PersonalityTrait::Seeker => {
-                                                "npc-speech-villager_seeker"
-                                            },
-                                            PersonalityTrait::SadLoner => {
-                                                "npc-speech-villager_sad_loner"
-                                            },
-                                            PersonalityTrait::Worried => {
-                                                "npc-speech-villager_worried"
-                                            },
-                                            PersonalityTrait::Stable => {
-                                                "npc-speech-villager_stable"
-                                            },
-                                        };
-                                        agent_data.chat_npc(msg, event_emitter);
-                                    } else {
-                                        agent_data.chat_npc("npc-speech-villager", event_emitter);
-                                    }
+                                    agent_data.chat_npc("npc-speech-villager", event_emitter);
                                 }
                             }
-                        },
-                        Subject::Trade => {
-                            if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
-                                if !agent.behavior.is(BehaviorState::TRADING) {
-                                    controller.push_initiate_invite(by, InviteKind::Trade);
-                                    agent_data.chat_npc_if_allowed_to_speak(
-                                        "npc-speech-merchant_advertisement",
-                                        agent,
-                                        event_emitter,
-                                    );
-                                } else {
-                                    agent_data.chat_npc_if_allowed_to_speak(
-                                        "npc-speech-merchant_busy",
-                                        agent,
-                                        event_emitter,
-                                    );
-                                }
-                            } else {
-                                // TODO: maybe make some travellers willing to trade with
-                                // simpler goods like potions
+                        }
+                    },
+                    Subject::Trade => {
+                        if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
+                            if !agent.behavior.is(BehaviorState::TRADING) {
+                                controller.push_initiate_invite(by, InviteKind::Trade);
                                 agent_data.chat_npc_if_allowed_to_speak(
-                                    "npc-speech-villager_decline_trade",
+                                    "npc-speech-merchant_advertisement",
+                                    agent,
+                                    event_emitter,
+                                );
+                            } else {
+                                agent_data.chat_npc_if_allowed_to_speak(
+                                    "npc-speech-merchant_busy",
                                     agent,
                                     event_emitter,
                                 );
                             }
-                        },
-                        Subject::Mood => {
-                            // TODO: Reimplement in rtsim2
-                        },
-                        Subject::Location(location) => {
-                            if let Some(tgt_pos) = read_data.positions.get(target) {
-                                let raw_dir = location.origin.as_::<f32>() - tgt_pos.0.xy();
-                                let dist = Distance::from_dir(raw_dir).name();
-                                let dir = Direction::from_dir(raw_dir).name();
+                        } else {
+                            // TODO: maybe make some travellers willing to trade with
+                            // simpler goods like potions
+                            agent_data.chat_npc_if_allowed_to_speak(
+                                "npc-speech-villager_decline_trade",
+                                agent,
+                                event_emitter,
+                            );
+                        }
+                    },
+                    Subject::Mood => {
+                        // TODO: Reimplement in rtsim2
+                    },
+                    Subject::Location(location) => {
+                        if let Some(tgt_pos) = read_data.positions.get(target) {
+                            let raw_dir = location.origin.as_::<f32>() - tgt_pos.0.xy();
+                            let dist = Distance::from_dir(raw_dir).name();
+                            let dir = Direction::from_dir(raw_dir).name();
 
-                                let msg = format!(
-                                    "{} ? I think it's {} {} from here!",
-                                    location.name, dist, dir
-                                );
-                                agent_data.chat_npc(msg, event_emitter);
-                            }
-                        },
-                        Subject::Person(person) => {
-                            if let Some(src_pos) = read_data.positions.get(target) {
-                                let msg = if let Some(person_pos) = person.origin {
-                                    let distance =
-                                        Distance::from_dir(person_pos.xy() - src_pos.0.xy());
-                                    match distance {
-                                        Distance::NextTo | Distance::Near => {
-                                            format!(
-                                                "{} ? I think he's {} {} from here!",
-                                                person.name(),
-                                                distance.name(),
-                                                Direction::from_dir(
-                                                    person_pos.xy() - src_pos.0.xy(),
-                                                )
+                            let msg = format!(
+                                "{} ? I think it's {} {} from here!",
+                                location.name, dist, dir
+                            );
+                            agent_data.chat_npc(msg, event_emitter);
+                        }
+                    },
+                    Subject::Person(person) => {
+                        if let Some(src_pos) = read_data.positions.get(target) {
+                            let msg = if let Some(person_pos) = person.origin {
+                                let distance = Distance::from_dir(person_pos.xy() - src_pos.0.xy());
+                                match distance {
+                                    Distance::NextTo | Distance::Near => {
+                                        format!(
+                                            "{} ? I think he's {} {} from here!",
+                                            person.name(),
+                                            distance.name(),
+                                            Direction::from_dir(person_pos.xy() - src_pos.0.xy(),)
                                                 .name()
-                                            )
-                                        },
-                                        _ => {
-                                            format!(
-                                                "{} ? I think he's gone visiting another town. \
-                                                 Come back later!",
-                                                person.name()
-                                            )
-                                        },
-                                    }
-                                } else {
-                                    format!(
-                                        "{} ? Sorry, I don't know where you can find him.",
-                                        person.name()
-                                    )
-                                };
-                                agent_data.chat_npc(msg, event_emitter);
-                            }
-                        },
-                        Subject::Work => {},
-                    }
+                                        )
+                                    },
+                                    _ => {
+                                        format!(
+                                            "{} ? I think he's gone visiting another town. Come \
+                                             back later!",
+                                            person.name()
+                                        )
+                                    },
+                                }
+                            } else {
+                                format!(
+                                    "{} ? Sorry, I don't know where you can find him.",
+                                    person.name()
+                                )
+                            };
+                            agent_data.chat_npc(msg, event_emitter);
+                        }
+                    },
+                    Subject::Work => {},
                 }
             }
         }

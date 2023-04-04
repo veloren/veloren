@@ -73,7 +73,7 @@ pub use self::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
         ModifierKind,
     },
-    character_state::{CharacterState, StateUpdate},
+    character_state::{CharacterActivity, CharacterState, StateUpdate},
     chat::{
         ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
     },

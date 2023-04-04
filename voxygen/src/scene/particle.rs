@@ -12,7 +12,7 @@ use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
         self, aura, beam, body, buff, item::Reagent, object, shockwave, BeamSegment, Body,
-        CharacterState, Ori, Pos, Shockwave, Vel,
+        CharacterState, Ori, Pos, Scale, Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -1264,12 +1264,13 @@ impl ParticleMgr {
         let time = state.get_time();
         let mut rng = thread_rng();
 
-        for (interp, pos, buffs, body, ori) in (
+        for (interp, pos, buffs, body, ori, scale) in (
             ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<comp::Buffs>(),
             &ecs.read_storage::<Body>(),
             &ecs.read_storage::<Ori>(),
+            ecs.read_storage::<Scale>().maybe(),
         )
             .join()
         {
@@ -1328,7 +1329,8 @@ impl ParticleMgr {
                                         self.scheduler.heartbeats(Duration::from_millis(25)),
                                     ),
                             || {
-                                let start_pos = pos + Vec3::unit_z() * body.eye_height();
+                                let start_pos = pos
+                                    + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0));
                                 let (radius, theta) =
                                     (rng.gen_range(0.0f32..1.0).sqrt(), rng.gen_range(0.0..TAU));
                                 let end_pos = pos
@@ -1393,7 +1395,9 @@ impl ParticleMgr {
                                 + multiplicity
                                     * self.scheduler.heartbeats(Duration::from_millis(3)) as usize,
                             || {
-                                let start_pos = pos + Vec3::unit_z() * body.eye_height() / 2.0;
+                                let start_pos = pos
+                                    + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0))
+                                        / 2.0;
                                 let end_pos = start_pos
                                     + Vec3::<f32>::zero()
                                         .map(|_| rng.gen_range(-1.0..1.0))

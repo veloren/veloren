@@ -247,7 +247,15 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
     ) {
         let line_of_sight_with_target = || {
-            entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
         };
 
         let elevation = self.pos.0.z - tgt_data.pos.0.z;
@@ -374,8 +382,10 @@ impl<'a> AgentData<'a> {
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 )
             {
@@ -451,8 +461,10 @@ impl<'a> AgentData<'a> {
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 )
             {
@@ -1269,7 +1281,15 @@ impl<'a> AgentData<'a> {
         const DESIRED_ENERGY_LEVEL: f32 = 50.0;
 
         let line_of_sight_with_target = || {
-            entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
         };
 
         // Logic to use abilities
@@ -1521,8 +1541,10 @@ impl<'a> AgentData<'a> {
                 if entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 ) && attack_data.angle < 45.0
                 {
@@ -1574,7 +1596,15 @@ impl<'a> AgentData<'a> {
         const DESIRED_COMBO_LEVEL: u32 = 8;
 
         let line_of_sight_with_target = || {
-            entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
         };
 
         // Logic to use abilities
@@ -1724,8 +1754,10 @@ impl<'a> AgentData<'a> {
             ) && entities_have_line_of_sight(
                 self.pos,
                 self.body,
+                self.scale,
                 tgt_data.pos,
                 tgt_data.body,
+                tgt_data.scale,
                 read_data,
             ) && attack_data.angle < 90.0
             {
@@ -1907,8 +1939,10 @@ impl<'a> AgentData<'a> {
                     && entities_have_line_of_sight(
                         self.pos,
                         self.body,
+                        self.scale,
                         tgt_data.pos,
                         tgt_data.body,
+                        tgt_data.scale,
                         read_data,
                     )
                 {
@@ -2130,8 +2164,10 @@ impl<'a> AgentData<'a> {
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 )
             {
@@ -2365,8 +2401,15 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        if entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
-            && attack_data.angle < 15.0
+        if entities_have_line_of_sight(
+            self.pos,
+            self.body,
+            self.scale,
+            tgt_data.pos,
+            tgt_data.body,
+            tgt_data.scale,
+            read_data,
+        ) && attack_data.angle < 15.0
         {
             controller.push_basic_input(InputKind::Primary);
         } else {
@@ -2383,8 +2426,15 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
     ) {
         controller.inputs.look_dir = self.ori.look_dir();
-        if entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
-            && attack_data.angle < 15.0
+        if entities_have_line_of_sight(
+            self.pos,
+            self.body,
+            self.scale,
+            tgt_data.pos,
+            tgt_data.body,
+            tgt_data.scale,
+            read_data,
+        ) && attack_data.angle < 15.0
         {
             controller.push_basic_input(InputKind::Primary);
         } else {
@@ -2406,8 +2456,15 @@ impl<'a> AgentData<'a> {
                 .try_normalized()
                 .unwrap_or_default(),
         );
-        if entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
-        {
+        if entities_have_line_of_sight(
+            self.pos,
+            self.body,
+            self.scale,
+            tgt_data.pos,
+            tgt_data.body,
+            tgt_data.scale,
+            read_data,
+        ) {
             controller.push_basic_input(InputKind::Primary);
         } else {
             agent.target = None;
@@ -2467,8 +2524,10 @@ impl<'a> AgentData<'a> {
             if entities_have_line_of_sight(
                 self.pos,
                 self.body,
+                self.scale,
                 tgt_data.pos,
                 tgt_data.body,
+                tgt_data.scale,
                 read_data,
             ) {
                 // If close to target, use either primary or secondary ability
@@ -2564,8 +2623,10 @@ impl<'a> AgentData<'a> {
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 )
                 && attack_data.angle < 15.0
@@ -2695,8 +2756,10 @@ impl<'a> AgentData<'a> {
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 )
                 && attack_data.angle < 15.0
@@ -2931,8 +2994,10 @@ impl<'a> AgentData<'a> {
                     && entities_have_line_of_sight(
                         self.pos,
                         self.body,
+                        self.scale,
                         tgt_data.pos,
                         tgt_data.body,
+                        tgt_data.scale,
                         read_data,
                     )
                 {
@@ -3186,7 +3251,15 @@ impl<'a> AgentData<'a> {
             .and_then(|e| read_data.velocities.get(e))
             .map_or(0.0, |v| v.0.cross(self.ori.look_vec()).magnitude_squared());
         let line_of_sight_with_target = || {
-            entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
         };
 
         if attack_data.dist_sqrd < golem_melee_range.powi(2) {
@@ -3263,7 +3336,15 @@ impl<'a> AgentData<'a> {
 
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         let line_of_sight_with_target = || {
-            entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
         };
 
         // Sets counter at start of combat, using `condition` to keep track of whether
@@ -3461,7 +3542,15 @@ impl<'a> AgentData<'a> {
 
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         let line_of_sight_with_target = || {
-            entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
         };
 
         if health_fraction < VINE_CREATION_THRESHOLD
@@ -3530,7 +3619,15 @@ impl<'a> AgentData<'a> {
         }
 
         let line_of_sight_with_target = || {
-            entities_have_line_of_sight(self.pos, self.body, tgt_data.pos, tgt_data.body, read_data)
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
         };
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // Sets counter at start of combat, using `condition` to keep track of whether
@@ -3671,8 +3768,10 @@ impl<'a> AgentData<'a> {
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 )
             {
@@ -3738,8 +3837,10 @@ impl<'a> AgentData<'a> {
             && entities_have_line_of_sight(
                 self.pos,
                 self.body,
+                self.scale,
                 tgt_data.pos,
                 tgt_data.body,
+                tgt_data.scale,
                 read_data,
             )
         {
@@ -3822,8 +3923,10 @@ impl<'a> AgentData<'a> {
                 if entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 ) && attack_data.angle < 45.0
                 {
@@ -3901,8 +4004,10 @@ impl<'a> AgentData<'a> {
         } else if entities_have_line_of_sight(
             self.pos,
             self.body,
+            self.scale,
             tgt_data.pos,
             tgt_data.body,
+            tgt_data.scale,
             read_data,
         ) {
             // if enemy in mid range shoot dagon bombs and steamwave
@@ -4016,8 +4121,10 @@ impl<'a> AgentData<'a> {
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
+                    self.scale,
                     tgt_data.pos,
                     tgt_data.body,
+                    tgt_data.scale,
                     read_data,
                 )
             {
@@ -4177,8 +4284,10 @@ impl<'a> AgentData<'a> {
             } else if entities_have_line_of_sight(
                 self.pos,
                 self.body,
+                self.scale,
                 tgt_data.pos,
                 tgt_data.body,
+                tgt_data.scale,
                 read_data,
             ) {
                 // Else if in sight, barrage
@@ -4241,8 +4350,10 @@ impl<'a> AgentData<'a> {
             && entities_have_line_of_sight(
                 self.pos,
                 self.body,
+                self.scale,
                 tgt_data.pos,
                 tgt_data.body,
+                tgt_data.scale,
                 read_data,
             )
             && agent.action_state.timers[DASH_TIMER] > 4.0
