@@ -340,8 +340,17 @@ impl Site {
                             .map(|tile| tile.kind = TileKind::Hazard(kind));
                     }
                 }
-                if let Some((dist, _, Path { width }, _)) = land.get_nearest_path(wpos) {
-                    if dist < 2.0 * width {
+                if let Some((_, path_wpos, Path { width }, _)) = land.get_nearest_path(wpos) {
+                    let tile_aabb = Aabr {
+                        min: self.tile_wpos(tile),
+                        max: self.tile_wpos(tile + 1) - 1,
+                    };
+
+                    if (tile_aabb
+                        .projected_point(path_wpos.as_())
+                        .distance_squared(path_wpos.as_()) as f32)
+                        < width.powi(2)
+                    {
                         self.tiles
                             .get_mut(tile)
                             .map(|tile| tile.kind = TileKind::Path);
