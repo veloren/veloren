@@ -827,7 +827,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "983a7010836ecd04dde2c6d27a0cb56ec5d21572177e782bdcb24a600124e921"
 dependencies = [
  "thiserror",
- "x11rb",
+ "x11rb 0.9.0",
 ]
 
 [[package]]
@@ -917,7 +917,7 @@ dependencies = [
 [[package]]
 name = "conrod_core"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#ca9fd429ca7db854e018acc6dcb2cd8abd9e070d"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#59fddc617696e68d28a75c2137a08c2572efb986"
 dependencies = [
  "conrod_derive",
  "copypasta",
@@ -932,7 +932,7 @@ dependencies = [
 [[package]]
 name = "conrod_derive"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#ca9fd429ca7db854e018acc6dcb2cd8abd9e070d"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#59fddc617696e68d28a75c2137a08c2572efb986"
 dependencies = [
  "proc-macro2 0.4.30",
  "quote 0.6.13",
@@ -942,7 +942,7 @@ dependencies = [
 [[package]]
 name = "conrod_winit"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#ca9fd429ca7db854e018acc6dcb2cd8abd9e070d"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#59fddc617696e68d28a75c2137a08c2572efb986"
 
 [[package]]
 name = "const-random"
@@ -989,9 +989,9 @@ checksum = "a2df960f5d869b2dd8532793fde43eb5427cceb126c929747a26823ab0eeb536"
 
 [[package]]
 name = "copypasta"
-version = "0.7.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4423d79fed83ebd9ab81ec21fa97144300a961782158287dc9bf7eddac37ff0b"
+checksum = "133fc8675ee3a4ec9aa513584deda9aa0faeda3586b87f7f0f2ba082c66fb172"
 dependencies = [
  "clipboard-win 3.1.1",
  "objc",
@@ -3140,7 +3140,7 @@ dependencies = [
  "wayland-client 0.29.5",
  "winapi 0.3.9",
  "winit",
- "xcb 1.2.0",
+ "xcb",
  "xkbcommon",
 ]
 
@@ -8188,11 +8188,11 @@ dependencies = [
 
 [[package]]
 name = "x11-clipboard"
-version = "0.5.3"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "473068b7b80ac86a18328824f1054e5e007898c47b5bbc281bd7abe32bc3653c"
+checksum = "980b9aa9226c3b7de8e2adb11bf20124327c054e0e5812d2aac0b5b5a87e7464"
 dependencies = [
- "xcb 0.10.1",
+ "x11rb 0.10.1",
 ]
 
 [[package]]
@@ -8219,23 +8219,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "x11rb"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "592b4883219f345e712b3209c62654ebda0bb50887f330cbd018d0f654bfd507"
+dependencies = [
+ "gethostname",
+ "nix 0.24.2",
+ "winapi 0.3.9",
+ "winapi-wsapoll",
+ "x11rb-protocol",
+]
+
+[[package]]
+name = "x11rb-protocol"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56b245751c0ac9db0e006dc812031482784e434630205a93c73cfefcaabeac67"
+dependencies = [
+ "nix 0.24.2",
+]
+
+[[package]]
 name = "xattr"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6d1526bbe5aaeb5eb06885f4d987bcdfa5e23187055de9b83fe00156a821fabc"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "xcb"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "771e2b996df720cd1c6dd9ff90f62d91698fd3610cc078388d0564bdd6622a9c"
-dependencies = [
- "libc",
- "log",
- "quick-xml",
 ]
 
 [[package]]
@@ -8281,7 +8292,7 @@ checksum = "acbee136714379ab22da0280207fdb7f47e0bb940adea97731b65598b8c7a92e"
 dependencies = [
  "libc",
  "memmap2 0.5.7",
- "xcb 1.2.0",
+ "xcb",
 ]
 
 [[package]]
