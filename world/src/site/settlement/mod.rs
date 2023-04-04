@@ -1349,7 +1349,7 @@ impl Land {
         dest: Vec2<i32>,
         mut path_cost_fn: impl FnMut(Option<&Tile>, Option<&Tile>) -> f32,
     ) -> Option<Path<Vec2<i32>>> {
-        let heuristic = |pos: &Vec2<i32>| (pos - dest).map(|e| e as f32).magnitude();
+        let heuristic = |pos: &Vec2<i32>, _: &Vec2<i32>| (pos - dest).map(|e| e as f32).magnitude();
         let neighbors = |pos: &Vec2<i32>| {
             let pos = *pos;
             CARDINALS.iter().map(move |dir| pos + *dir)
@@ -1362,14 +1362,9 @@ impl Land {
         // (1) we don't care about DDOS attacks (ruling out SipHash);
         // (2) we don't care about determinism across computers (we could use AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
-        Astar::new(
-            250,
-            origin,
-            heuristic,
-            BuildHasherDefault::<FxHasher64>::default(),
-        )
-        .poll(250, heuristic, neighbors, transition, satisfied)
-        .into_path()
+        Astar::new(250, origin, BuildHasherDefault::<FxHasher64>::default())
+            .poll(250, heuristic, neighbors, transition, satisfied)
+            .into_path()
     }
 
     /// We use this hasher (FxHasher64) because

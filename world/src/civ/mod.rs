@@ -659,7 +659,7 @@ impl Civs {
 
     /// Find the cheapest route between two places
     fn route_between(&self, a: Id<Site>, b: Id<Site>) -> Option<(Path<Id<Site>>, f32)> {
-        let heuristic = move |p: &Id<Site>| {
+        let heuristic = move |p: &Id<Site>, _: &Id<Site>| {
             (self
                 .sites
                 .get(*p)
@@ -676,12 +676,7 @@ impl Civs {
         // (1) we don't care about DDOS attacks (ruling out SipHash);
         // (2) we care about determinism across computers (ruling out AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
-        let mut astar = Astar::new(
-            100,
-            a,
-            heuristic,
-            BuildHasherDefault::<FxHasher64>::default(),
-        );
+        let mut astar = Astar::new(100, a, BuildHasherDefault::<FxHasher64>::default());
         astar
             .poll(100, heuristic, neighbors, transition, satisfied)
             .into_path()
@@ -1306,7 +1301,7 @@ fn find_path(
 ) -> Option<(Path<Vec2<i32>>, f32)> {
     const MAX_PATH_ITERS: usize = 100_000;
     let sim = &ctx.sim;
-    let heuristic = move |l: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
+    let heuristic = move |l: &Vec2<i32>, _: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
     let get_bridge = &get_bridge;
     let neighbors = |l: &Vec2<i32>| {
         let l = *l;
@@ -1327,7 +1322,6 @@ fn find_path(
     let mut astar = Astar::new(
         MAX_PATH_ITERS,
         a,
-        heuristic,
         BuildHasherDefault::<FxHasher64>::default(),
     );
     astar

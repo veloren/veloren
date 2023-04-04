@@ -87,7 +87,7 @@ impl<S: Clone + Eq + Hash + fmt::Debug, H: BuildHasher> fmt::Debug for Astar<S, 
 }
 
 impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
-    pub fn new(max_iters: usize, start: S, heuristic: impl FnOnce(&S) -> f32, hasher: H) -> Self {
+    pub fn new(max_iters: usize, start: S, hasher: H) -> Self {
         Self {
             max_iters,
             iter: 0,
@@ -104,7 +104,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
             },
             final_scores: {
                 let mut h = HashMap::with_capacity_and_hasher(1, hasher.clone());
-                h.extend(core::iter::once((start.clone(), heuristic(&start))));
+                h.extend(core::iter::once((start.clone(), 0.0)));
                 h
             },
             visited: {
@@ -120,7 +120,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
     pub fn poll<I>(
         &mut self,
         iters: usize,
-        mut heuristic: impl FnMut(&S) -> f32,
+        mut heuristic: impl FnMut(&S, &S) -> f32,
         mut neighbors: impl FnMut(&S) -> I,
         mut transition: impl FnMut(&S, &S) -> f32,
         mut satisfied: impl FnMut(&S) -> bool,
@@ -143,7 +143,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                         if cost < *neighbor_cheapest {
                             self.came_from.insert(neighbor.clone(), node.clone());
                             self.cheapest_scores.insert(neighbor.clone(), cost);
-                            let h = heuristic(&neighbor);
+                            let h = heuristic(&neighbor, &node);
                             let neighbor_cost = cost + h;
                             self.final_scores.insert(neighbor.clone(), neighbor_cost);
 

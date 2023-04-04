@@ -146,7 +146,8 @@ impl Site {
     ) -> Option<Id<Plot>> {
         const MAX_ITERS: usize = 4096;
         let range = -(w as i32) / 2..w as i32 - (w as i32 + 1) / 2;
-        let heuristic = |tile: &Vec2<i32>| {
+        let heuristic = |(tile, dir): &(Vec2<i32>, Vec2<i32>),
+                         (_, old_dir): &(Vec2<i32>, Vec2<i32>)| {
             let mut max_cost = (tile.distance_squared(b) as f32).sqrt();
             for y in range.clone() {
                 for x in range.clone() {
@@ -157,35 +158,35 @@ impl Site {
                     }
                 }
             }
-            max_cost
+            max_cost + (dir != old_dir) as i32 as f32 * 35.0
         };
-        let path = Astar::new(MAX_ITERS, a, heuristic, DefaultHashBuilder::default())
+        let path = Astar::new(MAX_ITERS, (a, Vec2::zero()), DefaultHashBuilder::default())
             .poll(
                 MAX_ITERS,
                 &heuristic,
-                |tile| {
+                |(tile, _)| {
                     let tile = *tile;
-                    CARDINALS.iter().map(move |dir| tile + *dir)
+                    CARDINALS.iter().map(move |dir| (tile + *dir, *dir))
                 },
-                |a, b| {
+                |(a, _), (b, _)| {
                     let alt_a = land.get_alt_approx(self.tile_center_wpos(*a));
                     let alt_b = land.get_alt_approx(self.tile_center_wpos(*b));
                     (alt_a - alt_b).abs() / TILE_SIZE as f32
                 },
-                |tile| *tile == b,
+                |(tile, _)| *tile == b,
             )
             .into_path()?;
 
         let plot = self.create_plot(Plot {
-            kind: PlotKind::Road(path.clone()),
+            kind: PlotKind::Road(path.iter().map(|(tile, _)| *tile).collect()),
             root_tile: a,
-            tiles: path.clone().into_iter().collect(),
+            tiles: path.iter().map(|(tile, _)| *tile).collect(),
             seed: rng.gen(),
         });
 
         self.roads.push(plot);
 
-        for (i, &tile) in path.iter().enumerate() {
+        for (i, (tile, _)) in path.iter().enumerate() {
             for y in range.clone() {
                 for x in range.clone() {
                     let tile = tile + Vec2::new(x, y);

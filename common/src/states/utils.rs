@@ -929,13 +929,13 @@ pub fn handle_manipulate_loadout(
                     let iters =
                         (3.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
                     // Heuristic compares manhattan distance of start and end pos
-                    let heuristic =
-                        move |pos: &Vec3<i32>| (sprite_pos - pos).map(|x| x.abs()).sum() as f32;
+                    let heuristic = move |pos: &Vec3<i32>, _: &Vec3<i32>| {
+                        (sprite_pos - pos).map(|x| x.abs()).sum() as f32
+                    };
 
                     let mut astar = Astar::new(
                         iters,
                         data.pos.0.map(|x| x.floor() as i32),
-                        heuristic,
                         BuildHasherDefault::<FxHasher64>::default(),
                     );
 
