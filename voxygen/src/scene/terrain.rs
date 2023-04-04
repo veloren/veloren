@@ -571,7 +571,8 @@ impl SpriteRenderContext {
                                     // Mesh generation exclusively acts using side effects; it
                                     // has no interesting return value, but updates the mesh.
                                     generate_mesh_base_vol_sprite(
-                                        Segment::from(&model.read().0).scaled_by(lod_scale),
+                                        Segment::from_vox_model_index(&model.read().0, 0)
+                                            .scaled_by(lod_scale),
                                         (greedy, sprite_mesh, false),
                                         offset.map(|e: f32| e.floor()) * lod_scale,
                                     );

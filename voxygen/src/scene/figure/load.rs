@@ -38,7 +38,10 @@ const DEFAULT_INDEX: u32 = 0;
 
 fn load_segment(mesh_name: &str) -> Segment {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
-    Segment::from(&DotVoxAsset::load_expect(&full_specifier).read().0)
+    Segment::from_vox_model_index(
+        &DotVoxAsset::load_expect(&full_specifier).read().0,
+        DEFAULT_INDEX as usize,
+    )
 }
 fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVoxAsset> {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
@@ -54,13 +57,13 @@ fn graceful_load_vox_fullspec(full_specifier: &str) -> AssetHandle<DotVoxAsset> 
     }
 }
 fn graceful_load_segment(mesh_name: &str, model_index: u32) -> Segment {
-    Segment::from((&graceful_load_vox(mesh_name).read().0, model_index as usize))
+    Segment::from_vox_model_index(&graceful_load_vox(mesh_name).read().0, model_index as usize)
 }
 fn graceful_load_segment_fullspec(full_specifier: &str, model_index: u32) -> Segment {
-    Segment::from((
+    Segment::from_vox_model_index(
         &graceful_load_vox_fullspec(full_specifier).read().0,
         model_index as usize,
-    ))
+    )
 }
 fn graceful_load_segment_flipped(mesh_name: &str, flipped: bool, model_index: u32) -> Segment {
     Segment::from_vox(
@@ -70,7 +73,7 @@ fn graceful_load_segment_flipped(mesh_name: &str, flipped: bool, model_index: u3
     )
 }
 fn graceful_load_mat_segment(mesh_name: &str, model_index: u32) -> MatSegment {
-    MatSegment::from((&graceful_load_vox(mesh_name).read().0, model_index as usize))
+    MatSegment::from_vox_model_index(&graceful_load_vox(mesh_name).read().0, model_index as usize)
 }
 fn graceful_load_mat_segment_flipped(mesh_name: &str, model_index: u32) -> MatSegment {
     MatSegment::from_vox(
@@ -5153,15 +5156,16 @@ impl ItemDropCentralSpec {
         } {
             let full_spec: String = ["voxygen.", spec.as_str()].concat();
             let segment = match item_drop {
-                item_drop::Body::Armor(_) => {
-                    MatSegment::from(&graceful_load_vox_fullspec(&full_spec).read().0)
-                        .map(|mat_cell| match mat_cell {
-                            MatCell::None => None,
-                            MatCell::Mat(_) => Some(MatCell::None),
-                            MatCell::Normal(data) => data.is_hollow().then_some(MatCell::None),
-                        })
-                        .to_segment(|_| Default::default())
-                },
+                item_drop::Body::Armor(_) => MatSegment::from_vox_model_index(
+                    &graceful_load_vox_fullspec(&full_spec).read().0,
+                    0,
+                )
+                .map(|mat_cell| match mat_cell {
+                    MatCell::None => None,
+                    MatCell::Mat(_) => Some(MatCell::None),
+                    MatCell::Normal(data) => data.is_hollow().then_some(MatCell::None),
+                })
+                .to_segment(|_| Default::default()),
                 _ => graceful_load_segment_fullspec(&full_spec, DEFAULT_INDEX),
             };
             let offset = segment_center(&segment).unwrap_or_default();
@@ -5234,7 +5238,7 @@ fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec
     };
     let bone = f(spec);
     let central = graceful_load_segment_fullspec(
-        &["common.voxel.", &bone.central.0].concat(),
+        &format!("common.voxel.{}", &bone.central.0),
         bone.model_index,
     );
 

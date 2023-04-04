@@ -20,14 +20,6 @@ use vek::*;
 /// Figures are used to represent things like characters, NPCs, mobs, etc.
 pub type Segment = Dyna<Cell, ()>;
 
-impl From<&DotVoxData> for Segment {
-    fn from(dot_vox_data: &DotVoxData) -> Self { Segment::from_vox(dot_vox_data, false, 0) }
-}
-
-impl From<(&DotVoxData, usize)> for Segment {
-    fn from(spec: (&DotVoxData, usize)) -> Self { Segment::from_vox(spec.0, false, spec.1) }
-}
-
 impl Segment {
     /// Take a list of voxel data, offsets, and x-mirror flags, and assembled
     /// them into a combined segment
@@ -37,6 +29,10 @@ impl Segment {
             union = union.add(Segment::from_vox(datum, *xmirror, 0), *offset);
         }
         union.unify()
+    }
+
+    pub fn from_vox_model_index(dot_vox_data: &DotVoxData, model_index: usize) -> Self {
+        Self::from_vox(dot_vox_data, false, model_index)
     }
 
     pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool, model_index: usize) -> Self {
@@ -206,6 +202,10 @@ impl MatSegment {
         })
     }
 
+    pub fn from_vox_model_index(dot_vox_data: &DotVoxData, model_index: usize) -> Self {
+        Self::from_vox(dot_vox_data, false, model_index)
+    }
+
     pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool, model_index: usize) -> Self {
         if let Some(model) = dot_vox_data.models.get(model_index) {
             let palette = dot_vox_data
@@ -265,12 +265,4 @@ impl MatSegment {
             Dyna::filled(Vec3::zero(), MatCell::empty(), ())
         }
     }
-}
-
-impl From<&DotVoxData> for MatSegment {
-    fn from(dot_vox_data: &DotVoxData) -> Self { Self::from_vox(dot_vox_data, false, 0) }
-}
-
-impl From<(&DotVoxData, usize)> for MatSegment {
-    fn from(spec: (&DotVoxData, usize)) -> Self { Self::from_vox(spec.0, false, spec.1) }
 }
