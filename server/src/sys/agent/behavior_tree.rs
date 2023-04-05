@@ -464,6 +464,8 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
                     false,
                     owner_pos,
                 ));
+                // Always become aware of our owner no matter what
+                bdata.agent.awareness.set_maximally_aware();
             }
         }
     }

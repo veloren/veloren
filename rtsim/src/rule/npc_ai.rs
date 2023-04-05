@@ -560,6 +560,18 @@ fn find_forest(ctx: &mut NpcCtx) -> Option<Vec2<f32>> {
         .map(|chunk| TerrainChunkSize::center_wpos(chunk).as_())
 }
 
+fn choose_plaza(ctx: &mut NpcCtx, site: SiteId) -> Option<Vec2<f32>> {
+    ctx.state
+        .data()
+        .sites
+        .get(site)
+        .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
+        .and_then(|site2| {
+            let plaza = &site2.plots[site2.plazas().choose(&mut ctx.rng)?];
+            Some(site2.tile_center_wpos(plaza.root_tile()).as_())
+        })
+}
+
 fn villager(visiting_site: SiteId) -> impl Action {
     choose(move |ctx| {
         /*
@@ -645,6 +657,29 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .map(|_| ()),
                 );
             }
+        } else if matches!(ctx.npc.profession, Some(Profession::Guard)) && ctx.rng.gen_bool(0.5) {
+            if let Some(plaza_wpos) = choose_plaza(ctx, visiting_site) {
+                return important(
+                    travel_to_point(plaza_wpos, 0.45)
+                        .debug(|| "patrol")
+                        .interrupt_with(|ctx| {
+                            if ctx.rng.gen_bool(0.0003) {
+                                let phrase = *[
+                                    "My brother's out fighting ogres. What do I get? Guard duty...",
+                                    "Just one more patrol, then I can head home",
+                                    "No bandits are going to get past me",
+                                ]
+                                .iter()
+                                .choose(&mut ctx.rng)
+                                .unwrap(); // Can't fail
+                                Some(just(move |ctx| ctx.controller.say(None, phrase)))
+                            } else {
+                                None
+                            }
+                        })
+                        .map(|_| ()),
+                );
+            }
         } else if matches!(ctx.npc.profession, Some(Profession::Merchant)) && ctx.rng.gen_bool(0.8)
         {
             return casual(
@@ -688,17 +723,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
         // If nothing else needs doing, walk between plazas and socialize
         casual(now(move |ctx| {
             // Choose a plaza in the site we're visiting to walk to
-            if let Some(plaza_wpos) = ctx
-                .state
-                .data()
-                .sites
-                .get(visiting_site)
-                .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
-                .and_then(|site2| {
-                    let plaza = &site2.plots[site2.plazas().choose(&mut ctx.rng)?];
-                    Some(site2.tile_center_wpos(plaza.root_tile()).as_())
-                })
-            {
+            if let Some(plaza_wpos) = choose_plaza(ctx, visiting_site) {
                 // Walk to the plaza...
                 Either::Left(travel_to_point(plaza_wpos, 0.5)
                     .debug(|| "walk to plaza"))

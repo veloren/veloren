@@ -134,6 +134,36 @@ pub trait Action<R = ()>: Any + Send + Sync {
         StopIf(self, f.clone(), f)
     }
 
+    /// Pause an action to possibly perform another action.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// // Keep going on adventures until your 111th birthday
+    /// walk_to_the_shops()
+    ///     .interrupt_with(|ctx| if ctx.npc.is_hungry() {
+    ///         Some(eat_food())
+    ///     } else {
+    ///         None
+    ///     })
+    /// ```
+    #[must_use]
+    fn interrupt_with<A1: Action<R1>, R1, F: FnMut(&mut NpcCtx) -> Option<A1> + Clone>(
+        self,
+        f: F,
+    ) -> InterruptWith<Self, F, A1, R1>
+    where
+        Self: Sized,
+    {
+        InterruptWith {
+            a0: self,
+            f: f.clone(),
+            f2: f,
+            a1: None,
+            phantom: PhantomData,
+        }
+    }
+
     /// Map the completion value of this action to something else.
     #[must_use]
     fn map<F: FnMut(R) -> R1, R1>(self, f: F) -> Map<Self, F, R>
@@ -603,6 +633,62 @@ impl<A0: Action<R0>, A1: Action<R1>, R0: Send + Sync + 'static, R1: Send + Sync 
             }
         }
         self.a1.tick(ctx)
+    }
+}
+
+// InterruptWith
+
+/// See [`Action::then`].
+#[derive(Copy, Clone)]
+pub struct InterruptWith<A0, F, A1, R1> {
+    a0: A0,
+    f: F,
+    f2: F,
+    a1: Option<A1>,
+    phantom: PhantomData<R1>,
+}
+
+impl<
+    A0: Action<R0>,
+    A1: Action<R1>,
+    F: FnMut(&mut NpcCtx) -> Option<A1> + Clone + Send + Sync + 'static,
+    R0: Send + Sync + 'static,
+    R1: Send + Sync + 'static,
+> Action<R0> for InterruptWith<A0, F, A1, R1>
+{
+    fn is_same(&self, other: &Self) -> bool { self.a0.is_same(&other.a0) }
+
+    fn dyn_is_same(&self, other: &dyn Action<R0>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        if let Some(a1) = &self.a1 {
+            // TODO: Find a way to represent interrupts in backtraces
+            bt.push("<interrupted>".to_string());
+            a1.backtrace(bt);
+        } else {
+            self.a0.backtrace(bt);
+        }
+    }
+
+    fn reset(&mut self) {
+        self.a0.reset();
+        self.f = self.f2.clone();
+        self.a1 = None;
+    }
+
+    fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R0> {
+        if let Some(new_a1) = (self.f)(ctx) {
+            self.a1 = Some(new_a1);
+        }
+
+        if let Some(a1) = &mut self.a1 {
+            match a1.tick(ctx) {
+                ControlFlow::Continue(()) => return ControlFlow::Continue(()),
+                ControlFlow::Break(_) => self.a1 = None,
+            }
+        }
+
+        self.a0.tick(ctx)
     }
 }
 
