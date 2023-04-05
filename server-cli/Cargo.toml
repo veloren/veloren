@@ -37,7 +37,7 @@ world = { package = "veloren-world", path = "../world", optional = true }
 
 tokio = { version = "1.14", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
-ansi-parser = "0.8"
+cansi = "2.2.1"
 clap = { version = "3.1.8", features = ["derive"] }
 crossterm = "0.25"
 lazy_static = "1"

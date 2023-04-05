@@ -21,81 +21,70 @@ impl<'a> TuiLog<'a> {
 
 impl<'a> Write for TuiLog<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        use ansi_parser::{AnsiParser, AnsiSequence, Output};
+        // TODO: this processing can probably occur in the consumer of the log lines
+        // (and instead of having a TuiLog::resize the consumer can take
+        // ownership of the lines and manage them itself).
+
+        // Not super confident this is the ideal parser but it works for now and doesn't
+        // depend on an old version of nom. Alternatives to consider may include
+        // `vte`, `anstyle-parse`, `vt100`, or others.
+        use cansi::v3::categorise_text;
         use tui::{
             style::{Color, Modifier},
             text::{Span, Spans},
         };
 
-        let line = String::from_utf8(buf.into())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let line =
+            core::str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let mut spans = Vec::new();
-        let mut span = Span::raw("");
         let mut lines = Vec::new();
 
-        for out in line.ansi_parse() {
-            match out {
-                Output::TextBlock(text) => {
-                    // search for newlines
-                    for t in text.split_inclusive('\n') {
-                        span.content.to_mut().push_str(t);
-                        if t.ends_with('\n') && span.content.len() != 0 {
-                            spans.push(std::mem::replace(&mut span, Span::raw("")));
-                            lines.push(std::mem::take(&mut spans));
-                        }
-                    }
+        for out in categorise_text(line) {
+            let mut style = tui::style::Style::default();
+            // NOTE: There are other values returned from cansi that we don't bother to use
+            // for now including background color, italics, blinking, etc.
+            style.fg = match out.fg {
+                Some(cansi::Color::Black) => Some(Color::Black),
+                Some(cansi::Color::Red) => Some(Color::Red),
+                Some(cansi::Color::Green) => Some(Color::Green),
+                Some(cansi::Color::Yellow) => Some(Color::Yellow),
+                Some(cansi::Color::Blue) => Some(Color::Blue),
+                Some(cansi::Color::Magenta) => Some(Color::Magenta),
+                Some(cansi::Color::Cyan) => Some(Color::Cyan),
+                Some(cansi::Color::White) => Some(Color::White),
+                // "Bright" versions currently not handled
+                Some(c) => {
+                    warn!("Unknown color {:#?}", c);
+                    style.fg
                 },
-                Output::Escape(seq) => {
-                    if span.content.len() != 0 {
-                        spans.push(span);
+                None => style.fg,
+            };
+            match out.intensity {
+                Some(cansi::Intensity::Normal) | None => {},
+                Some(cansi::Intensity::Bold) => style.add_modifier = Modifier::BOLD,
+                Some(cansi::Intensity::Faint) => style.add_modifier = Modifier::DIM,
+            }
 
-                        span = Span::raw("");
-                    }
-
-                    match seq {
-                        AnsiSequence::SetGraphicsMode(values) => {
-                            const COLOR_TABLE: [Color; 8] = [
-                                Color::Black,
-                                Color::Red,
-                                Color::Green,
-                                Color::Yellow,
-                                Color::Blue,
-                                Color::Magenta,
-                                Color::Cyan,
-                                Color::White,
-                            ];
-
-                            let mut iter = values.iter();
-
-                            match iter.next().unwrap() {
-                                0 => {},
-                                1 => span.style.add_modifier = Modifier::BOLD,
-                                2 => span.style.add_modifier = Modifier::DIM,
-                                idx @ 30..=37 => {
-                                    span.style.fg = Some(COLOR_TABLE[(idx - 30) as usize])
-                                },
-                                _ => warn!("Unknown color {:#?}", values),
-                            }
-                        },
-                        _ => warn!("Unknown sequence {:#?}", seq),
-                    }
-                },
+            // search for newlines
+            for t in out.text.split_inclusive('\n') {
+                if !t.is_empty() {
+                    spans.push(Span::styled(t.to_owned(), style));
+                }
+                if t.ends_with('\n') {
+                    lines.push(Spans(core::mem::take(&mut spans)));
+                }
             }
         }
-
-        if span.content.len() != 0 {
-            spans.push(span);
-        }
         if !spans.is_empty() {
-            lines.push(spans);
+            lines.push(Spans(spans));
         }
 
-        let mut lines = lines.into_iter().map(Spans).collect::<Vec<_>>();
         self.inner.lock().unwrap().lines.append(&mut lines);
 
         Ok(buf.len())
     }
 
+    // We can potentially use this to reduce locking frequency?
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
