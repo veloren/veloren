@@ -1,5 +1,5 @@
 SpinMelee(
-    buildup_duration: 1.05,
+    buildup_duration: 0.9,
     swing_duration: 0.3,
     recover_duration: 0.6,
     melee_constructor: (
