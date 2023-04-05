@@ -1,7 +1,8 @@
+pub mod migrate;
 pub mod npc_ai;
 pub mod replenish_resources;
-pub mod setup;
 pub mod simulate_npcs;
+pub mod sync_npcs;
 
 use super::RtState;
 use std::fmt;

@@ -477,18 +477,18 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
             NpcAction::Greet(actor) => {
                 if bdata.agent.allowed_to_speak()
                     && let Some(target) = bdata.read_data.lookup_actor(actor)
-                    && let Some(target_pos) = bdata.read_data.positions.get(target)
                 {
                     bdata.agent.target = Some(Target::new(
                         target,
                         false,
                         bdata.read_data.time.0,
                         false,
-                        Some(target_pos.0),
+                        bdata.read_data.positions.get(target).map(|p| p.0),
                     ));
                     // We're always aware of someone we're talking to
                     bdata.agent.awareness.set_maximally_aware();
 
+                    bdata.controller.push_action(ControlAction::Stand);
                     bdata.controller.push_action(ControlAction::Talk);
                     bdata.controller.push_utterance(UtteranceKind::Greeting);
                     bdata
@@ -499,20 +499,15 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                         .agent
                         .timer
                         .start(bdata.read_data.time.0, TimerAction::Interact);
-                    true
-                } else {
-                    false
                 }
             },
             NpcAction::Say(msg) => {
                 bdata.controller.push_utterance(UtteranceKind::Greeting);
                 bdata.agent_data.chat_npc(msg, bdata.event_emitter);
-                false
             },
         }
-    } else {
-        false
     }
+    false
 }
 
 /// Handle timed events, like looking at the player we are talking to

@@ -224,30 +224,23 @@ impl<'a> System<'a> for Sys {
             data.time_of_day = *time_of_day;
 
             // Update character map (i.e: so that rtsim knows where players are)
-            // TODO: Other entities too? Or do we now care about that?
+            // TODO: Other entities too like animals? Or do we now care about that?
             data.npcs.character_map.clear();
-            for (character, wpos) in
-                (&presences, &positions)
-                    .join()
-                    .filter_map(|(presence, pos)| {
-                        if let PresenceKind::Character(character) = &presence.kind {
-                            Some((character, pos.0))
-                        } else {
-                            None
-                        }
-                    })
-            {
-                let chunk_pos = wpos
-                    .xy()
-                    .as_::<i32>()
-                    .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
-                        e.div_euclid(sz)
-                    });
-                data.npcs
-                    .character_map
-                    .entry(chunk_pos)
-                    .or_default()
-                    .push((*character, wpos));
+            for (presence, wpos) in (&presences, &positions).join() {
+                if let PresenceKind::Character(character) = &presence.kind {
+                    let chunk_pos = wpos
+                        .0
+                        .xy()
+                        .as_::<i32>()
+                        .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
+                            e.div_euclid(sz)
+                        });
+                    data.npcs
+                        .character_map
+                        .entry(chunk_pos)
+                        .or_default()
+                        .push((*character, wpos.0));
+                }
             }
         }
 

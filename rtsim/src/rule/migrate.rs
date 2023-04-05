@@ -4,9 +4,9 @@ use tracing::warn;
 /// This rule runs at rtsim startup and broadly acts to perform some primitive
 /// migration/sanitisation in order to ensure that the state of rtsim is mostly
 /// sensible.
-pub struct Setup;
+pub struct Migrate;
 
-impl Rule for Setup {
+impl Rule for Migrate {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind::<Self, OnSetup>(|ctx| {
             let data = &mut *ctx.state.data_mut();

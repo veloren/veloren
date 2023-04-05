@@ -20,7 +20,7 @@ use common::{
     vol::RectVolSize,
 };
 use fxhash::FxHasher64;
-use itertools::Itertools;
+use itertools::{Either, Itertools};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -325,7 +325,7 @@ where
             }
 
             if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
-                Some(itertools::Either::Left(
+                Some(Either::Left(
                     seq(path.into_iter().map(|wpos| goto_2d(wpos, 1.0, 8.0))).then(goto_2d(
                         site_exit,
                         speed_factor,
@@ -333,14 +333,10 @@ where
                     )),
                 ))
             } else {
-                Some(itertools::Either::Right(goto_2d(
-                    site_exit,
-                    speed_factor,
-                    8.0,
-                )))
+                Some(Either::Right(goto_2d(site_exit, speed_factor, 8.0)))
             }
         } else {
-            Some(itertools::Either::Right(goto_2d(wpos, speed_factor, 8.0)))
+            Some(Either::Right(goto_2d(wpos, speed_factor, 8.0)))
         }
     })
 }
@@ -410,9 +406,9 @@ fn travel_to_site(tgt_site: SiteId, speed_factor: f32) -> impl Action {
             //         let track_len = ctx.world.civs().tracks.get(track_id).path().len();
             //         // Tracks can be traversed backward (i.e: from end to beginning). Account for this.
             //         seq(if reversed {
-            //             itertools::Either::Left((0..track_len).rev())
+            //             Either::Left((0..track_len).rev())
             //         } else {
-            //             itertools::Either::Right(0..track_len)
+            //             Either::Right(0..track_len)
             //         }
             //             .enumerate()
             //             .map(move |(i, node_idx)| now(move |ctx| {
@@ -456,7 +452,7 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
 fn socialize() -> impl Action {
     now(|ctx| {
         // TODO: Bit odd, should wait for a while after greeting
-        if ctx.rng.gen_bool(0.0003) && let Some(other) = ctx
+        if ctx.rng.gen_bool(0.004) && let Some(other) = ctx
             .state
             .data()
             .npcs
@@ -680,20 +676,18 @@ fn villager(visiting_site: SiteId) -> impl Action {
                 })
             {
                 // Walk to the plaza...
-                travel_to_point(plaza_wpos, 0.5)
-                    .debug(|| "walk to plaza")
-                    // ...then wait for some time before moving on
-                    .then({
-                        let wait_time = ctx.rng.gen_range(30.0..90.0);
-                        socialize().repeat().stop_if(timeout(wait_time))
-                            .debug(|| "wait at plaza")
-                    })
-                    .map(|_| ())
-                    .boxed()
+                Either::Left(travel_to_point(plaza_wpos, 0.5)
+                    .debug(|| "walk to plaza"))
             } else {
                 // No plazas? :(
-                finish().boxed()
+                Either::Right(finish())
             }
+                // ...then socialize for some time before moving on
+                .then(socialize()
+                    .repeat()
+                    .stop_if(timeout(ctx.rng.gen_range(30.0..90.0)))
+                    .debug(|| "wait at plaza"))
+                .map(|_| ())
         }))
     })
     .debug(move || format!("villager at site {:?}", visiting_site))
