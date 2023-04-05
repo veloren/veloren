@@ -1,8 +1,8 @@
 BasicMelee(
     energy_cost: 0,
-    buildup_duration: 2.4,
+    buildup_duration: 1.6,
     swing_duration: 0.1,
-    recover_duration: 1.5,
+    recover_duration: 1.0,
     melee_constructor: (
         kind: Bash(
             damage: 30.0,
