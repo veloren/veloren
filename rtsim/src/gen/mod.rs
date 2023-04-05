@@ -1,4 +1,5 @@
 pub mod faction;
+pub mod name;
 pub mod site;
 
 use crate::data::{

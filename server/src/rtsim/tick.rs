@@ -130,7 +130,7 @@ fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent:
 fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo {
     let pos = comp::Pos(npc.wpos);
 
-    let mut rng = npc.rng(3);
+    let mut rng = npc.rng(Npc::PERM_ENTITY_CONFIG);
     if let Some(ref profession) = npc.profession {
         let economy = npc.home.and_then(|home| {
             let site = sites.get(home)?.world_site?;
@@ -150,6 +150,7 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
             })
             .with_economy(economy.as_ref())
             .with_lazy_loadout(profession_extra_loadout(npc.profession.as_ref()))
+            .with_alias(npc.get_name())
             .with_agent_mark(profession_agent_mark(npc.profession.as_ref()))
     } else {
         let config_asset = match npc.body {

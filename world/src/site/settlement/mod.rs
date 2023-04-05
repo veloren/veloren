@@ -973,7 +973,7 @@ fn barnyard(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
             quadruped_small::Body::random_with(dynamic_rng, &species),
         ))
         .with_alignment(comp::Alignment::Tame)
-        .with_automatic_name()
+        .with_automatic_name(None)
 }
 
 fn bird(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
@@ -990,7 +990,7 @@ fn bird(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
             &species,
         )))
         .with_alignment(comp::Alignment::Tame)
-        .with_automatic_name()
+        .with_automatic_name(None)
 }
 
 fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rng) -> EntityInfo {

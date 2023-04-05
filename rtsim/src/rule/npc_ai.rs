@@ -464,7 +464,7 @@ fn socialize() -> impl Action {
             .state
             .data()
             .npcs
-            .nearby(Some(ctx.npc_id), ctx.npc.wpos.xy(), 8.0)
+            .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
             .choose(&mut ctx.rng)
         {
             just(move |ctx| ctx.controller.say(other, "npc-speech-villager_open")).boxed()
@@ -654,7 +654,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .state
                         .data()
                         .npcs
-                        .nearby(Some(ctx.npc_id), ctx.npc.wpos.xy(), 8.0)
+                        .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
                         .choose(&mut ctx.rng)
                     {
                         (Some(other), &[

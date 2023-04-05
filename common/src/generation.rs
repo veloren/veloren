@@ -256,7 +256,7 @@ impl EntityInfo {
                 self = self.with_name(name);
             },
             NameKind::Automatic => {
-                self = self.with_automatic_name();
+                self = self.with_automatic_name(None);
             },
             NameKind::Uninit => {},
         }
@@ -408,7 +408,7 @@ impl EntityInfo {
     }
 
     #[must_use]
-    pub fn with_automatic_name(mut self) -> Self {
+    pub fn with_automatic_name(mut self, alias: Option<String>) -> Self {
         let npc_names = NPC_NAMES.read();
         let name = match &self.body {
             Body::Humanoid(body) => Some(get_npc_name(&npc_names.humanoid, body.species)),
@@ -430,7 +430,23 @@ impl EntityInfo {
             Body::Arthropod(body) => Some(get_npc_name(&npc_names.arthropod, body.species)),
             _ => None,
         };
-        self.name = name.map(str::to_owned);
+        self.name = name.map(|name| {
+            if let Some(alias) = alias {
+                format!("{alias} ({name})")
+            } else {
+                name.to_string()
+            }
+        });
+        self
+    }
+
+    #[must_use]
+    pub fn with_alias(mut self, alias: String) -> Self {
+        self.name = Some(if let Some(name) = self.name {
+            format!("{alias} ({name})")
+        } else {
+            alias
+        });
         self
     }
 

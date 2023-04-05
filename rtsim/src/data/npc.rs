@@ -1,11 +1,10 @@
-use crate::ai::Action;
+use crate::{ai::Action, gen::name};
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     comp,
     grid::Grid,
     rtsim::{
-        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, NpcMsg, Personality, SiteId,
-        VehicleId,
+        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, Personality, SiteId, VehicleId,
     },
     store::Id,
     terrain::TerrainChunkSize,
@@ -136,6 +135,9 @@ impl Clone for Npc {
 }
 
 impl Npc {
+    pub const PERM_ENTITY_CONFIG: u32 = 1;
+    const PERM_NAME: u32 = 0;
+
     pub fn new(seed: u32, wpos: Vec3<f32>, body: comp::Body) -> Self {
         Self {
             seed,
@@ -191,6 +193,8 @@ impl Npc {
     }
 
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed.wrapping_add(perm)) }
+
+    pub fn get_name(&self) -> String { name::generate(&mut self.rng(Self::PERM_NAME)) }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -297,10 +301,11 @@ impl Npcs {
     pub fn nearby(
         &self,
         this_npc: Option<NpcId>,
-        wpos: Vec2<f32>,
+        wpos: Vec3<f32>,
         radius: f32,
     ) -> impl Iterator<Item = Actor> + '_ {
         let chunk_pos = wpos
+            .xy()
             .as_::<i32>()
             .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
                 e.div_euclid(sz)
@@ -316,7 +321,7 @@ impl Npcs {
                         .filter(move |npc| {
                             self.npcs
                                 .get(*npc)
-                                .map_or(false, |npc| npc.wpos.xy().distance_squared(wpos) < r_sqr)
+                                .map_or(false, |npc| npc.wpos.distance_squared(wpos) < r_sqr)
                                 && Some(*npc) != this_npc
                         })
                         .map(Actor::Npc)
@@ -328,7 +333,7 @@ impl Npcs {
                     .get(&chunk_pos)
                     .map(|characters| {
                         characters.iter().filter_map(move |(character, c_wpos)| {
-                            if c_wpos.xy().distance_squared(wpos) < r_sqr {
+                            if c_wpos.distance_squared(wpos) < r_sqr {
                                 Some(Actor::Character(*character))
                             } else {
                                 None

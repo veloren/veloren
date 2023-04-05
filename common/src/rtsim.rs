@@ -287,25 +287,6 @@ pub enum Profession {
     Captain,
 }
 
-impl Profession {
-    pub fn to_name(&self) -> String {
-        match self {
-            Self::Farmer => "Farmer".to_string(),
-            Self::Hunter => "Hunter".to_string(),
-            Self::Merchant => "Merchant".to_string(),
-            Self::Guard => "Guard".to_string(),
-            Self::Adventurer(_) => "Adventurer".to_string(),
-            Self::Blacksmith => "Blacksmith".to_string(),
-            Self::Chef => "Chef".to_string(),
-            Self::Alchemist => "Alchemist".to_string(),
-            Self::Pirate => "Pirate".to_string(),
-            Self::Cultist => "Cultist".to_string(),
-            Self::Herbalist => "Herbalist".to_string(),
-            Self::Captain => "Captain".to_string(),
-        }
-    }
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WorldSettings {
     pub start_time: f64,
