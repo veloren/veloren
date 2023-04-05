@@ -26,7 +26,6 @@ use common::{
     event::{EventBus, ServerEvent},
     outcome::{HealthChangeInfo, Outcome},
     resources::{Secs, Time},
-    rtsim::RtSimEntity,
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
@@ -519,23 +518,31 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
     }
 
     if should_delete {
-        if let Some(rtsim_entity) = state
-            .ecs()
-            .read_storage::<RtSimEntity>()
-            .get(entity)
-            .copied()
-        {
+        if let Some(actor) = state.entity_as_actor(entity) {
             state
                 .ecs()
                 .write_resource::<rtsim::RtSim>()
-                .hook_rtsim_entity_delete(
-                    &state.ecs().read_resource::<Arc<world::World>>(),
-                    state
-                        .ecs()
-                        .read_resource::<world::IndexOwned>()
-                        .as_index_ref(),
-                    rtsim_entity,
-                );
+                .hook_rtsim_actor_death(
+                &state.ecs().read_resource::<Arc<world::World>>(),
+                state
+                    .ecs()
+                    .read_resource::<world::IndexOwned>()
+                    .as_index_ref(),
+                actor,
+                last_change
+                    .by
+                    .as_ref()
+                    .and_then(
+                        |(DamageContributor::Solo(entity_uid)
+                         | DamageContributor::Group { entity_uid, .. })| {
+                            state
+                                .ecs()
+                                .read_resource::<UidAllocator>()
+                                .retrieve_entity_internal((*entity_uid).into())
+                        },
+                    )
+                    .and_then(|killer| state.entity_as_actor(killer)),
+            );
         }
 
         if let Err(e) = state.delete_entity_recorded(entity) {

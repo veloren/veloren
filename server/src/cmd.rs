@@ -42,6 +42,7 @@ use common::{
     outcome::Outcome,
     parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay},
+    rtsim::Actor,
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
     vol::ReadVol,
@@ -2090,10 +2091,11 @@ fn handle_kill_npcs(
                         .copied()
                     {
                         ecs.write_resource::<crate::rtsim::RtSim>()
-                            .hook_rtsim_entity_delete(
+                            .hook_rtsim_actor_death(
                                 &ecs.read_resource::<Arc<world::World>>(),
                                 ecs.read_resource::<world::IndexOwned>().as_index_ref(),
-                                rtsim_entity,
+                                Actor::Npc(rtsim_entity.0),
+                                None,
                             );
                     }
                     Some(entity)

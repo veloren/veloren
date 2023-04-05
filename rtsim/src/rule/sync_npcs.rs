@@ -2,7 +2,7 @@ use crate::{
     event::{EventCtx, OnDeath, OnSetup, OnTick},
     RtState, Rule, RuleError,
 };
-use common::{grid::Grid, terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{grid::Grid, rtsim::Actor, terrain::TerrainChunkSize, vol::RectVolSize};
 
 pub struct SyncNpcs;
 
@@ -33,14 +33,20 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
 fn on_death(ctx: EventCtx<SyncNpcs, OnDeath>) {
     let data = &mut *ctx.state.data_mut();
 
-    // Remove NPC from home population
-    if let Some(home) = data
-        .npcs
-        .get(ctx.event.npc_id)
-        .and_then(|npc| npc.home)
-        .and_then(|home| data.sites.get_mut(home))
-    {
-        home.population.remove(&ctx.event.npc_id);
+    if let Actor::Npc(npc_id) = ctx.event.actor {
+        // Remove NPC from home population
+        if let Some(home) = data
+            .npcs
+            .get(npc_id)
+            .and_then(|npc| npc.home)
+            .and_then(|home| data.sites.get_mut(home))
+        {
+            home.population.remove(&npc_id);
+        }
+
+        // TODO: Maybe death should be a marker flag instead of outright deleting the
+        // NPC so that we can still query details about them?
+        data.npcs.remove(npc_id);
     }
 }
 

@@ -5,7 +5,7 @@ pub mod tick;
 use atomicwrites::{AtomicFile, OverwriteBehavior};
 use common::{
     grid::Grid,
-    rtsim::{ChunkResource, RtSimEntity, RtSimVehicle, WorldSettings},
+    rtsim::{Actor, ChunkResource, RtSimEntity, RtSimVehicle, WorldSettings},
     terrain::Block,
 };
 use common_ecs::dispatch;
@@ -164,15 +164,14 @@ impl RtSim {
         }
     }
 
-    pub fn hook_rtsim_entity_delete(
+    pub fn hook_rtsim_actor_death(
         &mut self,
         world: &World,
         index: IndexRef,
-        entity: RtSimEntity,
+        actor: Actor,
+        killer: Option<Actor>,
     ) {
-        // Should entity deletion be death? They're not exactly the same thing...
-        self.state.emit(OnDeath { npc_id: entity.0 }, world, index);
-        self.state.data_mut().npcs.remove(entity.0);
+        self.state.emit(OnDeath { actor, killer }, world, index);
     }
 
     pub fn save(&mut self, /* slowjob_pool: &SlowJobPool, */ wait_until_finished: bool) {

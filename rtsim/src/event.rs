@@ -1,5 +1,8 @@
-use crate::{data::NpcId, RtState, Rule};
-use common::resources::{Time, TimeOfDay};
+use crate::{RtState, Rule};
+use common::{
+    resources::{Time, TimeOfDay},
+    rtsim::Actor,
+};
 use world::{IndexRef, World};
 
 pub trait Event: Clone + 'static {}
@@ -27,6 +30,7 @@ impl Event for OnTick {}
 
 #[derive(Clone)]
 pub struct OnDeath {
-    pub npc_id: NpcId,
+    pub actor: Actor,
+    pub killer: Option<Actor>,
 }
 impl Event for OnDeath {}

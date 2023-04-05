@@ -25,6 +25,7 @@ use common::{
     link::{Link, LinkHandle},
     mounting::Mounting,
     resources::{Secs, Time, TimeOfDay},
+    rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
     LoadoutBuilder, ViewDistances,
@@ -139,6 +140,8 @@ pub trait StateExt {
         &mut self,
         entity: EcsEntity,
     ) -> Result<(), specs::error::WrongGeneration>;
+    /// Get the given entity as an [`Actor`], if it is one.
+    fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor>;
 }
 
 impl StateExt for State {
@@ -1102,6 +1105,26 @@ impl StateExt for State {
             }
         }
         res
+    }
+
+    fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor> {
+        if let Some(rtsim_entity) = self
+            .ecs()
+            .read_storage::<RtSimEntity>()
+            .get(entity)
+            .copied()
+        {
+            Some(Actor::Npc(rtsim_entity.0))
+        } else if let Some(PresenceKind::Character(character)) = self
+            .ecs()
+            .read_storage::<Presence>()
+            .get(entity)
+            .map(|p| p.kind)
+        {
+            Some(Actor::Character(character))
+        } else {
+            None
+        }
     }
 }
 
