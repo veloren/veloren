@@ -283,7 +283,12 @@ impl Npcs {
     }
 
     /// Queries nearby npcs, not garantueed to work if radius > 32.0
-    pub fn nearby(&self, wpos: Vec2<f32>, radius: f32) -> impl Iterator<Item = Actor> + '_ {
+    pub fn nearby(
+        &self,
+        this_npc: Option<NpcId>,
+        wpos: Vec2<f32>,
+        radius: f32,
+    ) -> impl Iterator<Item = Actor> + '_ {
         let chunk_pos = wpos
             .as_::<i32>()
             .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
@@ -301,6 +306,7 @@ impl Npcs {
                             self.npcs
                                 .get(*npc)
                                 .map_or(false, |npc| npc.wpos.xy().distance_squared(wpos) < r_sqr)
+                                && Some(*npc) != this_npc
                         })
                         .map(Actor::Npc)
                 })

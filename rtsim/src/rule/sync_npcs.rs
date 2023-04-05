@@ -33,8 +33,6 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
 fn on_death(ctx: EventCtx<SyncNpcs, OnDeath>) {
     let data = &mut *ctx.state.data_mut();
 
-    println!("NPC DIED!");
-
     // Remove NPC from home population
     if let Some(home) = data
         .npcs

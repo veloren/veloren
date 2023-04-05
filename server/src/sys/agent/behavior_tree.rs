@@ -489,7 +489,6 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                     bdata.agent.awareness.set_maximally_aware();
 
                     bdata.controller.push_action(ControlAction::Stand);
-                    bdata.controller.push_action(ControlAction::Talk);
                     bdata.controller.push_utterance(UtteranceKind::Greeting);
                     bdata
                         .agent_data
@@ -506,8 +505,10 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                 bdata.agent_data.chat_npc(msg, bdata.event_emitter);
             },
         }
+        true
+    } else {
+        false
     }
-    false
 }
 
 /// Handle timed events, like looking at the player we are talking to

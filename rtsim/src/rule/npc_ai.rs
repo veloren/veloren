@@ -452,11 +452,11 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
 fn socialize() -> impl Action {
     now(|ctx| {
         // TODO: Bit odd, should wait for a while after greeting
-        if ctx.rng.gen_bool(0.004) && let Some(other) = ctx
+        if ctx.rng.gen_bool(0.002) && let Some(other) = ctx
             .state
             .data()
             .npcs
-            .nearby(ctx.npc.wpos.xy(), 8.0)
+            .nearby(Some(ctx.npc_id), ctx.npc.wpos.xy(), 8.0)
             .choose(&mut ctx.rng)
         {
             just(move |ctx| ctx.controller.greet(other)).boxed()
