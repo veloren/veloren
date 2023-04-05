@@ -474,35 +474,30 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
 fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
     if let Some(action) = bdata.agent.rtsim_controller.actions.pop_front() {
         match action {
-            NpcAction::Greet(actor) => {
-                if bdata.agent.allowed_to_speak()
-                    && let Some(target) = bdata.read_data.lookup_actor(actor)
-                {
-                    bdata.agent.target = Some(Target::new(
-                        target,
-                        false,
-                        bdata.read_data.time.0,
-                        false,
-                        bdata.read_data.positions.get(target).map(|p| p.0),
-                    ));
-                    // We're always aware of someone we're talking to
-                    bdata.agent.awareness.set_maximally_aware();
+            NpcAction::Say(target, msg) => {
+                if bdata.agent.allowed_to_speak() {
+                    // Aim the speech toward a target
+                    if let Some(target) = target.and_then(|tgt| bdata.read_data.lookup_actor(tgt)) {
+                        bdata.agent.target = Some(Target::new(
+                            target,
+                            false,
+                            bdata.read_data.time.0,
+                            false,
+                            bdata.read_data.positions.get(target).map(|p| p.0),
+                        ));
+                        // We're always aware of someone we're talking to
+                        bdata.agent.awareness.set_maximally_aware();
+                        // Start a timer so that we eventually stop interacting
+                        bdata
+                            .agent
+                            .timer
+                            .start(bdata.read_data.time.0, TimerAction::Interact);
+                        bdata.controller.push_action(ControlAction::Stand);
+                    }
 
-                    bdata.controller.push_action(ControlAction::Stand);
                     bdata.controller.push_utterance(UtteranceKind::Greeting);
-                    bdata
-                        .agent_data
-                        .chat_npc("npc-speech-villager_open", bdata.event_emitter);
-                    // Start a timer so that they eventually stop interacting
-                    bdata
-                        .agent
-                        .timer
-                        .start(bdata.read_data.time.0, TimerAction::Interact);
+                    bdata.agent_data.chat_npc(msg, bdata.event_emitter);
                 }
-            },
-            NpcAction::Say(msg) => {
-                bdata.controller.push_utterance(UtteranceKind::Greeting);
-                bdata.agent_data.chat_npc(msg, bdata.event_emitter);
             },
         }
         true

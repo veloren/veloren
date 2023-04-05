@@ -150,9 +150,15 @@ impl RtState {
         time: Time,
         dt: f32,
     ) {
-        self.data_mut().time_of_day = time_of_day;
+        let tick = {
+            let mut data = self.data_mut();
+            data.time_of_day = time_of_day;
+            data.tick += 1;
+            data.tick
+        };
         let event = OnTick {
             time_of_day,
+            tick,
             time,
             dt,
         };

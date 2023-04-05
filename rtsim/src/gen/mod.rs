@@ -44,6 +44,7 @@ impl Data {
                 factions: Default::default(),
             },
 
+            tick: 0,
             time_of_day: TimeOfDay(settings.start_time),
             should_purge: false,
         };

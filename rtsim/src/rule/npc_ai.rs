@@ -3,7 +3,7 @@ use std::hash::BuildHasherDefault;
 use crate::{
     ai::{casual, choose, finish, important, just, now, seq, until, Action, NpcCtx},
     data::{
-        npc::{Brain, PathData},
+        npc::{Brain, PathData, SimulationMode},
         Sites,
     },
     event::OnTick,
@@ -32,6 +32,12 @@ use world::{
     util::NEIGHBORS,
     IndexRef, World,
 };
+
+/// How many ticks should pass between running NPC AI.
+/// Note that this only applies to simulated NPCs: loaded NPCs have their AI
+/// code run every tick. This means that AI code should be broadly
+/// DT-independent.
+const SIMULATED_TICK_SKIP: u64 = 10;
 
 pub struct NpcAi;
 
@@ -209,6 +215,8 @@ impl Rule for NpcAi {
                 let mut data = ctx.state.data_mut();
                 data.npcs
                     .iter_mut()
+                    // Don't run AI for simulated NPCs every tick
+                    .filter(|(_, npc)| matches!(npc.mode, SimulationMode::Loaded) || (npc.seed as u64 + ctx.event.tick) % SIMULATED_TICK_SKIP == 0)
                     .map(|(npc_id, npc)| {
                         let controller = std::mem::take(&mut npc.controller);
                         let brain = npc.brain.take().unwrap_or_else(|| Brain {
@@ -459,7 +467,7 @@ fn socialize() -> impl Action {
             .nearby(Some(ctx.npc_id), ctx.npc.wpos.xy(), 8.0)
             .choose(&mut ctx.rng)
         {
-            just(move |ctx| ctx.controller.greet(other)).boxed()
+            just(move |ctx| ctx.controller.say(other, "npc-speech-villager_open")).boxed()
         } else if ctx.rng.gen_bool(0.0003) {
             just(|ctx| ctx.controller.do_dance())
                 .repeat()
@@ -506,7 +514,7 @@ fn adventure() -> impl Action {
                 .map(|ws| ctx.index.sites.get(ws).name().to_string())
                 .unwrap_or_default();
             // Travel to the site
-            important(just(move |ctx| ctx.controller.say(format!("I've spent enough time here, onward to {}!", site_name)))
+            important(just(move |ctx| ctx.controller.say(None, format!("I've spent enough time here, onward to {}!", site_name)))
                 .then(travel_to_site(tgt_site, 0.6))
                 // Stop for a few minutes
                 .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
@@ -596,12 +604,12 @@ fn villager(visiting_site: SiteId) -> impl Action {
                             Some(site2.tile_center_wpos(house.root_tile()).as_())
                         })
                     {
-                        just(|ctx| ctx.controller.say("It's dark, time to go home"))
+                        just(|ctx| ctx.controller.say(None, "It's dark, time to go home"))
                             .then(travel_to_point(house_wpos, 0.65))
                             .debug(|| "walk to house")
                             .then(socialize().repeat().debug(|| "wait in house"))
                             .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
-                            .then(just(|ctx| ctx.controller.say("A new day begins!")))
+                            .then(just(|ctx| ctx.controller.say(None, "A new day begins!")))
                             .map(|_| ())
                             .boxed()
                     } else {
@@ -627,7 +635,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
         } else if matches!(ctx.npc.profession, Some(Profession::Hunter)) && ctx.rng.gen_bool(0.8) {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
-                    just(|ctx| ctx.controller.say("Time to go hunting!"))
+                    just(|ctx| ctx.controller.say(None, "Time to go hunting!"))
                         .then(travel_to_point(forest_wpos, 0.75))
                         .debug(|| "walk to forest")
                         .then({
@@ -641,17 +649,33 @@ fn villager(visiting_site: SiteId) -> impl Action {
         {
             return casual(
                 just(|ctx| {
-                    ctx.controller.say(
-                        *[
+                    // Try to direct our speech at nearby actors, if there are any
+                    let (target, phrases) = if ctx.rng.gen_bool(0.3) && let Some(other) = ctx
+                        .state
+                        .data()
+                        .npcs
+                        .nearby(Some(ctx.npc_id), ctx.npc.wpos.xy(), 8.0)
+                        .choose(&mut ctx.rng)
+                    {
+                        (Some(other), &[
+                            "You there! Are you in need of a new thingamabob?",
+                            "Are you hungry? I'm sure I've got some cheese you can buy",
+                            "You look like you could do with some new armour!",
+                        ][..])
+                    // Otherwise, resort to generic expressions
+                    } else {
+                        (None, &[
                             "All my goods are of the highest quality!",
                             "Does anybody want to buy my wares?",
-                            "I've got the best offers in town.",
-                            "Looking for supplies? I've got you covered.",
-                        ]
-                        .iter()
-                        .choose(&mut ctx.rng)
-                        .unwrap(),
-                    ) // Can't fail
+                            "I've got the best offers in town",
+                            "Looking for supplies? I've got you covered",
+                        ][..])
+                    };
+
+                    ctx.controller.say(
+                        target,
+                        *phrases.iter().choose(&mut ctx.rng).unwrap(), // Can't fail
+                    );
                 })
                 .then(idle().repeat().stop_if(timeout(8.0)))
                 .repeat()

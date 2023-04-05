@@ -244,8 +244,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         // Consume NPC actions
         for action in std::mem::take(&mut npc.controller.actions) {
             match action {
-                NpcAction::Greet(_) | NpcAction::Say(_) => {}, /* Currently, just swallow
-                                                                * interactions */
+                NpcAction::Say(_, _) => {}, // Currently, just swallow interactions
             }
         }
 

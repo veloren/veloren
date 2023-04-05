@@ -10,7 +10,7 @@ pub struct Faction {
     pub good_or_evil: bool, // TODO: Very stupid, get rid of this
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Factions {
     pub factions: HopSlotMap<FactionId, Faction>,
 }

@@ -42,7 +42,7 @@ impl Site {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Sites {
     pub sites: HopSlotMap<SiteId, Site>,
 

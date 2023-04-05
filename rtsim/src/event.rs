@@ -20,6 +20,7 @@ impl Event for OnSetup {}
 pub struct OnTick {
     pub time_of_day: TimeOfDay,
     pub time: Time,
+    pub tick: u64,
     pub dt: f32,
 }
 impl Event for OnTick {}

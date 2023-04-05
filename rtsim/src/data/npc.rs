@@ -4,7 +4,8 @@ use common::{
     comp,
     grid::Grid,
     rtsim::{
-        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, Personality, SiteId, VehicleId,
+        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, NpcMsg, Personality, SiteId,
+        VehicleId,
     },
     store::Id,
     terrain::TerrainChunkSize,
@@ -69,10 +70,8 @@ impl Controller {
 
     pub fn do_dance(&mut self) { self.activity = Some(NpcActivity::Dance); }
 
-    pub fn greet(&mut self, actor: Actor) { self.actions.push(NpcAction::Greet(actor)); }
-
-    pub fn say(&mut self, msg: impl Into<Cow<'static, str>>) {
-        self.actions.push(NpcAction::Say(msg.into()));
+    pub fn say(&mut self, target: impl Into<Option<Actor>>, msg: impl Into<Cow<'static, str>>) {
+        self.actions.push(NpcAction::Say(target.into(), msg.into()));
     }
 }
 
@@ -206,6 +205,7 @@ pub enum VehicleKind {
     Boat,
 }
 
+// TODO: Merge into `Npc`?
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Vehicle {
     pub wpos: Vec3<f32>,
@@ -271,6 +271,17 @@ pub struct Npcs {
     pub npc_grid: Grid<GridCell>,
     #[serde(skip)]
     pub character_map: HashMap<Vec2<i32>, Vec<(common::character::CharacterId, Vec3<f32>)>>,
+}
+
+impl Default for Npcs {
+    fn default() -> Self {
+        Self {
+            npcs: Default::default(),
+            vehicles: Default::default(),
+            npc_grid: construct_npc_grid(),
+            character_map: Default::default(),
+        }
+    }
 }
 
 fn construct_npc_grid() -> Grid<GridCell> { Grid::new(Vec2::zero(), Default::default()) }

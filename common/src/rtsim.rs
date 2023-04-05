@@ -219,12 +219,14 @@ pub enum NpcActivity {
     Dance,
 }
 
+/// Represents event-like actions that rtsim NPCs can perform to interact with
+/// the world
 #[derive(Clone, Debug)]
 pub enum NpcAction {
-    Greet(Actor),
+    /// Speak the given message, with an optional target for that speech.
     // TODO: Use some sort of structured, language-independent value that frontends can translate
     // instead
-    Say(Cow<'static, str>),
+    Say(Option<Actor>, Cow<'static, str>),
 }
 
 // Note: the `serde(name = "...")` is to minimise the length of field

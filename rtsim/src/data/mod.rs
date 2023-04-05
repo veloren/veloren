@@ -23,12 +23,20 @@ use std::{
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Data {
     pub nature: Nature,
+    #[serde(default)]
     pub npcs: Npcs,
+    #[serde(default)]
     pub sites: Sites,
+    #[serde(default)]
     pub factions: Factions,
 
+    #[serde(default)]
+    pub tick: u64,
+    #[serde(default)]
     pub time_of_day: TimeOfDay,
+
     // If true, rtsim data will be ignored (and, hence, overwritten on next save) on load.
+    #[serde(default)]
     pub should_purge: bool,
 }
 
