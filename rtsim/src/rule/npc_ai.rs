@@ -577,7 +577,11 @@ fn choose_plaza(ctx: &mut NpcCtx, site: SiteId) -> Option<Vec2<f32>> {
         .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
         .and_then(|site2| {
             let plaza = &site2.plots[site2.plazas().choose(&mut ctx.rng)?];
-            Some(site2.tile_center_wpos(plaza.root_tile()).as_())
+            let tile = plaza
+                .tiles()
+                .choose(&mut ctx.rng)
+                .unwrap_or_else(|| plaza.root_tile());
+            Some(site2.tile_center_wpos(tile).as_())
         })
 }
 
