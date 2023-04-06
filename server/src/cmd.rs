@@ -2069,13 +2069,20 @@ fn handle_kill_npcs(
     let to_kill = {
         let ecs = server.state.ecs();
         let entities = ecs.entities();
+        let positions = ecs.write_storage::<comp::Pos>();
         let healths = ecs.write_storage::<comp::Health>();
         let players = ecs.read_storage::<comp::Player>();
         let alignments = ecs.read_storage::<Alignment>();
 
-        (&entities, &healths, !&players, alignments.maybe())
+        (
+            &entities,
+            &healths,
+            !&players,
+            alignments.maybe(),
+            &positions,
+        )
             .join()
-            .filter_map(|(entity, _health, (), alignment)| {
+            .filter_map(|(entity, _health, (), alignment, pos)| {
                 let should_kill = kill_pets
                     || if let Some(Alignment::Owned(owned)) = alignment {
                         ecs.entity_from_uid(owned.0)
@@ -2095,6 +2102,7 @@ fn handle_kill_npcs(
                                 &ecs.read_resource::<Arc<world::World>>(),
                                 ecs.read_resource::<world::IndexOwned>().as_index_ref(),
                                 Actor::Npc(rtsim_entity.0),
+                                Some(pos.0),
                                 None,
                             );
                     }

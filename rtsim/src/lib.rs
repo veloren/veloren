@@ -62,9 +62,11 @@ impl RtState {
         info!("Starting default rtsim rules...");
         self.start_rule::<rule::migrate::Migrate>();
         self.start_rule::<rule::replenish_resources::ReplenishResources>();
+        self.start_rule::<rule::report::ReportEvents>();
         self.start_rule::<rule::sync_npcs::SyncNpcs>();
         self.start_rule::<rule::simulate_npcs::SimulateNpcs>();
         self.start_rule::<rule::npc_ai::NpcAi>();
+        self.start_rule::<rule::cleanup::CleanUp>();
     }
 
     pub fn start_rule<R: Rule>(&mut self) {

@@ -1,4 +1,6 @@
 use crate::{data::Site, event::OnSetup, RtState, Rule, RuleError};
+use rand::prelude::*;
+use rand_chacha::ChaChaRng;
 use tracing::warn;
 
 /// This rule runs at rtsim startup and broadly acts to perform some primitive
@@ -10,6 +12,9 @@ impl Rule for Migrate {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind::<Self, OnSetup>(|ctx| {
             let data = &mut *ctx.state.data_mut();
+
+            let mut rng = ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>());
+
             // Delete rtsim sites that don't correspond to a world site
             data.sites.sites.retain(|site_id, site| {
                 if let Some((world_site_id, _)) = ctx
@@ -55,6 +60,7 @@ impl Rule for Migrate {
                         ctx.index,
                         &[],
                         &data.factions,
+                        &mut rng,
                     ));
                 }
             }

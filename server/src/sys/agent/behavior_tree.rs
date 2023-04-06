@@ -501,6 +501,18 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                     bdata.agent_data.chat_npc(msg, bdata.event_emitter);
                 }
             },
+            NpcAction::Attack(target) => {
+                if let Some(target) = bdata.read_data.lookup_actor(target) {
+                    bdata.agent.target = Some(Target::new(
+                        target,
+                        true,
+                        bdata.read_data.time.0,
+                        false,
+                        bdata.read_data.positions.get(target).map(|p| p.0),
+                    ));
+                    bdata.agent.awareness.set_maximally_aware();
+                }
+            },
         }
         true
     } else {

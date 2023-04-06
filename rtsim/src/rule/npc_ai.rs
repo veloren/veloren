@@ -4,7 +4,7 @@ use crate::{
     ai::{casual, choose, finish, important, just, now, seq, until, Action, NpcCtx},
     data::{
         npc::{Brain, PathData, SimulationMode},
-        Sites,
+        ReportKind, Sentiment, Sites,
     },
     event::OnTick,
     RtState, Rule, RuleError,
@@ -219,10 +219,13 @@ impl Rule for NpcAi {
                     .filter(|(_, npc)| matches!(npc.mode, SimulationMode::Loaded) || (npc.seed as u64 + ctx.event.tick) % SIMULATED_TICK_SKIP == 0)
                     .map(|(npc_id, npc)| {
                         let controller = std::mem::take(&mut npc.controller);
+                        let inbox = std::mem::take(&mut npc.inbox);
+                        let sentiments = std::mem::take(&mut npc.sentiments);
+                        let known_reports = std::mem::take(&mut npc.known_reports);
                         let brain = npc.brain.take().unwrap_or_else(|| Brain {
                             action: Box::new(think().repeat()),
                         });
-                        (npc_id, controller, brain)
+                        (npc_id, controller, inbox, sentiments, known_reports, brain)
                     })
                     .collect::<Vec<_>>()
             };
@@ -233,7 +236,7 @@ impl Rule for NpcAi {
 
                 npc_data
                     .par_iter_mut()
-                    .for_each(|(npc_id, controller, brain)| {
+                    .for_each(|(npc_id, controller, inbox, sentiments, known_reports, brain)| {
                         let npc = &data.npcs[*npc_id];
 
                         brain.action.tick(&mut NpcCtx {
@@ -245,6 +248,9 @@ impl Rule for NpcAi {
                             npc,
                             npc_id: *npc_id,
                             controller,
+                            inbox,
+                            known_reports,
+                            sentiments,
                             rng: ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>()),
                         });
                     });
@@ -252,9 +258,12 @@ impl Rule for NpcAi {
 
             // Reinsert NPC brains
             let mut data = ctx.state.data_mut();
-            for (npc_id, controller, brain) in npc_data {
+            for (npc_id, controller, inbox, sentiments, known_reports, brain) in npc_data {
                 data.npcs[npc_id].controller = controller;
                 data.npcs[npc_id].brain = Some(brain);
+                data.npcs[npc_id].inbox = inbox;
+                data.npcs[npc_id].sentiments = sentiments;
+                data.npcs[npc_id].known_reports = known_reports;
             }
         });
 
@@ -871,6 +880,50 @@ fn captain() -> impl Action {
     .map(|_| ())
 }
 
+fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
+    loop {
+        match ctx.inbox.pop_front() {
+            Some(report_id) if !ctx.known_reports.contains(&report_id) => {
+                #[allow(clippy::single_match)]
+                match ctx.state.data().reports.get(report_id).map(|r| r.kind) {
+                    Some(ReportKind::Death { killer, .. }) => {
+                        // TODO: Sentiment should be positive if we didn't like actor that died
+                        // TODO: Don't report self
+                        let phrases = if let Some(killer) = killer {
+                            // TODO: Don't hard-code sentiment change
+                            ctx.sentiments.change_by(killer, -0.7, Sentiment::VILLAIN);
+                            &["Murderer!", "How could you do this?", "Aaargh!"][..]
+                        } else {
+                            &["No!", "This is terrible!", "Oh my goodness!"][..]
+                        };
+                        let phrase = *phrases.iter().choose(&mut ctx.rng).unwrap(); // Can't fail
+                        ctx.known_reports.insert(report_id);
+                        break Some(just(move |ctx| ctx.controller.say(killer, phrase)));
+                    },
+                    None => {}, // Stale report, ignore
+                }
+            },
+            Some(_) => {}, // Reports we already know of are ignored
+            None => break None,
+        }
+    }
+}
+
+fn check_for_enemies(ctx: &mut NpcCtx) -> Option<impl Action> {
+    ctx.state
+        .data()
+        .npcs
+        .nearby(Some(ctx.npc_id), ctx.npc.wpos, 24.0)
+        .find(|actor| ctx.sentiments.toward(*actor).is(Sentiment::ENEMY))
+        .map(|enemy| just(move |ctx| ctx.controller.attack(enemy)))
+}
+
+fn react_to_events(ctx: &mut NpcCtx) -> Option<impl Action> {
+    check_inbox(ctx)
+        .map(|action| action.boxed())
+        .or_else(|| check_for_enemies(ctx).map(|action| action.boxed()))
+}
+
 fn humanoid() -> impl Action {
     choose(|ctx| {
         if let Some(riding) = &ctx.npc.riding {
@@ -890,15 +943,19 @@ fn humanoid() -> impl Action {
             } else {
                 important(socialize())
             }
-        } else if matches!(
-            ctx.npc.profession,
-            Some(Profession::Adventurer(_) | Profession::Merchant)
-        ) {
-            casual(adventure())
-        } else if let Some(home) = ctx.npc.home {
-            casual(villager(home))
         } else {
-            casual(finish()) // Homeless
+            let action = if matches!(
+                ctx.npc.profession,
+                Some(Profession::Adventurer(_) | Profession::Merchant)
+            ) {
+                adventure().boxed()
+            } else if let Some(home) = ctx.npc.home {
+                villager(home).boxed()
+            } else {
+                idle().boxed() // Homeless
+            };
+
+            casual(action.interrupt_with(react_to_events))
         }
     })
 }

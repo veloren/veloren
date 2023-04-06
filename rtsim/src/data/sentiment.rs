@@ -2,14 +2,17 @@ use common::{
     character::CharacterId,
     rtsim::{Actor, FactionId, NpcId},
 };
+use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 // Factions have a larger 'social memory' than individual NPCs and so we allow
 // them to have more sentiments
 pub const FACTION_MAX_SENTIMENTS: usize = 1024;
 pub const NPC_MAX_SENTIMENTS: usize = 128;
+
+// Magic factor used to control sentiment decay speed
+const DECAY_FACTOR: f32 = 6.0;
 
 /// The target that a sentiment is felt toward.
 // NOTE: More could be added to this! For example:
@@ -55,39 +58,39 @@ impl Sentiments {
         self.map.get(&target.into()).copied().unwrap_or_default()
     }
 
-    pub fn change_by(&mut self, target: impl Into<Target>, change: f32) {
+    /// Change the sentiment toward the given target by the given amount,
+    /// capping out at the given value.
+    pub fn change_by(&mut self, target: impl Into<Target>, change: f32, cap: f32) {
         let target = target.into();
-        self.map.entry(target).or_default().change_by(change);
+        self.map.entry(target).or_default().change_by(change, cap);
     }
 
     /// Progressively decay the sentiment back to a neutral sentiment.
     ///
     /// Note that sentiment get decay gets slower the harsher the sentiment is.
-    /// You can calculate the **average** number of ticks required for a
-    /// sentiment to decay with the following formula:
+    /// You can calculate the **average** number of seconds required for a
+    /// sentiment to neutral decay with the following formula:
     ///
     /// ```
-    /// ticks_until_neutrality = ((sentiment_value * 127 * 32) ^ 2) / 2 
+    /// seconds_until_neutrality = ((sentiment_value * 127 * DECAY_FACTOR) ^ 2) / 2 
     /// ```
     ///
     /// For example, a positive (see [`Sentiment::POSITIVE`]) sentiment has a
     /// value of `0.2`, so we get
     ///
     /// ```
-    /// ticks_until_neutrality = ((0.1 * 127 * 32) ^ 2) / 2 = ~82,580 ticks
+    /// seconds_until_neutrality = ((0.1 * 127 * DECAY_FACTOR) ^ 2) / 2 = ~2,903 seconds, or 48 minutes
     /// ```
-    ///
-    /// Assuming a TPS of 30, that's ~46 minutes.
     ///
     /// Some 'common' sentiment decay times are as follows:
     ///
-    /// - `POSITIVE`/`NEGATIVE`: ~46 minutes
-    /// - `ALLY`/`RIVAL`: ~6.9 hours
-    /// - `FRIEND`/`ENEMY`: ~27.5 hours
-    /// - `HERO`/`VILLAIN`: ~48.9 hours
-    pub fn decay(&mut self, rng: &mut impl Rng) {
+    /// - `POSITIVE`/`NEGATIVE`: ~48 minutes
+    /// - `ALLY`/`RIVAL`: ~7 hours
+    /// - `FRIEND`/`ENEMY`: ~29 hours
+    /// - `HERO`/`VILLAIN`: ~65 hours
+    pub fn decay(&mut self, rng: &mut impl Rng, dt: f32) {
         self.map.retain(|_, sentiment| {
-            sentiment.decay(rng);
+            sentiment.decay(rng, dt);
             // We can eliminate redundant sentiments that don't need remembering
             !sentiment.is_redundant()
         });
@@ -152,26 +155,30 @@ impl Sentiment {
     /// generally try to harm the actor in any way they can.
     pub const VILLAIN: f32 = -0.8;
 
-    fn value(&self) -> f32 { self.positivity as f32 / 127.0 }
+    fn value(&self) -> f32 { self.positivity as f32 / 126.0 }
 
-    fn change_by(&mut self, change: f32) {
+    fn change_by(&mut self, change: f32, cap: f32) {
         // There's a bit of ceremony here for two reasons:
         // 1) Very small changes should not be rounded to 0
         // 2) Sentiment should never (over/under)flow
         if change != 0.0 {
-            let abs = (change * 127.0).abs().clamp(1.0, 127.0) as i8;
+            let abs = (change * 126.0).abs().clamp(1.0, 126.0) as i8;
+            let cap = (cap.abs().min(1.0) * 126.0) as i8;
             self.positivity = if change > 0.0 {
-                self.positivity.saturating_add(abs)
+                self.positivity.saturating_add(abs).min(cap)
             } else {
-                self.positivity.saturating_sub(abs)
+                self.positivity.saturating_sub(abs).max(-cap)
             };
         }
     }
 
-    fn decay(&mut self, rng: &mut impl Rng) {
+    fn decay(&mut self, rng: &mut impl Rng, dt: f32) {
         if self.positivity != 0 {
             // TODO: Make dt-independent so we can slow tick rates
-            if rng.gen_range(0..self.positivity.unsigned_abs() as u32 * 1024) == 0 {
+            // 36 = 6 * 6
+            if rng.gen_bool(
+                (1.0 / (self.positivity.unsigned_abs() as f32 * DECAY_FACTOR.powi(2) * dt)) as f64,
+            ) {
                 self.positivity -= self.positivity.signum();
             }
         }

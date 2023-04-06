@@ -1,6 +1,6 @@
 use crate::data::{FactionId, Factions, Site};
 use common::store::Id;
-use hashbrown::HashSet;
+use rand::prelude::*;
 use vek::*;
 use world::{
     site::{Site as WorldSite, SiteKind},
@@ -14,6 +14,7 @@ impl Site {
         index: IndexRef,
         nearby_factions: &[(Vec2<i32>, FactionId)],
         factions: &Factions,
+        rng: &mut impl Rng,
     ) -> Self {
         let world_site = index.sites.get(world_site_id);
         let wpos = world_site.get_origin();
@@ -36,6 +37,7 @@ impl Site {
         };
 
         Self {
+            seed: rng.gen(),
             wpos,
             world_site: Some(world_site_id),
             faction: good_or_evil.and_then(|good_or_evil| {
@@ -49,7 +51,8 @@ impl Site {
                     .min_by_key(|(faction_wpos, _)| faction_wpos.distance_squared(wpos))
                     .map(|(_, faction)| *faction)
             }),
-            population: HashSet::new(),
+            population: Default::default(),
+            known_reports: Default::default(),
         }
     }
 }

@@ -1,10 +1,14 @@
 use crate::{
-    data::npc::{Controller, Npc, NpcId},
+    data::{
+        npc::{Controller, Npc, NpcId},
+        ReportId, Sentiments,
+    },
     RtState,
 };
 use common::resources::{Time, TimeOfDay};
+use hashbrown::HashSet;
 use rand_chacha::ChaChaRng;
-use std::{any::Any, marker::PhantomData, ops::ControlFlow};
+use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow};
 use world::{IndexRef, World};
 
 /// The context provided to an [`Action`] while it is being performed. It should
@@ -21,6 +25,9 @@ pub struct NpcCtx<'a> {
     pub npc_id: NpcId,
     pub npc: &'a Npc,
     pub controller: &'a mut Controller,
+    pub inbox: &'a mut VecDeque<ReportId>, // TODO: Allow more inbox items
+    pub sentiments: &'a mut Sentiments,
+    pub known_reports: &'a mut HashSet<ReportId>,
 
     pub rng: ChaChaRng,
 }

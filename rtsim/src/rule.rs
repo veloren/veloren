@@ -1,6 +1,8 @@
+pub mod cleanup;
 pub mod migrate;
 pub mod npc_ai;
 pub mod replenish_resources;
+pub mod report;
 pub mod simulate_npcs;
 pub mod sync_npcs;
 

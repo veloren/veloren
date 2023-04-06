@@ -246,6 +246,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         for action in std::mem::take(&mut npc.controller.actions) {
             match action {
                 NpcAction::Say(_, _) => {}, // Currently, just swallow interactions
+                NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
             }
         }
 

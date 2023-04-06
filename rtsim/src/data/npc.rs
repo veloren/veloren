@@ -1,4 +1,8 @@
-use crate::{ai::Action, data::sentiment::Sentiments, gen::name};
+use crate::{
+    ai::Action,
+    data::{ReportId, Reports, Sentiments},
+    gen::name,
+};
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     character::CharacterId,
@@ -11,7 +15,7 @@ use common::{
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
@@ -73,6 +77,10 @@ impl Controller {
     pub fn say(&mut self, target: impl Into<Option<Actor>>, msg: impl Into<Cow<'static, str>>) {
         self.actions.push(NpcAction::Say(target.into(), msg.into()));
     }
+
+    pub fn attack(&mut self, target: impl Into<Actor>) {
+        self.actions.push(NpcAction::Attack(target.into()));
+    }
 }
 
 pub struct Brain {
@@ -92,6 +100,9 @@ pub struct Npc {
     pub faction: Option<FactionId>,
     pub riding: Option<Riding>,
 
+    /// The [`Report`]s that the NPC is aware of.
+    pub known_reports: HashSet<ReportId>,
+
     #[serde(default)]
     pub personality: Personality,
     #[serde(default)]
@@ -105,6 +116,8 @@ pub struct Npc {
 
     #[serde(skip)]
     pub controller: Controller,
+    #[serde(skip)]
+    pub inbox: VecDeque<ReportId>,
 
     /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the
     /// server, loaded corresponds to being within a loaded chunk). When in
@@ -126,6 +139,7 @@ impl Clone for Npc {
             home: self.home,
             faction: self.faction,
             riding: self.riding.clone(),
+            known_reports: self.known_reports.clone(),
             body: self.body,
             personality: self.personality,
             sentiments: self.sentiments.clone(),
@@ -133,6 +147,7 @@ impl Clone for Npc {
             chunk_pos: None,
             current_site: Default::default(),
             controller: Default::default(),
+            inbox: Default::default(),
             mode: Default::default(),
             brain: Default::default(),
         }
@@ -148,15 +163,17 @@ impl Npc {
             seed,
             wpos,
             body,
-            personality: Personality::default(),
-            sentiments: Sentiments::default(),
+            personality: Default::default(),
+            sentiments: Default::default(),
             profession: None,
             home: None,
             faction: None,
             riding: None,
+            known_reports: Default::default(),
             chunk_pos: None,
             current_site: None,
-            controller: Controller::default(),
+            controller: Default::default(),
+            inbox: Default::default(),
             mode: SimulationMode::Simulated,
             brain: None,
         }
@@ -201,6 +218,16 @@ impl Npc {
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed.wrapping_add(perm)) }
 
     pub fn get_name(&self) -> String { name::generate(&mut self.rng(Self::PERM_NAME)) }
+
+    pub fn cleanup(&mut self, reports: &Reports) {
+        // Clear old or superfluous sentiments
+        self.sentiments
+            .cleanup(crate::data::sentiment::NPC_MAX_SENTIMENTS);
+        // Clear reports that have been forgotten
+        self.known_reports
+            .retain(|report| reports.contains_key(*report));
+        // TODO: Clear old inbox items
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

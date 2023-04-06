@@ -3,6 +3,7 @@ use common::{
     resources::{Time, TimeOfDay},
     rtsim::Actor,
 };
+use vek::*;
 use world::{IndexRef, World};
 
 pub trait Event: Clone + 'static {}
@@ -31,6 +32,7 @@ impl Event for OnTick {}
 #[derive(Clone)]
 pub struct OnDeath {
     pub actor: Actor,
+    pub wpos: Option<Vec3<f32>>,
     pub killer: Option<Actor>,
 }
 impl Event for OnDeath {}

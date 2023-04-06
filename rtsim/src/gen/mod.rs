@@ -3,9 +3,9 @@ pub mod name;
 pub mod site;
 
 use crate::data::{
-    faction::{Faction, Factions},
+    faction::Faction,
     npc::{Npc, Npcs, Profession, Vehicle},
-    site::{Site, Sites},
+    site::Site,
     Data, Nature,
 };
 use common::{
@@ -37,13 +37,9 @@ impl Data {
                 npc_grid: Grid::new(Vec2::zero(), Default::default()),
                 character_map: Default::default(),
             },
-            sites: Sites {
-                sites: Default::default(),
-                world_site_map: Default::default(),
-            },
-            factions: Factions {
-                factions: Default::default(),
-            },
+            sites: Default::default(),
+            factions: Default::default(),
+            reports: Default::default(),
 
             tick: 0,
             time_of_day: TimeOfDay(settings.start_time),
@@ -72,6 +68,7 @@ impl Data {
                 index,
                 &initial_factions,
                 &this.factions,
+                &mut rng,
             );
             this.sites.create(site);
         }

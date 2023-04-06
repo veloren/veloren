@@ -1,3 +1,4 @@
+use crate::data::{ReportId, Reports};
 pub use common::rtsim::SiteId;
 use common::{
     rtsim::{FactionId, NpcId},
@@ -12,8 +13,13 @@ use world::site::Site as WorldSite;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Site {
+    pub seed: u32,
     pub wpos: Vec2<i32>,
     pub faction: Option<FactionId>,
+
+    /// The [`Report`]s that the site tracks (you can imagine them being on a
+    /// noticeboard or something).
+    pub known_reports: HashSet<ReportId>,
 
     /// The site generated during initial worldgen that this site corresponds
     /// to.
@@ -39,6 +45,12 @@ impl Site {
     pub fn with_faction(mut self, faction: impl Into<Option<FactionId>>) -> Self {
         self.faction = faction.into();
         self
+    }
+
+    pub fn cleanup(&mut self, reports: &Reports) {
+        // Clear reports that have been forgotten
+        self.known_reports
+            .retain(|report| reports.contains_key(*report));
     }
 }
 

@@ -529,6 +529,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     .read_resource::<world::IndexOwned>()
                     .as_index_ref(),
                 actor,
+                state.ecs().read_storage::<Pos>().get(entity).map(|p| p.0),
                 last_change
                     .by
                     .as_ref()

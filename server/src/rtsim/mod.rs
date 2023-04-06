@@ -62,13 +62,14 @@ impl RtSim {
                             },
                             Err(e) => {
                                 error!("Rtsim data failed to load: {}", e);
+                                info!("Old rtsim data will now be moved to a backup file");
                                 let mut i = 0;
                                 loop {
                                     let mut backup_path = file_path.clone();
                                     backup_path.set_extension(if i == 0 {
-                                        format!("backup_{}", i)
-                                    } else {
                                         "ron_backup".to_string()
+                                    } else {
+                                        format!("ron_backup_{}", i)
                                     });
                                     if !backup_path.exists() {
                                         fs::rename(&file_path, &backup_path)?;
@@ -78,6 +79,11 @@ impl RtSim {
                                         );
                                         info!("A fresh rtsim data will now be generated.");
                                         break;
+                                    } else {
+                                        info!(
+                                            "Backup file {} already exists, trying another name...",
+                                            backup_path.display()
+                                        );
                                     }
                                     i += 1;
                                 }
@@ -169,9 +175,18 @@ impl RtSim {
         world: &World,
         index: IndexRef,
         actor: Actor,
+        wpos: Option<Vec3<f32>>,
         killer: Option<Actor>,
     ) {
-        self.state.emit(OnDeath { actor, killer }, world, index);
+        self.state.emit(
+            OnDeath {
+                wpos,
+                actor,
+                killer,
+            },
+            world,
+            index,
+        );
     }
 
     pub fn save(&mut self, /* slowjob_pool: &SlowJobPool, */ wait_until_finished: bool) {

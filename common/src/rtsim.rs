@@ -227,6 +227,8 @@ pub enum NpcAction {
     // TODO: Use some sort of structured, language-independent value that frontends can translate
     // instead
     Say(Option<Actor>, Cow<'static, str>),
+    /// Attack the given target
+    Attack(Actor),
 }
 
 // Note: the `serde(name = "...")` is to minimise the length of field
