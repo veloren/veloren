@@ -11,8 +11,9 @@ use serde::{Deserialize, Serialize};
 pub const FACTION_MAX_SENTIMENTS: usize = 1024;
 pub const NPC_MAX_SENTIMENTS: usize = 128;
 
-// Magic factor used to control sentiment decay speed
-const DECAY_FACTOR: f32 = 6.0;
+/// Magic factor used to control sentiment decay speed (note: higher = slower
+/// decay, for implementation reasons).
+const DECAY_FACTOR: f32 = 1.0; //6.0; TODO: Use this value when we're happy that everything is working as intended
 
 /// The target that a sentiment is felt toward.
 // NOTE: More could be added to this! For example:
