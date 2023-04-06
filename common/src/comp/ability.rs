@@ -2792,6 +2792,9 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                 },
                 timer: Duration::default(),
+                // TODO: is this supposed to match the change in `requirements_paid` to just check
+                // `on_ground.is_non()` instead of checking vertical speed? Or is difference
+                // intended?
                 stage_section: if data.vel.0.z < -*vertical_speed || buildup_duration.is_none() {
                     StageSection::Movement
                 } else {

@@ -2987,7 +2987,8 @@ impl Hud {
             skillsets.get(entity),
             bodies.get(entity),
         ) {
-            let context = AbilityContext::from(stances.get(entity));
+            let stance = stances.get(entity);
+            let context = AbilityContext::from(stance);
             match Skillbar::new(
                 client,
                 &info,
@@ -3016,7 +3017,7 @@ impl Hud {
                 context,
                 combos.get(entity),
                 char_states.get(entity),
-                stances.get(entity),
+                stance,
             )
             .set(self.ids.skillbar, ui_widgets)
             {

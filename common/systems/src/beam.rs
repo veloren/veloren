@@ -14,7 +14,7 @@ use common::{
     GroupTarget,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use rayon::iter::ParallelIterator;
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect,
@@ -99,7 +99,9 @@ impl<'a> System<'a> for Sys {
                         read_data.uid_allocator.retrieve_entity_internal(uid.into())
                     });
 
-                    let mut rng = thread_rng();
+                    // Note: rayon makes it difficult to hold onto a thread-local RNG, if grabbing
+                    // this becomes a bottleneck we can look into alternatives.
+                    let mut rng = rand::thread_rng();
                     if rng.gen_bool(0.005) {
                         server_events.push(ServerEvent::Sound {
                             sound: Sound::new(SoundKind::Beam, pos.0, 13.0, time),
@@ -261,6 +263,7 @@ impl<'a> System<'a> for Sys {
                                 *read_data.time,
                                 |e| server_events.push(e),
                                 |o| outcomes.push(o),
+                                &mut rng,
                             );
 
                             add_hit_entities.push((beam_owner, *uid_b));
