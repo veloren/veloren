@@ -1150,6 +1150,7 @@ impl Structure for DesertCityMultiPlot {
                                         SpriteKind::Loom,
                                         SpriteKind::Anvil,
                                         SpriteKind::DismantlingBench,
+                                        SpriteKind::RepairBench,
                                     ];
                                     'outer: for d in 0..2 {
                                         for dir in NEIGHBORS {

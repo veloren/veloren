@@ -5,7 +5,8 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            Effects, ItemDefinitionId, ItemDesc, ItemKind, MaterialKind, MaterialStatManifest,
+            Effects, Item, ItemDefinitionId, ItemDesc, ItemKind, MaterialKind,
+            MaterialStatManifest,
         },
         BuffKind,
     },
@@ -100,9 +101,9 @@ pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> Co
 }
 
 pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
-    match &*item.kind() {
+    let mut count = match &*item.kind() {
         ItemKind::Armor(armor) => {
-            let armor_stats = armor.stats(msm);
+            let armor_stats = armor.stats(msm, item.stats_durability_multiplier());
             armor_stats.energy_reward.is_some() as usize
                 + armor_stats.energy_max.is_some() as usize
                 + armor_stats.stealth.is_some() as usize
@@ -118,7 +119,11 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
         },
         ItemKind::ModularComponent { .. } => 7,
         _ => 0,
+    };
+    if item.has_durability() {
+        count += 1;
     }
+    count
 }
 
 pub fn line_count(item: &dyn ItemDesc, msm: &MaterialStatManifest, i18n: &Localization) -> usize {
@@ -349,6 +354,14 @@ pub fn protec2string(stat: Protection) -> String {
         Protection::Normal(a) => format!("{:.1}", a),
         Protection::Invincible => "Inf".to_string(),
     }
+}
+
+/// Gets the durability of an item in a format more intuitive for UI
+pub fn item_durability(item: &dyn ItemDesc) -> Option<u32> {
+    let durability = item
+        .durability()
+        .or_else(|| item.has_durability().then_some(0));
+    durability.map(|d| Item::MAX_DURABILITY - d)
 }
 
 pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {

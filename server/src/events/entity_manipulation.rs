@@ -18,7 +18,7 @@ use common::{
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
-        inventory::item::MaterialStatManifest,
+        inventory::item::{AbilityMap, MaterialStatManifest},
         loot_owner::LootOwnerKind,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange, Inventory,
         Player, Poise, Pos, SkillSet, Stats,
@@ -510,6 +510,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
     } else {
         true
     };
+
+    // Modify durability on all equipped items
+    if let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity) {
+        let ability_map = state.ecs().read_resource::<AbilityMap>();
+        let msm = state.ecs().read_resource::<MaterialStatManifest>();
+        inventory.damage_items(&ability_map, &msm);
+    }
 
     if should_delete {
         if let Some(rtsim_entity) = state

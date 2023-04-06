@@ -5,11 +5,11 @@ pub mod tool;
 
 // Reexports
 pub use modular::{MaterialStatManifest, ModularBase, ModularComponent};
-pub use tool::{AbilitySet, AbilitySpec, Hands, Tool, ToolKind};
+pub use tool::{AbilityMap, AbilitySet, AbilitySpec, Hands, Tool, ToolKind};
 
 use crate::{
     assets::{self, AssetExt, BoxedError, Error},
-    comp::inventory::{item::tool::AbilityMap, InvSlot},
+    comp::inventory::InvSlot,
     effect::Effect,
     recipe::RecipeInput,
     terrain::Block,
@@ -348,6 +348,21 @@ impl ItemKind {
         };
         result
     }
+
+    pub fn has_durability(&self) -> bool {
+        match self {
+            ItemKind::Tool(_) => true,
+            ItemKind::Armor(armor) => armor.kind.has_durability(),
+            ItemKind::ModularComponent(_)
+            | ItemKind::Lantern(_)
+            | ItemKind::Glider
+            | ItemKind::Consumable { .. }
+            | ItemKind::Throwable { .. }
+            | ItemKind::Utility { .. }
+            | ItemKind::Ingredient { .. }
+            | ItemKind::TagExamples { .. } => false,
+        }
+    }
 }
 
 pub type ItemId = AtomicCell<Option<NonZeroU64>>;
@@ -396,6 +411,10 @@ pub struct Item {
     slots: Vec<InvSlot>,
     item_config: Option<Box<ItemConfig>>,
     hash: u64,
+    /// Tracks how many deaths occurred while item was equipped, which is
+    /// converted into the items durability. Only tracked for tools and armor
+    /// currently.
+    durability_lost: Option<u32>,
 }
 
 use std::hash::{Hash, Hasher};
@@ -609,7 +628,8 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
             };
             let abilities = if let Some(set_key) = item.ability_spec() {
                 if let Some(set) = ability_map.get_ability_set(&set_key) {
-                    set.clone().modified_by_tool(tool)
+                    set.clone()
+                        .modified_by_tool(tool, item.stats_durability_multiplier())
                 } else {
                     error!(
                         "Custom ability set: {:?} references non-existent set, falling back to \
@@ -619,7 +639,8 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                     tool_default(tool.kind).cloned().unwrap_or_default()
                 }
             } else if let Some(set) = tool_default(tool.kind) {
-                set.clone().modified_by_tool(tool)
+                set.clone()
+                    .modified_by_tool(tool, item.stats_durability_multiplier())
             } else {
                 error!(
                     "No ability set defined for tool: {:?}, falling back to default ability set.",
@@ -766,6 +787,8 @@ impl assets::Asset for RawItemDef {
 pub struct OperationFailure;
 
 impl Item {
+    pub const MAX_DURABILITY: u32 = 8;
+
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
     pub fn empty() -> Self { Item::new_from_asset_expect("common.items.weapons.empty.empty") }
@@ -785,7 +808,9 @@ impl Item {
             // These fields are updated immediately below
             item_config: None,
             hash: 0,
+            durability_lost: None,
         };
+        item.durability_lost = item.has_durability().then_some(0);
         item.update_item_state(ability_map, msm);
         item
     }
@@ -1089,7 +1114,7 @@ impl Item {
             ItemBase::Modular(mod_base) => {
                 // TODO: Try to move further upward
                 let msm = MaterialStatManifest::load().read();
-                mod_base.kind(self.components(), &msm)
+                mod_base.kind(self.components(), &msm, self.stats_durability_multiplier())
             },
         }
     }
@@ -1188,6 +1213,59 @@ impl Item {
         }
     }
 
+    pub fn durability(&self) -> Option<u32> {
+        self.durability_lost.map(|x| x.min(Self::MAX_DURABILITY))
+    }
+
+    pub fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
+        let durability_lost = self.durability_lost.unwrap_or(0);
+        debug_assert!(durability_lost <= Self::MAX_DURABILITY);
+        const DURABILITY_THRESHOLD: u32 = 4;
+        const MIN_FRAC: f32 = 0.2;
+        let mult = (1.0
+            - durability_lost.saturating_sub(DURABILITY_THRESHOLD) as f32
+                / (Self::MAX_DURABILITY - DURABILITY_THRESHOLD) as f32)
+            * (1.0 - MIN_FRAC)
+            + MIN_FRAC;
+        DurabilityMultiplier(mult)
+    }
+
+    pub fn has_durability(&self) -> bool { self.kind().has_durability() }
+
+    pub fn increment_damage(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
+        if let Some(durability_lost) = &mut self.durability_lost {
+            if *durability_lost < Self::MAX_DURABILITY {
+                *durability_lost += 1;
+            }
+        }
+        // Update item state after applying durability because stats have potential to
+        // change from different durability
+        self.update_item_state(ability_map, msm);
+    }
+
+    pub fn persistence_durability(&self) -> Option<NonZeroU32> {
+        self.durability_lost.and_then(NonZeroU32::new)
+    }
+
+    pub fn persistence_set_durability(&mut self, value: Option<NonZeroU32>) {
+        // If changes have been made so that item no longer needs to track durability,
+        // set to None
+        if !self.has_durability() {
+            self.durability_lost = None;
+        } else {
+            // Set durability to persisted value, and if item previously had no durability,
+            // set to Some(0) so that durability will be tracked
+            self.durability_lost = Some(value.map_or(0, NonZeroU32::get));
+        }
+    }
+
+    pub fn reset_durability(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
+        self.durability_lost = self.has_durability().then_some(0);
+        // Update item state after applying durability because stats have potential to
+        // change from different durability
+        self.update_item_state(ability_map, msm);
+    }
+
     #[cfg(test)]
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
         let ability_map = &AbilityMap::load().read();
@@ -1211,10 +1289,11 @@ pub trait ItemDesc {
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> ItemDefinitionId<'_>;
     fn tags(&self) -> Vec<ItemTag>;
-
     fn is_modular(&self) -> bool;
-
     fn components(&self) -> &[Item];
+    fn has_durability(&self) -> bool;
+    fn durability(&self) -> Option<u32>;
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier;
 
     fn tool_info(&self) -> Option<ToolKind> {
         if let ItemKind::Tool(tool) = &*self.kind() {
@@ -1243,6 +1322,14 @@ impl ItemDesc for Item {
     fn is_modular(&self) -> bool { self.is_modular() }
 
     fn components(&self) -> &[Item] { self.components() }
+
+    fn has_durability(&self) -> bool { self.has_durability() }
+
+    fn durability(&self) -> Option<u32> { self.durability() }
+
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
+        self.stats_durability_multiplier()
+    }
 }
 
 impl ItemDesc for ItemDef {
@@ -1265,6 +1352,12 @@ impl ItemDesc for ItemDef {
     fn is_modular(&self) -> bool { false }
 
     fn components(&self) -> &[Item] { &[] }
+
+    fn has_durability(&self) -> bool { self.kind().has_durability() }
+
+    fn durability(&self) -> Option<u32> { None }
+
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier { DurabilityMultiplier(1.0) }
 }
 
 impl Component for Item {
@@ -1277,6 +1370,9 @@ pub struct ItemDrop(pub Item);
 impl Component for ItemDrop {
     type Storage = DenseVecStorage<Self>;
 }
+
+#[derive(Copy, Clone, Debug)]
+pub struct DurabilityMultiplier(pub f32);
 
 impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn description(&self) -> &str { (*self).description() }
@@ -1296,6 +1392,14 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn is_modular(&self) -> bool { (*self).is_modular() }
 
     fn components(&self) -> &[Item] { (*self).components() }
+
+    fn has_durability(&self) -> bool { (*self).has_durability() }
+
+    fn durability(&self) -> Option<u32> { (*self).durability() }
+
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
+        (*self).stats_durability_multiplier()
+    }
 }
 
 /// Returns all item asset specifiers

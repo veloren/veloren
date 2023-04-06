@@ -165,6 +165,9 @@ impl BlocksOfInterest {
                         fires.push(pos);
                         interactables.push((pos, Interaction::Craft(CraftingTab::Dismantle)))
                     },
+                    Some(SpriteKind::RepairBench) => {
+                        interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                    },
                     _ => {},
                 },
             }

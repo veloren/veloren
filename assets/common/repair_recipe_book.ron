@@ -1,0 +1,1074 @@
+(
+recipes: {
+    // Weapons
+    ItemDefId("common.items.weapons.sword.starter"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.axe.starter_axe"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.hammer.starter_hammer"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.bow.starter"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.staff.starter_staff"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.sceptre.starter_sceptre"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.sword_1h.starter"): ( inputs: [], ),
+    ModularWeapon(material: "common.items.mineral.ingot.bronze"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.iron"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.steel"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.cobalt"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.bloodsteel"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ModularWeapon(material: "common.items.mineral.ingot.orichalcum"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.wood"): (
+        inputs: [
+            (Item("common.items.log.wood"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.bamboo"): (
+        inputs: [
+            (Item("common.items.log.bamboo"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.hardwood"): (
+        inputs: [
+            (Item("common.items.log.hardwood"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.ironwood"): (
+        inputs: [
+            (Item("common.items.log.ironwood"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.frostwood"): (
+        inputs: [
+            (Item("common.items.log.frostwood"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ModularWeapon(material: "common.items.log.eldwood"): (
+        inputs: [
+            (Item("common.items.log.eldwood"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    // NON-MODULAR WEAPONS
+    ItemDefId("common.items.weapons.hammer.burnt_drumstick"): (
+        inputs: [
+            (Item("common.items.food.meat.bird_large_raw"), 1),
+        ],
+    ),
+    ItemDefId("common.items.weapons.sword.cultist"): (
+        inputs: [
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.weapons.axe.malachite"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.weapons.hammer.cultist_purp_2h-0"): (
+        inputs: [
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.weapons.bow.velorite"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.weapons.staff.cultist_staff"): (
+        inputs: [
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.weapons.scepter.root_evil"): (
+        inputs: [
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.weapons.scepter.sceptre_velorite_0"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.weapons.sword.caladbolg"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.axe.parashu"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.hammer.mjolnir"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.bow.sagitta"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.staff.laevateinn"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    ItemDefId("common.items.weapons.scepter.caduceus"): (
+        inputs: [
+            (Item("common.items.mineral.ore.velorite"), 5),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+        ],
+    ),
+    // ARMOR
+    ItemDefId("common.items.armor.cloth_purple.chest"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_purple.belt"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_purple.foot"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_purple.hand"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_purple.pants"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_purple.shoulder"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.chest"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.belt"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.foot"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.hand"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.pants"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.shoulder"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.chest"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.belt"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.foot"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.hand"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.pants"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_green.shoulder"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_blue.chest"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_blue.belt"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_blue.foot"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_blue.hand"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_blue.pants"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_blue.shoulder_0"): ( inputs: [], ),
+    ItemDefId("common.items.armor.cloth_blue.shoulder_1"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_purple_0"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_purple_1"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_purple_brown"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_green_0"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_green_1"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_orange_0"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_orange_1"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_red_0"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_red_1"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_yellow_0"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.chest.worker_yellow_1"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.pants.worker_brown"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.pants.worker_blue"): ( inputs: [], ),
+    ItemDefId("common.items.armor.misc.foot.sandals"): ( inputs: [], ),
+    // ARMOR/HIDE/RAWHIDE
+    ItemDefId("common.items.armor.hide.rawhide.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.rawhide.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.rawhide.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armorhide.rawhide.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.rawhide.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.rawhide.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.rawhide.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 2),
+        ],
+    ),
+    // ARMOR/HIDE/LEATHER
+    ItemDefId("common.items.armor.hide.leather.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.leather.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.leather.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armorhide.leather.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.leather.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.leather.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.leather.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 2),
+        ],
+    ),
+    // ARMOR/HIDE/SCALE
+    ItemDefId("common.items.armor.hide.scale.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.scale.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.scale.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armorhide.scale.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.scale.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.scale.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.scale.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    // ARMOR/HIDE/CARAPACE
+    ItemDefId("common.items.armor.hide.carapace.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.carapace.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.carapace.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armorhide.carapace.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.carapace.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.carapace.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.carapace.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    // ARMOR/HIDE/PRIMAL
+    ItemDefId("common.items.armor.hide.primal.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.primal.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.primal.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 9),
+        ],
+    ),
+    ItemDefId("common.items.armorhide.primal.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.primal.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.primal.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.primal.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    // ARMOR/HIDE/DRAGONSCALE
+    ItemDefId("common.items.armor.hide.dragonscale.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.dragonscale.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.dragonscale.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 12),
+            (Item("common.items.mineral.ore.velorite"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.dragonscale.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.dragonscale.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.dragonscale.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.dragonscale.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    // ARMOR/CLOTH/LINEN
+    ItemDefId("common.items.armor.cloth.linen.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.linen.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.linen.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.linen.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.linen.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.linen.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.linen.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 2),
+        ],
+    ),
+    // ARMOR/CLOTH/WOOL
+    ItemDefId("common.items.armor.cloth.woolen.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.woolen.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.woolen.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.woolen.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.woolen.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.woolen.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.woolen.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 2),
+        ],
+    ),
+    // ARMOR/CLOTH/SILK
+    ItemDefId("common.items.armor.cloth.silken.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.silken.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.silken.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.silken.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.silken.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.silken.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.silken.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    // ARMOR/CLOTH/DRUID
+    ItemDefId("common.items.armor.cloth.druid.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.druid.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.druid.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.druid.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.druid.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.druid.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.druid.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    // ARMOR/CLOTH/MOONWEAVE
+    ItemDefId("common.items.armor.cloth.moonweave.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.moonweave.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.moonweave.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 9),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.moonweave.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.moonweave.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.moonweave.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.moonweave.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    // ARMOR/CLOTH/SUNSILK
+    ItemDefId("common.items.armor.cloth.sunsilk.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.sunsilk.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.sunsilk.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 12),
+            (Item("common.items.mineral.ore.velorite"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.sunsilk.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.sunsilk.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.sunsilk.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cloth.sunsilk.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    // ARMOR/MAIL/BRONZE
+    ItemDefId("common.items.armor.mail.bronze.back"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bronze.belt"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bronze.chest"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bronze.foot"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bronze.hand"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bronze.pants"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bronze.shoulder"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 2),
+        ],
+    ),
+    // ARMOR/MAIL/IRON
+    ItemDefId("common.items.armor.mail.iron.back"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.iron.belt"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.iron.chest"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.iron.foot"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.iron.hand"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.iron.pants"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.iron.shoulder"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 2),
+        ],
+    ),
+    // ARMOR/MAIL/STEEL
+    ItemDefId("common.items.armor.mail.steel.back"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.steel.belt"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.steel.chest"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.steel.foot"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.steel.hand"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.steel.pants"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.steel.shoulder"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    // ARMOR/MAIL/COBALT
+    ItemDefId("common.items.armor.mail.bloodsteel.back"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.cobalt.belt"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.cobalt.chest"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.cobalt.foot"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.cobalt.hand"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.cobalt.pants"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.cobalt.shoulder"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    // ARMOR/MAIL/BLOODSTEEL
+    ItemDefId("common.items.armor.mail.bloodsteel.back"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bloodsteel.belt"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bloodsteel.chest"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 9),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bloodsteel.foot"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bloodsteel.hand"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bloodsteel.pants"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bloodsteel.shoulder"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    // ARMOR/MAIL/ORICHALCUM
+    ItemDefId("common.items.armor.mail.orichalcum.back"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.orichalcum.belt"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.orichalcum.chest"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 12),
+            (Item("common.items.mineral.ore.velorite"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.orichalcum.foot"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.orichalcum.hand"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.orichalcum.pants"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.orichalcum.shoulder"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    // ARMOR/CULTIST
+    ItemDefId("common.items.armor.cultist.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    ItemDefId("common.items.armor.cultist.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+        ],
+    ),
+    // MISC/HEAD
+    ItemDefId("common.items.armor.misc.head.straw"): (
+        inputs: [
+            (Item("common.items.flowers.wild_flax"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.bandana.red"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen_red"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.bandana.thief"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.hood"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.dark_hood"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.mitre"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen_red"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.spikeguard"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.winged_coronet"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.gold"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.misc.head.crown"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen_red"), 1),
+            (Item("common.items.mineral.ingot.gold"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.pirate.hat"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.witch.hat"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
+            (Item("common.items.crafting_ing.animal_misc.grim_eyeball"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.merchant.turban"): (
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen_red"), 4),
+            (Item("common.items.mineral.gem.diamond"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+},
+fallback: (
+    inputs: [
+        (Item("common.items.mineral.ore.veloritefrag"), 16),
+    ],
+),
+)

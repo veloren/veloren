@@ -13,6 +13,7 @@ hud-press_key_to_toggle_lantern_fmt = [{ $key }] Lantern
 hud-press_key_to_show_debug_info_fmt = Press { $key } to show debug info
 hud-press_key_to_toggle_keybindings_fmt = Press { $key } to toggle keybindings
 hud-press_key_to_toggle_debug_info_fmt = Press { $key } to toggle debug info
+hud_items_lost_dur = Your equipped items have lost Durability.
 hud-press_key_to_respawn = Press { $key } to respawn at the last campfire you visited.
 hud-tutorial_btn = Tutorial
 hud-tutorial_click_here = Press [ { $key } ] to free your cursor and click this button!

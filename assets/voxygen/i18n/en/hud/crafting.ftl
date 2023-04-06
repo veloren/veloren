@@ -3,6 +3,9 @@ hud-crafting-recipes = Recipes
 hud-crafting-ingredients = Ingredients:
 hud-crafting-craft = Craft
 hud-crafting-craft_all = Craft All
+hud-crafting-repair = Repair
+hud-crafting-repair_equipped = Repair Equipped
+hud-crafting-repair_all = Repair All
 hud-crafting-tool_cata = Requires:
 hud-crafting-req_crafting_station = Requires:
 hud-crafting-anvil = Anvil
@@ -14,6 +17,7 @@ hud-crafting-loom = Loom
 hud-crafting-spinning_wheel = Spinning Wheel
 hud-crafting-tanning_rack = Tanning Rack
 hud-crafting-salvaging_station = Salvaging Bench
+hud-crafting-repair_bench = Repair Bench
 hud-crafting-campfire = Campfire
 hud-crafting-tabs-all = All
 hud-crafting-tabs-armor = Armor
@@ -30,7 +34,7 @@ hud-crafting-dismantle_title = Dismantling
 hud-crafting-dismantle_explanation =
     Hover items in your bag to see what
     you can salvage.
-    
+
     Double-Click them to start dismantling.
 hud-crafting-modular_desc = Drag Item-Parts here to craft a weapon
 hud-crafting-mod_weap_prim_slot_title = Primary Weapon Component
@@ -43,3 +47,5 @@ hud-crafting-mod_comp_wood_prim_slot_title = Wood
 hud-crafting-mod_comp_wood_prim_slot_desc = Place a kind of wood here, only certain woods can be used to make weapons.
 hud-crafting-mod_comp_sec_slot_title = Animal Material
 hud-crafting-mod_comp_sec_slot_desc = Optionally place an animal crafting ingredient, only certain ingredients can be used to augment weapons.
+hud-crafting-repair_slot_title = Damaged Item
+hud-crafting-repair_slot_desc = Place an item here to see the cost of repairing it at its current durability level.

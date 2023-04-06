@@ -38,7 +38,7 @@ use common::{
     lod,
     mounting::Rider,
     outcome::Outcome,
-    recipe::{ComponentRecipeBook, RecipeBook},
+    recipe::{ComponentRecipeBook, RecipeBook, RepairRecipeBook},
     resources::{GameMode, PlayerEntity, Time, TimeOfDay},
     shared_server_config::ServerConstants,
     spiral::Spiral2d,
@@ -222,6 +222,7 @@ pub struct Client {
     pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
     component_recipe_book: ComponentRecipeBook,
+    repair_recipe_book: RepairRecipeBook,
     available_recipes: HashMap<String, Option<SpriteKind>>,
     lod_zones: HashMap<Vec2<i32>, lod::Zone>,
     lod_last_requested: Option<Instant>,
@@ -362,6 +363,7 @@ impl Client {
             material_stats,
             ability_map,
             server_constants,
+            repair_recipe_book,
         } = loop {
             tokio::select! {
                 // Spawn in a blocking thread (leaving the network thread free).  This is mostly
@@ -655,6 +657,7 @@ impl Client {
                 world_map.pois,
                 recipe_book,
                 component_recipe_book,
+                repair_recipe_book,
                 max_group_size,
                 client_timeout,
             ))
@@ -670,6 +673,7 @@ impl Client {
             pois,
             recipe_book,
             component_recipe_book,
+            repair_recipe_book,
             max_group_size,
             client_timeout,
         ) = loop {
@@ -708,6 +712,7 @@ impl Client {
             pois,
             recipe_book,
             component_recipe_book,
+            repair_recipe_book,
             available_recipes: HashMap::default(),
             chat_mode: ChatMode::default(),
 
@@ -1146,6 +1151,8 @@ impl Client {
 
     pub fn component_recipe_book(&self) -> &ComponentRecipeBook { &self.component_recipe_book }
 
+    pub fn repair_recipe_book(&self) -> &RepairRecipeBook { &self.repair_recipe_book }
+
     pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> {
         &self.available_recipes
     }
@@ -1287,6 +1294,39 @@ impl Client {
                 craft_sprite: sprite_pos,
             },
         )));
+    }
+
+    /// Repairs the item in the given inventory slot. `sprite_pos` should be
+    /// the location of a relevant crafting station within range of the player.
+    pub fn repair_item(
+        &mut self,
+        item: Slot,
+        slots: Vec<(u32, InvSlotId)>,
+        sprite_pos: Vec3<i32>,
+    ) -> bool {
+        let is_repairable = {
+            let inventories = self.inventories();
+            let inventory = inventories.get(self.entity());
+            inventory.map_or(false, |inv| {
+                if let Some(item) = match item {
+                    Slot::Equip(equip_slot) => inv.equipped(equip_slot),
+                    Slot::Inventory(invslot) => inv.get(invslot),
+                } {
+                    item.has_durability()
+                } else {
+                    false
+                }
+            })
+        };
+        if is_repairable {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                InventoryEvent::CraftRecipe {
+                    craft_event: CraftEvent::Repair { item, slots },
+                    craft_sprite: Some(sprite_pos),
+                },
+            )));
+        }
+        is_repairable
     }
 
     fn update_available_recipes(&mut self) {

@@ -291,6 +291,7 @@ impl Block {
                 | SpriteKind::Loom
                 | SpriteKind::SpinningWheel
                 | SpriteKind::DismantlingBench
+                | SpriteKind::RepairBench
                 | SpriteKind::TanningRack
                 | SpriteKind::Chest
                 | SpriteKind::DungeonChest0

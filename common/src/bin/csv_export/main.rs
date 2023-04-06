@@ -15,7 +15,7 @@ use veloren_common::{
             armor::{ArmorKind, Protection},
             modular::{generate_weapon_primary_components, generate_weapons},
             tool::{Hands, Tool, ToolKind},
-            Item, MaterialStatManifest,
+            DurabilityMultiplier, Item, MaterialStatManifest,
         },
     },
     generation::{EntityConfig, EntityInfo},
@@ -58,21 +58,23 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                 }
 
                 let msm = &MaterialStatManifest::load().read();
+                let dur_mult = DurabilityMultiplier(1.0);
+                let armor_stats = armor.stats(msm, dur_mult);
 
-                let protection = match armor.stats(msm).protection {
+                let protection = match armor_stats.protection {
                     Some(Protection::Invincible) => "Invincible".to_string(),
                     Some(Protection::Normal(value)) => value.to_string(),
                     None => "0.0".to_string(),
                 };
-                let poise_resilience = match armor.stats(msm).poise_resilience {
+                let poise_resilience = match armor_stats.poise_resilience {
                     Some(Protection::Invincible) => "Invincible".to_string(),
                     Some(Protection::Normal(value)) => value.to_string(),
                     None => "0.0".to_string(),
                 };
-                let max_energy = armor.stats(msm).energy_max.unwrap_or(0.0).to_string();
-                let energy_reward = armor.stats(msm).energy_reward.unwrap_or(0.0).to_string();
-                let crit_power = armor.stats(msm).crit_power.unwrap_or(0.0).to_string();
-                let stealth = armor.stats(msm).stealth.unwrap_or(0.0).to_string();
+                let max_energy = armor_stats.energy_max.unwrap_or(0.0).to_string();
+                let energy_reward = armor_stats.energy_reward.unwrap_or(0.0).to_string();
+                let crit_power = armor_stats.crit_power.unwrap_or(0.0).to_string();
+                let stealth = armor_stats.stealth.unwrap_or(0.0).to_string();
 
                 wtr.write_record([
                     item.item_definition_id()
@@ -124,14 +126,17 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
     for item in items.iter() {
         if let comp::item::ItemKind::Tool(tool) = &*item.kind() {
-            let power = tool.base_power().to_string();
-            let effect_power = tool.base_effect_power().to_string();
-            let speed = tool.base_speed().to_string();
-            let crit_chance = tool.base_crit_chance().to_string();
-            let range = tool.base_range().to_string();
-            let energy_efficiency = tool.base_energy_efficiency().to_string();
-            let buff_strength = tool.base_buff_strength().to_string();
-            let equip_time = tool.equip_time().as_secs_f32().to_string();
+            let dur_mult = DurabilityMultiplier(1.0);
+            let tool_stats = tool.stats(dur_mult);
+
+            let power = tool_stats.power.to_string();
+            let effect_power = tool_stats.effect_power.to_string();
+            let speed = tool_stats.speed.to_string();
+            let crit_chance = tool_stats.crit_chance.to_string();
+            let range = tool_stats.range.to_string();
+            let energy_efficiency = tool_stats.energy_efficiency.to_string();
+            let buff_strength = tool_stats.buff_strength.to_string();
+            let equip_time = tool_stats.equip_time_secs.to_string();
             let kind = get_tool_kind(&tool.kind);
             let hands = get_tool_hands(tool);
 

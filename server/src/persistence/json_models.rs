@@ -2,7 +2,7 @@ use common::comp;
 use common_base::dev_panic;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::string::ToString;
+use std::{num::NonZeroU32, string::ToString};
 use vek::{Vec2, Vec3};
 
 #[derive(Serialize, Deserialize)]
@@ -284,4 +284,37 @@ pub fn active_abilities_from_db_model(
         )
         .collect::<HashMap<_, _>>();
     comp::ability::ActiveAbilities::new(ability_sets)
+}
+
+/// Struct containing item properties in the format that they get persisted to
+/// the database. Adding new fields is generally safe as long as they are
+/// optional. Renaming or removing old fields will require a migration.
+#[derive(Serialize, Deserialize)]
+pub struct DatabaseItemProperties {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    durability: Option<NonZeroU32>,
+}
+
+pub fn item_properties_to_db_model(item: &comp::Item) -> DatabaseItemProperties {
+    DatabaseItemProperties {
+        durability: item.persistence_durability(),
+    }
+}
+
+pub fn apply_db_item_properties(item: &mut comp::Item, properties: &DatabaseItemProperties) {
+    let DatabaseItemProperties { durability } = properties;
+    item.persistence_set_durability(*durability);
+}
+
+#[cfg(test)]
+pub mod tests {
+    #[test]
+    fn test_default_item_properties() {
+        use super::DatabaseItemProperties;
+        const DEFAULT_ITEM_PROPERTIES: &str = "{}";
+        let _ = serde_json::de::from_str::<DatabaseItemProperties>(DEFAULT_ITEM_PROPERTIES).expect(
+            "Default value should always load to ensure that changes to item properties is always \
+             forward compatible with migration V50.",
+        );
+    }
 }

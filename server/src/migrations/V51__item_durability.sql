@@ -1,0 +1,1 @@
+ALTER TABLE item ADD properties TEXT NOT NULL DEFAULT '{}';

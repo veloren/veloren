@@ -716,7 +716,7 @@ Velorite: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.velorite.velorite_ore",
-            offset: (-5.0, -5.0, -5.0),
+            offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -725,53 +725,8 @@ Velorite: Some((
 VeloriteFrag: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.velorite.velorite_1",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_2",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_3",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_4",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_5",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_6",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_7",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_8",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_9",
-            offset: (-3.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_10",
-            offset: (-3.0, -5.0, 0.0),
+            model: "voxygen.voxel.sprite.velorite.velorite",
+            offset: (-4.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -784,7 +739,7 @@ Chest: Some((
             model: "voxygen.voxel.sprite.chests.chest",
             offset: (-7.0, -5.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
-        ),        
+        ),
         (
             model: "voxygen.voxel.sprite.chests.chest_dark",
             offset: (-7.0, -5.0, -0.0),
@@ -799,13 +754,13 @@ Chest: Some((
     wind_sway: 0.0,
 )),
 CommonLockedChest: Some((
-    variations: [        
+    variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_gold",
             offset: (-7.0, -5.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-        
+
     ],
     wind_sway: 0.0,
 )),
@@ -3783,6 +3738,17 @@ CookingPot: Some((
         (
             model: "voxygen.voxel.sprite.cooking_pot.pot-0",
             offset: (-9.0, -10.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Repair Bench
+RepairBench: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.repair_bench.repair_bench-0",
+            offset: (-7.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

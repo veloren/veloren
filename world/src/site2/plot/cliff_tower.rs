@@ -632,6 +632,7 @@ impl Structure for CliffTower {
                                 SpriteKind::Forge,
                                 SpriteKind::DismantlingBench,
                                 SpriteKind::Anvil,
+                                SpriteKind::RepairBench,
                             ];
                             for dir in LOCALITY {
                                 let pos = super_center + dir * (width / 3);

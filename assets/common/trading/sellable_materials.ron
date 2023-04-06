@@ -11,10 +11,10 @@
     (0.08, Item("common.items.mineral.gem.ruby")),
     (0.1, Item("common.items.mineral.gem.emerald")),
     (0.2, Item("common.items.mineral.gem.sapphire")),
-    (0.25, Item("common.items.mineral.ore.velorite")),
-    (0.5, Item("common.items.mineral.ore.veloritefrag")),
+    (0.5, Item("common.items.mineral.ore.velorite")),
     (0.75, Item("common.items.mineral.gem.topaz")),
     (1.0, Item("common.items.mineral.gem.amethyst")),
+    (2.0, Item("common.items.mineral.ore.veloritefrag")),
     (4.0, Item("common.items.crafting_ing.stones")),
 
     // Ores

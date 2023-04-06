@@ -240,6 +240,7 @@ make_case_elim!(
         Keyhole = 0xD7,
         KeyDoor = 0xD8,
         CommonLockedChest = 0xD9,
+        RepairBench = 0xDA,
     }
 );
 
@@ -308,6 +309,7 @@ impl SpriteKind {
             SpriteKind::CookingPot => 1.36,
             SpriteKind::DismantlingBench => 1.18,
             SpriteKind::IceSpike => 1.0,
+            SpriteKind::RepairBench => 1.2,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
             | SpriteKind::RoundCactus
@@ -581,6 +583,7 @@ impl SpriteKind {
                 | SpriteKind::TanningRack
                 | SpriteKind::Loom
                 | SpriteKind::DismantlingBench
+                | SpriteKind::RepairBench
                 | SpriteKind::ChristmasOrnament
                 | SpriteKind::ChristmasWreath
                 | SpriteKind::WindowArabic

@@ -447,7 +447,7 @@
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.straw"): (
-            vox_spec: ("armor.misc.head.straw", (-2.0, -5.0, 7.0)),
+            vox_spec: ("armor.misc.head.straw", (-2.0, -4.0, 7.0)),
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.straw"): (
@@ -463,7 +463,7 @@
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.straw"): (
-            vox_spec: ("armor.misc.head.straw", (-3.0, -3.0, 8.0)),
+            vox_spec: ("armor.misc.head.straw", (-3.0, -4.0, 7.0)),
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.straw"): (

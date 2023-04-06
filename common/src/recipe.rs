@@ -1,11 +1,12 @@
 use crate::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        inventory::slot::InvSlotId,
+        inventory::slot::{InvSlotId, Slot},
         item::{
             modular,
             tool::{AbilityMap, ToolKind},
-            ItemBase, ItemDef, ItemDefinitionIdOwned, ItemKind, ItemTag, MaterialStatManifest,
+            ItemBase, ItemDef, ItemDefinitionId, ItemDefinitionIdOwned, ItemKind, ItemTag,
+            MaterialStatManifest,
         },
         Inventory, Item,
     },
@@ -37,6 +38,45 @@ pub enum RecipeInput {
     /// Eventually should be reworked so that items can be spread over multiple
     /// slots.
     ListSameItem(Vec<Arc<ItemDef>>),
+}
+
+impl RecipeInput {
+    fn handle_requirement<'a, I: Iterator<Item = InvSlotId>>(
+        &'a self,
+        amount: u32,
+        slot_claims: &mut HashMap<InvSlotId, u32>,
+        unsatisfied_requirements: &mut Vec<(&'a RecipeInput, u32)>,
+        inv: &Inventory,
+        input_slots: I,
+    ) {
+        let mut required = amount;
+        // contains_any check used for recipes that have an input that is not consumed,
+        // e.g. craftsman hammer
+        // Goes through each slot and marks some amount from each slot as claimed
+        let contains_any = input_slots.into_iter().all(|slot| {
+            // Checks that the item in the slot can be used for the input
+            if let Some(item) = inv
+                .get(slot)
+                .filter(|item| item.matches_recipe_input(self, amount))
+            {
+                // Gets the number of items claimed from the slot, or sets to 0 if slot has
+                // not been claimed by another input yet
+                let claimed = slot_claims.entry(slot).or_insert(0);
+                let available = item.amount().saturating_sub(*claimed);
+                let provided = available.min(required);
+                required -= provided;
+                *claimed += provided;
+                true
+            } else {
+                false
+            }
+        });
+        // If there were not sufficient items to cover requirement between all provided
+        // slots, or if non-consumed item was not present, mark input as not satisfied
+        if required > 0 || !contains_any {
+            unsatisfied_requirements.push((self, required));
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -477,13 +517,11 @@ impl assets::Compound for RecipeBook {
         cache: assets::AnyCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
-        #[inline]
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;
             Ok((def, spec.1))
         }
 
-        #[inline]
         fn load_recipe_input(
             (input, amount, is_mod_comp): &(RawRecipeInput, u32, bool),
         ) -> Result<(RecipeInput, u32, bool), assets::Error> {
@@ -594,65 +632,26 @@ impl ComponentRecipe {
         let mut slot_claims = HashMap::new();
         let mut unsatisfied_requirements = Vec::new();
 
-        fn handle_requirement<'a, I: Iterator<Item = InvSlotId>>(
-            slot_claims: &mut HashMap<InvSlotId, u32>,
-            unsatisfied_requirements: &mut Vec<(&'a RecipeInput, u32)>,
-            inv: &Inventory,
-            input: &'a RecipeInput,
-            amount: u32,
-            input_slots: I,
-        ) {
-            let mut required = amount;
-            // contains_any check used for recipes that have an input that is not consumed,
-            // e.g. craftsman hammer
-            // Goes through each slot and marks some amount from each slot as claimed
-            let contains_any = input_slots.into_iter().all(|slot| {
-                // Checks that the item in the slot can be used for the input
-                if let Some(item) = inv
-                    .get(slot)
-                    .filter(|item| item.matches_recipe_input(input, amount))
-                {
-                    // Gets the number of items claimed from the slot, or sets to 0 if slot has
-                    // not been claimed by another input yet
-                    let claimed = slot_claims.entry(slot).or_insert(0);
-                    let available = item.amount().saturating_sub(*claimed);
-                    let provided = available.min(required);
-                    required -= provided;
-                    *claimed += provided;
-                    true
-                } else {
-                    false
-                }
-            });
-            // If there were not sufficient items to cover requirement between all provided
-            // slots, or if non-consumed item was not present, mark input as not satisfied
-            if required > 0 || !contains_any {
-                unsatisfied_requirements.push((input, required));
-            }
-        }
-
         // Checks each input against slots in the inventory. If the slots contain an
         // item that fulfills the need of the input, marks some of the item as claimed
         // up to quantity needed for the crafting input. If the item either
         // cannot be used, or there is insufficient quantity, adds input and
         // number of materials needed to unsatisfied requirements.
-        handle_requirement(
+        self.material.0.handle_requirement(
+            self.material.1,
             &mut slot_claims,
             &mut unsatisfied_requirements,
             inv,
-            &self.material.0,
-            self.material.1,
             core::iter::once(material_slot),
         );
         if let Some((modifier_input, modifier_amount)) = &self.modifier {
             // TODO: Better way to get slot to use that ensures this requirement fails if no
             // slot provided?
-            handle_requirement(
+            modifier_input.handle_requirement(
+                *modifier_amount,
                 &mut slot_claims,
                 &mut unsatisfied_requirements,
                 inv,
-                modifier_input,
-                *modifier_amount,
                 core::iter::once(modifier_slot.unwrap_or(InvSlotId::new(0, 0))),
             );
         }
@@ -666,12 +665,11 @@ impl ComponentRecipe {
                     .filter_map(|(j, slot)| if i as u32 == *j { Some(slot) } else { None })
                     .copied();
                 // Checks if requirement is met, and if not marks it as unsatisfied
-                handle_requirement(
+                input.handle_requirement(
+                    *amount,
                     &mut slot_claims,
                     &mut unsatisfied_requirements,
                     inv,
-                    input,
-                    *amount,
                     input_slots,
                 );
             });
@@ -835,7 +833,6 @@ impl assets::Compound for ComponentRecipeBook {
         cache: assets::AnyCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
-        #[inline]
         fn create_recipe_key(raw_recipe: &RawComponentRecipe) -> ComponentKey {
             match &raw_recipe.output {
                 RawComponentOutput::ToolPrimaryComponent { toolkind, item: _ } => {
@@ -853,7 +850,6 @@ impl assets::Compound for ComponentRecipeBook {
             }
         }
 
-        #[inline]
         fn load_recipe(raw_recipe: &RawComponentRecipe) -> Result<ComponentRecipe, assets::Error> {
             let output = match &raw_recipe.output {
                 RawComponentOutput::ToolPrimaryComponent { toolkind: _, item } => {
@@ -900,12 +896,220 @@ impl assets::Compound for ComponentRecipeBook {
     }
 }
 
+#[derive(Serialize, Deserialize, Hash, PartialEq, Eq, Clone, Debug)]
+enum RepairKey {
+    ItemDefId(String),
+    ModularWeapon { material: String },
+}
+
+impl RepairKey {
+    fn from_item(item: &Item) -> Option<Self> {
+        match item.item_definition_id() {
+            ItemDefinitionId::Simple(item_id) => Some(Self::ItemDefId(String::from(item_id))),
+            ItemDefinitionId::Compound { .. } => None,
+            ItemDefinitionId::Modular { pseudo_base, .. } => match pseudo_base {
+                "veloren.core.pseudo_items.modular.tool" => {
+                    if let Some(ItemDefinitionId::Simple(material)) = item
+                        .components()
+                        .iter()
+                        .find(|comp| {
+                            matches!(
+                                &*comp.kind(),
+                                ItemKind::ModularComponent(
+                                    modular::ModularComponent::ToolPrimaryComponent { .. }
+                                )
+                            )
+                        })
+                        .and_then(|comp| {
+                            comp.components()
+                                .iter()
+                                .next()
+                                .map(|comp| comp.item_definition_id())
+                        })
+                    {
+                        let material = String::from(material);
+                        Some(Self::ModularWeapon { material })
+                    } else {
+                        None
+                    }
+                },
+                _ => None,
+            },
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct RawRepairRecipe {
+    inputs: Vec<(RawRecipeInput, u32)>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct RawRepairRecipeBook {
+    recipes: HashMap<RepairKey, RawRepairRecipe>,
+    fallback: RawRepairRecipe,
+}
+
+impl assets::Asset for RawRepairRecipeBook {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct RepairRecipe {
+    inputs: Vec<(RecipeInput, u32)>,
+}
+
+impl RepairRecipe {
+    /// Determine whether the inventory contains the ingredients for a repair.
+    /// If it does, return a vec of inventory slots that contain the
+    /// ingredients needed, whose positions correspond to particular repair
+    /// inputs. If items are missing, return the missing items, and how many
+    /// are missing.
+    pub fn inventory_contains_ingredients(
+        &self,
+        item: &Item,
+        inv: &Inventory,
+    ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&RecipeInput, u32)>> {
+        inventory_contains_ingredients(self.inputs(item), inv, 1)
+    }
+
+    pub fn inputs(&self, item: &Item) -> impl Iterator<Item = (&RecipeInput, u32)> {
+        let item_durability = item.durability().unwrap_or(0);
+        self.inputs
+            .iter()
+            .filter_map(move |(input, original_amount)| {
+                let amount = (original_amount * item_durability) / Item::MAX_DURABILITY;
+                // If original repair recipe consumed ingredients, but item not damaged enough
+                // to actually need to consume item, remove item as requirement.
+                if *original_amount > 0 && amount == 0 {
+                    None
+                } else {
+                    Some((input, amount))
+                }
+            })
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct RepairRecipeBook {
+    recipes: HashMap<RepairKey, RepairRecipe>,
+    fallback: RepairRecipe,
+}
+
+impl RepairRecipeBook {
+    pub fn repair_recipe(&self, item: &Item) -> Option<&RepairRecipe> {
+        RepairKey::from_item(item)
+            .as_ref()
+            .and_then(|key| self.recipes.get(key))
+            .or_else(|| item.has_durability().then_some(&self.fallback))
+    }
+
+    pub fn repair_item(
+        &self,
+        inv: &mut Inventory,
+        item: Slot,
+        slots: Vec<(u32, InvSlotId)>,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Result<(), Vec<(&RecipeInput, u32)>> {
+        let mut slot_claims = HashMap::new();
+        let mut unsatisfied_requirements = Vec::new();
+
+        if let Some(item) = match item {
+            Slot::Equip(slot) => inv.equipped(slot),
+            Slot::Inventory(slot) => inv.get(slot),
+        } {
+            if let Some(repair_recipe) = self.repair_recipe(item) {
+                repair_recipe
+                    .inputs(item)
+                    .enumerate()
+                    .for_each(|(i, (input, amount))| {
+                        // Gets all slots provided for this input by the frontend
+                        let input_slots = slots
+                            .iter()
+                            .filter_map(|(j, slot)| if i as u32 == *j { Some(slot) } else { None })
+                            .copied();
+                        // Checks if requirement is met, and if not marks it as unsatisfied
+                        input.handle_requirement(
+                            amount,
+                            &mut slot_claims,
+                            &mut unsatisfied_requirements,
+                            inv,
+                            input_slots,
+                        );
+                    })
+            }
+        }
+
+        if unsatisfied_requirements.is_empty() {
+            for (slot, to_remove) in slot_claims.iter() {
+                for _ in 0..*to_remove {
+                    let _ = inv
+                        .take(*slot, ability_map, msm)
+                        .expect("Expected item to exist in the inventory");
+                }
+            }
+
+            inv.repair_item_at_slot(item, ability_map, msm);
+
+            Ok(())
+        } else {
+            Err(unsatisfied_requirements)
+        }
+    }
+}
+
+impl assets::Compound for RepairRecipeBook {
+    fn load(
+        cache: assets::AnyCache,
+        specifier: &assets::SharedString,
+    ) -> Result<Self, assets::BoxedError> {
+        fn load_recipe_input(
+            (input, amount): &(RawRecipeInput, u32),
+        ) -> Result<(RecipeInput, u32), assets::Error> {
+            let input = input.load_recipe_input()?;
+            Ok((input, *amount))
+        }
+
+        let raw = cache.load::<RawRepairRecipeBook>(specifier)?.cloned();
+
+        let recipes = raw
+            .recipes
+            .iter()
+            .map(|(key, RawRepairRecipe { inputs })| {
+                let inputs = inputs
+                    .iter()
+                    .map(load_recipe_input)
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok((key.clone(), RepairRecipe { inputs }))
+            })
+            .collect::<Result<_, assets::Error>>()?;
+
+        let fallback = RepairRecipe {
+            inputs: raw
+                .fallback
+                .inputs
+                .iter()
+                .map(load_recipe_input)
+                .collect::<Result<Vec<_>, _>>()?,
+        };
+
+        Ok(RepairRecipeBook { recipes, fallback })
+    }
+}
+
 pub fn default_recipe_book() -> AssetHandle<RecipeBook> {
     RecipeBook::load_expect("common.recipe_book")
 }
 
 pub fn default_component_recipe_book() -> AssetHandle<ComponentRecipeBook> {
     ComponentRecipeBook::load_expect("common.component_recipe_book")
+}
+
+pub fn default_repair_recipe_book() -> AssetHandle<RepairRecipeBook> {
+    RepairRecipeBook::load_expect("common.repair_recipe_book")
 }
 
 impl assets::Compound for ReverseComponentRecipeBook {

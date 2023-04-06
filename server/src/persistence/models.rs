@@ -12,6 +12,7 @@ pub struct Item {
     pub item_definition_id: String,
     pub stack_size: i32,
     pub position: String,
+    pub properties: String,
 }
 
 pub struct Body {

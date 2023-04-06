@@ -800,7 +800,7 @@
     Simple("common.items.food.blue_cheese"): "voxel.object.blue_cheese",
     Simple("common.items.food.mushroom"): "voxel.sprite.mushrooms.mushroom-10",
     Simple("common.items.mineral.ore.velorite"): "voxel.sprite.velorite.velorite_ore",
-    Simple("common.items.mineral.ore.veloritefrag"): "voxel.sprite.velorite.velorite_1",
+    Simple("common.items.mineral.ore.veloritefrag"): "voxel.sprite.velorite.velorite",
     Simple("common.items.food.apple_mushroom_curry"): "voxel.object.mushroom_curry",
     Simple("common.items.food.spore_corruption"): "voxel.sprite.spore.corruption_spore",
     Simple("common.items.food.apple_stick"): "voxel.object.apple_stick",

@@ -1,5 +1,5 @@
 use crate::{
-    comp::item::{MaterialStatManifest, Rgb},
+    comp::item::{DurabilityMultiplier, MaterialStatManifest, Rgb},
     terrain::{Block, BlockKind},
 };
 use serde::{Deserialize, Serialize};
@@ -23,6 +23,25 @@ pub enum ArmorKind {
     Head,
     Tabard,
     Bag,
+}
+
+impl ArmorKind {
+    pub fn has_durability(self) -> bool {
+        match self {
+            ArmorKind::Shoulder => true,
+            ArmorKind::Chest => true,
+            ArmorKind::Belt => true,
+            ArmorKind::Hand => true,
+            ArmorKind::Pants => true,
+            ArmorKind::Foot => true,
+            ArmorKind::Back => true,
+            ArmorKind::Ring => false,
+            ArmorKind::Neck => false,
+            ArmorKind::Head => true,
+            ArmorKind::Tabard => false,
+            ArmorKind::Bag => false,
+        }
+    }
 }
 
 impl Armor {
@@ -212,8 +231,12 @@ pub struct Armor {
 impl Armor {
     pub fn new(kind: ArmorKind, stats: StatsSource) -> Self { Self { kind, stats } }
 
-    pub fn stats(&self, msm: &MaterialStatManifest) -> Stats {
-        match &self.stats {
+    pub fn stats(
+        &self,
+        msm: &MaterialStatManifest,
+        durability_multiplier: DurabilityMultiplier,
+    ) -> Stats {
+        let base_stats = match &self.stats {
             StatsSource::Direct(stats) => *stats,
             StatsSource::FromSet(set) => {
                 let set_stats = msm.armor_stats(set).unwrap_or_else(Stats::none);
@@ -237,7 +260,8 @@ impl Armor {
 
                 set_stats * multiplier
             },
-        }
+        };
+        base_stats * durability_multiplier.0
     }
 
     #[cfg(test)]

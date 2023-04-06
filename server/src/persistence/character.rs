@@ -70,13 +70,15 @@ pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, Persi
             parent_container_item_id,
             item_definition_id,
             stack_size,
-            position
+            position,
+            properties
         ) AS (
             SELECT  item_id,
                     parent_container_item_id,
                     item_definition_id,
                     stack_size,
-                    position
+                    position,
+                    properties
             FROM item
             WHERE parent_container_item_id = ?1
             UNION ALL
@@ -84,7 +86,8 @@ pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, Persi
                     item.parent_container_item_id,
                     item.item_definition_id,
                     item.stack_size,
-                    item.position
+                    item.position,
+                    item.properties
             FROM item, items_tree
             WHERE item.parent_container_item_id = items_tree.item_id
         )
@@ -100,6 +103,7 @@ pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, Persi
                 item_definition_id: row.get(2)?,
                 stack_size: row.get(3)?,
                 position: row.get(4)?,
+                properties: row.get(5)?,
             })
         })?
         .filter_map(Result::ok)
@@ -390,6 +394,7 @@ pub fn create_character(
             parent_container_item_id: WORLD_PSEUDO_CONTAINER_ID,
             item_definition_id: CHARACTER_PSEUDO_CONTAINER_DEF_ID.to_owned(),
             position: character_id.to_string(),
+            properties: String::new(),
         },
         Item {
             stack_size: 1,
@@ -397,6 +402,7 @@ pub fn create_character(
             parent_container_item_id: character_id,
             item_definition_id: INVENTORY_PSEUDO_CONTAINER_DEF_ID.to_owned(),
             position: INVENTORY_PSEUDO_CONTAINER_POSITION.to_owned(),
+            properties: String::new(),
         },
         Item {
             stack_size: 1,
@@ -404,6 +410,7 @@ pub fn create_character(
             parent_container_item_id: character_id,
             item_definition_id: LOADOUT_PSEUDO_CONTAINER_DEF_ID.to_owned(),
             position: LOADOUT_PSEUDO_CONTAINER_POSITION.to_owned(),
+            properties: String::new(),
         },
     ];
 
@@ -413,8 +420,9 @@ pub fn create_character(
                           parent_container_item_id,
                           item_definition_id,
                           stack_size,
-                          position)
-        VALUES (?1, ?2, ?3, ?4, ?5)",
+                          position,
+                          properties)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
     )?;
 
     for pseudo_container in pseudo_containers {
@@ -424,6 +432,7 @@ pub fn create_character(
             &pseudo_container.item_definition_id,
             &pseudo_container.stack_size,
             &pseudo_container.position,
+            &pseudo_container.properties,
         ])?;
     }
     drop(stmt);
@@ -521,8 +530,9 @@ pub fn create_character(
                           parent_container_item_id,
                           item_definition_id,
                           stack_size,
-                          position)
-        VALUES (?1, ?2, ?3, ?4, ?5)",
+                          position,
+                          properties)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
     )?;
 
     for item in inserts {
@@ -532,6 +542,7 @@ pub fn create_character(
             &item.model.item_definition_id,
             &item.model.stack_size,
             &item.model.position,
+            &item.model.properties,
         ])?;
     }
     drop(stmt);
@@ -1048,8 +1059,9 @@ pub fn update(
                           parent_container_item_id,
                           item_definition_id,
                           stack_size,
-                          position)
-            VALUES  (?1, ?2, ?3, ?4, ?5)",
+                          position,
+                          properties)
+            VALUES  (?1, ?2, ?3, ?4, ?5, ?6)",
         )?;
 
         for item in upserted_items.iter() {
@@ -1059,6 +1071,7 @@ pub fn update(
                 &item.item_definition_id,
                 &item.stack_size,
                 &item.position,
+                &item.properties,
             ])?;
         }
     }

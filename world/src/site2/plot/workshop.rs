@@ -128,6 +128,7 @@ impl Structure for Workshop {
             SpriteKind::Loom,
             SpriteKind::Anvil,
             SpriteKind::DismantlingBench,
+            SpriteKind::RepairBench,
         ];
         'outer: for d in 0..3 {
             for dir in CARDINALS {

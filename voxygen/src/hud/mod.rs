@@ -87,7 +87,11 @@ use common::{
         self,
         ability::{AuxiliaryAbility, Stance},
         fluid_dynamics,
-        inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
+        inventory::{
+            slot::{InvSlotId, Slot},
+            trade_pricing::TradePricing,
+            CollectFailedReason,
+        },
         item::{
             tool::{AbilityContext, ToolKind},
             ItemDesc, MaterialStatManifest, Quality,
@@ -721,6 +725,10 @@ pub enum Event {
         modifier: Option<InvSlotId>,
         craft_sprite: Option<Vec3<i32>>,
     },
+    RepairItem {
+        item: Slot,
+        sprite_pos: Vec3<i32>,
+    },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -914,6 +922,7 @@ impl Show {
             self.bag = open;
             self.map = false;
             self.crafting_fields.salvage = false;
+
             if !open {
                 self.crafting = false;
             }
@@ -992,6 +1001,10 @@ impl Show {
             self.crafting_fields.craft_sprite,
             Some((_, SpriteKind::DismantlingBench))
         ) && matches!(tab, CraftingTab::Dismantle);
+        self.crafting_fields.initialize_repair = matches!(
+            self.crafting_fields.craft_sprite,
+            Some((_, SpriteKind::RepairBench))
+        );
     }
 
     fn diary(&mut self, open: bool) {
@@ -3253,6 +3266,19 @@ impl Hud {
                         crafting::Event::ClearRecipeInputs => {
                             self.show.crafting_fields.recipe_inputs.clear();
                         },
+                        crafting::Event::RepairItem { slot } => {
+                            if let Some(sprite_pos) = self
+                                .show
+                                .crafting_fields
+                                .craft_sprite
+                                .map(|(pos, _sprite)| pos)
+                            {
+                                events.push(Event::RepairItem {
+                                    item: slot,
+                                    sprite_pos,
+                                });
+                            }
+                        },
                     }
                 }
             }
@@ -3688,7 +3714,6 @@ impl Hud {
 
         // Maintain slot manager
         'slot_events: for event in self.slot_manager.maintain(ui_widgets) {
-            use comp::slot::Slot;
             use slots::{AbilitySlot, InventorySlot, SlotKind::*};
             let to_slot = |slot_kind| match slot_kind {
                 Inventory(InventorySlot {
@@ -3788,7 +3813,21 @@ impl Hud {
                             self.show
                                 .crafting_fields
                                 .recipe_inputs
-                                .insert(c.index, i.slot);
+                                .insert(c.index, Slot::Inventory(i.slot));
+                        }
+                    } else if let (Equip(e), Crafting(c)) = (a, b) {
+                        // Add item to crafting input
+                        if inventories
+                            .get(client.entity())
+                            .and_then(|inv| inv.equipped(e))
+                            .map_or(false, |item| {
+                                (c.requirement)(item, client.component_recipe_book(), c.info)
+                            })
+                        {
+                            self.show
+                                .crafting_fields
+                                .recipe_inputs
+                                .insert(c.index, Slot::Equip(e));
                         }
                     } else if let (Crafting(c), Inventory(_)) = (a, b) {
                         // Remove item from crafting input
@@ -5043,6 +5082,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::Anvil => "hud-crafting-anvil",
         SpriteKind::Cauldron => "hud-crafting-cauldron",
         SpriteKind::CookingPot => "hud-crafting-cooking_pot",
+        SpriteKind::RepairBench => "hud-crafting-repair_bench",
         SpriteKind::CraftingBench => "hud-crafting-crafting_bench",
         SpriteKind::Forge => "hud-crafting-forge",
         SpriteKind::Loom => "hud-crafting-loom",
