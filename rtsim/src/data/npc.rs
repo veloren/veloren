@@ -226,6 +226,7 @@ impl Npc {
         // Clear reports that have been forgotten
         self.known_reports
             .retain(|report| reports.contains_key(*report));
+        // TODO: Limit number of reports
         // TODO: Clear old inbox items
     }
 }

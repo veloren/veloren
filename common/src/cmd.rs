@@ -695,8 +695,9 @@ impl ServerChatCommand {
                 Some(Moderator),
             ),
             ServerChatCommand::RtsimNpc => cmd(
-                vec![Any("query", Required)],
-                "List rtsim NPCs that fit a given query (e.g: simulated,merchant)",
+                vec![Any("query", Required), Integer("max number", 20, Optional)],
+                "List rtsim NPCs that fit a given query (e.g: simulated,merchant) in order of \
+                 distance",
                 Some(Moderator),
             ),
             ServerChatCommand::RtsimPurge => cmd(

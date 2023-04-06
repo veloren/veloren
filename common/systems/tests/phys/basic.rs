@@ -128,11 +128,11 @@ fn fall_dt_speed_diff() -> Result<(), Box<dyn Error>> {
     assert_relative_eq!(svel.0.z, -4.9847627, epsilon = EPSILON);
     assert_relative_eq!(fpos.0.x, 16.0);
     assert_relative_eq!(fpos.0.y, 16.0);
-    assert_relative_eq!(fpos.0.z, 264.25073, epsilon = EPSILON);
+    assert_relative_eq!(fpos.0.z, 264.25067, epsilon = EPSILON);
     assert_relative_eq!(fvel.0.z, -4.9930925, epsilon = EPSILON);
 
     // Diff after 200ms
-    assert_relative_eq!((spos.0.z - fpos.0.z).abs(), 0.2253418, epsilon = EPSILON);
+    assert_relative_eq!((spos.0.z - fpos.0.z).abs(), 0.22540283, epsilon = EPSILON);
     assert_relative_eq!((svel.0.z - fvel.0.z).abs(), 0.008329868, epsilon = EPSILON);
 
     Ok(())

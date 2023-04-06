@@ -58,6 +58,7 @@ impl Reports {
         // Forget reports that are too old
         self.reports
             .retain(|_, report| (current_time.0 - report.at.0).max(0.0) < report.remember_for());
+        // TODO: Limit global number of reports
     }
 }
 

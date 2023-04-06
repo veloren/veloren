@@ -2,8 +2,8 @@
 mod tests {
     use common::{
         comp::{
-            item::MaterialStatManifest, skills::GeneralSkill, tool::AbilityMap, CharacterState,
-            Controller, Energy, Ori, PhysicsState, Poise, Pos, Skill, Stats, Vel,
+            item::MaterialStatManifest, skills::GeneralSkill, tool::AbilityMap, CharacterActivity,
+            CharacterState, Controller, Energy, Ori, PhysicsState, Poise, Pos, Skill, Stats, Vel,
         },
         resources::{DeltaTime, GameMode, Time},
         shared_server_config::ServerConstants,
@@ -53,6 +53,7 @@ mod tests {
             .ecs_mut()
             .create_entity()
             .with(CharacterState::Idle(common::states::idle::Data::default()))
+            .with(CharacterActivity::default())
             .with(Pos(Vec3::zero()))
             .with(Vel::default())
             .with(ori)
@@ -116,8 +117,12 @@ mod tests {
         for i in 0..TESTCASES {
             if let Some(e) = entities[i] {
                 let result = Dir::from(*results.get(e).expect("Ori missing"));
-                assert!(result.abs_diff_eq(&testcases[i].1, 0.0005));
-                // println!("{:?}", result);
+                assert!(
+                    result.abs_diff_eq(&testcases[i].1, 0.0005),
+                    "{:?} != {:?}",
+                    result,
+                    testcases[i].1
+                );
             }
         }
     }

@@ -1268,12 +1268,12 @@ fn handle_rtsim_info(
 fn handle_rtsim_npc(
     server: &mut Server,
     client: EcsEntity,
-    _target: EcsEntity,
+    target: EcsEntity,
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use crate::rtsim::RtSim;
-    if let Some(query) = parse_cmd_args!(args, String) {
+    if let (Some(query), count) = parse_cmd_args!(args, String, u32) {
         let terms = query
             .split(',')
             .map(|s| s.trim().to_lowercase())
@@ -1281,7 +1281,7 @@ fn handle_rtsim_npc(
 
         let rtsim = server.state.ecs().read_resource::<RtSim>();
         let data = rtsim.state().data();
-        let npcs = data
+        let mut npcs = data
             .npcs
             .values()
             .enumerate()
@@ -1294,20 +1294,28 @@ fn handle_rtsim_npc(
                     format!("{:?}", npc.mode),
                     format!("{}", idx),
                 ];
-                terms
-                    .iter()
-                    .all(|term| tags.iter().any(|tag| term.eq_ignore_ascii_case(tag.trim())))
+                terms.iter().all(|term| {
+                    term == "" || tags.iter().any(|tag| term.eq_ignore_ascii_case(tag.trim()))
+                })
             })
             .collect::<Vec<_>>();
+        if let Ok(pos) = position(server, target, "target") {
+            npcs.sort_by_key(|(_, npc)| (npc.wpos.distance_squared(pos.0) * 10.0) as u64);
+        }
 
         let mut info = String::new();
 
         let _ = writeln!(&mut info, "-- NPCs matching [{}] --", terms.join(", "));
-        for (idx, _) in &npcs {
+        for (idx, _) in npcs.iter().take(count.unwrap_or(!0) as usize) {
             let _ = write!(&mut info, "{}, ", idx);
         }
         let _ = writeln!(&mut info);
-        let _ = writeln!(&mut info, "Matched {} NPCs.", npcs.len());
+        let _ = writeln!(
+            &mut info,
+            "Showing {}/{} matching NPCs.",
+            count.unwrap_or(npcs.len() as u32),
+            npcs.len()
+        );
 
         server.notify_client(
             client,
