@@ -169,7 +169,7 @@ impl<'a> Widget for LootScroller<'a> {
                     if *t >= oldest_merge_pulse {
                         if let Some(i) = self.new_messages.iter().position(|m| {
                             m.item.item_definition_id() == message.item.item_definition_id()
-                            && m.taken_by == message.taken_by
+                                && m.taken_by == message.taken_by
                         }) {
                             self.new_messages[i].amount += message.amount;
                             false
