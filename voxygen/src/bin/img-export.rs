@@ -20,23 +20,28 @@ pub fn main() {
     let manifest = ItemImagesSpec::load_expect("voxygen.item_image_manifest");
     for (_, spec) in manifest.read().0.iter() {
         match spec {
-            ImageSpec::Vox(specifier) => voxel_to_png(&specifier, Transform::default(), args.scale),
-            ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom) => voxel_to_png(
-                &specifier,
-                Transform {
-                    ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
-                        .rotated_y(rot_y * std::f32::consts::PI / 180.0)
-                        .rotated_z(rot_z * std::f32::consts::PI / 180.0),
-                    offset: Vec3::from(*offset),
-                    /* FIXME: This is a dirty workaround to not cut off the edges of some objects
-                     * like ./img-export/weapon/component/axe/poleaxe/bronze.vox
-                     * more details here: https://gitlab.com/veloren/veloren/-/merge_requests/3494#note_1205030803 */
-                    zoom: *zoom * 0.8,
-                    orth: true,
-                    stretch: false,
-                },
-                args.scale,
-            ),
+            ImageSpec::Vox(specifier, model_index) => {
+                voxel_to_png(&specifier, Transform::default(), args.scale, model_index)
+            },
+            ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom, model_index) => {
+                voxel_to_png(
+                    &specifier,
+                    Transform {
+                        ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
+                            .rotated_y(rot_y * std::f32::consts::PI / 180.0)
+                            .rotated_z(rot_z * std::f32::consts::PI / 180.0),
+                        offset: Vec3::from(*offset),
+                        /* FIXME: This is a dirty workaround to not cut off the edges of some
+                         * objects like ./img-export/weapon/component/
+                         * axe/poleaxe/bronze.vox more details here: https://gitlab.com/veloren/veloren/-/merge_requests/3494#note_1205030803 */
+                        zoom: *zoom * 0.8,
+                        orth: true,
+                        stretch: false,
+                    },
+                    args.scale,
+                    model_index,
+                )
+            },
             ImageSpec::Png(specifier) => {
                 println!("Skip png image {}", specifier);
                 continue;
@@ -45,7 +50,7 @@ pub fn main() {
     }
 }
 
-fn voxel_to_png(specifier: &String, transform: Transform, scale: u32) {
+fn voxel_to_png(specifier: &String, transform: Transform, scale: u32, model_index: u32) {
     let voxel = match DotVoxAsset::load(&format!("voxygen.{}", specifier)) {
         Ok(dot_vox) => dot_vox,
         Err(err) => {
@@ -56,7 +61,7 @@ fn voxel_to_png(specifier: &String, transform: Transform, scale: u32) {
     let dot_vox_data = &voxel.read().0;
     let model_size = dot_vox_data
         .models
-        .get(0)
+        .get(model_index)
         .expect("Error getting model from voxel")
         .size;
     let ori_mat = Mat4::from(transform.ori);

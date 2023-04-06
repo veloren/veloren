@@ -382,11 +382,11 @@
         ),
         "common.items.armor.mail.orichalcum.hand": (
             left: (
-                vox_spec: ("armor.mail.orichalcum.hand", (-4.5, -2.0, -4.0)),
+                vox_spec: ("armor.mail.orichalcum", (-4.5, -2.0, -4.0), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.orichalcum.hand", (-1.5, -2.0, -4.0)),
+                vox_spec: ("armor.mail.orichalcum", (-1.5, -2.0, -4.0), 4),
                 color: None
             )
         ),
