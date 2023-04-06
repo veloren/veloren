@@ -139,7 +139,7 @@ impl CharacterLoader {
                     if result.is_err() {
                         error!(
                             ?result,
-                            "Error loading character data for character_id: {}", character_id
+                            "Error loading character data for character_id: {}", character_id.0
                         );
                     }
                     CharacterScreenResponseKind::CharacterData(Box::new(result))

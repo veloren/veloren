@@ -1,6 +1,7 @@
-use crate::{ai::Action, gen::name};
+use crate::{ai::Action, data::sentiment::Sentiments, gen::name};
 pub use common::rtsim::{NpcId, Profession};
 use common::{
+    character::CharacterId,
     comp,
     grid::Grid,
     rtsim::{
@@ -91,7 +92,10 @@ pub struct Npc {
     pub faction: Option<FactionId>,
     pub riding: Option<Riding>,
 
+    #[serde(default)]
     pub personality: Personality,
+    #[serde(default)]
+    pub sentiments: Sentiments,
 
     // Unpersisted state
     #[serde(skip)]
@@ -124,6 +128,7 @@ impl Clone for Npc {
             riding: self.riding.clone(),
             body: self.body,
             personality: self.personality,
+            sentiments: self.sentiments.clone(),
             // Not persisted
             chunk_pos: None,
             current_site: Default::default(),
@@ -144,6 +149,7 @@ impl Npc {
             wpos,
             body,
             personality: Personality::default(),
+            sentiments: Sentiments::default(),
             profession: None,
             home: None,
             faction: None,
@@ -274,7 +280,7 @@ pub struct Npcs {
     #[serde(skip, default = "construct_npc_grid")]
     pub npc_grid: Grid<GridCell>,
     #[serde(skip)]
-    pub character_map: HashMap<Vec2<i32>, Vec<(common::character::CharacterId, Vec3<f32>)>>,
+    pub character_map: HashMap<Vec2<i32>, Vec<(CharacterId, Vec3<f32>)>>,
 }
 
 impl Default for Npcs {

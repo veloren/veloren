@@ -1,6 +1,7 @@
 pub mod faction;
 pub mod nature;
 pub mod npc;
+pub mod sentiment;
 pub mod site;
 
 pub use self::{
