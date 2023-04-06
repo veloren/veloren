@@ -716,7 +716,7 @@ Velorite: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.velorite.velorite_ore",
-            offset: (-5.0, -5.0, -5.0),
+            offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
