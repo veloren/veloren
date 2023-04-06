@@ -1276,6 +1276,7 @@ fn handle_rtsim_npc(
     if let (Some(query), count) = parse_cmd_args!(args, String, u32) {
         let terms = query
             .split(',')
+            .filter(|s| !s.is_empty())
             .map(|s| s.trim().to_lowercase())
             .collect::<Vec<_>>();
 
@@ -1294,9 +1295,9 @@ fn handle_rtsim_npc(
                     format!("{:?}", npc.mode),
                     format!("{}", idx),
                 ];
-                terms.iter().all(|term| {
-                    term == "" || tags.iter().any(|tag| term.eq_ignore_ascii_case(tag.trim()))
-                })
+                terms
+                    .iter()
+                    .all(|term| tags.iter().any(|tag| term.eq_ignore_ascii_case(tag.trim())))
             })
             .collect::<Vec<_>>();
         if let Ok(pos) = position(server, target, "target") {
