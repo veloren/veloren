@@ -517,7 +517,7 @@ impl Attack {
             .filter(|e| e.target.map_or(true, |t| t == target_group))
             .filter(|e| !avoid_effect(e))
         {
-            if effect.requirements.iter().all(|req| match req {
+            let requirements_met = effect.requirements.iter().all(|req| match req {
                 CombatRequirement::AnyDamage => accumulated_damage > 0.0 && target.health.is_some(),
                 CombatRequirement::Energy(r) => {
                     if let Some(AttackerInfo {
@@ -559,7 +559,8 @@ impl Attack {
                         false
                     }
                 },
-            }) {
+            });
+            if requirements_met {
                 is_applied = true;
                 match effect.effect {
                     CombatEffect::Knockback(kb) => {
