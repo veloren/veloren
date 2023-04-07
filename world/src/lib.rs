@@ -590,12 +590,22 @@ impl World {
                     _ => None,
                 })
                 .flatten()
-                .map(|wpos2d| lod::Object {
+                .filter_map(|wpos2d| {
+                    ColumnGen::new(self.sim())
+                        .get((wpos2d, index, self.sim().calendar.as_ref()))
+                        .zip(Some(wpos2d))
+                })
+                .map(|(col, wpos2d)| lod::Object {
                     kind: lod::ObjectKind::House,
                     pos: (wpos2d - min_wpos)
                         .map(|e| e as i16)
                         .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16),
-                    flags: lod::Flags::empty(),
+                    flags: lod::Flags::IS_BUILDING
+                        | if col.snow_cover {
+                            lod::Flags::SNOW_COVERED
+                        } else {
+                            lod::Flags::empty()
+                        },
                 }),
         );
 

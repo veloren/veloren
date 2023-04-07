@@ -22,7 +22,10 @@ layout(location = 0) in vec3 f_pos;
 layout(location = 1) in vec3 f_norm;
 layout(location = 2) in vec4 f_col;
 layout(location = 3) in vec3 model_pos;
-layout(location = 4) in float snow_cover;
+layout(location = 4) flat in uint f_flags;
+
+const uint FLAG_SNOW_COVERED = 1;
+const uint FLAG_IS_BUILDING = 2;
 
 layout(location = 0) out vec4 tgt_color;
 layout(location = 1) out uvec4 tgt_mat;
@@ -117,11 +120,25 @@ void main() {
     emitted_light *= f_ao;
     reflected_light *= f_ao;
 
-    vec3 side_color = mix(surf_color, vec3(0.5, 0.6, 1.0), snow_cover);
-    vec3 top_color = mix(surf_color, surf_color * 0.3, 0.5 + snow_cover * 0.5);
+    vec3 glow = vec3(0);
+    if ((f_flags & FLAG_IS_BUILDING) > 0u && abs(f_norm.z) < 0.1) {
+        ivec3 wpos = ivec3((f_pos.xyz + focus_off.xyz) * 0.2);
+        if (((wpos.x & wpos.y & wpos.z) & 1) == 1) {
+            glow += vec3(1, 0.7, 0.3) * 2;
+        } else {
+            reflected_light += vec3(1, 0.7, 0.3) * 0.9;
+        }
+    }
+
+    vec3 side_color = surf_color;
+    vec3 top_color = surf_color;
+    if ((f_flags & FLAG_SNOW_COVERED) > 0u && f_norm.z > 0.0) {
+        side_color = mix(side_color, vec3(0.5, 0.6, 1.0), f_norm.z);
+        top_color = mix(top_color, surf_color * 0.3, 0.5 + f_norm.z * 0.5);
+    }
     surf_color = mix(side_color, top_color, pow(fract(model_pos.z * 0.1), 2.0));
 
-    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
+    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light + glow, surf_color * reflected_light);
 
     tgt_color = vec4(surf_color, 1.0);
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_LOD);
