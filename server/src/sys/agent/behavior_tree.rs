@@ -139,12 +139,11 @@ impl BehaviorTree {
                 handle_inbox_trade_accepted,
                 handle_inbox_finished_trade,
                 handle_inbox_update_pending_trade,
-                handle_timed_events,
             ]);
             Self { tree }
         } else {
             Self {
-                tree: vec![handle_inbox_cancel_interactions, handle_timed_events],
+                tree: vec![handle_inbox_cancel_interactions],
             }
         }
     }
