@@ -325,11 +325,13 @@ impl GraphicCache {
             self.cache_map.drain_filter(|key, details| {
                 if key.graphic_id == id {
                     match details {
-                        // TODO: if replace_graphic is used continously for small images (i.e.
+                        // NOTE: if replace_graphic is used continously for small images (i.e.
                         // images placed into an atlas) of different sizes, that can use up our
                         // atlas space since spots in the atlas can't be reused. (this scenario is
                         // now possible with scaling being done during sampling rather than placing
-                        // resized version into the atlas)
+                        // resized version into the atlas). This is expected to not occur in all
+                        // pratical cases we plan to support here (i.e. the size of the replacement
+                        // image will always be the same).
                         CachedDetails::Atlas { .. } => {},
                         CachedDetails::Texture { index, .. } => {
                             self.textures.remove(*index);

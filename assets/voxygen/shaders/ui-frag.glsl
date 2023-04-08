@@ -13,7 +13,6 @@ uniform u_locals {
     vec4 w_pos;
 };
 
-// TODO: swap with u_locals because that may change more frequently?
 layout(set = 2, binding = 0)
 uniform texture2D t_tex;
 layout(set = 2, binding = 1)
@@ -71,7 +70,7 @@ void downscale_params(float pos, float scale, out vec2 weights, out vec2 offsets
     // 4 pixels (within a single dimension) in the sampled texture. So we can't
     // perfectly compute the contribution of each covered pixel in the sampled
     // texture with only 2 samples (along each dimension). Thus, we fallback to
-    // an imperfect technique of just sampling a 1 pixel length from the center
+    // an imperfect technique of just sampling 1 pixel length from the center
     // on each side of the nearest pixel edge. An alternative might be to
     // pre-compute mipmap levels that could be sampled from, although this
     // could interact poorly with the atlas.

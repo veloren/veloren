@@ -43,16 +43,6 @@ vec3 linear_to_srgb(vec3 col) {
     );
 }
 
-vec4 srgba8_to_linear(uint srgba8) {
-    vec4 nonlinear = vec4(uvec4(
-        (srgba8 >> 24) & 0xFFu,
-        (srgba8 >> 16) & 0xFFu,
-        (srgba8 >>  8) & 0xFFu,
-         srgba8        & 0xFFu
-    )) / 255.0;
-    return vec4(srgb_to_linear(nonlinear.rgb), nonlinear.a);
-}
-
 float pow5(float x) {
     float x2 = x * x;
     return x2 * x2 * x;
