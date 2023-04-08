@@ -72,14 +72,14 @@ impl Sentiments {
     /// You can calculate the **average** number of seconds required for a
     /// sentiment to neutral decay with the following formula:
     ///
-    /// ```
-    /// seconds_until_neutrality = ((sentiment_value * 127 * DECAY_FACTOR) ^ 2) / 2 
+    /// ```ignore
+    /// seconds_until_neutrality = ((sentiment_value * 127 * DECAY_FACTOR) ^ 2) / 2
     /// ```
     ///
     /// For example, a positive (see [`Sentiment::POSITIVE`]) sentiment has a
     /// value of `0.2`, so we get
     ///
-    /// ```
+    /// ```ignore
     /// seconds_until_neutrality = ((0.1 * 127 * DECAY_FACTOR) ^ 2) / 2 = ~2,903 seconds, or 48 minutes
     /// ```
     ///
