@@ -155,7 +155,7 @@ pub trait PlayState {
     fn globals_bind_group(&self) -> &GlobalsBindGroup;
 
     /// Draw the play state.
-    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, settings: &Settings);
+    fn render(&self, drawer: &mut Drawer<'_>, settings: &Settings);
 
     /// Determines whether egui will be rendered for this play state
     fn egui_enabled(&self) -> bool;

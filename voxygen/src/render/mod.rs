@@ -43,7 +43,8 @@ pub use self::{
             create_quad as create_ui_quad,
             create_quad_vert_gradient as create_ui_quad_vert_gradient, create_tri as create_ui_tri,
             BoundLocals as UiBoundLocals, Locals as UiLocals, Mode as UiMode,
-            TextureBindGroup as UiTextureBindGroup, Vertex as UiVertex,
+            TextureBindGroup as UiTextureBindGroup, UploadBatchId as UiUploadBatchId,
+            Vertex as UiVertex,
         },
         GlobalModel, Globals, GlobalsBindGroup, GlobalsLayouts, Light, Shadow,
     },
@@ -52,7 +53,7 @@ pub use self::{
             DebugDrawer, DebugShadowDrawer, Drawer, FigureDrawer, FigureShadowDrawer,
             FirstPassDrawer, ParticleDrawer, PreparedUiDrawer, ShadowPassDrawer, SpriteDrawer,
             TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer,
-            TransparentPassDrawer, UiDrawer, VolumetricPassDrawer,
+            TransparentPassDrawer, UiDrawer, VolumetricPassDrawer, UI_PREMULTIPLY_PASS,
         },
         AltIndices, ColLightInfo, CullingMode, Renderer,
     },
@@ -536,4 +537,7 @@ pub enum ExperimentalShader {
     SmearReflections,
     /// Apply the point shadows from cheap shadows on top of shadow mapping.
     PointShadowsWithShadowMapping,
+    /// Make the UI uses nearest neighbor filtering for scaling images instead
+    /// of trying to filter based on the coverage of the sampled pixels.
+    UiNearestScaling,
 }

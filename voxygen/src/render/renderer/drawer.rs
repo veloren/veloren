@@ -12,12 +12,16 @@ use super::{
     rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
     Renderer, ShadowMap, ShadowMapRenderer,
 };
+use common_base::prof_span;
 use core::{num::NonZeroU32, ops::Range};
 use std::sync::Arc;
 use vek::Aabr;
 use wgpu_profiler::scope::{ManualOwningScope, OwningScope, Scope};
 #[cfg(feature = "egui-ui")]
 use {common_base::span, egui_wgpu_backend::ScreenDescriptor, egui_winit_platform::Platform};
+
+/// Gpu timing label prefix associated with the UI alpha premultiplication pass.
+pub const UI_PREMULTIPLY_PASS: &str = "ui_premultiply_pass";
 
 // Currently available pipelines
 enum Pipelines<'frame> {
@@ -32,6 +36,14 @@ impl<'frame> Pipelines<'frame> {
         match self {
             Pipelines::Interface(pipelines) => Some(&pipelines.ui),
             Pipelines::All(pipelines) => Some(&pipelines.ui),
+            Pipelines::None => None,
+        }
+    }
+
+    fn premultiply_alpha(&self) -> Option<&ui::PremultiplyAlphaPipeline> {
+        match self {
+            Pipelines::Interface(pipelines) => Some(&pipelines.premultiply_alpha),
+            Pipelines::All(pipelines) => Some(&pipelines.premultiply_alpha),
             Pipelines::None => None,
         }
     }
@@ -66,6 +78,7 @@ struct RendererBorrow<'frame> {
     pipeline_modes: &'frame super::PipelineModes,
     quad_index_buffer_u16: &'frame Buffer<u16>,
     quad_index_buffer_u32: &'frame Buffer<u32>,
+    ui_premultiply_uploads: &'frame mut ui::BatchedUploads,
     #[cfg(feature = "egui-ui")]
     egui_render_pass: &'frame mut egui_wgpu_backend::RenderPass,
 }
@@ -117,6 +130,7 @@ impl<'frame> Drawer<'frame> {
             pipeline_modes: &renderer.pipeline_modes,
             quad_index_buffer_u16: &renderer.quad_index_buffer_u16,
             quad_index_buffer_u32: &renderer.quad_index_buffer_u32,
+            ui_premultiply_uploads: &mut renderer.ui_premultiply_uploads,
             #[cfg(feature = "egui-ui")]
             egui_render_pass: &mut renderer.egui_renderpass,
         };
@@ -424,7 +438,49 @@ impl<'frame> Drawer<'frame> {
         });
     }
 
+    /// Runs render passes with alpha premultiplication pipeline to complete any
+    /// pending uploads.
+    fn run_ui_premultiply_passes(&mut self) {
+        prof_span!("run_ui_premultiply_passes");
+        let Some(premultiply_alpha) = self.borrow.pipelines.premultiply_alpha() else { return };
+        let encoder = self.encoder.as_mut().unwrap();
+        let device = self.borrow.device;
+
+        let targets = self.borrow.ui_premultiply_uploads.take();
+
+        for (i, (target_texture, uploads)) in targets.into_iter().enumerate() {
+            prof_span!("ui premultiply pass");
+            let profile_name = format!("{UI_PREMULTIPLY_PASS} {i}");
+            let label = format!("ui premultiply pass {i}");
+            let mut render_pass =
+                encoder.scoped_render_pass(&profile_name, device, &wgpu::RenderPassDescriptor {
+                    label: Some(&label),
+                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                        view: &target_texture.view,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: true,
+                        },
+                    }],
+                    depth_stencil_attachment: None,
+                });
+            render_pass.set_pipeline(&premultiply_alpha.pipeline);
+            for upload in &uploads {
+                let (source_bind_group, push_constant_data) = upload.draw_data(&target_texture);
+                let bytes = bytemuck::bytes_of(&push_constant_data);
+                render_pass.set_bind_group(0, source_bind_group, &[]);
+                render_pass.set_push_constants(wgpu::ShaderStage::VERTEX, 0, bytes);
+                render_pass.draw(0..6, 0..1);
+            }
+        }
+    }
+
+    /// Note, this automatically calls the internal `run_ui_premultiply_passes`
+    /// to complete any pending image uploads for the UI.
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
+        self.run_ui_premultiply_passes();
+
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
@@ -498,7 +554,7 @@ impl<'frame> Drawer<'frame> {
 
     /// Does nothing if the shadow pipelines are not available or shadow map
     /// rendering is disabled
-    pub fn draw_point_shadows<'data: 'frame>(
+    pub fn draw_point_shadows<'data>(
         &mut self,
         matrices: &[shadow::PointLightMatrix; 126],
         chunks: impl Clone

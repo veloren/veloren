@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Climbing no longer requires having 10 energy
 - Castles will now be placed close to towns
 - Sword
+- Rescaling of images for the UI is now done when sampling from them on the GPU. Improvements are
+  particularily noticeable when opening the map screen (which involves rescaling a few large
+  images) and also when using the voxel minimap view (where a medium size image is updated often). 
 
 ### Removed
 

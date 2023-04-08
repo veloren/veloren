@@ -1920,7 +1920,7 @@ impl PlayState for SessionState {
     /// Render the session to the screen.
     ///
     /// This method should be called once per frame.
-    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, settings: &Settings) {
+    fn render(&self, drawer: &mut Drawer<'_>, settings: &Settings) {
         span!(_guard, "render", "<Session as PlayState>::render");
 
         let client = self.client.borrow();

@@ -7,6 +7,9 @@ use conrod_core::{text::GlyphCache, widget::Id};
 use hashbrown::HashMap;
 use vek::*;
 
+// TODO: probably make cache fields where we have mut getters into just public
+// fields
+
 // Multiplied by current window size
 const GLYPH_CACHE_SIZE: u32 = 1;
 // Glyph cache tolerances
@@ -51,7 +54,9 @@ impl Cache {
         })
     }
 
-    pub fn glyph_cache_tex(&self) -> &(Texture, UiTextureBindGroup) { &self.glyph_cache_tex }
+    pub fn glyph_cache_tex(&self) -> (&Texture, &UiTextureBindGroup) {
+        (&self.glyph_cache_tex.0, &self.glyph_cache_tex.1)
+    }
 
     pub fn cache_mut_and_tex(
         &mut self,

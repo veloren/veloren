@@ -8,6 +8,9 @@ use glyph_brush::GlyphBrushBuilder;
 use std::cell::{RefCell, RefMut};
 use vek::*;
 
+// TODO: probably make cache fields where we have mut getters into just public
+// fields
+
 // Multiplied by current window size
 const GLYPH_CACHE_SIZE: u32 = 1;
 // Glyph cache tolerances
@@ -61,7 +64,9 @@ impl Cache {
         })
     }
 
-    pub fn glyph_cache_tex(&self) -> &(Texture, UiTextureBindGroup) { &self.glyph_cache_tex }
+    pub fn glyph_cache_tex(&self) -> (&Texture, &UiTextureBindGroup) {
+        (&self.glyph_cache_tex.0, &self.glyph_cache_tex.1)
+    }
 
     pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphBrush, &(Texture, UiTextureBindGroup)) {
         (self.glyph_brush.get_mut(), &self.glyph_cache_tex)

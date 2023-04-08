@@ -394,7 +394,7 @@ impl PlayState for MainMenuState {
 
     fn globals_bind_group(&self) -> &GlobalsBindGroup { self.scene.global_bind_group() }
 
-    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, _: &Settings) {
+    fn render(&self, drawer: &mut Drawer<'_>, _: &Settings) {
         // Draw the UI to the screen.
         let mut third_pass = drawer.third_pass();
         if let Some(mut ui_drawer) = third_pass.draw_ui() {
