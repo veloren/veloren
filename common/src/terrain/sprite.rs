@@ -656,6 +656,8 @@ impl SpriteKind {
                 | SpriteKind::MagicalBarrier
                 | SpriteKind::Helm
                 | SpriteKind::DoorWide,
+                | SpriteKind::BoneKeyhole
+                | SpriteKind::BoneKeyDoor
         )
     }
 }

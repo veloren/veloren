@@ -1357,7 +1357,7 @@ impl Structure for AdletStronghold {
                     painter
                         .cubic_bezier(
                             (yetipit_entrance_pos + door_dir * 10).with_z(alt as i32 + 2),
-                            (yetipit_entrance_pos - door_dir * 20).with_z(alt as i32 - 10),
+                            (yetipit_entrance_pos - door_dir * 16).with_z(alt as i32 - 10),
                             (yetipit_entrance_pos + door_dir * 20).with_z((alt as i32) - 30),
                             self.cavern_center.with_z((alt as i32) - 50),
                             4.0,
@@ -1365,20 +1365,30 @@ impl Structure for AdletStronghold {
                         .clear();
                     // bone door
                     painter
-                        .sphere_with_radius(
-                            (yetipit_entrance_pos + door_dir).with_z(alt as i32 - 4),
-                            4.0,
-                        )
+                        .cylinder(Aabb {
+                            min: Vec2::new(yetipit_entrance_pos.x - 7, yetipit_entrance_pos.y - 7)
+                                .with_z(alt as i32 - 8),
+                            max: Vec2::new(yetipit_entrance_pos.x + 7, yetipit_entrance_pos.y + 7)
+                                .with_z((alt as i32) - 7),
+                        })
+                        .fill(snow_ice_fill.clone());
+
+                    painter
+                        .cylinder(Aabb {
+                            min: Vec2::new(yetipit_entrance_pos.x - 3, yetipit_entrance_pos.y - 3)
+                                .with_z(alt as i32 - 8),
+                            max: Vec2::new(yetipit_entrance_pos.x + 3, yetipit_entrance_pos.y + 3)
+                                .with_z((alt as i32) - 7),
+                        })
                         .fill(Fill::Block(Block::air(SpriteKind::BoneKeyDoor)));
                     painter
-                        .sphere_with_radius(
-                            (yetipit_entrance_pos + door_dir * 2).with_z(alt as i32 - 2),
-                            1.0,
-                        )
+                        .aabb(Aabb {
+                            min: Vec2::new(yetipit_entrance_pos.x - 1, yetipit_entrance_pos.y)
+                                .with_z(alt as i32 - 8),
+                            max: Vec2::new(yetipit_entrance_pos.x, yetipit_entrance_pos.y + 1)
+                                .with_z((alt as i32) - 7),
+                        })
                         .fill(Fill::Block(Block::air(SpriteKind::BoneKeyhole)));
-                    painter
-                        .sphere_with_radius(yetipit_entrance_pos.with_z(alt as i32 - 4), 4.0)
-                        .clear();
                 },
                 AdletStructure::Tannery => {
                     // shattered bone pieces
