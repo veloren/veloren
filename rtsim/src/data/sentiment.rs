@@ -13,7 +13,7 @@ pub const NPC_MAX_SENTIMENTS: usize = 128;
 
 /// Magic factor used to control sentiment decay speed (note: higher = slower
 /// decay, for implementation reasons).
-const DECAY_FACTOR: f32 = 1.0; //6.0; TODO: Use this value when we're happy that everything is working as intended
+const DECAY_TIME_FACTOR: f32 = 1.0; //6.0; TODO: Use this value when we're happy that everything is working as intended
 
 /// The target that a sentiment is felt toward.
 // NOTE: More could be added to this! For example:
@@ -73,14 +73,14 @@ impl Sentiments {
     /// sentiment to neutral decay with the following formula:
     ///
     /// ```ignore
-    /// seconds_until_neutrality = ((sentiment_value * 127 * DECAY_FACTOR) ^ 2) / 2
+    /// seconds_until_neutrality = ((sentiment_value * 127 * DECAY_TIME_FACTOR) ^ 2) / 2
     /// ```
     ///
     /// For example, a positive (see [`Sentiment::POSITIVE`]) sentiment has a
     /// value of `0.2`, so we get
     ///
     /// ```ignore
-    /// seconds_until_neutrality = ((0.1 * 127 * DECAY_FACTOR) ^ 2) / 2 = ~2,903 seconds, or 48 minutes
+    /// seconds_until_neutrality = ((0.1 * 127 * DECAY_TIME_FACTOR) ^ 2) / 2 = ~2,903 seconds, or 48 minutes
     /// ```
     ///
     /// Some 'common' sentiment decay times are as follows:
@@ -178,7 +178,8 @@ impl Sentiment {
             // TODO: Make dt-independent so we can slow tick rates
             // 36 = 6 * 6
             if rng.gen_bool(
-                (1.0 / (self.positivity.unsigned_abs() as f32 * DECAY_FACTOR.powi(2) * dt)) as f64,
+                (1.0 / (self.positivity.unsigned_abs() as f32 * DECAY_TIME_FACTOR.powi(2) * dt))
+                    as f64,
             ) {
                 self.positivity -= self.positivity.signum();
             }

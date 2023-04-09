@@ -21,6 +21,7 @@ use rtsim::data::{
 };
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
+use tracing::error;
 use world::site::settlement::trader_loadout;
 
 fn humanoid_config(profession: &Profession) -> &'static str {
@@ -36,7 +37,13 @@ fn humanoid_config(profession: &Profession) -> &'static str {
             1 => "common.entity.world.traveler1",
             2 => "common.entity.world.traveler2",
             3 => "common.entity.world.traveler3",
-            _ => panic!("Not a valid adventurer rank"),
+            _ => {
+                error!(
+                    "Tried to get configuration for invalid adventurer rank {}",
+                    rank
+                );
+                "common.entity.world.traveler3"
+            },
         },
         Profession::Blacksmith => "common.entity.village.blacksmith",
         Profession::Chef => "common.entity.village.chef",

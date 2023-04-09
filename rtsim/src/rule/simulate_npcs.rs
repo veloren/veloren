@@ -11,7 +11,7 @@ use common::{
 };
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
-use tracing::warn;
+use tracing::{error, warn};
 use world::site::SiteKind;
 
 pub struct SimulateNpcs;
@@ -36,7 +36,7 @@ fn on_setup(ctx: EventCtx<SimulateNpcs, OnSetup>) {
                 let actor = Actor::Npc(npc_id);
                 vehicle.riders.push(actor);
                 if ride.steering && vehicle.driver.replace(actor).is_some() {
-                    panic!("Replaced driver");
+                    error!("Replaced driver");
                 }
             }
         }
