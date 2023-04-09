@@ -159,6 +159,9 @@ impl<'a> Canvas<'a> {
             .unwrap_or_else(Block::empty)
     }
 
+    /// Set a block in the canvas chunk. Note that if the block is a resource
+    /// (see [`Block::get_rtsim_resource`]) then [`Canvas::map_resource`] should
+    /// be used instead.
     pub fn set(&mut self, pos: Vec3<i32>, block: Block) {
         if block.get_rtsim_resource().is_some() {
             self.rtsim_resource_blocks.push(pos);
@@ -166,7 +169,16 @@ impl<'a> Canvas<'a> {
         let _ = self.chunk.set(pos - self.wpos(), block);
     }
 
+    /// Map a block in the canvas chunk. Note that if the block is a resource
+    /// (see [`Block::get_rtsim_resource`]) then [`Canvas::map_resource`] should
+    /// be used instead.
     pub fn map(&mut self, pos: Vec3<i32>, f: impl FnOnce(Block) -> Block) {
+        let _ = self.chunk.map(pos - self.wpos(), f);
+    }
+
+    /// Like [`Canvas::map`], except allows marking resource-containing blocks
+    /// appropriately.
+    pub fn map_resource(&mut self, pos: Vec3<i32>, f: impl FnOnce(Block) -> Block) {
         let _ = self.chunk.map(pos - self.wpos(), |b| {
             let new_block = f(b);
             if new_block.get_rtsim_resource().is_some() {

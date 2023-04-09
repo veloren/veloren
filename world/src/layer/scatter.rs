@@ -1098,7 +1098,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
                         .find(|z| !is_under(canvas.get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))))
                 })
             {
-                canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + solid_end), |block| {
+                canvas.map_resource(Vec3::new(wpos2d.x, wpos2d.y, alt + solid_end), |block| {
                     block.with_sprite(kind)
                 });
             }
