@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Command to toggle experimental shaders.
 - Faster Energy Regeneration while sitting.
 - Lantern glow for dropped lanterns.
@@ -25,8 +26,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Setting in userdata/server/server_config/settings.ron that controls the length of each day/night cycle.
 - Starting site can now be chosen during character creation
 - Durability loss of equipped items on death
+- Reputation system: crimes will be remembered and NPCs will tell each other about crimes they witness
+- NPCs will now talk to players and to each other
+- NPCs now have dedicated professions and will act accordingly
+- NPCs other than merchants can be traded with
+- NPCs will seek out a place to sleep when night comes
+- Merchants now travel between towns
+- Travellers and merchants will stay a while in each town they visit and converse with the locals
+- Resource tracking: resources in the world can be temporarily exhausted, requiring time to replenish
+- Airships now have pilot NPCs
+- Simulated NPCs now have repopulation mechanics
+- NPCs now have unique names
+- A /scale command that can be used to change the in-game scale of players
+- Merchants will flog their wares in towns, encouraging nearby character to buy goods from them
 
 ### Changed
+
 - Bats move slower and use a simple proportional controller to maintain altitude
 - Bats now have less health
 - Climbing no longer requires having 10 energy
@@ -34,11 +49,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sword
 - Rescaling of images for the UI is now done when sampling from them on the GPU. Improvements are
   particularily noticeable when opening the map screen (which involves rescaling a few large
-  images) and also when using the voxel minimap view (where a medium size image is updated often). 
+  images) and also when using the voxel minimap view (where a medium size image is updated often).
 
 ### Removed
 
 ### Fixed
+
 - Doors
 - Debug hitboxes now scale with the `Scale` component
 - Potion quaffing no longer makes characters practically immortal.
@@ -49,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed various issues with showing the correct text hint for interactable blocks.
 - Intert entities like arrows no longer obstruct interacting with nearby entities/blocks.
 - Underwater fall damage
+- The scale component now behaves properly
 
 ## [0.14.0] - 2023-01-07
 
