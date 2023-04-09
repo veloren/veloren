@@ -177,8 +177,7 @@ pub fn run_migrations(settings: &DatabaseSettings) {
 pub fn vacuum_database(settings: &DatabaseSettings) {
     let conn = establish_connection(settings, ConnectionMode::ReadWrite);
 
-    // The params type is phony; it's required, but not meaningful.
-    conn.execute::<&[u32]>("VACUUM main", &[])
+    conn.execute("VACUUM main", [])
         .expect("Database vacuuming failed, server startup aborted");
 
     info!("Database vacuumed");
@@ -234,13 +233,13 @@ pub(crate) fn establish_connection(
     // Use Write-Ahead-Logging for improved concurrency: https://sqlite.org/wal.html
     // Set a busy timeout (in ms): https://sqlite.org/c3ref/busy_timeout.html
     connection
-        .pragma_update(None, "foreign_keys", &"ON")
+        .pragma_update(None, "foreign_keys", "ON")
         .expect("Failed to set foreign_keys PRAGMA");
     connection
-        .pragma_update(None, "journal_mode", &"WAL")
+        .pragma_update(None, "journal_mode", "WAL")
         .expect("Failed to set journal_mode PRAGMA");
     connection
-        .pragma_update(None, "busy_timeout", &"250")
+        .pragma_update(None, "busy_timeout", "250")
         .expect("Failed to set busy_timeout PRAGMA");
 
     veloren_connection

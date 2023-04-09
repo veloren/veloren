@@ -9,7 +9,7 @@ use rayon::{
     iter::{IntoParallelIterator, ParallelIterator},
     ThreadPoolBuilder,
 };
-use rusqlite::{Connection, ToSql, Transaction, TransactionBehavior, NO_PARAMS};
+use rusqlite::{Connection, ToSql, Transaction, TransactionBehavior};
 use std::{
     collections::{HashMap, HashSet},
     error::Error,
@@ -77,7 +77,7 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
 
     let existing_chunks: HashSet<(i32, i32)> = conn
         .prepare("SELECT xcoord, ycoord FROM chunk")?
-        .query(NO_PARAMS)?
+        .query([])?
         .map(|row| Ok((row.get(0)?, row.get(1)?)))
         .collect()?;
 
@@ -159,7 +159,7 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
         ")?;
         println!("Inserting results for chunk at ({}, {}): {}", x, y, i);
         for ((kind, color), count) in block_counts.iter() {
-            insert_block.execute(&[
+            insert_block.execute([
                 &x as &dyn ToSql,
                 &y,
                 &format!("{:?}", kind),
@@ -170,11 +170,11 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
             ])?;
         }
         for (kind, count) in sprite_counts.iter() {
-            insert_sprite.execute(&[&x as &dyn ToSql, &y, &format!("{:?}", kind), &count])?;
+            insert_sprite.execute([&x as &dyn ToSql, &y, &format!("{:?}", kind), &count])?;
         }
         let start_time = start_time.duration_since(UNIX_EPOCH)?.as_secs_f64();
         let end_time = end_time.duration_since(UNIX_EPOCH)?.as_secs_f64();
-        insert_chunk.execute(&[&x as &dyn ToSql, &y, &height, &start_time, &end_time])?;
+        insert_chunk.execute([&x as &dyn ToSql, &y, &height, &start_time, &end_time])?;
         if i % 32 == 0 {
             println!("Committing last 32 chunks");
             drop(insert_block);
@@ -193,7 +193,7 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
         conn.prepare("SELECT kind, r, g, b, SUM(quantity) FROM block GROUP BY kind, r, g, b")?;
     let mut block_colors: HashMap<BlockKind, Vec<(Rgb<u8>, i64)>> = HashMap::new();
 
-    let mut rows = stmt.query(NO_PARAMS)?;
+    let mut rows = stmt.query([])?;
     while let Some(row) = rows.next()? {
         let kind = BlockKind::from_str(&row.get::<_, String>(0)?)?;
         let rgb: Rgb<u8> = Rgb::new(row.get(1)?, row.get(2)?, row.get(3)?);

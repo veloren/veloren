@@ -68,8 +68,8 @@ enum-map = "2.4"
 noise = { version = "0.7", default-features = false }
 censor = "0.2"
 
-rusqlite = { version = "0.24.2", features = ["array", "vtab", "bundled", "trace"] }
-refinery = { git = "https://gitlab.com/veloren/refinery.git", rev = "8ecf4b4772d791e6c8c0a3f9b66a7530fad1af3e", features = ["rusqlite"] }
+rusqlite = { version = "0.28.0", features = ["array", "vtab", "bundled", "trace"] }
+refinery = { version = "0.8.8", features = ["rusqlite"] }
 
 # Plugins
 plugin-api = { package = "veloren-plugin-api", path = "../plugin/api"}

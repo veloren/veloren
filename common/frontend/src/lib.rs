@@ -72,6 +72,7 @@ where
         "wgpu_core::swap_chain=info",
         "veloren_network_protocol=info",
         "quinn_proto::connection=info",
+        "refinery_core::traits::divergent=off",
         "veloren_server::persistence::character=info",
         "veloren_server::settings=info",
     ];

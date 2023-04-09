@@ -128,7 +128,7 @@ fn economy_sqlite(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {
         .prepare("REPLACE INTO site_price (xcoord, ycoord, good, price) VALUES (?1, ?2, ?3, ?4)")?;
     let mut insert_price = move |center: Vec2<i32>, good: Good, prices: &SitePrices| {
         let price = prices.values.get(&good).unwrap_or(&0.0);
-        insert_price_stmt.execute(&[
+        insert_price_stmt.execute([
             &center.x as &dyn ToSql,
             &center.y,
             &format!("{:?}", good),
@@ -142,7 +142,7 @@ fn economy_sqlite(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {
                 let prices = site.economy.get_site_prices();
                 conn.execute(
                     "REPLACE INTO site (xcoord, ycoord, name) VALUES (?1, ?2, ?3)",
-                    &[
+                    [
                         &civsite.center.x as &dyn ToSql,
                         &civsite.center.y,
                         &site.name(),
