@@ -4716,6 +4716,59 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    pub fn handle_adlet_elder(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const TRAP_TIMER: usize = 0;
+        agent.action_state.timers[TRAP_TIMER] -= read_data.dt.0;
+        if matches!(self.char_state, CharacterState::BasicRanged(_)) {
+            agent.action_state.timers[TRAP_TIMER] = 15.0;
+        }
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+        let move_forwards = if matches!(self.char_state, CharacterState::DashMelee(s) if s.stage_section != StageSection::Recover)
+        {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if agent.action_state.timers[TRAP_TIMER] < 0.0 && !tgt_data.considered_ranged() {
+            controller.push_basic_input(InputKind::Ability(0));
+            false
+        } else if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else if could_use_input(InputKind::Secondary) {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else {
+            true
+        };
+
+        if move_forwards && attack_data.dist_sqrd > 2_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
+
     pub fn handle_icedrake(
         &self,
         agent: &mut Agent,

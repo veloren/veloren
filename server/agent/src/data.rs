@@ -5,7 +5,10 @@ use common::{
         buff::{BuffKind, Buffs},
         character_state::AttackFilters,
         group,
-        item::MaterialStatManifest,
+        inventory::{
+            item::{tool::ToolKind, ItemKind, MaterialStatManifest},
+            slot::EquipSlot,
+        },
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
         LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, PresenceKind, Scale,
         SkillSet, Stance, Stats, Vel,
@@ -66,6 +69,7 @@ pub struct TargetData<'a> {
     pub char_state: Option<&'a CharacterState>,
     pub health: Option<&'a Health>,
     pub buffs: Option<&'a Buffs>,
+    pub drawn_weapons: (Option<ToolKind>, Option<ToolKind>),
 }
 
 impl<'a> TargetData<'a> {
@@ -77,7 +81,54 @@ impl<'a> TargetData<'a> {
             char_state: read_data.char_states.get(target),
             health: read_data.healths.get(target),
             buffs: read_data.buffs.get(target),
+            drawn_weapons: {
+                let slotted_tool = |inv: &Inventory, slot| {
+                    if let Some(ItemKind::Tool(tool)) =
+                        inv.equipped(slot).map(|i| i.kind()).as_deref()
+                    {
+                        Some(tool.kind)
+                    } else {
+                        None
+                    }
+                };
+                read_data
+                    .inventories
+                    .get(target)
+                    .map_or((None, None), |inv| {
+                        (
+                            slotted_tool(inv, EquipSlot::ActiveMainhand),
+                            slotted_tool(inv, EquipSlot::ActiveOffhand),
+                        )
+                    })
+            },
         }
+    }
+
+    pub fn considered_ranged(&self) -> bool {
+        let is_ranged_tool = |tool| match tool {
+            Some(
+                ToolKind::Sword
+                | ToolKind::Axe
+                | ToolKind::Hammer
+                | ToolKind::Dagger
+                | ToolKind::Shield
+                | ToolKind::Spear
+                | ToolKind::Farming
+                | ToolKind::Pick
+                | ToolKind::Natural
+                | ToolKind::Empty,
+            )
+            | None => false,
+            Some(
+                ToolKind::Bow
+                | ToolKind::Staff
+                | ToolKind::Sceptre
+                | ToolKind::Blowgun
+                | ToolKind::Debug
+                | ToolKind::Instrument,
+            ) => true,
+        };
+        is_ranged_tool(self.drawn_weapons.0) || is_ranged_tool(self.drawn_weapons.1)
     }
 }
 
@@ -188,6 +239,7 @@ pub enum Tactic {
     AdletHunter,
     AdletIcepicker,
     AdletTracker,
+    AdletElder,
 }
 
 #[derive(Copy, Clone)]

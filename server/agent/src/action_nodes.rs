@@ -1029,6 +1029,7 @@ impl<'a> AgentData<'a> {
                                 secondary: 1,
                                 abilities: [4, 0, 0, 0, 0],
                             },
+                            "Adlet Elder" => Tactic::AdletElder,
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1499,6 +1500,9 @@ impl<'a> AgentData<'a> {
                 secondary,
                 abilities,
             ),
+            Tactic::AdletElder => {
+                self.handle_adlet_elder(agent, controller, &attack_data, tgt_data, read_data)
+            },
         }
     }
 
