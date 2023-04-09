@@ -177,7 +177,7 @@
             central: ("npc.salamander.male.tail_rear"),
         ),
 		tail_front: (
-            offset: (-4.5, -9.0, -3.0),
+            offset: (-5.5, -9.0, -3.0),
             central: ("npc.salamander.male.tail_front"),
         ),
     ),
@@ -203,7 +203,7 @@
             central: ("npc.salamander.male.tail_rear"),
         ),
 		tail_front: (
-            offset: (-4.5, -9.0, -3.0),
+            offset: (-5.5, -9.0, -3.0),
             central: ("npc.salamander.male.tail_front"),
         ),
     ),
