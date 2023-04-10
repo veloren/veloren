@@ -907,6 +907,7 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
 /// Get the PID coefficients associated with some Body, since it will likely
 /// need to be tuned differently for each body type
 pub fn pid_coefficients(body: &Body) -> Option<(f32, f32, f32)> {
+    // A pure-proportional controller is { kp: 1.0, ki: 0.0, kd: 0.0 }
     match body {
         Body::Ship(ship::Body::DefaultAirship) => {
             let kp = 1.0;
