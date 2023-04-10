@@ -85,7 +85,7 @@ mod tests {
             None,
             // Dummy ServerConstants
             &ServerConstants::default(),
-            |_, _, _, _| {},
+            |_, _| {},
         );
     }
 

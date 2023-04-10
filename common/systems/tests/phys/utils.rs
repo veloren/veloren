@@ -66,7 +66,7 @@ pub fn tick(state: &mut State, dt: Duration) {
         false,
         None,
         &ServerConstants::default(),
-        |_, _, _, _| {},
+        |_, _| {},
     );
 }
 

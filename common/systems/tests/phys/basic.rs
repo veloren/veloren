@@ -19,7 +19,7 @@ fn simple_run() {
         false,
         None,
         &ServerConstants::default(),
-        |_, _, _, _| {},
+        |_, _| {},
     );
 }
 
