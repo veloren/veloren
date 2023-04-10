@@ -30,12 +30,13 @@ fn on_setup(ctx: EventCtx<SimulateNpcs, OnSetup>) {
     let data = &mut *ctx.state.data_mut();
 
     // Add riders to vehicles
-    for (npc_id, npc) in data.npcs.npcs.iter() {
+    for (npc_id, npc) in data.npcs.npcs.iter_mut() {
         if let Some(ride) = &npc.riding {
             if let Some(vehicle) = data.npcs.vehicles.get_mut(ride.vehicle) {
                 let actor = Actor::Npc(npc_id);
                 if ride.steering && vehicle.driver.replace(actor).is_some() {
                     error!("Replaced driver");
+                    npc.riding = None;
                 }
             }
         }
