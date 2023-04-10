@@ -52,7 +52,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
         let mut rng = ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>());
 
         // Respawn dead NPCs
-        match npc.body {
+        let details = match npc.body {
             Body::Humanoid(_) => {
                 if let Some((site_id, site)) = data
                     .sites
@@ -76,15 +76,17 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                         let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
                         Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
                     };
-                    data.spawn_npc(
+                    let npc_id = data.spawn_npc(
                         Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
                             .with_personality(Personality::random(&mut rng))
                             .with_home(site_id)
                             .with_faction(npc.faction)
                             .with_profession(npc.profession.clone()),
                     );
+                    Some((npc_id, site_id))
                 } else {
                     warn!("No site found for respawning humaniod");
+                    None
                 }
             },
             Body::BirdLarge(_) => {
@@ -112,7 +114,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                     ]
                     .choose(&mut rng)
                     .unwrap();
-                    data.npcs.create_npc(
+                    let npc_id = data.npcs.create_npc(
                         Npc::new(
                             rng.gen(),
                             rand_wpos(&mut rng),
@@ -122,11 +124,23 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                         )
                         .with_home(site_id),
                     );
+                    Some((npc_id, site_id))
                 } else {
                     warn!("No site found for respawning bird");
+                    None
                 }
             },
-            _ => unimplemented!(),
+            body => {
+                error!("Tried to respawn rtsim NPC with invalid body: {:?}", body);
+                None
+            },
+        };
+
+        // Add the NPC to their home site
+        if let Some((npc_id, home_site)) = details {
+            if let Some(home) = data.sites.get_mut(home_site) {
+                home.population.insert(npc_id);
+            }
         }
     }
 }

@@ -195,7 +195,7 @@ pub fn handle_create_ship(
     ship: comp::ship::Body,
     rtsim_vehicle: Option<RtSimVehicle>,
     driver: Option<NpcBuilder>,
-    passangers: Vec<NpcBuilder>,
+    passengers: Vec<NpcBuilder>,
 ) {
     let mut entity = server
         .state
@@ -234,8 +234,8 @@ pub fn handle_create_ship(
         }
     }
 
-    for passanger in passangers {
-        handle_create_npc(server, Pos(pos.0 + Vec3::unit_z() * 5.0), passanger);
+    for passenger in passengers {
+        handle_create_npc(server, Pos(pos.0 + Vec3::unit_z() * 5.0), passenger);
     }
 }
 

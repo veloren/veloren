@@ -33,6 +33,9 @@ fn on_death(ctx: EventCtx<ReportEvents, OnDeath>) {
                 at: data.time_of_day,
             });
 
+            // TODO: Don't push report to NPC inboxes, have a dedicated data structure that
+            // tracks reports by chunks and then have NPCs decide to query this
+            // data structure in their own time.
             for npc_id in nearby {
                 if let Some(npc) = data.npcs.get_mut(npc_id) {
                     npc.inbox.push_back(report);

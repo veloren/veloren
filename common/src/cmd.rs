@@ -659,7 +659,7 @@ impl ServerChatCommand {
                     Enum("entity", ENTITIES.clone(), Required),
                     Integer("amount", 1, Optional),
                     Boolean("ai", "true".to_string(), Optional),
-                    Float("ai", 1.0, Optional),
+                    Float("scale", 1.0, Optional),
                 ],
                 "Spawn a test entity",
                 Some(Admin),

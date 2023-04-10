@@ -1,12 +1,9 @@
-use common::terrain::Block;
+use common_state::BlockDiff;
 use rtsim::Event;
-use vek::*;
 
 #[derive(Clone)]
 pub struct OnBlockChange {
-    pub wpos: Vec3<i32>,
-    pub old: Block,
-    pub new: Block,
+    pub changes: Vec<BlockDiff>,
 }
 
 impl Event for OnBlockChange {}

@@ -55,6 +55,8 @@ pub struct Chunk {
     /// generation. This value represents only the variable 'depletion' factor
     /// of that resource, which shall change over time as the world evolves
     /// and players interact with it.
+    // TODO: Consider whether we can use `i16` or similar here instead: `f32` has more resolution
+    // than we might need.
     #[serde(rename = "r")]
     #[serde(serialize_with = "crate::data::rugged_ser_enum_map::<_, _, _, 1>")]
     #[serde(deserialize_with = "crate::data::rugged_de_enum_map::<_, _, _, 1>")]

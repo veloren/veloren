@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// The limit on how many characters that a player can have
 pub const MAX_CHARACTERS_PER_PLAYER: usize = 8;
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[serde(transparent)]
 pub struct CharacterId(pub i64);
 

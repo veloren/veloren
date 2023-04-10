@@ -6,13 +6,13 @@ use atomicwrites::{AtomicFile, OverwriteBehavior};
 use common::{
     grid::Grid,
     rtsim::{Actor, ChunkResource, RtSimEntity, RtSimVehicle, WorldSettings},
-    terrain::Block,
 };
 use common_ecs::dispatch;
+use common_state::BlockDiff;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use enum_map::EnumMap;
 use rtsim::{
-    data::{npc::SimulationMode, Data},
+    data::{npc::SimulationMode, Data, ReadError},
     event::{OnDeath, OnSetup},
     RtState,
 };
@@ -51,8 +51,17 @@ impl RtSim {
                 match File::open(&file_path) {
                     Ok(file) => {
                         info!("Rtsim data found. Attempting to load...");
+
+                        let ignore_version = std::env::var("RTSIM_IGNORE_VERSION").is_ok();
+
                         match Data::from_reader(io::BufReader::new(file)) {
-                            Ok(data) => {
+                            Err(ReadError::VersionMismatch(_)) if !ignore_version => {
+                                warn!(
+                                    "Rtsim data version mismatch (implying a breaking change), \
+                                     rtsim data will be purged"
+                                );
+                            },
+                            Ok(data) | Err(ReadError::VersionMismatch(data)) => {
                                 info!("Rtsim data loaded.");
                                 if data.should_purge {
                                     warn!(
@@ -60,11 +69,11 @@ impl RtSim {
                                          generating afresh"
                                     );
                                 } else {
-                                    break 'load data;
+                                    break 'load *data;
                                 }
                             },
-                            Err(e) => {
-                                error!("Rtsim data failed to load: {}", e);
+                            Err(ReadError::Load(err)) => {
+                                error!("Rtsim data failed to load: {}", err);
                                 info!("Old rtsim data will now be moved to a backup file");
                                 let mut i = 0;
                                 loop {
@@ -139,37 +148,30 @@ impl RtSim {
     }
 
     pub fn hook_load_chunk(&mut self, key: Vec2<i32>, max_res: EnumMap<ChunkResource, usize>) {
-        if let Some(chunk_state) = self.state.resource_mut::<ChunkStates>().0.get_mut(key) {
+        if let Some(chunk_state) = self.state.get_resource_mut::<ChunkStates>().0.get_mut(key) {
             *chunk_state = Some(LoadedChunkState { max_res });
         }
     }
 
     pub fn hook_unload_chunk(&mut self, key: Vec2<i32>) {
-        if let Some(chunk_state) = self.state.resource_mut::<ChunkStates>().0.get_mut(key) {
+        if let Some(chunk_state) = self.state.get_resource_mut::<ChunkStates>().0.get_mut(key) {
             *chunk_state = None;
         }
     }
 
-    pub fn hook_block_update(
-        &mut self,
-        world: &World,
-        index: IndexRef,
-        wpos: Vec3<i32>,
-        old: Block,
-        new: Block,
-    ) {
+    pub fn hook_block_update(&mut self, world: &World, index: IndexRef, changes: Vec<BlockDiff>) {
         self.state
-            .emit(event::OnBlockChange { wpos, old, new }, world, index);
+            .emit(event::OnBlockChange { changes }, world, index);
     }
 
     pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
-        if let Some(npc) = self.state.data_mut().npcs.get_mut(entity.0) {
+        if let Some(npc) = self.state.get_data_mut().npcs.get_mut(entity.0) {
             npc.mode = SimulationMode::Simulated;
         }
     }
 
     pub fn hook_rtsim_vehicle_unload(&mut self, entity: RtSimVehicle) {
-        if let Some(vehicle) = self.state.data_mut().npcs.vehicles.get_mut(entity.0) {
+        if let Some(vehicle) = self.state.get_data_mut().npcs.vehicles.get_mut(entity.0) {
             vehicle.mode = SimulationMode::Simulated;
         }
     }

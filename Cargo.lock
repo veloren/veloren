@@ -6710,7 +6710,6 @@ dependencies = [
  "crossbeam-utils 0.8.11",
  "csv",
  "dot_vox",
- "enum-iterator 1.1.3",
  "enum-map",
  "fxhash",
  "hashbrown 0.12.3",

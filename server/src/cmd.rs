@@ -1329,6 +1329,8 @@ fn handle_rtsim_npc(
     }
 }
 
+// TODO: Remove this command when rtsim becomes more mature and we're sure we
+// don't need purges to fix broken state.
 fn handle_rtsim_purge(
     server: &mut Server,
     client: EcsEntity,
@@ -1337,6 +1339,14 @@ fn handle_rtsim_purge(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use crate::rtsim::RtSim;
+    let client_uuid = uuid(server, client, "client")?;
+    if !matches!(real_role(server, client_uuid, "client")?, AdminRole::Admin) {
+        return Err(
+            "You must be a real admin (not just a temporary admin) to purge rtsim data."
+                .to_string(),
+        );
+    }
+
     if let Some(should_purge) = parse_cmd_args!(args, bool) {
         server
             .state
@@ -2082,6 +2092,7 @@ fn handle_kill_npcs(
         let healths = ecs.write_storage::<comp::Health>();
         let players = ecs.read_storage::<comp::Player>();
         let alignments = ecs.read_storage::<Alignment>();
+        let rtsim_entities = ecs.read_storage::<common::rtsim::RtSimEntity>();
 
         (
             &entities,
@@ -2101,11 +2112,7 @@ fn handle_kill_npcs(
                     };
 
                 if should_kill {
-                    if let Some(rtsim_entity) = ecs
-                        .read_storage::<common::rtsim::RtSimEntity>()
-                        .get(entity)
-                        .copied()
-                    {
+                    if let Some(rtsim_entity) = rtsim_entities.get(entity).copied() {
                         ecs.write_resource::<crate::rtsim::RtSim>()
                             .hook_rtsim_actor_death(
                                 &ecs.read_resource::<Arc<world::World>>(),

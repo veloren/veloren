@@ -6,7 +6,7 @@ use crate::data::{
     faction::Faction,
     npc::{Npc, Npcs, Profession, Vehicle},
     site::Site,
-    Data, Nature,
+    Data, Nature, CURRENT_VERSION,
 };
 use common::{
     comp::{self, Body},
@@ -30,6 +30,7 @@ impl Data {
         let mut rng = SmallRng::from_seed(seed);
 
         let mut this = Self {
+            version: CURRENT_VERSION,
             nature: Nature::generate(world),
             npcs: Npcs {
                 npcs: Default::default(),

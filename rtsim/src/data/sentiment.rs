@@ -5,6 +5,7 @@ use common::{
 use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::collections::BinaryHeap;
 
 // Factions have a larger 'social memory' than individual NPCs and so we allow
 // them to have more sentiments
@@ -22,7 +23,7 @@ const DECAY_TIME_FACTOR: f32 = 1.0; //6.0; TODO: Use this value when we're happy
 // - Occupations (hatred of hunters or chefs?)
 // - Ideologies (dislikes democracy, likes monarchy?)
 // - etc.
-#[derive(Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
 pub enum Target {
     Character(CharacterId),
     Npc(NpcId),
@@ -105,13 +106,12 @@ impl Sentiments {
                 // For each sentiment, calculate how valuable it is for us to remember.
                 // For now, we just use the absolute value of the sentiment but later on we might want to favour
                 // sentiments toward factions and other 'larger' groups over, say, sentiments toward players/other NPCs
-                .map(|(tgt, sentiment)| (*tgt, sentiment.positivity.unsigned_abs()))
-                .collect::<Vec<_>>();
-            sentiments.sort_unstable_by_key(|(_, value)| *value);
+                .map(|(tgt, sentiment)| (sentiment.positivity.unsigned_abs(), *tgt))
+                .collect::<BinaryHeap<_>>();
 
             // Remove the superfluous sentiments
-            for (tgt, _) in &sentiments[0..self.map.len() - max_sentiments] {
-                self.map.remove(tgt);
+            for (_, tgt) in sentiments.drain().take(self.map.len() - max_sentiments) {
+                self.map.remove(&tgt);
             }
         }
     }
@@ -156,7 +156,7 @@ impl Sentiment {
     /// generally try to harm the actor in any way they can.
     pub const VILLAIN: f32 = -0.8;
 
-    fn value(&self) -> f32 { self.positivity as f32 / 126.0 }
+    fn value(&self) -> f32 { self.positivity as f32 * (1.0 / 126.0) }
 
     fn change_by(&mut self, change: f32, cap: f32) {
         // There's a bit of ceremony here for two reasons:
@@ -175,8 +175,8 @@ impl Sentiment {
 
     fn decay(&mut self, rng: &mut impl Rng, dt: f32) {
         if self.positivity != 0 {
-            // TODO: Make dt-independent so we can slow tick rates
-            // 36 = 6 * 6
+            // TODO: Find a slightly nicer way to have sentiment decay, perhaps even by
+            // remembering the last interaction instead of constant updates.
             if rng.gen_bool(
                 (1.0 / (self.positivity.unsigned_abs() as f32 * DECAY_TIME_FACTOR.powi(2) * dt))
                     as f64,

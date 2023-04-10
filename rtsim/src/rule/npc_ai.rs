@@ -469,24 +469,27 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
 fn socialize() -> impl Action {
     now(|ctx| {
         // TODO: Bit odd, should wait for a while after greeting
-        if ctx.rng.gen_bool(0.002) && let Some(other) = ctx
-            .state
-            .data()
-            .npcs
-            .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
-            .choose(&mut ctx.rng)
-        {
-            just(move |ctx| ctx.controller.say(other, "npc-speech-villager_open")).boxed()
-        } else if ctx.rng.gen_bool(0.0003) {
-            just(|ctx| ctx.controller.do_dance())
-                .repeat()
-                .stop_if(timeout(6.0))
-                .debug(|| "dancing")
-                .map(|_| ())
-                .boxed()
-        } else {
-            idle().boxed()
+        if ctx.rng.gen_bool(0.002) {
+            if ctx.rng.gen_bool(0.15) {
+                return just(|ctx| ctx.controller.do_dance())
+                    .repeat()
+                    .stop_if(timeout(6.0))
+                    .debug(|| "dancing")
+                    .map(|_| ())
+                    .boxed();
+            } else if let Some(other) = ctx
+                .state
+                .data()
+                .npcs
+                .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
+                .choose(&mut ctx.rng)
+            {
+                return just(move |ctx| ctx.controller.say(other, "npc-speech-villager_open"))
+                    .boxed();
+            }
         }
+
+        idle().boxed()
     })
 }
 
@@ -914,6 +917,12 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
 }
 
 fn check_for_enemies(ctx: &mut NpcCtx) -> Option<impl Action> {
+    // TODO: Instead of checking all nearby actors every tick, it would be more
+    // effective to have the actor grid generate a per-tick diff so that we only
+    // need to check new actors in the local area. Be careful though:
+    // implementing this means accounting for changes in sentiment (that could
+    // suddenly make a nearby actor an enemy) as well as variable NPC tick
+    // rates!
     ctx.state
         .data()
         .npcs

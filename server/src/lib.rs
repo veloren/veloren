@@ -80,7 +80,7 @@ use common::{
     rtsim::{RtSimEntity, RtSimVehicle},
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
-    terrain::{Block, TerrainChunk, TerrainChunkSize},
+    terrain::{TerrainChunk, TerrainChunkSize},
     vol::RectRasterableVol,
 };
 use common_ecs::run_now;
@@ -88,7 +88,7 @@ use common_net::{
     msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerMsg},
     sync::WorldSyncExt,
 };
-use common_state::{BuildAreas, State};
+use common_state::{BlockDiff, BuildAreas, State};
 use common_systems::add_local_systems;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
@@ -698,21 +698,15 @@ impl Server {
 
         let before_state_tick = Instant::now();
 
-        fn on_block_update(
-            ecs: &specs::World,
-            wpos: Vec3<i32>,
-            old_block: Block,
-            new_block: Block,
-        ) {
+        fn on_block_update(ecs: &specs::World, changes: Vec<BlockDiff>) {
             // When a resource block updates, inform rtsim
-            if old_block.get_rtsim_resource().is_some() || new_block.get_rtsim_resource().is_some()
-            {
+            if changes.iter().any(|c| {
+                c.old.get_rtsim_resource().is_some() || c.new.get_rtsim_resource().is_some()
+            }) {
                 ecs.write_resource::<rtsim::RtSim>().hook_block_update(
                     &ecs.read_resource::<Arc<world::World>>(),
                     ecs.read_resource::<world::IndexOwned>().as_index_ref(),
-                    wpos,
-                    old_block,
-                    new_block,
+                    changes,
                 );
             }
         }
@@ -838,35 +832,26 @@ impl Server {
                 .collect::<Vec<_>>()
         };
 
-        for entity in to_delete {
-            // Assimilate entities that are part of the real-time world simulation
-            #[cfg(feature = "worldgen")]
-            if let Some(rtsim_entity) = self
-                .state
-                .ecs()
-                .read_storage::<RtSimEntity>()
-                .get(entity)
-                .copied()
-            {
-                self.state
-                    .ecs()
-                    .write_resource::<rtsim::RtSim>()
-                    .hook_rtsim_entity_unload(rtsim_entity);
-            }
-            #[cfg(feature = "worldgen")]
-            if let Some(rtsim_vehicle) = self
-                .state
-                .ecs()
-                .read_storage::<RtSimVehicle>()
-                .get(entity)
-                .copied()
-            {
-                self.state
-                    .ecs()
-                    .write_resource::<rtsim::RtSim>()
-                    .hook_rtsim_vehicle_unload(rtsim_vehicle);
-            }
+        {
+            let mut rtsim = self.state.ecs().write_resource::<rtsim::RtSim>();
+            let rtsim_entities = self.state.ecs().read_storage::<RtSimEntity>();
+            let rtsim_vehicles = self.state.ecs().read_storage::<RtSimVehicle>();
 
+            // Assimilate entities that are part of the real-time world simulation
+            for entity in &to_delete {
+                #[cfg(feature = "worldgen")]
+                if let Some(rtsim_entity) = rtsim_entities.get(*entity) {
+                    rtsim.hook_rtsim_entity_unload(*rtsim_entity);
+                }
+                #[cfg(feature = "worldgen")]
+                if let Some(rtsim_vehicle) = rtsim_vehicles.get(*entity) {
+                    rtsim.hook_rtsim_vehicle_unload(*rtsim_vehicle);
+                }
+            }
+        }
+
+        // Actually perform entity deletion
+        for entity in to_delete {
             if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");
             }

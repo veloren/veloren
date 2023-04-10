@@ -22,7 +22,7 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
     // Create NPC grid
     data.npcs.npc_grid = Grid::new(ctx.world.sim().get_size().as_(), Default::default());
 
-    // Add NPCs to home population (TODO: Do this on entity creation?)
+    // Add NPCs to home population
     for (npc_id, npc) in data.npcs.npcs.iter() {
         if let Some(home) = npc.home.and_then(|home| data.sites.get_mut(home)) {
             home.population.insert(npc_id);

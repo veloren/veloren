@@ -179,21 +179,25 @@ impl Npc {
         }
     }
 
+    // TODO: have a dedicated `NpcBuilder` type for this.
     pub fn with_personality(mut self, personality: Personality) -> Self {
         self.personality = personality;
         self
     }
 
+    // TODO: have a dedicated `NpcBuilder` type for this.
     pub fn with_profession(mut self, profession: impl Into<Option<Profession>>) -> Self {
         self.profession = profession.into();
         self
     }
 
+    // TODO: have a dedicated `NpcBuilder` type for this.
     pub fn with_home(mut self, home: impl Into<Option<SiteId>>) -> Self {
         self.home = home.into();
         self
     }
 
+    // TODO: have a dedicated `NpcBuilder` type for this.
     pub fn steering(mut self, vehicle: impl Into<Option<VehicleId>>) -> Self {
         self.riding = vehicle.into().map(|vehicle| Riding {
             vehicle,
@@ -202,6 +206,7 @@ impl Npc {
         self
     }
 
+    // TODO: have a dedicated `NpcBuilder` type for this.
     pub fn riding(mut self, vehicle: impl Into<Option<VehicleId>>) -> Self {
         self.riding = vehicle.into().map(|vehicle| Riding {
             vehicle,
@@ -210,6 +215,7 @@ impl Npc {
         self
     }
 
+    // TODO: have a dedicated `NpcBuilder` type for this.
     pub fn with_faction(mut self, faction: impl Into<Option<FactionId>>) -> Self {
         self.faction = faction.into();
         self
@@ -217,10 +223,14 @@ impl Npc {
 
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed.wrapping_add(perm)) }
 
+    // TODO: Don't make this depend on deterministic RNG, actually persist names
+    // once we've decided that we want to
     pub fn get_name(&self) -> String { name::generate(&mut self.rng(Self::PERM_NAME)) }
 
     pub fn cleanup(&mut self, reports: &Reports) {
         // Clear old or superfluous sentiments
+        // TODO: It might be worth giving more important NPCs a higher sentiment
+        // 'budget' than less important ones.
         self.sentiments
             .cleanup(crate::data::sentiment::NPC_MAX_SENTIMENTS);
         // Clear reports that have been forgotten
@@ -305,6 +315,7 @@ pub struct Npcs {
     pub npcs: HopSlotMap<NpcId, Npc>,
     pub vehicles: HopSlotMap<VehicleId, Vehicle>,
     // TODO: This feels like it should be its own rtsim resource
+    // TODO: Consider switching to `common::util::SpatialGrid` instead
     #[serde(skip, default = "construct_npc_grid")]
     pub npc_grid: Grid<GridCell>,
     #[serde(skip)]
@@ -332,6 +343,8 @@ impl Npcs {
     }
 
     /// Queries nearby npcs, not garantueed to work if radius > 32.0
+    // TODO: Find a more efficient way to implement this, it's currently
+    // (theoretically) O(n^2).
     pub fn nearby(
         &self,
         this_npc: Option<NpcId>,

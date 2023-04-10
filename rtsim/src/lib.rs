@@ -91,6 +91,9 @@ impl RtState {
             .borrow_mut()
     }
 
+    // TODO: Consider whether it's worth explicitly calling rule event handlers
+    // instead of allowing them to bind event handlers. Less modular, but
+    // potentially easier to deal with data dependencies?
     pub fn bind<R: Rule, E: Event>(
         &mut self,
         f: impl FnMut(EventCtx<R, E>) + Send + Sync + 'static,
@@ -114,6 +117,8 @@ impl RtState {
 
     pub fn data_mut(&self) -> impl DerefMut<Target = Data> + '_ { self.resource_mut() }
 
+    pub fn get_data_mut(&mut self) -> &mut Data { self.get_resource_mut() }
+
     pub fn resource<R: Send + Sync + 'static>(&self) -> impl Deref<Target = R> + '_ {
         self.resources
             .get::<AtomicRefCell<R>>()
@@ -124,6 +129,18 @@ impl RtState {
                 )
             })
             .borrow()
+    }
+
+    pub fn get_resource_mut<R: Send + Sync + 'static>(&mut self) -> &mut R {
+        self.resources
+            .get_mut::<AtomicRefCell<R>>()
+            .unwrap_or_else(|| {
+                panic!(
+                    "Tried to access resource '{}' but it does not exist",
+                    type_name::<R>()
+                )
+            })
+            .get_mut()
     }
 
     pub fn resource_mut<R: Send + Sync + 'static>(&self) -> impl DerefMut<Target = R> + '_ {
@@ -139,6 +156,8 @@ impl RtState {
     }
 
     pub fn emit<E: Event>(&mut self, e: E, world: &World, index: IndexRef) {
+        // TODO: Queue these events up and handle them on a regular rtsim tick instead
+        // of executing their handlers immediately.
         if let Some(handlers) = self.event_handlers.get::<EventHandlersOf<E>>() {
             handlers.iter().for_each(|f| f(self, world, index, &e));
         }

@@ -37,6 +37,7 @@ pub struct Site {
     #[serde(skip_serializing, skip_deserializing)]
     pub world_site: Option<Id<WorldSite>>,
 
+    // Note: there's currently no guarantee that site populations are non-intersecting
     #[serde(skip_serializing, skip_deserializing)]
     pub population: HashSet<NpcId>,
 }

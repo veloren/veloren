@@ -20,13 +20,13 @@ impl Rule for CleanUp {
             let data = &mut *ctx.state.data_mut();
             let mut rng = ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>());
 
-            for (_, npc) in data.npcs
+            // TODO: Use `.into_par_iter()` for these by implementing rayon traits in upstream slotmap.
+
+            data.npcs
                 .iter_mut()
                 // Only cleanup NPCs every few ticks
                 .filter(|(_, npc)| (npc.seed as u64 + ctx.event.tick) % NPC_SENTIMENT_TICK_SKIP == 0)
-            {
-                npc.sentiments.decay(&mut rng, ctx.event.dt * NPC_SENTIMENT_TICK_SKIP as f32);
-            }
+                .for_each(|(_, npc)| npc.sentiments.decay(&mut rng, ctx.event.dt * NPC_SENTIMENT_TICK_SKIP as f32));
 
             // Clean up entities
             data.npcs

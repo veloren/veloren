@@ -113,6 +113,13 @@ impl TerrainChanges {
     }
 }
 
+#[derive(Clone)]
+pub struct BlockDiff {
+    pub wpos: Vec3<i32>,
+    pub old: Block,
+    pub new: Block,
+}
+
 /// A type used to represent game state stored on both the client and the
 /// server. This includes things like entity components, terrain data, and
 /// global states like weather, time of day, etc.
@@ -525,10 +532,7 @@ impl State {
     }
 
     // Apply terrain changes
-    pub fn apply_terrain_changes(
-        &self,
-        block_update: impl FnMut(&specs::World, Vec3<i32>, Block, Block),
-    ) {
+    pub fn apply_terrain_changes(&self, block_update: impl FnMut(&specs::World, Vec<BlockDiff>)) {
         self.apply_terrain_changes_internal(false, block_update);
     }
 
@@ -543,7 +547,7 @@ impl State {
     fn apply_terrain_changes_internal(
         &self,
         during_tick: bool,
-        mut block_update: impl FnMut(&specs::World, Vec3<i32>, Block, Block),
+        mut block_update: impl FnMut(&specs::World, Vec<BlockDiff>),
     ) {
         span!(
             _guard,
@@ -585,20 +589,30 @@ impl State {
         }
         // Apply block modifications
         // Only include in `TerrainChanges` if successful
-        modified_blocks.retain(|pos, new_block| {
-            let res = terrain.map(*pos, |old_block| {
-                block_update(&self.ecs, *pos, old_block, *new_block);
-                *new_block
+        let mut updated_blocks = Vec::with_capacity(modified_blocks.len());
+        modified_blocks.retain(|wpos, new| {
+            let res = terrain.map(*wpos, |old| {
+                updated_blocks.push(BlockDiff {
+                    wpos: *wpos,
+                    old,
+                    new: *new,
+                });
+                *new
             });
-            if let (&Ok(old_block), true) = (&res, during_tick) {
+            if let (&Ok(old), true) = (&res, during_tick) {
                 // NOTE: If the changes are applied during the tick, we push the *old* value as
                 // the modified block (since it otherwise can't be recovered after the tick).
                 // Otherwise, the changes will be applied after the tick, so we push the *new*
                 // value.
-                *new_block = old_block;
+                *new = old;
             }
             res.is_ok()
         });
+
+        if !updated_blocks.is_empty() {
+            block_update(&self.ecs, updated_blocks);
+        }
+
         self.ecs.write_resource::<TerrainChanges>().modified_blocks = modified_blocks;
     }
 
@@ -610,7 +624,7 @@ impl State {
         update_terrain_and_regions: bool,
         mut metrics: Option<&mut StateTickMetrics>,
         server_constants: &ServerConstants,
-        block_update: impl FnMut(&specs::World, Vec3<i32>, Block, Block),
+        block_update: impl FnMut(&specs::World, Vec<BlockDiff>),
     ) {
         span!(_guard, "tick", "State::tick");
 

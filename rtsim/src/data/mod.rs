@@ -24,8 +24,19 @@ use std::{
     marker::PhantomData,
 };
 
+/// The current version of rtsim data.
+///
+/// Note that this number does *not* need incrementing on every change: most
+/// field removals/additions are fine. This number should only be incremented
+/// when we wish to perform a *hard purge* of rtsim data.
+pub const CURRENT_VERSION: u32 = 0;
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Data {
+    // Absence of field just implied version = 0
+    #[serde(default)]
+    pub version: u32,
+
     pub nature: Nature,
     #[serde(default)]
     pub npcs: Npcs,
@@ -46,7 +57,21 @@ pub struct Data {
     pub should_purge: bool,
 }
 
-pub type ReadError = rmp_serde::decode::Error;
+pub enum ReadError {
+    Load(rmp_serde::decode::Error),
+    // Preserve old data
+    VersionMismatch(Box<Data>),
+}
+
+impl fmt::Debug for ReadError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Load(err) => err.fmt(f),
+            Self::VersionMismatch(_) => write!(f, "VersionMismatch"),
+        }
+    }
+}
+
 pub type WriteError = rmp_serde::encode::Error;
 
 impl Data {
@@ -59,8 +84,16 @@ impl Data {
         id
     }
 
-    pub fn from_reader<R: Read>(reader: R) -> Result<Self, ReadError> {
+    pub fn from_reader<R: Read>(reader: R) -> Result<Box<Self>, ReadError> {
         rmp_serde::decode::from_read(reader)
+            .map_err(ReadError::Load)
+            .and_then(|data: Data| {
+                if data.version == CURRENT_VERSION {
+                    Ok(Box::new(data))
+                } else {
+                    Err(ReadError::VersionMismatch(Box::new(data)))
+                }
+            })
     }
 
     pub fn write_to<W: Write>(&self, mut writer: W) -> Result<(), WriteError> {
