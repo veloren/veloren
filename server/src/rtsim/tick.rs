@@ -326,13 +326,6 @@ impl<'a> System<'a> for Sys {
                     // agent: None,//Some(Agent::from_body(&Body::Ship(ship))),
                     rtsim_entity: Some(RtSimVehicle(vehicle_id)),
                     driver: vehicle.driver.and_then(&mut actor_info),
-                    passangers: vehicle
-                        .riders
-                        .iter()
-                        .copied()
-                        .filter(|actor| vehicle.driver != Some(*actor))
-                        .filter_map(actor_info)
-                        .collect(),
                 });
             }
         }

@@ -196,8 +196,7 @@ impl Server {
                     ship,
                     rtsim_entity,
                     driver,
-                    passangers,
-                } => handle_create_ship(self, pos, ship, rtsim_entity, driver, passangers),
+                } => handle_create_ship(self, pos, ship, rtsim_entity, driver, Vec::new()),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
                 ServerEvent::ClientDisconnect(entity, reason) => {
                     frontend_events.push(handle_client_disconnect(self, entity, reason, false))

@@ -34,7 +34,6 @@ fn on_setup(ctx: EventCtx<SimulateNpcs, OnSetup>) {
         if let Some(ride) = &npc.riding {
             if let Some(vehicle) = data.npcs.vehicles.get_mut(ride.vehicle) {
                 let actor = Actor::Npc(npc_id);
-                vehicle.riders.push(actor);
                 if ride.steering && vehicle.driver.replace(actor).is_some() {
                     error!("Replaced driver");
                 }

@@ -230,7 +230,6 @@ pub enum ServerEvent {
         ship: comp::ship::Body,
         rtsim_entity: Option<RtSimVehicle>,
         driver: Option<NpcBuilder>,
-        passangers: Vec<NpcBuilder>,
     },
     CreateWaypoint(Vec3<f32>),
     ClientDisconnect(EcsEntity, DisconnectReason),

@@ -266,10 +266,6 @@ pub struct Vehicle {
     #[serde(skip)]
     pub driver: Option<Actor>,
 
-    #[serde(skip)]
-    // TODO: Find a way to detect riders when the vehicle is loaded
-    pub riders: Vec<Actor>,
-
     /// Whether the Vehicle is in simulated or loaded mode (when rtsim is run on
     /// the server, loaded corresponds to being within a loaded chunk). When
     /// in loaded mode, the interactions of the Vehicle should not be
@@ -285,7 +281,6 @@ impl Vehicle {
             body,
             chunk_pos: None,
             driver: None,
-            riders: Vec::new(),
             mode: SimulationMode::Simulated,
         }
     }
