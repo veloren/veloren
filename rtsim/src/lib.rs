@@ -6,7 +6,8 @@
     trait_alias,
     trait_upcasting,
     control_flow_enum,
-    let_chains
+    let_chains,
+    binary_heap_drain_sorted
 )]
 
 pub mod ai;

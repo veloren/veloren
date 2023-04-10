@@ -110,7 +110,10 @@ impl Sentiments {
                 .collect::<BinaryHeap<_>>();
 
             // Remove the superfluous sentiments
-            for (_, tgt) in sentiments.drain().take(self.map.len() - max_sentiments) {
+            for (_, tgt) in sentiments
+                .drain_sorted()
+                .take(self.map.len() - max_sentiments)
+            {
                 self.map.remove(&tgt);
             }
         }
