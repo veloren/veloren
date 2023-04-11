@@ -61,7 +61,10 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                         Some(*id) != npc.home
                             && site.faction == npc.faction
                             && site.world_site.map_or(false, |s| {
-                                matches!(ctx.index.sites.get(s).kind, SiteKind::Refactor(_))
+                                matches!(ctx.index.sites.get(s).kind, SiteKind::Refactor(_)
+                | SiteKind::CliffTown(_)
+                | SiteKind::SavannahPit(_)
+                | SiteKind::DesertCity(_))
                             })
                     })
                     .min_by_key(|(_, site)| site.population.len())
@@ -142,6 +145,8 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                 home.population.insert(npc_id);
             }
         }
+    } else {
+        error!("Trying to respawn non-existent NPC");
     }
 }
 
@@ -151,7 +156,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         .npcs
         .npcs
         .values_mut()
-        .filter(|npc| matches!(npc.mode, SimulationMode::Simulated))
+        .filter(|npc| matches!(npc.mode, SimulationMode::Simulated) && !npc.is_dead)
     {
         // Simulate NPC movement when riding
         if let Some(riding) = &npc.riding {

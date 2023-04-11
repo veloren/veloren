@@ -100,6 +100,8 @@ pub struct Npc {
     pub faction: Option<FactionId>,
     pub riding: Option<Riding>,
 
+    pub is_dead: bool,
+
     /// The [`Report`]s that the NPC is aware of.
     pub known_reports: HashSet<ReportId>,
 
@@ -139,6 +141,7 @@ impl Clone for Npc {
             home: self.home,
             faction: self.faction,
             riding: self.riding.clone(),
+            is_dead: self.is_dead,
             known_reports: self.known_reports.clone(),
             body: self.body,
             personality: self.personality,
@@ -169,6 +172,7 @@ impl Npc {
             home: None,
             faction: None,
             riding: None,
+            is_dead: false,
             known_reports: Default::default(),
             chunk_pos: None,
             current_site: None,

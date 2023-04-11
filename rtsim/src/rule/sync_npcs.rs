@@ -34,19 +34,10 @@ fn on_death(ctx: EventCtx<SyncNpcs, OnDeath>) {
     let data = &mut *ctx.state.data_mut();
 
     if let Actor::Npc(npc_id) = ctx.event.actor {
-        // Remove NPC from home population
-        if let Some(home) = data
-            .npcs
-            .get(npc_id)
-            .and_then(|npc| npc.home)
-            .and_then(|home| data.sites.get_mut(home))
-        {
-            home.population.remove(&npc_id);
+        if let Some(npc) = data.npcs.get_mut(npc_id) {
+            // Mark the NPC as dead, allowing us to clear them up later
+            npc.is_dead = true;
         }
-
-        // TODO: Maybe death should be a marker flag instead of outright deleting the
-        // NPC so that we can still query details about them?
-        data.npcs.remove(npc_id);
     }
 }
 

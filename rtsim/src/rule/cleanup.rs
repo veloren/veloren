@@ -22,11 +22,26 @@ impl Rule for CleanUp {
 
             // TODO: Use `.into_par_iter()` for these by implementing rayon traits in upstream slotmap.
 
+            // Decay NPC sentiments
             data.npcs
                 .iter_mut()
                 // Only cleanup NPCs every few ticks
                 .filter(|(_, npc)| (npc.seed as u64 + ctx.event.tick) % NPC_SENTIMENT_TICK_SKIP == 0)
                 .for_each(|(_, npc)| npc.sentiments.decay(&mut rng, ctx.event.dt * NPC_SENTIMENT_TICK_SKIP as f32));
+
+            // Remove dead NPCs
+            // TODO: Don't do this every tick, find a sensible way to gradually remove dead NPCs after they've been
+            // forgotten
+            data.npcs
+                .retain(|npc_id, npc| if npc.is_dead {
+                    // Remove NPC from home population
+                    if let Some(home) = npc.home.and_then(|home| data.sites.get_mut(home)) {
+                        home.population.remove(&npc_id);
+                    }
+                    false
+                } else {
+                    true
+                });
 
             // Clean up entities
             data.npcs

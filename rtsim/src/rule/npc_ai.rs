@@ -215,6 +215,8 @@ impl Rule for NpcAi {
                 let mut data = ctx.state.data_mut();
                 data.npcs
                     .iter_mut()
+                    // Don't run AI for dead NPCs
+                    .filter(|(_, npc)| !npc.is_dead)
                     // Don't run AI for simulated NPCs every tick
                     .filter(|(_, npc)| matches!(npc.mode, SimulationMode::Loaded) || (npc.seed as u64 + ctx.event.tick) % SIMULATED_TICK_SKIP == 0)
                     .map(|(npc_id, npc)| {
