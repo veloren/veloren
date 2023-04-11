@@ -20,6 +20,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
+use i18n_helpers::make_localizer;
 use keyboard_keynames::key_layout::KeyLayout;
 
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
@@ -534,8 +535,7 @@ impl<'a> Widget for Overhead<'a> {
         // Speech bubble
         if let Some(bubble) = self.bubble {
             let dark_mode = self.settings.speech_bubble_dark_mode;
-            let localizer = |s: &str, i| -> String { self.i18n.get_variation(s, i).to_string() };
-            let bubble_contents: String = bubble.message(localizer);
+            let bubble_contents: String = bubble.content().localize(make_localizer(self.i18n));
             let (text_color, shadow_color) = bubble_color(bubble, dark_mode);
             let mut text = Text::new(&bubble_contents)
                 .color(text_color)

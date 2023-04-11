@@ -7173,6 +7173,7 @@ dependencies = [
 name = "veloren-voxygen-i18n-helpers"
 version = "0.10.0"
 dependencies = [
+ "hashbrown 0.12.3",
  "tracing",
  "veloren-client-i18n",
  "veloren-common",

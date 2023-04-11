@@ -11,7 +11,7 @@ use crate::{
     EditableSettings,
 };
 use common::{
-    comp::{Admin, AdminRole, ChatType, Player, Presence, UnresolvedChatMsg, Waypoint},
+    comp::{Admin, AdminRole, ChatType, Player, Presence, Waypoint},
     event::{EventBus, ServerEvent},
     resources::Time,
     terrain::TerrainChunkSize,
@@ -48,7 +48,7 @@ impl Sys {
             if !editable_settings.server_description.is_empty() {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
-                    &*editable_settings.server_description,
+                    editable_settings.server_description.as_str(),
                 ))?;
             }
 
@@ -62,10 +62,9 @@ impl Sys {
 
             if !client.login_msg_sent.load(Ordering::Relaxed) {
                 if let Some(player_uid) = uids.get(entity) {
-                    server_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg {
-                        chat_type: ChatType::Online(*player_uid),
-                        message: "".to_string(),
-                    }));
+                    server_emitter.emit(ServerEvent::Chat(
+                        ChatType::Online(*player_uid).into_plain_msg(""),
+                    ));
 
                     client.login_msg_sent.store(true, Ordering::Relaxed);
                 }

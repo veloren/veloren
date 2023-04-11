@@ -6,7 +6,8 @@ use common::{
         inventory::item::{ItemTag, MaterialStatManifest},
         invite::{InviteKind, InviteResponse},
         tool::AbilityMap,
-        BehaviorState, ControlAction, Item, TradingBehavior, UnresolvedChatMsg, UtteranceKind,
+        BehaviorState, Content, ControlAction, Item, TradingBehavior, UnresolvedChatMsg,
+        UtteranceKind,
     },
     event::ServerEvent,
     rtsim::PersonalityTrait,
@@ -434,7 +435,7 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
         let (tradeid, pending, prices, inventories) = *boxval;
         if agent.behavior.is(BehaviorState::TRADING) {
             let who = usize::from(!agent.behavior.is(BehaviorState::TRADING_ISSUER));
-            let mut message = |msg| {
+            let mut message = |text| {
                 if let Some(with) = agent
                     .target
                     .as_ref()
@@ -443,12 +444,14 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                     event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_tell(
                         *agent_data.uid,
                         *with,
-                        msg,
+                        // TODO: localise this
+                        Content::Plain(text),
                     )));
                 } else {
                     event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
                         *agent_data.uid,
-                        msg,
+                        // TODO: localise this
+                        Content::Plain(text),
                     )));
                 }
             };

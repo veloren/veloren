@@ -6,7 +6,7 @@ use crate::sync;
 use common::{
     calendar::Calendar,
     character::{self, CharacterItem},
-    comp::{self, invite::InviteKind, item::MaterialStatManifest},
+    comp::{self, invite::InviteKind, item::MaterialStatManifest, Content},
     event::UpdateCharacterMetadata,
     lod,
     outcome::Outcome,
@@ -215,11 +215,10 @@ pub enum ServerGeneral {
 }
 
 impl ServerGeneral {
-    pub fn server_msg<S>(chat_type: comp::ChatType<String>, msg: S) -> Self
-    where
-        S: Into<String>,
-    {
-        ServerGeneral::ChatMsg(chat_type.chat_msg(msg))
+    // TODO: Don't use `Into<Content>` since this treats all strings as plaintext,
+    // properly localise server messages
+    pub fn server_msg(chat_type: comp::ChatType<String>, content: impl Into<Content>) -> Self {
+        ServerGeneral::ChatMsg(chat_type.into_msg(content.into()))
     }
 }
 

@@ -35,7 +35,6 @@ use common::{
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::BlockChange;
-use comp::chat::GenericChatMsg;
 use hashbrown::HashSet;
 use rand::{distributions::WeightedIndex, Rng};
 use rand_distr::Distribution;
@@ -198,10 +197,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                 _ => KillSource::Other,
             };
 
-            state.send_chat(GenericChatMsg {
-                chat_type: comp::ChatType::Kill(kill_source, *uid),
-                message: "".to_string(),
-            });
+            state.send_chat(comp::ChatType::Kill(kill_source, *uid).into_plain_msg(""));
         }
     }
 

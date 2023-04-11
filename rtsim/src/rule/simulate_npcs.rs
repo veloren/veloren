@@ -88,7 +88,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                     );
                     Some((npc_id, site_id))
                 } else {
-                    warn!("No site found for respawning humaniod");
+                    warn!("No site found for respawning humanoid");
                     None
                 }
             },

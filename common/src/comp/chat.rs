@@ -2,6 +2,7 @@ use crate::{
     comp::{group::Group, BuffKind},
     uid::Uid,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DenseVecStorage};
 use std::time::{Duration, Instant};
@@ -29,8 +30,8 @@ impl Component for ChatMode {
 }
 
 impl ChatMode {
-    /// Create a message from your current chat mode and uuid.
-    pub fn new_message(&self, from: Uid, message: String) -> UnresolvedChatMsg {
+    /// Create a plain message from your current chat mode and uuid.
+    pub fn to_plain_msg(&self, from: Uid, text: impl ToString) -> UnresolvedChatMsg {
         let chat_type = match self {
             ChatMode::Tell(to) => ChatType::Tell(from, *to),
             ChatMode::Say => ChatType::Say(from),
@@ -39,7 +40,10 @@ impl ChatMode {
             ChatMode::Faction(faction) => ChatType::Faction(from, faction.clone()),
             ChatMode::World => ChatType::World(from),
         };
-        UnresolvedChatMsg { chat_type, message }
+        UnresolvedChatMsg {
+            chat_type,
+            content: Content::Plain(text.to_string()),
+        }
     }
 }
 
@@ -102,26 +106,28 @@ pub enum ChatType<G> {
     /// World chat
     World(Uid),
     /// Messages sent from NPCs (Not shown in chat but as speech bubbles)
-    ///
-    /// The u16 field is a random number for selecting localization variants.
-    Npc(Uid, u16),
+    Npc(Uid),
     /// From NPCs but in the chat for clients in the near vicinity
-    NpcSay(Uid, u16),
+    NpcSay(Uid),
     /// From NPCs but in the chat for a specific client. Shows a chat bubble.
     /// (from, to, localization variant)
-    NpcTell(Uid, Uid, u16),
+    NpcTell(Uid, Uid),
     /// Anything else
     Meta,
 }
 
 impl<G> ChatType<G> {
-    pub fn chat_msg<S>(self, msg: S) -> GenericChatMsg<G>
-    where
-        S: Into<String>,
-    {
+    pub fn into_plain_msg(self, text: impl ToString) -> GenericChatMsg<G> {
         GenericChatMsg {
             chat_type: self,
-            message: msg.into(),
+            content: Content::Plain(text.to_string()),
+        }
+    }
+
+    pub fn into_msg(self, content: Content) -> GenericChatMsg<G> {
+        GenericChatMsg {
+            chat_type: self,
+            content,
         }
     }
 
@@ -140,9 +146,9 @@ impl<G> ChatType<G> {
             ChatType::Faction(u, _s) => Some(*u),
             ChatType::Region(u) => Some(*u),
             ChatType::World(u) => Some(*u),
-            ChatType::Npc(u, _r) => Some(*u),
-            ChatType::NpcSay(u, _r) => Some(*u),
-            ChatType::NpcTell(u, _t, _r) => Some(*u),
+            ChatType::Npc(u) => Some(*u),
+            ChatType::NpcSay(u) => Some(*u),
+            ChatType::NpcTell(u, _t) => Some(*u),
             ChatType::Meta => None,
         }
     }
@@ -156,9 +162,9 @@ impl<G> ChatType<G> {
             | ChatType::CommandError
             | ChatType::FactionMeta(_)
             | ChatType::GroupMeta(_)
-            | ChatType::Npc(_, _)
-            | ChatType::NpcSay(_, _)
-            | ChatType::NpcTell(_, _, _)
+            | ChatType::Npc(_)
+            | ChatType::NpcSay(_)
+            | ChatType::NpcTell(_, _)
             | ChatType::Meta
             | ChatType::Kill(_, _) => None,
             ChatType::Tell(_, _) | ChatType::Group(_, _) | ChatType::Faction(_, _) => Some(true),
@@ -167,11 +173,87 @@ impl<G> ChatType<G> {
     }
 }
 
+/// The content of a chat message.
+// TODO: This could be generalised to *any* in-game text, not just chat messages (hence it not being
+// called `ChatContent`). A few examples:
+//
+// - Signposts, both those appearing as overhead messages and those displayed 'in-world' on a shop
+//   sign
+// - UI elements
+// - In-game notes/books (we could add a variant that allows structuring complex, novel textual
+//   information as a syntax tree or some other intermediate format that can be localised by the
+//   client)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Content {
+    /// The content is a plaintext string that should be shown to the user
+    /// verbatim.
+    Plain(String),
+    /// The content is a localizable message with the given arguments.
+    Localized {
+        /// i18n key
+        key: String,
+        /// Pseudorandom seed value that allows frontends to select a
+        /// deterministic (but pseudorandom) localised output
+        seed: u16,
+        /// i18n arguments
+        args: HashMap<String, String>,
+    },
+}
+
+impl From<String> for Content {
+    fn from(text: String) -> Self { Self::Plain(text) }
+}
+
+impl<'a> From<&'a str> for Content {
+    fn from(text: &'a str) -> Self { Self::Plain(text.to_string()) }
+}
+
+impl Content {
+    pub fn localized(key: impl ToString) -> Self {
+        Self::Localized {
+            key: key.to_string(),
+            r: rand::random(),
+            args: HashMap::default(),
+        }
+    }
+
+    pub fn localized_with_args<'a, S: ToString>(
+        key: impl ToString,
+        args: impl IntoIterator<Item = (&'a str, S)>,
+    ) -> Self {
+        Self::Localized {
+            key: key.to_string(),
+            r: rand::random(),
+            args: args
+                .into_iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
+        }
+    }
+
+    pub fn as_plain(&self) -> Option<&str> {
+        match self {
+            Self::Plain(text) => Some(text.as_str()),
+            Self::Localized { .. } => None,
+        }
+    }
+
+    pub fn localize<F>(&self, i18n_variation: F) -> String
+    where
+        F: Fn(&str, u16, &HashMap<String, String>) -> String,
+    {
+        match self {
+            Content::Plain(text) => text.to_string(),
+            Content::Localized { key, seed, args } => i18n_variation(key, *seed, args),
+        }
+    }
+}
+
 // Stores chat text, type
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenericChatMsg<G> {
     pub chat_type: ChatType<G>,
-    pub message: String,
+    content: Content,
 }
 
 pub type ChatMsg = GenericChatMsg<String>;
@@ -183,19 +265,19 @@ impl<G> GenericChatMsg<G> {
     pub const REGION_DISTANCE: f32 = 1000.0;
     pub const SAY_DISTANCE: f32 = 100.0;
 
-    pub fn npc(uid: Uid, message: String) -> Self {
-        let chat_type = ChatType::Npc(uid, rand::random());
-        Self { chat_type, message }
+    pub fn npc(uid: Uid, content: Content) -> Self {
+        let chat_type = ChatType::Npc(uid);
+        Self { chat_type, content }
     }
 
-    pub fn npc_say(uid: Uid, message: String) -> Self {
-        let chat_type = ChatType::NpcSay(uid, rand::random());
-        Self { chat_type, message }
+    pub fn npc_say(uid: Uid, content: Content) -> Self {
+        let chat_type = ChatType::NpcSay(uid);
+        Self { chat_type, content }
     }
 
-    pub fn npc_tell(from: Uid, to: Uid, message: String) -> Self {
-        let chat_type = ChatType::NpcTell(from, to, rand::random());
-        Self { chat_type, message }
+    pub fn npc_tell(from: Uid, to: Uid, content: Content) -> Self {
+        let chat_type = ChatType::NpcTell(from, to);
+        Self { chat_type, content }
     }
 
     pub fn map_group<T>(self, mut f: impl FnMut(G) -> T) -> GenericChatMsg<T> {
@@ -213,15 +295,15 @@ impl<G> GenericChatMsg<G> {
             ChatType::Faction(a, b) => ChatType::Faction(a, b),
             ChatType::Region(a) => ChatType::Region(a),
             ChatType::World(a) => ChatType::World(a),
-            ChatType::Npc(a, b) => ChatType::Npc(a, b),
-            ChatType::NpcSay(a, b) => ChatType::NpcSay(a, b),
-            ChatType::NpcTell(a, b, c) => ChatType::NpcTell(a, b, c),
+            ChatType::Npc(a) => ChatType::Npc(a),
+            ChatType::NpcSay(a) => ChatType::NpcSay(a),
+            ChatType::NpcTell(a, b) => ChatType::NpcTell(a, b),
             ChatType::Meta => ChatType::Meta,
         };
 
         GenericChatMsg {
             chat_type,
-            message: self.message,
+            content: self.content,
         }
     }
 
@@ -234,15 +316,8 @@ impl<G> GenericChatMsg<G> {
     }
 
     pub fn to_bubble(&self) -> Option<(SpeechBubble, Uid)> {
-        let icon = self.icon();
-        if let ChatType::Npc(from, r) | ChatType::NpcSay(from, r) | ChatType::NpcTell(from, _, r) =
-            self.chat_type
-        {
-            Some((SpeechBubble::npc_new(&self.message, r, icon), from))
-        } else {
-            self.uid()
-                .map(|from| (SpeechBubble::player_new(&self.message, icon), from))
-        }
+        self.uid()
+            .map(|from| (SpeechBubble::new(self.content.clone(), self.icon()), from))
     }
 
     pub fn icon(&self) -> SpeechBubbleType {
@@ -260,14 +335,18 @@ impl<G> GenericChatMsg<G> {
             ChatType::Faction(_u, _s) => SpeechBubbleType::Faction,
             ChatType::Region(_u) => SpeechBubbleType::Region,
             ChatType::World(_u) => SpeechBubbleType::World,
-            ChatType::Npc(_u, _r) => SpeechBubbleType::None,
-            ChatType::NpcSay(_u, _r) => SpeechBubbleType::Say,
-            ChatType::NpcTell(_f, _t, _) => SpeechBubbleType::Say,
+            ChatType::Npc(_u) => SpeechBubbleType::None,
+            ChatType::NpcSay(_u) => SpeechBubbleType::Say,
+            ChatType::NpcTell(_f, _t) => SpeechBubbleType::Say,
             ChatType::Meta => SpeechBubbleType::None,
         }
     }
 
     pub fn uid(&self) -> Option<Uid> { self.chat_type.uid() }
+
+    pub fn content(&self) -> &Content { &self.content }
+
+    pub fn set_content(&mut self, content: Content) { self.content = content; }
 }
 
 /// Player factions are used to coordinate pvp vs hostile factions or segment
@@ -281,15 +360,6 @@ impl Component for Faction {
 }
 impl From<String> for Faction {
     fn from(s: String) -> Self { Faction(s) }
-}
-
-/// The contents of a speech bubble
-pub enum SpeechBubbleMessage {
-    /// This message was said by a player and needs no translation
-    Plain(String),
-    /// This message was said by an NPC. The fields are a i18n key and a random
-    /// u16 index
-    Localized(String, u16),
 }
 
 /// List of chat types for players and NPCs. Each one has its own icon.
@@ -311,7 +381,7 @@ pub enum SpeechBubbleType {
 
 /// Adds a speech bubble above the character
 pub struct SpeechBubble {
-    pub message: SpeechBubbleMessage,
+    pub content: Content,
     pub icon: SpeechBubbleType,
     pub timeout: Instant,
 }
@@ -320,33 +390,14 @@ impl SpeechBubble {
     /// Default duration in seconds of speech bubbles
     pub const DEFAULT_DURATION: f64 = 5.0;
 
-    pub fn npc_new(i18n_key: &str, r: u16, icon: SpeechBubbleType) -> Self {
-        let message = SpeechBubbleMessage::Localized(i18n_key.to_string(), r);
+    pub fn new(content: Content, icon: SpeechBubbleType) -> Self {
         let timeout = Instant::now() + Duration::from_secs_f64(SpeechBubble::DEFAULT_DURATION);
         Self {
-            message,
+            content,
             icon,
             timeout,
         }
     }
 
-    pub fn player_new(message: &str, icon: SpeechBubbleType) -> Self {
-        let message = SpeechBubbleMessage::Plain(message.to_string());
-        let timeout = Instant::now() + Duration::from_secs_f64(SpeechBubble::DEFAULT_DURATION);
-        Self {
-            message,
-            icon,
-            timeout,
-        }
-    }
-
-    pub fn message<F>(&self, i18n_variation: F) -> String
-    where
-        F: Fn(&str, u16) -> String,
-    {
-        match &self.message {
-            SpeechBubbleMessage::Plain(m) => m.to_string(),
-            SpeechBubbleMessage::Localized(k, i) => i18n_variation(k, *i),
-        }
-    }
+    pub fn content(&self) -> &Content { &self.content }
 }

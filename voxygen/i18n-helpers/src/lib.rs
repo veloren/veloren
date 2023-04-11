@@ -1,18 +1,31 @@
 #![feature(let_chains)]
 use common::comp::{
     chat::{KillSource, KillType},
-    BuffKind, ChatMsg, ChatType,
+    BuffKind, ChatMsg, ChatType, Content,
 };
 use common_net::msg::{ChatTypeContext, PlayerInfo};
+use hashbrown::HashMap;
 use i18n::Localization;
 
+pub fn make_localizer(
+    localisation: &Localization,
+) -> impl Fn(&str, u16, &HashMap<String, String>) -> String + Copy + '_ {
+    move |key: &str, seed: u16, args: &HashMap<String, String>| {
+        localisation
+            .get_variation_ctx(key, seed, &args.iter().collect())
+            .into_owned()
+    }
+}
+
 pub fn localize_chat_message(
-    mut msg: ChatMsg,
+    msg: ChatMsg,
     lookup_fn: impl Fn(&ChatMsg) -> ChatTypeContext,
     localisation: &Localization,
     show_char_name: bool,
-) -> ChatMsg {
+) -> (ChatType<String>, String) {
     let info = lookup_fn(&msg);
+
+    let localizer = make_localizer(localisation);
 
     let name_format = |uid: &common::uid::Uid| match info.player_alias.get(uid).cloned() {
         Some(pi) => insert_alias(info.you == *uid, pi, localisation),
@@ -23,13 +36,14 @@ pub fn localize_chat_message(
             .expect("client didn't proved enough info"),
     };
 
-    let message_format = |from: &common::uid::Uid, message: &str, group: Option<&String>| {
+    let message_format = |from: &common::uid::Uid, content: &Content, group: Option<&String>| {
         let alias = name_format(from);
         let name = if let Some(pi) = info.player_alias.get(from).cloned() && show_char_name {
             pi.character.map(|c| c.name)
         } else {
             None
         };
+        let message = content.localize(localizer);
         match (group, name) {
             (Some(group), None) => format!("({group}) [{alias}]: {message}"),
             (None, None) => format!("[{alias}]: {message}"),
@@ -50,40 +64,40 @@ pub fn localize_chat_message(
                 ),
             })
             .into_owned(),
-        ChatType::CommandError => msg.message.to_string(),
-        ChatType::CommandInfo => msg.message.to_string(),
-        ChatType::FactionMeta(_) => msg.message.to_string(),
-        ChatType::GroupMeta(_) => msg.message.to_string(),
+        ChatType::CommandError => msg.content().localize(localizer),
+        ChatType::CommandInfo => msg.content().localize(localizer),
+        ChatType::FactionMeta(_) => msg.content().localize(localizer),
+        ChatType::GroupMeta(_) => msg.content().localize(localizer),
         ChatType::Tell(from, to) => {
             let from_alias = name_format(from);
             let to_alias = name_format(to);
             // TODO: internationalise
             if *from == info.you {
-                format!("To [{to_alias}]: {}", msg.message)
+                format!("To [{to_alias}]: {}", msg.content().localize(localizer))
             } else {
-                format!("From [{from_alias}]: {}", msg.message)
+                format!("From [{from_alias}]: {}", msg.content().localize(localizer))
             }
         },
-        ChatType::Say(uid) => message_format(uid, &msg.message, None),
-        ChatType::Group(uid, s) => message_format(uid, &msg.message, Some(s)),
-        ChatType::Faction(uid, s) => message_format(uid, &msg.message, Some(s)),
-        ChatType::Region(uid) => message_format(uid, &msg.message, None),
-        ChatType::World(uid) => message_format(uid, &msg.message, None),
+        ChatType::Say(uid) => message_format(uid, msg.content(), None),
+        ChatType::Group(uid, s) => message_format(uid, msg.content(), Some(s)),
+        ChatType::Faction(uid, s) => message_format(uid, msg.content(), Some(s)),
+        ChatType::Region(uid) => message_format(uid, msg.content(), None),
+        ChatType::World(uid) => message_format(uid, msg.content(), None),
         // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and
         // should be filtered by server (due to not having a Pos) for chat-cli
-        ChatType::Npc(uid, _r) => message_format(uid, &msg.message, None),
-        ChatType::NpcSay(uid, _r) => message_format(uid, &msg.message, None),
-        ChatType::NpcTell(from, to, _r) => {
+        ChatType::Npc(uid) => message_format(uid, msg.content(), None),
+        ChatType::NpcSay(uid) => message_format(uid, msg.content(), None),
+        ChatType::NpcTell(from, to) => {
             let from_alias = name_format(from);
             let to_alias = name_format(to);
             // TODO: internationalise
             if *from == info.you {
-                format!("To [{to_alias}]: {}", msg.message)
+                format!("To [{to_alias}]: {}", msg.content().localize(localizer))
             } else {
-                format!("From [{from_alias}]: {}", msg.message)
+                format!("From [{from_alias}]: {}", msg.content().localize(localizer))
             }
         },
-        ChatType::Meta => msg.message.to_string(),
+        ChatType::Meta => msg.content().localize(localizer),
         ChatType::Kill(kill_source, victim) => {
             let i18n_buff = |buff| match buff {
                 BuffKind::Burning => "hud-outcome-burning",
@@ -209,8 +223,7 @@ pub fn localize_chat_message(
         },
     };
 
-    msg.message = new_msg;
-    msg
+    (msg.chat_type, new_msg)
 }
 
 fn insert_alias(you: bool, info: PlayerInfo, localisation: &Localization) -> String {

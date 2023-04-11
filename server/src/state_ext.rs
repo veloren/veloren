@@ -797,7 +797,11 @@ impl StateExt for State {
             (*ecs.read_resource::<UidAllocator>())
                 .retrieve_entity_internal(sender.0)
                 .map_or(false, |e| {
-                    self.validate_chat_msg(e, &msg.chat_type, &msg.message)
+                    self.validate_chat_msg(
+                        e,
+                        &msg.chat_type,
+                        msg.content().as_plain().unwrap_or_default(),
+                    )
                 })
         }) {
             match &msg.chat_type {
@@ -827,7 +831,6 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::Kill(kill_source, uid) => {
-                    let comp::chat::GenericChatMsg { message, .. } = msg;
                     let clients = ecs.read_storage::<Client>();
                     let clients_count = clients.count();
                     // Avoid chat spam, send kill message only to group or nearby players if a
@@ -870,7 +873,7 @@ impl StateExt for State {
                     } else {
                         self.notify_players(ServerGeneral::server_msg(
                             comp::ChatType::Kill(kill_source.clone(), *uid),
-                            message,
+                            msg.content().clone(),
                         ))
                     }
                 },
@@ -900,7 +903,7 @@ impl StateExt for State {
                         }
                     }
                 },
-                comp::ChatType::Npc(uid, _r) => {
+                comp::ChatType::Npc(uid) => {
                     let entity_opt =
                         (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
 
@@ -913,7 +916,7 @@ impl StateExt for State {
                         }
                     }
                 },
-                comp::ChatType::NpcSay(uid, _r) => {
+                comp::ChatType::NpcSay(uid) => {
                     let entity_opt =
                         (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
 
@@ -926,7 +929,7 @@ impl StateExt for State {
                         }
                     }
                 },
-                comp::ChatType::NpcTell(from, to, _r) => {
+                comp::ChatType::NpcTell(from, to) => {
                     for (client, uid) in
                         (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
                     {
@@ -950,12 +953,10 @@ impl StateExt for State {
                 comp::ChatType::Group(from, g) => {
                     if group_info.is_none() {
                         // group not found, reply with command error
-                        let reply = comp::ChatMsg {
-                            chat_type: comp::ChatType::CommandError,
-                            message: "You are using group chat but do not belong to a group. Use \
-                                      /world or /region to change chat."
-                                .into(),
-                        };
+                        let reply = comp::ChatType::CommandError.into_plain_msg(
+                            "You are using group chat but do not belong to a group. Use /world or \
+                             /region to change chat.",
+                        );
 
                         if let Some((client, _)) =
                             (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>())

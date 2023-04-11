@@ -18,7 +18,7 @@ use common::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{tool::ToolKind, ItemDesc},
-        ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, PresenceKind, Stats,
+        ChatType, Content, InputKind, InventoryUpdateEvent, Pos, PresenceKind, Stats,
         UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
@@ -309,17 +309,17 @@ impl SessionState {
                         InviteAnswer::TimedOut => "timed out",
                     };
                     let msg = format!("{} invite to {} {}", kind_str, target_name, answer_str);
-                    self.hud.new_message(ChatType::Meta.chat_msg(msg));
+                    // TODO: Localise
+                    self.hud.new_message(ChatType::Meta.into_plain_msg(msg));
                 },
                 client::Event::TradeComplete { result, trade: _ } => {
                     self.hud.clear_cursor();
-                    let i18n = global_state.i18n.read();
-                    let msg = match result {
-                        TradeResult::Completed => i18n.get_msg("hud-trade-result-completed"),
-                        TradeResult::Declined => i18n.get_msg("hud-trade-result-declined"),
-                        TradeResult::NotEnoughSpace => i18n.get_msg("hud-trade-result-nospace"),
-                    };
-                    self.hud.new_message(ChatType::Meta.chat_msg(msg));
+                    self.hud
+                        .new_message(ChatType::Meta.into_msg(Content::localized(match result {
+                            TradeResult::Completed => "hud-trade-result-completed",
+                            TradeResult::Declined => "hud-trade-result-declined",
+                            TradeResult::NotEnoughSpace => "hud-trade-result-nospace",
+                        })));
                 },
                 client::Event::InventoryUpdated(inv_event) => {
                     let sfx_triggers = self.scene.sfx_mgr.triggers.read();
@@ -380,21 +380,13 @@ impl SessionState {
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
-                    let i18n = global_state.i18n.read();
-
-                    let message = match time {
-                        0 => String::from(i18n.get_msg("hud-chat-goodbye")),
-                        _ => i18n
-                            .get_msg_ctx("hud-chat-connection_lost", &i18n::fluent_args! {
-                                "time" => time
-                            })
-                            .into_owned(),
-                    };
-
-                    self.hud.new_message(ChatMsg {
-                        chat_type: ChatType::CommandError,
-                        message,
-                    });
+                    self.hud
+                        .new_message(ChatType::CommandError.into_msg(match time {
+                            0 => Content::localized("hud-chat-goodbye"),
+                            _ => Content::localized_with_args("hud-chat-connection_lost", [(
+                                "time", time,
+                            )]),
+                        }));
                 },
                 client::Event::Kicked(reason) => {
                     global_state.info_message = Some(format!(
@@ -992,18 +984,12 @@ impl PlayState for SessionState {
                                                                 |e| e.name.to_owned(),
                                                             )
                                                         });
-                                                    let msg = global_state
-                                                        .i18n
-                                                        .read()
-                                                        .get_msg_ctx(
+                                                    self.hud.new_message(ChatType::Meta.into_msg(
+                                                        Content::localized_with_args(
                                                             "hud-trade-invite_sent",
-                                                            &i18n::fluent_args! {
-                                                                "playername" => &name
-                                                            },
-                                                        )
-                                                        .into_owned();
-                                                    self.hud
-                                                        .new_message(ChatType::Meta.chat_msg(msg));
+                                                            [("playername", &name)],
+                                                        ),
+                                                    ));
                                                     client.send_invite(uid, InviteKind::Trade)
                                                 };
                                             },
@@ -1115,10 +1101,11 @@ impl PlayState for SessionState {
                             );
                         },
                     },
-                    Event::ScreenshotMessage(screenshot_message) => self.hud.new_message(ChatMsg {
-                        chat_type: ChatType::CommandInfo,
-                        message: screenshot_message,
-                    }),
+
+                    // TODO: Localise
+                    Event::ScreenshotMessage(screenshot_msg) => self
+                        .hud
+                        .new_message(ChatType::CommandInfo.into_plain_msg(screenshot_msg)),
 
                     Event::Zoom(delta) if self.zoom_lock => {
                         // only fire this Hud event when player has "intent" to zoom
@@ -1414,11 +1401,15 @@ impl PlayState for SessionState {
                         match run_command(&mut self.client.borrow_mut(), global_state, &name, args)
                         {
                             Ok(Some(info)) => {
-                                self.hud.new_message(ChatType::CommandInfo.chat_msg(&info))
+                                // TODO: Localise
+                                self.hud
+                                    .new_message(ChatType::CommandInfo.into_plain_msg(&info))
                             },
                             Ok(None) => {}, // Server will provide an info message
                             Err(error) => {
-                                self.hud.new_message(ChatType::CommandError.chat_msg(error))
+                                // TODO: Localise
+                                self.hud
+                                    .new_message(ChatType::CommandError.into_plain_msg(error))
                             },
                         };
                     },

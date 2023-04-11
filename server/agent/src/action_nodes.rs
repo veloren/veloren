@@ -22,7 +22,7 @@ use common::{
         },
         item_drop,
         projectile::ProjectileConstructor,
-        Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller,
+        Agent, Alignment, Body, CharacterState, Content, ControlAction, ControlEvent, Controller,
         HealthChange, InputKind, InventoryAction, Pos, Scale, UnresolvedChatMsg, UtteranceKind,
     },
     effect::{BuffEffect, Effect},
@@ -1529,10 +1529,10 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    pub fn chat_npc(&self, msg: impl ToString, event_emitter: &mut Emitter<'_, ServerEvent>) {
+    pub fn chat_npc(&self, key: impl ToString, event_emitter: &mut Emitter<'_, ServerEvent>) {
         event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
             *self.uid,
-            msg.to_string(),
+            Content::localized(key),
         )));
     }
 

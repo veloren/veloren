@@ -226,8 +226,8 @@ impl<'a> Widget for Chat<'a> {
             for message in self.new_messages.iter() {
                 // Log the output of commands since the ingame terminal doesn't support copying
                 // the output to the clipboard
-                if let ChatType::CommandInfo = message.chat_type {
-                    tracing::info!("Chat command info: {}", message.message);
+                if let ChatType::CommandInfo = &message.chat_type {
+                    tracing::info!("Chat command info: {:?}", message.content());
                 }
             }
             //new messages - update chat w/ them & scroll down if at bottom of chat
@@ -426,14 +426,6 @@ impl<'a> Widget for Chat<'a> {
         let messages = &state
             .messages
             .iter()
-            .map(|m| {
-                localize_chat_message(
-                    m.clone(),
-                    |msg| self.client.lookup_msg_context(msg),
-                    self.localized_strings,
-                    show_char_name,
-                )
-            })
             .filter(|m| {
                 if let Some(chat_tab) = current_chat_tab {
                     chat_tab.filter.satisfies(m, &group_members)
@@ -447,13 +439,19 @@ impl<'a> Widget for Chat<'a> {
                     .uid()
                     .and_then(|uid| {
                         self.client
-                            .lookup_msg_context(&m)
+                            .lookup_msg_context(m)
                             .player_alias
                             .get(&uid)
                             .map(|i| i.is_moderator)
                     })
                     .unwrap_or(false);
-                (is_moderator, m)
+                let (chat_type, text) = localize_chat_message(
+                    m.clone(),
+                    |msg| self.client.lookup_msg_context(msg),
+                    self.localized_strings,
+                    show_char_name,
+                );
+                (is_moderator, chat_type, text)
             })
             .collect::<Vec<_>>();
         let n_badges = messages.iter().filter(|t| t.0).count();
@@ -478,14 +476,14 @@ impl<'a> Widget for Chat<'a> {
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < messages.len() {
-                let (is_moderator, message) = &messages[item.i];
-                let (color, icon) = render_chat_line(&message.chat_type, self.imgs);
+                let (is_moderator, chat_type, text) = &messages[item.i];
+                let (color, icon) = render_chat_line(chat_type, self.imgs);
                 // For each ChatType needing localization get/set matching pre-formatted
                 // localized string. This string will be formatted with the data
                 // provided in ChatType in the client/src/mod.rs
                 // fn format_message called below
 
-                let text = Text::new(&message.message)
+                let text = Text::new(text)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)
                     .w(CHAT_BOX_WIDTH - 17.0)
@@ -688,10 +686,10 @@ impl<'a> Widget for Chat<'a> {
             if let Some(msg) = msg.strip_prefix(chat_settings.chat_cmd_prefix) {
                 match parse_cmd(msg) {
                     Ok((name, args)) => events.push(Event::SendCommand(name, args)),
-                    Err(err) => self.new_messages.push_back(ChatMsg {
-                        chat_type: ChatType::CommandError,
-                        message: err,
-                    }),
+                    // TODO: Localise
+                    Err(err) => self
+                        .new_messages
+                        .push_back(ChatType::CommandError.into_plain_msg(err)),
                 }
             } else {
                 events.push(Event::SendMessage(msg));
@@ -783,9 +781,9 @@ fn render_chat_line(chat_type: &ChatType<String>, imgs: &Imgs) -> (Color, conrod
         ChatType::Faction(_uid, _s) => (FACTION_COLOR, imgs.chat_faction_small),
         ChatType::Region(_uid) => (REGION_COLOR, imgs.chat_region_small),
         ChatType::World(_uid) => (WORLD_COLOR, imgs.chat_world_small),
-        ChatType::Npc(_uid, _r) => panic!("NPCs can't talk!"), // Should be filtered by hud/mod.rs
-        ChatType::NpcSay(_uid, _r) => (SAY_COLOR, imgs.chat_say_small),
-        ChatType::NpcTell(_from, _to, _r) => (TELL_COLOR, imgs.chat_tell_small),
+        ChatType::Npc(_uid) => panic!("NPCs can't talk!"), // Should be filtered by hud/mod.rs
+        ChatType::NpcSay(_uid) => (SAY_COLOR, imgs.chat_say_small),
+        ChatType::NpcTell(_from, _to) => (TELL_COLOR, imgs.chat_tell_small),
         ChatType::Meta => (INFO_COLOR, imgs.chat_command_info_small),
     }
 }

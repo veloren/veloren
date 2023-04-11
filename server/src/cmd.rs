@@ -2745,7 +2745,7 @@ fn handle_tell(
         } else {
             message_opt.join(" ")
         };
-        server.state.send_chat(mode.new_message(target_uid, msg));
+        server.state.send_chat(mode.to_plain_msg(target_uid, msg));
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
     } else {
@@ -2770,7 +2770,7 @@ fn handle_faction(
         let msg = args.join(" ");
         if !msg.is_empty() {
             if let Some(uid) = server.state.ecs().read_storage().get(target) {
-                server.state.send_chat(mode.new_message(*uid, msg));
+                server.state.send_chat(mode.to_plain_msg(*uid, msg));
             }
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2797,7 +2797,7 @@ fn handle_group(
         let msg = args.join(" ");
         if !msg.is_empty() {
             if let Some(uid) = server.state.ecs().read_storage().get(target) {
-                server.state.send_chat(mode.new_message(*uid, msg));
+                server.state.send_chat(mode.to_plain_msg(*uid, msg));
             }
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2921,7 +2921,7 @@ fn handle_region(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg));
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2942,7 +2942,7 @@ fn handle_say(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg));
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2963,7 +2963,7 @@ fn handle_world(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg));
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2992,8 +2992,9 @@ fn handle_join_faction(
                 .flatten()
                 .map(|f| f.0);
             server.state.send_chat(
+                // TODO: Localise
                 ChatType::FactionMeta(faction.clone())
-                    .chat_msg(format!("[{}] joined faction ({})", alias, faction)),
+                    .into_plain_msg(format!("[{}] joined faction ({})", alias, faction)),
             );
             (faction_join, mode)
         } else {
@@ -3009,8 +3010,9 @@ fn handle_join_faction(
         };
         if let Some(faction) = faction_leave {
             server.state.send_chat(
+                // TODO: Localise
                 ChatType::FactionMeta(faction.clone())
-                    .chat_msg(format!("[{}] left faction ({})", alias, faction)),
+                    .into_plain_msg(format!("[{}] left faction ({})", alias, faction)),
             );
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));

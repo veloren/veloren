@@ -11,3 +11,4 @@ common = {package = "veloren-common", path = "../../common"}
 i18n = {package = "veloren-client-i18n", path = "../../client/i18n"}
 # Utility
 tracing = "0.1"
+hashbrown = { version = "0.12" }
