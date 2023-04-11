@@ -11,6 +11,7 @@ use crate::{
 };
 use common::{
     astar::{Astar, PathResult},
+    comp::Content,
     path::Path,
     rtsim::{ChunkResource, Profession, SiteId},
     spiral::Spiral2d,
@@ -470,15 +471,17 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
 
 fn socialize() -> impl Action {
     now(|ctx| {
-        // TODO: Bit odd, should wait for a while after greeting
-        if ctx.rng.gen_bool(0.002) {
+        // Skip most socialising actions if we're not loaded
+        if matches!(ctx.npc.mode, SimulationMode::Loaded) && ctx.rng.gen_bool(0.002) {
             if ctx.rng.gen_bool(0.15) {
-                return just(|ctx| ctx.controller.do_dance())
-                    .repeat()
-                    .stop_if(timeout(6.0))
-                    .debug(|| "dancing")
-                    .map(|_| ())
-                    .boxed();
+                return Either::Left(
+                    just(|ctx| ctx.controller.do_dance())
+                        .repeat()
+                        .stop_if(timeout(6.0))
+                        .debug(|| "dancing")
+                        .map(|_| ())
+                        .boxed(),
+                );
             } else if let Some(other) = ctx
                 .state
                 .data()
@@ -486,12 +489,17 @@ fn socialize() -> impl Action {
                 .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
                 .choose(&mut ctx.rng)
             {
-                return just(move |ctx| ctx.controller.say(other, "npc-speech-villager_open"))
-                    .boxed();
+                return Either::Left(
+                    just(move |ctx| ctx.controller.say(other, ctx.npc.personality.get_generic_comment(&mut ctx.rng)))
+                    // After greeting the actor, wait for a while
+                    .then(idle().repeat().stop_if(timeout(4.0)))
+                    .map(|_| ())
+                    .boxed(),
+                );
             }
         }
 
-        idle().boxed()
+        Either::Right(idle())
     })
 }
 
@@ -528,7 +536,7 @@ fn adventure() -> impl Action {
                 .map(|ws| ctx.index.sites.get(ws).name().to_string())
                 .unwrap_or_default();
             // Travel to the site
-            important(just(move |ctx| ctx.controller.say(None, format!("I've spent enough time here, onward to {}!", site_name)))
+            important(just(move |ctx| ctx.controller.say(None, Content::localized_with_args("npc-speech-moving_on", [("site", site_name.clone())])))
                 .then(travel_to_site(tgt_site, 0.6))
                 // Stop for a few minutes
                 .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
@@ -634,14 +642,20 @@ fn villager(visiting_site: SiteId) -> impl Action {
                             Some(site2.tile_center_wpos(house.root_tile()).as_())
                         })
                     {
-                        just(|ctx| ctx.controller.say(None, "It's dark, time to go home"))
-                            .then(travel_to_point(house_wpos, 0.65))
-                            .debug(|| "walk to house")
-                            .then(socialize().repeat().debug(|| "wait in house"))
-                            .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
-                            .then(just(|ctx| ctx.controller.say(None, "A new day begins!")))
-                            .map(|_| ())
-                            .boxed()
+                        just(|ctx| {
+                            ctx.controller
+                                .say(None, Content::localized("npc-speech-night_time"))
+                        })
+                        .then(travel_to_point(house_wpos, 0.65))
+                        .debug(|| "walk to house")
+                        .then(socialize().repeat().debug(|| "wait in house"))
+                        .stop_if(|ctx| DayPeriod::from(ctx.time_of_day.0).is_light())
+                        .then(just(|ctx| {
+                            ctx.controller
+                                .say(None, Content::localized("npc-speech-day_time"))
+                        }))
+                        .map(|_| ())
+                        .boxed()
                     } else {
                         finish().boxed()
                     }
@@ -665,14 +679,17 @@ fn villager(visiting_site: SiteId) -> impl Action {
         } else if matches!(ctx.npc.profession, Some(Profession::Hunter)) && ctx.rng.gen_bool(0.8) {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
-                    just(|ctx| ctx.controller.say(None, "Time to go hunting!"))
-                        .then(travel_to_point(forest_wpos, 0.75))
-                        .debug(|| "walk to forest")
-                        .then({
-                            let wait_time = ctx.rng.gen_range(30.0..60.0);
-                            hunt_animals().repeat().stop_if(timeout(wait_time))
-                        })
-                        .map(|_| ()),
+                    just(|ctx| {
+                        ctx.controller
+                            .say(None, Content::localized("npc-speech-start_hunting"))
+                    })
+                    .then(travel_to_point(forest_wpos, 0.75))
+                    .debug(|| "walk to forest")
+                    .then({
+                        let wait_time = ctx.rng.gen_range(30.0..60.0);
+                        hunt_animals().repeat().stop_if(timeout(wait_time))
+                    })
+                    .map(|_| ()),
                 );
             }
         } else if matches!(ctx.npc.profession, Some(Profession::Guard)) && ctx.rng.gen_bool(0.5) {
@@ -682,15 +699,10 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .debug(|| "patrol")
                         .interrupt_with(|ctx| {
                             if ctx.rng.gen_bool(0.0003) {
-                                let phrase = *[
-                                    "My brother's out fighting ogres. What do I get? Guard duty...",
-                                    "Just one more patrol, then I can head home",
-                                    "No bandits are going to get past me",
-                                ]
-                                .iter()
-                                .choose(&mut ctx.rng)
-                                .unwrap(); // Can't fail
-                                Some(just(move |ctx| ctx.controller.say(None, phrase)))
+                                Some(just(move |ctx| {
+                                    ctx.controller
+                                        .say(None, Content::localized("npc-speech-guard_thought"))
+                                }))
                             } else {
                                 None
                             }
@@ -703,32 +715,20 @@ fn villager(visiting_site: SiteId) -> impl Action {
             return casual(
                 just(|ctx| {
                     // Try to direct our speech at nearby actors, if there are any
-                    let (target, phrases) = if ctx.rng.gen_bool(0.3) && let Some(other) = ctx
+                    let (target, phrase) = if ctx.rng.gen_bool(0.3) && let Some(other) = ctx
                         .state
                         .data()
                         .npcs
                         .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
                         .choose(&mut ctx.rng)
                     {
-                        (Some(other), &[
-                            "You there! Are you in need of a new thingamabob?",
-                            "Are you hungry? I'm sure I've got some cheese you can buy",
-                            "You look like you could do with some new armour!",
-                        ][..])
-                    // Otherwise, resort to generic expressions
+                        (Some(other), "npc-speech-merchant_sell_directed")
                     } else {
-                        (None, &[
-                            "All my goods are of the highest quality!",
-                            "Does anybody want to buy my wares?",
-                            "I've got the best offers in town",
-                            "Looking for supplies? I've got you covered",
-                        ][..])
+                        // Otherwise, resort to generic expressions
+                        (None, "npc-speech-merchant_sell_undirected")
                     };
 
-                    ctx.controller.say(
-                        target,
-                        *phrases.iter().choose(&mut ctx.rng).unwrap(), // Can't fail
-                    );
+                    ctx.controller.say(target, Content::localized(phrase));
                 })
                 .then(idle().repeat().stop_if(timeout(8.0)))
                 .repeat()
@@ -898,16 +898,17 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
                     Some(ReportKind::Death { killer, .. }) => {
                         // TODO: Sentiment should be positive if we didn't like actor that died
                         // TODO: Don't report self
-                        let phrases = if let Some(killer) = killer {
+                        let phrase = if let Some(killer) = killer {
                             // TODO: Don't hard-code sentiment change
                             ctx.sentiments.change_by(killer, -0.7, Sentiment::VILLAIN);
-                            &["Murderer!", "How could you do this?", "Aaargh!"][..]
+                            "npc-speech-witness_murder"
                         } else {
-                            &["No!", "This is terrible!", "Oh my goodness!"][..]
+                            "npc-speech-witness_death"
                         };
-                        let phrase = *phrases.iter().choose(&mut ctx.rng).unwrap(); // Can't fail
                         ctx.known_reports.insert(report_id);
-                        break Some(just(move |ctx| ctx.controller.say(killer, phrase)));
+                        break Some(just(move |ctx| {
+                            ctx.controller.say(killer, Content::localized(phrase))
+                        }));
                     },
                     None => {}, // Stale report, ignore
                 }

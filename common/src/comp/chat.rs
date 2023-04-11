@@ -200,10 +200,12 @@ pub enum Content {
     },
 }
 
+// TODO: Remove impl and make use of `Plain` explicit (to discourage it)
 impl From<String> for Content {
     fn from(text: String) -> Self { Self::Plain(text) }
 }
 
+// TODO: Remove impl and make use of `Plain` explicit (to discourage it)
 impl<'a> From<&'a str> for Content {
     fn from(text: &'a str) -> Self { Self::Plain(text.to_string()) }
 }
@@ -212,7 +214,7 @@ impl Content {
     pub fn localized(key: impl ToString) -> Self {
         Self::Localized {
             key: key.to_string(),
-            r: rand::random(),
+            seed: rand::random(),
             args: HashMap::default(),
         }
     }
@@ -223,7 +225,7 @@ impl Content {
     ) -> Self {
         Self::Localized {
             key: key.to_string(),
-            r: rand::random(),
+            seed: rand::random(),
             args: args
                 .into_iter()
                 .map(|(k, v)| (k.to_string(), v.to_string()))

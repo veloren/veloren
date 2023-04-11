@@ -731,7 +731,7 @@ impl<'a> AgentData<'a> {
                 } else if can_ambush(entity, read_data) {
                     controller.clone().push_utterance(UtteranceKind::Ambush);
                     self.chat_npc_if_allowed_to_speak(
-                        "npc-speech-ambush".to_string(),
+                        Content::localized("npc-speech-ambush"),
                         agent,
                         event_emitter,
                     );
@@ -1517,7 +1517,7 @@ impl<'a> AgentData<'a> {
 
     pub fn chat_npc_if_allowed_to_speak(
         &self,
-        msg: impl ToString,
+        msg: Content,
         agent: &Agent,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) -> bool {
@@ -1529,10 +1529,9 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    pub fn chat_npc(&self, key: impl ToString, event_emitter: &mut Emitter<'_, ServerEvent>) {
+    pub fn chat_npc(&self, content: Content, event_emitter: &mut Emitter<'_, ServerEvent>) {
         event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
-            *self.uid,
-            Content::localized(key),
+            *self.uid, content,
         )));
     }
 
@@ -1561,13 +1560,13 @@ impl<'a> AgentData<'a> {
             // FIXME: If going to use "cultist + low health + fleeing" string, make sure
             // they are each true.
             self.chat_npc_if_allowed_to_speak(
-                "npc-speech-cultist_low_health_fleeing",
+                Content::localized("npc-speech-cultist_low_health_fleeing"),
                 agent,
                 event_emitter,
             );
         } else if is_villager(self.alignment) {
             self.chat_npc_if_allowed_to_speak(
-                "npc-speech-villager_under_attack",
+                Content::localized("npc-speech-villager_under_attack"),
                 agent,
                 event_emitter,
             );
@@ -1582,7 +1581,7 @@ impl<'a> AgentData<'a> {
     ) {
         if is_villager(self.alignment) {
             self.chat_npc_if_allowed_to_speak(
-                "npc-speech-villager_enemy_killed",
+                Content::localized("npc-speech-villager_enemy_killed"),
                 agent,
                 event_emitter,
             );
@@ -1756,16 +1755,22 @@ impl<'a> AgentData<'a> {
         let move_dir = controller.inputs.move_dir;
         let move_dir_mag = move_dir.magnitude();
         let small_chance = rng.gen::<f32>() < read_data.dt.0 * 0.25;
-        let mut chat = |msg: &str| {
-            self.chat_npc_if_allowed_to_speak(msg.to_string(), agent, event_emitter);
+        let mut chat = |content: Content| {
+            self.chat_npc_if_allowed_to_speak(content, agent, event_emitter);
         };
         let mut chat_villager_remembers_fighting = || {
             let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 
+            // TODO: Localise
             if let Some(tgt_name) = tgt_name {
-                chat(format!("{}! How dare you cross me again!", &tgt_name).as_str());
+                chat(Content::Plain(format!(
+                    "{}! How dare you cross me again!",
+                    &tgt_name
+                )));
             } else {
-                chat("You! How dare you cross me again!");
+                chat(Content::Plain(
+                    "You! How dare you cross me again!".to_string(),
+                ));
             }
         };
 
@@ -1782,12 +1787,12 @@ impl<'a> AgentData<'a> {
                 if remembers_fight_with_target {
                     chat_villager_remembers_fighting();
                 } else if is_dressed_as_cultist(target, read_data) {
-                    chat("npc-speech-villager_cultist_alarm");
+                    chat(Content::localized("npc-speech-villager_cultist_alarm"));
                 } else {
-                    chat("npc-speech-menacing");
+                    chat(Content::localized("npc-speech-menacing"));
                 }
             } else {
-                chat("npc-speech-menacing");
+                chat(Content::localized("npc-speech-menacing"));
             }
         }
     }

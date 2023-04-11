@@ -3,11 +3,11 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
-use crate::character::CharacterId;
+use crate::{character::CharacterId, comp::Content};
 use rand::{seq::IteratorRandom, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Component;
-use std::{borrow::Cow, collections::VecDeque};
+use std::collections::VecDeque;
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
@@ -169,6 +169,33 @@ impl Personality {
     pub fn will_ambush(&self) -> bool {
         self.agreeableness < Self::LOW_THRESHOLD && self.conscientiousness < Self::LOW_THRESHOLD
     }
+
+    pub fn get_generic_comment(&self, rng: &mut impl Rng) -> Content {
+        let i18n_key = if let Some(extreme_trait) = self.chat_trait(rng) {
+            match extreme_trait {
+                PersonalityTrait::Open => "npc-speech-villager_open",
+                PersonalityTrait::Adventurous => "npc-speech-villager_adventurous",
+                PersonalityTrait::Closed => "npc-speech-villager_closed",
+                PersonalityTrait::Conscientious => "npc-speech-villager_conscientious",
+                PersonalityTrait::Busybody => "npc-speech-villager_busybody",
+                PersonalityTrait::Unconscientious => "npc-speech-villager_unconscientious",
+                PersonalityTrait::Extroverted => "npc-speech-villager_extroverted",
+                PersonalityTrait::Introverted => "npc-speech-villager_introverted",
+                PersonalityTrait::Agreeable => "npc-speech-villager_agreeable",
+                PersonalityTrait::Sociable => "npc-speech-villager_sociable",
+                PersonalityTrait::Disagreeable => "npc-speech-villager_disagreeable",
+                PersonalityTrait::Neurotic => "npc-speech-villager_neurotic",
+                PersonalityTrait::Seeker => "npc-speech-villager_seeker",
+                PersonalityTrait::SadLoner => "npc-speech-villager_sad_loner",
+                PersonalityTrait::Worried => "npc-speech-villager_worried",
+                PersonalityTrait::Stable => "npc-speech-villager_stable",
+            }
+        } else {
+            "npc-speech-villager"
+        };
+
+        Content::localized(i18n_key)
+    }
 }
 
 impl Default for Personality {
@@ -226,7 +253,7 @@ pub enum NpcAction {
     /// Speak the given message, with an optional target for that speech.
     // TODO: Use some sort of structured, language-independent value that frontends can translate
     // instead
-    Say(Option<Actor>, Cow<'static, str>),
+    Say(Option<Actor>, Content),
     /// Attack the given target
     Attack(Actor),
 }
