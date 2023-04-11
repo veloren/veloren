@@ -183,6 +183,9 @@ impl<G> ChatType<G> {
 // - In-game notes/books (we could add a variant that allows structuring complex, novel textual
 //   information as a syntax tree or some other intermediate format that can be localised by the
 //   client)
+// TODO: We probably want to have this type be able to represent similar things to
+// `fluent::FluentValue`, such as numeric values, so that they can be properly localised in whatever
+// manner is required.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Content {
     /// The content is a plaintext string that should be shown to the user
@@ -237,16 +240,6 @@ impl Content {
         match self {
             Self::Plain(text) => Some(text.as_str()),
             Self::Localized { .. } => None,
-        }
-    }
-
-    pub fn localize<F>(&self, i18n_variation: F) -> String
-    where
-        F: Fn(&str, u16, &HashMap<String, Content>) -> String,
-    {
-        match self {
-            Content::Plain(text) => text.to_string(),
-            Content::Localized { key, seed, args } => i18n_variation(key, *seed, args),
         }
     }
 }

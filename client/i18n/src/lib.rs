@@ -19,6 +19,7 @@ use std::{borrow::Cow, io};
 use assets::{source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher, SharedString};
 use tracing::warn;
 // Re-export because I don't like prefix
+use common::comp::Content;
 use common_assets as assets;
 
 // Re-export for argument creation
@@ -329,6 +330,23 @@ impl LocalizationGuard {
                     .as_ref()
                     .and_then(|fb| fb.try_variation(key, seed, Some(args)))
             })
+    }
+
+    /// Localize the given context.
+    pub fn get_content(&self, content: &Content) -> String {
+        match content {
+            Content::Plain(text) => text.clone(),
+            Content::Localized { key, seed, args } => self
+                .get_variation_ctx(
+                    key,
+                    *seed,
+                    &args
+                        .iter()
+                        .map(|(k, content)| (k, self.get_content(content)))
+                        .collect(),
+                )
+                .into_owned(),
+        }
     }
 
     /// Get a localized text from the variation of given key with given
