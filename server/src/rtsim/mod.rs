@@ -159,6 +159,8 @@ impl RtSim {
         }
     }
 
+    // Note that this hook only needs to be invoked if the block change results in a
+    // change to the rtsim resource produced by [`Block::get_rtsim_resource`].
     pub fn hook_block_update(&mut self, world: &World, index: IndexRef, changes: Vec<BlockDiff>) {
         self.state
             .emit(event::OnBlockChange { changes }, world, index);

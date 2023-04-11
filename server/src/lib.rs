@@ -700,9 +700,10 @@ impl Server {
 
         fn on_block_update(ecs: &specs::World, changes: Vec<BlockDiff>) {
             // When a resource block updates, inform rtsim
-            if changes.iter().any(|c| {
-                c.old.get_rtsim_resource().is_some() || c.new.get_rtsim_resource().is_some()
-            }) {
+            if changes
+                .iter()
+                .any(|c| c.old.get_rtsim_resource() != c.new.get_rtsim_resource())
+            {
                 ecs.write_resource::<rtsim::RtSim>().hook_block_update(
                     &ecs.read_resource::<Arc<world::World>>(),
                     ecs.read_resource::<world::IndexOwned>().as_index_ref(),

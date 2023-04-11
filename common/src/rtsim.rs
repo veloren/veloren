@@ -233,7 +233,7 @@ pub enum NpcAction {
 
 // Note: the `serde(name = "...")` is to minimise the length of field
 // identifiers for the sake of rtsim persistence
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, enum_map::Enum)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, enum_map::Enum)]
 pub enum ChunkResource {
     #[serde(rename = "0")]
     Grass,
