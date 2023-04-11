@@ -923,6 +923,7 @@ impl LoadoutBuilder {
                 | biped_large::Species::Blueoni
                 | biped_large::Species::Redoni
                 | biped_large::Species::Cavetroll
+                | biped_large::Species::Tursus
                 | biped_large::Species::Wendigo => {
                     Some("common.items.npc_armor.biped_large.generic")
                 },
@@ -964,7 +965,8 @@ impl LoadoutBuilder {
                 | quadruped_low::Species::Rocksnapper
                 | quadruped_low::Species::Rootsnapper
                 | quadruped_low::Species::Reefsnapper
-                | quadruped_low::Species::Sandshark => {
+                | quadruped_low::Species::Sandshark
+                | quadruped_low::Species::Icedrake => {
                     Some("common.items.npc_armor.quadruped_low.generic")
                 },
                 quadruped_low::Species::Dagon => Some("common.items.npc_armor.quadruped_low.dagon"),
@@ -974,6 +976,9 @@ impl LoadoutBuilder {
                 _ => None,
             },
             Body::QuadrupedMedium(body) => match body.species {
+                quadruped_medium::Species::Frostfang => {
+                    Some("common.items.npc_armor.quadruped_medium.frostfang")
+                },
                 quadruped_medium::Species::Roshwalr => {
                     Some("common.items.npc_armor.quadruped_medium.roshwalr")
                 },

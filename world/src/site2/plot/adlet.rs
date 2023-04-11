@@ -425,7 +425,6 @@ impl Structure for AdletStronghold {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_adletstronghold")]
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
-        //  let wall_mat = Fill::Brick(BlockKind::Snow, Rgb::new(175, 175, 175), 25);
         let snow_ice_fill = Fill::Sampling(Arc::new(|wpos| {
             Some(match (RandomField::new(0).get(wpos)) % 80 {
                 0..=3 => Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)),
@@ -458,6 +457,21 @@ impl Structure for AdletStronghold {
         let bone_shrub = Fill::Sampling(Arc::new(|wpos| {
             Some(match (RandomField::new(0).get(wpos)) % 40 {
                 0 => Block::new(BlockKind::Misc, Rgb::new(200, 160, 140)),
+                _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+            })
+        }));
+        let yeti_sprites_fill = Fill::Sampling(Arc::new(|wpos| {
+            Some(match (RandomField::new(0).get(wpos)) % 80 {
+                0..=2 => Block::air(SpriteKind::Bones),
+                4..=5 => Block::air(SpriteKind::GlowIceCrystal),
+                6..=8 => Block::air(SpriteKind::IceCrystal),
+                9..=15 => Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
+                _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+            })
+        }));
+        let yeti_bones_fill = Fill::Sampling(Arc::new(|wpos| {
+            Some(match (RandomField::new(0).get(wpos)) % 20 {
+                0 => Block::air(SpriteKind::Bones),
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
@@ -688,8 +702,8 @@ impl Structure for AdletStronghold {
                         )
                         .clear();
                     // Foundation
-                    let foundation = match RandomField::new(0).get((wpos).with_z(alt as i32)) % 3 {
-                        1 => painter
+                    let foundation = match RandomField::new(0).get((wpos).with_z(alt as i32)) % 5 {
+                        0 => painter
                             .sphere(Aabb {
                                 min: (igloo_pos - 15).with_z(alt as i32 - 45 + height_handle),
                                 max: (igloo_pos + 15).with_z(alt as i32 - 15 + height_handle),
@@ -1081,6 +1095,44 @@ impl Structure for AdletStronghold {
                                     ((room_size / 3) + 5) as f32,
                                 )
                                 .clear();
+                            painter
+                                .cylinder_with_radius(
+                                    yetipit_center.with_z(level - (3 * down) - 6),
+                                    room_size as f32,
+                                    1.0,
+                                )
+                                .fill(snow_ice_fill.clone());
+                            // sprites: icecrystals, bones
+                            for r in 0..4 {
+                                painter
+                                    .cylinder_with_radius(
+                                        yetipit_center.with_z(level - (3 * down) - 2 - r),
+                                        (room_size + 2 - r) as f32,
+                                        1.0,
+                                    )
+                                    .fill(snow_ice_fill.clone());
+                                painter
+                                    .cylinder_with_radius(
+                                        yetipit_center.with_z(level - (3 * down) - 1 - r),
+                                        (room_size - r) as f32,
+                                        1.0,
+                                    )
+                                    .fill(yeti_sprites_fill.clone());
+                                painter
+                                    .cylinder_with_radius(
+                                        yetipit_center.with_z(level - (3 * down) - 2 - r),
+                                        (room_size - 1 - r) as f32,
+                                        2.0,
+                                    )
+                                    .clear();
+                            }
+                            painter
+                                .cylinder_with_radius(
+                                    yetipit_center.with_z(level - (3 * down) - 5),
+                                    (room_size - 4) as f32,
+                                    1.0,
+                                )
+                                .fill(yeti_bones_fill.clone());
                             painter
                                 .cone_with_radius(
                                     yetipit_center.with_z(level - (3 * down) + (room_size / 3) - 2),

@@ -335,7 +335,7 @@ impl Block {
                 | SpriteKind::EmeraldSmall
                 | SpriteKind::SapphireSmall => Some(3),
                 SpriteKind::Lantern => Some(24),
-                SpriteKind::SeashellLantern => Some(16),
+                SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => Some(16),
                 SpriteKind::SeaDecorEmblem => Some(12),
                 SpriteKind::SeaDecorBlock => Some(10),
                 _ => None,

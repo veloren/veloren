@@ -248,6 +248,8 @@ make_case_elim!(
         BoneKeyDoor = 0xDE,
         // FireBlock for Burning Buff
         FireBlock = 0xDF,
+        IceCrystal = 0xE0,
+        GlowIceCrystal = 0xE1,
     }
 );
 
@@ -658,6 +660,8 @@ impl SpriteKind {
                 | SpriteKind::DoorWide,
                 | SpriteKind::BoneKeyhole
                 | SpriteKind::BoneKeyDoor
+                | SpriteKind::IceCrystal
+                | SpriteKind::GlowIceCrystal
         )
     }
 }
