@@ -196,7 +196,7 @@ pub enum Content {
         /// deterministic (but pseudorandom) localised output
         seed: u16,
         /// i18n arguments
-        args: HashMap<String, String>,
+        args: HashMap<String, Content>,
     },
 }
 
@@ -219,16 +219,16 @@ impl Content {
         }
     }
 
-    pub fn localized_with_args<'a, S: ToString>(
+    pub fn localized_with_args<'a, A: Into<Content>>(
         key: impl ToString,
-        args: impl IntoIterator<Item = (&'a str, S)>,
+        args: impl IntoIterator<Item = (&'a str, A)>,
     ) -> Self {
         Self::Localized {
             key: key.to_string(),
             seed: rand::random(),
             args: args
                 .into_iter()
-                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .map(|(k, v)| (k.to_string(), v.into()))
                 .collect(),
         }
     }
@@ -242,7 +242,7 @@ impl Content {
 
     pub fn localize<F>(&self, i18n_variation: F) -> String
     where
-        F: Fn(&str, u16, &HashMap<String, String>) -> String,
+        F: Fn(&str, u16, &HashMap<String, Content>) -> String,
     {
         match self {
             Content::Plain(text) => text.to_string(),

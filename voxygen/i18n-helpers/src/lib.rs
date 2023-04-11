@@ -8,13 +8,32 @@ use hashbrown::HashMap;
 use i18n::Localization;
 
 pub fn make_localizer(
-    localisation: &Localization,
-) -> impl Fn(&str, u16, &HashMap<String, String>) -> String + Copy + '_ {
-    move |key: &str, seed: u16, args: &HashMap<String, String>| {
-        localisation
-            .get_variation_ctx(key, seed, &args.iter().collect())
+    localization: &Localization,
+) -> impl Fn(&str, u16, &HashMap<String, Content>) -> String + Copy + '_ {
+    fn get(
+        localization: &Localization,
+        key: &str,
+        seed: u16,
+        args: &HashMap<String, Content>,
+    ) -> String {
+        localization
+            .get_variation_ctx(
+                key,
+                seed,
+                &args
+                    .iter()
+                    .map(|(k, v)| {
+                        (
+                            k,
+                            v.localize(move |key, seed, args| get(localization, key, seed, args)),
+                        )
+                    })
+                    .collect(),
+            )
             .into_owned()
     }
+
+    move |key: &str, seed: u16, args: &HashMap<String, Content>| get(localization, key, seed, args)
 }
 
 pub fn localize_chat_message(
