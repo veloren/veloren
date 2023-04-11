@@ -103,7 +103,7 @@ fn main() {
                         &localisation.read(),
                         SHOW_NAME,
                     )
-                    .message
+                    .1
                 ),
                 Event::Disconnect => {}, // TODO
                 Event::DisconnectionNotification(time) => {

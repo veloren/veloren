@@ -2967,7 +2967,7 @@ mod tests {
                                 &localisation.read(),
                                 true,
                             )
-                            .message;
+                            .1;
                         },
                         Event::Disconnect => {},
                         Event::DisconnectionNotification(_) => {
