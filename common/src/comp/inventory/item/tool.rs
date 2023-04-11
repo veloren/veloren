@@ -366,6 +366,10 @@ impl<T> AbilityKind<T> {
 
 #[derive(Clone, Debug, Serialize, Deserialize, Copy, Eq, PartialEq, Hash)]
 pub enum AbilityContext {
+    /// Note, in this context `Stance::None` isn't intended to be used. e.g.
+    /// `AbilityContext::None` should always be used instead of
+    /// `AbilityContext::Stance(Stance::None)` in the ability map config
+    /// files(s).
     Stance(Stance),
     None,
 }

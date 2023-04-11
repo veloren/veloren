@@ -23,17 +23,16 @@ use crate::{
     util::Dir,
 };
 
-#[cfg(not(target_arch = "wasm32"))]
-use rand::{thread_rng, Rng};
-
 use serde::{Deserialize, Serialize};
 
 use crate::{comp::Group, resources::Time};
 #[cfg(not(target_arch = "wasm32"))]
-use specs::{saveload::MarkerAllocator, Entity as EcsEntity, ReadStorage};
-#[cfg(not(target_arch = "wasm32"))]
-use std::ops::{Mul, MulAssign};
-#[cfg(not(target_arch = "wasm32"))] use vek::*;
+use {
+    rand::Rng,
+    specs::{saveload::MarkerAllocator, Entity as EcsEntity, ReadStorage},
+    std::ops::{Mul, MulAssign},
+    vek::*,
+};
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -199,10 +198,10 @@ impl Attack {
         time: Time,
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
+        rng: &mut rand::rngs::ThreadRng,
     ) -> bool {
         // TODO: Maybe move this higher and pass it as argument into this function?
         let msm = &MaterialStatManifest::load().read();
-        let mut rng = thread_rng();
 
         let AttackOptions {
             target_dodging,
@@ -518,7 +517,7 @@ impl Attack {
             .filter(|e| e.target.map_or(true, |t| t == target_group))
             .filter(|e| !avoid_effect(e))
         {
-            if effect.requirements.iter().all(|req| match req {
+            let requirements_met = effect.requirements.iter().all(|req| match req {
                 CombatRequirement::AnyDamage => accumulated_damage > 0.0 && target.health.is_some(),
                 CombatRequirement::Energy(r) => {
                     if let Some(AttackerInfo {
@@ -560,7 +559,8 @@ impl Attack {
                         false
                     }
                 },
-            }) {
+            });
+            if requirements_met {
                 is_applied = true;
                 match effect.effect {
                     CombatEffect::Knockback(kb) => {

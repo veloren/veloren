@@ -987,6 +987,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             *time,
                             |e| emitter.emit(e),
                             |o| outcomes_emitter.emit(o),
+                            &mut rng,
                         );
                     }
                 }

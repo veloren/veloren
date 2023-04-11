@@ -13,7 +13,7 @@ use common::{
     GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
     World, WriteStorage,
@@ -67,6 +67,7 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
         let mut outcomes_emitter = outcomes.emitter();
+        let mut rng = rand::thread_rng();
 
         let time = read_data.time.0;
         let dt = read_data.dt.0;
@@ -93,7 +94,6 @@ impl<'a> System<'a> for Sys {
                 .owner
                 .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
 
-            let mut rng = thread_rng();
             if rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
                     sound: Sound::new(SoundKind::Shockwave, pos.0, 40.0, time),
@@ -253,6 +253,7 @@ impl<'a> System<'a> for Sys {
                         *read_data.time,
                         |e| server_emitter.emit(e),
                         |o| outcomes_emitter.emit(o),
+                        &mut rng,
                     );
 
                     shockwave_hit_list.hit_entities.push(*uid_b);

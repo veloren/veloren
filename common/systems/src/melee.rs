@@ -66,6 +66,7 @@ impl<'a> System<'a> for Sys {
     fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks, outcomes): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
         let mut outcomes_emitter = outcomes.emitter();
+        let mut rng = rand::thread_rng();
 
         // Attacks
         for (attacker, uid, pos, ori, melee_attack, body) in (
@@ -239,6 +240,7 @@ impl<'a> System<'a> for Sys {
                         *read_data.time,
                         |e| server_emitter.emit(e),
                         |o| outcomes_emitter.emit(o),
+                        &mut rng,
                     );
 
                     if is_applied {

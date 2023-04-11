@@ -22,67 +22,67 @@ use super::Body;
 )]
 pub enum BuffKind {
     // Buffs
-    /// Restores health/time for some period
-    /// Strength should be the healing per second
+    /// Restores health/time for some period.
+    /// Strength should be the healing per second.
     Regeneration,
-    /// Restores health/time for some period for consumables
-    /// Strength should be the healing per second
+    /// Restores health/time for some period for consumables.
+    /// Strength should be the healing per second.
     Saturation,
-    /// Applied when drinking a potion
-    /// Strength should be the healing per second
+    /// Applied when drinking a potion.
+    /// Strength should be the healing per second.
     Potion,
-    /// Applied when sitting at a campfire
-    /// Strength is fraction of health restored per second
+    /// Applied when sitting at a campfire.
+    /// Strength is fraction of health restored per second.
     CampfireHeal,
-    /// Restores energy/time for some period
-    /// Strength should be the healing per second
+    /// Restores energy/time for some period.
+    /// Strength should be the healing per second.
     EnergyRegen,
-    /// Raises maximum energy
-    /// Strength should be 10x the effect to max energy
+    /// Raises maximum energy.
+    /// Strength should be 10x the effect to max energy.
     IncreaseMaxEnergy,
-    /// Raises maximum health
-    /// Strength should be the effect to max health
+    /// Raises maximum health.
+    /// Strength should be the effect to max health.
     IncreaseMaxHealth,
-    /// Makes you immune to attacks
-    /// Strength does not affect this buff
+    /// Makes you immune to attacks.
+    /// Strength does not affect this buff.
     Invulnerability,
-    /// Reduces incoming damage
+    /// Reduces incoming damage.
     /// Strength scales the damage reduction non-linearly. 0.5 provides 50% DR,
-    /// 1.0 provides 67% DR
+    /// 1.0 provides 67% DR.
     ProtectingWard,
-    /// Increases movement speed and gives health regeneration
+    /// Increases movement speed and gives health regeneration.
     /// Strength scales the movement speed linearly. 0.5 is 150% speed, 1.0 is
-    /// 200% speed. Provides regeneration at 10x the value of the strength
+    /// 200% speed. Provides regeneration at 10x the value of the strength.
     Frenzied,
     /// Increases movement and attack speed, but removes chance to get critical
     /// hits. Strength scales strength of both effects linearly. 0.5 is a
     /// 50% increase, 1.0 is a 100% increase.
     Hastened,
     /// Increases resistance to incoming poise, and poise damage dealt as health
-    /// is lost from the time the buff activated
+    /// is lost from the time the buff activated.
     /// Strength scales the resistance non-linearly. 0.5 provides 50%, 1.0
-    /// provides 67%
+    /// provides 67%.
     /// Strength scales the poise damage increase linearly, a strength of 1.0
     /// and n health less from activation will cause poise damage to increase by
-    /// n%
+    /// n%.
     Fortitude,
-    /// Increases both attack damage and vulnerability to damage
-    /// Damage increases linearly with strength, 1.0 is a 100% increase
+    /// Increases both attack damage and vulnerability to damage.
+    /// Damage increases linearly with strength, 1.0 is a 100% increase.
     /// Damage reduction decreases linearly with strength, 1.0 is a 100%
-    /// decrease
+    /// decrease.
     Reckless,
     // Debuffs
-    /// Does damage to a creature over time
-    /// Strength should be the DPS of the debuff
+    /// Does damage to a creature over time.
+    /// Strength should be the DPS of the debuff.
     Burning,
-    /// Lowers health over time for some duration
-    /// Strength should be the DPS of the debuff
+    /// Lowers health over time for some duration.
+    /// Strength should be the DPS of the debuff.
     Bleeding,
-    /// Lower a creature's max health over time
+    /// Lower a creature's max health over time.
     /// Strength only affects the target max health, 0.5 targets 50% of base
-    /// max, 1.0 targets 100% of base max
+    /// max, 1.0 targets 100% of base max.
     Cursed,
-    /// Reduces movement speed and causes bleeding damage
+    /// Reduces movement speed and causes bleeding damage.
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
     /// speed, 1.0 is 33% speed. Bleeding is at 4x the value of the strength.
     Crippled,
@@ -99,8 +99,8 @@ pub enum BuffKind {
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
     /// speed, 1.0 is 33% speed.
     Ensnared,
-    /// Drain stamina to a creature over time
-    /// Strength should be the energy per second of the debuff
+    /// Drain stamina to a creature over time.
+    /// Strength should be the energy per second of the debuff.
     Poisoned,
     /// Results from having an attack parried.
     /// Causes your attack speed to be slower to emulate the recover duration of
@@ -115,7 +115,7 @@ pub enum BuffKind {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl BuffKind {
-    /// Checks if buff is buff or debuff
+    /// Checks if buff is buff or debuff.
     pub fn is_buff(self) -> bool {
         match self {
             BuffKind::Regeneration
@@ -145,7 +145,7 @@ impl BuffKind {
         }
     }
 
-    /// Checks if buff should queue
+    /// Checks if buff should queue.
     pub fn queues(self) -> bool { matches!(self, BuffKind::Saturation) }
 
     /// Checks if the buff can affect other buff effects applied in the same
@@ -417,7 +417,7 @@ pub enum BuffChange {
         any_required: Vec<BuffCategory>,
         none_required: Vec<BuffCategory>,
     },
-    // Refreshes durations of all buffs with this kind
+    /// Refreshes durations of all buffs with this kind.
     Refresh(BuffKind),
 }
 

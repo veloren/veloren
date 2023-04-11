@@ -912,7 +912,11 @@ impl CharacterAbility {
                     ..
                 } => {
                     // If either in the air or is on ground and able to be activated from
-                    // ground
+                    // ground.
+                    //
+                    // NOTE: there is a check in CharacterState::from below that must be kept in
+                    // sync with the conditions here (it determines whether this starts in a
+                    // movement or buildup stage).
                     (data.physics.on_ground.is_none() || buildup_duration.is_some())
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
@@ -2792,7 +2796,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                 },
                 timer: Duration::default(),
-                stage_section: if data.vel.0.z < -*vertical_speed || buildup_duration.is_none() {
+                stage_section: if data.physics.on_ground.is_none() || buildup_duration.is_none() {
                     StageSection::Movement
                 } else {
                     StageSection::Buildup

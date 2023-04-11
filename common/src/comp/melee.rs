@@ -53,7 +53,9 @@ impl Component for Melee {
 #[serde(deny_unknown_fields)]
 pub struct MeleeConstructor {
     pub kind: MeleeConstructorKind,
-    // This multiplied by a fraction is added to what is specified in kind
+    /// This multiplied by a fraction is added to what is specified in `kind`.
+    ///
+    /// Note, that this must be the same variant as what is specified in `kind`.
     pub scaled: Option<MeleeConstructorKind>,
     pub range: f32,
     pub angle: f32,

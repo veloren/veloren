@@ -15,7 +15,7 @@ use common::{
 
 use common::vol::ReadVol;
 use common_ecs::{Job, Origin, Phase, System};
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
     ReadExpect, ReadStorage, SystemData, World, WriteStorage,
@@ -71,6 +71,7 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
         let mut outcomes_emitter = outcomes.emitter();
+        let mut rng = rand::thread_rng();
 
         // Attacks
         'projectile_loop: for (entity, pos, physics, vel, mut projectile) in (
@@ -86,7 +87,6 @@ impl<'a> System<'a> for Sys {
                 .owner
                 .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
 
-            let mut rng = thread_rng();
             if physics.on_surface().is_none() && rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
                     sound: Sound::new(SoundKind::Projectile, pos.0, 4.0, read_data.time.0),
@@ -175,6 +175,7 @@ impl<'a> System<'a> for Sys {
                         &mut projectile_vanished,
                         &mut outcomes_emitter,
                         &mut server_emitter,
+                        &mut rng,
                     );
                 }
 
@@ -263,6 +264,7 @@ fn dispatch_hit(
     projectile_vanished: &mut bool,
     outcomes_emitter: &mut Emitter<Outcome>,
     server_emitter: &mut Emitter<ServerEvent>,
+    rng: &mut rand::rngs::ThreadRng,
 ) {
     match projectile_info.effect {
         projectile::Effect::Attack(attack) => {
@@ -358,6 +360,7 @@ fn dispatch_hit(
                 *read_data.time,
                 |e| server_emitter.emit(e),
                 |o| outcomes_emitter.emit(o),
+                rng,
             );
         },
         projectile::Effect::Explode(e) => {
