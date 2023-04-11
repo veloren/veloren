@@ -538,9 +538,7 @@ impl Scene {
                 .get(scene_data.viewpoint_entity)
                 .map_or(1.0, |scale| scale.0);
 
-            let (is_humanoid, viewpoint_height, viewpoint_eye_height) = scene_data
-                .state
-                .ecs()
+            let (is_humanoid, viewpoint_height, viewpoint_eye_height) = ecs
                 .read_storage::<comp::Body>()
                 .get(scene_data.viewpoint_entity)
                 .map_or((false, 1.0, 0.0), |b| {

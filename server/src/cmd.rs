@@ -2093,6 +2093,7 @@ fn handle_kill_npcs(
         let players = ecs.read_storage::<comp::Player>();
         let alignments = ecs.read_storage::<Alignment>();
         let rtsim_entities = ecs.read_storage::<common::rtsim::RtSimEntity>();
+        let mut rtsim = ecs.write_resource::<crate::rtsim::RtSim>();
 
         (
             &entities,
@@ -2113,14 +2114,13 @@ fn handle_kill_npcs(
 
                 if should_kill {
                     if let Some(rtsim_entity) = rtsim_entities.get(entity).copied() {
-                        ecs.write_resource::<crate::rtsim::RtSim>()
-                            .hook_rtsim_actor_death(
-                                &ecs.read_resource::<Arc<world::World>>(),
-                                ecs.read_resource::<world::IndexOwned>().as_index_ref(),
-                                Actor::Npc(rtsim_entity.0),
-                                Some(pos.0),
-                                None,
-                            );
+                        rtsim.hook_rtsim_actor_death(
+                            &ecs.read_resource::<Arc<world::World>>(),
+                            ecs.read_resource::<world::IndexOwned>().as_index_ref(),
+                            Actor::Npc(rtsim_entity.0),
+                            Some(pos.0),
+                            None,
+                        );
                     }
                     Some(entity)
                 } else {
@@ -4108,18 +4108,15 @@ fn handle_scale(
 ) -> CmdResult<()> {
     if let (Some(scale), reset_mass) = parse_cmd_args!(args, f32, bool) {
         let scale = scale.clamped(0.025, 1000.0);
-        let _ = server
-            .state
-            .ecs_mut()
-            .write_storage::<comp::Scale>()
-            .insert(target, comp::Scale(scale));
+        insert_or_replace_component(server, target, comp::Scale(scale), "target")?;
         if reset_mass.unwrap_or(true) {
-            if let Some(body) = server.state.ecs().read_storage::<comp::Body>().get(target) {
-                let _ = server
-                    .state
-                    .ecs()
-                    .write_storage()
-                    .insert(target, comp::Mass(body.mass().0 * scale.powi(3)));
+            let mass = server.state.ecs()
+                .read_storage::<comp::Body>()
+                .get(target)
+                // Mass is derived from volume, which changes with the third power of scale
+                .map(|body| body.mass().0 * scale.powi(3));
+            if let Some(mass) = mass {
+                insert_or_replace_component(server, target, comp::Mass(mass), "target")?;
             }
         }
         server.notify_client(
