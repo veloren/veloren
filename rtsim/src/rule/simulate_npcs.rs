@@ -59,7 +59,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                     .iter()
                     .filter(|(id, site)| {
                         Some(*id) != npc.home
-                            && site.faction == npc.faction
+                            && (npc.faction.is_none() || site.faction == npc.faction)
                             && site.world_site.map_or(false, |s| {
                                 matches!(ctx.index.sites.get(s).kind, SiteKind::Refactor(_)
                 | SiteKind::CliffTown(_)
