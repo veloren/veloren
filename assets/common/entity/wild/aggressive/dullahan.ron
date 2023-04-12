@@ -1,7 +1,7 @@
 #![enable(implicit_some)]
 (
-    name: Automatic,
-    body: RandomWith("cyclops"),
+    name: Name("Dullahan"),
+    body: RandomWith("dullahan"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.creature.biped_large.default"),
     inventory: (

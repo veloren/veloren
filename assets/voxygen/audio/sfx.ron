@@ -1244,6 +1244,18 @@
                 ],
             threshold: 0.2,
         ),
+        LaserBeam: (
+            files: [
+                    "voxygen.audio.sfx.abilities.laser_beam",
+                ],
+            threshold: 1.25,
+        ),
+        CyclopsCharge: (
+            files: [
+                    "voxygen.audio.sfx.abilities.cyclops_charge",
+                ],
+            threshold: 0.3,
+        ),
         GigaRoar: (
             files: [
                     "voxygen.audio.sfx.abilities.gigas_frost_roar",

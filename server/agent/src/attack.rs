@@ -3222,6 +3222,159 @@ impl<'a> AgentData<'a> {
         );
     }
 
+    pub fn handle_cyclops_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        // Primary
+        const CYCLOPS_MELEE_RANGE: f32 = 9.0;
+        // Secondary
+        const CYCLOPS_FIRE_RANGE: f32 = 30.0;
+        // Ability(1)
+        const CYCLOPS_CHARGE_RANGE: f32 = 18.0;
+        // Ability(0) - Ablity (2)
+        const SHOCKWAVE_THRESHOLD: f32 = 0.6;
+
+        enum FCounters {
+            ShockwaveThreshold = 0,
+        }
+        enum Timers {
+            AttackChange = 0,
+        }
+
+        if agent.action_state.timers[Timers::AttackChange as usize] > 2.5 {
+            agent.action_state.timers[Timers::AttackChange as usize] = 0.0;
+        }
+
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // Sets counter at start of combat, using `condition` to keep track of whether
+        // it was already initialized
+        if !agent.action_state.initialized {
+            agent.action_state.counters[FCounters::ShockwaveThreshold as usize] =
+                1.0 - SHOCKWAVE_THRESHOLD;
+            agent.action_state.initialized = true;
+        } else if health_fraction
+            < agent.action_state.counters[FCounters::ShockwaveThreshold as usize]
+        {
+            // Scream when threshold is reached
+            controller.push_basic_input(InputKind::Ability(2));
+
+            if matches!(self.char_state, CharacterState::SelfBuff(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.counters[FCounters::ShockwaveThreshold as usize] -=
+                    SHOCKWAVE_THRESHOLD;
+            }
+        } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already AOEing, keep AOEing if not in recover
+            controller.push_basic_input(InputKind::Ability(0));
+        } else if attack_data.dist_sqrd > CYCLOPS_FIRE_RANGE.powi(2) {
+            // Chase
+            controller.push_basic_input(InputKind::Ability(1));
+        } else if attack_data.dist_sqrd > CYCLOPS_CHARGE_RANGE.powi(2) {
+            // Shoot after target if they attempt to "flee"
+            controller.push_basic_input(InputKind::Secondary);
+        } else if attack_data.dist_sqrd < CYCLOPS_MELEE_RANGE {
+            if attack_data.angle < 60.0 {
+                // Melee target if close enough and within angle
+                controller.push_basic_input(InputKind::Primary);
+            } else if attack_data.angle > 60.0 {
+                // Scream if target exceeds angle but is close enough
+                controller.push_basic_input(InputKind::Ability(0));
+            }
+        }
+
+        // Always attempt to path towards target
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Partial,
+            None,
+        );
+    }
+
+    pub fn handle_dullahan_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        // Primary (12 Default / Melee)
+        const MELEE_RANGE: f32 = 9.0;
+        // Secondary (30 Default / Range)
+        const LONG_RANGE: f32 = 30.0;
+        // Ability(0) (0.1 aka 10% Default / AOE)
+        const HP_THRESHOLD: f32 = 0.1;
+        // Ability(1) (18 Default / Dash)
+        const MID_RANGE: f32 = 18.0;
+
+        enum FCounters {
+            HealthThreshold = 0,
+        }
+        enum Timers {
+            AttackChange = 0,
+        }
+        if agent.action_state.timers[Timers::AttackChange as usize] > 2.5 {
+            agent.action_state.timers[Timers::AttackChange as usize] = 0.0;
+        }
+
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // Sets counter at start of combat, using `condition` to keep track of whether
+        // it was already initialized
+        if !agent.action_state.initialized {
+            agent.action_state.counters[FCounters::HealthThreshold as usize] = 1.0 - HP_THRESHOLD;
+            agent.action_state.initialized = true;
+        } else if health_fraction < agent.action_state.counters[FCounters::HealthThreshold as usize]
+        {
+            // InputKind when threshold is reached (Default is Ability(0))
+            controller.push_basic_input(InputKind::Ability(0));
+
+            if matches!(
+                self.char_state.ability_info().map(|ai| ai.input),
+                Some(InputKind::Ability(0))
+            ) && matches!(self.char_state.stage_section(), Some(StageSection::Recover))
+            {
+                agent.action_state.counters[FCounters::HealthThreshold as usize] -= HP_THRESHOLD;
+            }
+        } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already InputKind, keep InputKind if not in recover (Default is Shockwave)
+            controller.push_basic_input(InputKind::Ability(0));
+        } else if attack_data.dist_sqrd > LONG_RANGE.powi(2) {
+            // InputKind after target if they attempt to "flee" (>LONG)
+            controller.push_basic_input(InputKind::Ability(1));
+        } else if attack_data.dist_sqrd > MID_RANGE.powi(2) {
+            // InputKind after target if they attempt to "flee" (MID-LONG)
+            controller.push_basic_input(InputKind::Secondary);
+        } else if attack_data.dist_sqrd < MELEE_RANGE {
+            if attack_data.angle < 60.0 {
+                // InputKind target if close enough and within angle (<MELEE)
+                controller.push_basic_input(InputKind::Primary);
+            } else if attack_data.angle > 60.0 {
+                // InputKind if target exceeds angle but is close enough (FLANK/STRAFE)
+                controller.push_basic_input(InputKind::Ability(0));
+            }
+        }
+
+        // Always attempt to path towards target
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Full,
+            None,
+        );
+    }
+
     pub fn handle_clay_golem_attack(
         &self,
         agent: &mut Agent,

@@ -143,10 +143,24 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                     // Send local event used for frontend shenanigans
-                    if self.static_data.specifier == shockwave::FrontendSpecifier::IceSpikes {
-                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::FlashFreeze {
-                            pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
-                        }));
+                    match self.static_data.specifier {
+                        shockwave::FrontendSpecifier::IceSpikes => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::FlashFreeze {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
+                                },
+                            ));
+                        },
+                        shockwave::FrontendSpecifier::Ground => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::GroundSlam {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
+                                },
+                            ));
+                        },
+                        _ => {},
                     }
                 } else {
                     // Transitions to recover

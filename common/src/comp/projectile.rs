@@ -53,6 +53,11 @@ pub enum ProjectileConstructor {
         knockback: f32,
         energy_regen: f32,
     },
+    Knife {
+        damage: f32,
+        knockback: f32,
+        energy_regen: f32,
+    },
     Fireball {
         damage: f32,
         radius: f32,
@@ -114,6 +119,12 @@ pub enum ProjectileConstructor {
         knockback: f32,
         min_falloff: f32,
     },
+    LaserBeam {
+        damage: f32,
+        radius: f32,
+        knockback: f32,
+        min_falloff: f32,
+    },
 }
 
 impl ProjectileConstructor {
@@ -129,6 +140,59 @@ impl ProjectileConstructor {
         use ProjectileConstructor::*;
         match self {
             Arrow {
+                damage,
+                knockback,
+                energy_regen,
+            } => {
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    })
+                    .adjusted_by_stats(tool_stats),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let buff = CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Bleeding,
+                    dur_secs: 10.0,
+                    strength: CombatBuffStrength::DamageFraction(0.1),
+                    chance: 0.1,
+                })
+                .adjusted_by_stats(tool_stats);
+                let mut damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Projectile,
+                        kind: DamageKind::Piercing,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                )
+                .with_effect(buff);
+                if let Some(damage_effect) = damage_effect {
+                    damage = damage.with_effect(damage_effect);
+                }
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(energy)
+                    .with_effect(knockback)
+                    .with_combo_increment();
+
+                Projectile {
+                    hit_solid: vec![Effect::Stick, Effect::Bonk],
+                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
+                    time_left: Duration::from_secs(15),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
+            Knife {
                 damage,
                 knockback,
                 energy_regen,
@@ -679,6 +743,53 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
+            LaserBeam {
+                damage,
+                radius,
+                knockback,
+                min_falloff,
+            } => {
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    })
+                    .adjusted_by_stats(tool_stats),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(knockback);
+                let explosion = Explosion {
+                    effects: vec![
+                        RadiusEffect::Attack(attack),
+                        RadiusEffect::TerrainDestruction(10.0, Rgb::black()),
+                    ],
+                    radius,
+                    reagent: Some(Reagent::Yellow),
+                    min_falloff,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
         }
     }
 
@@ -688,6 +799,14 @@ impl ProjectileConstructor {
         use ProjectileConstructor::*;
         match self {
             Arrow {
+                ref mut damage,
+                ref mut energy_regen,
+                ..
+            } => {
+                *damage *= power;
+                *energy_regen *= regen;
+            },
+            Knife {
                 ref mut damage,
                 ref mut energy_regen,
                 ..
@@ -786,6 +905,14 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *radius *= range;
             },
+            LaserBeam {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
         }
         self
     }
@@ -794,6 +921,7 @@ impl ProjectileConstructor {
         use ProjectileConstructor::*;
         match self {
             Arrow { .. } => false,
+            Knife { .. } => false,
             Fireball { .. } => true,
             Frostball { .. } => true,
             Poisonball { .. } => true,
@@ -806,6 +934,7 @@ impl ProjectileConstructor {
             SeaBomb { .. } => true,
             WindBomb { .. } => true,
             IceBomb { .. } => true,
+            LaserBeam { .. } => true,
         }
     }
 }

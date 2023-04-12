@@ -889,4 +889,34 @@
             central: ("armor.empty"),
         )
     ),
+    SpectralSwordSmall: (
+        bone0: (
+            offset: (-0.5, -25.0, -8.5),
+            central: ("weapon.projectile.spectral_sword_small"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    SpectralSwordLarge: (
+        bone0: (
+            offset: (-0.5, -30.0, -8.5),
+            central: ("weapon.projectile.spectral_sword_large"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    LaserBeam: (
+        bone0: (
+            offset: (-6.0, -60.0, -17.0),
+            central: ("weapon.projectile.laser_beam"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

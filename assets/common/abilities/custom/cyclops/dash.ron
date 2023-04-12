@@ -1,0 +1,28 @@
+DashMelee(
+    energy_cost: 0,
+    melee_constructor: (
+        kind: Bash(
+            damage: 28.0,
+            poise: 20.0,
+            knockback: 2.0,
+            energy_regen: 0.0,
+        ),
+        scaled: Some(Bash(
+            damage: 36.0,
+            poise: 60.0,
+            knockback: 5.0,
+            energy_regen: 0.0,
+        )),
+        range: 6.0,
+        angle: 90.0,
+        multi_target: Some(Normal),
+    ),
+    energy_drain: 0,
+    forward_speed: 9.0,
+    buildup_duration: 0.8,
+    charge_duration: 2.0,
+    swing_duration: 0.1,
+    recover_duration: 0.8,
+    ori_modifier: 0.1,
+    charge_through: false,
+)

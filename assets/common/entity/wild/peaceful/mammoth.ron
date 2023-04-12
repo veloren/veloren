@@ -2,7 +2,7 @@
 (
     name: Automatic,
     body: RandomWith("mammoth"),
-    alignment: Alignment(Enemy),
+    alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.creature.quad_medium.mammoth"),
     inventory: (
         loadout: FromBody,

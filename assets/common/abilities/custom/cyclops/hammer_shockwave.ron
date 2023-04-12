@@ -1,0 +1,18 @@
+Shockwave(
+    energy_cost: 0,
+    buildup_duration: 1.2,
+    swing_duration: 0.12,
+    recover_duration: 0.8,
+    damage: 45.0,
+    poise_damage: 60,
+    knockback: (strength: 10.0, direction: TowardsUp),
+    shockwave_angle: 360.0,
+    shockwave_vertical_angle: 360.0,
+    shockwave_speed: 40.0,
+    shockwave_duration: 0.4,
+    requires_ground: true,
+    move_efficiency: 0.0,
+    damage_kind: Piercing,
+    specifier: Ground,
+    ori_rate: 1.0,
+)

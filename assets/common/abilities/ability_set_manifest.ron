@@ -476,6 +476,24 @@
             Simple(None, "common.abilities.custom.minotaur.frenzy"),
         ],
     ),
+     Custom("Dullahan"): (
+        primary: Simple(None, "common.abilities.custom.dullahan.melee"),
+        secondary: Simple(None, "common.abilities.custom.dullahan.fierce_darts"),
+        abilities: [
+            Simple(None, "common.abilities.custom.dullahan.knife_rain"),
+            Simple(None, "common.abilities.custom.dullahan.dash"),
+        ],
+     ),
+     Custom("Cyclops"): (
+        primary: Simple(None, "common.abilities.custom.cyclops.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.cyclops.optic_blast"),
+        abilities: [
+            Simple(None, "common.abilities.custom.cyclops.hammer_shockwave"),
+            Simple(None, "common.abilities.custom.cyclops.dash"),
+            Simple(None, "common.abilities.custom.cyclops.reinforce"),
+
+        ],
+     ),
     Custom("Clay Golem"): (
         primary: Simple(None, "common.abilities.custom.claygolem.strike"),
         secondary: Simple(None, "common.abilities.custom.claygolem.laser"),

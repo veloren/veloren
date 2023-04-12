@@ -97,6 +97,12 @@ pub enum Outcome {
     FlashFreeze {
         pos: Vec3<f32>,
     },
+    LaserBeam {
+        pos: Vec3<f32>,
+    },
+    CyclopsCharge {
+        pos: Vec3<f32>,
+    },
     Utterance {
         pos: Vec3<f32>,
         body: comp::Body,
@@ -138,6 +144,8 @@ impl Outcome {
             | Outcome::IceCrack { pos }
             | Outcome::Utterance { pos, .. }
             | Outcome::SpriteDelete { pos, .. }
+            | Outcome::CyclopsCharge { pos }
+            | Outcome::LaserBeam { pos }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }
