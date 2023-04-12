@@ -323,7 +323,6 @@ impl<'a> System<'a> for Sys {
                 emitter.emit(ServerEvent::CreateShip {
                     pos: comp::Pos(vehicle.wpos),
                     ship: vehicle.body,
-                    // agent: None,//Some(Agent::from_body(&Body::Ship(ship))),
                     rtsim_entity: Some(RtSimVehicle(vehicle_id)),
                     driver: vehicle.driver.and_then(&mut actor_info),
                 });
