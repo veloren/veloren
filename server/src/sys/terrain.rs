@@ -228,7 +228,7 @@ impl<'a> System<'a> for Sys {
 
         // TODO: Consider putting this in another system since this forces us to take
         // positions by write rather than read access.
-        let repositioned = (&entities, &mut positions, (&mut force_update).maybe(), &mut reposition_on_load)
+        let repositioned = (&entities, &mut positions, (&mut force_update).maybe(), &reposition_on_load)
             // TODO: Consider using par_bridge() because Rayon has very poor work splitting for
             // sparse joins.
             .par_join()
