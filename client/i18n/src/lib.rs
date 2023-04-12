@@ -334,39 +334,43 @@ impl LocalizationGuard {
 
     /// Localize the given content.
     pub fn get_content(&self, content: &Content) -> String {
-        fn get_content_inner(lang: &Language, content: &Content) -> Option<String> {
+        // On error, produces the localisation but with the missing key inline
+        fn get_content_inner(lang: &Language, content: &Content) -> Result<String, String> {
             match content {
-                Content::Plain(text) => Some(text.clone()),
-                Content::Localized { key, seed, args } => lang
-                    .try_variation(
-                        key,
-                        *seed,
-                        Some(
-                            &args
-                                .iter()
-                                .map(|(k, arg)| {
-                                    Some((k, match arg {
-                                        LocalizationArg::Content(content) => FluentValue::String(
-                                            get_content_inner(lang, content)?.into(),
-                                        ),
-                                        LocalizationArg::Nat(n) => FluentValue::from(n),
-                                    }))
-                                })
-                                .collect::<Option<_>>()?,
-                        ),
-                    )
-                    .map(Cow::into_owned),
+                Content::Plain(text) => Ok(text.clone()),
+                Content::Localized { key, seed, args } => {
+                    let mut is_err = false;
+                    let mut fargs = FluentArgs::new();
+                    for (k, arg) in args {
+                        fargs.set(k, match arg {
+                            LocalizationArg::Content(content) => FluentValue::String(
+                                get_content_inner(lang, content)
+                                    .unwrap_or_else(|broken_text| {
+                                        is_err = true;
+                                        broken_text
+                                    })
+                                    .into(),
+                            ),
+                            LocalizationArg::Nat(n) => FluentValue::from(n),
+                        });
+                    }
+
+                    lang.try_variation(key, *seed, Some(&fargs))
+                        .map(Cow::into_owned)
+                        .ok_or_else(|| key.clone())
+                        .and_then(|text| if is_err { Err(text) } else { Ok(text) })
+                },
             }
         }
 
-        get_content_inner(&self.active, content)
+        match get_content_inner(&self.active, content) {
+            Ok(text) => text,
             // If part of the localisation failed, use the fallback language
-            .or_else(|| self.fallback.as_ref().and_then(|fb| get_content_inner(fb, content)))
-            // If all else fails, just display the localisation key
-            .unwrap_or_else(|| match content {
-                Content::Plain(text) => text.clone(),
-                Content::Localized { key, .. } => key.clone(),
-            })
+            Err(broken_text) => self.fallback.as_ref()
+                .and_then(|fb| get_content_inner(fb, content).ok())
+                // If all else fails, localise with the active language, but with the missing key included inline
+                .unwrap_or(broken_text),
+        }
     }
 
     /// Get a localized text from the variation of given key with given
